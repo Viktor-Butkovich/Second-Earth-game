@@ -449,7 +449,10 @@ SFA folder
 	      class village
 
     notes folder
-        Organization Documentation.txt
+        Crash Log.txt
+        File Organization Documentation.txt
+        Future Plans and Known Errors.txt
+        Interface Mockups.pptx
 	  Required Documentation Updates.txt
 
     save_games folder
