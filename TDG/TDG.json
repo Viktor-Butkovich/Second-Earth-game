@@ -1,0 +1,28 @@
+{
+    "desert": {
+        "name": "desert",
+        "min_temperature": 5,
+        "max_temperature": 6,
+        "min_roughness": 1,
+        "max_roughness": 6,
+        "min_vegetation": 1,
+        "max_vegetation": 3,
+        "min_soil": 1,
+        "max_soil": 3,
+        "min_water": 1,
+        "max_water": 3
+    },
+    "ocean": {
+        "name": "ocean",
+        "min_temperature": 4,
+        "max_temperature": 6,
+        "min_roughness": 1,
+        "max_roughness": 6,
+        "min_vegetation": 1,
+        "max_vegetation": 6,
+        "min_soil": 1,
+        "max_soil": 6,
+        "min_water": 5,
+        "max_water": 6
+    }
+}
