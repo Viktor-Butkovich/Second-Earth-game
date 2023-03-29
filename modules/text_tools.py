@@ -31,7 +31,7 @@ def get_input(solicitant, message, global_manager):
     '''
     global_manager.get('input_manager').start_receiving_input(solicitant, message)
 
-def text(message, font, global_manager):
+def text(message, font, global_manager, color = 'black'):
     '''
     Description:
         Returns a rendered pygame.Surface of the inputted text
@@ -42,7 +42,7 @@ def text(message, font, global_manager):
     Output:
         pygame.Surface: Rendered pygame.Surface of the inputted text
     '''
-    return(font.render(message, False, global_manager.get('color_dict')['black']))
+    return(font.render(message, False, global_manager.get('color_dict')[color]))
 
 def manage_text_list(text_list, max_length):
     '''
