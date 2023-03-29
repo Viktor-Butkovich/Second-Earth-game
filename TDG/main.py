@@ -14,7 +14,7 @@ global_manager.set('displayed_terrain', 'none')
 global_manager.set('current_display_mode', 'browse')
 global_manager.set('valid_commands', {
     'browse': ['quit', 'save', 'new', 'print', 'delete', 'list', 'point', 'select'],
-    'terrain_view': ['quit', 'new', 'save', 'delete', 'list', 'browse', 'point', 'rename'],
+    'terrain_view': ['quit', 'new', 'save', 'delete', 'list', 'browse', 'point', 'rename', 'select'],
     'point_view': ['quit', 'new', 'save', 'list', 'browse', 'select']
 })
 global_manager.set('parameter_keywords', {

@@ -78,7 +78,7 @@ class point():
             return_value += '\n' + current_line
 
             current_line = ''
-            for i in range(0, 6):
+            for i in range(0, 7):
                 text = ''
                 if self.parameter_dict[current_parameter_type] == i:
                     text = 'X'

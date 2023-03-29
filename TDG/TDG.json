@@ -1,21 +1,8 @@
 {
-    "desert": {
-        "name": "desert",
-        "min_temperature": 5,
-        "max_temperature": 6,
-        "min_roughness": 1,
-        "max_roughness": 6,
-        "min_vegetation": 1,
-        "max_vegetation": 3,
-        "min_soil": 1,
-        "max_soil": 3,
-        "min_water": 1,
-        "max_water": 3
-    },
     "ocean": {
         "name": "ocean",
-        "min_temperature": 4,
-        "max_temperature": 6,
+        "min_temperature": 2,
+        "max_temperature": 5,
         "min_roughness": 1,
         "max_roughness": 6,
         "min_vegetation": 1,
@@ -24,5 +11,83 @@
         "max_soil": 6,
         "min_water": 5,
         "max_water": 6
+    },
+    "swamp": {
+        "name": "swamp",
+        "min_temperature": 4,
+        "max_temperature": 5,
+        "min_roughness": 1,
+        "max_roughness": 2,
+        "min_vegetation": 4,
+        "max_vegetation": 6,
+        "min_soil": 3,
+        "max_soil": 6,
+        "min_water": 3,
+        "max_water": 4
+    },
+    "jungle": {
+        "name": "jungle",
+        "min_temperature": 4,
+        "max_temperature": 5,
+        "min_roughness": 1,
+        "max_roughness": 3,
+        "min_vegetation": 5,
+        "max_vegetation": 6,
+        "min_soil": 2,
+        "max_soil": 4,
+        "min_water": 3,
+        "max_water": 4
+    },
+    "jungleMountain": {
+        "name": "jungleMountain",
+        "min_temperature": 4,
+        "max_temperature": 5,
+        "min_roughness": 4,
+        "max_roughness": 6,
+        "min_vegetation": 5,
+        "max_vegetation": 6,
+        "min_soil": 2,
+        "max_soil": 4,
+        "min_water": 3,
+        "max_water": 4
+    },
+    "mountain": {
+        "name": "mountain",
+        "min_temperature": 1,
+        "max_temperature": 6,
+        "min_roughness": 4,
+        "max_roughness": 6,
+        "min_vegetation": 1,
+        "max_vegetation": 3,
+        "min_soil": 1,
+        "max_soil": 6,
+        "min_water": 1,
+        "max_water": 3
+    },
+    "plains": {
+        "name": "plains",
+        "min_temperature": 3,
+        "max_temperature": 4,
+        "min_roughness": 1,
+        "max_roughness": 2,
+        "min_vegetation": 2,
+        "max_vegetation": 4,
+        "min_soil": 3,
+        "max_soil": 4,
+        "min_water": 2,
+        "max_water": 2
+    },
+    "desert": {
+        "name": "desert",
+        "min_temperature": 5,
+        "max_temperature": 6,
+        "min_roughness": 1,
+        "max_roughness": 2,
+        "min_vegetation": 1,
+        "max_vegetation": 2,
+        "min_soil": 1,
+        "max_soil": 2,
+        "min_water": 1,
+        "max_water": 1
     }
 }
