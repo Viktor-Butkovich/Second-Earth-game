@@ -22,7 +22,7 @@ def print_terrains(input_list, global_manager):
 
 def new(input_list, global_manager):
     if len(global_manager.get('point_list')) > 0:
-        last_point = global_manager.get('point_list')[0]
+        last_point = global_manager.get('point_list')[-1]
         new_terrain = utility.create_terrain(global_manager, last_point.parameter_dict)
     else:
         new_terrain = utility.create_terrain(global_manager)
@@ -135,7 +135,7 @@ def select_point(input_list, global_manager):
         selected_point = utility.create_point(global_manager, parameter_dict)
 
     elif len(global_manager.get('point_list')) > 0:
-        selected_point = global_manager.get('point_list')[0]
+        selected_point = global_manager.get('point_list')[-1]
     else:
         selected_point = utility.create_point(global_manager)
     global_manager.set('displayed_point', selected_point)
@@ -230,11 +230,20 @@ def check_point_overlap(input_list, global_manager):
 def volume_summary(input_list, global_manager):
     total_volume = 0
     possible_volume = 6 ** len(global_manager.get('parameter_types'))
-    for current_terrain in global_manager.get('terrain_list'):
-        current_volume = current_terrain.volume()
-        current_line = current_terrain.name.capitalize() + ': ' + str(current_volume) + '/' + str(possible_volume) + ' ('
+    printed_list = []
+    max_volume = 0
+    while len(printed_list) < len(global_manager.get('terrain_list')):
+        max_terrain = 'none'
+        max_volume = 0
+        for current_terrain in global_manager.get('terrain_list'):
+            if (not current_terrain in printed_list) and current_terrain.volume() > max_volume:
+                max_terrain = current_terrain
+                max_volume = max_terrain.volume()
+        current_volume = max_terrain.volume()
+        current_line = max_terrain.name + ': ' + str(current_volume) + '/' + str(possible_volume) + ' ('
         current_line += str(math.floor(current_volume/possible_volume * 100 * 100)/100) + '%)'
         print(current_line)
+        printed_list.append(max_terrain)
         total_volume += current_volume
     print()
     unused_volume = possible_volume - total_volume
