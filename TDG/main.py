@@ -11,54 +11,20 @@ global_manager.set('parameter_types', ['temperature', 'roughness', 'vegetation',
 global_manager.set('terrain_list', [])
 global_manager.set('point_list', [])
 global_manager.set('displayed_terrain', 'none')
+global_manager.set('displayed_point', 'none')
 global_manager.set('current_display_mode', 'browse')
 global_manager.set('valid_commands', {
-    'browse': ['quit', 'save', 'new', 'print', 'delete', 'list', 'point', 'select'],
-    'terrain_view': ['quit', 'new', 'save', 'delete', 'list', 'browse', 'point', 'rename', 'select'],
-    'point_view': ['quit', 'new', 'save', 'list', 'browse', 'select']
+    'browse': ['quit', 'save', 'new', 'print', 'delete', 'list', 'point', 'select', 'next', 'findOverlap', 'volume'],
+    'terrain_view': ['quit', 'new', 'save', 'delete', 'list', 'browse', 'point', 'rename', 'select', 'next', 'findOverlap', 'volume', 'copy'],
+    'point_view': ['quit', 'new', 'save', 'delete', 'list', 'browse', 'select', 'next', 'findOverlap', 'checkOverlap', 'volume']
 })
 global_manager.set('parameter_keywords', {
-    'temperature': {
-        1: 'frozen',
-        2: 'cold',
-        3: 'cool',
-        4: 'warm',
-        5: 'hot',
-        6: 'scorching'
-    },
-    'roughness': {
-        1: 'flat',
-        2: 'rolling',
-        3: 'hilly',
-        4: 'rugged',
-        5: 'mountainous',
-        6: 'extreme'
-    },
-    'vegetation': {
-        1: 'barren',
-        2: 'sparse',
-        3: 'light',
-        4: 'medium',
-        5: 'heavy',
-        6: 'lush'
-    },
-    'soil': {
-        1: 'rock',
-        2: 'sand',
-        3: 'clay',
-        4: 'silt',
-        5: 'peat',
-        6: 'loam'
-    },
-    'water': {
-        1: 'parched',
-        2: 'dry',
-        3: 'wet',
-        4: 'soaked',
-        5: 'shallow',
-        6: 'deep'
-    }
-})
+    'temperature': {1: 'frozen', 2: 'cold', 3: 'cool', 4: 'warm', 5: 'hot', 6: 'scorching'},
+    'roughness': {1: 'flat', 2: 'rolling', 3: 'hilly', 4: 'rugged', 5: 'mountainous', 6: 'extreme'},
+    'vegetation': {1: 'barren', 2: 'sparse', 3: 'light', 4: 'medium', 5: 'heavy', 6: 'lush'},
+    'soil': {1: 'rock', 2: 'sand', 3: 'clay', 4: 'silt', 5: 'peat', 6: 'loam'},
+    'water': {1: 'parched', 2: 'dry', 3: 'wet', 4: 'soaked', 5: 'shallow', 6: 'deep'}})
+
 parameter_first_letters = []
 for current_parameter in global_manager.get('parameter_types'):
     parameter_first_letters.append(current_parameter[0])
@@ -106,6 +72,16 @@ while current_input[0] != 'quit':
                     input_commands.edit_point(current_input, global_manager)
             elif current_input[0] == 'point':
                 input_commands.select_point(current_input, global_manager)
+            elif current_input[0] == 'next':
+                input_commands.select_next_point(current_input, global_manager)
+            elif current_input[0] == 'findOverlap':
+                input_commands.select_first_overlap(current_input, global_manager)
+            elif current_input[0] == 'checkOverlap':
+                input_commands.check_point_overlap(current_input, global_manager)
+            elif current_input[0] == 'volume':
+                input_commands.volume_summary(current_input, global_manager)
+            elif current_input[0] == 'copy':
+                input_commands.copy_terrain(current_input, global_manager)
         else:
             print(current_input[0] + ' is not a valid command in the ' + global_manager.get('current_display_mode') + ' display mode\n')
     else:

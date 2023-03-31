@@ -22,7 +22,7 @@
         "max_vegetation": 6,
         "min_soil": 3,
         "max_soil": 6,
-        "min_water": 3,
+        "min_water": 4,
         "max_water": 4
     },
     "jungle": {
@@ -36,7 +36,7 @@
         "min_soil": 2,
         "max_soil": 4,
         "min_water": 3,
-        "max_water": 4
+        "max_water": 3
     },
     "jungleMountain": {
         "name": "jungleMountain",
