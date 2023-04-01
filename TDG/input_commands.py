@@ -1,5 +1,6 @@
 import save_load_tools
 import utility
+import math
 
 def save(input_list, global_manager):
     global_manager.set('current_display_mode', 'browse')
@@ -12,14 +13,20 @@ def save(input_list, global_manager):
 
 def print_terrains(input_list, global_manager):
     if len(input_list) > 1:
-        printed_terrain = input_list[1]
-        print(utility.get_terrain_by_name(printed_terrain, global_manager))
+        input_list.pop(0)
+        for current_input in input_list:
+            print(utility.get_terrain_by_name(current_input, global_manager))
     else:
         for current_terrain in global_manager.get('terrain_list'):
             print(current_terrain)
 
 def new(input_list, global_manager):
-    global_manager.set('displayed_terrain', utility.create_default_terrain(global_manager))
+    if len(global_manager.get('point_list')) > 0:
+        last_point = global_manager.get('point_list')[-1]
+        new_terrain = utility.create_terrain(global_manager, last_point.parameter_dict)
+    else:
+        new_terrain = utility.create_terrain(global_manager)
+    global_manager.set('displayed_terrain', new_terrain)
     global_manager.set('current_display_mode', 'terrain_view')
 
 def delete(input_list, global_manager):
@@ -116,8 +123,156 @@ def rename(input_list, global_manager):
         print('No name was specified')
 
 def select_point(input_list, global_manager):
-    if len(global_manager.get('point_list')) > 0:
-        global_manager.set('displayed_point', global_manager.get('point_list')[0])
+    if len(input_list) == 1 + len(global_manager.get('parameter_types')):
+        parameter_dict = {}
+        index = 0
+        for current_parameter in global_manager.get('parameter_types'):
+            index += 1
+            if input_list[index].isdigit():
+                parameter_dict[current_parameter] = int(input_list[index])
+            else:
+                parameter_dict[current_parameter] = 1
+        selected_point = utility.create_point(global_manager, parameter_dict)
+
+    elif len(global_manager.get('point_list')) > 0:
+        selected_point = global_manager.get('point_list')[-1]
     else:
-        global_manager.set('displayed_point', utility.create_default_point(global_manager))
+        selected_point = utility.create_point(global_manager)
+    global_manager.set('displayed_point', selected_point)
     global_manager.set('current_display_mode', 'point_view')
+
+def select_next_point(input_list, global_manager):
+    terrain_dict = {}
+    starting_points = []
+    parameter_types = global_manager.get('parameter_types')
+    for current_parameter in parameter_types:
+        if global_manager.get('displayed_point') == 'none':
+            starting_points.append(0)
+        else:
+            starting_points.append(global_manager.get('displayed_point').parameter_dict[current_parameter])
+        terrain_dict[current_parameter] = starting_points[-1]
+
+    #starts from current point
+    for a in range(starting_points[0], 6):
+        terrain_dict[parameter_types[0]] = a + 1
+        for b in range(starting_points[1], 6):
+            terrain_dict[parameter_types[1]] = b + 1
+            for c in range(starting_points[2], 6):
+                terrain_dict[parameter_types[2]] = c + 1
+                for d in range(starting_points[3], 6):
+                    terrain_dict[parameter_types[3]] = d + 1
+                    for e in range(starting_points[4], 6):
+                        terrain_dict[parameter_types[4]] = e + 1
+                        current_terrain = utility.get_terrain(terrain_dict, global_manager)
+                        if current_terrain == 'none':
+                            terrain_dict['init_type'] = 'point'
+                            global_manager.set('displayed_point', global_manager.get('actor_creation_manager').create(terrain_dict, global_manager))
+                            global_manager.set('current_display_mode', 'point_view')
+                            return(global_manager.get('displayed_point'))
+                
+    #restarts from (1, 1, 1, 1, 1) if no empty points are found
+    for a in range(0, starting_points[0] + 1):
+        terrain_dict[parameter_types[0]] = a + 1
+        for b in range(0, starting_points[1] + 1):
+            terrain_dict[parameter_types[1]] = b + 1
+            for c in range(0, starting_points[2] + 1):
+                terrain_dict[parameter_types[2]] = c + 1
+                for d in range(0, starting_points[3] + 1):
+                    terrain_dict[parameter_types[3]] = d + 1
+                    for e in range(0, starting_points[4] + 1):
+                        terrain_dict[parameter_types[4]] = e + 1
+                        current_terrain = utility.get_terrain(terrain_dict, global_manager)
+                        if current_terrain == 'none':
+                            terrain_dict['init_type'] = 'point'
+                            global_manager.set('displayed_point', global_manager.get('actor_creation_manager').create(terrain_dict, global_manager))
+                            global_manager.set('current_display_mode', 'point_view')
+                            return(global_manager.get('displayed_point'))
+    return('none')
+    
+def select_first_overlap(input_list, global_manager):
+    terrain_dict = {}
+    parameter_types = global_manager.get('parameter_types')
+    for a in range(6):
+        terrain_dict[parameter_types[0]] = a + 1
+        for b in range(6):
+            terrain_dict[parameter_types[1]] = b + 1
+            for c in range(6):
+                terrain_dict[parameter_types[2]] = c + 1
+                for d in range(6):
+                    terrain_dict[parameter_types[3]] = d + 1
+                    for e in range(6):
+                        terrain_dict[parameter_types[4]] = e + 1
+                        matching_terrains = utility.get_all_terrains(terrain_dict, global_manager)
+                        matching_terrain_names = []
+                        if len(matching_terrains) > 1:
+                            for current_terrain in matching_terrains:
+                                matching_terrain_names.append(current_terrain.name)
+                            print('Overlapping terrains: ' + utility.comma_list(matching_terrain_names))
+                            terrain_dict['init_type'] = 'point'
+                            global_manager.set('displayed_point', global_manager.get('actor_creation_manager').create(terrain_dict, global_manager))
+                            global_manager.set('current_display_mode', 'point_view')
+                            return(global_manager.get('displayed_point'))
+    global_manager.set('current_display_mode', 'browse')
+    print('No overlap')
+    return('none')
+        
+def check_point_overlap(input_list, global_manager):
+    displayed_point = global_manager.get('displayed_point')
+    matching_terrains = utility.get_all_terrains(displayed_point.parameter_dict, global_manager)
+    matching_terrain_names = []
+    if len(matching_terrains) > 1:
+        for current_terrain in matching_terrains:
+            matching_terrain_names.append(current_terrain.name)
+        print('Overlapping terrains: ' + utility.comma_list(matching_terrain_names))
+    else:
+        print('No overlap')
+
+def volume_summary(input_list, global_manager):
+    total_volume = 0
+    possible_volume = 6 ** len(global_manager.get('parameter_types'))
+    printed_list = []
+    max_volume = 0
+    while len(printed_list) < len(global_manager.get('terrain_list')):
+        max_terrain = 'none'
+        max_volume = 0
+        for current_terrain in global_manager.get('terrain_list'):
+            if (not current_terrain in printed_list) and current_terrain.volume() > max_volume:
+                max_terrain = current_terrain
+                max_volume = max_terrain.volume()
+        current_volume = max_terrain.volume()
+        current_line = max_terrain.name + ': ' + str(current_volume) + '/' + str(possible_volume) + ' ('
+        current_line += str(math.floor(current_volume/possible_volume * 100 * 100)/100) + '%)'
+        print(current_line)
+        printed_list.append(max_terrain)
+        total_volume += current_volume
+    print()
+    unused_volume = possible_volume - total_volume
+    current_line = 'Undefined: ' + str(unused_volume) + '/' + str(possible_volume) + ' ('
+    current_line += str(math.floor(unused_volume/possible_volume * 100 * 100)/100) + '%)'
+    print(current_line)
+
+def copy_terrain(input_list, global_manager):
+    current_terrain = global_manager.get('displayed_terrain')
+    input_dict = current_terrain.to_save_dict()
+    input_dict['name'] += 'Copy'
+    input_dict['init_type'] = 'terrain'
+    new_terrain = global_manager.get('actor_creation_manager').create(input_dict, global_manager)
+    global_manager.set('displayed_terrain', new_terrain)
+    return(new_terrain)
+
+def find_possible_expansion(input_list, global_manager):
+    changes = [-1, 1]
+    option_list = []
+    for current_parameter in global_manager.get('parameter_types'):
+        for change_type in changes:
+            if global_manager.get('current_display_mode') == 'terrain_view':
+                current_terrain = global_manager.get('displayed_terrain')
+                if current_terrain.expansion_possible(current_parameter, change_type):
+                    option_list.append(current_parameter + ' ' + str(change_type))
+            else:
+                for current_terrain in global_manager.get('terrain_list'):
+                    if current_terrain.expansion_possible(current_parameter, change_type):
+                        option_list.append(current_terrain.name + ' ' + current_parameter + ' ' + str(change_type))
+    return_value = utility.comma_list(option_list)
+    print(return_value)
+    return(return_value)
