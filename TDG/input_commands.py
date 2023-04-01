@@ -171,15 +171,15 @@ def select_next_point(input_list, global_manager):
                             return(global_manager.get('displayed_point'))
                 
     #restarts from (1, 1, 1, 1, 1) if no empty points are found
-    for a in range(starting_points[0]):
+    for a in range(0, starting_points[0] + 1):
         terrain_dict[parameter_types[0]] = a + 1
-        for b in range(starting_points[1]):
+        for b in range(0, starting_points[1] + 1):
             terrain_dict[parameter_types[1]] = b + 1
-            for c in range(starting_points[2]):
+            for c in range(0, starting_points[2] + 1):
                 terrain_dict[parameter_types[2]] = c + 1
-                for d in range(starting_points[3]):
+                for d in range(0, starting_points[3] + 1):
                     terrain_dict[parameter_types[3]] = d + 1
-                    for e in range(starting_points[4]):
+                    for e in range(0, starting_points[4] + 1):
                         terrain_dict[parameter_types[4]] = e + 1
                         current_terrain = utility.get_terrain(terrain_dict, global_manager)
                         if current_terrain == 'none':
@@ -259,3 +259,20 @@ def copy_terrain(input_list, global_manager):
     new_terrain = global_manager.get('actor_creation_manager').create(input_dict, global_manager)
     global_manager.set('displayed_terrain', new_terrain)
     return(new_terrain)
+
+def find_possible_expansion(input_list, global_manager):
+    changes = [-1, 1]
+    option_list = []
+    for current_parameter in global_manager.get('parameter_types'):
+        for change_type in changes:
+            if global_manager.get('current_display_mode') == 'terrain_view':
+                current_terrain = global_manager.get('displayed_terrain')
+                if current_terrain.expansion_possible(current_parameter, change_type):
+                    option_list.append(current_parameter + ' ' + str(change_type))
+            else:
+                for current_terrain in global_manager.get('terrain_list'):
+                    if current_terrain.expansion_possible(current_parameter, change_type):
+                        option_list.append(current_terrain.name + ' ' + current_parameter + ' ' + str(change_type))
+    return_value = utility.comma_list(option_list)
+    print(return_value)
+    return(return_value)

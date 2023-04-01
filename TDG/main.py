@@ -14,9 +14,9 @@ global_manager.set('displayed_terrain', 'none')
 global_manager.set('displayed_point', 'none')
 global_manager.set('current_display_mode', 'browse')
 global_manager.set('valid_commands', {
-    'browse': ['quit', 'save', 'new', 'print', 'delete', 'list', 'point', 'select', 'next', 'findOverlap', 'volume'],
-    'terrain_view': ['quit', 'new', 'print', 'save', 'delete', 'list', 'browse', 'point', 'rename', 'select', 'next', 'findOverlap', 'volume', 'copy'],
-    'point_view': ['quit', 'new', 'print', 'save', 'delete', 'list', 'browse', 'point', 'select', 'next', 'findOverlap', 'checkOverlap', 'volume']
+    'browse': ['quit', 'save', 'new', 'print', 'delete', 'list', 'point', 'select', 'next', 'findOverlap', 'volume', 'findExpansion'],
+    'terrain_view': ['quit', 'new', 'print', 'save', 'delete', 'list', 'browse', 'point', 'rename', 'select', 'next', 'findOverlap', 'volume', 'copy', 'findExpansion'],
+    'point_view': ['quit', 'new', 'print', 'save', 'delete', 'list', 'browse', 'point', 'select', 'next', 'findOverlap', 'checkOverlap', 'volume', 'findExpansion']
 })
 global_manager.set('parameter_keywords', {
     'temperature': {1: 'frozen', 2: 'cold', 3: 'cool', 4: 'warm', 5: 'hot', 6: 'scorching'},
@@ -82,6 +82,8 @@ while current_input[0] != 'quit':
                 input_commands.volume_summary(current_input, global_manager)
             elif current_input[0] == 'copy':
                 input_commands.copy_terrain(current_input, global_manager)
+            elif current_input[0] == 'findExpansion':
+                input_commands.find_possible_expansion(current_input, global_manager)
         else:
             print(current_input[0] + ' is not a valid command in the ' + global_manager.get('current_display_mode') + ' display mode\n')
     else:

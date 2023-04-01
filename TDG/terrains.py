@@ -54,6 +54,38 @@ class terrain:
             return_value *= self.parameter_dict[current_parameter_type].width()
         return(return_value)
 
+    def expansion_possible(self, parameter, change):
+        test_parameter_dict = {}
+        parameter_types = self.global_manager.get('parameter_types')
+
+        #for current_parameter in parameter_types:
+        #    if current_parameter == parameter:
+        #        if change > 0:
+        #            test_parameter_dict[current_parameter] = self.parameter_dict[current_parameter].max + change
+        #        else:
+        #            test_parameter_dict[current_parameter] = self.parameter_dict[current_parameter].min + change
+        #    else:
+        #        test_parameter_dict[current_parameter] = self.parameter_dict[current_parameter].min
+        if self.parameter_dict[parameter].min + change < 1 or self.parameter_dict[parameter].max + change > 6:
+            return(False)
+        for a in range(self.parameter_dict[parameter_types[0]].min, self.parameter_dict[parameter_types[0]].max + 1):
+            test_parameter_dict[parameter_types[0]] = a
+            for b in range(self.parameter_dict[parameter_types[1]].min, self.parameter_dict[parameter_types[1]].max + 1):
+                test_parameter_dict[parameter_types[1]] = b
+                for c in range(self.parameter_dict[parameter_types[2]].min, self.parameter_dict[parameter_types[2]].max + 1):
+                    test_parameter_dict[parameter_types[2]] = c
+                    for d in range(self.parameter_dict[parameter_types[3]].min, self.parameter_dict[parameter_types[3]].max + 1):
+                        test_parameter_dict[parameter_types[3]] = d
+                        for e in range(self.parameter_dict[parameter_types[4]].min, self.parameter_dict[parameter_types[4]].max + 1):
+                            test_parameter_dict[parameter_types[4]] = e
+                            if change > 0: #forces value of test parameter w/ inputted change regardless of loop state
+                                test_parameter_dict[parameter] = self.parameter_dict[parameter].max + change
+                            else:
+                                test_parameter_dict[parameter] = self.parameter_dict[parameter].min + change
+                            if utility.get_terrain(test_parameter_dict, self.global_manager) != 'none':
+                                return(False)
+        return(True)
+
 class point():
     def __init__(self, input_dict, global_manager):
         self.global_manager = global_manager
