@@ -496,7 +496,6 @@ try:
     global_manager.set('displayed_prosecution', 'none')
     global_manager.set('tile_info_display_list', [])
     global_manager.set('tile_ordered_label_list', [])
-    global_manager.set('defense_info_display_list', [])
     global_manager.set('prosecution_info_display_list', [])
     global_manager.set('displayed_tile', 'none')
     global_manager.set('dice_list', [])

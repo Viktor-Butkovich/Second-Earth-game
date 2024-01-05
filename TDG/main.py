@@ -1,9 +1,9 @@
 #Earth Terrain Definitional Grid: interactive way to define and compare Earth terrains
 
-import data_managers
-import utility
-import save_load_tools
-import input_commands
+import modules.data_managers as data_managers
+import modules.utility as utility
+import modules.save_load_tools as save_load_tools
+import modules.input_commands as input_commands
 
 global_manager = data_managers.global_manager_template()
 global_manager.set('actor_creation_manager', data_managers.actor_creation_manager_template())
@@ -31,7 +31,8 @@ for current_parameter in global_manager.get('parameter_types'):
 global_manager.get('valid_commands')['terrain_view'] += parameter_first_letters
 global_manager.get('valid_commands')['point_view'] += parameter_first_letters
 
-save_load_tools.load_terrains('TDG/TDG.json', global_manager)
+file_name = 'modules/TDG.json'
+save_load_tools.load_terrains(file_name, global_manager)
 
 current_input = ['start']
 while current_input[0] != 'quit':
