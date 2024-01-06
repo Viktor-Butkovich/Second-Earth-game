@@ -27,7 +27,7 @@ class owner:
 
     def remove_participants(self, quantity: int) -> None:
         self.num_participants -= quantity
-        if self.num_participants <= 0:
+        if self.num_participants <= 0 and self in status.owners:
             if self.seller:
                 print(self.name + ' has no more to sell')
             else:
@@ -120,9 +120,7 @@ def conduct_round() -> bool:
     print_summary()
     if status.buyers and status.sellers:
         participant_1: Tuple[owner, int] = get_random_participant()
-        participant_2: Tuple[owner, int] = None
-        while (not participant_2) or participant_2 == participant_1:
-            participant_2 = get_random_participant()
+        participant_2: Tuple[owner, int] = get_random_participant()
         if participant_1[0].seller:
             print('Participant 1: seller ' + str(participant_1[1]) + ' of ' + participant_1[0].name + ' for ' + str(participant_1[0].price))
         else:
@@ -170,7 +168,6 @@ def conduct_round() -> bool:
                             current_owner.looking_for_better_deal = False
                         else:
                             print(current_owner.name + ' failed to find a transaction and left the market')
-                            #current_owner.remove()
                             current_owner.remove_participants(1)
                     elif decision >= 6 and not current_owner.looking_for_better_deal:
                         current_owner.improve_price()

@@ -1,8 +1,8 @@
-1 25 2.4 25 Seller1
-1 25 1.7 25 Seller3
-1 25 2.1 25 Seller4
-1 25 2.4 25 Seller2
-0 895 72.5 250 Buyer4
-0 905 69.9 250 Buyer1
-0 927 74.3 250 Buyer2
-0 899 70.3 250 Buyer3
+1 25 2.0 25 Seller4
+1 25 1.4 25 Seller3
+1 25 1.6 25 Seller1
+1 25 1.7 25 Seller2
+0 602 11.6 250 Buyer4
+0 619 13.0 250 Buyer3
+0 596 10.4 250 Buyer1
+0 610 11.2 250 Buyer2
