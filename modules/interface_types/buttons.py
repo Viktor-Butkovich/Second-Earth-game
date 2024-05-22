@@ -2471,11 +2471,8 @@ class switch_game_mode_button(button):
                         "choices": ["confirm main menu", "none"],
                     }
                 )
-
             if self.to_mode != "main_menu":
                 game_transitions.set_game_mode(self.to_mode)
-                if status.minister_appointment_tutorial_completed:
-                    status.exit_minister_screen_tutorial_completed = True
         else:
             text_utility.print_to_screen("You are busy and cannot switch screens.")
 

@@ -816,15 +816,6 @@ class minister:
 
         minister_utility.update_available_minister_display()
 
-        if not status.minister_appointment_tutorial_completed:
-            completed = True
-            for current_position in constants.minister_types:
-                if status.current_ministers[current_position] == None:
-                    completed = False
-            if completed:
-                status.minister_appointment_tutorial_completed = True
-                tutorial_utility.show_tutorial_notifications()
-
     def skill_setup(self):
         """
         Description:

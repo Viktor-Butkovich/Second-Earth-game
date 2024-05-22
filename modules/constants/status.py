@@ -134,5 +134,4 @@ previous_sales_report: str = None
 previous_financial_report: str = None
 transaction_history: Dict[str, float] = {}
 
-minister_appointment_tutorial_completed: bool = False
-exit_minister_screen_tutorial_completed: bool = False
+initial_tutorial_completed: bool = False

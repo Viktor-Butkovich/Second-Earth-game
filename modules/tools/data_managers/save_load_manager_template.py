@@ -68,8 +68,7 @@ class save_load_manager_template:
         self.copied_statuses.append("previous_production_report")
         self.copied_statuses.append("previous_sales_report")
         self.copied_statuses.append("previous_financial_report")
-        self.copied_statuses.append("minister_appointment_tutorial_completed")
-        self.copied_statuses.append("exit_minister_screen_tutorial_completed")
+        self.copied_statuses.append("initial_tutorial_completed")
         self.copied_statuses.append("transaction_history")
 
         self.copied_flags = []
@@ -150,13 +149,11 @@ class save_load_manager_template:
 
         turn_management_utility.start_player_turn(True)
         if not constants.effect_manager.effect_active("skip_intro"):
-            status.minister_appointment_tutorial_completed = False
-            status.exit_minister_screen_tutorial_completed = False
+            status.initial_tutorial_completed = False
             game_transitions.set_game_mode("ministers")
             tutorial_utility.show_tutorial_notifications()
         else:
-            status.minister_appointment_tutorial_completed = True
-            status.exit_minister_screen_tutorial_completed = True
+            status.initial_tutorial_completed = True
             for current_minister_position_index in range(len(constants.minister_types)):
                 status.minister_list[current_minister_position_index].appoint(
                     constants.minister_types[current_minister_position_index]
