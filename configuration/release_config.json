@@ -1,0 +1,40 @@
+{
+   "effects": [
+      "block_native_warrior_spawning",
+      "boost_attrition",
+      "infinite_village_workers", 
+      "damaged_buildings", 
+      "show_corruption_on_save", 
+      "show_minister_stealing", 
+      "show_evil",
+      "show_fear", 
+      "remove_fog_of_war", 
+      "fast_turn", 
+      "reveal_beasts", 
+      "infinite_commodities", 
+      "band_of_thieves",
+      "nine_mortal_men", 
+      "ministry_of_magic",
+      "free_upgrades",
+      "lawbearer",
+      "farm_upstate",
+      "show_modifiers", 
+      "hide_grid_lines", 
+      "enable_oceans", 
+      "skip_intro", 
+      "show_lore_mission_locations",
+      "instant_lore_mission",
+      "promote_on_sentry",
+      "debug_print",
+      "eradicate_slave_trade",
+      "track_fps",
+      "transparent_ministers",
+      "reset_achievements",
+      "fullscreen",
+      "link_inventory_tabs",
+      "enable_crash_button"
+   ],
+   "active_effects": [
+      "fullscreen"
+   ]
+}
