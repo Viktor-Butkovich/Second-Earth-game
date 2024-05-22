@@ -3,4 +3,4 @@
 *.pyc
 notes/Crash Log.txt
 configuration/dev_config.json
-SFA_exe
+*_exe

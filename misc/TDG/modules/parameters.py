@@ -6,8 +6,8 @@ class parameter:
 
     def in_bounds(self, value):
         if value < self.min or value > self.max:
-            return(False)
-        return(True)
-    
+            return False
+        return True
+
     def width(self):
-        return(self.max - self.min + 1)
+        return self.max - self.min + 1

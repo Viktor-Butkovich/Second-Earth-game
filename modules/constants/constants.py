@@ -31,7 +31,7 @@ from modules.constructs.fonts import font
 effect_manager: effect_manager_template = effect_manager_template()
 pygame.init()
 pygame.mixer.init()
-pygame.display.set_icon(pygame.image.load("graphics/misc/SFA.png"))
+pygame.display.set_icon(pygame.image.load("graphics/misc/SE.png"))
 pygame.display.set_caption("SFA")
 pygame.key.set_repeat(300, 200)
 pygame.mixer.music.set_endevent(pygame.USEREVENT + 1)
