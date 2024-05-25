@@ -79,9 +79,6 @@ class achievement_manager_template:
             achievement_type in self.victory_conditions
             and not achievement_type in flags.victories_this_game
         ):
-            with open("save_games/achievements.pickle", "wb") as handle:
-                pickle.dump(self.achievements, handle)
-                handle.close()
             if verbose:
                 attached_interface_elements = (
                     action_utility.generate_free_image_input_dict(
@@ -183,6 +180,10 @@ class achievement_manager_template:
 
             if not flags.any_slaves and "Land of the Free" not in self.achievements:
                 self.achieve("Land of the Free")
+
+        with open("save_games/achievements.pickle", "wb") as handle:
+            pickle.dump(self.achievements, handle)
+            handle.close()
 
     def get_description(self, achievement_type: str) -> str:
         """
