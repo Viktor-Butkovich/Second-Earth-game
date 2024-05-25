@@ -135,11 +135,6 @@ class grid(interface_elements.interface_element):
                 min_length, max_length, constants.terrain_list
             )
         if not constants.effect_manager.effect_active("enable_oceans"):
-            for row in self.cell_list:
-                terrain_variant = random.randrange(
-                    0, constants.terrain_variant_dict["ocean_water"]
-                )
-                row[0].set_terrain("water", terrain_variant)
             num_rivers = random.randrange(2, 4)
             valid = False
             while not valid:
@@ -624,6 +619,7 @@ class grid(interface_elements.interface_element):
         Output:
             None
         """
+        return
         start_y = 1
         current_x = start_x
         current_y = start_y
@@ -1030,7 +1026,7 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
         )
         return_grid = mini_grid(from_save, input_dict)
 
-    elif grid_type in ["earth_grid", "asia_grid", "slave_traders_grid"]:
+    elif grid_type in constants.abstract_grid_type_list:
         input_dict.update(
             {
                 "coordinates": scaling.scale_coordinates(

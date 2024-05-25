@@ -371,7 +371,7 @@ def terrain_feature_types_config():
         {
             "terrain_feature_type": "cataract",
             "requirements": {"terrain": "water", "min_y": 1},
-            "frequency": (1, 12),
+            "frequency": (0, 1),  # (1, 12),
             "description": [
                 "A cataract, or waterfall, slows most movement through this section of the river",
                 "Canoes can not traverse cataracts, but canoe units can spend their whole turn moving into a cataract in the same way that non-canoe units can enter rivers",
@@ -427,7 +427,7 @@ def terrains():
     Output:
         None
     """
-    for current_terrain in constants.terrain_list + ["ocean_water", "river_water"]:
+    for current_terrain in constants.terrain_list:
         current_index = 0
         while os.path.exists(
             "graphics/terrains/" + current_terrain + "_" + str(current_index) + ".png"
@@ -988,7 +988,7 @@ def buttons():
         "coordinates": scaling.scale_coordinates(0, 10),
         "width": scaling.scale_width(150),
         "height": scaling.scale_height(100),
-        "image_id": "buttons/european_hq_button.png",
+        "image_id": "misc/empty.png",
         "modes": ["strategic", "earth"],
         "to_mode": "earth",
         "init_type": "free image",
@@ -997,9 +997,9 @@ def buttons():
     strategic_flag_icon = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
-    status.flag_icon_list.append(
-        strategic_flag_icon
-    )  # sets button image to update to flag icon when country changes
+    # status.flag_icon_list.append(
+    #    strategic_flag_icon
+    # )  # sets button image to update to flag icon when country changes
 
     input_dict["modes"] = ["ministers"]
     input_dict["coordinates"] = scaling.scale_coordinates(
@@ -1009,7 +1009,7 @@ def buttons():
     ministers_flag_icon = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
-    status.flag_icon_list.append(ministers_flag_icon)
+    # status.flag_icon_list.append(ministers_flag_icon)
 
     input_dict = {
         "coordinates": scaling.scale_coordinates(

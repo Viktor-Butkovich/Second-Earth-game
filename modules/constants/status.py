@@ -38,6 +38,7 @@ from modules.tools.effects import effect
 strategic_map_grid: grid = None
 minimap_grid: mini_grid = None
 earth_grid: abstract_grid = None
+asia_grid: abstract_grid = None
 slave_traders_grid: abstract_grid = None
 
 Britain: country = None

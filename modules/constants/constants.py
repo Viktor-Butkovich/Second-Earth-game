@@ -236,19 +236,17 @@ message: str = ""
 grid_types_list: List[str] = [
     "strategic_map_grid",
     "earth_grid",
-    "asia_grid",
-    "slave_traders_grid",
     "minimap_grid",
 ]
-abstract_grid_type_list: List[str] = ["earth_grid", "asia_grid", "slave_traders_grid"]
+abstract_grid_type_list: List[str] = ["earth_grid"]
 
 grids_collection_x: int = default_display_width - 740
 grids_collection_y: int = default_display_height - 325
 
 strategic_map_pixel_width: int = 320
 strategic_map_pixel_height: int = 300
-strategic_map_width: int = 15
-strategic_map_height: int = 16
+strategic_map_width: int = 20
+strategic_map_height: int = 20
 
 earth_grid_x_offset: int = 30
 earth_grid_y_offset: int = 145
@@ -362,7 +360,15 @@ green_screen_colors: List[tuple[int, int, int]] = [
 ]
 
 terrain_variant_dict: Dict[str, int] = {}
-terrain_list: List[str] = ["savannah", "mountain", "hills", "jungle", "swamp", "desert"]
+terrain_list: List[str] = [
+    "savannah",
+    "mountain",
+    "hills",
+    "jungle",
+    "swamp",
+    "desert",
+    "water",
+]
 terrain_colors: Dict[str, tuple[int, int, int]] = {
     "savannah": (150, 200, 104),
     "hills": (50, 205, 50),

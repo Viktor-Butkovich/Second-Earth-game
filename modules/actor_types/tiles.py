@@ -429,20 +429,13 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
-        if new_terrain in constants.terrain_list + ["water"]:
-            base_word = new_terrain
-            if new_terrain == "water":
-                current_y = self.y
-                if self.cell.grid.is_mini_grid:
-                    current_y = self.cell.grid.get_main_grid_coordinates(
-                        self.x, self.y
-                    )[1]
-                if current_y == 0:
-                    base_word = "ocean_" + new_terrain
-                else:
-                    base_word = "river_" + new_terrain
+        if new_terrain in constants.terrain_list:
             self.image_dict["default"] = (
-                "terrains/" + base_word + "_" + str(self.cell.terrain_variant) + ".png"
+                "terrains/"
+                + new_terrain
+                + "_"
+                + str(self.cell.terrain_variant)
+                + ".png"
             )
         elif new_terrain == "none":
             self.image_dict["default"] = "terrains/hidden.png"
