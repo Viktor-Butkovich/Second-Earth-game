@@ -69,8 +69,8 @@ class tile(actor):  # to do: make terrain tiles a subclass
             if self.cell.grid.from_save:
                 self.inventory = self.cell.save_dict["inventory"]
             if (
-                self.grid.grid_type == "europe_grid"
-            ):  # Europe should be able to hold commodities despite not being terrain
+                self.grid.grid_type == "earth_grid"
+            ):  # Earth should be able to hold commodities despite not being terrain
                 self.infinite_inventory_capacity = True
                 if constants.effect_manager.effect_active("infinite_commodities"):
                     for current_commodity in constants.commodity_types:
@@ -604,14 +604,14 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     constants.event_manager.clear()
                     constants.sound_manager.play_random_music(new_state)
             else:
-                if constants.sound_manager.previous_state != "europe":
+                if constants.sound_manager.previous_state != "earth":
                     constants.event_manager.clear()
-                    constants.sound_manager.play_random_music("europe")
+                    constants.sound_manager.play_random_music("earth")
 
 
 class abstract_tile(tile):
     """
-    tile for 1-cell abstract grids like Europe, can have a tooltip but has no terrain, instead having a unique image
+    tile for 1-cell abstract grids like Earth, can have a tooltip but has no terrain, instead having a unique image
     """
 
     def __init__(self, from_save, input_dict):

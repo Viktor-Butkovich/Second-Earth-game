@@ -43,8 +43,8 @@ def cycle_player_turn(start_of_turn=False):
             )  # if unit is already selected, move it to the end and shift to the next one
         cycled_mob = turn_queue[0]
         if (
-            constants.current_game_mode == "europe"
-            and not status.europe_grid in cycled_mob.grids
+            constants.current_game_mode == "earth"
+            and not status.earth_grid in cycled_mob.grids
         ):
             set_game_mode("strategic")
         elif constants.current_game_mode == "ministers":
@@ -76,9 +76,9 @@ def set_game_mode(new_game_mode):
         ] and not new_game_mode in [
             "main_menu",
             "new_game_setup",
-        ]:  # new_game_mode in ['strategic', 'ministers', 'europe']:
+        ]:  # new_game_mode in ['strategic', 'ministers', 'earth']:
             constants.event_manager.clear()
-            constants.sound_manager.play_random_music("europe")
+            constants.sound_manager.play_random_music("earth")
         elif (
             not previous_game_mode in ["main_menu", "new_game_setup"]
         ) and new_game_mode in [
@@ -103,13 +103,13 @@ def set_game_mode(new_game_mode):
                 status.strategic_map_grid.create_map_image()
             )
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, status.europe_grid.cell_list[0][0].tile
-            )  # calibrate tile info to Europe
+                status.tile_info_display, status.earth_grid.cell_list[0][0].tile
+            )  # calibrate tile info to Earth
         elif not new_game_mode in ["trial", "new_game_setup"]:
             constants.default_text_box_height = constants.font_size * 5.5
             constants.text_box_height = constants.default_text_box_height
 
-    if previous_game_mode in ["strategic", "europe", "new_game_setup", "ministers"]:
+    if previous_game_mode in ["strategic", "earth", "new_game_setup", "ministers"]:
         actor_utility.calibrate_actor_info_display(
             status.mob_info_display, None, override_exempt=True
         )  # deselect actors/ministers and remove any actor info from display when switching screens
@@ -118,12 +118,12 @@ def set_game_mode(new_game_mode):
         )
         minister_utility.calibrate_minister_info_display(None)
         actor_utility.calibrate_actor_info_display(status.country_info_display, None)
-        if new_game_mode == "europe":
-            if status.europe_grid.cell_list[0][0].contained_mobs:
-                status.europe_grid.cell_list[0][0].contained_mobs[0].cycle_select()
+        if new_game_mode == "earth":
+            if status.earth_grid.cell_list[0][0].contained_mobs:
+                status.earth_grid.cell_list[0][0].contained_mobs[0].cycle_select()
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, status.europe_grid.cell_list[0][0].tile
-            )  # calibrate tile info to Europe
+                status.tile_info_display, status.earth_grid.cell_list[0][0].tile
+            )  # calibrate tile info to Earth
         elif new_game_mode == "strategic":
             centered_cell = status.strategic_map_grid.find_cell(
                 status.minimap_grid.center_x, status.minimap_grid.center_y
@@ -165,7 +165,7 @@ def create_strategic_map(from_save=False):
     main_loop_utility.update_display()
 
     for current_grid in status.grid_list:
-        if current_grid.is_abstract_grid:  # if europe/slave traders grid
+        if current_grid.is_abstract_grid:  # if earth/slave traders grid
             tiles.abstract_tile(
                 False,
                 {

@@ -9,7 +9,7 @@ show_fear: prints the players 'fear' number at the end of each turn and says whe
 remove_fog_of_war: reveals all cells
 fast_turn: removes end turn delays
 reveal_beasts: reveals beasts on load
-infinite_commodities: gives 10 of each commodity in Europe on new game
+infinite_commodities: gives 10 of each commodity on Earth on new game
 band_of_thieves: causes all ministers to be corrupt whenever possible
 nine_mortal_men: causes ministers to roll 1 on all rolls
 ministry_of_magic: causes all ministers to never be corrupt and succeed at all rolls, speeds up all dice rolls

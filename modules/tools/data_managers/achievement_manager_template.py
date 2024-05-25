@@ -43,7 +43,7 @@ class achievement_manager_template:
             "height": scaling.scale_height(30),
             "modes": [
                 "strategic",
-                "europe",
+                "earth",
                 "ministers",
                 "trial",
                 "main_menu",

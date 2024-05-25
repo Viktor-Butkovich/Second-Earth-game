@@ -1309,7 +1309,7 @@ class actor_display_label(label):
             or (not self.actor.cell.visible)
             or self.actor.grid.is_abstract_grid
             or (self.actor.cell.visible and self.actor.cell.has_building("village"))
-        ):  # self.actor.actor_type == 'tile' and self.actor.grid.is_abstract_grid or (self.actor.cell.visible and (self.actor.cell.has_building('resource') or self.actor.cell.has_building('village'))): #do not show resource label on the Europe tile
+        ):  # self.actor.actor_type == 'tile' and self.actor.grid.is_abstract_grid or (self.actor.cell.visible and (self.actor.cell.has_building('resource') or self.actor.cell.has_building('village'))): #do not show resource label on the Earth tile
             return False
         elif self.actor_label_type == "resource building" and (
             (not self.actor.cell.visible)

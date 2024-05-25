@@ -6,6 +6,8 @@ Traceback (most recent call last):
     current_button.on_click()
   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\buttons.py", line 1598, in on_click
     constants.save_load_manager.load_game("save1.pickle")
-  File "c:\Users\vikto\Documents\Projects\Second Earth\modules\tools\data_managers\save_load_manager_template.py", line 290, in load_game
-    setattr(status, current_element, saved_statuses[current_element])
-KeyError: 'initial_tutorial_completed'
+  File "c:\Users\vikto\Documents\Projects\Second Earth\modules\tools\data_managers\save_load_manager_template.py", line 309, in load_game
+    grids.create(
+  File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\grids.py", line 1062, in create
+    setattr(status, grid_type, return_grid)
+UnboundLocalError: local variable 'return_grid' referenced before assignment

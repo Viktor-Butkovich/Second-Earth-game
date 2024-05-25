@@ -549,10 +549,10 @@ class mob(actor):
         Output:
             None
         """
-        if new_grid == status.europe_grid:
-            self.modes.append("europe")
-        else:  # if mob was spawned in Europe, make it so that it does not appear in the Europe screen after leaving
-            self.modes = utility.remove_from_list(self.modes, "europe")
+        if new_grid == status.earth_grid:
+            self.modes.append("earth")
+        else:  # if mob was spawned on Earth, make it so that it does not appear in the Earth screen after leaving
+            self.modes = utility.remove_from_list(self.modes, "earth")
         self.x, self.y = new_coordinates
         old_image_id = self.images[0].image_id
         for current_image in self.images:

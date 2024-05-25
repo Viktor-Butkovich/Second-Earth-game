@@ -312,8 +312,8 @@ class recruitment_choice_button(choice_button):
                 status.displayed_tile
             ):  # When recruiting in Asia, slave traders, Africa, etc., tile will be selected - use that tile's grids
                 input_dict["grids"] = status.displayed_tile.grids
-            else:  # If no tile selected, assume recruiting in Europe
-                input_dict["grids"] = [status.europe_grid]
+            else:  # If no tile selected, assume recruiting on Earth
+                input_dict["grids"] = [status.earth_grid]
             if self.mob_image_id:
                 input_dict["image"] = self.mob_image_id
             input_dict["modes"] = input_dict["grids"][0].modes

@@ -351,7 +351,7 @@ class minister:
             "coordinates": (0, 0),
             "width": scaling.scale_width(100),
             "height": scaling.scale_height(100),
-            "modes": ["strategic", "ministers", "europe", "trial"],
+            "modes": ["strategic", "ministers", "earth", "trial"],
             "attached_minister": self,
             "minister_image_type": "position",
             "init_type": "dice roll minister image",

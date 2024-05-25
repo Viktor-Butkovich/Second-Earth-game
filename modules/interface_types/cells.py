@@ -157,19 +157,19 @@ class cell:
             Returns the result of a roll that determines if a given unit or set of stored commodities should suffer attrition based on this cell's terrain and buildings. Bad terrain increases attrition frequency while infrastructure
                 decreases it
         Input:
-            string attrition_type = 'health': 'health' or 'inventory', refers to type of attrition being tested for. Used because inventory attrition can occur in Europe but not health attrition
+            string attrition_type = 'health': 'health' or 'inventory', refers to type of attrition being tested for. Used because inventory attrition can occur on Earth but not health attrition
         Output:
             boolean: Returns whether attrition should happen here based on this cell's terrain and buildings
         """
         if self.grid in [
-            status.europe_grid,
+            status.earth_grid,
             status.slave_traders_grid,
-        ]:  # no attrition in Europe or with slave traders
+        ]:  # no attrition on Earth or with slave traders
             if attrition_type == "health":
                 return False
             elif (
                 attrition_type == "inventory"
-            ):  # losing inventory in warehouses and such is uncommon but not impossible in Europe, but no health attrition in Europe
+            ):  # losing inventory in warehouses and such is uncommon but not impossible on Earth, but no health attrition on Earth
                 if (
                     random.randrange(1, 7) >= 2 or random.randrange(1, 7) >= 3
                 ):  # same effect as clear area with port

@@ -10,7 +10,7 @@ import modules.constants.status as status
 
 class active_investigation(action.campaign):
     """
-    Action for merchant in Europe to search for a loan offer
+    Action for merchant on Earth to search for a loan offer
     """
 
     def initial_setup(self):

@@ -21,7 +21,7 @@ class sound_manager_template:
             None
         """
         self.default_music_dict = {
-            "europe": [
+            "earth": [
                 ("generic/" + current_song[:-4])
                 for current_song in os.listdir("sounds/music/generic")
             ],  # remove file extensions
@@ -32,19 +32,6 @@ class sound_manager_template:
             "slave traders": ["slave traders/slave traders theme"],
             "asia": ["asia/asia theme 1", "asia/asia theme 2"],
         }
-        for adjective in [
-            "british",
-            "french",
-            "german",
-            "belgian",
-            "italian",
-            "portuguese",
-        ]:
-            self.default_music_dict["europe"] += [
-                (adjective + "/" + current_song)[:-4]
-                for current_song in os.listdir("sounds/music/" + adjective)
-            ]
-            # Add music for each country into rotation
         self.previous_state = "none"
         self.previous_song = "none"
 
@@ -187,7 +174,7 @@ class sound_manager_template:
     def play_random_music(self, current_state, previous_song="none"):
         """
         Description:
-            Plays random music depending on the current state of the game, like 'main menu', 'europe', or 'village', and the current player country
+            Plays random music depending on the current state of the game, like 'main menu', 'earth', or 'village', and the current player country
         Input:
             string current_state: Descriptor for the current state of the game to play music for
             string previous_song: The previous song that just ended, if any, to avoid playing it again unless it is the only option
@@ -200,20 +187,7 @@ class sound_manager_template:
         else:
             state_changed = False
         self.previous_state = current_state
-        if current_state == "europe" and status.current_country:
-            adjective = status.current_country.adjective
-            country_songs = [
-                (adjective + "/" + current_song)[:-4]
-                for current_song in os.listdir("sounds/music/" + adjective)
-            ]  # remove file extensions
-            if flags.creating_new_game and country_songs:
-                possible_songs = country_songs  # ensures that country song plays when starting a game as that country
-            else:
-                possible_songs = self.default_music_dict[
-                    current_state
-                ]  # + country_songs - country songs are alredy in rotation
-        else:
-            possible_songs = self.default_music_dict[current_state]
+        possible_songs = self.default_music_dict[current_state]
         if len(possible_songs) == 1:
             chosen_song = random.choice(possible_songs)
         elif len(possible_songs) > 0:

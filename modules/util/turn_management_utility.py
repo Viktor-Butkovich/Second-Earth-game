@@ -1056,8 +1056,8 @@ def end_turn_warnings():
         grid_type
     ) in (
         constants.abstract_grid_type_list
-    ):  # Warn for leaving units behind in non-Europe grids
-        if grid_type != "europe_grid":
+    ):  # Warn for leaving units behind in non-Earth grids
+        if grid_type != "earth_grid":
             current_cell = getattr(status, grid_type).find_cell(0, 0)
             num_leaving, num_reserve = (
                 00,

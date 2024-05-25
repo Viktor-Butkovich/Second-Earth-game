@@ -1132,7 +1132,7 @@ class minister_type_image(tooltip_free_image):
                 )  # new_minister.tooltip_text
                 if keyword == "military":
                     self.tooltip_text.append(
-                        "Military-oriented units include military officers and European battalions."
+                        "Military-oriented units include majors and battalions."
                     )
                 elif keyword == "religion":
                     self.tooltip_text.append(
@@ -1145,7 +1145,7 @@ class minister_type_image(tooltip_free_image):
                     self.tooltip_text.append(
                         "The "
                         + current_minister_type
-                        + " also controls the purchase and sale of goods in Europe."
+                        + " also controls the purchase and sale of goods on Earth."
                     )
                 elif keyword == "exploration":
                     self.tooltip_text.append(

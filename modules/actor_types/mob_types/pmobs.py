@@ -726,7 +726,7 @@ class pmob(mob):
     def end_turn_move(self):
         """
         Description:
-            If this mob has any pending movement orders at the end of the turn, this executes the movement. Currently used to move ships between Africa and Europe at the end of the turn
+            If this mob has any pending movement orders at the end of the turn, this executes the movement. Currently used to move ships between Earth and the world at the end of the turn
         Input:
             None
         Output:
@@ -741,10 +741,10 @@ class pmob(mob):
             self.manage_inventory_attrition()  # do an inventory check when crossing ocean, using the destination's terrain
             self.end_turn_destination = "none"
 
-    def can_travel(self):  # if can move between Europe, Africa, etc.
+    def can_travel(self):  # if can move between Earth, the planet, etc.
         """
         Description:
-            Returns whether this mob can cross the ocean, like going between Africa and Europe. By default, mobs cannot cross the ocean, but subclasses like ship are able to return True
+            Returns whether this mob can cross the ocean, like going between Earth and the planet. By default, mobs cannot cross the ocean, but subclasses like ship are able to return True
         Input:
             None
         Output:

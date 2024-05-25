@@ -34,7 +34,7 @@ class grid(interface_elements.interface_element):
                 'list modes': string list value - Game modes during which this grid can appear
                 'grid_line_width': int value - Pixel width of lines between cells. Lines on the outside of the grid are one pixel thicker
                 'cell_list': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each cell in this grid
-                'grid_type': str value - Type of grid, like 'strategic_map_grid' or 'europe_grid'
+                'grid_type': str value - Type of grid, like 'strategic_map_grid' or 'earth_grid'
         Output:
             None
         """
@@ -1030,23 +1030,21 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
         )
         return_grid = mini_grid(from_save, input_dict)
 
-    elif grid_type in ["europe_grid", "asia_grid", "slave_traders_grid"]:
+    elif grid_type in ["earth_grid", "asia_grid", "slave_traders_grid"]:
         input_dict.update(
             {
                 "coordinates": scaling.scale_coordinates(
                     getattr(constants, grid_type + "_x_offset"),
                     getattr(constants, grid_type + "_y_offset"),
                 ),
-                # Like (europe_grid_x_offset, europe_grid_y_offset) or (slave_traders_grid_x_offset, slave_traders_grid_y_offset)
+                # Like (earth_grid_x_offset, earth_grid_y_offset) or (slave_traders_grid_x_offset, slave_traders_grid_y_offset)
                 "width": scaling.scale_width(120),
                 "height": scaling.scale_height(120),
             }
         )
-        if grid_type == "europe_grid":
-            input_dict["tile_image_id"] = (
-                "locations/europe/" + status.current_country.name + ".png"
-            )
-            input_dict["modes"].append("europe")
+        if grid_type == "earth_grid":
+            input_dict["tile_image_id"] = "locations/earth/earth.png"
+            input_dict["modes"].append("earth")
 
         elif grid_type == "asia_grid":
             input_dict["tile_image_id"] = "locations/asia.png"
@@ -1056,7 +1054,7 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
 
         input_dict["name"] = (
             grid_type[:-5].replace("_", " ").capitalize()
-        )  # Replaces europe_grid with Europe, slave_traders_grid with Slave traders
+        )  # Replaces earth_grid with Earth, slave_traders_grid with Slave traders
         return_grid = abstract_grid(from_save, input_dict)
 
     setattr(status, grid_type, return_grid)

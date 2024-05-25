@@ -747,7 +747,7 @@ class port(building):
         input_dict["building_type"] = "port"
         super().__init__(from_save, input_dict)
         if (not from_save) and self.cell.village != "none":
-            constants.sound_manager.play_random_music("europe")
+            constants.sound_manager.play_random_music("earth")
 
 
 class warehouses(building):

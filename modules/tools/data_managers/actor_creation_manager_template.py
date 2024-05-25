@@ -24,7 +24,7 @@ from ...interface_types import (
     action_notifications,
     interface_elements,
     cell_icons,
-    europe_transactions,
+    earth_transactions,
     inventory_interface,
 )
 from ...actor_display_tools import buttons as actor_display_buttons
@@ -236,11 +236,11 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                     input_dict["button_type"] = base.removesuffix(" choice")
                     new_element = choice_notifications.choice_button(input_dict)
 
-                # europe_transactions buttons
+                # earth_transactions buttons
                 elif base == "recruitment":
-                    new_element = europe_transactions.recruitment_button(input_dict)
+                    new_element = earth_transactions.recruitment_button(input_dict)
                 elif base == "buy item":
-                    new_element = europe_transactions.buy_item_button(input_dict)
+                    new_element = earth_transactions.buy_item_button(input_dict)
 
                 # actor_display_buttons buttons
                 elif base == "embark all passengers":
@@ -555,7 +555,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                 "officer": officer,
                 "modes": officer.grids[
                     0
-                ].modes,  # if created in Africa grid, should be ['strategic']. If created in Europe, should be ['strategic', 'europe']
+                ].modes,  # if created in Africa grid, should be ['strategic']. If created on Earth, should be ['strategic', 'earth']
                 "init_type": constants.officer_group_type_dict[officer.officer_type],
                 "image": "misc/empty.png",
                 "name": actor_utility.generate_group_name(worker, officer),

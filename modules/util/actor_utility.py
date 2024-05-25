@@ -147,14 +147,14 @@ def update_descriptions(target="all"):
                 )
 
             elif current_target == "merchant":
-                first_line += " and can personally search for loans and conduct advertising campaigns in Europe."
+                first_line += " and can personally search for loans and conduct advertising campaigns on Earth."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with workers, a merchant becomes a caravan that can build trading posts and trade with native villages."
                 )
 
             elif current_target == "evangelist":
-                first_line += " and can personally conduct religious campaigns and public relations campaigns in Europe."
+                first_line += " and can personally conduct religious campaigns and public relations campaigns on Earth."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with religious volunteers, an evangelist becomes a missionaries unit that can build missions and lower the aggressiveness of native villages."
@@ -487,7 +487,7 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
             calibrate_actor_info_display(status.tile_inventory_info_display, None)
         status.displayed_tile = new_actor
         if new_actor:
-            new_actor.select()  # plays correct music based on tile selected - slave traders/village/europe music
+            new_actor.select()  # plays correct music based on tile selected - slave traders/village/earth music
         if (
             not flags.choosing_destination
         ):  # Don't change tabs while choosing destination

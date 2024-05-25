@@ -9,7 +9,7 @@ import modules.constants.status as status
 
 class religious_campaign(action.campaign):
     """
-    Action for evangelist in Europe to recruit church volunteers
+    Action for evangelist on Earth to recruit church volunteers
     """
 
     def initial_setup(self):
@@ -51,7 +51,7 @@ class religious_campaign(action.campaign):
             "Attempts to campaign for church volunteers for "
             + str(self.get_price())
             + " money",
-            "Can only be done in Europe",
+            "Can only be done on Earth",
             "If successful, recruits a free unit of church volunteers that can join with an evangelist to form a group of missionaries that can convert native villages",
             "Costs all remaining movement points, at least 1",
             "Each "
@@ -169,11 +169,11 @@ class religious_campaign(action.campaign):
             None
         """
         if super().on_click(unit):
-            if status.europe_grid in unit.grids:
+            if status.earth_grid in unit.grids:
                 self.start(unit)
             else:
                 text_utility.print_to_screen(
-                    self.name.capitalize() + "s are only possible in Europe"
+                    self.name.capitalize() + "s are only possible on Earth"
                 )
 
     def start(self, unit):
@@ -219,10 +219,10 @@ class religious_campaign(action.campaign):
                 False,
                 {
                     "coordinates": (0, 0),
-                    "grids": [status.europe_grid],
+                    "grids": [status.earth_grid],
                     "image": "mobs/church volunteers/default.png",
                     "name": "church volunteers",
-                    "modes": ["strategic", "europe"],
+                    "modes": ["strategic", "earth"],
                     "init_type": "church_volunteers",
                     "worker_type": "religious",  # not european - doesn't count as a European worker for upkeep
                 },

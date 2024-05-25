@@ -235,12 +235,12 @@ message: str = ""
 
 grid_types_list: List[str] = [
     "strategic_map_grid",
-    "europe_grid",
+    "earth_grid",
     "asia_grid",
     "slave_traders_grid",
     "minimap_grid",
 ]
-abstract_grid_type_list: List[str] = ["europe_grid", "asia_grid", "slave_traders_grid"]
+abstract_grid_type_list: List[str] = ["earth_grid", "asia_grid", "slave_traders_grid"]
 
 grids_collection_x: int = default_display_width - 740
 grids_collection_y: int = default_display_height - 325
@@ -250,8 +250,8 @@ strategic_map_pixel_height: int = 300
 strategic_map_width: int = 15
 strategic_map_height: int = 16
 
-europe_grid_x_offset: int = 30
-europe_grid_y_offset: int = 145
+earth_grid_x_offset: int = 30
+earth_grid_y_offset: int = 145
 asia_grid_x_offset: int = 175
 asia_grid_y_offset: int = 145
 slave_traders_grid_x_offset: int = 175

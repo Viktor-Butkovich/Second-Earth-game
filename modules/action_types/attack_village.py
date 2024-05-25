@@ -143,7 +143,7 @@ class attack_village(action.action):
                 abs(self.public_relations_change) > 0
             ):  # reports could be based on the orders even be given - can occur even if corruption occurred
                 text += (
-                    "Rumors of your company's brutal treatment of the natives reaches Europe, decreasing public opinion by "
+                    "Rumors of your company's brutal treatment of the natives reaches Earth, decreasing public opinion by "
                     + str(-1 * self.public_relations_change)
                     + ". /n /n"
                 )

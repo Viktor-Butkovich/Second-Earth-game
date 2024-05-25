@@ -10,7 +10,7 @@ import modules.constants.status as status
 
 class public_relations_campaign(action.campaign):
     """
-    Action for evangelist in Europe to increase public opinion
+    Action for evangelist on Earth to increase public opinion
     """
 
     def initial_setup(self):
@@ -54,7 +54,7 @@ class public_relations_campaign(action.campaign):
             "Attempts to spread word of your company's benevolent goals and righteous deeds in Africa for "
             + str(self.get_price())
             + " money",
-            "Can only be done in Europe",
+            "Can only be done on Earth",
             "If successful, increases your company's public opinion",
             "Costs all remaining movement points, at least 1",
             "Each "
@@ -121,11 +121,11 @@ class public_relations_campaign(action.campaign):
             None
         """
         if super().on_click(unit):
-            if status.europe_grid in unit.grids:
+            if status.earth_grid in unit.grids:
                 self.start(unit)
             else:
                 text_utility.print_to_screen(
-                    self.name.capitalize() + "s are only possible in Europe"
+                    self.name.capitalize() + "s are only possible on Earth"
                 )
 
     def start(self, unit):

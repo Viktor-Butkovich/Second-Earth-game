@@ -17,7 +17,7 @@ import modules.constants.flags as flags
 
 class advertising_campaign(action.campaign):
     """
-    Action for merchant in Europe to increase the price of a particular commodity while lowering a random other
+    Action for merchant on Earth to increase the price of a particular commodity while lowering a random other
     """
 
     def initial_setup(self):
@@ -72,7 +72,7 @@ class advertising_campaign(action.campaign):
             "Attempts to advertise a chosen commodity and increase its price for "
             + str(self.get_price())
             + " money",
-            "Can only be done in Europe",
+            "Can only be done on Earth",
             "If successful, increases the price of a chosen commodity while randomly decreasing the price of another",
             "Costs all remaining movement points, at least 1",
             "Each "
@@ -278,9 +278,9 @@ class advertising_campaign(action.campaign):
             None
         """
         if super().on_click(unit):
-            if status.europe_grid in unit.grids:
-                if not constants.current_game_mode == "europe":
-                    game_transitions.set_game_mode("europe")
+            if status.earth_grid in unit.grids:
+                if not constants.current_game_mode == "earth":
+                    game_transitions.set_game_mode("earth")
                     unit.select()
                 text_utility.print_to_screen(
                     "Select a commodity to advertise, or click elsewhere to cancel: "
@@ -288,7 +288,7 @@ class advertising_campaign(action.campaign):
                 flags.choosing_advertised_commodity = True
             else:
                 text_utility.print_to_screen(
-                    self.name.capitalize() + "s are only possible in Europe"
+                    self.name.capitalize() + "s are only possible on Earth"
                 )
 
     def start(self, unit, commodity):

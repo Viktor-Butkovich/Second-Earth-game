@@ -1274,7 +1274,7 @@ class button(interface_elements.interface_element):
                                 current_mob.can_move(x_change, y_change, can_print=True)
                         else:
                             text_utility.print_to_screen(
-                                "You cannot move while in the European HQ screen."
+                                "You cannot move while in the Earth HQ screen."
                             )
                     else:
                         text_utility.print_to_screen(
@@ -1839,14 +1839,14 @@ class button(interface_elements.interface_element):
             elif self.button_type in ["sell commodity", "sell all commodity"]:
                 return (
                     status.displayed_tile
-                    and status.europe_grid in status.displayed_tile.grids
+                    and status.earth_grid in status.displayed_tile.grids
                     and self.attached_label.actor.current_item
                     in constants.collectable_resources
                 )
             elif self.button_type == "sell each commodity":
                 if (
                     status.displayed_tile
-                    and status.europe_grid in status.displayed_tile.grids
+                    and status.earth_grid in status.displayed_tile.grids
                 ):
                     for commodity in constants.collectable_resources:
                         if status.displayed_tile.get_inventory(commodity) > 0:
@@ -2445,9 +2445,7 @@ class switch_game_mode_button(button):
             "Does not automatically save the game",
         ]
         self.to_mode_tooltip_dict["strategic"] = ["Enters the strategic map screen"]
-        self.to_mode_tooltip_dict["europe"] = [
-            "Enters the European headquarters screen"
-        ]
+        self.to_mode_tooltip_dict["earth"] = ["Enters the Earth headquarters screen"]
         self.to_mode_tooltip_dict["ministers"] = [
             "Enters the minister conference room screen"
         ]

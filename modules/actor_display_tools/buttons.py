@@ -1289,7 +1289,7 @@ class labor_broker_button(button):
 
 class switch_theatre_button(button):
     """
-    Button starts choosing a destination for a ship to travel between theatres, like between Europe and Africa. A destination is chosen when the player clicks a tile in another theatre.
+    Button starts choosing a destination for a ship to travel between theatres, like between Earth and the planet. A destination is chosen when the player clicks a tile in another theatre.
     """
 
     def __init__(self, input_dict):
@@ -1317,7 +1317,7 @@ class switch_theatre_button(button):
     def on_click(self):
         """
         Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button starts choosing a destination for a ship to travel between theatres, like between Europe and Africa. A
+            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button starts choosing a destination for a ship to travel between theatres, like between Earth and the planet. A
                 destination is chosen when the player clicks a tile in another theatre.
         Input:
             None
