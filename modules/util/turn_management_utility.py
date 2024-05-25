@@ -701,6 +701,7 @@ def manage_beasts():
     Output:
         None
     """
+    return
     beast_list = status.beast_list
     for current_beast in beast_list:
         current_beast.check_despawn()

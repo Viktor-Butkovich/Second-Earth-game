@@ -38,12 +38,6 @@ class cell:
         self.Rect: pygame.Rect = pygame.Rect(
             self.pixel_x, self.pixel_y - self.height, self.width, self.height
         )  # (left, top, width, height)
-        self.corners = [
-            (self.Rect.left, self.Rect.top),
-            (self.Rect.left + self.Rect.width, self.Rect.top),
-            (self.Rect.left, self.Rect.top - self.Rect.height),
-            (self.Rect.left + self.Rect.width, self.Rect.top - self.Rect.height),
-        ]
         self.grid.cell_list[x][y] = self
         self.tile = "none"
         self.resource = "none"
@@ -438,7 +432,7 @@ class cell:
             False,
             {
                 "coordinates": (self.x, self.y),
-                "grids": [self.grid, self.grid.mini_grid],
+                "grids": [self.cell.grid] + self.cell.grid.mini_grids,
                 "name": "slums",
                 "modes": self.grid.modes,
                 "init_type": "slums",
@@ -914,20 +908,18 @@ class cell:
             None
         """
         adjacent_list = []
-        if self.x != 0:
-            adjacent_cell = self.grid.find_cell(self.x - 1, self.y)
-            adjacent_list.append(adjacent_cell)
-            self.adjacent_cells["left"] = adjacent_cell
-        if self.x != self.grid.coordinate_width - 1:
-            adjacent_cell = self.grid.find_cell(self.x + 1, self.y)
-            adjacent_list.append(adjacent_cell)
-            self.adjacent_cells["right"] = adjacent_cell
-        if self.y != 0:
-            adjacent_cell = self.grid.find_cell(self.x, self.y - 1)
-            adjacent_list.append(adjacent_cell)
-            self.adjacent_cells["down"] = adjacent_cell
-        if self.y != self.grid.coordinate_height - 1:
-            adjacent_cell = self.grid.find_cell(self.x, self.y + 1)
-            adjacent_list.append(adjacent_cell)
-            self.adjacent_cells["up"] = adjacent_cell
+
+        adjacent_cell = self.grid.find_cell(self.x - 1, self.y)
+        adjacent_list.append(adjacent_cell)
+        self.adjacent_cells["left"] = adjacent_cell
+        adjacent_cell = self.grid.find_cell(self.x + 1, self.y)
+        adjacent_list.append(adjacent_cell)
+        self.adjacent_cells["right"] = adjacent_cell
+        adjacent_cell = self.grid.find_cell(self.x, self.y - 1)
+        adjacent_list.append(adjacent_cell)
+        self.adjacent_cells["down"] = adjacent_cell
+        adjacent_cell = self.grid.find_cell(self.x, self.y + 1)
+        adjacent_list.append(adjacent_cell)
+        self.adjacent_cells["up"] = adjacent_cell
+
         self.adjacent_list = adjacent_list

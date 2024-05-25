@@ -331,11 +331,9 @@ class building(actor):
         Output:
             boolean: Returns True if any of this building's images is colliding with the mouse, otherwise returns False
         """
-        if self.cell.tile.touching_mouse() or (
-            self.cell.tile.get_equivalent_tile() != "none"
-            and self.cell.tile.get_equivalent_tile().touching_mouse()
-        ):
-            return True
+        for tile in [self.cell.tile] + self.cell.tile.get_equivalent_tiles():
+            if tile.touching_mouse():
+                return True
         return False
 
     def get_build_cost(self):
@@ -1191,7 +1189,7 @@ class slums(building):
         input_dict = {
             "select_on_creation": True,
             "coordinates": (self.cell.x, self.cell.y),
-            "grids": [self.cell.grid, self.cell.grid.mini_grid],
+            "grids": [self.cell.grid] + self.cell.grid.mini_grids,
             "modes": self.cell.grid.modes,
         }
         input_dict.update(status.worker_types["African"].generate_input_dict())

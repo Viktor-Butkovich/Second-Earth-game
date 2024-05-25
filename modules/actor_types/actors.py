@@ -32,9 +32,7 @@ class actor:
         self.x, self.y = input_dict["coordinates"]
         if self.from_save:
             self.grid = getattr(status, input_dict["grid_type"])
-            self.grids = [self.grid]
-            if self.grid.mini_grid != "none":
-                self.grids.append(self.grid.mini_grid)
+            self.grids = [self.grid] + self.grid.mini_grids
             self.set_name(input_dict["name"])
         else:
             self.grids = input_dict["grids"]

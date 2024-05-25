@@ -41,7 +41,7 @@ class grid(interface_elements.interface_element):
         super().__init__(input_dict)
         status.grid_list.append(self)
         self.grid_type = input_dict["grid_type"]
-        self.grid_line_width = input_dict.get("grid_line_width", 3)
+        self.grid_line_width: int = input_dict.get("grid_line_width", 3)
         self.from_save = from_save
         self.is_mini_grid = False
         self.is_abstract_grid = False
@@ -54,7 +54,7 @@ class grid(interface_elements.interface_element):
         )
         self.internal_line_color = input_dict.get("internal_line_color", "black")
         self.external_line_color = input_dict.get("external_line_color", "dark gray")
-        self.mini_grid = "none"
+        self.mini_grids = []
         self.cell_list = [
             [None] * self.coordinate_height for y in range(self.coordinate_width)
         ]
@@ -258,32 +258,54 @@ class grid(interface_elements.interface_element):
             self.convert_coordinates((self.coordinate_width, self.coordinate_height)),
             self.grid_line_width + 1,
         )
-        if self.mini_grid != "none" and flags.show_minimap_outlines:
-            mini_map_outline_color = self.mini_grid.external_line_color
-            left_x = self.mini_grid.center_x - (
-                (self.mini_grid.coordinate_width - 1) / 2
-            )
-            right_x = (
-                self.mini_grid.center_x
-                + ((self.mini_grid.coordinate_width - 1) / 2)
-                + 1
-            )
-            down_y = self.mini_grid.center_y - (
-                (self.mini_grid.coordinate_height - 1) / 2
-            )
-            up_y = (
-                self.mini_grid.center_y
-                + ((self.mini_grid.coordinate_height - 1) / 2)
-                + 1
-            )
-            if right_x > self.coordinate_width:
-                right_x = self.coordinate_width
-            if left_x < 0:
-                left_x = 0
-            if up_y > self.coordinate_height:
-                up_y = self.coordinate_height
-            if down_y < 0:
-                down_y = 0
+        if (
+            self.mini_grids or self == status.scrolling_strategic_map_grid
+        ) and flags.show_minimap_outlines:
+            mini_map_outline_color = status.minimap_grid.external_line_color
+            if self == status.scrolling_strategic_map_grid:
+                left_x = (
+                    self.coordinate_width // 2
+                    - status.minimap_grid.coordinate_width // 2
+                )
+                right_x = (
+                    self.coordinate_width // 2
+                    + status.minimap_grid.coordinate_width // 2
+                    + 1
+                )
+                down_y = (
+                    self.coordinate_height // 2
+                    - status.minimap_grid.coordinate_height // 2
+                )
+                up_y = (
+                    self.coordinate_height // 2
+                    + status.minimap_grid.coordinate_height // 2
+                    + 1
+                )
+            else:
+                left_x = status.minimap_grid.center_x - (
+                    (status.minimap_grid.coordinate_width - 1) / 2
+                )
+                right_x = (
+                    status.minimap_grid.center_x
+                    + ((status.minimap_grid.coordinate_width - 1) / 2)
+                    + 1
+                )
+                down_y = status.minimap_grid.center_y - (
+                    (status.minimap_grid.coordinate_height - 1) / 2
+                )
+                up_y = (
+                    status.minimap_grid.center_y
+                    + ((status.minimap_grid.coordinate_height - 1) / 2)
+                    + 1
+                )
+                if right_x > self.coordinate_width:
+                    right_x = self.coordinate_width
+                if left_x < 0:
+                    left_x = 0
+                if up_y > self.coordinate_height:
+                    up_y = self.coordinate_height
+                if down_y < 0:
+                    down_y = 0
             pygame.draw.line(
                 constants.game_display,
                 constants.color_dict[mini_map_outline_color],
@@ -411,15 +433,7 @@ class grid(interface_elements.interface_element):
         Output:
             None/cell: Returns this grid's cell that occupies the inputted coordinates, or None if there are no cells at the inputted coordinates
         """
-        if (
-            x >= 0
-            and x < self.coordinate_width
-            and y >= 0
-            and y < self.coordinate_height
-        ):
-            return self.cell_list[x][y]
-        else:
-            return None
+        return self.cell_list[x % self.coordinate_width][y % self.coordinate_height]
 
     def choose_cell(self, requirements_dict):
         """
@@ -764,46 +778,38 @@ class mini_grid(grid):
         super().__init__(from_save, input_dict)
         self.is_mini_grid = True
         self.attached_grid = input_dict["attached_grid"]
-        self.attached_grid.mini_grid = self
+        self.attached_grid.mini_grids.append(self)
         self.center_x = 0
         self.center_y = 0
 
-    def calibrate(self, center_x, center_y):
+    def calibrate(self, center_x, center_y, recursive=False):
         """
         Description:
             Centers this mini grid on the cell at the inputted coordinates of the attached grid, moving any displayed actors, terrain, and resources on this grid to their new locations as needed
         Input:
             int center_x: x coordinate on the attached grid to center on
             int center_y: y coordinate on the attached grid to center on
+            boolean recursive: Whether this is a recursive calibrate call - prevents infinite recursion
         Output:
             None
         """
         if constants.current_game_mode in self.modes:
             self.center_x = center_x
             self.center_y = center_y
-            actor_utility.calibrate_actor_info_display(
-                status.tile_info_display,
-                self.attached_grid.find_cell(self.center_x, self.center_y).tile,
-            )  # calibrate tile display information to centered tile
+            if not recursive:
+                for mini_grid in self.attached_grid.mini_grids:
+                    if mini_grid != self:
+                        mini_grid.calibrate(center_x, center_y, recursive=True)
+                actor_utility.calibrate_actor_info_display(
+                    status.tile_info_display,
+                    self.attached_grid.find_cell(self.center_x, self.center_y).tile,
+                )  # calibrate tile display information to centered tile
             for current_cell in self.get_flat_cell_list():
                 attached_x, attached_y = self.get_main_grid_coordinates(
                     current_cell.x, current_cell.y
                 )
-                if (
-                    attached_x >= 0
-                    and attached_y >= 0
-                    and attached_x < self.attached_grid.coordinate_width
-                    and attached_y < self.attached_grid.coordinate_height
-                ):
-                    attached_cell = self.attached_grid.find_cell(attached_x, attached_y)
-                    current_cell.copy(attached_cell)
-                else:  # if the current cell is beyond the boundaries of the attached grid, show an empty cell
-                    current_cell.contained_mobs = []
-                    current_cell.set_visibility(True, update_image_bundle=False)
-                    current_cell.set_terrain("none", update_image_bundle=False)
-                    current_cell.set_resource("none", update_image_bundle=False)
-                    current_cell.reset_buildings()
-                    current_cell.tile.update_image_bundle()
+                attached_cell = self.attached_grid.find_cell(attached_x, attached_y)
+                current_cell.copy(attached_cell)
             for current_mob in status.mob_list:
                 if current_mob.images[0].current_cell != "none":
                     for current_image in current_mob.images:
@@ -825,6 +831,14 @@ class mini_grid(grid):
             self.center_x + mini_x - round((self.coordinate_width - 1) / 2)
         )  # if width is 5, ((5 - 1) / 2) = (4 / 2) = 2, since 2 is the center of a 5 width grid starting at 0
         attached_y = self.center_y + mini_y - round((self.coordinate_height - 1) / 2)
+        if attached_x < 0:
+            attached_x += self.attached_grid.coordinate_width
+        elif attached_x >= self.attached_grid.coordinate_width:
+            attached_x -= self.attached_grid.coordinate_width
+        if attached_y < 0:
+            attached_y += self.attached_grid.coordinate_height
+        elif attached_y >= self.attached_grid.coordinate_height:
+            attached_y -= self.attached_grid.coordinate_height
         return (attached_x, attached_y)
 
     def get_mini_grid_coordinates(self, original_x, original_y):
@@ -874,29 +888,14 @@ class mini_grid(grid):
         Output:
             None
         """
-        lower_left_corner = self.get_mini_grid_coordinates(0, 0)
-        upper_right_corner = self.get_mini_grid_coordinates(
-            self.attached_grid.coordinate_width - 1,
-            self.attached_grid.coordinate_height,
-        )
-        if lower_left_corner[0] < 0:  # left
-            left_x = 0
-        else:
-            left_x = lower_left_corner[0]
-        if lower_left_corner[1] < 0:  # down
-            down_y = 0
-        else:
-            down_y = lower_left_corner[1]
-        if upper_right_corner[0] >= self.coordinate_width:  # right
-            right_x = self.coordinate_width
-        else:
-            right_x = upper_right_corner[0] + 1
-        if upper_right_corner[1] > self.coordinate_height:  # up
-            up_y = self.coordinate_height
-        else:
-            up_y = upper_right_corner[1]
+        if (
+            self == status.scrolling_strategic_map_grid
+        ):  # Scrolling map acts more like a default grid than normal minimap
+            super().draw_grid_lines()
+            return
+        left_x, down_y = (0, 0)
+        right_x, up_y = (self.coordinate_width, self.coordinate_height)
         if not constants.effect_manager.effect_active("hide_grid_lines"):
-
             for x in range(0, self.coordinate_width + 1):
                 pygame.draw.line(
                     constants.game_display,
@@ -1001,6 +1000,7 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
     if grid_type == "strategic_map_grid":
         input_dict.update(
             {
+                "modes": [],  # Acts as source of truth for mini grids, but this grid is not directly shown
                 "coordinates": scaling.scale_coordinates(320, 0),
                 "width": scaling.scale_width(constants.strategic_map_pixel_width),
                 "height": scaling.scale_height(constants.strategic_map_pixel_height),
@@ -1010,6 +1010,19 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
             }
         )
         return_grid = grid(from_save, input_dict)
+
+    elif grid_type == "scrolling_strategic_map_grid":
+        input_dict.update(
+            {
+                "coordinates": scaling.scale_coordinates(320, 0),
+                "width": scaling.scale_width(constants.strategic_map_pixel_width),
+                "height": scaling.scale_height(constants.strategic_map_pixel_height),
+                "coordinate_size": constants.strategic_map_width,
+                "grid_line_width": 2,
+                "attached_grid": status.strategic_map_grid,
+            }
+        )
+        return_grid = mini_grid(from_save, input_dict)
 
     elif grid_type == "minimap_grid":
         input_dict.update(

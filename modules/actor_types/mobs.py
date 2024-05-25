@@ -557,11 +557,11 @@ class mob(actor):
         old_image_id = self.images[0].image_id
         for current_image in self.images:
             current_image.remove_from_cell()
-        self.grids = [new_grid]
+        self.grids = [new_grid] + new_grid.mini_grids
         self.grid = new_grid
-        if new_grid.mini_grid != "none":
-            new_grid.mini_grid.calibrate(new_coordinates[0], new_coordinates[1])
-            self.grids.append(new_grid.mini_grid)
+        if new_grid.mini_grids:
+            for mini_grid in new_grid.mini_grids:
+                mini_grid.calibrate(new_coordinates[0], new_coordinates[1])
         self.images = []
         for current_grid in self.grids:
             self.images.append(
@@ -591,8 +591,9 @@ class mob(actor):
         actor_utility.calibrate_actor_info_display(
             status.tile_info_display, self.images[0].current_cell.tile
         )
-        if self.grids[0].mini_grid != "none":
-            self.grids[0].mini_grid.calibrate(self.x, self.y)
+        if self.grids[0].mini_grids:
+            for mini_grid in self.grid.mini_grids:
+                mini_grid.calibrate(self.x, self.y)
 
     def cycle_select(self):
         """

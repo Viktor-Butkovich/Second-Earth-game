@@ -290,10 +290,8 @@ class recruitment_choice_button(choice_button):
                     status.displayed_tile.cell.x,
                     status.displayed_tile.cell.y,
                 ),
-                "grids": [
-                    status.displayed_tile.cell.grid,
-                    status.displayed_tile.cell.grid.mini_grid,
-                ],
+                "grids": [status.displayed_tile.cell.grid]
+                + status.displayed_tile.cell.grid.mini_grids,
                 "modes": status.displayed_tile.cell.grid.modes,
             }
             input_dict.update(status.worker_types["African"].generate_input_dict())

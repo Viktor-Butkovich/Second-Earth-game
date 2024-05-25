@@ -237,6 +237,7 @@ grid_types_list: List[str] = [
     "strategic_map_grid",
     "earth_grid",
     "minimap_grid",
+    "scrolling_strategic_map_grid",
 ]
 abstract_grid_type_list: List[str] = ["earth_grid"]
 
@@ -245,8 +246,8 @@ grids_collection_y: int = default_display_height - 325
 
 strategic_map_pixel_width: int = 320
 strategic_map_pixel_height: int = 300
-strategic_map_width: int = 20
-strategic_map_height: int = 20
+strategic_map_width: int = 15
+strategic_map_height: int = 15
 
 earth_grid_x_offset: int = 30
 earth_grid_y_offset: int = 145

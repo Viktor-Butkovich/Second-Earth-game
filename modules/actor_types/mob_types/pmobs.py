@@ -666,7 +666,6 @@ class pmob(mob):
                                 )
                                 .tile
                             )
-                            equivalent_tile = current_tile.get_equivalent_tile()
                             if current_coordinates == start_coordinates:
                                 color = "purple"
                             elif current_coordinates == end_coordinates:
@@ -674,7 +673,7 @@ class pmob(mob):
                             else:
                                 color = "bright blue"
                             current_tile.draw_destination_outline(color)
-                            if not equivalent_tile == "none":
+                            for equivalent_tile in current_tile.get_equivalent_tiles():
                                 equivalent_tile.draw_destination_outline(color)
 
             if (
@@ -683,8 +682,7 @@ class pmob(mob):
                 0
             ].can_show():  # only show outline if tile is showing
                 self.end_turn_destination.draw_destination_outline()
-                equivalent_tile = self.end_turn_destination.get_equivalent_tile()
-                if not equivalent_tile == "none":
+                for equivalent_tile in self.end_turn_destination.get_equivalent_tiles():
                     equivalent_tile.draw_destination_outline()
 
     def set_controlling_minister_type(self, new_type):
@@ -796,160 +794,138 @@ class pmob(mob):
         if not transportation_minister == "none":
             if self.can_leave():
                 if not self.grid.is_abstract_grid:
-                    if (
-                        future_x >= 0
-                        and future_x < self.grid.coordinate_width
-                        and future_y >= 0
-                        and future_y < self.grid.coordinate_height
-                    ):
-                        future_cell = self.grid.find_cell(future_x, future_y)
-                        if future_cell.visible or self.can_explore:
-                            destination_type = "land"
-                            if future_cell.terrain == "water" and not (
-                                future_cell.terrain_features.get("cataract", False)
-                                and not self.can_walk
-                            ):
-                                destination_type = "water"  # if can move to destination, possible to move onto ship in water, possible to 'move' into non-visible water while exploring
-                            passed = False
-                            if destination_type == "land":
+                    future_cell = self.grid.find_cell(future_x, future_y)
+                    if future_cell.visible or self.can_explore:
+                        destination_type = "land"
+                        if future_cell.terrain == "water" and not (
+                            future_cell.terrain_features.get("cataract", False)
+                            and not self.can_walk
+                        ):
+                            destination_type = "water"  # if can move to destination, possible to move onto ship in water, possible to 'move' into non-visible water while exploring
+                        passed = False
+                        if destination_type == "land":
+                            if (
+                                self.can_walk
+                                or self.can_explore
+                                or (
+                                    future_cell.has_intact_building("port")
+                                    and (self.can_swim_river or future_cell.y <= 1)
+                                )
+                            ):  # Allow ships on land if port is built and either coastal port or able to move in rivers
+                                passed = True
+                        elif destination_type == "water":
+                            if destination_type == "water":
                                 if (
-                                    self.can_walk
-                                    or self.can_explore
+                                    self.can_swim
                                     or (
-                                        future_cell.has_intact_building("port")
-                                        and (self.can_swim_river or future_cell.y <= 1)
-                                    )
-                                ):  # Allow ships on land if port is built and either coastal port or able to move in rivers
-                                    passed = True
-                            elif destination_type == "water":
-                                if destination_type == "water":
-                                    if (
-                                        self.can_swim
-                                        or (
-                                            future_cell.has_vehicle(
-                                                "ship", self.is_worker
-                                            )
-                                            and not self.is_vehicle
-                                        )
-                                        or (
-                                            self.can_explore and not future_cell.visible
-                                        )
-                                        or (
-                                            self.is_battalion
-                                            and (
-                                                not future_cell.get_best_combatant(
-                                                    "npmob"
-                                                )
-                                                == "none"
-                                            )
-                                        )
-                                    ):
-                                        passed = True
-                                    elif (
-                                        future_cell.y > 0
-                                        and self.can_walk
-                                        and not self.can_swim_river
-                                    ):  # can move through river with maximum movement points while becoming disorganized
-                                        passed = True
-                            if passed:
-                                if destination_type == "water":
-                                    if not (
                                         future_cell.has_vehicle("ship", self.is_worker)
                                         and not self.is_vehicle
-                                    ):  # doesn't matter if can move in ocean or rivers if boarding ship
-                                        if not (
-                                            self.is_battalion
-                                            and (
-                                                not future_cell.get_best_combatant(
-                                                    "npmob"
-                                                )
-                                                == "none"
-                                            )
-                                        ):  # battalions can attack enemies in water, but must retreat afterward
-                                            if (
-                                                future_y == 0
-                                                and not self.can_swim_ocean
-                                            ) or (
-                                                future_y > 0
-                                                and (not self.can_swim_river)
-                                                and (not self.can_walk)
-                                            ):
-                                                if can_print:
-                                                    if future_y == 0:
-                                                        text_utility.print_to_screen(
-                                                            "This unit cannot move into the ocean."
-                                                        )
-                                                    elif future_y > 0:
-                                                        text_utility.print_to_screen(
-                                                            "This unit cannot move through rivers."
-                                                        )
-                                                return False
-
-                                if (
-                                    self.movement_points
-                                    >= self.get_movement_cost(x_change, y_change)
-                                    or self.has_infinite_movement
-                                    and self.movement_points > 0
-                                ):
-                                    if (
-                                        (not future_cell.has_npmob())
-                                        or self.is_battalion
-                                        or self.is_safari
-                                        or (
-                                            self.can_explore and not future_cell.visible
+                                    )
+                                    or (self.can_explore and not future_cell.visible)
+                                    or (
+                                        self.is_battalion
+                                        and (
+                                            not future_cell.get_best_combatant("npmob")
+                                            == "none"
                                         )
-                                    ):  # non-battalion units can't move into enemies
-                                        return True
-                                    else:
-                                        if can_print:
-                                            text_utility.print_to_screen(
-                                                "You cannot move through enemy units."
-                                            )
-                                        return False
+                                    )
+                                ):
+                                    passed = True
+                                elif (
+                                    future_cell.y > 0
+                                    and self.can_walk
+                                    and not self.can_swim_river
+                                ):  # can move through river with maximum movement points while becoming disorganized
+                                    passed = True
+                        if passed:
+                            if destination_type == "water":
+                                if not (
+                                    future_cell.has_vehicle("ship", self.is_worker)
+                                    and not self.is_vehicle
+                                ):  # doesn't matter if can move in ocean or rivers if boarding ship
+                                    if not (
+                                        self.is_battalion
+                                        and (
+                                            not future_cell.get_best_combatant("npmob")
+                                            == "none"
+                                        )
+                                    ):  # battalions can attack enemies in water, but must retreat afterward
+                                        if (
+                                            future_y == 0 and not self.can_swim_ocean
+                                        ) or (
+                                            future_y > 0
+                                            and (not self.can_swim_river)
+                                            and (not self.can_walk)
+                                        ):
+                                            if can_print:
+                                                if future_y == 0:
+                                                    text_utility.print_to_screen(
+                                                        "This unit cannot move into the ocean."
+                                                    )
+                                                elif future_y > 0:
+                                                    text_utility.print_to_screen(
+                                                        "This unit cannot move through rivers."
+                                                    )
+                                            return False
+
+                            if (
+                                self.movement_points
+                                >= self.get_movement_cost(x_change, y_change)
+                                or self.has_infinite_movement
+                                and self.movement_points > 0
+                            ):
+                                if (
+                                    (not future_cell.has_npmob())
+                                    or self.is_battalion
+                                    or self.is_safari
+                                    or (self.can_explore and not future_cell.visible)
+                                ):  # non-battalion units can't move into enemies
+                                    return True
                                 else:
                                     if can_print:
                                         text_utility.print_to_screen(
-                                            "You do not have enough movement points to move."
-                                        )
-                                        text_utility.print_to_screen(
-                                            "You have "
-                                            + str(self.movement_points)
-                                            + " movement points while "
-                                            + str(
-                                                self.get_movement_cost(
-                                                    x_change, y_change
-                                                )
-                                            )
-                                            + " are required."
+                                            "You cannot move through enemy units."
                                         )
                                     return False
-                            elif (
-                                destination_type == "land" and not self.can_walk
-                            ):  # if trying to walk on land and can't
-                                if can_print:
-                                    if future_cell.has_intact_building("port"):
-                                        text_utility.print_to_screen(
-                                            "Steamships can not move between ports on land."
-                                        )
-                                    else:
-                                        text_utility.print_to_screen(
-                                            "You cannot move on land with this unit unless there is a port."
-                                        )
-                                return False
-                            else:  # if trying to swim in water and can't
+                            else:
                                 if can_print:
                                     text_utility.print_to_screen(
-                                        "You cannot move on ocean with this unit."
+                                        "You do not have enough movement points to move."
+                                    )
+                                    text_utility.print_to_screen(
+                                        "You have "
+                                        + str(self.movement_points)
+                                        + " movement points while "
+                                        + str(
+                                            self.get_movement_cost(x_change, y_change)
+                                        )
+                                        + " are required."
                                     )
                                 return False
-                        else:
+                        elif (
+                            destination_type == "land" and not self.can_walk
+                        ):  # if trying to walk on land and can't
+                            if can_print:
+                                if future_cell.has_intact_building("port"):
+                                    text_utility.print_to_screen(
+                                        "Steamships can not move between ports on land."
+                                    )
+                                else:
+                                    text_utility.print_to_screen(
+                                        "You cannot move on land with this unit unless there is a port."
+                                    )
+                            return False
+                        else:  # if trying to swim in water and can't
                             if can_print:
                                 text_utility.print_to_screen(
-                                    "You cannot move into an unexplored tile."
+                                    "You cannot move on ocean with this unit."
                                 )
                             return False
                     else:
-                        text_utility.print_to_screen("You cannot move off of the map.")
+                        if can_print:
+                            text_utility.print_to_screen(
+                                "You cannot move into an unexplored tile."
+                            )
                         return False
                 else:
                     if can_print:

@@ -550,10 +550,11 @@ def manage_lmb_down(clicked_button):
                         else:
                             displayed_mob = status.displayed_mob
                             if current_cell.grid.is_mini_grid:
-                                target_tile = current_cell.tile.get_equivalent_tile()
-                                if target_tile == "none":
+                                target_tiles = current_cell.tile.get_equivalent_tiles()
+                                if not target_tiles:
                                     return ()
-                                target_cell = target_tile.cell
+                                else:
+                                    target_cell = target_tiles[0]
                             else:
                                 target_cell = current_cell
                             # target_cell = status.strategic_map_grid.find_cell(status.minimap_grid.center_x, status.minimap_grid.center_y)
@@ -665,15 +666,15 @@ def click_move_minimap():
             for current_cell in current_grid.get_flat_cell_list():
                 if current_cell.touching_mouse():
                     if (
-                        current_grid == status.minimap_grid
-                    ):  # if minimap clicked, calibrate to corresponding place on main map
+                        current_grid in status.strategic_map_grid.mini_grids
+                    ):  # if minimap clicked, calibrate to corresponding place on main map and all mini maps
                         if (
                             current_cell.terrain != "none"
                         ):  # if off map, do not move minimap there
                             main_x, main_y = current_grid.get_main_grid_coordinates(
                                 current_cell.x, current_cell.y
                             )
-                            status.minimap_grid.calibrate(main_x, main_y)
+                            current_grid.calibrate(main_x, main_y)
                     elif current_grid == status.strategic_map_grid:
                         status.minimap_grid.calibrate(current_cell.x, current_cell.y)
                     else:  # if abstract grid, show the inventory of the tile clicked without calibrating minimap

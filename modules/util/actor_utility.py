@@ -356,6 +356,7 @@ def spawn_beast():
     Output:
         None
     """
+    return
     spawn_cell = status.strategic_map_grid.choose_cell(
         {
             "ocean_allowed": False,
@@ -372,7 +373,7 @@ def spawn_beast():
         False,
         {
             "coordinates": (spawn_cell.x, spawn_cell.y),
-            "grids": [status.strategic_map_grid, status.strategic_map_grid.mini_grid],
+            "grids": [status.strategic_map_grid] + status.strategic_map_grid.mini_grids,
             "modes": status.strategic_map_grid.modes,
             "animal_type": animal_type,
             "adjective": random.choice(constants.animal_adjectives),
@@ -605,6 +606,7 @@ def generate_resource_icon(tile):
         string/list: Returns string or list image id for tile's resource icon
     """
     if tile.cell.resource == "natives":
+        return
         attached_village = tile.cell.get_building("village")
         if attached_village.aggressiveness <= 3:
             aggressiveness_color = constants.color_dict["green_icon"]

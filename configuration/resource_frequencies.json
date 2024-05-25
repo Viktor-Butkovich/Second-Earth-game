@@ -1,8 +1,7 @@
 {
     "savannah": {
         "none": 135,
-        "ivory": 5,
-        "natives": 20
+        "ivory": 5
     },
     "mountain": {
         "none": 135,
@@ -10,8 +9,7 @@
         "gold": 2,
         "coffee": 4,
         "copper": 4,
-        "iron": 4,
-        "natives": 10
+        "iron": 4
     },
     "hills": {
         "none": 135,
@@ -19,8 +17,7 @@
         "gold": 2,
         "coffee": 4,
         "copper": 4,
-        "iron": 4,
-        "natives": 10
+        "iron": 4
     },
     "jungle": {
         "none": 125,
@@ -28,8 +25,7 @@
         "rubber": 6,
         "coffee": 1,
         "exotic wood": 6,
-        "fruit": 6,
-        "natives": 15
+        "fruit": 6
     },
     "swamp": {
         "none": 130,
@@ -37,8 +33,7 @@
         "rubber": 4,
         "coffee": 1,
         "exotic wood": 4,
-        "fruit": 2,
-        "natives": 15
+        "fruit": 2
     },
     "desert": {
         "none": 140,
@@ -47,8 +42,7 @@
         "ivory": 1,
         "fruit": 2,
         "copper": 2,
-        "iron": 2,
-        "natives": 10
+        "iron": 2
     },
     "water": {
         "none": 1

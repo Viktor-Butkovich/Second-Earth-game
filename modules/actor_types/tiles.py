@@ -119,7 +119,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 False,
                 {
                     "coordinates": (self.x, self.y),
-                    "grids": [self.grid, self.grid.mini_grid],
+                    "grids": [self.grid] + self.grid.mini_grids,
                     "image": actor_utility.generate_label_image_id(
                         new_name, y_offset=y_offset
                     ),
@@ -163,12 +163,12 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 constants.game_display, color, (outline), current_image.outline_width
             )
 
-    def draw_actor_match_outline(self, called_by_equivalent):
+    def draw_actor_match_outline(self, recursive=False):
         """
         Description:
             Draws an outline around the displayed tile. If the tile is shown on a minimap, tells the equivalent tile to also draw an outline around the displayed tile
         Input:
-            boolean called_by_equivalent: True if this function is being called by the equivalent tile on either the minimap grid or the strategaic map grid, otherwise False. Prevents infinite loops of equivalent tiles repeatedly
+            boolean recursive=False: True if this function is being called by the equivalent tile on either the minimap grid or the strategaic map grid, otherwise False. Prevents infinite loops of equivalent tiles repeatedly
                 calling each other
         Output:
             None
@@ -182,9 +182,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     (outline),
                     current_image.outline_width,
                 )
-                equivalent_tile = self.get_equivalent_tile()
-                if (not equivalent_tile == "none") and (not called_by_equivalent):
-                    equivalent_tile.draw_actor_match_outline(True)
+        if not recursive:
+            for tile in self.get_equivalent_tiles():
+                tile.draw_actor_match_outline(recursive=True)
 
     def remove_excess_inventory(self):
         """
@@ -218,12 +218,10 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         super().set_inventory(commodity, new_value)
-        equivalent_tile = self.get_equivalent_tile()
-        if (
-            self.grid.attached_grid != "none"
-        ):  # only get equivalent if there is an attached grid
-            equivalent_tile.inventory[commodity] = new_value
-        if status.displayed_tile in [self, equivalent_tile]:
+        equivalent_tiles = self.get_equivalent_tiles()
+        for tile in equivalent_tiles:
+            tile.inventory[commodity] = new_value
+        if status.displayed_tile in [self] + equivalent_tiles:
             actor_utility.calibrate_actor_info_display(status.tile_info_display, self)
 
     def get_main_grid_coordinates(self):
@@ -240,7 +238,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         else:
             return (self.x, self.y)
 
-    def get_equivalent_tile(self):
+    def get_equivalent_tiles(self):
         """
         Description:
             Returns the corresponding minimap tile if this tile is on the strategic map grid or vice versa
@@ -249,22 +247,18 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             tile: tile on the corresponding tile on the grid attached to this tile's grid
         """
-        if self.grid == status.minimap_grid:
+        return_list = []
+        if self.grid == status.strategic_map_grid:
+            for mini_grid in self.grid.mini_grids:
+                mini_x, mini_y = mini_grid.get_mini_grid_coordinates(self.x, self.y)
+                equivalent_cell = mini_grid.find_cell(mini_x, mini_y)
+                if equivalent_cell and equivalent_cell.tile != "none":
+                    return_list.append(equivalent_cell.tile)
+        elif self.grid.is_mini_grid:
             main_x, main_y = self.grid.get_main_grid_coordinates(self.x, self.y)
-            attached_cell = self.grid.attached_grid.find_cell(main_x, main_y)
-            if attached_cell:
-                return attached_cell.tile
-            return "none"
-        elif self.grid == status.strategic_map_grid:
-            mini_x, mini_y = self.grid.mini_grid.get_mini_grid_coordinates(
-                self.x, self.y
-            )
-            equivalent_cell = self.grid.mini_grid.find_cell(mini_x, mini_y)
-            if equivalent_cell:
-                return equivalent_cell.tile
-            else:
-                return "none"
-        return "none"
+            equivalent_cell = self.grid.attached_grid.find_cell(main_x, main_y)
+            return_list.append(equivalent_cell.tile)
+        return return_list
 
     # maybe make these into general actor functions? override update image bundle for tile to account for resources/buildings, have group version with multiple entities
     def get_image_id_list(self, force_visibility=False):
@@ -279,9 +273,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
         """
         image_id_list = []
         if self.cell.grid.is_mini_grid:
-            equivalent_tile = self.get_equivalent_tile()
-            if equivalent_tile != "none" and self.show_terrain:
-                image_id_list = equivalent_tile.get_image_id_list()
+            equivalent_tiles = self.get_equivalent_tiles()
+            if equivalent_tiles and self.show_terrain:
+                image_id_list = equivalent_tiles[0].get_image_id_list()
             else:
                 image_id_list.append(
                     self.image_dict["default"]
@@ -356,8 +350,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         else:
             self.set_image(self.get_image_id_list())
         if self.grid == status.strategic_map_grid:
-            equivalent_tile = self.get_equivalent_tile()
-            if equivalent_tile != "none":
+            for equivalent_tile in self.get_equivalent_tiles():
                 equivalent_tile.update_image_bundle(override_image=override_image)
 
     def set_resource(self, new_resource, update_image_bundle=True):
@@ -371,49 +364,6 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         self.resource = new_resource
-        if not new_resource == "none":
-            if self.resource == "natives":
-                equivalent_tile = self.get_equivalent_tile()
-                village_exists = False
-                if not equivalent_tile == "none":
-                    if (
-                        not equivalent_tile.cell.village == "none"
-                    ):  # if equivalent tile present and equivalent tile has village, copy village to equivalent instead of creating new one
-                        village_exists = True
-                        self.cell.village = equivalent_tile.cell.village
-                        self.cell.village.tiles.append(self)
-                        if (
-                            self.cell.grid.is_mini_grid
-                        ):  # set main cell of village to one on strategic map grid, as opposed to the mini map
-                            self.cell.village.cell = equivalent_tile.cell
-                        else:
-                            self.cell.village.cell = self.cell
-                if not village_exists:  # make new village if village not present
-                    if self.cell.grid.from_save:
-                        self.cell.village = villages.village(
-                            True,
-                            {
-                                "name": self.cell.save_dict["village_name"],
-                                "population": self.cell.save_dict["village_population"],
-                                "aggressiveness": self.cell.save_dict[
-                                    "village_aggressiveness"
-                                ],
-                                "available_workers": self.cell.save_dict[
-                                    "village_available_workers"
-                                ],
-                                "attached_warriors": self.cell.save_dict[
-                                    "village_attached_warriors"
-                                ],
-                                "found_rumors": self.cell.save_dict[
-                                    "village_found_rumors"
-                                ],
-                                "cell": self.cell,
-                            },
-                        )
-                        self.cell.village.tiles.append(self)
-                    else:
-                        self.cell.village = villages.village(False, {"cell": self.cell})
-                        self.cell.village.tiles.append(self)
         if update_image_bundle:
             self.update_image_bundle()
 
