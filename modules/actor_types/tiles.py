@@ -58,7 +58,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             self.cell.tile = self
             self.image_dict["hidden"] = "terrains/paper_hidden.png"
             self.set_terrain(
-                self.cell.terrain
+                self.cell.terrain_handler.terrain
             )  # terrain is a property of the cell, being stored information rather than appearance, same for resource, set these in cell
             if self.cell.grid.from_save:
                 self.inventory = self.cell.save_dict["inventory"]
@@ -82,9 +82,15 @@ class tile(actor):  # to do: make terrain tiles a subclass
         if (
             self.name == "default"
         ):  # Set tile name to that of any terrain features, if applicable
-            for terrain_feature in self.cell.terrain_features:
-                if self.cell.terrain_features[terrain_feature].get("name", False):
-                    self.set_name(self.cell.terrain_features[terrain_feature]["name"])
+            for terrain_feature in self.cell.terrain_handler.terrain_features:
+                if self.cell.terrain_handler.terrain_features[terrain_feature].get(
+                    "name", False
+                ):
+                    self.set_name(
+                        self.cell.terrain_handler.terrain_features[terrain_feature][
+                            "name"
+                        ]
+                    )
 
     def set_name(self, new_name):
         """
@@ -152,16 +158,20 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         for current_image in self.images:
-            outline = self.cell.Rect
-            if color == "default":
-                color = constants.color_dict[self.selection_outline_color]
-            else:
-                color = constants.color_dict[
-                    color
-                ]  # converts input string to RGB tuple
-            pygame.draw.rect(
-                constants.game_display, color, (outline), current_image.outline_width
-            )
+            if current_image.can_show():
+                outline = self.cell.Rect
+                if color == "default":
+                    color = constants.color_dict[self.selection_outline_color]
+                else:
+                    color = constants.color_dict[
+                        color
+                    ]  # converts input string to RGB tuple
+                pygame.draw.rect(
+                    constants.game_display,
+                    color,
+                    (outline),
+                    current_image.outline_width,
+                )
 
     def draw_actor_match_outline(self, recursive=False):
         """
@@ -307,8 +317,10 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         "level": -9,
                     }
                 )
-                for terrain_feature in self.cell.terrain_features:
-                    new_image_id = self.cell.terrain_features[terrain_feature].get(
+                for terrain_feature in self.cell.terrain_handler.terrain_features:
+                    new_image_id = self.cell.terrain_handler.terrain_features[
+                        terrain_feature
+                    ].get(
                         "image_id",
                         status.terrain_feature_types[terrain_feature].image_id,
                     )
@@ -317,7 +329,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             new_image_id, y_offset=-0.75
                         )
                     image_id_list = utility.combine(image_id_list, new_image_id)
-                if self.cell.resource != "none":
+                if self.cell.terrain_handler.resource != "none":
                     resource_icon = actor_utility.generate_resource_icon(self)
                     if type(resource_icon) == str:
                         image_id_list.append(resource_icon)
@@ -384,7 +396,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 "terrains/"
                 + new_terrain
                 + "_"
-                + str(self.cell.terrain_variant)
+                + str(self.cell.terrain_handler.terrain_variant)
                 + ".png"
             )
         elif new_terrain == "none":
@@ -413,49 +425,54 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 + ")"
             )
             if self.cell.visible:
-                if self.cell.terrain != "none":
-                    if self.cell.terrain == "water":
+                if self.cell.terrain_handler.terrain != "none":
+                    if self.cell.terrain_handler.terrain == "water":
                         if coordinates[1] == 0:
                             tooltip_message.append("This is an ocean water tile")
                             tooltip_message.append(
-                                f"    Movement cost: {constants.terrain_movement_cost_dict[self.cell.terrain]} (with steamship)"
+                                f"    Movement cost: {constants.terrain_movement_cost_dict[self.cell.terrain_handler.terrain]} (with steamship)"
                             )
                             tooltip_message.append(f"        Otherwise impassable")
                         else:
                             tooltip_message.append("This is a river water tile")
-                            tooltip_message.append(
-                                f"    Movement cost: {constants.terrain_movement_cost_dict[self.cell.terrain]} (with canoes or steamboat)"
-                            )
+                            if self.cell.terrain_handler.terrain_features.get(
+                                "cataract", False
+                            ):
+                                tooltip_message.append(f"    Impassable for steamboats")
+                            else:
+                                tooltip_message.append(
+                                    f"    Movement cost: {constants.terrain_movement_cost_dict[self.cell.terrain_handler.terrain]} (with canoes or steamboat)"
+                                )
                             tooltip_message.append(
                                 f"        Otherwise costs entire turn of movement"
                             )
                     else:
                         tooltip_message.append(
-                            f"This is {utility.generate_article(self.cell.terrain)} {self.cell.terrain} tile"
+                            f"This is {utility.generate_article(self.cell.terrain_handler.terrain)} {self.cell.terrain_handler.terrain} tile"
                         )
                         tooltip_message.append(
-                            f"    Movement cost: {constants.terrain_movement_cost_dict[self.cell.terrain]}"
+                            f"    Movement cost: {constants.terrain_movement_cost_dict[self.cell.terrain_handler.terrain]}"
                         )
                     tooltip_message.append(
-                        f"    Building cost multiplier: x{constants.terrain_build_cost_multiplier_dict[self.cell.terrain]}"
+                        f"    Building cost multiplier: x{constants.terrain_build_cost_multiplier_dict[self.cell.terrain_handler.terrain]}"
                     )
                     attrition_dict = {1: "light", 2: "moderate", 3: "severe"}
                     tooltip_message.append(
-                        f"    Attrition: {attrition_dict[constants.terrain_attrition_dict[self.cell.terrain]]}"
+                        f"    Attrition: {attrition_dict[constants.terrain_attrition_dict[self.cell.terrain_handler.terrain]]}"
                     )
                 if not self.cell.village == "none":  # if village present, show village
                     tooltip_message += self.cell.village.get_tooltip()
                 elif (
-                    not self.cell.resource == "none"
+                    not self.cell.terrain_handler.resource == "none"
                 ):  # if not village but other resource present, show resource
                     tooltip_message.append(
                         "This tile has "
-                        + utility.generate_article(self.cell.resource)
+                        + utility.generate_article(self.cell.terrain_handler.resource)
                         + " "
-                        + self.cell.resource
+                        + self.cell.terrain_handler.resource
                         + " resource"
                     )
-                for terrain_feature in self.cell.terrain_features:
+                for terrain_feature in self.cell.terrain_handler.terrain_features:
                     tooltip_message.append(
                         f"This tile has {utility.generate_article(terrain_feature, add_space=True)}{terrain_feature}"
                     )
@@ -500,7 +517,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             if (
                 self.touching_mouse() and constants.current_game_mode in self.modes
             ):  # and not targeting_ability
-                if self.cell.terrain == "none":
+                if self.cell.terrain_handler.terrain == "none":
                     return False
                 else:
                     return True

@@ -75,6 +75,7 @@ class achievement_manager_template:
         Output:
             None
         """
+        return
         if (not achievement_type in self.achievements) or (
             achievement_type in self.victory_conditions
             and not achievement_type in flags.victories_this_game
@@ -250,6 +251,7 @@ class achievement_manager_template:
         Description:
             Checks if the inputted achievement is being achieved, or checks all achievements if no input is given
         """
+        return
         if achievement_type == "Entrepreneur" or achievement_type == "start of turn":
             if constants.money_tracker.get() >= 10000:
                 self.achieve("Entrepreneur")

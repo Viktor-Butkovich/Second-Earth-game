@@ -66,7 +66,7 @@ class village:
         Output:
             boolean: Returns whether this village has cannibals
         """
-        return bool(self.cell.terrain_features.get("cannibals", False))
+        return bool(self.cell.terrain_handler.terrain_features.get("cannibals", False))
 
     def remove_cannibals(self) -> None:
         """
@@ -78,7 +78,7 @@ class village:
             None
         """
         if self.has_cannibals():
-            del self.cell.terrain_features["cannibals"]
+            del self.cell.terrain_handler.terrain_features["cannibals"]
             self.cell.tile.update_image_bundle()
 
     def remove_complete(self):

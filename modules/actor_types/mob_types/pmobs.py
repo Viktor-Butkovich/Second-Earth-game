@@ -675,12 +675,7 @@ class pmob(mob):
                             current_tile.draw_destination_outline(color)
                             for equivalent_tile in current_tile.get_equivalent_tiles():
                                 equivalent_tile.draw_destination_outline(color)
-
-            if (
-                not self.end_turn_destination == "none"
-            ) and self.end_turn_destination.images[
-                0
-            ].can_show():  # only show outline if tile is showing
+            if self.end_turn_destination != "none":
                 self.end_turn_destination.draw_destination_outline()
                 for equivalent_tile in self.end_turn_destination.get_equivalent_tiles():
                     equivalent_tile.draw_destination_outline()
@@ -786,8 +781,8 @@ class pmob(mob):
         Output:
             boolean: Returns True if this mob can move to the proposed destination, otherwise returns False
         """
-        future_x = self.x + x_change
-        future_y = self.y + y_change
+        future_x = (self.x + x_change) % self.grid.coordinate_width
+        future_y = (self.y + y_change) % self.grid.coordinate_height
         transportation_minister = status.current_ministers[
             constants.type_minister_dict["transportation"]
         ]
@@ -797,8 +792,10 @@ class pmob(mob):
                     future_cell = self.grid.find_cell(future_x, future_y)
                     if future_cell.visible or self.can_explore:
                         destination_type = "land"
-                        if future_cell.terrain == "water" and not (
-                            future_cell.terrain_features.get("cataract", False)
+                        if future_cell.terrain_handler.terrain == "water" and not (
+                            future_cell.terrain_handler.terrain_features.get(
+                                "cataract", False
+                            )
                             and not self.can_walk
                         ):
                             destination_type = "water"  # if can move to destination, possible to move onto ship in water, possible to 'move' into non-visible water while exploring
@@ -809,7 +806,7 @@ class pmob(mob):
                                 or self.can_explore
                                 or (
                                     future_cell.has_intact_building("port")
-                                    and (self.can_swim_river or future_cell.y <= 1)
+                                    and (self.can_swim)
                                 )
                             ):  # Allow ships on land if port is built and either coastal port or able to move in rivers
                                 passed = True
@@ -832,9 +829,7 @@ class pmob(mob):
                                 ):
                                     passed = True
                                 elif (
-                                    future_cell.y > 0
-                                    and self.can_walk
-                                    and not self.can_swim_river
+                                    self.can_walk and not self.can_swim_river
                                 ):  # can move through river with maximum movement points while becoming disorganized
                                     passed = True
                         if passed:
@@ -850,22 +845,10 @@ class pmob(mob):
                                             == "none"
                                         )
                                     ):  # battalions can attack enemies in water, but must retreat afterward
-                                        if (
-                                            future_y == 0 and not self.can_swim_ocean
-                                        ) or (
-                                            future_y > 0
-                                            and (not self.can_swim_river)
-                                            and (not self.can_walk)
-                                        ):
-                                            if can_print:
-                                                if future_y == 0:
-                                                    text_utility.print_to_screen(
-                                                        "This unit cannot move into the ocean."
-                                                    )
-                                                elif future_y > 0:
-                                                    text_utility.print_to_screen(
-                                                        "This unit cannot move through rivers."
-                                                    )
+                                        if not self.can_swim:
+                                            text_utility.print_to_screen(
+                                                "This unit can not move into water"
+                                            )
                                             return False
 
                             if (
@@ -914,12 +897,6 @@ class pmob(mob):
                                     text_utility.print_to_screen(
                                         "You cannot move on land with this unit unless there is a port."
                                     )
-                            return False
-                        else:  # if trying to swim in water and can't
-                            if can_print:
-                                text_utility.print_to_screen(
-                                    "You cannot move on ocean with this unit."
-                                )
                             return False
                     else:
                         if can_print:

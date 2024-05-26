@@ -506,7 +506,10 @@ class infrastructure_building(building):
             left_cell = self.grids[0].find_cell(self.x - 1, self.y)
             right_cell = self.grids[0].find_cell(self.x + 1, self.y)
             if (not (up_cell == None or down_cell == None)) and (
-                not (up_cell.terrain == "water" or down_cell.terrain == "water")
+                not (
+                    up_cell.terrain_handler.terrain == "water"
+                    or down_cell.terrain_handler.terrain == "water"
+                )
             ):
                 self.connected_cells = [up_cell, down_cell]
                 if self.is_road:
@@ -574,7 +577,7 @@ class infrastructure_building(building):
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
         image_id_list = super().get_image_id_list(override_values)
-        if self.cell.terrain != "water":
+        if self.cell.terrain_handler.terrain != "water":
             connected_road, connected_railroad = (False, False)
             for direction in ["up", "down", "left", "right"]:
                 adjacent_cell = self.cell.adjacent_cells[direction]

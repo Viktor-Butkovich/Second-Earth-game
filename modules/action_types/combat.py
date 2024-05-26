@@ -77,7 +77,7 @@ class combat(action.action):
             + " more movement point"
             + utility.generate_plural(final_movement_cost - 1)
             + " because the adjacent tile has "
-            + tooltip_info_dict["adjacent_cell"].terrain
+            + tooltip_info_dict["adjacent_cell"].terrain_handler.terrain
             + " terrain "
         )
         if tooltip_info_dict["local_cell"].has_walking_connection(
@@ -773,7 +773,7 @@ class combat(action.action):
         if not self.defending:
             self.current_unit.set_movement_points(0)
             if (
-                combat_cell.terrain == "water"
+                combat_cell.terrain_handler.terrain == "water"
                 and combat_cell.y > 0
                 and not self.current_unit.can_swim_river
             ):  # if attacked river and can't swim, become disorganized after combat

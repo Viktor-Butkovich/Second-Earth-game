@@ -1327,34 +1327,18 @@ class switch_theatre_button(button):
         if main_loop_utility.action_possible():
             current_mob = status.displayed_mob
             if current_mob.movement_points >= 1:
-                if not (
-                    status.strategic_map_grid in current_mob.grids
-                    and (
-                        current_mob.y > 1
-                        or (
-                            current_mob.y == 1
-                            and not current_mob.images[
-                                0
-                            ].current_cell.has_intact_building("port")
-                        )
-                    )
-                ):  # can leave if in ocean or if in coastal port
-                    if (
-                        current_mob.can_leave()
-                    ):  # not current_mob.grids[0] in self.destination_grids and
-                        if current_mob.sentry_mode:
-                            current_mob.set_sentry_mode(False)
-                        if not constants.current_game_mode == "strategic":
-                            game_transitions.set_game_mode("strategic")
-                            current_mob.select()
-                        current_mob.clear_automatic_route()
-                        current_mob.end_turn_destination = "none"
-                        current_mob.add_to_turn_queue()
-                        flags.choosing_destination = True
-                else:
-                    text_utility.print_to_screen(
-                        "You are inland and cannot cross the ocean."
-                    )
+                if (
+                    current_mob.can_leave()
+                ):  # not current_mob.grids[0] in self.destination_grids and
+                    if current_mob.sentry_mode:
+                        current_mob.set_sentry_mode(False)
+                    if not constants.current_game_mode == "strategic":
+                        game_transitions.set_game_mode("strategic")
+                        current_mob.select()
+                    current_mob.clear_automatic_route()
+                    current_mob.end_turn_destination = "none"
+                    current_mob.add_to_turn_queue()
+                    flags.choosing_destination = True
             else:
                 text_utility.print_to_screen(
                     "Crossing the ocean requires all remaining movement points, at least 1."

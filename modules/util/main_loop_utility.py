@@ -554,7 +554,7 @@ def manage_lmb_down(clicked_button):
                                 if not target_tiles:
                                     return ()
                                 else:
-                                    target_cell = target_tiles[0]
+                                    target_cell = target_tiles[0].cell
                             else:
                                 target_cell = current_cell
                             # target_cell = status.strategic_map_grid.find_cell(status.minimap_grid.center_x, status.minimap_grid.center_y)
@@ -591,7 +591,7 @@ def manage_lmb_down(clicked_button):
                                     )
                                     return ()
                                 elif (
-                                    target_cell.terrain == "water"
+                                    target_cell.terrain_handler.terrain == "water"
                                     and not displayed_mob.can_swim
                                 ) and (
                                     displayed_mob.is_vehicle
@@ -604,7 +604,7 @@ def manage_lmb_down(clicked_button):
                                     )
                                     return ()
                                 elif (
-                                    target_cell.terrain == "water"
+                                    target_cell.terrain_handler.terrain == "water"
                                     and displayed_mob.can_swim
                                     and (not displayed_mob.can_swim_ocean)
                                     and destination_y == 0
@@ -614,7 +614,7 @@ def manage_lmb_down(clicked_button):
                                     )
                                     return ()
                                 elif (
-                                    target_cell.terrain == "water"
+                                    target_cell.terrain_handler.terrain == "water"
                                     and displayed_mob.can_swim
                                     and (not displayed_mob.can_swim_river)
                                     and destination_y > 0
@@ -624,7 +624,7 @@ def manage_lmb_down(clicked_button):
                                     )
                                     return ()
                                 elif (
-                                    (not target_cell.terrain == "water")
+                                    (not target_cell.terrain_handler.terrain == "water")
                                     and (not displayed_mob.can_walk)
                                     and not target_cell.has_intact_building("port")
                                 ):
@@ -669,7 +669,7 @@ def click_move_minimap():
                         current_grid in status.strategic_map_grid.mini_grids
                     ):  # if minimap clicked, calibrate to corresponding place on main map and all mini maps
                         if (
-                            current_cell.terrain != "none"
+                            current_cell.terrain_handler.terrain != "none"
                         ):  # if off map, do not move minimap there
                             main_x, main_y = current_grid.get_main_grid_coordinates(
                                 current_cell.x, current_cell.y

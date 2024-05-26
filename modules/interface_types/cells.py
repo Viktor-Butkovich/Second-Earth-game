@@ -4,6 +4,7 @@ import pygame
 import random
 from typing import Dict
 from ..util import actor_utility
+from ..tools.data_managers.terrain_manager_template import terrain_handler
 import modules.constants.constants as constants
 import modules.constants.status as status
 
@@ -40,12 +41,9 @@ class cell:
         )  # (left, top, width, height)
         self.grid.cell_list[x][y] = self
         self.tile = "none"
-        self.resource = "none"
         self.village = "none"
         self.settlement = None
-        self.terrain = "none"
-        self.terrain_features: Dict[str, bool] = {}
-        self.terrain_variant: int = 0
+        self.terrain_handler: terrain_handler = None
         self.contained_mobs: list = []
         self.reset_buildings()
         self.adjacent_cells: Dict[str, cell] = {
@@ -59,9 +57,9 @@ class cell:
             if constants.effect_manager.effect_active("remove_fog_of_war"):
                 save_dict["visible"] = True
             self.set_visibility(save_dict["visible"])
-            self.terrain_variant = save_dict["terrain_variant"]
-            self.terrain_features = save_dict["terrain_features"]
+            self.terrain_handler = terrain_handler(self, True, save_dict)
         else:  # if creating new map
+            self.terrain_handler = terrain_handler(self, False)
             self.set_visibility(
                 constants.effect_manager.effect_active("remove_fog_of_war")
             )
@@ -81,31 +79,12 @@ class cell:
                 'terrain feature': string/boolean dictionary value - Dictionary containing a True entry for each terrain feature type in this cell
                 'resource': string value - Resource type of this cell and its tile, like 'exotic wood'
                 'inventory': string/string dictionary value - Version of the inventory dictionary of this cell's tile only containing commodity types with 1+ units held
-                'village_name': Only saved if resource is natives, name of this cell's village
-                'village_population': Only saved if resource is natives, population of this cell's village
-                'village_aggressiveness': Only saved if resource is natives, aggressiveness of this cell's village
-                'village_available_workers': Only saved if resource is natives, how many workers this cell's village has
         """
         save_dict = {}
         save_dict["coordinates"] = (self.x, self.y)
         save_dict["visible"] = self.visible
-        save_dict["terrain"] = self.terrain
-        save_dict["terrain_variant"] = self.terrain_variant
-        save_dict["terrain_features"] = self.terrain_features
-        save_dict["resource"] = self.resource
+        save_dict.update(self.terrain_handler.to_save_dict())
         save_dict["inventory"] = self.tile.inventory
-
-        if self.resource == "natives":
-            save_dict["village_name"] = self.village.name
-            save_dict["village_population"] = self.village.population
-            save_dict["village_aggressiveness"] = self.village.aggressiveness
-            save_dict["village_available_workers"] = self.village.available_workers
-            save_dict["village_attached_warriors"] = []
-            save_dict["village_found_rumors"] = self.village.found_rumors
-            for attached_warrior in self.village.attached_warriors:
-                save_dict["village_attached_warriors"].append(
-                    attached_warrior.to_save_dict()
-                )
         return save_dict
 
     def has_walking_connection(self, adjacent_cell):
@@ -118,15 +97,17 @@ class cell:
             boolean: Returns whether a walking-only unit could move between this cell and the inputted cell, based on the terrains of the cells and whether a bridge is built
         """
         if not (
-            self.terrain == "water" or adjacent_cell.terrain == "water"
+            self.terrain_handler.terrain == "water"
+            or adjacent_cell.terrain_handler.terrain == "water"
         ):  # if both are land tiles, walking connection exists
             return True
         if (
-            self.terrain == "water" and adjacent_cell.terrain == "water"
+            self.terrain_handler.terrain == "water"
+            and adjacent_cell.terrain_handler.terrain == "water"
         ):  # if both are water, no walking connection exists
             return False
 
-        if self.terrain == "water":
+        if self.terrain_handler.terrain == "water":
             water_cell = self
             land_cell = adjacent_cell
         else:
@@ -171,7 +152,8 @@ class cell:
         else:
             if (
                 random.randrange(1, 7)
-                >= constants.terrain_attrition_dict.get(self.terrain, 1) + 1
+                >= constants.terrain_attrition_dict.get(self.terrain_handler.terrain, 1)
+                + 1
             ):  # Attrition on 1-, 2-, or 3-, based on terrain
                 return False
 
@@ -784,38 +766,6 @@ class cell:
         if new_visibility:
             constants.achievement_manager.check_achievements("Heart of Darkness")
 
-    def set_resource(self, new_resource, update_image_bundle=True):
-        """
-        Description:
-            Sets the resource type of this cell and its attached tile to the inputted value
-        Input:
-            string new_resource: The new resource type of this cell and its attached tile, like 'exotic wood'
-        Output:
-            None
-        """
-        self.resource = new_resource
-        self.tile.set_resource(new_resource, update_image_bundle=update_image_bundle)
-
-    def set_terrain(
-        self, new_terrain, terrain_variant="none", update_image_bundle=True
-    ):
-        """
-        Description:
-            Sets the terrain type of this cell and its attached tile to the inputted value
-        Input:
-            string new_terrain: The new terrain type of this cell and its attached tile, like 'swamp'
-            int/string terrain_variant: terrain variant number to use in image file path, like mountain_2
-            boolean update_image_bundle: Whether to update the image bundle - if multiple sets are being used on a tile, optimal to only update after the last one
-        Output:
-            None
-        """
-        if terrain_variant != "none":
-            self.terrain_variant = terrain_variant
-        self.terrain = new_terrain
-        if self.tile != "none":
-            self.tile.set_terrain(new_terrain, update_image_bundle)
-        self.color = constants.terrain_colors[new_terrain]
-
     def copy(self, other_cell):
         """
         Description:
@@ -829,11 +779,7 @@ class cell:
         self.contained_buildings = other_cell.contained_buildings
         self.village = other_cell.village
         self.set_visibility(other_cell.visible, update_image_bundle=False)
-        self.set_terrain(
-            other_cell.terrain, other_cell.terrain_variant, update_image_bundle=False
-        )
-        self.terrain_features = other_cell.terrain_features
-        self.set_resource(other_cell.resource, update_image_bundle=False)
+        other_cell.terrain_handler.add_cell(self)
         # self.tile.update_image_bundle(override_image=other_cell.tile.image) #correctly copies other cell's image bundle but ends up very pixellated due to size difference
         self.tile.update_image_bundle()
 
@@ -909,16 +855,24 @@ class cell:
         """
         adjacent_list = []
 
-        adjacent_cell = self.grid.find_cell(self.x - 1, self.y)
+        adjacent_cell = self.grid.find_cell(
+            (self.x - 1) % self.grid.coordinate_width, self.y
+        )
         adjacent_list.append(adjacent_cell)
         self.adjacent_cells["left"] = adjacent_cell
-        adjacent_cell = self.grid.find_cell(self.x + 1, self.y)
+        adjacent_cell = self.grid.find_cell(
+            (self.x + 1) % self.grid.coordinate_width, self.y
+        )
         adjacent_list.append(adjacent_cell)
         self.adjacent_cells["right"] = adjacent_cell
-        adjacent_cell = self.grid.find_cell(self.x, self.y - 1)
+        adjacent_cell = self.grid.find_cell(
+            self.x, (self.y - 1) % self.grid.coordinate_height
+        )
         adjacent_list.append(adjacent_cell)
         self.adjacent_cells["down"] = adjacent_cell
-        adjacent_cell = self.grid.find_cell(self.x, self.y + 1)
+        adjacent_cell = self.grid.find_cell(
+            self.x, (self.y + 1) % self.grid.coordinate_height
+        )
         adjacent_list.append(adjacent_cell)
         self.adjacent_cells["up"] = adjacent_cell
 

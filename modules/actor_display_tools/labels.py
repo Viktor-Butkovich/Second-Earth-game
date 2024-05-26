@@ -920,21 +920,24 @@ class actor_display_label(label):
                 if new_actor.grid.is_abstract_grid:
                     self.set_label(utility.capitalize(new_actor.grid.name))
                 elif self.actor.cell.visible:
-                    if new_actor.cell.terrain == "water":
+                    if new_actor.cell.terrain_handler.terrain == "water":
                         if new_actor.cell.y == 0:
                             self.set_label(
                                 self.message_start
                                 + "ocean "
-                                + str(new_actor.cell.terrain)
+                                + str(new_actor.cell.terrain_handler.terrain)
                             )
                         else:
                             self.set_label(
                                 self.message_start
                                 + "river "
-                                + str(new_actor.cell.terrain)
+                                + str(new_actor.cell.terrain_handler.terrain)
                             )
                     else:
-                        self.set_label(self.message_start + str(new_actor.cell.terrain))
+                        self.set_label(
+                            self.message_start
+                            + str(new_actor.cell.terrain_handler.terrain)
+                        )
                 else:
                     self.set_label(self.message_start + "unknown")
 
@@ -943,7 +946,9 @@ class actor_display_label(label):
                     self.set_label(self.message_start + "n/a")
                 elif new_actor.cell.visible:
                     if not new_actor.cell.has_building("village"):
-                        self.set_label(self.message_start + new_actor.cell.resource)
+                        self.set_label(
+                            self.message_start + new_actor.cell.terrain_handler.resource
+                        )
                 else:
                     self.set_label(self.message_start + "unknown")
 
@@ -1305,7 +1310,7 @@ class actor_display_label(label):
         elif self.actor == "none":
             return False
         elif self.actor_label_type == "resource" and (
-            self.actor.cell.resource == "none"
+            self.actor.cell.terrain_handler.resource == "none"
             or (not self.actor.cell.visible)
             or self.actor.grid.is_abstract_grid
             or (self.actor.cell.visible and self.actor.cell.has_building("village"))
@@ -1687,4 +1692,6 @@ class terrain_feature_label(actor_display_label):
         """
         return super().can_show(
             skip_parent_collection=skip_parent_collection
-        ) and self.actor.cell.terrain_features.get(self.terrain_feature_type, False)
+        ) and self.actor.cell.terrain_handler.terrain_features.get(
+            self.terrain_feature_type, False
+        )

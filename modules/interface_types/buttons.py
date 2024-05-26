@@ -175,14 +175,15 @@ class button(interface_elements.interface_element):
                 local_infrastructure = local_cell.get_intact_building("infrastructure")
                 passed = False
                 if (
-                    current_mob.can_walk and not adjacent_cell.terrain == "water"
+                    current_mob.can_walk
+                    and not adjacent_cell.terrain_handler.terrain == "water"
                 ) or local_cell.has_walking_connection(
                     adjacent_cell
                 ):  # if walking unit moving onto land or along bridge
                     passed = True
                 elif (
                     current_mob.can_swim
-                    and adjacent_cell.terrain == "water"
+                    and adjacent_cell.terrain_handler.terrain == "water"
                     and (
                         (current_mob.can_swim_river and adjacent_cell.y > 0)
                         or (current_mob.can_swim_ocean and adjacent_cell.y == 0)
@@ -191,7 +192,8 @@ class button(interface_elements.interface_element):
                 ):  # if swimming unit going to correct kind of water or embarking ship
                     passed = True
                 elif (
-                    current_mob.can_walk and adjacent_cell.terrain == "water"
+                    current_mob.can_walk
+                    and adjacent_cell.terrain_handler.terrain == "water"
                 ) and adjacent_cell.y > 0:  # if land unit entering river for maximum movement points
                     passed = True
                     if (
@@ -258,7 +260,7 @@ class button(interface_elements.interface_element):
                                     + " movement point"
                                     + utility.generate_plural(movement_cost)
                                     + " because the adjacent tile has "
-                                    + adjacent_cell.terrain
+                                    + adjacent_cell.terrain_handler.terrain
                                     + " terrain "
                                 )
                                 if local_cell.has_walking_connection(adjacent_cell):
@@ -279,7 +281,7 @@ class button(interface_elements.interface_element):
                                         message += "and no connecting roads"  # + local_infrastructure.infrastructure_type
                                     else:
                                         message += "and no connecting roads"
-                                if adjacent_cell.terrain_features.get(
+                                if adjacent_cell.terrain_handler.terrain_features.get(
                                     "cataract", False
                                 ):
                                     message += "and a cataract"
@@ -288,7 +290,8 @@ class button(interface_elements.interface_element):
                                 if (
                                     (
                                         current_mob.can_walk
-                                        and adjacent_cell.terrain == "water"
+                                        and adjacent_cell.terrain_handler.terrain
+                                        == "water"
                                         and (not current_mob.can_swim_river)
                                     )
                                     and adjacent_cell.y > 0
@@ -302,18 +305,21 @@ class button(interface_elements.interface_element):
                                 else:
                                     tooltip_text.append(
                                         "Moving into a "
-                                        + adjacent_cell.terrain
+                                        + adjacent_cell.terrain_handler.terrain
                                         + " tile costs "
                                         + str(
                                             constants.terrain_movement_cost_dict[
-                                                adjacent_cell.terrain
+                                                adjacent_cell.terrain_handler.terrain
                                             ]
                                         )
                                         + " movement points"
                                     )
                         if (
                             (not current_mob.is_vehicle)
-                            and current_mob.images[0].current_cell.terrain == "water"
+                            and current_mob.images[
+                                0
+                            ].current_cell.terrain_handler.terrain
+                            == "water"
                             and current_mob.images[0].current_cell.has_vehicle("ship")
                         ):
                             if (

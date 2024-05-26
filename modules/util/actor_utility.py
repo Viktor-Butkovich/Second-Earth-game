@@ -68,8 +68,9 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
     ):
         cost_multiplier = 1
     else:
-        terrain = constructor.images[0].current_cell.terrain
-        cost_multiplier = constants.terrain_build_cost_multiplier_dict[terrain]
+        cost_multiplier = constants.terrain_build_cost_multiplier_dict[
+            constructor.images[0].current_cell.terrain_handler.terrain
+        ]
 
     return base_price * cost_multiplier
 
@@ -357,30 +358,6 @@ def spawn_beast():
         None
     """
     return
-    spawn_cell = status.strategic_map_grid.choose_cell(
-        {
-            "ocean_allowed": False,
-            "allowed_terrains": constants.terrain_list + ["water"],
-            "nearby_buildings_allowed": True,
-        }
-    )
-    if spawn_cell.adjacent_to_buildings():
-        return ()  # cancel spawn if beast would spawn near buildings, become less common as colony develops
-    terrain_type = spawn_cell.terrain
-    animal_type = random.choice(constants.terrain_animal_dict[terrain_type])
-
-    constants.actor_creation_manager.create(
-        False,
-        {
-            "coordinates": (spawn_cell.x, spawn_cell.y),
-            "grids": [status.strategic_map_grid] + status.strategic_map_grid.mini_grids,
-            "modes": status.strategic_map_grid.modes,
-            "animal_type": animal_type,
-            "adjective": random.choice(constants.animal_adjectives),
-            "image": "mobs/beasts/" + animal_type + ".png",
-            "init_type": "beast",
-        },
-    )
 
 
 def find_closest_available_worker(destination):
@@ -605,31 +582,13 @@ def generate_resource_icon(tile):
     Output:
         string/list: Returns string or list image id for tile's resource icon
     """
-    if tile.cell.resource == "natives":
-        return
-        attached_village = tile.cell.get_building("village")
-        if attached_village.aggressiveness <= 3:
-            aggressiveness_color = constants.color_dict["green_icon"]
-        elif attached_village.aggressiveness <= 6:
-            aggressiveness_color = constants.color_dict["yellow_icon"]
-        else:
-            aggressiveness_color = constants.color_dict["red_icon"]
-        population_key = str(
-            (attached_village.population + 2) // 3
-        )  # 0 for 0, 1 for 1-3, 2 for 4-6, 3 for 7-9
-        image_id = [
-            {
-                "image_id": "misc/circle.png",
-                "green_screen": aggressiveness_color,
-                "size": 0.75,
-            },
-            {"image_id": "terrains/features/natives/" + population_key + ".png"},
-        ]
-    else:
-        image_id = [
-            {"image_id": "misc/green_circle.png", "size": 0.75},
-            {"image_id": "items/" + tile.cell.resource + ".png", "size": 0.75},
-        ]
+    image_id = [
+        {"image_id": "misc/green_circle.png", "size": 0.75},
+        {
+            "image_id": "items/" + tile.cell.terrain_handler.resource + ".png",
+            "size": 0.75,
+        },
+    ]
 
     if bool(tile.cell.get_buildings()):  # Make small icon if tile has any buildings
         for (

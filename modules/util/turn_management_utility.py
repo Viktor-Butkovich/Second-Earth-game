@@ -419,7 +419,7 @@ def manage_worker_price_changes():
                 )
                 status.worker_types[worker_type].upkeep = changed_price
                 text_utility.print_to_screen(
-                    "An shortage of "
+                    "A shortage of "
                     + worker_type
                     + " workers has increased their upkeep from "
                     + str(current_price)

@@ -134,46 +134,20 @@ class grid(interface_elements.interface_element):
             self.make_random_terrain_worm(
                 min_length, max_length, constants.terrain_list
             )
-        if not constants.effect_manager.effect_active("enable_oceans"):
-            num_rivers = random.randrange(2, 4)
-            valid = False
-            while not valid:
-                valid = True
-                start_x_list = [
-                    random.randrange(0, self.coordinate_width)
-                    for i in range(num_rivers)
-                ]
-                for index in range(len(start_x_list)):
-                    for other_index in range(len(start_x_list)):
-                        if (
-                            index != other_index
-                            and abs(start_x_list[index] - start_x_list[other_index]) < 3
-                        ):  # Invalid if any rivers too close to each other
-                            valid = False
-
-            for start_x in start_x_list:
-                self.make_random_river_worm(
-                    round(self.coordinate_height * 0.75),
-                    round(self.coordinate_height * 1.25),
-                    start_x,
-                )
 
         for cell in self.get_flat_cell_list():
-            if cell.terrain == "none":
+            if cell.terrain_handler.terrain == "none":
                 for neighbor in random.sample(
                     cell.adjacent_list, len(cell.adjacent_list)
                 ):
-                    if neighbor.terrain != "none":
-                        terrain_variant = random.randrange(
-                            0, constants.terrain_variant_dict.get(neighbor.terrain, 1)
-                        )  # Randomly choose from number of terrain variants, if 2 variants then pick 0 or 1
-                        cell.set_terrain(neighbor.terrain, terrain_variant)
-                if cell.terrain == "none":
-                    terrain = random.choice(constants.terrain_list)
-                    terrain_variant = random.randrange(
-                        0, constants.terrain_variant_dict.get(terrain, 1)
+                    if neighbor.terrain_handler.terrain != "none":
+                        cell.terrain_handler.set_terrain(
+                            neighbor.terrain_handler.terrain
+                        )
+                if cell.terrain_handler.terrain == "none":
+                    cell.terrain_handler.set_terrain(
+                        random.choice(constants.terrain_list)
                     )
-                    cell.set_terrain(terrain, terrain_variant)
 
     def generate_terrain_features(self):
         """
@@ -187,9 +161,10 @@ class grid(interface_elements.interface_element):
         for terrain_feature_type in status.terrain_feature_types:
             for cell in self.get_flat_cell_list():
                 if status.terrain_feature_types[terrain_feature_type].allow_place(cell):
-                    cell.terrain_features[terrain_feature_type] = {
+                    cell.terrain_handler.terrain_features[terrain_feature_type] = {
                         "feature_type": terrain_feature_type
                     }
+                    cell.tile.update_image_bundle()
 
     def draw(self):
         """
@@ -433,7 +408,15 @@ class grid(interface_elements.interface_element):
         Output:
             None/cell: Returns this grid's cell that occupies the inputted coordinates, or None if there are no cells at the inputted coordinates
         """
-        return self.cell_list[x % self.coordinate_width][y % self.coordinate_height]
+        if (
+            x >= 0
+            and x < self.coordinate_width
+            and y >= 0
+            and y < self.coordinate_height
+        ):
+            return self.cell_list[x][y]
+        else:
+            return None
 
     def choose_cell(self, requirements_dict):
         """
@@ -449,7 +432,7 @@ class grid(interface_elements.interface_element):
         nearby_buildings_allowed = requirements_dict["nearby_buildings_allowed"]
         possible_cells = []
         for current_cell in self.get_flat_cell_list():
-            if not current_cell.terrain in allowed_terrains:
+            if not current_cell.terrain_handler.terrain in allowed_terrains:
                 continue
             if (not ocean_allowed) and current_cell.y == 0:
                 continue
@@ -500,7 +483,6 @@ class grid(interface_elements.interface_element):
             self.create_cell(x, y, save_dict=current_cell_dict)
         for current_cell in self.get_flat_cell_list():
             current_cell.find_adjacent_cells()
-            current_cell.set_terrain(current_cell.save_dict["terrain"])
 
     def create_cell(self, x, y, save_dict="none"):
         """
@@ -560,19 +542,19 @@ class grid(interface_elements.interface_element):
         """
         if self.from_save:
             for cell in self.get_flat_cell_list():
-                cell.set_resource(cell.save_dict["resource"])
+                cell.terrain_handler.set_resource(cell.save_dict["resource"])
         else:
             resource_list_dict = self.create_resource_list_dict()
             for cell in self.get_flat_cell_list():
                 terrain_number = random.randrange(
-                    resource_list_dict[cell.terrain][-1][1]
+                    resource_list_dict[cell.terrain_handler.terrain][-1][1]
                 )  # number between 0 and terrain's max frequency
                 set_resource = False
                 for current_resource in resource_list_dict[
-                    cell.terrain
+                    cell.terrain_handler.terrain
                 ]:  # if random number falls in resource's frequency range for that terrain, set cell to that resource
                     if (not set_resource) and terrain_number < current_resource[1]:
-                        cell.set_resource(current_resource[0])
+                        cell.terrain_handler.set_resource(current_resource[0])
                         break
             self.generate_terrain_features()
 
@@ -593,10 +575,7 @@ class grid(interface_elements.interface_element):
         current_y = start_y
         worm_length = random.randrange(min_len, max_len + 1)
         terrain = random.choice(possible_terrains)
-        terrain_variant = random.randrange(
-            0, constants.terrain_variant_dict.get(terrain, 1)
-        )  # randomly choose from number of terrain variants, if 2 variants then pick 0 or 1
-        self.find_cell(current_x, current_y).set_terrain(terrain, terrain_variant)
+        self.find_cell(current_x, current_y).terrain_handler.set_terrain(terrain)
         counter = 0
         while not counter == worm_length:
             counter = counter + 1
@@ -615,90 +594,9 @@ class grid(interface_elements.interface_element):
                     current_y = current_y - 1
                 elif direction == 4:
                     current_x = current_x - 1
-                terrain_variant = random.randrange(
-                    0, constants.terrain_variant_dict.get(terrain, 1)
-                )  # randomly choose from number of terrain variants, if 2 variants then pick 0 or 1
-                self.find_cell(current_x, current_y).set_terrain(
-                    terrain, terrain_variant
+                self.find_cell(current_x, current_y).terrain_handler.set_terrain(
+                    terrain
                 )
-
-    def make_random_river_worm(self, min_len, max_len, start_x):
-        """
-        Description:
-            Fills a random length chain of adjacent grid cells with water, starting at an inputted location. Weighted to generally move toward the top of the grid, away from the coast. Can go to the same cell multiple times
-        Input:
-            int min_len: minimum number of cells whose terrain can be changed
-            int max_len: maximum number of cells whose terrain can be changed, inclusive
-            int start_x: x coordinate at which to start the water chain. Always starts with a y location of 1
-        Output:
-            None
-        """
-        return
-        start_y = 1
-        current_x = start_x
-        current_y = start_y
-        worm_length = random.randrange(min_len, max_len + 1)
-        terrain = "water"
-        water_type = "water"
-        if current_y == 0:
-            water_type = "ocean_water"
-        else:
-            water_type = "river_water"
-        terrain_variant = random.randrange(
-            0, constants.terrain_variant_dict[water_type]
-        )  # randomly choose from number of terrain variants, if 2 variants then pick 0 or 1
-        self.find_cell(current_x, current_y).set_terrain(terrain, terrain_variant)
-        river_name = village_name_generator.create_village_name()
-        river_mouth = None
-        last_cell = None
-        counter = 0
-        while counter < worm_length:
-            counter = counter + 1
-            direction = random.randrange(1, 7)  # 1 3 5 6 north, 2 east, 4 west
-            if direction == 1 or direction == 5 or direction == 6:
-                direction = 3  # turns extras and south to north
-            if not (
-                ((current_x == self.coordinate_width - 1) and direction == 2)
-                or ((current_x == 0) and direction == 4)
-                or ((current_y == self.coordinate_height - 1) and direction == 3)
-                or ((current_y == 0) and direction == 1)
-            ):
-                if direction == 3:
-                    if current_y == 1 and not river_mouth:
-                        river_mouth = self.find_cell(current_x, current_y)
-                        river_mouth.terrain_features["river mouth"] = {
-                            "feature_type": "river mouth",
-                            "name": river_name + " River",
-                            "name_icon": True,
-                        }
-                        river_mouth.terrain_features["river mouth"][
-                            "image_id"
-                        ] = river_mouth.terrain_features["river mouth"]["name"]
-                    current_y = current_y + 1
-                elif direction == 2:
-                    current_x = current_x + 1
-                elif direction == 4:
-                    current_x = current_x - 1
-                water_type = "water"
-                if current_y == 0:
-                    water_type = "ocean_water"
-                else:
-                    water_type = "river_water"
-                terrain_variant = random.randrange(
-                    0, constants.terrain_variant_dict[water_type]
-                )  # randomly choose from number of terrain variants, if 2 variants then pick 0 or 1
-                last_cell = self.find_cell(current_x, current_y)
-                last_cell.set_terrain(terrain, terrain_variant)
-        if last_cell:
-            last_cell.terrain_features["river source"] = {
-                "feature_type": "river mouth",
-                "name": river_name + " River Source",
-                "river_name": river_name,
-                "name_icon": True,
-            }
-            last_cell.terrain_features["river source"][
-                "image_id"
-            ] = last_cell.terrain_features["river source"]["name"]
 
     def touching_mouse(self):
         """

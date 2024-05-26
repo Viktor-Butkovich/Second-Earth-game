@@ -114,7 +114,7 @@ for current_parameter in global_manager.get("parameter_types"):
 global_manager.get("valid_commands")["terrain_view"] += parameter_first_letters
 global_manager.get("valid_commands")["point_view"] += parameter_first_letters
 
-file_name = "modules/TDG.json"
+file_name = "../../configuration/TDG.json"
 save_load_tools.load_terrains(file_name, global_manager)
 
 current_input = ["start"]

@@ -111,11 +111,11 @@ class exploration(action.action):
         elif subject == "success":
             text += "/n"
             self.public_relations_change = random.randrange(0, 3)
-            if self.future_cell.resource != "none":
-                if self.future_cell.resource == "natives":
+            if self.future_cell.terrain_handler.resource != "none":
+                if self.future_cell.terrain_handler.resource == "natives":
                     text += (
                         "The expedition has discovered a "
-                        + self.future_cell.terrain.upper()
+                        + self.future_cell.terrain_handler.terrain.upper()
                         + " tile containing the village of "
                         + self.future_cell.village.name
                         + ". /n /n"
@@ -123,18 +123,22 @@ class exploration(action.action):
                 else:
                     text += (
                         "The expedition has discovered a "
-                        + self.future_cell.terrain.upper()
+                        + self.future_cell.terrain_handler.terrain.upper()
                         + " tile with a "
-                        + self.future_cell.resource.upper()
+                        + self.future_cell.terrain_handler.resource.upper()
                         + " resource (currently worth "
-                        + str(constants.item_prices[self.future_cell.resource])
+                        + str(
+                            constants.item_prices[
+                                self.future_cell.terrain_handler.resource
+                            ]
+                        )
                         + " money each). /n /n"
                     )
                 self.public_relations_change += 3
             else:
                 text += (
                     "The expedition has discovered a "
-                    + self.future_cell.terrain.upper()
+                    + self.future_cell.terrain_handler.terrain.upper()
                     + " tile. /n /n"
                 )
             if self.public_relations_change > 0:  # Royal/National/Imperial

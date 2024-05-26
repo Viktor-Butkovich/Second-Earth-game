@@ -366,7 +366,12 @@ class mob(actor):
             adjacent_cell = local_cell.adjacent_cells[direction]
 
         if adjacent_cell:
-            cost = cost * constants.terrain_movement_cost_dict[adjacent_cell.terrain]
+            cost = (
+                cost
+                * constants.terrain_movement_cost_dict[
+                    adjacent_cell.terrain_handler.terrain
+                ]
+            )
             if self.is_pmob:
                 local_infrastructure = local_cell.get_intact_building("infrastructure")
                 adjacent_infrastructure = adjacent_cell.get_intact_building(
@@ -385,16 +390,16 @@ class mob(actor):
                     ):
                         cost = 2
                 elif (
-                    adjacent_cell.terrain == "water"
+                    adjacent_cell.terrain_handler.terrain == "water"
                     and adjacent_cell.y > 0
                     and (self.can_walk and not self.can_swim_river)
-                    or adjacent_cell.terrain_features.get("cataract", False)
+                    or adjacent_cell.terrain_handler.terrain_features.get(
+                        "cataract", False
+                    )
                 ):  # elif river w/o canoes
                     cost = self.max_movement_points
                 if (not adjacent_cell.visible) and self.can_explore:
                     cost = self.movement_cost
-            if local_cell.y == 0 and not self.can_swim_ocean:
-                cost = self.max_movement_points
         return cost
 
     def can_leave(self):
@@ -418,7 +423,7 @@ class mob(actor):
             boolean: Returns True if any of the cells directly adjacent to this mob's cell has the water terrain. Otherwise, returns False
         """
         for current_cell in self.images[0].current_cell.adjacent_list:
-            if current_cell.terrain == "water" and current_cell.visible:
+            if current_cell.terrain_handler.terrain == "water" and current_cell.visible:
                 return True
         return False
 
@@ -433,7 +438,7 @@ class mob(actor):
         """
         for current_cell in self.images[0].current_cell.adjacent_list:
             if (
-                current_cell.terrain == "water"
+                current_cell.terrain_handler.terrain == "water"
                 and current_cell.visible
                 and not current_cell.y == 0
             ):
@@ -861,7 +866,7 @@ class mob(actor):
                     future_cell = self.grid.find_cell(future_x, future_y)
                     if future_cell.visible or self.can_explore or self.is_npmob:
                         destination_type = "land"
-                        if future_cell.terrain == "water":
+                        if future_cell.terrain_handler.terrain == "water":
                             destination_type = "water"  # if can move to destination, possible to move onto ship in water, possible to 'move' into non-visible water while exploring
                         if (
                             destination_type == "land"
@@ -870,7 +875,10 @@ class mob(actor):
                                 or self.can_explore
                                 or (
                                     future_cell.has_intact_building("port")
-                                    and self.images[0].current_cell.terrain == "water"
+                                    and self.images[
+                                        0
+                                    ].current_cell.terrain_handler.terrain
+                                    == "water"
                                 )
                             )
                         ) or (
@@ -885,14 +893,7 @@ class mob(actor):
                             )
                         ):
                             if destination_type == "water":
-                                if future_y == 0 and not self.can_swim_ocean:
-                                    return False
-                                elif (
-                                    future_y > 0
-                                    and (not self.can_swim_river)
-                                    and self.can_walk
-                                ):
-                                    return True  # can walk through river with max movement points while becoming disorganized
+                                return self.can_swim
                             if (
                                 self.movement_points
                                 >= self.get_movement_cost(x_change, y_change)
@@ -986,7 +987,7 @@ class mob(actor):
                     possible_sounds.append("effects/ship_propeller")
             elif (
                 self.images[0].current_cell != "none"
-                and self.images[0].current_cell.terrain == "water"
+                and self.images[0].current_cell.terrain_handler.terrain == "water"
             ):
                 local_infrastructure = self.images[0].current_cell.get_intact_building(
                     "infrastructure"
@@ -1025,8 +1026,8 @@ class mob(actor):
             previous_cell = self.images[0].current_cell
         for current_image in self.images:
             current_image.remove_from_cell()
-        self.x += x_change
-        self.y += y_change
+        self.x = (self.x + x_change) % self.grid.coordinate_width
+        self.y = (self.y + y_change) % self.grid.coordinate_height
         status.minimap_grid.calibrate(self.x, self.y)
         for current_image in self.images:
             current_image.add_to_cell()
@@ -1039,7 +1040,7 @@ class mob(actor):
             previous_infrastructure = previous_cell.get_intact_building(
                 "infrastructure"
             )
-            if self.images[0].current_cell.terrain == "water" and not (
+            if self.images[0].current_cell.terrain_handler.terrain == "water" and not (
                 previous_infrastructure != "none" and previous_infrastructure.is_bridge
             ):
                 if (
@@ -1069,7 +1070,7 @@ class mob(actor):
             self.is_pmob
         ):  # do an inventory attrition check when moving, using the destination's terrain
             self.manage_inventory_attrition()
-            if previous_cell.terrain == "water" and (
+            if previous_cell.terrain_handler.terrain == "water" and (
                 (previous_cell.y > 0 and not self.can_swim_river)
                 or (previous_cell.y == 0 and not self.can_swim_ocean)
             ):  # if landing without port, use all of movement points
@@ -1090,7 +1091,7 @@ class mob(actor):
                         self.set_movement_points(0)
             if (
                 self.can_show()
-                and self.images[0].current_cell.terrain == "water"
+                and self.images[0].current_cell.terrain_handler.terrain == "water"
                 and self.images[0].current_cell.y > 0
                 and not self.can_swim_river
                 and not previous_cell.has_walking_connection(
@@ -1100,7 +1101,7 @@ class mob(actor):
                 self.set_disorganized(True)
             if not (
                 self.images[0].current_cell == "none"
-                or self.images[0].current_cell.terrain == "water"
+                or self.images[0].current_cell.terrain_handler.terrain == "water"
                 or self.is_vehicle
             ):
                 possible_sounds = ["voices/forward march 1", "voices/forward march 2"]
@@ -1121,7 +1122,7 @@ class mob(actor):
         Output:
             boolean: Returns whether this unit is able to swim in the inputted cell
         """
-        if not current_cell.terrain == "water":
+        if not current_cell.terrain_handler.terrain == "water":
             return True
         if current_cell.y > 0:
             return True
@@ -1159,9 +1160,9 @@ class mob(actor):
 
         if (
             current_cell != "none"
-            and current_cell.terrain == "water"
+            and current_cell.terrain_handler.terrain == "water"
             and self.y > 0
-            and not current_cell.terrain_features.get("cataract", False)
+            and not current_cell.terrain_handler.terrain_features.get("cataract", False)
         ):
             self.in_canoes = self.has_canoes
         else:

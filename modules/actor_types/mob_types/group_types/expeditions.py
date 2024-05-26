@@ -144,8 +144,8 @@ class expedition(group):
                         text = "The expedition has discovered a "
                     public_opinion_increase = random.randrange(0, 3)
                     money_increase = 0
-                    if not target_cell.resource == "none":
-                        if target_cell.resource == "natives":
+                    if target_cell.terrain_handler.resource != "none":
+                        if target_cell.terrain_handler.resource == "natives":
                             text += (
                                 target_cell.terrain.upper()
                                 + " tile to the "
@@ -158,9 +158,13 @@ class expedition(group):
                             text += (
                                 target_cell.terrain.upper()
                                 + " tile with a "
-                                + target_cell.resource.upper()
+                                + target_cell.terrain_handler.resource.upper()
                                 + " resource (currently worth "
-                                + str(constants.item_prices[target_cell.resource])
+                                + str(
+                                    constants.item_prices[
+                                        target_cell.terrain_handler.resource
+                                    ]
+                                )
                                 + " money each) to the "
                                 + cardinal_directions[current_direction]
                                 + ". /n /n"
@@ -174,11 +178,15 @@ class expedition(group):
                             + ". /n /n"
                         )
 
-                    if target_cell.terrain_features.get("river source", False):
+                    if target_cell.terrain_handler.terrain_features.get(
+                        "river source", False
+                    ):
                         money_increase = random.randrange(40, 61)
                         text += (
                             "This is the source of the "
-                            + target_cell.terrain_features["river source"]["river_name"]
+                            + target_cell.terrain_handler.terrain_features[
+                                "river source"
+                            ]["river_name"]
                             + " river, which has been long sought after by explorers - you are granted a reward of "
                             + str(money_increase)
                             + " money for this discovery. /n /n"

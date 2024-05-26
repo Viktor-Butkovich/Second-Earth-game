@@ -566,7 +566,7 @@ class ship(vehicle):
         self.has_infinite_movement = True
         self.vehicle_type = "ship"
         self.can_swim = True
-        self.can_swim_river = False
+        self.can_swim_river = True
         self.can_swim_ocean = True
         self.can_walk = False
         self.travel_possible = True  # if this mob would ever be able to travel
@@ -594,7 +594,7 @@ class ship(vehicle):
         if (
             num_ships <= 1
         ):  # can leave units behind if another steamship is present to pick them up
-            if self.images[0].current_cell.terrain == "water":
+            if self.images[0].current_cell.terrain_handler.terrain == "water":
                 for current_mob in self.images[0].current_cell.contained_mobs:
                     if current_mob.is_pmob and not current_mob.can_swim_at(
                         self.images[0].current_cell
@@ -665,7 +665,7 @@ class boat(ship):
         self.has_infinite_movement = False
         self.vehicle_type = "ship"
         self.can_swim_river = True
-        self.can_swim_ocean = False
+        self.can_swim_ocean = True
         self.can_walk = False
         self.travel_possible = False
         if not from_save:
