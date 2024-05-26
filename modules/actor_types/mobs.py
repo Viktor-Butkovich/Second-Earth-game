@@ -844,9 +844,7 @@ class mob(actor):
                 "voices/" + random.choice(possible_sounds), 0.5
             )
 
-    def can_move(
-        self, x_change, y_change
-    ):  # same logic as pmob without print statements
+    def can_move(self, x_change: int, y_change: int, can_print: bool = False):
         """
         Description:
             Returns whether this mob can move to the tile x_change to the right of it and y_change above it. Movement can be prevented by not being able to move on water/land, the edge of the map, limited movement points, etc.
@@ -856,75 +854,50 @@ class mob(actor):
         Output:
             boolean: Returns True if this mob can move to the proposed destination, otherwise returns False
         """
-        future_x = self.x + x_change
-        future_y = self.y + y_change
-        if self.can_leave():
-            if not self.grid.is_abstract_grid:
-                if (
-                    future_x >= 0
-                    and future_x < self.grid.coordinate_width
-                    and future_y >= 0
-                    and future_y < self.grid.coordinate_height
-                ):
+        future_x = (self.x + x_change) % self.grid.coordinate_width
+        future_y = (self.y + y_change) % self.grid.coordinate_height
+
+        transportation_minister = status.current_ministers[
+            constants.type_minister_dict["transportation"]
+        ]
+        if not transportation_minister == "none":
+            if self.can_leave():
+                if not self.grid.is_abstract_grid:
                     future_cell = self.grid.find_cell(future_x, future_y)
                     if (
                         future_cell.terrain_handler.visible
                         or self.can_explore
                         or self.is_npmob
                     ):
-                        destination_type = "land"
-                        if future_cell.terrain_handler.terrain == "water":
-                            destination_type = "water"  # if can move to destination, possible to move onto ship in water, possible to 'move' into non-visible water while exploring
                         if (
-                            destination_type == "land"
-                            and (
-                                self.can_walk
-                                or self.can_explore
-                                or (
-                                    future_cell.has_intact_building("port")
-                                    and self.images[
-                                        0
-                                    ].current_cell.terrain_handler.terrain
-                                    == "water"
-                                )
-                            )
-                        ) or (
-                            destination_type == "water"
-                            and (
-                                self.can_swim
-                                or (
-                                    future_cell.has_vehicle("ship")
-                                    and not self.is_vehicle
-                                )
-                                or (
-                                    self.can_explore
-                                    and not future_cell.terrain_handler.visible
-                                )
-                            )
+                            self.movement_points
+                            >= self.get_movement_cost(x_change, y_change)
+                            or self.has_infinite_movement
+                            and self.movement_points > 0
                         ):
-                            if destination_type == "water":
-                                return self.can_swim
-                            if (
-                                self.movement_points
-                                >= self.get_movement_cost(x_change, y_change)
-                                or self.has_infinite_movement
-                                and self.movement_points > 0
-                            ):
-                                return True
-                            else:
-                                return False
-                        elif (
-                            destination_type == "land" and not self.can_walk
-                        ):  # if trying to walk on land and can't
-                            return False
-                        else:  # if trying to swim in water and can't
-                            return False
-                    else:
-                        return False
-                else:
-                    return False
-            else:
-                return False
+                            return True
+                        elif can_print:
+                            text_utility.print_to_screen(
+                                "You do not have enough movement points to move."
+                            )
+                            text_utility.print_to_screen(
+                                "You have "
+                                + str(self.movement_points)
+                                + " movement points while "
+                                + str(self.get_movement_cost(x_change, y_change))
+                                + " are required."
+                            )
+                    elif can_print:
+                        text_utility.print_to_screen(
+                            "You cannot move to an unexplored tile."
+                        )
+                elif can_print:
+                    text_utility.print_to_screen("You cannot move while in this area.")
+        elif can_print:
+            text_utility.print_to_screen(
+                "You cannot move units before a Minister of Transportation has been appointed."
+            )
+        return False
 
     def selection_sound(self):
         """
@@ -1079,10 +1052,9 @@ class mob(actor):
             self.is_pmob
         ):  # do an inventory attrition check when moving, using the destination's terrain
             self.manage_inventory_attrition()
-            if previous_cell.terrain_handler.terrain == "water" and (
-                (previous_cell.y > 0 and not self.can_swim_river)
-                or (previous_cell.y == 0 and not self.can_swim_ocean)
-            ):  # if landing without port, use all of movement points
+            if (
+                previous_cell.terrain_handler.terrain == "water" and not self.can_swim
+            ):  # If moving in water without canoes, use all of movement points
                 previous_infrastructure = previous_cell.get_intact_building(
                     "infrastructure"
                 )
@@ -1101,8 +1073,7 @@ class mob(actor):
             if (
                 self.can_show()
                 and self.images[0].current_cell.terrain_handler.terrain == "water"
-                and self.images[0].current_cell.y > 0
-                and not self.can_swim_river
+                and not self.can_swim
                 and not previous_cell.has_walking_connection(
                     self.images[0].current_cell
                 )

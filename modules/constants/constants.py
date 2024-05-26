@@ -240,8 +240,8 @@ message: str = ""
 grid_types_list: List[str] = [
     "strategic_map_grid",
     "earth_grid",
-    "minimap_grid",
     "scrolling_strategic_map_grid",
+    "minimap_grid",
 ]
 abstract_grid_type_list: List[str] = ["earth_grid"]
 

@@ -1302,13 +1302,13 @@ class actor_image(image):
         self.image_type = "actor"
         super().__init__(width, height)
         self.actor = actor
-        self.modes = actor.modes
         self.Rect = pygame.Rect(
             self.actor.x, self.actor.y - self.height, self.width, self.height
         )  # (left, top, width, height), bottom left on coordinates
         self.set_image(image_description)
         self.image_description == image_description
         self.grid = grid
+        self.modes = self.grid.modes
         self.outline_width = self.grid.grid_line_width + 1
         self.outline = pygame.Rect(
             self.actor.x,
@@ -1573,7 +1573,7 @@ class mob_image(actor_image):
         Output:
             boolean: Returns True if this image can appear during the current game mode and if its mob is not attached to another actor or behind another mob, otherwise returns False
         """
-        return self.actor.can_show()
+        return self.actor.can_show() and super().can_show()
 
 
 class button_image(actor_image):

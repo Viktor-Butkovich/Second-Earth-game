@@ -36,8 +36,8 @@ from modules.action_types.action import action
 from modules.tools.effects import effect
 
 strategic_map_grid: grid = None
-minimap_grid: mini_grid = None
 scrolling_strategic_map_grid: mini_grid = None
+minimap_grid: mini_grid = None
 earth_grid: abstract_grid = None
 asia_grid: abstract_grid = None
 slave_traders_grid: abstract_grid = None

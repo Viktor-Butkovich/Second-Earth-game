@@ -751,8 +751,10 @@ class mini_grid(grid):
             int: y coordinate of this grid corresponding to the inputted y coordinate
         """
         return (
-            int(original_x - self.center_x + (round(self.coordinate_width - 1) / 2)),
-            int(original_y - self.center_y + round((self.coordinate_height - 1) / 2)),
+            int(original_x - self.center_x + (round(self.coordinate_width - 1) / 2))
+            % self.coordinate_width,
+            int(original_y - self.center_y + round((self.coordinate_height - 1) / 2))
+            % self.coordinate_height,
         )
 
     def is_on_mini_grid(self, original_x, original_y):
@@ -765,8 +767,12 @@ class mini_grid(grid):
         Output:
             boolean: Returns True if the inputted attache grid coordinates are within the boundaries of this grid, otherwise returns False
         """
-        minimap_x = original_x - self.center_x + (round(self.coordinate_width - 1) / 2)
-        minimap_y = original_y - self.center_y + (round(self.coordinate_height - 1) / 2)
+        minimap_x = (
+            original_x - self.center_x + (round(self.coordinate_width - 1) / 2)
+        ) % self.attached_grid.coordinate_width
+        minimap_y = (
+            original_y - self.center_y + (round(self.coordinate_height - 1) / 2)
+        ) % self.attached_grid.coordinate_height
         if (
             minimap_x >= 0
             and minimap_x < self.coordinate_width
