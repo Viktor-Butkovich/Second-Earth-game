@@ -29,20 +29,31 @@ class world_grid(grid):
                 cell.terrain_handler.set_resource(cell.save_dict["resource"])
         else:
             self.generate_terrain_parameters()
-            self.generate_terrain()
             self.generate_terrain_features()
-            resource_list_dict = self.create_resource_list_dict()
-            for cell in self.get_flat_cell_list():
-                terrain_number = random.randrange(
-                    resource_list_dict[cell.terrain_handler.terrain][-1][1]
-                )  # number between 0 and terrain's max frequency
-                set_resource = False
-                for current_resource in resource_list_dict[
-                    cell.terrain_handler.terrain
-                ]:  # if random number falls in resource's frequency range for that terrain, set cell to that resource
-                    if (not set_resource) and terrain_number < current_resource[1]:
-                        cell.terrain_handler.set_resource(current_resource[0])
-                        break
+            self.generate_resources()
+
+    def generate_resources(self):
+        """
+        Description:
+            Randomly sets resources in each cell based on terrain
+        Input:
+            None
+        Output:
+            None
+        """
+        return  # Temporarily disabled
+        resource_list_dict = self.create_resource_list_dict()
+        for cell in self.get_flat_cell_list():
+            terrain_number = random.randrange(
+                resource_list_dict[cell.terrain_handler.terrain][-1][1]
+            )  # number between 0 and terrain's max frequency
+            set_resource = False
+            for current_resource in resource_list_dict[
+                cell.terrain_handler.terrain
+            ]:  # if random number falls in resource's frequency range for that terrain, set cell to that resource
+                if (not set_resource) and terrain_number < current_resource[1]:
+                    cell.terrain_handler.set_resource(current_resource[0])
+                    break
 
     def generate_terrain_parameters(self):
         """
@@ -58,10 +69,12 @@ class world_grid(grid):
         default_altitude = random.randrange(1, 7)
         for cell in self.get_flat_cell_list():
             cell.terrain_handler.set_parameter("altitude", default_altitude)
+            cell.terrain_handler.set_parameter("roughness", random.randrange(1, 7))
+            cell.terrain_handler.set_parameter("temperature", random.randrange(1, 7))
 
         for i in range(num_worms):
-            min_length = random.randrange(10, 20)
-            max_length = random.randrange(20, 40)
+            min_length = random.randrange(10, 30)
+            max_length = random.randrange(30, 50)
             self.make_random_terrain_parameter_worm(
                 min_length, max_length, "altitude", random.choice([1, -1])
             )
@@ -187,41 +200,6 @@ class world_grid(grid):
             elif direction == 4:
                 current_x = (current_x - 1) % self.coordinate_width
             self.find_cell(current_x, current_y).terrain_handler.set_terrain(terrain)
-
-    def generate_terrain(self):
-        """
-        Description:
-            Randomly creates the strategic map with biomes, rivers, and bottom row of ocean, but without resources - resources require that tiles and the mini grid are set
-                up first, which occurs later in setup than grid initialization
-        Input:
-            None
-        Output:
-            None
-        """
-        area = self.coordinate_width * self.coordinate_height
-        num_worms = area // 5
-        if constants.effect_manager.effect_active("enable_oceans"):
-            constants.terrain_list.append("water")
-        for i in range(num_worms):
-            min_length = round(area / 24)
-            max_length = round(area / 12)
-            self.make_random_terrain_worm(
-                min_length, max_length, constants.terrain_list
-            )
-
-        for cell in self.get_flat_cell_list():
-            if cell.terrain_handler.terrain == "none":
-                for neighbor in random.sample(
-                    cell.adjacent_list, len(cell.adjacent_list)
-                ):
-                    if neighbor.terrain_handler.terrain != "none":
-                        cell.terrain_handler.set_terrain(
-                            neighbor.terrain_handler.terrain
-                        )
-                if cell.terrain_handler.terrain == "none":
-                    cell.terrain_handler.set_terrain(
-                        random.choice(constants.terrain_list)
-                    )
 
 
 def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -> grid:

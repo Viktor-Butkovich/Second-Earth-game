@@ -398,7 +398,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
-        if new_terrain in constants.terrain_list:
+        if new_terrain in constants.terrain_manager.terrain_list:
             self.image_dict["default"] = (
                 "terrains/"
                 + new_terrain
@@ -437,7 +437,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         if coordinates[1] == 0:
                             tooltip_message.append("This is an ocean water tile")
                             tooltip_message.append(
-                                f"    Movement cost: {constants.terrain_movement_cost_dict[self.cell.terrain_handler.terrain]} (with steamship)"
+                                f"    Movement cost: {constants.terrain_movement_cost_dict.get(self.cell.terrain_handler.terrain, 1)} (with steamship)"
                             )
                             tooltip_message.append(f"        Otherwise impassable")
                         else:
@@ -448,24 +448,24 @@ class tile(actor):  # to do: make terrain tiles a subclass
                                 tooltip_message.append(f"    Impassable for steamboats")
                             else:
                                 tooltip_message.append(
-                                    f"    Movement cost: {constants.terrain_movement_cost_dict[self.cell.terrain_handler.terrain]} (with canoes or steamboat)"
+                                    f"    Movement cost: {constants.terrain_movement_cost_dict.get(self.cell.terrain_handler.terrain, 1)} (with canoes or steamboat)"
                                 )
                             tooltip_message.append(
                                 f"        Otherwise costs entire turn of movement"
                             )
                     else:
                         tooltip_message.append(
-                            f"This is {utility.generate_article(self.cell.terrain_handler.terrain)} {self.cell.terrain_handler.terrain} tile"
+                            f"This is {utility.generate_article(self.cell.terrain_handler.terrain.replace('_', '' ''))} {self.cell.terrain_handler.terrain.replace('_', ' ')} tile"
                         )
                         tooltip_message.append(
-                            f"    Movement cost: {constants.terrain_movement_cost_dict[self.cell.terrain_handler.terrain]}"
+                            f"    Movement cost: {constants.terrain_movement_cost_dict.get(self.cell.terrain_handler.terrain, 1)}"
                         )
                     tooltip_message.append(
-                        f"    Building cost multiplier: x{constants.terrain_build_cost_multiplier_dict[self.cell.terrain_handler.terrain]}"
+                        f"    Building cost multiplier: x{constants.terrain_build_cost_multiplier_dict.get(self.cell.terrain_handler.terrain, 1)}"
                     )
                     attrition_dict = {1: "light", 2: "moderate", 3: "severe"}
                     tooltip_message.append(
-                        f"    Attrition: {attrition_dict[constants.terrain_attrition_dict[self.cell.terrain_handler.terrain]]}"
+                        f"    Attrition: {attrition_dict[constants.terrain_attrition_dict.get(self.cell.terrain_handler.terrain, 1)]}"
                     )
                 if not self.cell.village == "none":  # if village present, show village
                     tooltip_message += self.cell.village.get_tooltip()

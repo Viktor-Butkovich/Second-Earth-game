@@ -925,18 +925,28 @@ class actor_display_label(label):
                             self.set_label(
                                 self.message_start
                                 + "ocean "
-                                + str(new_actor.cell.terrain_handler.terrain)
+                                + str(
+                                    new_actor.cell.terrain_handler.terrain.replace(
+                                        "_", " "
+                                    )
+                                )
                             )
                         else:
                             self.set_label(
                                 self.message_start
                                 + "river "
-                                + str(new_actor.cell.terrain_handler.terrain)
+                                + str(
+                                    new_actor.cell.terrain_handler.terrain.replace(
+                                        "_", " "
+                                    )
+                                )
                             )
                     else:
                         self.set_label(
                             self.message_start
-                            + str(new_actor.cell.terrain_handler.terrain)
+                            + str(
+                                new_actor.cell.terrain_handler.terrain.replace("_", " ")
+                            )
                         )
                 else:
                     self.set_label(self.message_start + "unknown")

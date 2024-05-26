@@ -374,17 +374,6 @@ green_screen_colors: List[tuple[int, int, int]] = [
     (110, 107, 3),
 ]
 
-terrain_variant_dict: Dict[str, int] = {}
-terrain_list: List[str] = [
-    "savannah",
-    "mountain",
-    "hills",
-    "jungle",
-    "swamp",
-    "desert",
-    "water",
-]
-
 terrain_parameters_list: List[str] = [
     "altitude",
     "temperature",

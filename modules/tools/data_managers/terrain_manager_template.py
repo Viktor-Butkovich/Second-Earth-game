@@ -1,6 +1,8 @@
 # Contains functionality for terrain management classes
 
 import random
+import json
+import os
 from typing import List, Dict
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -21,7 +23,67 @@ class terrain_manager_template:
         Output:
             None
         """
-        return
+        file_name = "configuration/TDG.json"
+        self.terrain_variant_dict: Dict[str, int] = {}
+        self.parameter_to_terrain: Dict[str, str] = {}
+        self.terrain_list: List[str] = []
+        self.load_terrains(file_name)
+
+    def load_terrains(self, file_name):
+        """
+        Description:
+            Loads terrains from the inputted file, storing in format "11111": "cold_desert"
+        """
+        with open(file_name) as active_file:
+            terrain_dict = json.load(
+                active_file
+            )  # dictionary of terrain name keys and terrain dict values for each terrain
+        for terrain_name in terrain_dict:
+            self.terrain_list.append(terrain_name)
+            terrain = terrain_dict[terrain_name]
+            for temperature in range(
+                terrain["min_temperature"], terrain["max_temperature"] + 1
+            ):
+                for roughness in range(
+                    terrain["min_roughness"], terrain["max_roughness"] + 1
+                ):
+                    for vegetation in range(
+                        terrain["min_vegetation"], terrain["max_vegetation"] + 1
+                    ):
+                        for soil in range(terrain["min_soil"], terrain["max_soil"] + 1):
+                            for water in range(
+                                terrain["min_water"], terrain["max_water"] + 1
+                            ):
+                                self.parameter_to_terrain[
+                                    f"{temperature}{roughness}{vegetation}{soil}{water}"
+                                ] = terrain_name
+
+            current_variant = 0
+            while os.path.exists(
+                "graphics/terrains/"
+                + terrain_name
+                + "_"
+                + str(current_variant)
+                + ".png"
+            ):
+                current_variant += 1
+            current_variant -= 1  # back up from index that didn't work
+            self.terrain_variant_dict[terrain_name] = (
+                current_variant + 1
+            )  # number of variants, variants in format 'mountain_0', 'mountain_1', etc.
+
+    def classify(self, terrain_parameters):
+        """
+        Description:
+            Classifies the inputted terrain parameters into a terrain type
+        Input:
+            dictionary terrain_parameters: Dictionary of terrain parameters to classify
+        Output:
+            string: Returns the terrain type that the inputted parameters classify as
+        """
+        return self.parameter_to_terrain[
+            f"{terrain_parameters['temperature']}{terrain_parameters['roughness']}{terrain_parameters['vegetation']}{terrain_parameters['soil']}{terrain_parameters['water']}"
+        ]
 
 
 class terrain_handler:
@@ -53,7 +115,7 @@ class terrain_handler:
             },
         )
         self.terrain_variant: int = input_dict.get("terrain_variant", 0)
-        self.terrain: str = input_dict.get("terrain", "none")
+        self.terrain: str = constants.terrain_manager.classify(self.terrain_parameters)
         self.resource: str = input_dict.get("resource", "none")
         self.visible: bool = input_dict.get("visible", True)
         self.default_cell = attached_cell
@@ -73,6 +135,12 @@ class terrain_handler:
         self.terrain_parameters[parameter_name] = max(
             1, min(self.terrain_parameters[parameter_name] + change, 6)
         )
+        old_terrain = self.terrain
+        self.terrain = constants.terrain_manager.classify(self.terrain_parameters)
+        if old_terrain != self.terrain:
+            for cell in self.attached_cells:
+                if cell.tile != "none":
+                    cell.tile.set_terrain(self.terrain, update_image_bundle=True)
 
     def set_parameter(self, parameter_name: str, new_value: int) -> None:
         """
@@ -85,6 +153,12 @@ class terrain_handler:
             None
         """
         self.terrain_parameters[parameter_name] = max(1, min(new_value, 6))
+        old_terrain = self.terrain
+        self.terrain = constants.terrain_manager.classify(self.terrain_parameters)
+        if old_terrain != self.terrain:
+            for cell in self.attached_cells:
+                if cell.tile != "none":
+                    cell.tile.set_terrain(self.terrain, update_image_bundle=True)
 
     def to_save_dict(self) -> Dict[str, any]:
         """
@@ -120,7 +194,7 @@ class terrain_handler:
         """
         self.terrain = new_terrain
         self.terrain_variant = random.randrange(
-            0, constants.terrain_variant_dict.get(new_terrain, 1)
+            0, constants.terrain_manager.terrain_variant_dict.get(new_terrain, 1)
         )
         for cell in self.attached_cells:
             if cell.tile != "none":

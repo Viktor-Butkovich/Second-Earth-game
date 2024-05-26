@@ -84,14 +84,6 @@ class terrain:
         test_parameter_dict = {}
         parameter_types = self.global_manager.get("parameter_types")
 
-        # for current_parameter in parameter_types:
-        #    if current_parameter == parameter:
-        #        if change > 0:
-        #            test_parameter_dict[current_parameter] = self.parameter_dict[current_parameter].max + change
-        #        else:
-        #            test_parameter_dict[current_parameter] = self.parameter_dict[current_parameter].min + change
-        #    else:
-        #        test_parameter_dict[current_parameter] = self.parameter_dict[current_parameter].min
         if (
             self.parameter_dict[parameter].min + change < 1
             or self.parameter_dict[parameter].max + change > 6

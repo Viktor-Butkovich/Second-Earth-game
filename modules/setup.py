@@ -418,27 +418,6 @@ def terrain_feature_types_config():
     )
 
 
-def terrains():
-    """
-    Description:
-        Defines terrains and beasts
-    Input:
-        None
-    Output:
-        None
-    """
-    for current_terrain in constants.terrain_list:
-        current_index = 0
-        while os.path.exists(
-            "graphics/terrains/" + current_terrain + "_" + str(current_index) + ".png"
-        ):
-            current_index += 1
-        current_index -= 1  # back up from index that didn't work
-        constants.terrain_variant_dict[current_terrain] = (
-            current_index + 1
-        )  # number of variants, variants in format 'mountain_0', 'mountain_1', etc.
-
-
 def actions():
     """
     Description:

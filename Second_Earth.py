@@ -9,7 +9,6 @@ try:
         worker_types_config,
         equipment_types_config,
         terrain_feature_types_config,
-        terrains,
         commodities,
         def_ministers,
         def_countries,
@@ -46,6 +45,7 @@ except Exception:  # displays error message and records error message in crash l
 # Change game to be fullscreen by default, along with debug setting to make it windowed
 # Add autosave and multiple save slots
 # Performance impacts from repeated exit/load - not everything is being removed each time
+#     Possibly old grids still exist and are drawing under the new ones
 # Add ambient sounds
 #
 # Possible issues:

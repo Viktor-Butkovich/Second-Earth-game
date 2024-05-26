@@ -77,7 +77,9 @@ class combat(action.action):
             + " more movement point"
             + utility.generate_plural(final_movement_cost - 1)
             + " because the adjacent tile has "
-            + tooltip_info_dict["adjacent_cell"].terrain_handler.terrain
+            + tooltip_info_dict["adjacent_cell"].terrain_handler.terrain.replace(
+                "_", " "
+            )
             + " terrain "
         )
         if tooltip_info_dict["local_cell"].has_walking_connection(

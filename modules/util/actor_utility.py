@@ -68,9 +68,9 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
     ):
         cost_multiplier = 1
     else:
-        cost_multiplier = constants.terrain_build_cost_multiplier_dict[
-            constructor.images[0].current_cell.terrain_handler.terrain
-        ]
+        cost_multiplier = constants.terrain_build_cost_multiplier_dict.get(
+            constructor.images[0].current_cell.terrain_handler.terrain, 1
+        )
 
     return base_price * cost_multiplier
 

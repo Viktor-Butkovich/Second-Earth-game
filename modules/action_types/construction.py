@@ -176,7 +176,7 @@ class construction(action.action):
             ].current_cell.terrain_handler.terrain
             if not self.building_type in ["train", "steamboat"]:
                 message.append(
-                    f"{utility.generate_capitalized_article(self.building_name)}{self.building_name} {utility.conjugate('cost', 1, self.building_name)} {base_cost} money by default, which is multiplied by {constants.terrain_build_cost_multiplier_dict[terrain]} when built in {terrain} terrain"
+                    f"{utility.generate_capitalized_article(self.building_name)}{self.building_name} {utility.conjugate('cost', 1, self.building_name)} {base_cost} money by default, which is multiplied by {constants.terrain_build_cost_multiplier_dict.get(terrain, 1)} when built in {terrain.replace('_', ' ')} terrain"
                 )
         return message
 

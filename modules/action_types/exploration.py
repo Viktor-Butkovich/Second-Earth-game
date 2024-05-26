@@ -115,7 +115,9 @@ class exploration(action.action):
                 if self.future_cell.terrain_handler.resource == "natives":
                     text += (
                         "The expedition has discovered a "
-                        + self.future_cell.terrain_handler.terrain.upper()
+                        + self.future_cell.terrain_handler.terrain.replace(
+                            "_", " "
+                        ).upper()
                         + " tile containing the village of "
                         + self.future_cell.village.name
                         + ". /n /n"
@@ -123,7 +125,9 @@ class exploration(action.action):
                 else:
                     text += (
                         "The expedition has discovered a "
-                        + self.future_cell.terrain_handler.terrain.upper()
+                        + self.future_cell.terrain_handler.terrain.replace(
+                            "_", " "
+                        ).upper()
                         + " tile with a "
                         + self.future_cell.terrain_handler.resource.upper()
                         + " resource (currently worth "
@@ -138,7 +142,7 @@ class exploration(action.action):
             else:
                 text += (
                     "The expedition has discovered a "
-                    + self.future_cell.terrain_handler.terrain.upper()
+                    + self.future_cell.terrain_handler.terrain.replace("_", " ").upper()
                     + " tile. /n /n"
                 )
             if self.public_relations_change > 0:  # Royal/National/Imperial

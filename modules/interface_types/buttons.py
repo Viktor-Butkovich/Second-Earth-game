@@ -228,7 +228,9 @@ class button(interface_elements.interface_element):
                                 + " movement point"
                                 + utility.generate_plural(movement_cost)
                                 + " because the adjacent tile has "
-                                + adjacent_cell.terrain_handler.terrain
+                                + adjacent_cell.terrain_handler.terrain.replace(
+                                    "_", " "
+                                )
                                 + " terrain "
                             )
                             if local_cell.has_walking_connection(adjacent_cell):
@@ -266,7 +268,9 @@ class button(interface_elements.interface_element):
                             else:
                                 tooltip_text.append(
                                     "Moving into a "
-                                    + adjacent_cell.terrain_handler.terrain
+                                    + adjacent_cell.terrain_handler.terrain.replace(
+                                        "_", " "
+                                    )
                                     + " tile costs "
                                     + str(
                                         constants.terrain_movement_cost_dict[

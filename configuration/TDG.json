@@ -38,8 +38,8 @@
         "min_water": 3,
         "max_water": 3
     },
-    "jungleMountain": {
-        "name": "jungleMountain",
+    "jungle_mountain": {
+        "name": "jungle_mountain",
         "min_temperature": 5,
         "max_temperature": 6,
         "min_roughness": 5,
@@ -90,8 +90,8 @@
         "min_water": 1,
         "max_water": 2
     },
-    "shallowOcean": {
-        "name": "shallowOcean",
+    "shallow_ocean": {
+        "name": "shallow_ocean",
         "min_temperature": 2,
         "max_temperature": 5,
         "min_roughness": 1,
@@ -103,8 +103,8 @@
         "min_water": 5,
         "max_water": 5
     },
-    "alpineMountain": {
-        "name": "alpineMountain",
+    "alpine_mountain": {
+        "name": "alpine_mountain",
         "min_temperature": 1,
         "max_temperature": 2,
         "min_roughness": 5,
@@ -207,8 +207,8 @@
         "min_water": 1,
         "max_water": 2
     },
-    "woodedHills": {
-        "name": "woodedHills",
+    "wooded_hills": {
+        "name": "wooded_hills",
         "min_temperature": 3,
         "max_temperature": 6,
         "min_roughness": 3,
@@ -220,8 +220,8 @@
         "min_water": 1,
         "max_water": 2
     },
-    "woodedMountain": {
-        "name": "woodedMountain",
+    "wooded_mountain": {
+        "name": "wooded_mountain",
         "min_temperature": 3,
         "max_temperature": 6,
         "min_roughness": 5,
@@ -233,8 +233,8 @@
         "min_water": 1,
         "max_water": 2
     },
-    "temperateRainForest": {
-        "name": "temperateRainForest",
+    "temperate_rain_forest": {
+        "name": "temperate_rain_forest",
         "min_temperature": 3,
         "max_temperature": 4,
         "min_roughness": 1,
@@ -246,8 +246,8 @@
         "min_water": 3,
         "max_water": 3
     },
-    "frozenSwamp": {
-        "name": "frozenSwamp",
+    "frozen_swamp": {
+        "name": "frozen_swamp",
         "min_temperature": 1,
         "max_temperature": 2,
         "min_roughness": 1,
@@ -298,8 +298,8 @@
         "min_water": 1,
         "max_water": 2
     },
-    "aridHills": {
-        "name": "aridHills",
+    "arid_hills": {
+        "name": "arid_hills",
         "min_temperature": 3,
         "max_temperature": 6,
         "min_roughness": 3,
@@ -311,8 +311,8 @@
         "min_water": 1,
         "max_water": 2
     },
-    "tropicalGrassland": {
-        "name": "tropicalGrassland",
+    "tropical_grassland": {
+        "name": "tropical_grassland",
         "min_temperature": 5,
         "max_temperature": 6,
         "min_roughness": 1,
@@ -337,8 +337,8 @@
         "min_water": 1,
         "max_water": 4
     },
-    "boilingOcean": {
-        "name": "boilingOcean",
+    "boiling_ocean": {
+        "name": "boiling_ocean",
         "min_temperature": 6,
         "max_temperature": 6,
         "min_roughness": 1,
@@ -350,8 +350,8 @@
         "min_water": 6,
         "max_water": 6
     },
-    "boilingShallowOcean": {
-        "name": "boilingShallowOcean",
+    "boiling_shallow_ocean": {
+        "name": "boiling_shallow_ocean",
         "min_temperature": 6,
         "max_temperature": 6,
         "min_roughness": 1,
@@ -389,8 +389,8 @@
         "min_water": 4,
         "max_water": 4
     },
-    "coldDesert": {
-        "name": "coldDesert",
+    "cold_desert": {
+        "name": "cold_desert",
         "min_temperature": 1,
         "max_temperature": 3,
         "min_roughness": 1,
@@ -402,8 +402,8 @@
         "min_water": 1,
         "max_water": 2
     },
-    "frozenMountain": {
-        "name": "frozenMountain",
+    "frozen_mountain": {
+        "name": "frozen_mountain",
         "min_temperature": 1,
         "max_temperature": 2,
         "min_roughness": 5,
@@ -428,8 +428,8 @@
         "min_water": 3,
         "max_water": 4
     },
-    "rainForestMountain": {
-        "name": "rainForestMountain",
+    "rain_forest_mountain": {
+        "name": "rain_forest_mountain",
         "min_temperature": 3,
         "max_temperature": 4,
         "min_roughness": 5,
@@ -441,8 +441,8 @@
         "min_water": 3,
         "max_water": 4
     },
-    "tundraHills": {
-        "name": "tundraHills",
+    "tundra_hills": {
+        "name": "tundra_hills",
         "min_temperature": 1,
         "max_temperature": 2,
         "min_roughness": 3,
@@ -480,8 +480,8 @@
         "min_water": 1,
         "max_water": 2
     },
-    "prairieHills": {
-        "name": "prairieHills",
+    "prairie_hills": {
+        "name": "prairie_hills",
         "min_temperature": 3,
         "max_temperature": 4,
         "min_roughness": 3,
@@ -506,8 +506,8 @@
         "min_water": 1,
         "max_water": 4
     },
-    "coldDunes": {
-        "name": "coldDunes",
+    "cold_dunes": {
+        "name": "cold_dunes",
         "min_temperature": 1,
         "max_temperature": 2,
         "min_roughness": 3,
@@ -519,8 +519,8 @@
         "min_water": 1,
         "max_water": 2
     },
-    "taigaHills": {
-        "name": "taigaHills",
+    "taiga_hills": {
+        "name": "taiga_hills",
         "min_temperature": 1,
         "max_temperature": 2,
         "min_roughness": 3,
@@ -532,8 +532,8 @@
         "min_water": 1,
         "max_water": 3
     },
-    "jungleHills": {
-        "name": "jungleHills",
+    "jungle_hills": {
+        "name": "jungle_hills",
         "min_temperature": 5,
         "max_temperature": 6,
         "min_roughness": 3,
@@ -545,8 +545,8 @@
         "min_water": 3,
         "max_water": 3
     },
-    "rainForestHills": {
-        "name": "rainForestHills",
+    "rain_forest_hills": {
+        "name": "rain_forest_hills",
         "min_temperature": 3,
         "max_temperature": 4,
         "min_roughness": 3,
@@ -558,8 +558,8 @@
         "min_water": 3,
         "max_water": 3
     },
-    "tropicalHills": {
-        "name": "tropicalHills",
+    "tropical_hills": {
+        "name": "tropical_hills",
         "min_temperature": 5,
         "max_temperature": 6,
         "min_roughness": 3,
@@ -571,8 +571,8 @@
         "min_water": 3,
         "max_water": 3
     },
-    "frozenHills": {
-        "name": "frozenHills",
+    "frozen_hills": {
+        "name": "frozen_hills",
         "min_temperature": 1,
         "max_temperature": 2,
         "min_roughness": 3,
@@ -584,8 +584,8 @@
         "min_water": 3,
         "max_water": 4
     },
-    "barrenHills": {
-        "name": "barrenHills",
+    "barren_hills": {
+        "name": "barren_hills",
         "min_temperature": 1,
         "max_temperature": 2,
         "min_roughness": 3,
@@ -597,8 +597,8 @@
         "min_water": 1,
         "max_water": 2
     },
-    "aridForest": {
-        "name": "aridForest",
+    "arid_forest": {
+        "name": "arid_forest",
         "min_temperature": 5,
         "max_temperature": 6,
         "min_roughness": 3,
@@ -610,8 +610,8 @@
         "min_water": 1,
         "max_water": 2
     },
-    "wastelandHills": {
-        "name": "wastelandHills",
+    "wasteland_hills": {
+        "name": "wasteland_hills",
         "min_temperature": 3,
         "max_temperature": 6,
         "min_roughness": 3,
@@ -623,8 +623,8 @@
         "min_water": 3,
         "max_water": 4
     },
-    "kelpForest": {
-        "name": "kelpForest",
+    "kelp_forest": {
+        "name": "kelp_forest",
         "min_temperature": 2,
         "max_temperature": 5,
         "min_roughness": 1,
@@ -636,8 +636,8 @@
         "min_water": 6,
         "max_water": 6
     },
-    "shallowKelpForest": {
-        "name": "shallowKelpForest",
+    "shallow_kelp_forest": {
+        "name": "shallow_kelp_forest",
         "min_temperature": 2,
         "max_temperature": 5,
         "min_roughness": 1,
@@ -662,8 +662,8 @@
         "min_water": 1,
         "max_water": 2
     },
-    "tropicalMountain": {
-        "name": "tropicalMountain",
+    "tropical_mountain": {
+        "name": "tropical_mountain",
         "min_temperature": 5,
         "max_temperature": 6,
         "min_roughness": 5,
