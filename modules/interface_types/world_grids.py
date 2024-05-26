@@ -66,25 +66,47 @@ class world_grid(grid):
         """
         area = self.coordinate_width * self.coordinate_height
         num_worms = area // 8
-        default_altitude = random.randrange(1, 7)
+        default_altitude = random.randrange(3, 5)
         for cell in self.get_flat_cell_list():
             cell.terrain_handler.set_parameter("altitude", default_altitude)
-            cell.terrain_handler.set_parameter("roughness", random.randrange(1, 7))
             cell.terrain_handler.set_parameter("temperature", random.randrange(1, 7))
 
         for i in range(num_worms):
             min_length = random.randrange(10, 30)
             max_length = random.randrange(30, 50)
             self.make_random_terrain_parameter_worm(
-                min_length, max_length, "altitude", random.choice([1, -1])
+                min_length,
+                max_length,
+                "altitude",
+                random.choice([-1, 1]),
+                capped=True,
+                set=False,
+            )
+
+        for i in range(num_worms):
+            min_length = random.randrange(5, 10)
+            max_length = random.randrange(10, 30)
+            self.make_random_terrain_parameter_worm(
+                min_length, max_length, "roughness", 1, capped=False
             )
 
         for cell in self.get_flat_cell_list():
             if cell.terrain_handler.terrain_parameters["altitude"] <= 2:
                 cell.terrain_handler.set_parameter("water", 6)
+            elif (
+                cell.terrain_handler.terrain_parameters["altitude"] <= 3
+                and random.randrange(1, 7) >= 4
+            ):
+                cell.terrain_handler.set_parameter("water", 6)
 
     def make_random_terrain_parameter_worm(
-        self, min_len: int, max_len: int, parameter: str, change: int
+        self,
+        min_len: int,
+        max_len: int,
+        parameter: str,
+        change: int,
+        capped: bool = False,
+        set: bool = False,
     ):
         """
         Description:
@@ -94,6 +116,8 @@ class world_grid(grid):
             int max_len: Maximum number of cells whose parameter can be changed, inclusive
             str parameter: Parameter to change
             int change: Amount to change the parameter by
+            bool capped: True if the parameter change should be limited in how far it can go from starting cell's original value, otherwise False
+            bool set: True if the parameter should be set to the change + original, False if it should be changed with each pass
         Output:
             None
         """
@@ -103,27 +127,36 @@ class world_grid(grid):
         current_y = start_y
         worm_length = random.randrange(min_len, max_len + 1)
 
-        self.find_cell(current_x, current_y).terrain_handler.change_parameter(
-            parameter, change
-        )
+        original_value = self.find_cell(
+            current_x, current_y
+        ).terrain_handler.terrain_parameters[parameter]
+        upper_bound = original_value + 1
+        lower_bound = original_value - 1
+
         counter = 0
-        last_direction = 100
-        while not counter == worm_length:
+        while counter != worm_length:
+            current_cell = self.find_cell(current_x, current_y)
+            if set:
+                resulting_value = original_value + change
+            else:
+                resulting_value = (
+                    current_cell.terrain_handler.terrain_parameters[parameter] + change
+                )
+
+            if (not capped) or (
+                resulting_value <= upper_bound and resulting_value >= lower_bound
+            ):
+                current_cell.terrain_handler.change_parameter(parameter, change)
             counter = counter + 1
             direction = random.randrange(1, 5)  # 1 north, 2 east, 3 south, 4 west
-            if abs(direction - last_direction) != 2:  # If not going backwards
-                if direction == 3:
-                    current_y = (current_y + 1) % self.coordinate_height
-                elif direction == 2:
-                    current_x = (current_x + 1) % self.coordinate_width
-                elif direction == 1:
-                    current_y = (current_y - 1) % self.coordinate_height
-                elif direction == 4:
-                    current_x = (current_x - 1) % self.coordinate_width
-                self.find_cell(current_x, current_y).terrain_handler.change_parameter(
-                    parameter, change
-                )
-            last_direction = direction
+            if direction == 3:
+                current_y = (current_y + 1) % self.coordinate_height
+            elif direction == 2:
+                current_x = (current_x + 1) % self.coordinate_width
+            elif direction == 1:
+                current_y = (current_y - 1) % self.coordinate_height
+            elif direction == 4:
+                current_x = (current_x - 1) % self.coordinate_width
 
     def generate_terrain_features(self):
         """
