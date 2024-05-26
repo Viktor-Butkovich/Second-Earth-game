@@ -566,7 +566,7 @@ class ship(vehicle):
         self.has_infinite_movement = True
         self.vehicle_type = "ship"
         self.can_swim = True
-        self.can_swim_river = True
+        self.can_swim_river = False
         self.can_swim_ocean = True
         self.can_walk = False
         self.travel_possible = True  # if this mob would ever be able to travel
@@ -665,7 +665,7 @@ class boat(ship):
         self.has_infinite_movement = False
         self.vehicle_type = "ship"
         self.can_swim_river = True
-        self.can_swim_ocean = True
+        self.can_swim_ocean = False
         self.can_walk = False
         self.travel_possible = False
         if not from_save:

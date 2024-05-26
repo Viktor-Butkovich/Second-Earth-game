@@ -473,67 +473,68 @@ def manage_lmb_down(clicked_button):
             not clicked_button
         ) and flags.choosing_destination:  # if clicking to move somewhere
             for current_grid in status.grid_list:  # destination_grids:
-                for current_cell in current_grid.get_flat_cell_list():
-                    if current_cell.touching_mouse():
-                        click_move_minimap()
-                        target_cell = "none"
-                        if current_cell.grid.is_abstract_grid:
-                            target_cell = current_cell
-                        else:
-                            target_cell = status.strategic_map_grid.find_cell(
-                                status.minimap_grid.center_x,
-                                status.minimap_grid.center_y,
-                            )  # center
-                        if not current_grid in status.displayed_mob.grids:
-                            stopping = False
-                            if (
-                                not current_grid.is_abstract_grid
-                            ):  # if grid has more than 1 cell, check if correct part of grid
-                                (
-                                    destination_x,
-                                    destination_y,
-                                ) = target_cell.tile.get_main_grid_coordinates()
+                if current_grid.can_show():
+                    for current_cell in current_grid.get_flat_cell_list():
+                        if current_cell.touching_mouse():
+                            click_move_minimap()
+                            target_cell = "none"
+                            if current_cell.grid.is_abstract_grid:
+                                target_cell = current_cell
+                            else:
+                                target_cell = status.strategic_map_grid.find_cell(
+                                    status.minimap_grid.center_x,
+                                    status.minimap_grid.center_y,
+                                )  # center
+                            if not current_grid in status.displayed_mob.grids:
+                                stopping = False
                                 if (
+                                    not current_grid.is_abstract_grid
+                                ):  # if grid has more than 1 cell, check if correct part of grid
                                     (
-                                        not (
-                                            destination_y == 0
-                                            or (
-                                                destination_y == 1
-                                                and target_cell.has_intact_building(
-                                                    "port"
+                                        destination_x,
+                                        destination_y,
+                                    ) = target_cell.tile.get_main_grid_coordinates()
+                                    if (
+                                        (
+                                            not (
+                                                destination_y == 0
+                                                or (
+                                                    destination_y == 1
+                                                    and target_cell.has_intact_building(
+                                                        "port"
+                                                    )
                                                 )
                                             )
                                         )
+                                        and destination_x >= 0
+                                        and destination_x
+                                        < status.strategic_map_grid.coordinate_width
+                                    ):  # or is harbor
+                                        text_utility.print_to_screen(
+                                            "You can only send ships to coastal waters and coastal ports."
+                                        )
+                                        stopping = False #True
+                                if not stopping:
+                                    status.displayed_mob.end_turn_destination = (
+                                        target_cell.tile
                                     )
-                                    and destination_x >= 0
-                                    and destination_x
-                                    < status.strategic_map_grid.coordinate_width
-                                ):  # or is harbor
-                                    text_utility.print_to_screen(
-                                        "You can only send ships to coastal waters and coastal ports."
-                                    )
-                                    stopping = True
-                            if not stopping:
-                                status.displayed_mob.end_turn_destination = (
-                                    target_cell.tile
+                                    status.displayed_mob.movement_sound(allow_fadeout=False)
+                                    flags.show_selection_outlines = True
+                                    constants.last_selection_outline_switch = (
+                                        constants.current_time
+                                    )  # outlines should be shown immediately once destination is chosen
+                                    status.displayed_mob.remove_from_turn_queue()
+                                    status.displayed_mob.select()
+                                    status.displayed_mob.images[
+                                        0
+                                    ].current_cell.tile.select()
+                            else:  # cannot move to same continent
+                                actor_utility.calibrate_actor_info_display(
+                                    status.mob_info_display, None
                                 )
-                                status.displayed_mob.movement_sound(allow_fadeout=False)
-                                flags.show_selection_outlines = True
-                                constants.last_selection_outline_switch = (
-                                    constants.current_time
-                                )  # outlines should be shown immediately once destination is chosen
-                                status.displayed_mob.remove_from_turn_queue()
-                                status.displayed_mob.select()
-                                status.displayed_mob.images[
-                                    0
-                                ].current_cell.tile.select()
-                        else:  # cannot move to same continent
-                            actor_utility.calibrate_actor_info_display(
-                                status.mob_info_display, None
-                            )
-                            text_utility.print_to_screen(
-                                "You can only send ships to other theatres."
-                            )
+                                text_utility.print_to_screen(
+                                    "You can only send ships to other theatres."
+                                )
             flags.choosing_destination = False
 
         elif (not clicked_button) and flags.choosing_advertised_commodity:
