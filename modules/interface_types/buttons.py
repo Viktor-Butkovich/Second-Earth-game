@@ -3731,3 +3731,58 @@ class anonymous_button(button):
             None
         """
         self.set_tooltip(self.tooltip)
+
+
+class map_mode_button(button):
+    def __init__(self, input_dict):
+        """
+        Description:
+            Initializes this object
+        Input:
+            dictionary input_dict: Keys corresponding to the values needed to initialize this object
+                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
+                'width': int value - pixel width of this element
+                'height': int value - pixel height of this element
+                'modes': string list value - Game modes during which this element can appear
+                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
+                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
+                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
+                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
+                'map_mode": Map mode that this button sets, like "default" or "altitude"
+        Output:
+            None
+        """
+        input_dict["button_type"] = "map mode"
+        self.map_mode = input_dict["map_mode"]
+        super().__init__(input_dict)
+
+    def can_show(self):
+        """
+        Description:
+            Returns whether this button should be drawn
+        Input:
+            None
+        Output:
+            boolean: Returns True if this button can appear during the current game mode and map modes are enabled, otherwise returns False
+        """
+        self.showing_outline = constants.current_map_mode == self.map_mode
+        return super().can_show()
+
+    def on_click(self):
+        constants.current_map_mode = self.map_mode
+        for grid in status.grid_list:
+            for cell in grid.get_flat_cell_list():
+                cell.tile.update_image_bundle()
+
+    def update_tooltip(self):
+        """
+        Description:
+            Sets this button's tooltip to what it should be, depending on its mapped 'update_tooltip' function
+        Input:
+            None
+        Output:
+            None
+        """
+        self.set_tooltip([f"Sets the map mode to {self.map_mode}"])

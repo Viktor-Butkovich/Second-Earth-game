@@ -212,6 +212,17 @@ frames_this_second: int = 0
 last_fps_update: float = 0.0
 
 current_game_mode: str = None
+game_modes: List[str] = ["strategic", "earth", "ministers", "trial", "new_game_setup"]
+current_map_mode: str = "terrain"
+map_modes: List[str] = [
+    "terrain",
+    "altitude",
+    "temperature",
+    "roughness",
+    "vegetation",
+    "soil",
+    "water",
+]
 
 loading_start_time: float = 0.0
 previous_turn_time: float = 0.0

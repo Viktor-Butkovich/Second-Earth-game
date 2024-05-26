@@ -1250,6 +1250,23 @@ def buttons():
         input_dict
     )
 
+    if constants.effect_manager.effect_active("map_modes"):
+        input_dict["init_type"] = "map mode button"
+        input_dict["parent_collection"] = rhs_menu_collection
+        input_dict["modes"] = ["strategic", "earth"]
+        for map_mode in constants.map_modes:
+            input_dict["map_mode"] = map_mode
+            input_dict["image_id"] = [
+                "buttons/default_button.png",
+                {
+                    "image_id": f"misc/map_modes/{map_mode}.png",
+                    "size": 0.75,
+                    "x_offset": 0.02,
+                    "y_offset": -0.02,
+                },
+            ]  # Create layered button
+            constants.actor_creation_manager.create_interface_element(input_dict)
+
 
 def earth_screen():
     """

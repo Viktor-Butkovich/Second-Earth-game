@@ -44,6 +44,7 @@ class terrain_handler:
         self.terrain_parameters: Dict[str, int] = input_dict.get(
             "terrain_parameters",
             {
+                "altitude": 1,
                 "temperature": 1,
                 "roughness": 1,
                 "vegetation": 1,

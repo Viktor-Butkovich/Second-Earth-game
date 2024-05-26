@@ -580,23 +580,15 @@ class grid(interface_elements.interface_element):
         while not counter == worm_length:
             counter = counter + 1
             direction = random.randrange(1, 5)  # 1 north, 2 east, 3 south, 4 west
-            if not (
-                ((current_x == self.coordinate_width - 1) and direction == 2)
-                or ((current_x == 0) and direction == 4)
-                or ((current_y == self.coordinate_height - 1) and direction == 3)
-                or ((current_y == 0) and direction == 1)
-            ):
-                if direction == 3:
-                    current_y = current_y + 1
-                elif direction == 2:
-                    current_x = current_x + 1
-                elif direction == 1:
-                    current_y = current_y - 1
-                elif direction == 4:
-                    current_x = current_x - 1
-                self.find_cell(current_x, current_y).terrain_handler.set_terrain(
-                    terrain
-                )
+            if direction == 3:
+                current_y = (current_y + 1) % self.coordinate_height
+            elif direction == 2:
+                current_x = (current_x + 1) % self.coordinate_width
+            elif direction == 1:
+                current_y = (current_y - 1) % self.coordinate_height
+            elif direction == 4:
+                current_x = (current_x - 1) % self.coordinate_width
+            self.find_cell(current_x, current_y).terrain_handler.set_terrain(terrain)
 
     def touching_mouse(self):
         """

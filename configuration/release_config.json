@@ -32,7 +32,8 @@
       "reset_achievements",
       "fullscreen",
       "link_inventory_tabs",
-      "enable_crash_button"
+      "enable_crash_button",
+      "map_modes"
    ],
    "active_effects": [
       "fullscreen"

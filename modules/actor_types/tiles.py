@@ -282,69 +282,76 @@ class tile(actor):  # to do: make terrain tiles a subclass
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
         image_id_list = []
-        if self.cell.grid.is_mini_grid:
-            equivalent_tiles = self.get_equivalent_tiles()
-            if equivalent_tiles and self.show_terrain:
-                image_id_list = equivalent_tiles[0].get_image_id_list()
-            else:
-                image_id_list.append(
-                    self.image_dict["default"]
-                )  # blank void image if outside of matched area
-        elif self.cell.grid.grid_type == "slave_traders_grid":
-            image_id_list.append(self.image_dict["default"])
-            strength_modifier = actor_utility.get_slave_traders_strength_modifier()
-            if strength_modifier == "none":
-                adjective = "no"
-            elif strength_modifier < 0:
-                adjective = "high"
-            elif strength_modifier > 0:
-                adjective = "low"
-            else:
-                adjective = "normal"
-            image_id_list.append(
-                "locations/slave_traders/" + adjective + "_strength.png"
-            )
-        else:
-            if (
-                self.cell.terrain_handler.visible or force_visibility
-            ):  # force visibility shows full tile even if tile is not yet visible
-                image_id_list.append(
-                    {
-                        "image_id": self.image_dict["default"],
-                        "size": 1,
-                        "x_offset": 0,
-                        "y_offset": 0,
-                        "level": -9,
-                    }
-                )
-                for terrain_feature in self.cell.terrain_handler.terrain_features:
-                    new_image_id = self.cell.terrain_handler.terrain_features[
-                        terrain_feature
-                    ].get(
-                        "image_id",
-                        status.terrain_feature_types[terrain_feature].image_id,
-                    )
-                    if type(new_image_id) == str and not new_image_id.endswith(".png"):
-                        new_image_id = actor_utility.generate_label_image_id(
-                            new_image_id, y_offset=-0.75
-                        )
-                    image_id_list = utility.combine(image_id_list, new_image_id)
-                if self.cell.terrain_handler.resource != "none":
-                    resource_icon = actor_utility.generate_resource_icon(self)
-                    if type(resource_icon) == str:
-                        image_id_list.append(resource_icon)
-                    else:
-                        image_id_list += resource_icon
-                for current_building_type in constants.building_types:
-                    current_building = self.cell.get_building(current_building_type)
-                    if current_building != "none":
-                        image_id_list += current_building.get_image_id_list()
-            elif self.show_terrain:
-                image_id_list.append(self.image_dict["hidden"])
-            else:
+        if constants.current_map_mode == "terrain":
+            if self.cell.grid.is_mini_grid:
+                equivalent_tiles = self.get_equivalent_tiles()
+                if equivalent_tiles and self.show_terrain:
+                    image_id_list = equivalent_tiles[0].get_image_id_list()
+                else:
+                    image_id_list.append(
+                        self.image_dict["default"]
+                    )  # blank void image if outside of matched area
+            elif self.cell.grid.grid_type == "slave_traders_grid":
                 image_id_list.append(self.image_dict["default"])
-            for current_image in self.hosted_images:
-                image_id_list += current_image.get_image_id_list()
+                strength_modifier = actor_utility.get_slave_traders_strength_modifier()
+                if strength_modifier == "none":
+                    adjective = "no"
+                elif strength_modifier < 0:
+                    adjective = "high"
+                elif strength_modifier > 0:
+                    adjective = "low"
+                else:
+                    adjective = "normal"
+                image_id_list.append(
+                    "locations/slave_traders/" + adjective + "_strength.png"
+                )
+            else:
+                if (
+                    self.cell.terrain_handler.visible or force_visibility
+                ):  # force visibility shows full tile even if tile is not yet visible
+                    image_id_list.append(
+                        {
+                            "image_id": self.image_dict["default"],
+                            "size": 1,
+                            "x_offset": 0,
+                            "y_offset": 0,
+                            "level": -9,
+                        }
+                    )
+                    for terrain_feature in self.cell.terrain_handler.terrain_features:
+                        new_image_id = self.cell.terrain_handler.terrain_features[
+                            terrain_feature
+                        ].get(
+                            "image_id",
+                            status.terrain_feature_types[terrain_feature].image_id,
+                        )
+                        if type(new_image_id) == str and not new_image_id.endswith(
+                            ".png"
+                        ):
+                            new_image_id = actor_utility.generate_label_image_id(
+                                new_image_id, y_offset=-0.75
+                            )
+                        image_id_list = utility.combine(image_id_list, new_image_id)
+                    if self.cell.terrain_handler.resource != "none":
+                        resource_icon = actor_utility.generate_resource_icon(self)
+                        if type(resource_icon) == str:
+                            image_id_list.append(resource_icon)
+                        else:
+                            image_id_list += resource_icon
+                    for current_building_type in constants.building_types:
+                        current_building = self.cell.get_building(current_building_type)
+                        if current_building != "none":
+                            image_id_list += current_building.get_image_id_list()
+                elif self.show_terrain:
+                    image_id_list.append(self.image_dict["hidden"])
+                else:
+                    image_id_list.append(self.image_dict["default"])
+                for current_image in self.hosted_images:
+                    image_id_list += current_image.get_image_id_list()
+        else:
+            image_id_list.append(
+                f"misc/map_modes/{self.cell.terrain_handler.terrain_parameters[constants.current_map_mode]}.png"
+            )
         return image_id_list
 
     def update_image_bundle(self, override_image=None):
