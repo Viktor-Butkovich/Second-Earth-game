@@ -454,7 +454,10 @@ class construction(action.action):
                             or down_cell.terrain_handler.terrain == "water"
                         )
                     ):  # if vertical bridge
-                        if up_cell.visible and down_cell.visible:
+                        if (
+                            up_cell.terrain_handler.visible
+                            and down_cell.terrain_handler.visible
+                        ):
                             return_value = True
                     elif (not (left_cell == None or right_cell == None)) and (
                         not (
@@ -462,7 +465,10 @@ class construction(action.action):
                             or right_cell.terrain_handler.terrain == "water"
                         )
                     ):  # if horizontal bridge
-                        if left_cell.visible and right_cell.visible:
+                        if (
+                            left_cell.terrain_handler.visible
+                            and right_cell.terrain_handler.visible
+                        ):
                             return_value = True
                 if not return_value:
                     text_utility.print_to_screen(

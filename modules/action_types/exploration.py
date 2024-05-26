@@ -255,7 +255,7 @@ class exploration(action.action):
         """
         if self.roll_result >= self.current_min_success:
             constants.public_opinion_tracker.change(self.public_relations_change)
-            self.future_cell.set_visibility(True)
+            self.future_cell.terrain_handler.set_visibility(True)
             if self.initial_movement_points >= self.current_unit.get_movement_cost(
                 self.x_change, self.y_change
             ):

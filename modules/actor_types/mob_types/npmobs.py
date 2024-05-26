@@ -84,11 +84,10 @@ class npmob(mob):
         """
         if self.npmob_type == "beast" and self.hidden:
             return False
-        if self.images[0].current_cell == "none":
-            return False
-        if not self.images[0].current_cell.visible:
-            return False
-        return True
+        return (
+            self.images[0].current_cell != "none"
+            and self.images[0].current_cell.terrain_handler.visible
+        )
 
     def find_closest_target(self):
         """

@@ -56,13 +56,9 @@ class cell:
             self.save_dict: dict = save_dict
             if constants.effect_manager.effect_active("remove_fog_of_war"):
                 save_dict["visible"] = True
-            self.set_visibility(save_dict["visible"])
-            self.terrain_handler = terrain_handler(self, True, save_dict)
+            self.terrain_handler = terrain_handler(self, save_dict)
         else:  # if creating new map
-            self.terrain_handler = terrain_handler(self, False)
-            self.set_visibility(
-                constants.effect_manager.effect_active("remove_fog_of_war")
-            )
+            self.terrain_handler = terrain_handler(self)
 
     def to_save_dict(self):
         """
@@ -82,7 +78,6 @@ class cell:
         """
         save_dict = {}
         save_dict["coordinates"] = (self.x, self.y)
-        save_dict["visible"] = self.visible
         save_dict.update(self.terrain_handler.to_save_dict())
         save_dict["inventory"] = self.tile.inventory
         return save_dict
@@ -750,22 +745,6 @@ class cell:
                     noncombatants.append(current_mob)
         return noncombatants
 
-    def set_visibility(self, new_visibility, update_image_bundle=True):
-        """
-        Description:
-            Sets the visibility of this cell and its attached tile to the inputted value. A visible cell's terrain and resource can be seen by the player.
-        Input:
-            boolean new_visibility: This cell's new visibility status
-            boolean update_image_bundle: Whether to update the image bundle - if multiple sets are being used on a tile, optimal to only update after the last one
-        Output:
-            None
-        """
-        self.visible = new_visibility
-        if update_image_bundle and self.tile != "none":
-            self.tile.update_image_bundle()
-        if new_visibility:
-            constants.achievement_manager.check_achievements("Heart of Darkness")
-
     def copy(self, other_cell):
         """
         Description:
@@ -778,10 +757,8 @@ class cell:
         self.contained_mobs = other_cell.contained_mobs
         self.contained_buildings = other_cell.contained_buildings
         self.village = other_cell.village
-        self.set_visibility(other_cell.visible, update_image_bundle=False)
         other_cell.terrain_handler.add_cell(self)
         # self.tile.update_image_bundle(override_image=other_cell.tile.image) #correctly copies other cell's image bundle but ends up very pixellated due to size difference
-        self.tile.update_image_bundle()
 
     def draw(self):
         """
@@ -796,13 +773,13 @@ class cell:
         red = current_color[0]
         green = current_color[1]
         blue = current_color[2]
-        if not self.visible:
+        if not self.terrain_handler.visible:
             red, green, blue = constants.color_dict["blonde"]
         pygame.draw.rect(constants.game_display, (red, green, blue), self.Rect)
         if self.tile != "none":
             for current_image in self.tile.images:
                 current_image.draw()
-            if self.visible and self.contained_mobs:
+            if self.terrain_handler.visible and self.contained_mobs:
                 for current_image in self.contained_mobs[0].images:
                     current_image.draw()
                 self.show_num_mobs()

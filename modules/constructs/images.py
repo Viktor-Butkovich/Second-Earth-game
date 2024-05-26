@@ -1756,7 +1756,10 @@ class tile_image(actor_image):
         Output:
             None
         """
-        if self.actor.name == "resource icon" and not self.actor.cell.visible:
+        if (
+            self.actor.name == "resource icon"
+            and not self.actor.cell.terrain_handler.visible
+        ):
             return ()  # do not show if resource icon in undiscovered tile
         self.go_to_cell((self.actor.x, self.actor.y))
         self.complete_draw()

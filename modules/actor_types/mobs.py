@@ -315,7 +315,7 @@ class mob(actor):
                 and self.images[0].current_cell.contained_mobs[0] == self
                 and constants.current_game_mode in self.modes
             ):
-                if self.images[0].current_cell.visible:
+                if self.images[0].current_cell.terrain_handler.visible:
                     return True
         return False
 
@@ -330,7 +330,7 @@ class mob(actor):
         """
         if super().can_show_tooltip():
             if self.images[0].current_cell != "none":
-                if self.images[0].current_cell.visible:
+                if self.images[0].current_cell.terrain_handler.visible:
                     return True
         return False
 
@@ -398,7 +398,7 @@ class mob(actor):
                     )
                 ):  # elif river w/o canoes
                     cost = self.max_movement_points
-                if (not adjacent_cell.visible) and self.can_explore:
+                if (not adjacent_cell.terrain_handler.visible) and self.can_explore:
                     cost = self.movement_cost
         return cost
 
@@ -423,7 +423,10 @@ class mob(actor):
             boolean: Returns True if any of the cells directly adjacent to this mob's cell has the water terrain. Otherwise, returns False
         """
         for current_cell in self.images[0].current_cell.adjacent_list:
-            if current_cell.terrain_handler.terrain == "water" and current_cell.visible:
+            if (
+                current_cell.terrain_handler.terrain == "water"
+                and current_cell.terrain_handler.visible
+            ):
                 return True
         return False
 
@@ -439,7 +442,7 @@ class mob(actor):
         for current_cell in self.images[0].current_cell.adjacent_list:
             if (
                 current_cell.terrain_handler.terrain == "water"
-                and current_cell.visible
+                and current_cell.terrain_handler.visible
                 and not current_cell.y == 0
             ):
                 return True
@@ -864,7 +867,11 @@ class mob(actor):
                     and future_y < self.grid.coordinate_height
                 ):
                     future_cell = self.grid.find_cell(future_x, future_y)
-                    if future_cell.visible or self.can_explore or self.is_npmob:
+                    if (
+                        future_cell.terrain_handler.visible
+                        or self.can_explore
+                        or self.is_npmob
+                    ):
                         destination_type = "land"
                         if future_cell.terrain_handler.terrain == "water":
                             destination_type = "water"  # if can move to destination, possible to move onto ship in water, possible to 'move' into non-visible water while exploring
@@ -889,7 +896,10 @@ class mob(actor):
                                     future_cell.has_vehicle("ship")
                                     and not self.is_vehicle
                                 )
-                                or (self.can_explore and not future_cell.visible)
+                                or (
+                                    self.can_explore
+                                    and not future_cell.terrain_handler.visible
+                                )
                             )
                         ):
                             if destination_type == "water":
@@ -906,7 +916,6 @@ class mob(actor):
                         elif (
                             destination_type == "land" and not self.can_walk
                         ):  # if trying to walk on land and can't
-                            # if future_cell.visible or self.can_explore: #already checked earlier
                             return False
                         else:  # if trying to swim in water and can't
                             return False

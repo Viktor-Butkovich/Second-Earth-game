@@ -306,7 +306,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             )
         else:
             if (
-                self.cell.visible or force_visibility
+                self.cell.terrain_handler.visible or force_visibility
             ):  # force visibility shows full tile even if tile is not yet visible
                 image_id_list.append(
                     {
@@ -424,7 +424,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 + str(coordinates[1])
                 + ")"
             )
-            if self.cell.visible:
+            if self.cell.terrain_handler.visible:
                 if self.cell.terrain_handler.terrain != "none":
                     if self.cell.terrain_handler.terrain == "water":
                         if coordinates[1] == 0:
@@ -551,7 +551,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     constants.sound_manager.play_random_music("asia")
             elif (
                 self.cell.village != "none"
-                and self.cell.visible
+                and self.cell.terrain_handler.visible
                 and self.cell.village.population > 0
                 and not self.cell.has_intact_building("port")
             ):

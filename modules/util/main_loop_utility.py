@@ -437,7 +437,7 @@ def manage_lmb_down(clicked_button):
                 ):  # if constants.current_game_mode in current_grid.modes:
                     for current_cell in current_grid.get_flat_cell_list():
                         if current_cell.touching_mouse():
-                            if current_cell.visible:
+                            if current_cell.terrain_handler.visible:
                                 if len(current_cell.contained_mobs) > 0:
                                     selected_mob = True
                                     current_mob = current_cell.contained_mobs[0]
@@ -513,12 +513,14 @@ def manage_lmb_down(clicked_button):
                                         text_utility.print_to_screen(
                                             "You can only send ships to coastal waters and coastal ports."
                                         )
-                                        stopping = False #True
+                                        stopping = False  # True
                                 if not stopping:
                                     status.displayed_mob.end_turn_destination = (
                                         target_cell.tile
                                     )
-                                    status.displayed_mob.movement_sound(allow_fadeout=False)
+                                    status.displayed_mob.movement_sound(
+                                        allow_fadeout=False
+                                    )
                                     flags.show_selection_outlines = True
                                     constants.last_selection_outline_switch = (
                                         constants.current_time
@@ -577,7 +579,7 @@ def manage_lmb_down(clicked_button):
                                 destination_infrastructure = target_cell.get_building(
                                     "infrastructure"
                                 )
-                                if not target_cell.visible:
+                                if not target_cell.terrain_handler.visible:
                                     text_utility.print_to_screen(
                                         "Movement routes cannot be created through unexplored tiles."
                                     )

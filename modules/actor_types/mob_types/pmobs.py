@@ -790,7 +790,7 @@ class pmob(mob):
             if self.can_leave():
                 if not self.grid.is_abstract_grid:
                     future_cell = self.grid.find_cell(future_x, future_y)
-                    if future_cell.visible or self.can_explore:
+                    if future_cell.terrain_handler.visible or self.can_explore:
                         destination_type = "land"
                         if future_cell.terrain_handler.terrain == "water" and not (
                             future_cell.terrain_handler.terrain_features.get(
@@ -818,7 +818,10 @@ class pmob(mob):
                                         future_cell.has_vehicle("ship", self.is_worker)
                                         and not self.is_vehicle
                                     )
-                                    or (self.can_explore and not future_cell.visible)
+                                    or (
+                                        self.can_explore
+                                        and not future_cell.terrain_handler.visible
+                                    )
                                     or (
                                         self.is_battalion
                                         and (
@@ -832,24 +835,6 @@ class pmob(mob):
                                     self.can_walk and not self.can_swim_river
                                 ):  # can move through river with maximum movement points while becoming disorganized
                                     passed = True
-                        if passed:
-                            if destination_type == "water":
-                                if not (
-                                    future_cell.has_vehicle("ship", self.is_worker)
-                                    and not self.is_vehicle
-                                ):  # doesn't matter if can move in ocean or rivers if boarding ship
-                                    if not (
-                                        self.is_battalion
-                                        and (
-                                            not future_cell.get_best_combatant("npmob")
-                                            == "none"
-                                        )
-                                    ):  # battalions can attack enemies in water, but must retreat afterward
-                                        if not self.can_swim:
-                                            text_utility.print_to_screen(
-                                                "This unit can not move into water"
-                                            )
-                                            return False
 
                             if (
                                 self.movement_points
@@ -861,7 +846,10 @@ class pmob(mob):
                                     (not future_cell.has_npmob())
                                     or self.is_battalion
                                     or self.is_safari
-                                    or (self.can_explore and not future_cell.visible)
+                                    or (
+                                        self.can_explore
+                                        and not future_cell.terrain_handler.visible
+                                    )
                                 ):  # non-battalion units can't move into enemies
                                     return True
                                 else:
@@ -898,6 +886,7 @@ class pmob(mob):
                                         "You cannot move on land with this unit unless there is a port."
                                     )
                             return False
+                        return passed
                     else:
                         if can_print:
                             text_utility.print_to_screen(

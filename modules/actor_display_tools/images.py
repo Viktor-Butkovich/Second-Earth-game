@@ -64,7 +64,10 @@ class actor_display_free_image(free_image):
                 image_id_list = []
                 default_image_key = "default"
 
-                if new_actor.actor_type != "mob" and not new_actor.cell.visible:
+                if (
+                    new_actor.actor_type != "mob"
+                    and not new_actor.cell.terrain_handler.visible
+                ):
                     default_image_key = "hidden"
                 if isinstance(
                     new_actor.images[0].image_id, str

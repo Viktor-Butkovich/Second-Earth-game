@@ -877,7 +877,7 @@ class abstract_grid(grid):
         self.is_abstract_grid = True
         self.name = input_dict["name"]
         self.tile_image_id = input_dict["tile_image_id"]
-        self.cell_list[0][0].set_visibility(True)
+        self.cell_list[0][0].terrain_handler.set_visibility(True)
 
 
 def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -> grid:

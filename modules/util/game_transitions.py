@@ -132,7 +132,10 @@ def set_game_mode(new_game_mode):
                 actor_utility.calibrate_actor_info_display(
                     status.tile_info_display, centered_cell.tile
                 )
-                if centered_cell.visible and centered_cell.contained_mobs:
+                if (
+                    centered_cell.terrain_handler.visible
+                    and centered_cell.contained_mobs
+                ):
                     actor_utility.calibrate_actor_info_display(
                         status.mob_info_display, centered_cell.contained_mobs[0]
                     )
@@ -186,12 +189,6 @@ def create_strategic_map(from_save=False):
             if (not from_save) and current_grid == status.strategic_map_grid:
                 current_grid.generate_terrain()
             for cell in current_grid.get_flat_cell_list():
-                if (
-                    (not from_save)
-                    and current_grid == status.strategic_map_grid
-                    and (cell.y == 0 or cell.y == 1)
-                ):
-                    cell.set_visibility(True)
                 input_dict["coordinates"] = (cell.x, cell.y)
                 tiles.tile(False, input_dict)
             if current_grid == status.strategic_map_grid:

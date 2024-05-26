@@ -203,7 +203,7 @@ class button(interface_elements.interface_element):
                         movement_cost = 1
 
                 if passed:
-                    if adjacent_cell.visible:
+                    if adjacent_cell.terrain_handler.visible:
                         tooltip_text.append("Press to move to the " + direction)
                         adjacent_infrastructure = adjacent_cell.get_intact_building(
                             "infrastructure"
@@ -2106,7 +2106,7 @@ class same_tile_icon(button):
         self.update()
         return (
             status.displayed_tile
-            and status.displayed_tile.cell.visible
+            and status.displayed_tile.cell.terrain_handler.visible
             and len(self.old_contained_mobs) > self.index
             and super().can_show()
         )
@@ -2133,7 +2133,7 @@ class same_tile_icon(button):
         """
         if (
             status.displayed_tile
-            and status.displayed_tile.cell.visible
+            and status.displayed_tile.cell.terrain_handler.visible
             and super().can_show()
         ):
             displayed_tile = status.displayed_tile

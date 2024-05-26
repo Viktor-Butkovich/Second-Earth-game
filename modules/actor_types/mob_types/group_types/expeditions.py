@@ -58,8 +58,8 @@ class expedition(group):
         flags.show_minimap_outlines = True
         constants.last_selection_outline_switch = constants.current_time
 
-        future_x = self.x + x_change
-        future_y = self.y + y_change
+        future_x = (self.x + x_change) % self.grid.coordinate_width
+        future_y = (self.y + y_change) % self.grid.coordinate_height
         roll_result = 0
         if x_change > 0:
             direction = "east"
@@ -73,7 +73,7 @@ class expedition(group):
             direction = "none"
         future_cell = self.grid.find_cell(future_x, future_y)
         if (
-            future_cell.visible == False
+            future_cell.terrain_handler.visible == False
         ):  # if moving to unexplored area, try to explore it
             status.actions["exploration"].on_click(
                 self,
@@ -134,7 +134,7 @@ class expedition(group):
         found_river_source = False
         for current_direction in ["up", "down", "left", "right"]:
             target_cell = current_cell.adjacent_cells[current_direction]
-            if target_cell and not target_cell.visible:
+            if target_cell and not target_cell.terrain_handler.visible:
                 if (
                     current_cell.terrain == "water" or target_cell.terrain == "water"
                 ):  # if on water, discover all adjacent undiscovered tiles. Also, discover all adjacent water tiles, regardless of if currently on water

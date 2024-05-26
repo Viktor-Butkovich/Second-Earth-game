@@ -259,7 +259,7 @@ class achievement_manager_template:
         if achievement_type == "Heart of Darkness":
             if status.strategic_map_grid:
                 for current_cell in status.strategic_map_grid.get_flat_cell_list():
-                    if not current_cell.visible:
+                    if not current_cell.terrain_handler.visible:
                         return
                 self.achieve("Heart of Darkness")
 

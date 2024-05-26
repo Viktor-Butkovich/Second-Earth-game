@@ -672,7 +672,7 @@ def manage_villages(verbose: bool = True):
             current_village.change_population(1)
             if (
                 previous_population <= 0
-                and current_village.cell.visible
+                and current_village.cell.terrain_handler.visible
                 and constants.current_game_mode in current_village.cell.grid.modes
             ):
                 text = (
@@ -1014,7 +1014,7 @@ def end_turn_warnings():
         status.strategic_map_grid.get_flat_cell_list()
     ):  # Warn for insufficient warehouses
         if (
-            current_cell.visible
+            current_cell.terrain_handler.visible
             and current_cell.tile.get_inventory_used()
             > current_cell.tile.inventory_capacity
         ):

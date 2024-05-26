@@ -131,7 +131,7 @@ class track_beasts(action.action):
                                 current_beast.x, current_beast.y
                             )
                             if (
-                                beast_cell.visible
+                                beast_cell.terrain_handler.visible
                             ):  # if beasts's cell has been discovered
                                 current_beast.set_hidden(False)
                                 beasts_found.append(current_beast)
