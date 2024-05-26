@@ -65,38 +65,32 @@ class world_grid(grid):
             None
         """
         area = self.coordinate_width * self.coordinate_height
-        num_worms = area // 8
-        default_altitude = random.randrange(3, 5)
+        num_worms = 80
+        default_altitude = 1
         for cell in self.get_flat_cell_list():
             cell.terrain_handler.set_parameter("altitude", default_altitude)
             cell.terrain_handler.set_parameter("temperature", random.randrange(1, 7))
 
-        for i in range(num_worms):
-            min_length = random.randrange(10, 30)
-            max_length = random.randrange(30, 50)
+        for i in range(num_worms // 9):
+            min_length = (random.randrange(200, 350) * area) // 25**2
+            max_length = (random.randrange(350, 500) * area) // 25**2
             self.make_random_terrain_parameter_worm(
                 min_length,
                 max_length,
                 "altitude",
-                random.choice([-1, 1]),
-                capped=True,
-                set=False,
+                random.choice([1]),
+                bound=random.choice([1, random.randrange(1, 3)]),
             )
 
         for i in range(num_worms):
-            min_length = random.randrange(5, 10)
-            max_length = random.randrange(10, 30)
+            min_length = (random.randrange(10, 15) * area) // 25**2
+            max_length = (random.randrange(15, 35) * area) // 25**2
             self.make_random_terrain_parameter_worm(
-                min_length, max_length, "roughness", 1, capped=False
+                min_length, max_length, "roughness", 1, bound=1
             )
 
         for cell in self.get_flat_cell_list():
-            if cell.terrain_handler.terrain_parameters["altitude"] <= 2:
-                cell.terrain_handler.set_parameter("water", 6)
-            elif (
-                cell.terrain_handler.terrain_parameters["altitude"] <= 3
-                and random.randrange(1, 7) >= 4
-            ):
+            if cell.terrain_handler.terrain_parameters["altitude"] <= 3:
                 cell.terrain_handler.set_parameter("water", 6)
 
     def make_random_terrain_parameter_worm(
@@ -105,7 +99,7 @@ class world_grid(grid):
         max_len: int,
         parameter: str,
         change: int,
-        capped: bool = False,
+        bound: int = 0,
         set: bool = False,
     ):
         """
@@ -130,8 +124,8 @@ class world_grid(grid):
         original_value = self.find_cell(
             current_x, current_y
         ).terrain_handler.terrain_parameters[parameter]
-        upper_bound = original_value + 1
-        lower_bound = original_value - 1
+        upper_bound = original_value + bound
+        lower_bound = original_value - bound
 
         counter = 0
         while counter != worm_length:
@@ -143,7 +137,7 @@ class world_grid(grid):
                     current_cell.terrain_handler.terrain_parameters[parameter] + change
                 )
 
-            if (not capped) or (
+            if bound == 0 or (
                 resulting_value <= upper_bound and resulting_value >= lower_bound
             ):
                 current_cell.terrain_handler.change_parameter(parameter, change)
