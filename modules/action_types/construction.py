@@ -325,9 +325,7 @@ class construction(action.action):
                 if (
                     cell.terrain_handler.resource in constants.collectable_resources
                 ):  # if not natives or none
-                    self.attached_resource = (
-                        cell.terrain_handler.resource
-                    )
+                    self.attached_resource = cell.terrain_handler.resource
                     if self.attached_resource in ["gold", "iron", "copper", "diamond"]:
                         self.building_name = self.attached_resource + " mine"
                     elif self.attached_resource in [

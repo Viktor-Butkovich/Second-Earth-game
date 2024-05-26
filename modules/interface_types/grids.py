@@ -66,6 +66,21 @@ class grid(interface_elements.interface_element):
         else:
             self.load_cells(input_dict["cell_list"])
 
+    def load_cells(self, cell_list):
+        """
+        Description:
+            Creates this grid's cells with correct resources and terrain based on the inputted saved information
+        Input:
+            dictionary list cell_list: list of dictionaries of saved information necessary to recreate each cell in this grid
+        Output:
+            None
+        """
+        for current_cell_dict in cell_list:
+            x, y = current_cell_dict["coordinates"]
+            self.create_cell(x, y, save_dict=current_cell_dict)
+        for current_cell in self.get_flat_cell_list():
+            current_cell.find_adjacent_cells()
+
     def create_map_image(self):
         """
         Description:
@@ -108,63 +123,12 @@ class grid(interface_elements.interface_element):
         """
         return {
             "grid_type": self.grid_type,
+            "map_size": self.coordinate_width,
             "cell_list": [
                 current_cell.to_save_dict()
                 for current_cell in self.get_flat_cell_list()
             ],
         }
-
-    def generate_terrain(self):
-        """
-        Description:
-            Randomly creates the strategic map with biomes, rivers, and bottom row of ocean, but without resources - resources require that tiles and the mini grid are set
-                up first, which occurs later in setup than grid initialization
-        Input:
-            None
-        Output:
-            None
-        """
-        area = self.coordinate_width * self.coordinate_height
-        num_worms = area // 5
-        if constants.effect_manager.effect_active("enable_oceans"):
-            constants.terrain_list.append("water")
-        for i in range(num_worms):
-            min_length = round(area / 24)
-            max_length = round(area / 12)
-            self.make_random_terrain_worm(
-                min_length, max_length, constants.terrain_list
-            )
-
-        for cell in self.get_flat_cell_list():
-            if cell.terrain_handler.terrain == "none":
-                for neighbor in random.sample(
-                    cell.adjacent_list, len(cell.adjacent_list)
-                ):
-                    if neighbor.terrain_handler.terrain != "none":
-                        cell.terrain_handler.set_terrain(
-                            neighbor.terrain_handler.terrain
-                        )
-                if cell.terrain_handler.terrain == "none":
-                    cell.terrain_handler.set_terrain(
-                        random.choice(constants.terrain_list)
-                    )
-
-    def generate_terrain_features(self):
-        """
-        Description:
-            Randomly place features in each tile, based on terrain
-        Input:
-            None
-        Output:
-            None
-        """
-        for terrain_feature_type in status.terrain_feature_types:
-            for cell in self.get_flat_cell_list():
-                if status.terrain_feature_types[terrain_feature_type].allow_place(cell):
-                    cell.terrain_handler.terrain_features[terrain_feature_type] = {
-                        "feature_type": terrain_feature_type
-                    }
-                    cell.tile.update_image_bundle()
 
     def draw(self):
         """
@@ -469,21 +433,6 @@ class grid(interface_elements.interface_element):
         """
         return itertools.chain.from_iterable(self.cell_list)
 
-    def load_cells(self, cell_list):
-        """
-        Description:
-            Creates this grid's cells with correct resources and terrain based on the inputted saved information
-        Input:
-            dictionary list cell_list: list of dictionaries of saved information necessary to recreate each cell in this grid
-        Output:
-            None
-        """
-        for current_cell_dict in cell_list:
-            x, y = current_cell_dict["coordinates"]
-            self.create_cell(x, y, save_dict=current_cell_dict)
-        for current_cell in self.get_flat_cell_list():
-            current_cell.find_adjacent_cells()
-
     def create_cell(self, x, y, save_dict="none"):
         """
         Description:
@@ -503,92 +452,6 @@ class grid(interface_elements.interface_element):
             constants.color_dict["bright green"],
             save_dict,
         )
-
-    def create_resource_list_dict(self):
-        """
-        Description:
-            Creates and returns dictionary containing entries for each terrain type with the frequency of each resource type in that terrain
-        Input:
-            None
-        Output:
-            dictionary: Returns a dictionary in the format
-                {'savannah': [('none', 140), ('diamond', 142)]}
-                for resource_frequencies.json {'savannah': {'none': 140, 'diamond': 2}}
-        """
-        file = open("configuration/resource_frequencies.json")
-        resource_frequencies = json.load(file)
-        resource_list_dict = {}
-        for current_terrain in resource_frequencies:
-            resource_list_dict[current_terrain] = []
-            total_frequency = 0
-            for current_resource in resource_frequencies[current_terrain]:
-                total_frequency += resource_frequencies[current_terrain][
-                    current_resource
-                ]
-                resource_list_dict[current_terrain].append(
-                    (current_resource, total_frequency)
-                )
-        file.close()
-        return resource_list_dict
-
-    def set_resources(self):
-        """
-        Description:
-            Spawns a random resource, village, or lack thereof in each of this grid's cells
-        Input:
-            None
-        Output:
-            None
-        """
-        if self.from_save:
-            for cell in self.get_flat_cell_list():
-                cell.terrain_handler.set_resource(cell.save_dict["resource"])
-        else:
-            resource_list_dict = self.create_resource_list_dict()
-            for cell in self.get_flat_cell_list():
-                terrain_number = random.randrange(
-                    resource_list_dict[cell.terrain_handler.terrain][-1][1]
-                )  # number between 0 and terrain's max frequency
-                set_resource = False
-                for current_resource in resource_list_dict[
-                    cell.terrain_handler.terrain
-                ]:  # if random number falls in resource's frequency range for that terrain, set cell to that resource
-                    if (not set_resource) and terrain_number < current_resource[1]:
-                        cell.terrain_handler.set_resource(current_resource[0])
-                        break
-            self.generate_terrain_features()
-
-    def make_random_terrain_worm(self, min_len, max_len, possible_terrains):
-        """
-        Description:
-            Chooses a random terrain from the inputted list and fills a random length chain of adjacent grid cells with the chosen terrain. Can go to the same cell multiple times
-        Input:
-            int min_len: minimum number of cells whose terrain can be changed
-            int max_len: maximum number of cells whose terrain can be changed, inclusive
-            string list possible_terrains: list of all terrain types that could randomly spawn, like 'swamp'
-        Output:
-            None
-        """
-        start_x = random.randrange(0, self.coordinate_width)
-        start_y = random.randrange(0, self.coordinate_height)
-        current_x = start_x
-        current_y = start_y
-        worm_length = random.randrange(min_len, max_len + 1)
-        terrain = random.choice(possible_terrains)
-        self.find_cell(current_x, current_y).terrain_handler.set_terrain(terrain)
-        counter = 0
-        while not counter == worm_length:
-            counter = counter + 1
-            direction = random.randrange(1, 5)  # 1 north, 2 east, 3 south, 4 west
-            if direction == 3:
-                current_y = (current_y + 1) % self.coordinate_height
-            elif direction == 2:
-                current_x = (current_x + 1) % self.coordinate_width
-            elif direction == 1:
-                current_y = (current_y - 1) % self.coordinate_height
-            elif direction == 4:
-                current_x = (current_x - 1) % self.coordinate_width
-            self.find_cell(current_x, current_y).terrain_handler.set_terrain(terrain)
 
     def touching_mouse(self):
         """
@@ -637,6 +500,220 @@ class grid(interface_elements.interface_element):
         """
         super().remove()
         status.grid_list = utility.remove_from_list(status.grid_list, self)
+
+
+class world_grid(grid):
+    """
+    Grid representing the "single source of truth" for a particular world, containing original cells and terrain/world parameters
+    """
+
+    def create_world(self, from_save: bool):
+        """
+        Description:
+            Creates a world, either from scratch or from a save file
+        Input:
+            bool from_save: True if this object is being recreated from a save file, False if it is being newly created
+        Output:
+            None
+        """
+        if from_save:
+            for cell in self.get_flat_cell_list():
+                cell.terrain_handler.set_resource(cell.save_dict["resource"])
+        else:
+            self.generate_terrain_parameters()
+            self.generate_terrain()
+            self.generate_terrain_features()
+            resource_list_dict = self.create_resource_list_dict()
+            for cell in self.get_flat_cell_list():
+                terrain_number = random.randrange(
+                    resource_list_dict[cell.terrain_handler.terrain][-1][1]
+                )  # number between 0 and terrain's max frequency
+                set_resource = False
+                for current_resource in resource_list_dict[
+                    cell.terrain_handler.terrain
+                ]:  # if random number falls in resource's frequency range for that terrain, set cell to that resource
+                    if (not set_resource) and terrain_number < current_resource[1]:
+                        cell.terrain_handler.set_resource(current_resource[0])
+                        break
+
+    def generate_terrain_parameters(self):
+        """
+        Description:
+            Randomly sets terrain parameters for each cell
+        Input:
+            None
+        Output:
+            None
+        """
+        area = self.coordinate_width * self.coordinate_height
+        num_worms = area // 8
+        default_altitude = random.randrange(1, 7)
+        for cell in self.get_flat_cell_list():
+            cell.terrain_handler.set_parameter("altitude", default_altitude)
+
+        for i in range(num_worms):
+            min_length = random.randrange(10, 20)
+            max_length = random.randrange(20, 40)
+            self.make_random_terrain_parameter_worm(
+                min_length, max_length, "altitude", random.choice([1, -1])
+            )
+
+        for cell in self.get_flat_cell_list():
+            if cell.terrain_handler.terrain_parameters["altitude"] <= 2:
+                cell.terrain_handler.set_parameter("water", 6)
+
+    def make_random_terrain_parameter_worm(
+        self, min_len: int, max_len: int, parameter: str, change: int
+    ):
+        """
+        Description:
+            Chooses a random terrain from the inputted list and fills a random length chain of adjacent grid cells with the chosen terrain. Can go to the same cell multiple times
+        Input:
+            int min_len: Minimum number of cells whose parameter can be changed
+            int max_len: Maximum number of cells whose parameter can be changed, inclusive
+            str parameter: Parameter to change
+            int change: Amount to change the parameter by
+        Output:
+            None
+        """
+        start_x = random.randrange(0, self.coordinate_width)
+        start_y = random.randrange(0, self.coordinate_height)
+        current_x = start_x
+        current_y = start_y
+        worm_length = random.randrange(min_len, max_len + 1)
+
+        self.find_cell(current_x, current_y).terrain_handler.change_parameter(
+            parameter, change
+        )
+        counter = 0
+        last_direction = 100
+        while not counter == worm_length:
+            counter = counter + 1
+            direction = random.randrange(1, 5)  # 1 north, 2 east, 3 south, 4 west
+            if abs(direction - last_direction) != 2:  # If not going backwards
+                if direction == 3:
+                    current_y = (current_y + 1) % self.coordinate_height
+                elif direction == 2:
+                    current_x = (current_x + 1) % self.coordinate_width
+                elif direction == 1:
+                    current_y = (current_y - 1) % self.coordinate_height
+                elif direction == 4:
+                    current_x = (current_x - 1) % self.coordinate_width
+                self.find_cell(current_x, current_y).terrain_handler.change_parameter(
+                    parameter, change
+                )
+            last_direction = direction
+
+    def generate_terrain_features(self):
+        """
+        Description:
+            Randomly place features in each tile, based on terrain
+        Input:
+            None
+        Output:
+            None
+        """
+        for terrain_feature_type in status.terrain_feature_types:
+            for cell in self.get_flat_cell_list():
+                if status.terrain_feature_types[terrain_feature_type].allow_place(cell):
+                    cell.terrain_handler.terrain_features[terrain_feature_type] = {
+                        "feature_type": terrain_feature_type
+                    }
+                    cell.tile.update_image_bundle()
+
+    def create_resource_list_dict(self):
+        """
+        Description:
+            Creates and returns dictionary containing entries for each terrain type with the frequency of each resource type in that terrain
+        Input:
+            None
+        Output:
+            dictionary: Returns a dictionary in the format
+                {'savannah': [('none', 140), ('diamond', 142)]}
+                for resource_frequencies.json {'savannah': {'none': 140, 'diamond': 2}}
+        """
+        file = open("configuration/resource_frequencies.json")
+        resource_frequencies = json.load(file)
+        resource_list_dict = {}
+        for current_terrain in resource_frequencies:
+            resource_list_dict[current_terrain] = []
+            total_frequency = 0
+            for current_resource in resource_frequencies[current_terrain]:
+                total_frequency += resource_frequencies[current_terrain][
+                    current_resource
+                ]
+                resource_list_dict[current_terrain].append(
+                    (current_resource, total_frequency)
+                )
+        file.close()
+        return resource_list_dict
+
+    def make_random_terrain_worm(self, min_len, max_len, possible_terrains):
+        """
+        Description:
+            Chooses a random terrain from the inputted list and fills a random length chain of adjacent grid cells with the chosen terrain. Can go to the same cell multiple times
+        Input:
+            int min_len: minimum number of cells whose terrain can be changed
+            int max_len: maximum number of cells whose terrain can be changed, inclusive
+            string list possible_terrains: list of all terrain types that could randomly spawn, like 'swamp'
+        Output:
+            None
+        """
+        start_x = random.randrange(0, self.coordinate_width)
+        start_y = random.randrange(0, self.coordinate_height)
+        current_x = start_x
+        current_y = start_y
+        worm_length = random.randrange(min_len, max_len + 1)
+        terrain = random.choice(possible_terrains)
+        self.find_cell(current_x, current_y).terrain_handler.set_terrain(terrain)
+        counter = 0
+        while not counter == worm_length:
+            counter = counter + 1
+            direction = random.randrange(1, 5)  # 1 north, 2 east, 3 south, 4 west
+            if direction == 3:
+                current_y = (current_y + 1) % self.coordinate_height
+            elif direction == 2:
+                current_x = (current_x + 1) % self.coordinate_width
+            elif direction == 1:
+                current_y = (current_y - 1) % self.coordinate_height
+            elif direction == 4:
+                current_x = (current_x - 1) % self.coordinate_width
+            self.find_cell(current_x, current_y).terrain_handler.set_terrain(terrain)
+
+    def generate_terrain(self):
+        """
+        Description:
+            Randomly creates the strategic map with biomes, rivers, and bottom row of ocean, but without resources - resources require that tiles and the mini grid are set
+                up first, which occurs later in setup than grid initialization
+        Input:
+            None
+        Output:
+            None
+        """
+        area = self.coordinate_width * self.coordinate_height
+        num_worms = area // 5
+        if constants.effect_manager.effect_active("enable_oceans"):
+            constants.terrain_list.append("water")
+        for i in range(num_worms):
+            min_length = round(area / 24)
+            max_length = round(area / 12)
+            self.make_random_terrain_worm(
+                min_length, max_length, constants.terrain_list
+            )
+
+        for cell in self.get_flat_cell_list():
+            if cell.terrain_handler.terrain == "none":
+                for neighbor in random.sample(
+                    cell.adjacent_list, len(cell.adjacent_list)
+                ):
+                    if neighbor.terrain_handler.terrain != "none":
+                        cell.terrain_handler.set_terrain(
+                            neighbor.terrain_handler.terrain
+                        )
+                if cell.terrain_handler.terrain == "none":
+                    cell.terrain_handler.set_terrain(
+                        random.choice(constants.terrain_list)
+                    )
 
 
 class mini_grid(grid):
@@ -894,18 +971,19 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
     )
 
     if grid_type == "strategic_map_grid":
+        map_size = input_dict.get("map_size", random.choice(constants.map_sizes))
         input_dict.update(
             {
                 "modes": [],  # Acts as source of truth for mini grids, but this grid is not directly shown
                 "coordinates": scaling.scale_coordinates(320, 0),
                 "width": scaling.scale_width(constants.strategic_map_pixel_width),
                 "height": scaling.scale_height(constants.strategic_map_pixel_height),
-                "coordinate_width": constants.strategic_map_width,
-                "coordinate_height": constants.strategic_map_height,
+                "coordinate_width": map_size,
+                "coordinate_height": map_size,
                 "grid_line_width": 2,
             }
         )
-        return_grid = grid(from_save, input_dict)
+        return_grid = world_grid(from_save, input_dict)
 
     elif grid_type == "scrolling_strategic_map_grid":
         input_dict.update(
@@ -913,7 +991,7 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
                 "coordinates": scaling.scale_coordinates(320, 0),
                 "width": scaling.scale_width(constants.strategic_map_pixel_width),
                 "height": scaling.scale_height(constants.strategic_map_pixel_height),
-                "coordinate_size": constants.strategic_map_width,
+                "coordinate_size": status.strategic_map_grid.coordinate_width,
                 "grid_line_width": 2,
                 "attached_grid": status.strategic_map_grid,
             }

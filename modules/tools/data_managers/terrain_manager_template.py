@@ -60,6 +60,32 @@ class terrain_handler:
         self.attached_cells: list = []
         self.add_cell(attached_cell)
 
+    def change_parameter(self, parameter_name: str, change: int) -> None:
+        """
+        Description:
+            Changes the value of a parameter for this handler's cells
+        Input:
+            string parameter_name: Name of the parameter to change
+            int change: Amount to change the parameter by
+        Output:
+            None
+        """
+        self.terrain_parameters[parameter_name] = max(
+            1, min(self.terrain_parameters[parameter_name] + change, 6)
+        )
+
+    def set_parameter(self, parameter_name: str, new_value: int) -> None:
+        """
+        Description:
+            Sets the value of a parameter for this handler's cells
+        Input:
+            string parameter_name: Name of the parameter to change
+            int new_value: New value for the parameter
+        Output:
+            None
+        """
+        self.terrain_parameters[parameter_name] = max(1, min(new_value, 6))
+
     def to_save_dict(self) -> Dict[str, any]:
         """
         Description:

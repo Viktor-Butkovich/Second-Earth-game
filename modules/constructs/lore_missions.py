@@ -165,15 +165,15 @@ class lore_mission:
                 )
             )
         possible_coordinates = (
-            random.randrange(0, constants.strategic_map_width),
-            random.randrange(1, constants.strategic_map_height),
+            random.randrange(0, status.strategic_map_grid.coordinate_width),
+            random.randrange(1, status.strategic_map_grid.coordinate_height),
         )
         while (
             possible_coordinates in used_coordinates
         ):  # would cause infinite loop if too many possible locations existed
             possible_coordinates = (
-                random.randrange(0, constants.strategic_map_width),
-                random.randrange(1, constants.strategic_map_height),
+                random.randrange(0, status.strategic_map_grid.coordinate_width),
+                random.randrange(1, status.strategic_map_grid.coordinate_height),
             )
         return possible_coordinates
 

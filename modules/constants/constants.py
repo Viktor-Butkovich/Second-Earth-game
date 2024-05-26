@@ -261,8 +261,7 @@ grids_collection_y: int = default_display_height - 325
 
 strategic_map_pixel_width: int = 320
 strategic_map_pixel_height: int = 300
-strategic_map_width: int = 15
-strategic_map_height: int = 15
+map_sizes: List[int] = [11, 15, 19, 23, 27, 31]  # 7 + 4 * random.randrange(1, 7)
 
 earth_grid_x_offset: int = 30
 earth_grid_y_offset: int = 145
@@ -385,6 +384,16 @@ terrain_list: List[str] = [
     "desert",
     "water",
 ]
+
+terrain_parameters_list: List[str] = [
+    "altitude",
+    "temperature",
+    "roughness",
+    "vegetation",
+    "soil",
+    "water",
+]
+
 terrain_colors: Dict[str, tuple[int, int, int]] = {
     "savannah": (150, 200, 104),
     "hills": (50, 205, 50),

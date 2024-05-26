@@ -186,13 +186,11 @@ def create_strategic_map(from_save=False):
                 "modes": current_grid.modes,
                 "show_terrain": True,
             }
-            if (not from_save) and current_grid == status.strategic_map_grid:
-                current_grid.generate_terrain()
             for cell in current_grid.get_flat_cell_list():
                 input_dict["coordinates"] = (cell.x, cell.y)
                 tiles.tile(False, input_dict)
             if current_grid == status.strategic_map_grid:
-                current_grid.set_resources()
+                current_grid.create_world(from_save)
 
 
 def start_loading():

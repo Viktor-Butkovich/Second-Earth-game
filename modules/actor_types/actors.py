@@ -133,12 +133,16 @@ class actor:
             None
         """
         for current_commodity in self.get_held_commodities():
-            self.images[0].current_cell.tile.change_inventory(current_commodity, self.get_inventory(current_commodity))
+            self.images[0].current_cell.tile.change_inventory(
+                current_commodity, self.get_inventory(current_commodity)
+            )
             self.set_inventory(current_commodity, 0)
         if self.actor_type == "mob" and self.is_pmob:
             for current_equipment in self.equipment.copy():
                 if self.equipment[current_equipment]:
-                    self.images[0].current_cell.tile.change_inventory(current_equipment, 1)
+                    self.images[0].current_cell.tile.change_inventory(
+                        current_equipment, 1
+                    )
                     status.equipment_types[current_equipment].unequip(self)
             self.equipment = {}
 
