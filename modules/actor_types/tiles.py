@@ -348,10 +348,20 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     image_id_list.append(self.image_dict["default"])
                 for current_image in self.hosted_images:
                     image_id_list += current_image.get_image_id_list()
-        else:
+        elif constants.current_map_mode in constants.terrain_parameters_list:
             image_id_list.append(
                 f"misc/map_modes/{self.cell.terrain_handler.terrain_parameters[constants.current_map_mode]}.png"
             )
+        elif constants.current_map_mode == "magnetic":
+            if self.cell.terrain_handler.terrain_features.get("equator", False):
+                image_id_list.append("misc/map_modes/equator.png")
+            elif self.cell.terrain_handler.terrain_features.get("north pole", False):
+                image_id_list.append("misc/map_modes/north_pole.png")
+            elif self.cell.terrain_handler.terrain_features.get("south pole", False):
+                image_id_list.append("misc/map_modes/south_pole.png")
+            else:
+                image_id_list.append("misc/map_modes/none.png")
+
         return image_id_list
 
     def update_image_bundle(self, override_image=None):

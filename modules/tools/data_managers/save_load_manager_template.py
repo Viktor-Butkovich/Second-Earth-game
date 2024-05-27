@@ -94,7 +94,7 @@ class save_load_manager_template:
 
         game_transitions.set_game_mode("strategic")
         game_transitions.create_strategic_map(from_save=False)
-        status.minimap_grid.calibrate(2, 2)
+        status.minimap_grid.calibrate(0, 0)
 
         for current_commodity in constants.commodity_types:
             if current_commodity != "consumer goods":
@@ -338,7 +338,7 @@ class save_load_manager_template:
         minister_utility.update_available_minister_display()
         status.commodity_prices_label.update_label()
 
-        status.minimap_grid.calibrate(2, 2)
+        status.minimap_grid.calibrate(0, 0)
         game_transitions.set_game_mode("strategic")
 
         for current_completed_lore_type in constants.completed_lore_mission_types:

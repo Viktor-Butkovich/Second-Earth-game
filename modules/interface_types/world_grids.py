@@ -69,9 +69,11 @@ class world_grid(grid):
         default_altitude = 1
         for cell in self.get_flat_cell_list():
             cell.terrain_handler.set_parameter("altitude", default_altitude)
-            cell.terrain_handler.set_parameter("temperature", random.randrange(1, 7))
+            cell.terrain_handler.set_parameter("temperature", random.randrange(4, 7))
+            cell.terrain_handler.set_parameter("vegetation", random.randrange(4, 7))
+            cell.terrain_handler.set_parameter("water", random.randrange(1, 5))
 
-        for i in range(num_worms // 9):
+        for i in range(num_worms // 8):
             min_length = (random.randrange(200, 350) * area) // 25**2
             max_length = (random.randrange(350, 500) * area) // 25**2
             self.make_random_terrain_parameter_worm(
@@ -86,7 +88,7 @@ class world_grid(grid):
             min_length = (random.randrange(10, 15) * area) // 25**2
             max_length = (random.randrange(15, 35) * area) // 25**2
             self.make_random_terrain_parameter_worm(
-                min_length, max_length, "roughness", 1, bound=1
+                min_length, max_length, "roughness", 1, bound=3
             )
 
         for cell in self.get_flat_cell_list():
@@ -168,6 +170,99 @@ class world_grid(grid):
                         "feature_type": terrain_feature_type
                     }
                     cell.tile.update_image_bundle()
+        north_pole = self.find_cell(0, 0)
+        north_pole.terrain_handler.terrain_features["north pole"] = {
+            "feature_type": "north pole",
+        }
+        max_distance = 0
+        south_pole = None
+        for cell in self.get_flat_cell_list():
+            if self.distance(cell, north_pole) > max_distance:
+                max_distance = self.distance(cell, north_pole)
+                south_pole = cell
+        south_pole.terrain_handler.terrain_features["south pole"] = {
+            "feature_type": "south pole",
+        }
+        for (
+            cell
+        ) in (
+            self.get_flat_cell_list()
+        ):  # Results in clean equator lines in odd-sized planets
+            if self.distance(cell, south_pole) == self.distance(
+                cell, north_pole
+            ):  # or self.distance(cell, south_pole) - self.distance(cell, north_pole)) < 0.7:
+                cell.terrain_handler.terrain_features["equator"] = {
+                    "feature_type": "equator",
+                }
+            elif (
+                cell.y > cell.x
+                and abs(
+                    self.distance(cell, south_pole) - self.distance(cell, north_pole)
+                )
+                <= 1
+                and self.distance(cell, south_pole) < self.distance(cell, north_pole)
+            ):
+                cell.terrain_handler.terrain_features["equator"] = {
+                    "feature_type": "equator",
+                }
+            elif (
+                cell.y < cell.x
+                and abs(
+                    self.distance(cell, south_pole) - self.distance(cell, north_pole)
+                )
+                <= 1
+                and self.distance(cell, south_pole) > self.distance(cell, north_pole)
+            ):
+                cell.terrain_handler.terrain_features["equator"] = {
+                    "feature_type": "equator",
+                }
+
+    def x_distance(self, cell1, cell2):
+        """
+        Description:
+            Calculates and returns the x distance between two cells
+        Input:
+            cell cell1: First cell
+            cell cell2: Second cell
+        Output:
+            int: Returns the x distance between the two cells
+        """
+        return min(
+            abs(cell1.x - cell2.x),
+            abs(cell1.x - (cell2.x + self.coordinate_width)),
+            abs(cell1.x - (cell2.x - self.coordinate_width)),
+        )
+
+    def y_distance(self, cell1, cell2):
+        """
+        Description:
+            Calculates and returns the y distance between two cells
+        Input:
+            cell cell1: First cell
+            cell cell2: Second cell
+        Output:
+            int: Returns the y distance between the two cells
+        """
+        return min(
+            abs(cell1.y - cell2.y),
+            abs(cell1.y - (cell2.y + self.coordinate_height)),
+            abs(cell1.y - (cell2.y - self.coordinate_height)),
+        )
+
+    def distance(self, cell1, cell2):
+        """
+        Description:
+            Calculates and returns the distance between two cells
+        Input:
+            cell cell1: First cell
+            cell cell2: Second cell
+        Output:
+            int: Returns the distance between the two cells
+        """
+        return (
+            self.x_distance(cell1, cell2) ** 2 + self.y_distance(cell1, cell2) ** 2
+        ) ** 0.5
+        return self.x_distance(cell1, cell2) + self.y_distance(cell1, cell2)
 
     def create_resource_list_dict(self):
         """

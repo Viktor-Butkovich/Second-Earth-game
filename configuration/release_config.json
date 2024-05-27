@@ -33,7 +33,8 @@
       "fullscreen",
       "link_inventory_tabs",
       "enable_crash_button",
-      "map_modes"
+      "map_modes",
+      "allow_planet_mask"
    ],
    "active_effects": [
       "fullscreen"

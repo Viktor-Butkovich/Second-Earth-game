@@ -41,6 +41,7 @@ minimap_grid: mini_grid = None
 earth_grid: abstract_grid = None
 asia_grid: abstract_grid = None
 slave_traders_grid: abstract_grid = None
+planet_view_mask: free_image = None
 
 Britain: country = None
 France: country = None

@@ -222,6 +222,7 @@ map_modes: List[str] = [
     "vegetation",
     "soil",
     "water",
+    "magnetic",
 ]
 
 loading_start_time: float = 0.0
@@ -262,7 +263,6 @@ grids_collection_y: int = default_display_height - 325
 strategic_map_pixel_width: int = 320
 strategic_map_pixel_height: int = 300
 map_sizes: List[int] = [11, 15, 19, 23, 27, 31]  # 7 + 4 * random.randrange(1, 7)
-
 earth_grid_x_offset: int = 30
 earth_grid_y_offset: int = 145
 asia_grid_x_offset: int = 175

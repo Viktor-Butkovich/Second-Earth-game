@@ -417,6 +417,30 @@ def terrain_feature_types_config():
         }
     )
 
+    terrain_feature_types.terrain_feature_type(
+        {
+            "terrain_feature_type": "north pole",
+            "image_id": "North Pole",
+            "description": ["This is the north pole of the planet"],
+        }
+    )
+
+    terrain_feature_types.terrain_feature_type(
+        {
+            "terrain_feature_type": "south pole",
+            "image_id": "South Pole",
+            "description": ["This is the south pole of the planet"],
+        }
+    )
+
+    terrain_feature_types.terrain_feature_type(
+        {
+            "terrain_feature_type": "equator",
+            "image_id": "Equator",
+            "description": ["This lies along the equator of the planet"],
+        }
+    )
+
 
 def actions():
     """
@@ -962,7 +986,19 @@ def buttons():
     Output:
         None
     """
-    # Could implement switch game mode buttons based on state machine logic for different modes
+    status.planet_view_mask = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(320, 0),
+            "width": scaling.scale_width(constants.strategic_map_pixel_width),
+            "height": scaling.scale_height(constants.strategic_map_pixel_height),
+            "parent_collection": status.grids_collection,
+            "modes": ["strategic"],  # Manually drawn by scrolling strategic grid
+            "init_type": "free image",
+            "color_key": (255, 255, 255),
+            "image_id": "misc/planet_view_mask.png",
+        }
+    )
+
     input_dict = {
         "coordinates": scaling.scale_coordinates(0, 10),
         "width": scaling.scale_width(150),
@@ -976,9 +1012,6 @@ def buttons():
     strategic_flag_icon = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
-    # status.flag_icon_list.append(
-    #    strategic_flag_icon
-    # )  # sets button image to update to flag icon when country changes
 
     input_dict["modes"] = ["ministers"]
     input_dict["coordinates"] = scaling.scale_coordinates(

@@ -556,6 +556,7 @@ class free_image(image):
         self.has_parent_collection = False
         super().__init__(input_dict["width"], input_dict["height"])
         self.parent_collection = input_dict.get("parent_collection", "none")
+        self.color_key = input_dict.get("color_key", None)
         self.has_parent_collection = self.parent_collection != "none"
         if not self.has_parent_collection:
             status.independent_interface_elements.append(self)
@@ -708,6 +709,8 @@ class free_image(image):
                     self.image = pygame.transform.scale(
                         self.image, (self.width, self.height)
                     )
+                    if self.color_key:
+                        self.image.set_colorkey(self.color_key)
                 else:  # if set to image path list
                     self.contains_bundle = True
                     self.image = image_bundle(self, self.image_id)
