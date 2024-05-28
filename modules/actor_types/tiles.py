@@ -349,9 +349,24 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 for current_image in self.hosted_images:
                     image_id_list += current_image.get_image_id_list()
         elif constants.current_map_mode in constants.terrain_parameters_list:
-            image_id_list.append(
-                f"misc/map_modes/{self.cell.terrain_handler.terrain_parameters[constants.current_map_mode]}.png"
-            )
+            if constants.current_map_mode == "temperature":
+                temperature = self.cell.terrain_handler.terrain_parameters[
+                    "temperature"
+                ]  # Accounts for -5, 12 temperature range
+                image_id_list.append(
+                    {
+                        "image_id": "misc/map_modes/green_screen.png",
+                        "green_screen": (
+                            100 + (10 * temperature),
+                            0,
+                            150 - (10 * temperature),
+                        ),
+                    }
+                )
+            else:
+                image_id_list.append(
+                    f"misc/map_modes/{self.cell.terrain_handler.terrain_parameters[constants.current_map_mode]}.png"
+                )
         elif constants.current_map_mode == "magnetic":
             if self.cell.terrain_handler.terrain_features.get("equator", False):
                 image_id_list.append("misc/map_modes/equator.png")
@@ -443,40 +458,16 @@ class tile(actor):  # to do: make terrain tiles a subclass
             )
             if self.cell.terrain_handler.visible:
                 if self.cell.terrain_handler.terrain != "none":
-                    if self.cell.terrain_handler.terrain == "water":
-                        if coordinates[1] == 0:
-                            tooltip_message.append("This is an ocean water tile")
-                            tooltip_message.append(
-                                f"    Movement cost: {constants.terrain_movement_cost_dict.get(self.cell.terrain_handler.terrain, 1)} (with steamship)"
-                            )
-                            tooltip_message.append(f"        Otherwise impassable")
-                        else:
-                            tooltip_message.append("This is a river water tile")
-                            if self.cell.terrain_handler.terrain_features.get(
-                                "cataract", False
-                            ):
-                                tooltip_message.append(f"    Impassable for steamboats")
-                            else:
-                                tooltip_message.append(
-                                    f"    Movement cost: {constants.terrain_movement_cost_dict.get(self.cell.terrain_handler.terrain, 1)} (with canoes or steamboat)"
-                                )
-                            tooltip_message.append(
-                                f"        Otherwise costs entire turn of movement"
-                            )
-                    else:
-                        tooltip_message.append(
-                            f"This is {utility.generate_article(self.cell.terrain_handler.terrain.replace('_', '' ''))} {self.cell.terrain_handler.terrain.replace('_', ' ')} tile"
-                        )
-                        tooltip_message.append(
-                            f"    Movement cost: {constants.terrain_movement_cost_dict.get(self.cell.terrain_handler.terrain, 1)}"
-                        )
                     tooltip_message.append(
-                        f"    Building cost multiplier: x{constants.terrain_build_cost_multiplier_dict.get(self.cell.terrain_handler.terrain, 1)}"
+                        f"This is {utility.generate_article(self.cell.terrain_handler.terrain.replace('_', '' ''))} {self.cell.terrain_handler.terrain.replace('_', ' ')} tile"
                     )
-                    attrition_dict = {1: "light", 2: "moderate", 3: "severe"}
-                    tooltip_message.append(
-                        f"    Attrition: {attrition_dict[constants.terrain_attrition_dict.get(self.cell.terrain_handler.terrain, 1)]}"
-                    )
+                    for terrain_parameter in constants.terrain_parameters_list:
+                        value = self.cell.terrain_handler.terrain_parameters[
+                            terrain_parameter
+                        ]
+                        tooltip_message.append(
+                            f"    {terrain_parameter}: {constants.terrain_manager.terrain_parameter_keywords[terrain_parameter][value]} ({value}/{self.cell.terrain_handler.maxima.get(terrain_parameter, 6)})"
+                        )
                 if not self.cell.village == "none":  # if village present, show village
                     tooltip_message += self.cell.village.get_tooltip()
                 elif (

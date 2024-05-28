@@ -3,7 +3,7 @@
 import random
 import pygame
 import itertools
-from typing import Dict
+from typing import Dict, List
 from . import cells, interface_elements
 from ..util import actor_utility, utility
 import modules.constants.constants as constants
@@ -421,7 +421,7 @@ class grid(interface_elements.interface_element):
         for current_cell in self.get_flat_cell_list():
             current_cell.find_adjacent_cells()
 
-    def get_flat_cell_list(self):
+    def get_flat_cell_list(self) -> List[cells.cell]:
         """
         Description:
             Generates and returns a flattened version of this grid's 2-dimensional cell list
@@ -432,7 +432,7 @@ class grid(interface_elements.interface_element):
         """
         return itertools.chain.from_iterable(self.cell_list)
 
-    def create_cell(self, x, y, save_dict="none"):
+    def create_cell(self, x, y, save_dict="none") -> cells.cell:
         """
         Description:
             Creates a cell at the inputted coordinates

@@ -15,6 +15,7 @@ from modules.interface_types.interface_elements import (
 )
 from modules.interface_types.inventory_interface import inventory_grid
 from modules.interface_types.grids import grid, mini_grid, abstract_grid
+from modules.interface_types.cells import cell
 from modules.interface_types.panels import safe_click_panel
 from modules.interface_types.notifications import notification
 from modules.interface_types.buttons import button, same_tile_icon
@@ -138,3 +139,7 @@ previous_financial_report: str = None
 transaction_history: Dict[str, float] = {}
 
 initial_tutorial_completed: bool = False
+
+north_pole: cell = None
+south_pole: cell = None
+equator: List[cell] = None

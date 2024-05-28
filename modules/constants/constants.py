@@ -375,12 +375,12 @@ green_screen_colors: List[tuple[int, int, int]] = [
 ]
 
 terrain_parameters_list: List[str] = [
-    "altitude",
-    "temperature",
-    "roughness",
-    "vegetation",
-    "soil",
     "water",
+    "temperature",
+    "vegetation",
+    "roughness",
+    "soil",
+    "altitude",
 ]
 
 terrain_colors: Dict[str, tuple[int, int, int]] = {

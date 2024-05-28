@@ -27,6 +27,61 @@ class terrain_manager_template:
         self.terrain_variant_dict: Dict[str, int] = {}
         self.parameter_to_terrain: Dict[str, str] = {}
         self.terrain_list: List[str] = []
+        self.terrain_parameter_keywords = {
+            "altitude": {
+                1: "very low",
+                2: "low",
+                3: "medium",
+                4: "high",
+                5: "very high",
+                6: "stratospheric",
+            },
+            "temperature": {
+                -5: "frozen",
+                -4: "frozen",
+                -3: "frozen",
+                -2: "frozen",
+                -1: "frozen",
+                0: "frozen",
+                1: "frozen",
+                2: "cold",
+                3: "cool",
+                4: "warm",
+                5: "hot",
+                6: "scorching",
+                7: "scorching",
+                8: "scorching",
+                9: "scorching",
+                10: "scorching",
+                11: "scorching",
+                12: "scorching",
+            },
+            "roughness": {
+                1: "flat",
+                2: "rolling",
+                3: "hilly",
+                4: "rugged",
+                5: "mountainous",
+                6: "extreme",
+            },
+            "vegetation": {
+                1: "barren",
+                2: "sparse",
+                3: "light",
+                4: "medium",
+                5: "heavy",
+                6: "lush",
+            },
+            "soil": {1: "rock", 2: "sand", 3: "clay", 4: "silt", 5: "peat", 6: "loam"},
+            "water": {
+                1: "parched",
+                2: "dry",
+                3: "wet",
+                4: "soaked",
+                5: "shallow",
+                6: "deep",
+            },
+        }
         self.load_terrains(file_name)
 
     def load_terrains(self, file_name):
@@ -82,7 +137,7 @@ class terrain_manager_template:
             string: Returns the terrain type that the inputted parameters classify as
         """
         return self.parameter_to_terrain[
-            f"{terrain_parameters['temperature']}{terrain_parameters['roughness']}{terrain_parameters['vegetation']}{terrain_parameters['soil']}{terrain_parameters['water']}"
+            f"{max(min(terrain_parameters['temperature'], 6), 1)}{terrain_parameters['roughness']}{terrain_parameters['vegetation']}{terrain_parameters['soil']}{terrain_parameters['water']}"
         ]
 
 
@@ -115,6 +170,11 @@ class terrain_handler:
             },
         )
         self.terrain_variant: int = input_dict.get("terrain_variant", 0)
+        self.pole_distance_multiplier: float = (
+            1.0  # 0.1 for polar cells, 1.0 for equatorial cells
+        )
+        self.minima = {"temperature": -5}
+        self.maxima = {"temperature": 12}
         self.terrain: str = constants.terrain_manager.classify(self.terrain_parameters)
         self.resource: str = input_dict.get("resource", "none")
         self.visible: bool = input_dict.get("visible", True)
@@ -152,7 +212,10 @@ class terrain_handler:
         Output:
             None
         """
-        self.terrain_parameters[parameter_name] = max(1, min(new_value, 6))
+        self.terrain_parameters[parameter_name] = max(
+            self.minima.get(parameter_name, 1),
+            min(new_value, self.maxima.get(parameter_name, 6)),
+        )
         old_terrain = self.terrain
         self.terrain = constants.terrain_manager.classify(self.terrain_parameters)
         if old_terrain != self.terrain:

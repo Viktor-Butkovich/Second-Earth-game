@@ -2,8 +2,9 @@
 
 import random
 import json
-from typing import Dict
+from typing import Dict, List
 from .grids import grid, mini_grid, abstract_grid
+from .cells import cell
 from ..util import scaling
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -28,6 +29,7 @@ class world_grid(grid):
             for cell in self.get_flat_cell_list():
                 cell.terrain_handler.set_resource(cell.save_dict["resource"])
         else:
+            self.generate_poles_and_equator()
             self.generate_terrain_parameters()
             self.generate_terrain_features()
             self.generate_resources()
@@ -67,9 +69,10 @@ class world_grid(grid):
         area = self.coordinate_width * self.coordinate_height
         num_worms = 80
         default_altitude = 1
+        default_temperature = random.randrange(-5, 13)
         for cell in self.get_flat_cell_list():
             cell.terrain_handler.set_parameter("altitude", default_altitude)
-            cell.terrain_handler.set_parameter("temperature", random.randrange(4, 7))
+            cell.terrain_handler.set_parameter("temperature", default_temperature)
             cell.terrain_handler.set_parameter("vegetation", random.randrange(4, 7))
             cell.terrain_handler.set_parameter("water", random.randrange(1, 5))
 
@@ -170,52 +173,6 @@ class world_grid(grid):
                         "feature_type": terrain_feature_type
                     }
                     cell.tile.update_image_bundle()
-        north_pole = self.find_cell(0, 0)
-        north_pole.terrain_handler.terrain_features["north pole"] = {
-            "feature_type": "north pole",
-        }
-        max_distance = 0
-        south_pole = None
-        for cell in self.get_flat_cell_list():
-            if self.distance(cell, north_pole) > max_distance:
-                max_distance = self.distance(cell, north_pole)
-                south_pole = cell
-        south_pole.terrain_handler.terrain_features["south pole"] = {
-            "feature_type": "south pole",
-        }
-        for (
-            cell
-        ) in (
-            self.get_flat_cell_list()
-        ):  # Results in clean equator lines in odd-sized planets
-            if self.distance(cell, south_pole) == self.distance(
-                cell, north_pole
-            ):  # or self.distance(cell, south_pole) - self.distance(cell, north_pole)) < 0.7:
-                cell.terrain_handler.terrain_features["equator"] = {
-                    "feature_type": "equator",
-                }
-            elif (
-                cell.y > cell.x
-                and abs(
-                    self.distance(cell, south_pole) - self.distance(cell, north_pole)
-                )
-                <= 1
-                and self.distance(cell, south_pole) < self.distance(cell, north_pole)
-            ):
-                cell.terrain_handler.terrain_features["equator"] = {
-                    "feature_type": "equator",
-                }
-            elif (
-                cell.y < cell.x
-                and abs(
-                    self.distance(cell, south_pole) - self.distance(cell, north_pole)
-                )
-                <= 1
-                and self.distance(cell, south_pole) > self.distance(cell, north_pole)
-            ):
-                cell.terrain_handler.terrain_features["equator"] = {
-                    "feature_type": "equator",
-                }
 
     def x_distance(self, cell1, cell2):
         """
@@ -322,6 +279,85 @@ class world_grid(grid):
             elif direction == 4:
                 current_x = (current_x - 1) % self.coordinate_width
             self.find_cell(current_x, current_y).terrain_handler.set_terrain(terrain)
+
+    def parameter_weighted_sample(self, parameter, k=1) -> List:
+        """
+        Description:
+            Randomly samples k cells from the grid, with the probability of a cell being chosen being proportional to its value of the inputted parameter
+        Input:
+            string parameter: Parameter to sample by
+            int k: Number of cells to sample
+        Output:
+            list: Returns a list of k cells
+        """
+        cell_list = self.get_flat_cell_list()
+        if parameter == constants.terrain_parameters_list:
+            weight_list = [
+                cell.terrain_handler.terrain_parameters[parameter] for cell in cell_list
+            ]
+        else:
+            weight_list = [
+                getattr(cell.terrain_handler, parameter) for cell in cell_list
+            ]
+        return random.choices(cell_list, weights=cell_list, k=k)
+
+    def generate_poles_and_equator(self):
+        """
+        Description:
+            Generates the poles and equator for the world grid
+        Input:
+            None
+        Output:
+            None
+        """
+        status.north_pole = self.find_cell(0, 0)
+        status.north_pole.terrain_handler.terrain_features["north pole"] = {
+            "feature_type": "north pole",
+        }
+        max_distance = 0
+
+        status.south_pole = None
+        for cell in self.get_flat_cell_list():
+            if self.distance(cell, status.north_pole) > max_distance:
+                max_distance = self.distance(cell, status.north_pole)
+                status.south_pole = cell
+        status.south_pole.terrain_handler.terrain_features["south pole"] = {
+            "feature_type": "south pole",
+        }
+
+        status.equator = []
+        equatorial_distance = self.distance(status.north_pole, status.south_pole) / 2
+        for (
+            cell
+        ) in (
+            self.get_flat_cell_list()
+        ):  # Results in clean equator lines in odd-sized planets
+            north_pole_distance = self.distance(cell, status.north_pole)
+            south_pole_distance = self.distance(cell, status.south_pole)
+            cell.terrain_handler.pole_distance_multiplier = max(
+                min(
+                    min(north_pole_distance, south_pole_distance) / equatorial_distance,
+                    0.1,
+                ),
+                1.0,
+            )
+            if (
+                (south_pole_distance == north_pole_distance)
+                or (
+                    cell.y > cell.x
+                    and abs(south_pole_distance - north_pole_distance) <= 1
+                    and south_pole_distance < north_pole_distance
+                )
+                or (
+                    cell.y < cell.x
+                    and abs(south_pole_distance - north_pole_distance) <= 1
+                    and south_pole_distance > north_pole_distance
+                )
+            ):
+                cell.terrain_handler.terrain_features["equator"] = {
+                    "feature_type": "equator",
+                }
+                status.equator.append(cell)
 
 
 def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -> grid:
