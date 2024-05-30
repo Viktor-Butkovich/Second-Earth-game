@@ -173,6 +173,7 @@ class terrain_handler:
         self.pole_distance_multiplier: float = (
             1.0  # 0.1 for polar cells, 1.0 for equatorial cells
         )
+        self.inverse_pole_distance_multiplier: float = 1.0
         self.minima = {"temperature": -5}
         self.maxima = {"temperature": 12}
         self.terrain: str = constants.terrain_manager.classify(self.terrain_parameters)
@@ -193,7 +194,11 @@ class terrain_handler:
             None
         """
         self.terrain_parameters[parameter_name] = max(
-            1, min(self.terrain_parameters[parameter_name] + change, 6)
+            self.minima.get(parameter_name, 1),
+            min(
+                self.terrain_parameters[parameter_name] + change,
+                self.maxima.get(parameter_name, 6),
+            ),
         )
         old_terrain = self.terrain
         self.terrain = constants.terrain_manager.classify(self.terrain_parameters)

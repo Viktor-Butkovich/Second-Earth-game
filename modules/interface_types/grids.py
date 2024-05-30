@@ -361,7 +361,7 @@ class grid(interface_elements.interface_element):
         """
         return int(self.height / self.coordinate_height) + 1
 
-    def find_cell(self, x, y):
+    def find_cell(self, x, y) -> cells.cell:
         """
         Description:
             Returns this grid's cell that occupies the inputted coordinates

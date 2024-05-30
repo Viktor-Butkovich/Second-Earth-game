@@ -73,10 +73,8 @@ class world_grid(grid):
         for cell in self.get_flat_cell_list():
             cell.terrain_handler.set_parameter("altitude", default_altitude)
             cell.terrain_handler.set_parameter("temperature", default_temperature)
-            cell.terrain_handler.set_parameter("vegetation", random.randrange(4, 7))
-            cell.terrain_handler.set_parameter("water", random.randrange(1, 5))
 
-        for i in range(num_worms // 8):
+        for i in range(num_worms // 9):
             min_length = (random.randrange(200, 350) * area) // 25**2
             max_length = (random.randrange(350, 500) * area) // 25**2
             self.make_random_terrain_parameter_worm(
@@ -88,8 +86,8 @@ class world_grid(grid):
             )
 
         for i in range(num_worms):
-            min_length = (random.randrange(10, 15) * area) // 25**2
-            max_length = (random.randrange(15, 35) * area) // 25**2
+            min_length = (random.randrange(15, 20) * area) // 25**2
+            max_length = (random.randrange(25, 40) * area) // 25**2
             self.make_random_terrain_parameter_worm(
                 min_length, max_length, "roughness", 1, bound=3
             )
@@ -97,6 +95,48 @@ class world_grid(grid):
         for cell in self.get_flat_cell_list():
             if cell.terrain_handler.terrain_parameters["altitude"] <= 3:
                 cell.terrain_handler.set_parameter("water", 6)
+
+        for pole in [status.north_pole, status.south_pole]:
+            if pole == status.north_pole:
+                weight_parameter = "north_pole_distance_multiplier"
+            else:
+                weight_parameter = "south_pole_distance_multiplier"
+            min_length = (random.randrange(100, 150) * area) // 25**2
+            max_length = (random.randrange(150, 300) * area) // 25**2
+
+            self.make_random_terrain_parameter_worm(
+                min_length * 5,
+                max_length * 5,
+                "temperature",
+                -1,
+                bound=2,
+                start_cell=pole,
+                weight_parameter=weight_parameter,
+            )
+
+            self.make_random_terrain_parameter_worm(
+                min_length,
+                max_length,
+                "temperature",
+                -1,
+                bound=1,
+                start_cell=pole,
+                weight_parameter=weight_parameter,
+            )
+
+        random.shuffle(status.equator)
+        for start_location in status.equator:
+            min_length = (random.randrange(45, 50) * area) // 40**2
+            max_length = (random.randrange(50, 55) * area) // 40**2
+            self.make_random_terrain_parameter_worm(
+                min_length,
+                max_length,
+                "temperature",
+                random.choice([1]),
+                bound=1,
+                start_cell=start_location,
+                weight_parameter="pole_distance_multiplier",
+            )
 
     def make_random_terrain_parameter_worm(
         self,
@@ -106,6 +146,8 @@ class world_grid(grid):
         change: int,
         bound: int = 0,
         set: bool = False,
+        start_cell: cell = None,
+        weight_parameter: str = None,
     ):
         """
         Description:
@@ -117,11 +159,17 @@ class world_grid(grid):
             int change: Amount to change the parameter by
             bool capped: True if the parameter change should be limited in how far it can go from starting cell's original value, otherwise False
             bool set: True if the parameter should be set to the change + original, False if it should be changed with each pass
+            cell start_cell: Cell to start the worm from, otherwise a random cell is chosen
+            str weight_parameter: Terrain handler parameter to weight direction selection by, if any
         Output:
             None
         """
-        start_x = random.randrange(0, self.coordinate_width)
-        start_y = random.randrange(0, self.coordinate_height)
+        if start_cell:
+            start_x, start_y = start_cell.x, start_cell.y
+        else:
+            start_x = random.randrange(0, self.coordinate_width)
+            start_y = random.randrange(0, self.coordinate_height)
+
         current_x = start_x
         current_y = start_y
         worm_length = random.randrange(min_len, max_len + 1)
@@ -147,15 +195,21 @@ class world_grid(grid):
             ):
                 current_cell.terrain_handler.change_parameter(parameter, change)
             counter = counter + 1
-            direction = random.randrange(1, 5)  # 1 north, 2 east, 3 south, 4 west
-            if direction == 3:
-                current_y = (current_y + 1) % self.coordinate_height
-            elif direction == 2:
-                current_x = (current_x + 1) % self.coordinate_width
-            elif direction == 1:
-                current_y = (current_y - 1) % self.coordinate_height
-            elif direction == 4:
-                current_x = (current_x - 1) % self.coordinate_width
+            if weight_parameter:
+                selected_cell = self.parameter_weighted_sample(
+                    weight_parameter, restrict_to=current_cell.adjacent_list, k=1
+                )[0]
+                current_x, current_y = selected_cell.x, selected_cell.y
+            else:
+                direction = random.randrange(1, 5)  # 1 north, 2 east, 3 south, 4 west
+                if direction == 3:
+                    current_y = (current_y + 1) % self.coordinate_height
+                elif direction == 2:
+                    current_x = (current_x + 1) % self.coordinate_width
+                elif direction == 1:
+                    current_y = (current_y - 1) % self.coordinate_height
+                elif direction == 4:
+                    current_x = (current_x - 1) % self.coordinate_width
 
     def generate_terrain_features(self):
         """
@@ -280,7 +334,9 @@ class world_grid(grid):
                 current_x = (current_x - 1) % self.coordinate_width
             self.find_cell(current_x, current_y).terrain_handler.set_terrain(terrain)
 
-    def parameter_weighted_sample(self, parameter, k=1) -> List:
+    def parameter_weighted_sample(
+        self, parameter, restrict_to: List[cell] = None, k=1
+    ) -> List:
         """
         Description:
             Randomly samples k cells from the grid, with the probability of a cell being chosen being proportional to its value of the inputted parameter
@@ -290,7 +346,12 @@ class world_grid(grid):
         Output:
             list: Returns a list of k cells
         """
-        cell_list = self.get_flat_cell_list()
+        if not restrict_to:
+            cell_list = self.get_flat_cell_list()
+            cell_list = [cell for cell in cell_list]  # Converts from chain to list
+        else:
+            cell_list = restrict_to
+
         if parameter == constants.terrain_parameters_list:
             weight_list = [
                 cell.terrain_handler.terrain_parameters[parameter] for cell in cell_list
@@ -299,7 +360,7 @@ class world_grid(grid):
             weight_list = [
                 getattr(cell.terrain_handler, parameter) for cell in cell_list
             ]
-        return random.choices(cell_list, weights=cell_list, k=k)
+        return random.choices(list(cell_list), weights=weight_list, k=k)
 
     def generate_poles_and_equator(self):
         """
@@ -337,10 +398,22 @@ class world_grid(grid):
             cell.terrain_handler.pole_distance_multiplier = max(
                 min(
                     min(north_pole_distance, south_pole_distance) / equatorial_distance,
-                    0.1,
+                    1.0,
                 ),
-                1.0,
+                0.1,
             )
+            cell.terrain_handler.inverse_pole_distance_multiplier = max(
+                1 - cell.terrain_handler.pole_distance_multiplier, 0.1
+            )
+            cell.terrain_handler.north_pole_distance_multiplier = (
+                max(min(1.0 - (north_pole_distance / equatorial_distance), 1.0), 0.1)
+                ** 2
+            )
+            cell.terrain_handler.south_pole_distance_multiplier = (
+                max(min(1.0 - (south_pole_distance / equatorial_distance), 1.0), 0.1)
+                ** 2
+            )
+
             if (
                 (south_pole_distance == north_pole_distance)
                 or (

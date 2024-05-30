@@ -350,18 +350,8 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     image_id_list += current_image.get_image_id_list()
         elif constants.current_map_mode in constants.terrain_parameters_list:
             if constants.current_map_mode == "temperature":
-                temperature = self.cell.terrain_handler.terrain_parameters[
-                    "temperature"
-                ]  # Accounts for -5, 12 temperature range
                 image_id_list.append(
-                    {
-                        "image_id": "misc/map_modes/green_screen.png",
-                        "green_screen": (
-                            100 + (10 * temperature),
-                            0,
-                            150 - (10 * temperature),
-                        ),
-                    }
+                    f"misc/map_modes/temperature/{self.cell.terrain_handler.terrain_parameters[constants.current_map_mode]}.png"
                 )
             else:
                 image_id_list.append(
