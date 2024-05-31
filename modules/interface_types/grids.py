@@ -45,12 +45,13 @@ class grid(interface_elements.interface_element):
         self.is_mini_grid = False
         self.is_abstract_grid = False
         self.attached_grid = "none"
-        self.coordinate_width = input_dict.get(
+        self.coordinate_width: int = input_dict.get(
             "coordinate_size", input_dict.get("coordinate_width")
         )
-        self.coordinate_height = input_dict.get(
+        self.coordinate_height: int = input_dict.get(
             "coordinate_size", input_dict.get("coordinate_height")
         )
+        self.area: int = self.coordinate_width * self.coordinate_height
         self.internal_line_color = input_dict.get("internal_line_color", "black")
         self.external_line_color = input_dict.get("external_line_color", "dark gray")
         self.mini_grids = []

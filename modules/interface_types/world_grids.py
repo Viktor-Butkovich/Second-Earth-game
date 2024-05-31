@@ -32,30 +32,134 @@ class world_grid(grid):
             self.generate_poles_and_equator()
             self.generate_terrain_parameters()
             self.generate_terrain_features()
-            self.generate_resources()
 
-    def generate_resources(self):
+    def generate_altitude(self) -> None:
         """
         Description:
-            Randomly sets resources in each cell based on terrain
+            Randomly generates altitude
         Input:
             None
         Output:
             None
         """
-        return  # Temporarily disabled
-        resource_list_dict = self.create_resource_list_dict()
+        default_altitude = 1
+        num_worms = 80
         for cell in self.get_flat_cell_list():
-            terrain_number = random.randrange(
-                resource_list_dict[cell.terrain_handler.terrain][-1][1]
-            )  # number between 0 and terrain's max frequency
-            set_resource = False
-            for current_resource in resource_list_dict[
-                cell.terrain_handler.terrain
-            ]:  # if random number falls in resource's frequency range for that terrain, set cell to that resource
-                if (not set_resource) and terrain_number < current_resource[1]:
-                    cell.terrain_handler.set_resource(current_resource[0])
-                    break
+            cell.terrain_handler.set_parameter("altitude", default_altitude)
+
+        for i in range(num_worms // 9):
+            min_length = (random.randrange(200, 350) * self.area) // 25**2
+            max_length = (random.randrange(350, 500) * self.area) // 25**2
+            self.make_random_terrain_parameter_worm(
+                min_length,
+                max_length,
+                "altitude",
+                random.choice([1]),
+                bound=random.choice([1, random.randrange(1, 3)]),
+            )
+
+    def generate_temperature(self) -> None:
+        """
+        Description:
+            Randomly generates temperature
+        Input:
+            None
+        Output:
+            None
+        """
+        default_temperature = random.randrange(-5, 13)
+        for cell in self.get_flat_cell_list():
+            cell.terrain_handler.set_parameter("temperature", default_temperature)
+
+        temperature_sources = [status.north_pole, status.south_pole] + status.equator
+        random.shuffle(
+            temperature_sources
+        )  # Avoids edge-case bias from poles or equator consistently being chosen first
+        for temperature_source in temperature_sources:
+            if temperature_source in [status.north_pole, status.south_pole]:
+                if temperature_source == status.north_pole:
+                    weight_parameter = "north_pole_distance_multiplier"
+                else:
+                    weight_parameter = "south_pole_distance_multiplier"
+                min_length = (random.randrange(100, 150) * self.area) // 25**2
+                max_length = (random.randrange(150, 300) * self.area) // 25**2
+
+                self.make_random_terrain_parameter_worm(
+                    min_length * 6,
+                    max_length * 6,
+                    "temperature",
+                    -1,
+                    bound=1,
+                    start_cell=temperature_source,
+                    weight_parameter=weight_parameter,
+                )
+
+                self.make_random_terrain_parameter_worm(
+                    min_length * 4,
+                    max_length * 4,
+                    "temperature",
+                    -1,
+                    bound=1,
+                    start_cell=temperature_source,
+                    weight_parameter=weight_parameter,
+                )
+
+                self.make_random_terrain_parameter_worm(
+                    min_length,
+                    max_length,
+                    "temperature",
+                    -1,
+                    bound=1,
+                    start_cell=temperature_source,
+                    weight_parameter=weight_parameter,
+                )
+            elif not (
+                temperature_source.x in [1, self.coordinate_width - 1]
+                or temperature_source.y in [0, self.coordinate_height - 1] == 0
+            ):  # Avoids excessive heat at equator intersections
+                min_length = (random.randrange(45, 50) * self.area) // 40**2
+                max_length = (random.randrange(50, 55) * self.area) // 40**2
+                self.make_random_terrain_parameter_worm(
+                    min_length,
+                    max_length,
+                    "temperature",
+                    random.choice([1]),
+                    bound=1,
+                    start_cell=temperature_source,
+                    weight_parameter="pole_distance_multiplier",
+                )
+        self.bound("temperature", default_temperature - 3, default_temperature + 3)
+
+    def generate_roughness(self) -> None:
+        """
+        Description:
+            Randomly generates roughness
+        Input:
+            None
+        Output:
+            None
+        """
+        num_worms = 80
+        for i in range(num_worms):
+            min_length = (random.randrange(15, 20) * self.area) // 25**2
+            max_length = (random.randrange(25, 40) * self.area) // 25**2
+            self.make_random_terrain_parameter_worm(
+                min_length, max_length, "roughness", 1, bound=3
+            )
+
+    def generate_water(self) -> None:
+        """
+        Description:
+            Randomly generates water
+        Input:
+            None
+        Output:
+            None
+        """
+        water_line = random.randrange(1, 7)
+        for cell in self.get_flat_cell_list():
+            if cell.terrain_handler.terrain_parameters["altitude"] < water_line:
+                cell.terrain_handler.set_parameter("water", 6)
 
     def generate_terrain_parameters(self):
         """
@@ -66,77 +170,46 @@ class world_grid(grid):
         Output:
             None
         """
-        area = self.coordinate_width * self.coordinate_height
-        num_worms = 80
-        default_altitude = 1
-        default_temperature = random.randrange(-5, 13)
+        self.generate_altitude()
+        self.generate_roughness()
+        self.generate_temperature()
+        self.generate_water()
+
+    def bound(self, parameter: str, minimum: int, maximum: int):
+        """
+        Description:
+            Bounds the inputted parameter to the inputted minimum and maximum values
+        Input:
+            string parameter: Parameter to bound
+            int minimum: Minimum value to bound the parameter to
+            int maximum: Maximum value to bound the parameter to
+        Output:
+            None
+        """
         for cell in self.get_flat_cell_list():
-            cell.terrain_handler.set_parameter("altitude", default_altitude)
-            cell.terrain_handler.set_parameter("temperature", default_temperature)
-
-        for i in range(num_worms // 9):
-            min_length = (random.randrange(200, 350) * area) // 25**2
-            max_length = (random.randrange(350, 500) * area) // 25**2
-            self.make_random_terrain_parameter_worm(
-                min_length,
-                max_length,
-                "altitude",
-                random.choice([1]),
-                bound=random.choice([1, random.randrange(1, 3)]),
+            cell.terrain_handler.set_parameter(
+                parameter,
+                max(
+                    min(cell.terrain_handler.terrain_parameters[parameter], maximum),
+                    minimum,
+                ),
             )
 
-        for i in range(num_worms):
-            min_length = (random.randrange(15, 20) * area) // 25**2
-            max_length = (random.randrange(25, 40) * area) // 25**2
-            self.make_random_terrain_parameter_worm(
-                min_length, max_length, "roughness", 1, bound=3
-            )
-
-        for cell in self.get_flat_cell_list():
-            if cell.terrain_handler.terrain_parameters["altitude"] <= 3:
-                cell.terrain_handler.set_parameter("water", 6)
-
-        for pole in [status.north_pole, status.south_pole]:
-            if pole == status.north_pole:
-                weight_parameter = "north_pole_distance_multiplier"
-            else:
-                weight_parameter = "south_pole_distance_multiplier"
-            min_length = (random.randrange(100, 150) * area) // 25**2
-            max_length = (random.randrange(150, 300) * area) // 25**2
-
-            self.make_random_terrain_parameter_worm(
-                min_length * 5,
-                max_length * 5,
-                "temperature",
-                -1,
-                bound=2,
-                start_cell=pole,
-                weight_parameter=weight_parameter,
-            )
-
-            self.make_random_terrain_parameter_worm(
-                min_length,
-                max_length,
-                "temperature",
-                -1,
-                bound=1,
-                start_cell=pole,
-                weight_parameter=weight_parameter,
-            )
-
-        random.shuffle(status.equator)
-        for start_location in status.equator:
-            min_length = (random.randrange(45, 50) * area) // 40**2
-            max_length = (random.randrange(50, 55) * area) // 40**2
-            self.make_random_terrain_parameter_worm(
-                min_length,
-                max_length,
-                "temperature",
-                random.choice([1]),
-                bound=1,
-                start_cell=start_location,
-                weight_parameter="pole_distance_multiplier",
-            )
+    def find_average(self, parameter):
+        """
+        Description:
+            Calculates and returns the average value of the inputted parameter for all cells in the grid
+        Input:
+            string parameter: Parameter to average
+        Output:
+            float: Returns the average value of the parameter
+        """
+        return sum(
+            [
+                cell.terrain_handler.terrain_parameters[parameter]
+                for cell in self.get_flat_cell_list()
+            ]
+        ) / (self.coordinate_width * self.coordinate_height)
 
     def make_random_terrain_parameter_worm(
         self,
@@ -352,7 +425,7 @@ class world_grid(grid):
         else:
             cell_list = restrict_to
 
-        if parameter == constants.terrain_parameters_list:
+        if parameter in constants.terrain_parameters_list:
             weight_list = [
                 cell.terrain_handler.terrain_parameters[parameter] for cell in cell_list
             ]
