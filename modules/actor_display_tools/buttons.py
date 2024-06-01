@@ -2049,10 +2049,13 @@ class toggle_button(button):
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'toggle_variable': string value - Name of the variable that this button toggles
+                'attached_to_actor': boolean value - Whether this button is an actor display button or a default button
         Output:
             None
         """
-        self.toggle_variable = input_dict["toggle_variable"]
+        self.toggle_variable: str = input_dict["toggle_variable"]
+        self.attached_to_actor: bool = input_dict.get("attached_to_actor", True)
+
         super().__init__(input_dict)
 
     def on_click(self):
@@ -2064,11 +2067,16 @@ class toggle_button(button):
         Output:
             None
         """
-        setattr(
-            self.attached_label.actor,
-            self.toggle_variable,
-            not getattr(self.attached_label.actor, self.toggle_variable),
-        )
+        if self.attached_to_actor:
+            setattr(
+                self.attached_label.actor,
+                self.toggle_variable,
+                not getattr(self.attached_label.actor, self.toggle_variable),
+            )
+        else:
+            setattr(
+                flags, self.toggle_variable, not getattr(flags, self.toggle_variable)
+            )
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -2079,6 +2087,10 @@ class toggle_button(button):
         Output:
             boolean: Returns whether this button should be drawn
         """
+        if not self.attached_to_actor:
+            self.showing_outline = getattr(flags, self.toggle_variable)
+            return super().can_show()
+
         if (
             not self.attached_label.actor in ["none", None]
         ) and self.attached_label.actor.is_pmob:
@@ -2101,16 +2113,26 @@ class toggle_button(button):
         Output:
             None
         """
-        tooltip_text = []
-        if not self.attached_label.actor in [None, "none"]:
-            if self.toggle_variable == "wait_until_full":
-                tooltip_text.append(
-                    "Toggles wait until full - waiting until there is a full load to transport or no remaining warehouse space before starting automatic route"
+        if self.attached_to_actor:
+            if not self.attached_label.actor in [None, "none"]:
+                self.set_tooltip(
+                    [
+                        constants.toggle_button_tooltips[self.toggle_variable][
+                            "default"
+                        ],
+                        constants.toggle_button_tooltips[self.toggle_variable][
+                            str(
+                                getattr(self.attached_label.actor, self.toggle_variable)
+                            )
+                        ],
+                    ]
                 )
-                if getattr(self.attached_label.actor, self.toggle_variable):
-                    tooltip_text.append("Currently waiting until full")
-                else:
-                    tooltip_text.append(
-                        "Currently waiting until there is anything to transport"
-                    )
-        self.set_tooltip(tooltip_text)
+        else:
+            self.set_tooltip(
+                [
+                    constants.toggle_button_tooltips[self.toggle_variable]["default"],
+                    constants.toggle_button_tooltips[self.toggle_variable][
+                        str(getattr(flags, self.toggle_variable))
+                    ],
+                ]
+            )

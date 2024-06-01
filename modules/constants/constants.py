@@ -374,7 +374,7 @@ green_screen_colors: List[tuple[int, int, int]] = [
     (110, 107, 3),
 ]
 
-terrain_parameters_list: List[str] = [
+terrain_parameters: List[str] = [
     "water",
     "temperature",
     "vegetation",
@@ -753,3 +753,26 @@ titles: List[str] = [
     "Cavaliere",
     "Patrizio",
 ]
+
+toggle_button_tooltips: Dict[str, Dict[str, str]] = {
+    "wait_until_full": {
+        "default": "Toggles wait until full - waiting until there is a full load to transport or no remaining warehouse space before starting automatic route",
+        "True": "Currently waiting until full",
+        "False": "Currently waiting until there is anything to transport",
+    },
+    "show_planet_mask": {
+        "default": "Toggles a frame around the planet to approximate viewing the planet from space",
+        "True": "Currently showing frame",
+        "False": "Currently not showing frame",
+    },
+    "show_grid_lines": {
+        "default": "Toggles grid lines on the map",
+        "True": "Currently showing grid lines",
+        "False": "Currently not showing grid lines",
+    },
+    "expand_text_box": {
+        "default": "Expands the text box",
+        "True": "Currently expanded",
+        "False": "Currently default size",
+    },
+}

@@ -1,5 +1,6 @@
 from typing import List
 
+victories_this_game: List[str] = []
 crashed: bool = False
 lmb_down: bool = False
 rmb_down: bool = False
@@ -8,7 +9,6 @@ old_lmb_down: bool = False
 old_rmb_down: bool = False
 old_mmb_down: bool = False
 typing: bool = False
-show_text_box: bool = True
 loading_save: bool = False
 player_turn: bool = True
 enemy_combat_phase: bool = False
@@ -28,4 +28,6 @@ r_ctrl: bool = False
 l_ctrl: bool = False
 ctrl: bool = False
 any_slaves: bool = False
-victories_this_game: List[str] = []
+show_planet_mask: bool = False
+show_grid_lines: bool = True
+expand_text_box: bool = False

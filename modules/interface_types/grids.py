@@ -152,7 +152,7 @@ class grid(interface_elements.interface_element):
         Output:
             None
         """
-        if not constants.effect_manager.effect_active("hide_grid_lines"):
+        if flags.show_grid_lines:
             for x in range(0, self.coordinate_width + 1):
                 pygame.draw.line(
                     constants.game_display,
@@ -651,13 +651,16 @@ class mini_grid(grid):
             self == status.scrolling_strategic_map_grid
         ):  # Scrolling map acts more like a default grid than normal minimap
             super().draw_grid_lines()
-            if constants.effect_manager.effect_active("allow_planet_mask"):
+            if (
+                constants.effect_manager.effect_active("allow_planet_mask")
+                and flags.show_planet_mask
+            ):
                 status.planet_view_mask.draw()
             return
 
         left_x, down_y = (0, 0)
         right_x, up_y = (self.coordinate_width, self.coordinate_height)
-        if not constants.effect_manager.effect_active("hide_grid_lines"):
+        if flags.show_grid_lines:
             for x in range(0, self.coordinate_width + 1):
                 pygame.draw.line(
                     constants.game_display,

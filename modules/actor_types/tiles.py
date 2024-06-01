@@ -348,7 +348,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     image_id_list.append(self.image_dict["default"])
                 for current_image in self.hosted_images:
                     image_id_list += current_image.get_image_id_list()
-        elif constants.current_map_mode in constants.terrain_parameters_list:
+        elif constants.current_map_mode in constants.terrain_parameters:
             if constants.current_map_mode == "temperature":
                 image_id_list.append(
                     f"misc/map_modes/temperature/{self.cell.terrain_handler.terrain_parameters[constants.current_map_mode]}.png"
@@ -451,7 +451,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     tooltip_message.append(
                         f"This is {utility.generate_article(self.cell.terrain_handler.terrain.replace('_', '' ''))} {self.cell.terrain_handler.terrain.replace('_', ' ')} tile"
                     )
-                    for terrain_parameter in constants.terrain_parameters_list:
+                    for terrain_parameter in constants.terrain_parameters:
                         value = self.cell.terrain_handler.terrain_parameters[
                             terrain_parameter
                         ]

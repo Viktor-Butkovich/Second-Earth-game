@@ -889,6 +889,22 @@ class actor_display_label(label):
             )
             self.set_tooltip(tooltip_text)
 
+        elif self.actor_label_type in constants.terrain_parameters:
+            tooltip_text = [self.message]
+            if self.actor != "none":
+                if self.actor_label_type == "water":
+                    tooltip_text.append(
+                        "Represents the amount of water in this tile, including both standing water and average precipitation"
+                    )
+                elif self.actor_label_type == "temperature":
+                    tooltip_text.append(
+                        "Represents the average temperature in this tile, on a scale from -5 to 12"
+                    )
+                    tooltip_text.append(
+                        f"Approximately {utility.fahrenheit(self.actor.cell.terrain_handler.terrain_parameters['temperature'])} degrees Fahrenheit"
+                    )
+            self.set_tooltip(tooltip_text)
+
         else:
             super().update_tooltip()
 
@@ -1300,6 +1316,14 @@ class actor_display_label(label):
                     )
                 else:
                     self.set_label(self.message_start + " n/a")
+
+            elif self.actor_label_type in constants.terrain_parameters:
+                value = new_actor.cell.terrain_handler.terrain_parameters[
+                    self.actor_label_type
+                ]
+                self.set_label(
+                    f"{self.message_start}{constants.terrain_manager.terrain_parameter_keywords[self.actor_label_type][value]}: ({value}/{new_actor.cell.terrain_handler.maxima.get(self.actor_label_type, 6)})"
+                )
 
         elif self.actor_label_type == "tooltip":
             return  # do not set text for tooltip label

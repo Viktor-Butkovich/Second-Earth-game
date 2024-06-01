@@ -1188,30 +1188,38 @@ def buttons():
     )
     rhs_menu_collection.add_member(save_game_button)
 
-    input_dict["coordinates"] = (
-        input_dict["coordinates"][0],
-        scaling.scale_height(constants.default_display_height - 200),
+    input_dict["modes"] = ["strategic", "earth", "ministers", "trial"]
+    input_dict["image_id"] = "buttons/text_box_size_button.png"
+    input_dict["init_type"] = "toggle button"
+    input_dict["toggle_variable"] = "expand_text_box"
+    input_dict["attached_to_actor"] = False
+    expand_text_box_button = constants.actor_creation_manager.create_interface_element(
+        input_dict
     )
+    rhs_menu_collection.add_member(expand_text_box_button)
+
     input_dict["modes"] = ["strategic"]
     input_dict["image_id"] = "buttons/grid_line_button.png"
-    input_dict["init_type"] = "toggle grid lines button"
+
+    input_dict["init_type"] = "toggle button"
+    input_dict["attached_to_actor"] = False
+    input_dict["toggle_variable"] = "show_grid_lines"
     toggle_grid_lines_button = (
         constants.actor_creation_manager.create_interface_element(input_dict)
     )
     rhs_menu_collection.add_member(toggle_grid_lines_button)
 
-    input_dict["coordinates"] = (
-        input_dict["coordinates"][0],
-        scaling.scale_height(constants.default_display_height - 275),
-    )
-    input_dict["modes"] = ["strategic", "earth", "ministers", "trial"]
-    input_dict["keybind_id"] = pygame.K_j
-    input_dict["image_id"] = "buttons/text_box_size_button.png"
-    input_dict["init_type"] = "expand text box button"
-    expand_text_box_button = constants.actor_creation_manager.create_interface_element(
-        input_dict
-    )
-    rhs_menu_collection.add_member(expand_text_box_button)
+    if constants.effect_manager.effect_active("allow_planet_mask"):
+        input_dict["init_type"] = "toggle button"
+        input_dict["toggle_variable"] = "show_planet_mask"
+        input_dict["attached_to_actor"] = False
+        input_dict["modes"] = ["strategic"]
+        input_dict["image_id"] = actor_utility.generate_frame(
+            "buttons/toggle_planet_mask_button.png"
+        )
+        rhs_menu_collection.add_member(
+            constants.actor_creation_manager.create_interface_element(input_dict)
+        )
 
     input_dict["coordinates"] = scaling.scale_coordinates(
         110, constants.default_display_height - 50
@@ -1268,15 +1276,9 @@ def buttons():
         input_dict["modes"] = ["strategic", "earth"]
         for map_mode in constants.map_modes:
             input_dict["map_mode"] = map_mode
-            input_dict["image_id"] = [
-                "buttons/default_button.png",
-                {
-                    "image_id": f"misc/map_modes/{map_mode}.png",
-                    "size": 0.75,
-                    "x_offset": 0.02,
-                    "y_offset": -0.02,
-                },
-            ]  # Create layered button
+            input_dict["image_id"] = actor_utility.generate_frame(
+                f"misc/map_modes/{map_mode}.png"
+            )
             constants.actor_creation_manager.create_interface_element(input_dict)
 
 
@@ -2045,6 +2047,12 @@ def tile_interface():
     tile_info_display_labels = [
         "coordinates",
         "terrain",
+        "water",
+        "temperature",
+        "vegetation",
+        "roughness",
+        "soil",
+        "altitude",
         "resource",
         "village",
         "native population",
@@ -2054,12 +2062,16 @@ def tile_interface():
         "terrain features",
     ]
     for current_actor_label_type in tile_info_display_labels:
-        if current_actor_label_type in [
-            "native population",
-            "native available workers",
-            "native aggressiveness",
-            "terrain features",
-        ]:
+        if (
+            current_actor_label_type
+            in [
+                "native population",
+                "native available workers",
+                "native aggressiveness",
+                "terrain features",
+            ]
+            + constants.terrain_parameters
+        ):
             x_displacement = 25
         else:
             x_displacement = 0

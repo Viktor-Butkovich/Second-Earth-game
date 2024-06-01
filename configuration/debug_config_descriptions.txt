@@ -16,7 +16,6 @@ ministry_of_magic: causes all ministers to never be corrupt and succeed at all r
 lawbearer: causes prosecutor to never be corrupt and succeed at all rolls, while causing other ministers to be corrupt whenever possible
 farm_upstate: retires all appointed ministers at the end of the turn
 show_modifiers: prints how and when a minister or country modifiers affects a roll
-hide_grid_lines: hides interior grid lines
 enable_oceans: allows water to generate as a normal terrain and removes default river/ocean generation
 skip_intro: automatically appoints ministers at the start of the game, skips the tutorial, and starts on the strategic screen
 show_lore_mission_locations: prints information about lore missions when first created and on load

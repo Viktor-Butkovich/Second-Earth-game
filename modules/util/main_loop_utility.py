@@ -85,8 +85,7 @@ def update_display():
                 if current_free_image.can_show_tooltip():
                     possible_tooltip_drawers = [current_free_image]
 
-        if flags.show_text_box:
-            draw_text_box()
+        draw_text_box()
 
         constants.mouse_follower.draw()
 
@@ -250,6 +249,14 @@ def draw_text_box():
         None
     """
     greatest_width = scaling.scale_width(300)
+
+    if flags.expand_text_box:
+        constants.text_box_height = scaling.scale_height(
+            constants.default_display_height - 60
+        )
+    else:
+        constants.text_box_height = constants.default_text_box_height
+
     font = constants.fonts["default"]
     max_screen_lines = (constants.default_display_height // font.size) - 1
     max_text_box_lines = (constants.text_box_height // font.size) - 1

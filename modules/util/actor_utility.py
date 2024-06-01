@@ -898,3 +898,29 @@ def callback(target, function, *args):
         *args: Any number of arguments to pass to function call
     """
     getattr(getattr(status, target), function)(*args)
+
+
+def generate_frame(image_id: any, frame="buttons/default_button.png"):
+    """
+    Description:
+        Generates and returns a version of the inputted image ID with a frame added
+    Input:
+        image_id image_id: Image ID for button, either in string, dict, or list format
+        str frame: Frame to place button in, using "buttons/default_button.png" as default
+    Output:
+        None
+    """
+    if type(image_id) == str:
+        return [
+            frame,
+            {
+                "image_id": image_id,
+                "size": 0.75,
+                "x_offset": 0.02,
+                "y_offset": -0.02,
+            },
+        ]
+    elif type(image_id) == dict:
+        return  # Implement as needed
+    elif type(image_id) == list:
+        return  # Implement as needed

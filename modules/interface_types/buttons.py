@@ -310,15 +310,6 @@ class button(interface_elements.interface_element):
 
             self.set_tooltip(tooltip_text)
 
-        elif self.button_type == "toggle grid lines":
-            self.set_tooltip(["Press to show or hide grid lines"])
-
-        elif self.button_type == "toggle text box":
-            self.set_tooltip(["Press to show or hide text box"])
-
-        elif self.button_type == "expand text box":
-            self.set_tooltip(["Press to change the size of the text box"])
-
         elif self.button_type == "execute movement routes":
             self.set_tooltip(
                 ["Press to move all valid units along their designated movement routes"]
@@ -1189,22 +1180,6 @@ class button(interface_elements.interface_element):
                         )
             else:
                 text_utility.print_to_screen("You are busy and cannot move.")
-        elif self.button_type == "toggle grid lines":
-            constants.effect_manager.set_effect(
-                "hide_grid_lines",
-                not constants.effect_manager.effect_active("hide_grid_lines"),
-            )
-
-        elif self.button_type == "toggle text box":
-            flags.show_text_box = not flags.show_text_box
-
-        elif self.button_type == "expand text box":
-            if constants.text_box_height == constants.default_text_box_height:
-                constants.text_box_height = scaling.scale_height(
-                    constants.default_display_height - 45
-                )
-            else:
-                constants.text_box_height = constants.default_text_box_height
 
         elif self.button_type == "execute movement routes":
             if main_loop_utility.action_possible():

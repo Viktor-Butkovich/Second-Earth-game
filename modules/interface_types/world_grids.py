@@ -72,6 +72,11 @@ class world_grid(grid):
             None
         """
         default_temperature = min(max(random.randrange(-5, 13), -4), 11)
+        if constants.effect_manager.effect_active("earth_preset"):
+            default_temperature = 3
+        elif constants.effect_manager.effect_active("mars_preset"):
+            default_temperature = -2
+
         for cell in self.get_flat_cell_list():
             cell.terrain_handler.set_parameter(
                 "temperature",
@@ -88,6 +93,9 @@ class world_grid(grid):
         )  # Avoids edge-case bias from poles or equator consistently being chosen first
         for temperature_source in temperature_sources:
             if temperature_source in [status.north_pole, status.south_pole]:
+                temperature_source.terrain_handler.set_parameter(
+                    "temperature", default_temperature
+                )
                 if temperature_source == status.north_pole:
                     weight_parameter = "north_pole_distance_multiplier"
                 else:
@@ -106,15 +114,14 @@ class world_grid(grid):
                 )
 
                 self.make_random_terrain_parameter_worm(
-                    min_length * 4,
-                    max_length * 4,
+                    min_length * 3,
+                    max_length * 3,
                     "temperature",
                     -1,
                     bound=1,
                     start_cell=temperature_source,
                     weight_parameter=weight_parameter,
                 )
-
                 self.make_random_terrain_parameter_worm(
                     min_length,
                     max_length,
@@ -144,7 +151,7 @@ class world_grid(grid):
             "temperature"
         ):  # Continue running smooth until it doesn't make any more changes
             pass
-        self.bound("temperature", default_temperature - 2, default_temperature + 2)
+        self.bound("temperature", default_temperature - 3, default_temperature + 2)
 
     def generate_roughness(self) -> None:
         """
@@ -475,7 +482,7 @@ class world_grid(grid):
         else:
             cell_list = restrict_to
 
-        if parameter in constants.terrain_parameters_list:
+        if parameter in constants.terrain_parameters:
             weight_list = [
                 cell.terrain_handler.terrain_parameters[parameter] for cell in cell_list
             ]
@@ -573,6 +580,10 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
 
     if grid_type == "strategic_map_grid":
         map_size = input_dict.get("map_size", random.choice(constants.map_sizes))
+        if constants.effect_manager.effect_active("earth_preset"):
+            map_size = constants.map_sizes[3]
+        elif constants.effect_manager.effect_active("mars_preset"):
+            map_size = constants.map_sizes[1]
         input_dict.update(
             {
                 "modes": [],  # Acts as source of truth for mini grids, but this grid is not directly shown
