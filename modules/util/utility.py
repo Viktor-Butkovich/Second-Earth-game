@@ -222,6 +222,6 @@ def fahrenheit(temperature: int):
     if temperature < 1:
         return temperature * 30 - 20
     elif temperature > 6:
-        return temperature * 30
+        return temperature * 30 - 70
     else:
         return temperature * 20 - 5

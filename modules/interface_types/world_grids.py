@@ -5,7 +5,7 @@ import json
 from typing import Dict, List
 from .grids import grid, mini_grid, abstract_grid
 from .cells import cell
-from ..util import scaling
+from ..util import scaling, utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -75,7 +75,7 @@ class world_grid(grid):
         if constants.effect_manager.effect_active("earth_preset"):
             default_temperature = 3
         elif constants.effect_manager.effect_active("mars_preset"):
-            default_temperature = -2
+            default_temperature = -1
 
         for cell in self.get_flat_cell_list():
             cell.terrain_handler.set_parameter(
@@ -98,6 +98,12 @@ class world_grid(grid):
                 )
                 if temperature_source == status.north_pole:
                     weight_parameter = "north_pole_distance_multiplier"
+                    if constants.effect_manager.effect_active(
+                        "mars_preset"
+                    ):  # Causes warmer north pole than south - ice caps at north pole, dry ice caps at south pole
+                        temperature_source.terrain_handler.set_parameter(
+                            "temperature", default_temperature + 1
+                        )
                 else:
                     weight_parameter = "south_pole_distance_multiplier"
                 min_length = (random.randrange(100, 150) * self.area) // 25**2
@@ -181,7 +187,13 @@ class world_grid(grid):
         """
         water_line = 4  # random.randrange(1, 7)
         for cell in self.get_flat_cell_list():
-            if cell.terrain_handler.terrain_parameters["altitude"] < water_line:
+            if (
+                cell.terrain_handler.terrain_parameters["altitude"] < water_line
+                and utility.fahrenheit(
+                    cell.terrain_handler.terrain_parameters["temperature"]
+                )
+                < 212
+            ):
                 cell.terrain_handler.set_parameter("water", 6)
 
     def generate_terrain_parameters(self):
