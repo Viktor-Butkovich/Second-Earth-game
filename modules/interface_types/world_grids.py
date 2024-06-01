@@ -57,6 +57,10 @@ class world_grid(grid):
                 random.choice([1]),
                 bound=random.choice([1, random.randrange(1, 3)]),
             )
+        while self.smooth(
+            "altitude"
+        ):  # Continue running smooth until it doesn't make any more changes
+            pass
 
     def generate_temperature(self) -> None:
         """
@@ -67,9 +71,16 @@ class world_grid(grid):
         Output:
             None
         """
-        default_temperature = random.randrange(-5, 13)
+        default_temperature = min(max(random.randrange(-5, 13), -4), 11)
         for cell in self.get_flat_cell_list():
-            cell.terrain_handler.set_parameter("temperature", default_temperature)
+            cell.terrain_handler.set_parameter(
+                "temperature",
+                random.randrange(default_temperature - 1, default_temperature + 2),
+            )
+        while self.smooth(
+            "temperature"
+        ):  # Random but smooth initialization to represent weather patterns
+            pass
 
         temperature_sources = [status.north_pole, status.south_pole] + status.equator
         random.shuffle(
@@ -128,7 +139,12 @@ class world_grid(grid):
                     start_cell=temperature_source,
                     weight_parameter="pole_distance_multiplier",
                 )
-        self.bound("temperature", default_temperature - 3, default_temperature + 3)
+
+        while self.smooth(
+            "temperature"
+        ):  # Continue running smooth until it doesn't make any more changes
+            pass
+        self.bound("temperature", default_temperature - 2, default_temperature + 2)
 
     def generate_roughness(self) -> None:
         """
@@ -156,7 +172,7 @@ class world_grid(grid):
         Output:
             None
         """
-        water_line = random.randrange(1, 7)
+        water_line = 4  # random.randrange(1, 7)
         for cell in self.get_flat_cell_list():
             if cell.terrain_handler.terrain_parameters["altitude"] < water_line:
                 cell.terrain_handler.set_parameter("water", 6)
@@ -194,6 +210,40 @@ class world_grid(grid):
                     minimum,
                 ),
             )
+
+    def smooth(self, parameter: str, direction: str = None) -> bool:
+        """
+        Description:
+            Smooths the inputted parameter across the grid - if it is more than 1 away from any neighbors, change to be closer to neighbors
+        Input:
+            string parameter: Parameter to smooth
+            string direction: Up, down, or None - indicates direction of smoothing
+        Output:
+            bool: Returns True if any cells were smoothed (indicates that smoothing should continue), otherwise False
+        """
+        flat_cell_list = list(self.get_flat_cell_list())
+        random.shuffle(flat_cell_list)
+        smoothed = False
+        for cell in flat_cell_list:
+            for adjacent_cell in cell.adjacent_list:
+                if (
+                    abs(
+                        adjacent_cell.terrain_handler.terrain_parameters[parameter]
+                        - cell.terrain_handler.terrain_parameters[parameter]
+                    )
+                    >= 2
+                ):
+                    if (
+                        cell.terrain_handler.terrain_parameters[parameter]
+                        > adjacent_cell.terrain_handler.terrain_parameters[parameter]
+                    ):
+                        if direction != "up":
+                            cell.terrain_handler.change_parameter(parameter, -1)
+                    else:
+                        if direction != "down":
+                            cell.terrain_handler.change_parameter(parameter, 1)
+                    smoothed = True
+        return smoothed
 
     def find_average(self, parameter):
         """
