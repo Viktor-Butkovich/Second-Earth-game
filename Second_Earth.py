@@ -42,7 +42,6 @@ except Exception:  # displays error message and records error message in crash l
 # add minister speech bubbles
 # Add random events
 # Add debug settings menu within game, rather than needing to edit .json out of game
-# Change game to be fullscreen by default, along with debug setting to make it windowed
 # Add autosave and multiple save slots
 # Performance impacts from repeated exit/load - not everything is being removed each time
 #     Possibly old grids still exist and are drawing under the new ones
@@ -52,3 +51,4 @@ except Exception:  # displays error message and records error message in crash l
 # Look into special character glitch for Queiros Portuguese name, possibly font issue not having correct special character in the settlement font (but does in minister screen font)
 #
 #   new SE features:
+# Add tunable parameters file to allow tinkering without modifying world_grids.py

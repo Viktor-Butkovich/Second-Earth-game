@@ -47,7 +47,7 @@ class world_grid(grid):
         for cell in self.get_flat_cell_list():
             cell.terrain_handler.set_parameter("altitude", default_altitude)
 
-        for i in range(num_worms // 9):
+        for i in range(num_worms // 8):
             min_length = (random.randrange(200, 350) * self.area) // 25**2
             max_length = (random.randrange(350, 500) * self.area) // 25**2
             self.make_random_terrain_parameter_worm(
@@ -110,8 +110,8 @@ class world_grid(grid):
                 max_length = (random.randrange(150, 300) * self.area) // 25**2
 
                 self.make_random_terrain_parameter_worm(
-                    min_length * 6,
-                    max_length * 6,
+                    min_length * 5,
+                    max_length * 5,
                     "temperature",
                     -1,
                     bound=1,
@@ -120,8 +120,8 @@ class world_grid(grid):
                 )
 
                 self.make_random_terrain_parameter_worm(
-                    min_length * 3,
-                    max_length * 3,
+                    min_length * 2,
+                    max_length * 2,
                     "temperature",
                     -1,
                     bound=1,
@@ -168,7 +168,13 @@ class world_grid(grid):
         Output:
             None
         """
-        num_worms = 80
+        if constants.effect_manager.effect_active("earth_preset"):
+            num_worms = 60
+        elif constants.effect_manager.effect_active("mars_preset"):
+            num_worms = 20
+        else:
+            num_worms = random.randrange(10, 91)
+
         for i in range(num_worms):
             min_length = (random.randrange(15, 20) * self.area) // 25**2
             max_length = (random.randrange(25, 40) * self.area) // 25**2
@@ -185,16 +191,136 @@ class world_grid(grid):
         Output:
             None
         """
-        water_line = 4  # random.randrange(1, 7)
-        for cell in self.get_flat_cell_list():
-            if (
-                cell.terrain_handler.terrain_parameters["altitude"] < water_line
-                and utility.fahrenheit(
-                    cell.terrain_handler.terrain_parameters["temperature"]
+        if constants.effect_manager.effect_active("earth_preset"):
+            water_multiplier = 40
+        elif constants.effect_manager.effect_active("mars_preset"):
+            water_multiplier = 6
+        else:
+            if random.randrange(1, 7) == 6:
+                water_multiplier = random.randrange(0, 51)
+            else:
+                water_multiplier = random.randrange(0, 20)
+        total_water = water_multiplier * self.area // 10
+
+        for water in range(total_water):
+            self.place_water()
+
+    def place_water(self, frozen_bound=1) -> None:
+        """
+        Description:
+            Places 1 unit of water on the map, depending on altitude and temperature
+        Input:
+            int frozen_bound: Temperature below which water will "freeze" -
+        Output:
+            None
+        """
+        best_frozen = None
+        best_liquid = None
+        for candidate in self.sample(k=15):
+            if candidate.terrain_handler.terrain_parameters["water"] < 6:
+                candidate_temperature, candidate_altitude = (
+                    candidate.terrain_handler.terrain_parameters["temperature"],
+                    candidate.terrain_handler.terrain_parameters["altitude"],
                 )
-                < 212
-            ):
-                cell.terrain_handler.set_parameter("water", 6)
+                if (
+                    candidate.terrain_handler.terrain_parameters["temperature"]
+                    <= frozen_bound
+                ):  # Water can go to coldest freezing location
+                    if (
+                        best_frozen == None
+                        or candidate_temperature
+                        < best_frozen.terrain_handler.terrain_parameters["temperature"]
+                    ):
+                        best_frozen = candidate
+                elif (
+                    candidate.terrain_handler.terrain_parameters["temperature"] < 10
+                ):  # Water can go to lowest liquid location
+                    if (
+                        best_liquid == None
+                        or candidate_altitude
+                        < best_liquid.terrain_handler.terrain_parameters["altitude"]
+                    ):
+                        best_liquid = candidate
+
+        if best_frozen and best_liquid:
+            choice = random.choices(
+                [best_frozen, best_liquid],
+                weights=[
+                    abs(
+                        (
+                            2
+                            - best_frozen.terrain_handler.terrain_parameters[
+                                "temperature"
+                            ]
+                        )
+                    ),  # Weight frozen placement for low temperature
+                    abs(
+                        10 - best_liquid.terrain_handler.terrain_parameters["altitude"]
+                    ),  # Weight liquid placement for low altitude
+                ],
+                k=1,
+            )[0]
+            if choice == best_frozen:
+                best_liquid = None
+            else:
+                best_frozen = None
+
+        if best_frozen:
+            best_frozen.terrain_handler.change_parameter("water", 1)
+            if frozen_bound != 1:  # If placing liquid water after boiling
+                best_frozen.terrain_handler.flow()
+        elif best_liquid:
+            best_liquid.terrain_handler.change_parameter("water", 1)
+            best_liquid.terrain_handler.flow()
+        else:
+            if (
+                frozen_bound != 1
+            ):  # Avoid infinite recursion if there are no non-boiling water locations left
+                return
+            else:
+                self.place_water(frozen_bound=9)
+
+    def generate_soil(self) -> None:
+        """
+        Description:
+            Randomly generates soil
+        Input:
+            None
+        Output:
+            None
+        """
+        if constants.effect_manager.effect_active("earth_preset"):
+            for cell in self.get_flat_cell_list():
+                cell.terrain_handler.set_parameter("soil", random.randrange(1, 7))
+        else:
+            for cell in self.get_flat_cell_list():
+                cell.terrain_handler.set_parameter("soil", random.randrange(1, 4))
+
+    def generate_vegetation(self) -> None:
+        """
+        Description:
+            Randomly generates vegetation
+        Input:
+            None
+        Output:
+            None
+        """
+        if constants.effect_manager.effect_active("earth_preset"):
+            for cell in self.get_flat_cell_list():
+                if cell.terrain_handler.terrain_parameters["temperature"] > 1:
+                    if cell.terrain_handler.terrain_parameters["water"] < 5:
+                        cell.terrain_handler.set_parameter(
+                            "vegetation",
+                            cell.terrain_handler.terrain_parameters["water"] * 2 - 1,
+                        )
+                    else:
+                        cell.terrain_handler.set_parameter(
+                            "vegetation",
+                            cell.terrain_handler.terrain_parameters["altitude"] + 1,
+                        )
+        else:
+            for cell in self.get_flat_cell_list():
+                cell.terrain_handler.set_parameter("vegetation", 1)
 
     def generate_terrain_parameters(self):
         """
@@ -209,6 +335,8 @@ class world_grid(grid):
         self.generate_roughness()
         self.generate_temperature()
         self.generate_water()
+        self.generate_soil()
+        self.generate_vegetation()
 
     def bound(self, parameter: str, minimum: int, maximum: int):
         """
@@ -477,7 +605,7 @@ class world_grid(grid):
             self.find_cell(current_x, current_y).terrain_handler.set_terrain(terrain)
 
     def parameter_weighted_sample(
-        self, parameter, restrict_to: List[cell] = None, k=1
+        self, parameter: str, restrict_to: List[cell] = None, k: int = 1
     ) -> List:
         """
         Description:
@@ -503,6 +631,17 @@ class world_grid(grid):
                 getattr(cell.terrain_handler, parameter) for cell in cell_list
             ]
         return random.choices(list(cell_list), weights=weight_list, k=k)
+
+    def sample(self, k: int = 1):
+        """
+        Description:
+            Randomly samples k cells from the grid
+        Input:
+            int k: Number of cells to sample
+        Output:
+            list: Returns a list of k cells
+        """
+        return random.choices(list(self.get_flat_cell_list()), k=k)
 
     def generate_poles_and_equator(self):
         """

@@ -349,9 +349,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 for current_image in self.hosted_images:
                     image_id_list += current_image.get_image_id_list()
         elif constants.current_map_mode in constants.terrain_parameters:
-            if constants.current_map_mode == "temperature":
+            if constants.current_map_mode in ["water", "temperature", "vegetation"]:
                 image_id_list.append(
-                    f"misc/map_modes/temperature/{self.cell.terrain_handler.terrain_parameters[constants.current_map_mode]}.png"
+                    f"misc/map_modes/{constants.current_map_mode}/{self.cell.terrain_handler.terrain_parameters[constants.current_map_mode]}.png"
                 )
             else:
                 image_id_list.append(

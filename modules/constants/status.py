@@ -15,6 +15,7 @@ from modules.interface_types.interface_elements import (
 )
 from modules.interface_types.inventory_interface import inventory_grid
 from modules.interface_types.grids import grid, mini_grid, abstract_grid
+from modules.interface_types.world_grids import world_grid
 from modules.interface_types.cells import cell
 from modules.interface_types.panels import safe_click_panel
 from modules.interface_types.notifications import notification
@@ -36,7 +37,7 @@ from modules.util.market_utility import loan
 from modules.action_types.action import action
 from modules.tools.effects import effect
 
-strategic_map_grid: grid = None
+strategic_map_grid: world_grid = None
 scrolling_strategic_map_grid: mini_grid = None
 minimap_grid: mini_grid = None
 earth_grid: abstract_grid = None

@@ -4,6 +4,7 @@ import random
 import json
 import os
 from typing import List, Dict
+from ...util import utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -193,19 +194,9 @@ class terrain_handler:
         Output:
             None
         """
-        self.terrain_parameters[parameter_name] = max(
-            self.minima.get(parameter_name, 1),
-            min(
-                self.terrain_parameters[parameter_name] + change,
-                self.maxima.get(parameter_name, 6),
-            ),
+        self.set_parameter(
+            parameter_name, self.terrain_parameters[parameter_name] + change
         )
-        old_terrain = self.terrain
-        self.terrain = constants.terrain_manager.classify(self.terrain_parameters)
-        if old_terrain != self.terrain:
-            for cell in self.attached_cells:
-                if cell.tile != "none":
-                    cell.tile.set_terrain(self.terrain, update_image_bundle=True)
 
     def set_parameter(self, parameter_name: str, new_value: int) -> None:
         """
@@ -221,6 +212,12 @@ class terrain_handler:
             self.minima.get(parameter_name, 1),
             min(new_value, self.maxima.get(parameter_name, 6)),
         )
+
+        if parameter_name == "water" and self.terrain_parameters["temperature"] >= 10:
+            while self.terrain_parameters["water"] > 1:
+                self.terrain_parameters["water"] -= 1
+                status.strategic_map_grid.place_water(frozen_bound=9)
+
         old_terrain = self.terrain
         self.terrain = constants.terrain_manager.classify(self.terrain_parameters)
         if old_terrain != self.terrain:
@@ -330,3 +327,37 @@ class terrain_handler:
         """
         self.attached_cells.remove(cell)
         cell.terrain_handler = None
+
+    def flow(self) -> None:
+        """
+        Description:
+            Recursively flows water from this cell to any adjacent cells, if possible. Water flows between cells based on altitude and temperature - water flows to
+                non-higher altitudes if there is much more water at the origin and if the origin water is liquid
+        Input:
+            None
+        Output:
+            None
+        """
+        flowed = False
+        if (
+            self.terrain_parameters["water"] >= 3
+            and self.terrain_parameters["temperature"] > 1
+        ):  # If enough liquid water to flow
+            for adjacent_cell in self.attached_cells[0].adjacent_list:
+                adjacent_terrain_handler = adjacent_cell.terrain_handler
+                if (
+                    adjacent_terrain_handler.terrain_parameters["altitude"]
+                    <= self.terrain_parameters["altitude"]
+                    and adjacent_terrain_handler.terrain_parameters["temperature"] < 10
+                ):
+                    if (
+                        adjacent_terrain_handler.terrain_parameters["water"]
+                        <= self.terrain_parameters["water"] - 2
+                    ):
+                        adjacent_terrain_handler.change_parameter("water", 1)
+                        self.change_parameter("water", -1)
+                        flowed = True
+
+        if flowed:  # Flow could recursively trigger flows in adjacent cells
+            for adjacent_cell in self.attached_cells[0].adjacent_list:
+                adjacent_cell.terrain_handler.flow()
