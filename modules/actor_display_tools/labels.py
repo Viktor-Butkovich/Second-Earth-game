@@ -901,7 +901,7 @@ class actor_display_label(label):
                         "Represents the average temperature in this tile, on a scale from -5 to 12"
                     )
                     tooltip_text.append(
-                        f"Approximately {utility.fahrenheit(self.actor.cell.terrain_handler.terrain_parameters['temperature'])} degrees Fahrenheit"
+                        f"Approximately {utility.fahrenheit(self.actor.cell.get_parameter('temperature'))} degrees Fahrenheit"
                     )
             self.set_tooltip(tooltip_text)
 
@@ -1318,9 +1318,7 @@ class actor_display_label(label):
                     self.set_label(self.message_start + " n/a")
 
             elif self.actor_label_type in constants.terrain_parameters:
-                value = new_actor.cell.terrain_handler.terrain_parameters[
-                    self.actor_label_type
-                ]
+                value = new_actor.cell.get_parameter(self.actor_label_type)
                 self.set_label(
                     f"{self.message_start}{constants.terrain_manager.terrain_parameter_keywords[self.actor_label_type][value]}: ({value}/{new_actor.cell.terrain_handler.maxima.get(self.actor_label_type, 6)})"
                 )

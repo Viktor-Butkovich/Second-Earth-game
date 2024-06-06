@@ -94,14 +94,11 @@ class save_load_manager_template:
 
         game_transitions.set_game_mode("strategic")
         game_transitions.create_strategic_map(from_save=False)
-        status.earth_grid.cell_list[0][0].terrain_handler.terrain_parameters = {
-            "water": 5,
-            "temperature": 3,
-            "vegetation": 5,
-            "roughness": 3,
-            "soil": 6,
-            "altitude": 3,
-        }
+        for terrain_parameter in constants.terrain_parameters:
+            status.earth_grid.cell_list[0][0].set_parameter(
+                terrain_parameter,
+                constants.terrain_manager.get_tuning(f"earth_tile_{terrain_parameter}"),
+            )
         status.minimap_grid.calibrate(0, 0)
 
         for current_commodity in constants.commodity_types:

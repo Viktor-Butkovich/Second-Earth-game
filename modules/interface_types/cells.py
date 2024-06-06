@@ -60,6 +60,41 @@ class cell:
         else:  # if creating new map
             self.terrain_handler = terrain_handler(self)
 
+    def get_parameter(self, parameter_name: str) -> int:
+        """
+        Description:
+            Returns the value of the inputted parameter from this cell's terrain handler
+        Input:
+            string parameter: Name of the parameter to get
+        Output:
+            None
+        """
+        return self.terrain_handler.get_parameter(parameter_name)
+
+    def change_parameter(self, parameter_name: str, change: int) -> None:
+        """
+        Description:
+            Changes the value of a parameter for this cell's terrain handler
+        Input:
+            string parameter_name: Name of the parameter to change
+            int change: Amount to change the parameter by
+        Output:
+            None
+        """
+        self.terrain_handler.change_parameter(parameter_name, change)
+
+    def set_parameter(self, parameter_name: str, new_value: int) -> None:
+        """
+        Description:
+            Sets the value of a parameter for this handler's cells
+        Input:
+            string parameter_name: Name of the parameter to change
+            int new_value: New value for the parameter
+        Output:
+            None
+        """
+        self.terrain_handler.set_parameter(parameter_name, new_value)
+
     def to_save_dict(self):
         """
         Description:

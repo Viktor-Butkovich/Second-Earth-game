@@ -24,7 +24,6 @@ class terrain_manager_template:
         Output:
             None
         """
-        file_name = "configuration/TDG.json"
         self.terrain_variant_dict: Dict[str, int] = {}
         self.parameter_to_terrain: Dict[str, str] = {}
         self.terrain_list: List[str] = []
@@ -83,12 +82,40 @@ class terrain_manager_template:
                 6: "deep",
             },
         }
-        self.load_terrains(file_name)
+        self.load_terrains("configuration/TDG.json")
+        self.load_tuning("configuration/terrain_generation_tuning.json")
+
+    def load_tuning(self, file_name):
+        """
+        Decription:
+            Loads world generation tuning parameters from the inputted file
+        Input:
+            string file_name: File path to the tuning JSON file
+        Output:
+            None
+        """
+        with open(file_name) as active_file:
+            self.tuning_dict = json.load(active_file)
+
+    def get_tuning(self, tuning_type):
+        """
+        Description:
+            Gets the tuning value for the inputted tuning type, returning the default version if none is available
+        Input:
+            string tuning_type: Tuning type to get the value of
+        Output:
+            any: Tuning value for the inputted tuning type
+        """
+        return self.tuning_dict[tuning_type]
 
     def load_terrains(self, file_name):
         """
         Description:
             Loads terrains from the inputted file, storing in format "11111": "cold_desert"
+        Input:
+            string file_name: File path to the TDG output JSON file (refer to misc/TDG)
+        Output:
+            None
         """
         with open(file_name) as active_file:
             terrain_dict = json.load(
@@ -248,6 +275,17 @@ class terrain_handler:
         save_dict["resource"] = self.resource
         return save_dict
 
+    def get_parameter(self, parameter_name: str) -> int:
+        """
+        Description:
+            Returns the value of the inputted parameter from this terrain handler
+        Input:
+            string parameter: Name of the parameter to get
+        Output:
+            None
+        """
+        return self.terrain_parameters[parameter_name]
+
     def set_terrain(self, new_terrain) -> None:
         """
         Description:
@@ -339,22 +377,24 @@ class terrain_handler:
             None
         """
         flowed = False
-        if (
-            self.terrain_parameters["water"] >= 3
-            and self.terrain_parameters["temperature"] > 1
+        if self.terrain_parameters["water"] >= 3 and self.terrain_parameters[
+            "temperature"
+        ] > constants.terrain_manager.get_tuning(
+            "water_freezing_point"
         ):  # If enough liquid water to flow
             for adjacent_cell in self.attached_cells[0].adjacent_list:
-                adjacent_terrain_handler = adjacent_cell.terrain_handler
-                if (
-                    adjacent_terrain_handler.terrain_parameters["altitude"]
-                    <= self.terrain_parameters["altitude"]
-                    and adjacent_terrain_handler.terrain_parameters["temperature"] < 10
+                if adjacent_cell.get_parameter("altitude") <= self.get_parameter(
+                    "altitude"
+                ) and adjacent_cell.get_parameter(
+                    "temperature"
+                ) < constants.terrain_manager.get_tuning(
+                    "water_boiling_point"
                 ):
                     if (
-                        adjacent_terrain_handler.terrain_parameters["water"]
+                        adjacent_cell.get_parameter("water")
                         <= self.terrain_parameters["water"] - 2
                     ):
-                        adjacent_terrain_handler.change_parameter("water", 1)
+                        adjacent_cell.change_parameter("water", 1)
                         self.change_parameter("water", -1)
                         flowed = True
 

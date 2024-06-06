@@ -351,11 +351,11 @@ class tile(actor):  # to do: make terrain tiles a subclass
         elif constants.current_map_mode in constants.terrain_parameters:
             if constants.current_map_mode in ["water", "temperature", "vegetation"]:
                 image_id_list.append(
-                    f"misc/map_modes/{constants.current_map_mode}/{self.cell.terrain_handler.terrain_parameters[constants.current_map_mode]}.png"
+                    f"misc/map_modes/{constants.current_map_mode}/{self.cell.get_parameter(constants.current_map_mode)}.png"
                 )
             else:
                 image_id_list.append(
-                    f"misc/map_modes/{self.cell.terrain_handler.terrain_parameters[constants.current_map_mode]}.png"
+                    f"misc/map_modes/{self.cell.get_parameter(constants.current_map_mode)}.png"
                 )
         elif constants.current_map_mode == "magnetic":
             if self.cell.terrain_handler.terrain_features.get("equator", False):
@@ -452,9 +452,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         f"This is {utility.generate_article(self.cell.terrain_handler.terrain.replace('_', '' ''))} {self.cell.terrain_handler.terrain.replace('_', ' ')} tile"
                     )
                     for terrain_parameter in constants.terrain_parameters:
-                        value = self.cell.terrain_handler.terrain_parameters[
-                            terrain_parameter
-                        ]
+                        value = self.cell.get_parameter(terrain_parameter)
                         tooltip_message.append(
                             f"    {terrain_parameter}: {constants.terrain_manager.terrain_parameter_keywords[terrain_parameter][value]} ({value}/{self.cell.terrain_handler.maxima.get(terrain_parameter, 6)})"
                         )
