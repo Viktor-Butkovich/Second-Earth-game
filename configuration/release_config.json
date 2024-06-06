@@ -19,7 +19,6 @@
       "lawbearer",
       "farm_upstate",
       "show_modifiers", 
-      "hide_grid_lines", 
       "enable_oceans", 
       "skip_intro", 
       "show_lore_mission_locations",
@@ -32,7 +31,11 @@
       "reset_achievements",
       "fullscreen",
       "link_inventory_tabs",
-      "enable_crash_button"
+      "enable_crash_button",
+      "map_modes",
+      "allow_planet_mask",
+      "earth_preset",
+      "mars_preset"
    ],
    "active_effects": [
       "fullscreen"

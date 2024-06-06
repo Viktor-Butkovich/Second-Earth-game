@@ -419,7 +419,7 @@ def manage_worker_price_changes():
                 )
                 status.worker_types[worker_type].upkeep = changed_price
                 text_utility.print_to_screen(
-                    "An shortage of "
+                    "A shortage of "
                     + worker_type
                     + " workers has increased their upkeep from "
                     + str(current_price)
@@ -672,7 +672,7 @@ def manage_villages(verbose: bool = True):
             current_village.change_population(1)
             if (
                 previous_population <= 0
-                and current_village.cell.visible
+                and current_village.cell.terrain_handler.visible
                 and constants.current_game_mode in current_village.cell.grid.modes
             ):
                 text = (
@@ -701,6 +701,7 @@ def manage_beasts():
     Output:
         None
     """
+    return
     beast_list = status.beast_list
     for current_beast in beast_list:
         current_beast.check_despawn()
@@ -1013,7 +1014,7 @@ def end_turn_warnings():
         status.strategic_map_grid.get_flat_cell_list()
     ):  # Warn for insufficient warehouses
         if (
-            current_cell.visible
+            current_cell.terrain_handler.visible
             and current_cell.tile.get_inventory_used()
             > current_cell.tile.inventory_capacity
         ):
@@ -1056,8 +1057,8 @@ def end_turn_warnings():
         grid_type
     ) in (
         constants.abstract_grid_type_list
-    ):  # Warn for leaving units behind in non-Europe grids
-        if grid_type != "europe_grid":
+    ):  # Warn for leaving units behind in non-Earth grids
+        if grid_type != "earth_grid":
             current_cell = getattr(status, grid_type).find_cell(0, 0)
             num_leaving, num_reserve = (
                 00,

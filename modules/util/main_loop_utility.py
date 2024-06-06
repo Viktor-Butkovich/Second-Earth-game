@@ -85,8 +85,7 @@ def update_display():
                 if current_free_image.can_show_tooltip():
                     possible_tooltip_drawers = [current_free_image]
 
-        if flags.show_text_box:
-            draw_text_box()
+        draw_text_box()
 
         constants.mouse_follower.draw()
 
@@ -250,6 +249,14 @@ def draw_text_box():
         None
     """
     greatest_width = scaling.scale_width(300)
+
+    if flags.expand_text_box:
+        constants.text_box_height = scaling.scale_height(
+            constants.default_display_height - 60
+        )
+    else:
+        constants.text_box_height = constants.default_text_box_height
+
     font = constants.fonts["default"]
     max_screen_lines = (constants.default_display_height // font.size) - 1
     max_text_box_lines = (constants.text_box_height // font.size) - 1
@@ -437,7 +444,7 @@ def manage_lmb_down(clicked_button):
                 ):  # if constants.current_game_mode in current_grid.modes:
                     for current_cell in current_grid.get_flat_cell_list():
                         if current_cell.touching_mouse():
-                            if current_cell.visible:
+                            if current_cell.terrain_handler.visible:
                                 if len(current_cell.contained_mobs) > 0:
                                     selected_mob = True
                                     current_mob = current_cell.contained_mobs[0]
@@ -473,67 +480,70 @@ def manage_lmb_down(clicked_button):
             not clicked_button
         ) and flags.choosing_destination:  # if clicking to move somewhere
             for current_grid in status.grid_list:  # destination_grids:
-                for current_cell in current_grid.get_flat_cell_list():
-                    if current_cell.touching_mouse():
-                        click_move_minimap()
-                        target_cell = "none"
-                        if current_cell.grid.is_abstract_grid:
-                            target_cell = current_cell
-                        else:
-                            target_cell = status.strategic_map_grid.find_cell(
-                                status.minimap_grid.center_x,
-                                status.minimap_grid.center_y,
-                            )  # center
-                        if not current_grid in status.displayed_mob.grids:
-                            stopping = False
-                            if (
-                                not current_grid.is_abstract_grid
-                            ):  # if grid has more than 1 cell, check if correct part of grid
-                                (
-                                    destination_x,
-                                    destination_y,
-                                ) = target_cell.tile.get_main_grid_coordinates()
+                if current_grid.can_show():
+                    for current_cell in current_grid.get_flat_cell_list():
+                        if current_cell.touching_mouse():
+                            click_move_minimap()
+                            target_cell = "none"
+                            if current_cell.grid.is_abstract_grid:
+                                target_cell = current_cell
+                            else:
+                                target_cell = status.strategic_map_grid.find_cell(
+                                    status.minimap_grid.center_x,
+                                    status.minimap_grid.center_y,
+                                )  # center
+                            if not current_grid in status.displayed_mob.grids:
+                                stopping = False
                                 if (
+                                    not current_grid.is_abstract_grid
+                                ):  # if grid has more than 1 cell, check if correct part of grid
                                     (
-                                        not (
-                                            destination_y == 0
-                                            or (
-                                                destination_y == 1
-                                                and target_cell.has_intact_building(
-                                                    "port"
+                                        destination_x,
+                                        destination_y,
+                                    ) = target_cell.tile.get_main_grid_coordinates()
+                                    if (
+                                        (
+                                            not (
+                                                destination_y == 0
+                                                or (
+                                                    destination_y == 1
+                                                    and target_cell.has_intact_building(
+                                                        "port"
+                                                    )
                                                 )
                                             )
                                         )
+                                        and destination_x >= 0
+                                        and destination_x
+                                        < status.strategic_map_grid.coordinate_width
+                                    ):  # or is harbor
+                                        text_utility.print_to_screen(
+                                            "You can only send ships to coastal waters and coastal ports."
+                                        )
+                                        stopping = False  # True
+                                if not stopping:
+                                    status.displayed_mob.end_turn_destination = (
+                                        target_cell.tile
                                     )
-                                    and destination_x >= 0
-                                    and destination_x
-                                    < status.strategic_map_grid.coordinate_width
-                                ):  # or is harbor
-                                    text_utility.print_to_screen(
-                                        "You can only send ships to coastal waters and coastal ports."
+                                    status.displayed_mob.movement_sound(
+                                        allow_fadeout=False
                                     )
-                                    stopping = True
-                            if not stopping:
-                                status.displayed_mob.end_turn_destination = (
-                                    target_cell.tile
+                                    flags.show_selection_outlines = True
+                                    constants.last_selection_outline_switch = (
+                                        constants.current_time
+                                    )  # outlines should be shown immediately once destination is chosen
+                                    status.displayed_mob.remove_from_turn_queue()
+                                    status.displayed_mob.select()
+                                    status.displayed_mob.images[
+                                        0
+                                    ].current_cell.tile.select()
+                            else:  # cannot move to same continent
+                                actor_utility.calibrate_actor_info_display(
+                                    status.mob_info_display, None
                                 )
-                                status.displayed_mob.movement_sound(allow_fadeout=False)
-                                flags.show_selection_outlines = True
-                                constants.last_selection_outline_switch = (
-                                    constants.current_time
-                                )  # outlines should be shown immediately once destination is chosen
-                                status.displayed_mob.remove_from_turn_queue()
-                                status.displayed_mob.select()
-                                status.displayed_mob.images[
-                                    0
-                                ].current_cell.tile.select()
-                        else:  # cannot move to same continent
-                            actor_utility.calibrate_actor_info_display(
-                                status.mob_info_display, None
-                            )
-                            text_utility.print_to_screen(
-                                "You can only send ships to other theatres."
-                            )
+                                text_utility.print_to_screen(
+                                    "You can only send ships to other theatres."
+                                )
             flags.choosing_destination = False
 
         elif (not clicked_button) and flags.choosing_advertised_commodity:
@@ -550,10 +560,11 @@ def manage_lmb_down(clicked_button):
                         else:
                             displayed_mob = status.displayed_mob
                             if current_cell.grid.is_mini_grid:
-                                target_tile = current_cell.tile.get_equivalent_tile()
-                                if target_tile == "none":
+                                target_tiles = current_cell.tile.get_equivalent_tiles()
+                                if not target_tiles:
                                     return ()
-                                target_cell = target_tile.cell
+                                else:
+                                    target_cell = target_tiles[0].cell
                             else:
                                 target_cell = current_cell
                             # target_cell = status.strategic_map_grid.find_cell(status.minimap_grid.center_x, status.minimap_grid.center_y)
@@ -575,7 +586,7 @@ def manage_lmb_down(clicked_button):
                                 destination_infrastructure = target_cell.get_building(
                                     "infrastructure"
                                 )
-                                if not target_cell.visible:
+                                if not target_cell.terrain_handler.visible:
                                     text_utility.print_to_screen(
                                         "Movement routes cannot be created through unexplored tiles."
                                     )
@@ -590,7 +601,7 @@ def manage_lmb_down(clicked_button):
                                     )
                                     return ()
                                 elif (
-                                    target_cell.terrain == "water"
+                                    target_cell.terrain_handler.terrain == "water"
                                     and not displayed_mob.can_swim
                                 ) and (
                                     displayed_mob.is_vehicle
@@ -603,7 +614,7 @@ def manage_lmb_down(clicked_button):
                                     )
                                     return ()
                                 elif (
-                                    target_cell.terrain == "water"
+                                    target_cell.terrain_handler.terrain == "water"
                                     and displayed_mob.can_swim
                                     and (not displayed_mob.can_swim_ocean)
                                     and destination_y == 0
@@ -613,7 +624,7 @@ def manage_lmb_down(clicked_button):
                                     )
                                     return ()
                                 elif (
-                                    target_cell.terrain == "water"
+                                    target_cell.terrain_handler.terrain == "water"
                                     and displayed_mob.can_swim
                                     and (not displayed_mob.can_swim_river)
                                     and destination_y > 0
@@ -623,7 +634,7 @@ def manage_lmb_down(clicked_button):
                                     )
                                     return ()
                                 elif (
-                                    (not target_cell.terrain == "water")
+                                    (not target_cell.terrain_handler.terrain == "water")
                                     and (not displayed_mob.can_walk)
                                     and not target_cell.has_intact_building("port")
                                 ):
@@ -665,15 +676,15 @@ def click_move_minimap():
             for current_cell in current_grid.get_flat_cell_list():
                 if current_cell.touching_mouse():
                     if (
-                        current_grid == status.minimap_grid
-                    ):  # if minimap clicked, calibrate to corresponding place on main map
+                        current_grid in status.strategic_map_grid.mini_grids
+                    ):  # if minimap clicked, calibrate to corresponding place on main map and all mini maps
                         if (
-                            current_cell.terrain != "none"
+                            current_cell.terrain_handler.terrain != "none"
                         ):  # if off map, do not move minimap there
                             main_x, main_y = current_grid.get_main_grid_coordinates(
                                 current_cell.x, current_cell.y
                             )
-                            status.minimap_grid.calibrate(main_x, main_y)
+                            current_grid.calibrate(main_x, main_y)
                     elif current_grid == status.strategic_map_grid:
                         status.minimap_grid.calibrate(current_cell.x, current_cell.y)
                     else:  # if abstract grid, show the inventory of the tile clicked without calibrating minimap

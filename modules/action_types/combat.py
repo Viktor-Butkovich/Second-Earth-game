@@ -77,7 +77,9 @@ class combat(action.action):
             + " more movement point"
             + utility.generate_plural(final_movement_cost - 1)
             + " because the adjacent tile has "
-            + tooltip_info_dict["adjacent_cell"].terrain
+            + tooltip_info_dict["adjacent_cell"].terrain_handler.terrain.replace(
+                "_", " "
+            )
             + " terrain "
         )
         if tooltip_info_dict["local_cell"].has_walking_connection(
@@ -243,7 +245,7 @@ class combat(action.action):
                     else:
                         text += f"The {self.opponent.name} slaughtered most of your {self.current_unit.name} and the survivors deserted, promising to never return. /n /n"
                     killed_by_beast_flavor = [
-                        "Onlookers in Europe wonder how the world's greatest empire could be bested by mere beasts. /n /n",
+                        "Onlookers on Earth wonder how the world's greatest empire could be bested by mere beasts. /n /n",
                         "Parliament concludes that its subsidies are being wasted on incompetents who can't deal with a few wild animals.",
                         "Sensationalized news stories circulate of 'brave conquerors' aimlessly wandering the jungle at the mercy of beasts, no better than savages.",
                     ]
@@ -263,14 +265,14 @@ class combat(action.action):
 
                     if self.public_opinion_change > 0:
                         killed_by_natives_flavor = [
-                            "Onlookers in Europe rally in support of their beleaguered heroes overseas. /n /n",
+                            "Onlookers on Earth rally in support of their beleaguered heroes overseas. /n /n",
                             "Parliament realizes that your company will require increased subsidies if these savages are to be shown their proper place.",
                             "Sensationalized news stories circulate of ungrateful savages attempting to resist their benevolent saviors.",
                         ]
                         text += f"{random.choice(killed_by_natives_flavor)} Public opinion has increased by {self.public_opinion_change}. /n /n"
                     elif self.public_opinion_change < 0:
                         killed_by_natives_flavor = [
-                            "Onlookers in Europe wonder how the world's greatest empire could be bested by mere savages. /n /n",
+                            "Onlookers on Earth wonder how the world's greatest empire could be bested by mere savages. /n /n",
                             "Parliament concludes that its subsidies are being wasted on incompetents who can't deal with a few savages and considers lowering them in the future.",
                             "Sensationalized news stories circulate of indolent ministers sending the empire's finest to die in distant jungles.",
                         ]
@@ -773,7 +775,7 @@ class combat(action.action):
         if not self.defending:
             self.current_unit.set_movement_points(0)
             if (
-                combat_cell.terrain == "water"
+                combat_cell.terrain_handler.terrain == "water"
                 and combat_cell.y > 0
                 and not self.current_unit.can_swim_river
             ):  # if attacked river and can't swim, become disorganized after combat

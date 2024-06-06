@@ -59,13 +59,19 @@ class terrain_feature_type:
             ):  # For (1, 10), appear if random.randrange(1, 11) <= 1
                 for requirement in self.requirements:
                     if requirement == "terrain":
-                        if self.requirements[requirement] != cell.terrain:
+                        if (
+                            self.requirements[requirement]
+                            != cell.terrain_handler.terrain
+                        ):
                             return False
                     elif requirement == "min_y":
                         if cell.y < self.requirements[requirement]:
                             return False
                     elif requirement == "resource":
-                        if cell.resource != self.requirements[requirement]:
+                        if (
+                            cell.terrain_handler.resource
+                            != self.requirements[requirement]
+                        ):
                             return False
                 return True
         return False

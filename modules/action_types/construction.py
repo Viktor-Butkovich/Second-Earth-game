@@ -171,10 +171,12 @@ class construction(action.action):
             status.displayed_mob
             and status.strategic_map_grid in status.displayed_mob.grids
         ):
-            terrain = status.displayed_mob.images[0].current_cell.terrain
+            terrain = status.displayed_mob.images[
+                0
+            ].current_cell.terrain_handler.terrain
             if not self.building_type in ["train", "steamboat"]:
                 message.append(
-                    f"{utility.generate_capitalized_article(self.building_name)}{self.building_name} {utility.conjugate('cost', 1, self.building_name)} {base_cost} money by default, which is multiplied by {constants.terrain_build_cost_multiplier_dict[terrain]} when built in {terrain} terrain"
+                    f"{utility.generate_capitalized_article(self.building_name)}{self.building_name} {utility.conjugate('cost', 1, self.building_name)} {base_cost} money by default, which is multiplied by {constants.terrain_build_cost_multiplier_dict.get(terrain, 1)} when built in {terrain.replace('_', ' ')} terrain"
                 )
         return message
 
@@ -319,11 +321,11 @@ class construction(action.action):
         """
         if self.building_type == "resource":
             cell = status.displayed_mob.images[0].current_cell
-            if cell.resource != self.attached_resource:
+            if cell.terrain_handler.resource != self.attached_resource:
                 if (
-                    cell.resource in constants.collectable_resources
+                    cell.terrain_handler.resource in constants.collectable_resources
                 ):  # if not natives or none
-                    self.attached_resource = cell.resource
+                    self.attached_resource = cell.terrain_handler.resource
                     if self.attached_resource in ["gold", "iron", "copper", "diamond"]:
                         self.building_name = self.attached_resource + " mine"
                     elif self.attached_resource in [
@@ -357,14 +359,14 @@ class construction(action.action):
         elif self.building_type == "infrastructure":
             cell = status.displayed_mob.images[0].current_cell
             if not cell.has_building("infrastructure"):
-                if cell.terrain == "water" and cell.y > 0:
+                if cell.terrain_handler.terrain == "water" and cell.y > 0:
                     new_name = "ferry"
                     new_image = "buildings/buttons/ferry.png"
                 else:
                     new_name = "road"
                     new_image = "buildings/buttons/road.png"
             else:
-                if cell.terrain == "water" and cell.y > 0:
+                if cell.terrain_handler.terrain == "water" and cell.y > 0:
                     if cell.get_building("infrastructure") == "none":
                         new_name = "ferry"
                         new_image = "buildings/buttons/ferry.png"
@@ -404,7 +406,7 @@ class construction(action.action):
         elif self.building_type == "port":
             if (
                 unit.adjacent_to_water()
-                and unit.images[0].current_cell.terrain != "water"
+                and unit.images[0].current_cell.terrain_handler.terrain != "water"
             ):
                 return_value = True
             else:
@@ -429,7 +431,8 @@ class construction(action.action):
             if self.building_name in ["road bridge", "railroad bridge", "ferry"]:
                 current_cell = unit.images[0].current_cell
                 if (
-                    current_cell.terrain == "water" and current_cell.y > 0
+                    current_cell.terrain_handler.terrain == "water"
+                    and current_cell.y > 0
                 ):  # if in river tile
                     up_cell = current_cell.grid.find_cell(
                         current_cell.x, current_cell.y + 1
@@ -444,17 +447,26 @@ class construction(action.action):
                         current_cell.x + 1, current_cell.y
                     )
                     if (not (up_cell == None or down_cell == None)) and (
-                        not (up_cell.terrain == "water" or down_cell.terrain == "water")
+                        not (
+                            up_cell.terrain_handler.terrain == "water"
+                            or down_cell.terrain_handler.terrain == "water"
+                        )
                     ):  # if vertical bridge
-                        if up_cell.visible and down_cell.visible:
+                        if (
+                            up_cell.terrain_handler.visible
+                            and down_cell.terrain_handler.visible
+                        ):
                             return_value = True
                     elif (not (left_cell == None or right_cell == None)) and (
                         not (
-                            left_cell.terrain == "water"
-                            or right_cell.terrain == "water"
+                            left_cell.terrain_handler.terrain == "water"
+                            or right_cell.terrain_handler.terrain == "water"
                         )
                     ):  # if horizontal bridge
-                        if left_cell.visible and right_cell.visible:
+                        if (
+                            left_cell.terrain_handler.visible
+                            and right_cell.terrain_handler.visible
+                        ):
                             return_value = True
                 if not return_value:
                     text_utility.print_to_screen(
@@ -521,7 +533,7 @@ class construction(action.action):
                     "This building can only be built in Africa."
                 )
             elif not (
-                current_cell.terrain != "water"
+                current_cell.terrain_handler.terrain != "water"
                 or self.building_name in ["road bridge", "railroad bridge", "ferry"]
             ):
                 text_utility.print_to_screen("This building cannot be built in water.")

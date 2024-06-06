@@ -208,3 +208,20 @@ def combine(*args) -> List:
         else:
             return_list.append(arg)
     return return_list
+
+
+def fahrenheit(temperature: int):
+    """
+    Description:
+        Returns the approximate fahrenheit temperature for the inputted tile temperature
+    Input:
+        int temperature: Temperature in game units
+    Output:
+        int: Returns temperature in fahrenheit
+    """
+    if temperature < 1:
+        return temperature * 30 - 20
+    elif temperature > 6:
+        return temperature * 30 - 70
+    else:
+        return temperature * 20 - 5

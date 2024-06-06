@@ -39,7 +39,7 @@ class country:
         self.allow_particles = input_dict["allow_particles"]
         self.aristocratic_particles = input_dict["aristocratic_particles"]
         self.allow_double_last_names = input_dict["allow_double_last_names"]
-        self.image_id = "locations/europe/" + self.name + ".png"
+        self.image_id = "locations/earth/earth.png"
         self.flag_image_id = "locations/flags/" + self.adjective + ".png"
         self.background_set = input_dict["background_set"]
         self.country_effect = input_dict["country_effect"]

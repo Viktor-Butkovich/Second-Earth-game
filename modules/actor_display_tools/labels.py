@@ -654,7 +654,7 @@ class actor_display_label(label):
                     )
             elif self.actor_label_type == "tile inventory capacity":
                 if not self.actor == "none":
-                    if not self.actor.cell.visible:
+                    if not self.actor.cell.terrain_handler.visible:
                         tooltip_text.append("This tile has not been explored")
                     elif self.actor.infinite_inventory_capacity:
                         tooltip_text.append("This tile can hold infinite commodities")
@@ -889,6 +889,22 @@ class actor_display_label(label):
             )
             self.set_tooltip(tooltip_text)
 
+        elif self.actor_label_type in constants.terrain_parameters:
+            tooltip_text = [self.message]
+            if self.actor != "none":
+                if self.actor_label_type == "water":
+                    tooltip_text.append(
+                        "Represents the amount of water in this tile, including both standing water and average precipitation"
+                    )
+                elif self.actor_label_type == "temperature":
+                    tooltip_text.append(
+                        "Represents the average temperature in this tile, on a scale from -5 to 12"
+                    )
+                    tooltip_text.append(
+                        f"Approximately {utility.fahrenheit(self.actor.cell.get_parameter('temperature'))} degrees Fahrenheit"
+                    )
+            self.set_tooltip(tooltip_text)
+
         else:
             super().update_tooltip()
 
@@ -919,31 +935,46 @@ class actor_display_label(label):
             elif self.actor_label_type == "terrain":
                 if new_actor.grid.is_abstract_grid:
                     self.set_label(utility.capitalize(new_actor.grid.name))
-                elif self.actor.cell.visible:
-                    if new_actor.cell.terrain == "water":
+                elif self.actor.cell.terrain_handler.visible:
+                    if new_actor.cell.terrain_handler.terrain == "water":
                         if new_actor.cell.y == 0:
                             self.set_label(
                                 self.message_start
                                 + "ocean "
-                                + str(new_actor.cell.terrain)
+                                + str(
+                                    new_actor.cell.terrain_handler.terrain.replace(
+                                        "_", " "
+                                    )
+                                )
                             )
                         else:
                             self.set_label(
                                 self.message_start
                                 + "river "
-                                + str(new_actor.cell.terrain)
+                                + str(
+                                    new_actor.cell.terrain_handler.terrain.replace(
+                                        "_", " "
+                                    )
+                                )
                             )
                     else:
-                        self.set_label(self.message_start + str(new_actor.cell.terrain))
+                        self.set_label(
+                            self.message_start
+                            + str(
+                                new_actor.cell.terrain_handler.terrain.replace("_", " ")
+                            )
+                        )
                 else:
                     self.set_label(self.message_start + "unknown")
 
             elif self.actor_label_type == "resource":
                 if new_actor.grid.is_abstract_grid:
                     self.set_label(self.message_start + "n/a")
-                elif new_actor.cell.visible:
+                elif new_actor.cell.terrain_handler.visible:
                     if not new_actor.cell.has_building("village"):
-                        self.set_label(self.message_start + new_actor.cell.resource)
+                        self.set_label(
+                            self.message_start + new_actor.cell.terrain_handler.resource
+                        )
                 else:
                     self.set_label(self.message_start + "unknown")
 
@@ -953,7 +984,7 @@ class actor_display_label(label):
             elif self.actor_label_type == "resource building":
                 if (
                     (not new_actor.grid.is_abstract_grid)
-                    and new_actor.cell.visible
+                    and new_actor.cell.terrain_handler.visible
                     and new_actor.cell.has_building("resource")
                 ):
                     self.set_label(
@@ -962,9 +993,9 @@ class actor_display_label(label):
 
             elif self.actor_label_type == "village":
                 if (
-                    new_actor.cell.visible
+                    new_actor.cell.terrain_handler.visible
                     and new_actor.cell.has_building("village")
-                    and new_actor.cell.visible
+                    and new_actor.cell.terrain_handler.visible
                 ):
                     self.set_label(
                         new_actor.cell.get_building("village").name + " village"
@@ -1106,7 +1137,8 @@ class actor_display_label(label):
                 "native available workers",
             ]:
                 if (
-                    self.actor.cell.has_building("village") and self.actor.cell.visible
+                    self.actor.cell.has_building("village")
+                    and self.actor.cell.terrain_handler.visible
                 ):  # if village present
                     if self.actor_label_type == "native aggressiveness":
                         self.set_label(
@@ -1137,7 +1169,7 @@ class actor_display_label(label):
                 inventory_used = self.actor.get_inventory_used()
                 if (
                     self.actor_label_type == "tile inventory capacity"
-                    and not self.actor.cell.visible
+                    and not self.actor.cell.terrain_handler.visible
                 ):
                     text = self.message_start + "n/a"
                 elif self.actor.infinite_inventory_capacity:
@@ -1285,6 +1317,12 @@ class actor_display_label(label):
                 else:
                     self.set_label(self.message_start + " n/a")
 
+            elif self.actor_label_type in constants.terrain_parameters:
+                value = new_actor.cell.get_parameter(self.actor_label_type)
+                self.set_label(
+                    f"{self.message_start}{constants.terrain_manager.terrain_parameter_keywords[self.actor_label_type][value]}: ({value}/{new_actor.cell.terrain_handler.maxima.get(self.actor_label_type, 6)})"
+                )
+
         elif self.actor_label_type == "tooltip":
             return  # do not set text for tooltip label
         else:
@@ -1305,19 +1343,22 @@ class actor_display_label(label):
         elif self.actor == "none":
             return False
         elif self.actor_label_type == "resource" and (
-            self.actor.cell.resource == "none"
-            or (not self.actor.cell.visible)
+            self.actor.cell.terrain_handler.resource == "none"
+            or (not self.actor.cell.terrain_handler.visible)
             or self.actor.grid.is_abstract_grid
-            or (self.actor.cell.visible and self.actor.cell.has_building("village"))
-        ):  # self.actor.actor_type == 'tile' and self.actor.grid.is_abstract_grid or (self.actor.cell.visible and (self.actor.cell.has_building('resource') or self.actor.cell.has_building('village'))): #do not show resource label on the Europe tile
+            or (
+                self.actor.cell.terrain_handler.visible
+                and self.actor.cell.has_building("village")
+            )
+        ):
             return False
         elif self.actor_label_type == "resource building" and (
-            (not self.actor.cell.visible)
+            (not self.actor.cell.terrain_handler.visible)
             or (not self.actor.cell.has_building("resource"))
         ):
             return False
         elif self.actor_label_type == "village" and (
-            (not self.actor.cell.visible)
+            (not self.actor.cell.terrain_handler.visible)
             or (not self.actor.cell.has_building("village"))
         ):
             return False
@@ -1644,7 +1685,7 @@ class native_info_label(
         return (
             super().can_show(skip_parent_collection=skip_parent_collection)
             and self.actor.cell.has_building("village")
-            and self.actor.cell.visible
+            and self.actor.cell.terrain_handler.visible
         )
 
 
@@ -1687,4 +1728,6 @@ class terrain_feature_label(actor_display_label):
         """
         return super().can_show(
             skip_parent_collection=skip_parent_collection
-        ) and self.actor.cell.terrain_features.get(self.terrain_feature_type, False)
+        ) and self.actor.cell.terrain_handler.terrain_features.get(
+            self.terrain_feature_type, False
+        )

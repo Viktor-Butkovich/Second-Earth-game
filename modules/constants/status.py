@@ -15,6 +15,8 @@ from modules.interface_types.interface_elements import (
 )
 from modules.interface_types.inventory_interface import inventory_grid
 from modules.interface_types.grids import grid, mini_grid, abstract_grid
+from modules.interface_types.world_grids import world_grid
+from modules.interface_types.cells import cell
 from modules.interface_types.panels import safe_click_panel
 from modules.interface_types.notifications import notification
 from modules.interface_types.buttons import button, same_tile_icon
@@ -35,10 +37,13 @@ from modules.util.market_utility import loan
 from modules.action_types.action import action
 from modules.tools.effects import effect
 
-strategic_map_grid: grid = None
+strategic_map_grid: world_grid = None
+scrolling_strategic_map_grid: mini_grid = None
 minimap_grid: mini_grid = None
-europe_grid: abstract_grid = None
+earth_grid: abstract_grid = None
+asia_grid: abstract_grid = None
 slave_traders_grid: abstract_grid = None
+planet_view_mask: free_image = None
 
 Britain: country = None
 France: country = None
@@ -135,3 +140,7 @@ previous_financial_report: str = None
 transaction_history: Dict[str, float] = {}
 
 initial_tutorial_completed: bool = False
+
+north_pole: cell = None
+south_pole: cell = None
+equator: List[cell] = None

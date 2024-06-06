@@ -9,7 +9,7 @@ import modules.constants.status as status
 
 class loan_search(action.campaign):
     """
-    Action for merchant in Europe to search for a loan offer
+    Action for merchant on Earth to search for a loan offer
     """
 
     def initial_setup(self):
@@ -53,7 +53,7 @@ class loan_search(action.campaign):
             "Attempts to find a 100 money loan offer with a favorable interest rate for "
             + str(self.get_price())
             + " money",
-            "Can only be done in Europe",
+            "Can only be done on Earth",
             "While automatically successful, the offered interest rate may vary",
             "Costs all remaining movement points, at least 1",
             "Each "
@@ -136,12 +136,10 @@ class loan_search(action.campaign):
             None
         """
         if super().on_click(unit):
-            if status.europe_grid in unit.grids:
+            if status.earth_grid in unit.grids:
                 self.start(unit)
             else:
-                text_utility.print_to_screen(
-                    "Loan searches are only possible in Europe"
-                )
+                text_utility.print_to_screen("Loan searches are only possible on Earth")
 
     def start(self, unit):
         """

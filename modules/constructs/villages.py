@@ -66,7 +66,7 @@ class village:
         Output:
             boolean: Returns whether this village has cannibals
         """
-        return bool(self.cell.terrain_features.get("cannibals", False))
+        return bool(self.cell.terrain_handler.terrain_features.get("cannibals", False))
 
     def remove_cannibals(self) -> None:
         """
@@ -78,7 +78,7 @@ class village:
             None
         """
         if self.has_cannibals():
-            del self.cell.terrain_features["cannibals"]
+            del self.cell.terrain_handler.terrain_features["cannibals"]
             self.cell.tile.update_image_bundle()
 
     def remove_complete(self):
@@ -168,7 +168,7 @@ class village:
             False,
             {
                 "coordinates": (self.cell.x, self.cell.y),
-                "grids": [self.cell.grid, self.cell.grid.mini_grid],
+                "grids": [self.cell.grid] + self.cell.grid.mini_grids,
                 "image": "mobs/native warriors/default.png",
                 "canoes_image": "mobs/native warriors/canoe_default.png",
                 "modes": self.cell.grid.modes,
@@ -192,7 +192,7 @@ class village:
         input_dict = {
             "select_on_creation": True,
             "coordinates": (self.cell.x, self.cell.y),
-            "grids": [self.cell.grid, self.cell.grid.mini_grid],
+            "grids": [self.cell.grid] + self.cell.grid.mini_grids,
             "modes": self.cell.grid.modes,
         }
         input_dict.update(status.worker_types["African"].generate_input_dict())

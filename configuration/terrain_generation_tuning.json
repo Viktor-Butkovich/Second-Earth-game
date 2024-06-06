@@ -1,0 +1,56 @@
+{
+    "altitude_worms": 10,
+    "min_altitude_worm_multiplier": 200,
+    "med_altitude_worm_multiplier": 350,
+    "max_altitude_worm_multiplier": 500,
+    "altitude_changes": [1],
+    "altitude_bounds": [1, 1, 1, 2],
+    "smooth_altitude": true,
+
+    "base_temperature_lower_bound": -4,
+    "base_temperature_upper_bound": 10,
+    "initial_temperature_variation": 1,
+    "weighted_temperature_bounds": true,
+    "min_pole_worm_multiplier": 200,
+    "med_pole_worm_multiplier": 250,
+    "max_pole_worm_multiplier": 300,
+    "pole_worm_length_multipliers": [5, 2, 1],
+    "min_equator_worm_multiplier": 45,
+    "med_equator_worm_multiplier": 50,
+    "max_equator_worm_multiplier": 55,
+    "final_temperature_variations": [3, 2],
+    "smooth_temperature": true,
+
+    "min_roughness_multiplier": 10,
+    "max_roughness_multiplier": 90,
+    "min_roughness_worm_multiplier": 15,
+    "med_roughness_worm_multiplier": 22,
+    "max_roughness_worm_multiplier": 40,
+    "roughness_worm_bound": 3,
+
+    "min_water_multiplier": 0,
+    "med_water_multiplier": 10,
+    "max_water_multiplier": 50,
+    "water_placement_candidates": 15,
+
+    "water_freezing_point": 1,
+    "water_boiling_point": 10,
+
+    "earth_tile_temperature": 3,
+    "earth_tile_water": 5,
+    "earth_tile_vegetation": 5,
+    "earth_tile_roughness": 3,
+    "earth_tile_soil": 3,
+    "earth_tile_altitude": 3,
+
+    "earth_base_temperature": 3,
+    "earth_roughness_multiplier": 60,
+    "earth_water_multiplier": 40,
+
+    "mars_base_temperature": -1,
+    "mars_roughness_multiplier": 20,
+    "mars_water_multiplier": 6,
+
+    "earth_preset": false,
+    "mars_preset": false
+}

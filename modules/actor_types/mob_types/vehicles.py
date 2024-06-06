@@ -426,7 +426,7 @@ class vehicle(pmob):
             current_mob.go_to_grid(new_grid, new_coordinates)
             current_mob.in_vehicle = True
             current_mob.hide_images()
-        if new_grid == status.europe_grid or self.images[
+        if new_grid == status.earth_grid or self.images[
             0
         ].current_cell.has_intact_building("port"):
             self.eject_passengers()
@@ -594,7 +594,7 @@ class ship(vehicle):
         if (
             num_ships <= 1
         ):  # can leave units behind if another steamship is present to pick them up
-            if self.images[0].current_cell.terrain == "water":
+            if self.images[0].current_cell.terrain_handler.terrain == "water":
                 for current_mob in self.images[0].current_cell.contained_mobs:
                     if current_mob.is_pmob and not current_mob.can_swim_at(
                         self.images[0].current_cell
@@ -610,7 +610,7 @@ class ship(vehicle):
     def can_travel(self):
         """
         Description:
-            Returns whether this ship can cross the ocean, like going between Africa and Europe. Ships can only cross the ocean when they have a crew
+            Returns whether this ship can cross the ocean, like going between Earth and the planet. Ships can only cross the ocean when they have a crew
         Input:
             None
         Output:

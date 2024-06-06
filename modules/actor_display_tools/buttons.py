@@ -1289,7 +1289,7 @@ class labor_broker_button(button):
 
 class switch_theatre_button(button):
     """
-    Button starts choosing a destination for a ship to travel between theatres, like between Europe and Africa. A destination is chosen when the player clicks a tile in another theatre.
+    Button starts choosing a destination for a ship to travel between theatres, like between Earth and the planet. A destination is chosen when the player clicks a tile in another theatre.
     """
 
     def __init__(self, input_dict):
@@ -1317,7 +1317,7 @@ class switch_theatre_button(button):
     def on_click(self):
         """
         Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button starts choosing a destination for a ship to travel between theatres, like between Europe and Africa. A
+            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button starts choosing a destination for a ship to travel between theatres, like between Earth and the planet. A
                 destination is chosen when the player clicks a tile in another theatre.
         Input:
             None
@@ -1327,34 +1327,18 @@ class switch_theatre_button(button):
         if main_loop_utility.action_possible():
             current_mob = status.displayed_mob
             if current_mob.movement_points >= 1:
-                if not (
-                    status.strategic_map_grid in current_mob.grids
-                    and (
-                        current_mob.y > 1
-                        or (
-                            current_mob.y == 1
-                            and not current_mob.images[
-                                0
-                            ].current_cell.has_intact_building("port")
-                        )
-                    )
-                ):  # can leave if in ocean or if in coastal port
-                    if (
-                        current_mob.can_leave()
-                    ):  # not current_mob.grids[0] in self.destination_grids and
-                        if current_mob.sentry_mode:
-                            current_mob.set_sentry_mode(False)
-                        if not constants.current_game_mode == "strategic":
-                            game_transitions.set_game_mode("strategic")
-                            current_mob.select()
-                        current_mob.clear_automatic_route()
-                        current_mob.end_turn_destination = "none"
-                        current_mob.add_to_turn_queue()
-                        flags.choosing_destination = True
-                else:
-                    text_utility.print_to_screen(
-                        "You are inland and cannot cross the ocean."
-                    )
+                if (
+                    current_mob.can_leave()
+                ):  # not current_mob.grids[0] in self.destination_grids and
+                    if current_mob.sentry_mode:
+                        current_mob.set_sentry_mode(False)
+                    if not constants.current_game_mode == "strategic":
+                        game_transitions.set_game_mode("strategic")
+                        current_mob.select()
+                    current_mob.clear_automatic_route()
+                    current_mob.end_turn_destination = "none"
+                    current_mob.add_to_turn_queue()
+                    flags.choosing_destination = True
             else:
                 text_utility.print_to_screen(
                     "Crossing the ocean requires all remaining movement points, at least 1."
@@ -2065,10 +2049,13 @@ class toggle_button(button):
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'toggle_variable': string value - Name of the variable that this button toggles
+                'attached_to_actor': boolean value - Whether this button is an actor display button or a default button
         Output:
             None
         """
-        self.toggle_variable = input_dict["toggle_variable"]
+        self.toggle_variable: str = input_dict["toggle_variable"]
+        self.attached_to_actor: bool = input_dict.get("attached_to_actor", True)
+
         super().__init__(input_dict)
 
     def on_click(self):
@@ -2080,11 +2067,16 @@ class toggle_button(button):
         Output:
             None
         """
-        setattr(
-            self.attached_label.actor,
-            self.toggle_variable,
-            not getattr(self.attached_label.actor, self.toggle_variable),
-        )
+        if self.attached_to_actor:
+            setattr(
+                self.attached_label.actor,
+                self.toggle_variable,
+                not getattr(self.attached_label.actor, self.toggle_variable),
+            )
+        else:
+            setattr(
+                flags, self.toggle_variable, not getattr(flags, self.toggle_variable)
+            )
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -2095,6 +2087,10 @@ class toggle_button(button):
         Output:
             boolean: Returns whether this button should be drawn
         """
+        if not self.attached_to_actor:
+            self.showing_outline = getattr(flags, self.toggle_variable)
+            return super().can_show()
+
         if (
             not self.attached_label.actor in ["none", None]
         ) and self.attached_label.actor.is_pmob:
@@ -2117,16 +2113,26 @@ class toggle_button(button):
         Output:
             None
         """
-        tooltip_text = []
-        if not self.attached_label.actor in [None, "none"]:
-            if self.toggle_variable == "wait_until_full":
-                tooltip_text.append(
-                    "Toggles wait until full - waiting until there is a full load to transport or no remaining warehouse space before starting automatic route"
+        if self.attached_to_actor:
+            if not self.attached_label.actor in [None, "none"]:
+                self.set_tooltip(
+                    [
+                        constants.toggle_button_tooltips[self.toggle_variable][
+                            "default"
+                        ],
+                        constants.toggle_button_tooltips[self.toggle_variable][
+                            str(
+                                getattr(self.attached_label.actor, self.toggle_variable)
+                            )
+                        ],
+                    ]
                 )
-                if getattr(self.attached_label.actor, self.toggle_variable):
-                    tooltip_text.append("Currently waiting until full")
-                else:
-                    tooltip_text.append(
-                        "Currently waiting until there is anything to transport"
-                    )
-        self.set_tooltip(tooltip_text)
+        else:
+            self.set_tooltip(
+                [
+                    constants.toggle_button_tooltips[self.toggle_variable]["default"],
+                    constants.toggle_button_tooltips[self.toggle_variable][
+                        str(getattr(flags, self.toggle_variable))
+                    ],
+                ]
+            )

@@ -32,9 +32,7 @@ class actor:
         self.x, self.y = input_dict["coordinates"]
         if self.from_save:
             self.grid = getattr(status, input_dict["grid_type"])
-            self.grids = [self.grid]
-            if self.grid.mini_grid != "none":
-                self.grids.append(self.grid.mini_grid)
+            self.grids = [self.grid] + self.grid.mini_grids
             self.set_name(input_dict["name"])
         else:
             self.grids = input_dict["grids"]
@@ -135,14 +133,16 @@ class actor:
             None
         """
         for current_commodity in self.get_held_commodities():
-            status.displayed_tile.change_inventory(
+            self.images[0].current_cell.tile.change_inventory(
                 current_commodity, self.get_inventory(current_commodity)
             )
             self.set_inventory(current_commodity, 0)
         if self.actor_type == "mob" and self.is_pmob:
             for current_equipment in self.equipment.copy():
                 if self.equipment[current_equipment]:
-                    status.displayed_tile.change_inventory(current_equipment, 1)
+                    self.images[0].current_cell.tile.change_inventory(
+                        current_equipment, 1
+                    )
                     status.equipment_types[current_equipment].unequip(self)
             self.equipment = {}
 

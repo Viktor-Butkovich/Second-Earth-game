@@ -58,7 +58,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             self.cell.tile = self
             self.image_dict["hidden"] = "terrains/paper_hidden.png"
             self.set_terrain(
-                self.cell.terrain
+                self.cell.terrain_handler.terrain
             )  # terrain is a property of the cell, being stored information rather than appearance, same for resource, set these in cell
             if self.cell.grid.from_save:
                 self.inventory = self.cell.save_dict["inventory"]
@@ -69,8 +69,8 @@ class tile(actor):  # to do: make terrain tiles a subclass
             if self.cell.grid.from_save:
                 self.inventory = self.cell.save_dict["inventory"]
             if (
-                self.grid.grid_type == "europe_grid"
-            ):  # Europe should be able to hold commodities despite not being terrain
+                self.grid.grid_type == "earth_grid"
+            ):  # Earth should be able to hold commodities despite not being terrain
                 self.infinite_inventory_capacity = True
                 if constants.effect_manager.effect_active("infinite_commodities"):
                     for current_commodity in constants.commodity_types:
@@ -82,9 +82,15 @@ class tile(actor):  # to do: make terrain tiles a subclass
         if (
             self.name == "default"
         ):  # Set tile name to that of any terrain features, if applicable
-            for terrain_feature in self.cell.terrain_features:
-                if self.cell.terrain_features[terrain_feature].get("name", False):
-                    self.set_name(self.cell.terrain_features[terrain_feature]["name"])
+            for terrain_feature in self.cell.terrain_handler.terrain_features:
+                if self.cell.terrain_handler.terrain_features[terrain_feature].get(
+                    "name", False
+                ):
+                    self.set_name(
+                        self.cell.terrain_handler.terrain_features[terrain_feature][
+                            "name"
+                        ]
+                    )
 
     def set_name(self, new_name):
         """
@@ -119,7 +125,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 False,
                 {
                     "coordinates": (self.x, self.y),
-                    "grids": [self.grid, self.grid.mini_grid],
+                    "grids": [self.grid] + self.grid.mini_grids,
                     "image": actor_utility.generate_label_image_id(
                         new_name, y_offset=y_offset
                     ),
@@ -152,23 +158,27 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         for current_image in self.images:
-            outline = self.cell.Rect
-            if color == "default":
-                color = constants.color_dict[self.selection_outline_color]
-            else:
-                color = constants.color_dict[
-                    color
-                ]  # converts input string to RGB tuple
-            pygame.draw.rect(
-                constants.game_display, color, (outline), current_image.outline_width
-            )
+            if current_image.can_show():
+                outline = self.cell.Rect
+                if color == "default":
+                    color = constants.color_dict[self.selection_outline_color]
+                else:
+                    color = constants.color_dict[
+                        color
+                    ]  # converts input string to RGB tuple
+                pygame.draw.rect(
+                    constants.game_display,
+                    color,
+                    (outline),
+                    current_image.outline_width,
+                )
 
-    def draw_actor_match_outline(self, called_by_equivalent):
+    def draw_actor_match_outline(self, recursive=False):
         """
         Description:
             Draws an outline around the displayed tile. If the tile is shown on a minimap, tells the equivalent tile to also draw an outline around the displayed tile
         Input:
-            boolean called_by_equivalent: True if this function is being called by the equivalent tile on either the minimap grid or the strategaic map grid, otherwise False. Prevents infinite loops of equivalent tiles repeatedly
+            boolean recursive=False: True if this function is being called by the equivalent tile on either the minimap grid or the strategaic map grid, otherwise False. Prevents infinite loops of equivalent tiles repeatedly
                 calling each other
         Output:
             None
@@ -182,9 +192,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     (outline),
                     current_image.outline_width,
                 )
-                equivalent_tile = self.get_equivalent_tile()
-                if (not equivalent_tile == "none") and (not called_by_equivalent):
-                    equivalent_tile.draw_actor_match_outline(True)
+        if not recursive:
+            for tile in self.get_equivalent_tiles():
+                tile.draw_actor_match_outline(recursive=True)
 
     def remove_excess_inventory(self):
         """
@@ -218,12 +228,10 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         super().set_inventory(commodity, new_value)
-        equivalent_tile = self.get_equivalent_tile()
-        if (
-            self.grid.attached_grid != "none"
-        ):  # only get equivalent if there is an attached grid
-            equivalent_tile.inventory[commodity] = new_value
-        if status.displayed_tile in [self, equivalent_tile]:
+        equivalent_tiles = self.get_equivalent_tiles()
+        for tile in equivalent_tiles:
+            tile.inventory[commodity] = new_value
+        if status.displayed_tile in [self] + equivalent_tiles:
             actor_utility.calibrate_actor_info_display(status.tile_info_display, self)
 
     def get_main_grid_coordinates(self):
@@ -240,7 +248,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         else:
             return (self.x, self.y)
 
-    def get_equivalent_tile(self):
+    def get_equivalent_tiles(self):
         """
         Description:
             Returns the corresponding minimap tile if this tile is on the strategic map grid or vice versa
@@ -249,22 +257,18 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             tile: tile on the corresponding tile on the grid attached to this tile's grid
         """
-        if self.grid == status.minimap_grid:
+        return_list = []
+        if self.grid == status.strategic_map_grid:
+            for mini_grid in self.grid.mini_grids:
+                mini_x, mini_y = mini_grid.get_mini_grid_coordinates(self.x, self.y)
+                equivalent_cell = mini_grid.find_cell(mini_x, mini_y)
+                if equivalent_cell and equivalent_cell.tile != "none":
+                    return_list.append(equivalent_cell.tile)
+        elif self.grid.is_mini_grid:
             main_x, main_y = self.grid.get_main_grid_coordinates(self.x, self.y)
-            attached_cell = self.grid.attached_grid.find_cell(main_x, main_y)
-            if attached_cell:
-                return attached_cell.tile
-            return "none"
-        elif self.grid == status.strategic_map_grid:
-            mini_x, mini_y = self.grid.mini_grid.get_mini_grid_coordinates(
-                self.x, self.y
-            )
-            equivalent_cell = self.grid.mini_grid.find_cell(mini_x, mini_y)
-            if equivalent_cell:
-                return equivalent_cell.tile
-            else:
-                return "none"
-        return "none"
+            equivalent_cell = self.grid.attached_grid.find_cell(main_x, main_y)
+            return_list.append(equivalent_cell.tile)
+        return return_list
 
     # maybe make these into general actor functions? override update image bundle for tile to account for resources/buildings, have group version with multiple entities
     def get_image_id_list(self, force_visibility=False):
@@ -278,67 +282,91 @@ class tile(actor):  # to do: make terrain tiles a subclass
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
         image_id_list = []
-        if self.cell.grid.is_mini_grid:
-            equivalent_tile = self.get_equivalent_tile()
-            if equivalent_tile != "none" and self.show_terrain:
-                image_id_list = equivalent_tile.get_image_id_list()
-            else:
-                image_id_list.append(
-                    self.image_dict["default"]
-                )  # blank void image if outside of matched area
-        elif self.cell.grid.grid_type == "slave_traders_grid":
-            image_id_list.append(self.image_dict["default"])
-            strength_modifier = actor_utility.get_slave_traders_strength_modifier()
-            if strength_modifier == "none":
-                adjective = "no"
-            elif strength_modifier < 0:
-                adjective = "high"
-            elif strength_modifier > 0:
-                adjective = "low"
-            else:
-                adjective = "normal"
-            image_id_list.append(
-                "locations/slave_traders/" + adjective + "_strength.png"
-            )
-        else:
-            if (
-                self.cell.visible or force_visibility
-            ):  # force visibility shows full tile even if tile is not yet visible
-                image_id_list.append(
-                    {
-                        "image_id": self.image_dict["default"],
-                        "size": 1,
-                        "x_offset": 0,
-                        "y_offset": 0,
-                        "level": -9,
-                    }
-                )
-                for terrain_feature in self.cell.terrain_features:
-                    new_image_id = self.cell.terrain_features[terrain_feature].get(
-                        "image_id",
-                        status.terrain_feature_types[terrain_feature].image_id,
-                    )
-                    if type(new_image_id) == str and not new_image_id.endswith(".png"):
-                        new_image_id = actor_utility.generate_label_image_id(
-                            new_image_id, y_offset=-0.75
-                        )
-                    image_id_list = utility.combine(image_id_list, new_image_id)
-                if self.cell.resource != "none":
-                    resource_icon = actor_utility.generate_resource_icon(self)
-                    if type(resource_icon) == str:
-                        image_id_list.append(resource_icon)
-                    else:
-                        image_id_list += resource_icon
-                for current_building_type in constants.building_types:
-                    current_building = self.cell.get_building(current_building_type)
-                    if current_building != "none":
-                        image_id_list += current_building.get_image_id_list()
-            elif self.show_terrain:
-                image_id_list.append(self.image_dict["hidden"])
-            else:
+        if constants.current_map_mode == "terrain":
+            if self.cell.grid.is_mini_grid:
+                equivalent_tiles = self.get_equivalent_tiles()
+                if equivalent_tiles and self.show_terrain:
+                    image_id_list = equivalent_tiles[0].get_image_id_list()
+                else:
+                    image_id_list.append(
+                        self.image_dict["default"]
+                    )  # blank void image if outside of matched area
+            elif self.cell.grid.grid_type == "slave_traders_grid":
                 image_id_list.append(self.image_dict["default"])
-            for current_image in self.hosted_images:
-                image_id_list += current_image.get_image_id_list()
+                strength_modifier = actor_utility.get_slave_traders_strength_modifier()
+                if strength_modifier == "none":
+                    adjective = "no"
+                elif strength_modifier < 0:
+                    adjective = "high"
+                elif strength_modifier > 0:
+                    adjective = "low"
+                else:
+                    adjective = "normal"
+                image_id_list.append(
+                    "locations/slave_traders/" + adjective + "_strength.png"
+                )
+            else:
+                if (
+                    self.cell.terrain_handler.visible or force_visibility
+                ):  # force visibility shows full tile even if tile is not yet visible
+                    image_id_list.append(
+                        {
+                            "image_id": self.image_dict["default"],
+                            "size": 1,
+                            "x_offset": 0,
+                            "y_offset": 0,
+                            "level": -9,
+                        }
+                    )
+                    for terrain_feature in self.cell.terrain_handler.terrain_features:
+                        new_image_id = self.cell.terrain_handler.terrain_features[
+                            terrain_feature
+                        ].get(
+                            "image_id",
+                            status.terrain_feature_types[terrain_feature].image_id,
+                        )
+                        if type(new_image_id) == str and not new_image_id.endswith(
+                            ".png"
+                        ):
+                            new_image_id = actor_utility.generate_label_image_id(
+                                new_image_id, y_offset=-0.75
+                            )
+                        image_id_list = utility.combine(image_id_list, new_image_id)
+                    if self.cell.terrain_handler.resource != "none":
+                        resource_icon = actor_utility.generate_resource_icon(self)
+                        if type(resource_icon) == str:
+                            image_id_list.append(resource_icon)
+                        else:
+                            image_id_list += resource_icon
+                    for current_building_type in constants.building_types:
+                        current_building = self.cell.get_building(current_building_type)
+                        if current_building != "none":
+                            image_id_list += current_building.get_image_id_list()
+                elif self.show_terrain:
+                    image_id_list.append(self.image_dict["hidden"])
+                else:
+                    image_id_list.append(self.image_dict["default"])
+                for current_image in self.hosted_images:
+                    image_id_list += current_image.get_image_id_list()
+        elif constants.current_map_mode in constants.terrain_parameters:
+            if constants.current_map_mode in ["water", "temperature", "vegetation"]:
+                image_id_list.append(
+                    f"misc/map_modes/{constants.current_map_mode}/{self.cell.get_parameter(constants.current_map_mode)}.png"
+                )
+            else:
+                image_id_list.append(
+                    f"misc/map_modes/{self.cell.get_parameter(constants.current_map_mode)}.png"
+                )
+        elif constants.current_map_mode == "magnetic":
+            if self.cell.terrain_handler.terrain_features.get("equator", False):
+                image_id_list.append("misc/map_modes/equator.png")
+            elif self.cell.terrain_handler.terrain_features.get("north pole", False):
+                image_id_list.append("misc/map_modes/north_pole.png")
+            elif self.cell.terrain_handler.terrain_features.get("south pole", False):
+                image_id_list.append("misc/map_modes/south_pole.png")
+            else:
+                image_id_list.append("misc/map_modes/none.png")
+
         return image_id_list
 
     def update_image_bundle(self, override_image=None):
@@ -356,8 +384,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         else:
             self.set_image(self.get_image_id_list())
         if self.grid == status.strategic_map_grid:
-            equivalent_tile = self.get_equivalent_tile()
-            if equivalent_tile != "none":
+            for equivalent_tile in self.get_equivalent_tiles():
                 equivalent_tile.update_image_bundle(override_image=override_image)
 
     def set_resource(self, new_resource, update_image_bundle=True):
@@ -371,49 +398,6 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         self.resource = new_resource
-        if not new_resource == "none":
-            if self.resource == "natives":
-                equivalent_tile = self.get_equivalent_tile()
-                village_exists = False
-                if not equivalent_tile == "none":
-                    if (
-                        not equivalent_tile.cell.village == "none"
-                    ):  # if equivalent tile present and equivalent tile has village, copy village to equivalent instead of creating new one
-                        village_exists = True
-                        self.cell.village = equivalent_tile.cell.village
-                        self.cell.village.tiles.append(self)
-                        if (
-                            self.cell.grid.is_mini_grid
-                        ):  # set main cell of village to one on strategic map grid, as opposed to the mini map
-                            self.cell.village.cell = equivalent_tile.cell
-                        else:
-                            self.cell.village.cell = self.cell
-                if not village_exists:  # make new village if village not present
-                    if self.cell.grid.from_save:
-                        self.cell.village = villages.village(
-                            True,
-                            {
-                                "name": self.cell.save_dict["village_name"],
-                                "population": self.cell.save_dict["village_population"],
-                                "aggressiveness": self.cell.save_dict[
-                                    "village_aggressiveness"
-                                ],
-                                "available_workers": self.cell.save_dict[
-                                    "village_available_workers"
-                                ],
-                                "attached_warriors": self.cell.save_dict[
-                                    "village_attached_warriors"
-                                ],
-                                "found_rumors": self.cell.save_dict[
-                                    "village_found_rumors"
-                                ],
-                                "cell": self.cell,
-                            },
-                        )
-                        self.cell.village.tiles.append(self)
-                    else:
-                        self.cell.village = villages.village(False, {"cell": self.cell})
-                        self.cell.village.tiles.append(self)
         if update_image_bundle:
             self.update_image_bundle()
 
@@ -429,20 +413,13 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
-        if new_terrain in constants.terrain_list + ["water"]:
-            base_word = new_terrain
-            if new_terrain == "water":
-                current_y = self.y
-                if self.cell.grid.is_mini_grid:
-                    current_y = self.cell.grid.get_main_grid_coordinates(
-                        self.x, self.y
-                    )[1]
-                if current_y == 0:
-                    base_word = "ocean_" + new_terrain
-                else:
-                    base_word = "river_" + new_terrain
+        if new_terrain in constants.terrain_manager.terrain_list:
             self.image_dict["default"] = (
-                "terrains/" + base_word + "_" + str(self.cell.terrain_variant) + ".png"
+                "terrains/"
+                + new_terrain
+                + "_"
+                + str(self.cell.terrain_handler.terrain_variant)
+                + ".png"
             )
         elif new_terrain == "none":
             self.image_dict["default"] = "terrains/hidden.png"
@@ -469,50 +446,29 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 + str(coordinates[1])
                 + ")"
             )
-            if self.cell.visible:
-                if self.cell.terrain != "none":
-                    if self.cell.terrain == "water":
-                        if coordinates[1] == 0:
-                            tooltip_message.append("This is an ocean water tile")
-                            tooltip_message.append(
-                                f"    Movement cost: {constants.terrain_movement_cost_dict[self.cell.terrain]} (with steamship)"
-                            )
-                            tooltip_message.append(f"        Otherwise impassable")
-                        else:
-                            tooltip_message.append("This is a river water tile")
-                            tooltip_message.append(
-                                f"    Movement cost: {constants.terrain_movement_cost_dict[self.cell.terrain]} (with canoes or steamboat)"
-                            )
-                            tooltip_message.append(
-                                f"        Otherwise costs entire turn of movement"
-                            )
-                    else:
-                        tooltip_message.append(
-                            f"This is {utility.generate_article(self.cell.terrain)} {self.cell.terrain} tile"
-                        )
-                        tooltip_message.append(
-                            f"    Movement cost: {constants.terrain_movement_cost_dict[self.cell.terrain]}"
-                        )
+            if self.cell.terrain_handler.visible:
+                if self.cell.terrain_handler.terrain != "none":
                     tooltip_message.append(
-                        f"    Building cost multiplier: x{constants.terrain_build_cost_multiplier_dict[self.cell.terrain]}"
+                        f"This is {utility.generate_article(self.cell.terrain_handler.terrain.replace('_', '' ''))} {self.cell.terrain_handler.terrain.replace('_', ' ')} tile"
                     )
-                    attrition_dict = {1: "light", 2: "moderate", 3: "severe"}
-                    tooltip_message.append(
-                        f"    Attrition: {attrition_dict[constants.terrain_attrition_dict[self.cell.terrain]]}"
-                    )
+                    for terrain_parameter in constants.terrain_parameters:
+                        value = self.cell.get_parameter(terrain_parameter)
+                        tooltip_message.append(
+                            f"    {terrain_parameter}: {constants.terrain_manager.terrain_parameter_keywords[terrain_parameter][value]} ({value}/{self.cell.terrain_handler.maxima.get(terrain_parameter, 6)})"
+                        )
                 if not self.cell.village == "none":  # if village present, show village
                     tooltip_message += self.cell.village.get_tooltip()
                 elif (
-                    not self.cell.resource == "none"
+                    not self.cell.terrain_handler.resource == "none"
                 ):  # if not village but other resource present, show resource
                     tooltip_message.append(
                         "This tile has "
-                        + utility.generate_article(self.cell.resource)
+                        + utility.generate_article(self.cell.terrain_handler.resource)
                         + " "
-                        + self.cell.resource
+                        + self.cell.terrain_handler.resource
                         + " resource"
                     )
-                for terrain_feature in self.cell.terrain_features:
+                for terrain_feature in self.cell.terrain_handler.terrain_features:
                     tooltip_message.append(
                         f"This tile has {utility.generate_article(terrain_feature, add_space=True)}{terrain_feature}"
                     )
@@ -557,7 +513,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             if (
                 self.touching_mouse() and constants.current_game_mode in self.modes
             ):  # and not targeting_ability
-                if self.cell.terrain == "none":
+                if self.cell.terrain_handler.terrain == "none":
                     return False
                 else:
                     return True
@@ -591,7 +547,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     constants.sound_manager.play_random_music("asia")
             elif (
                 self.cell.village != "none"
-                and self.cell.visible
+                and self.cell.terrain_handler.visible
                 and self.cell.village.population > 0
                 and not self.cell.has_intact_building("port")
             ):
@@ -604,14 +560,14 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     constants.event_manager.clear()
                     constants.sound_manager.play_random_music(new_state)
             else:
-                if constants.sound_manager.previous_state != "europe":
+                if constants.sound_manager.previous_state != "earth":
                     constants.event_manager.clear()
-                    constants.sound_manager.play_random_music("europe")
+                    constants.sound_manager.play_random_music("earth")
 
 
 class abstract_tile(tile):
     """
-    tile for 1-cell abstract grids like Europe, can have a tooltip but has no terrain, instead having a unique image
+    tile for 1-cell abstract grids like Earth, can have a tooltip but has no terrain, instead having a unique image
     """
 
     def __init__(self, from_save, input_dict):

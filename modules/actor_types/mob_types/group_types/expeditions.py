@@ -58,8 +58,8 @@ class expedition(group):
         flags.show_minimap_outlines = True
         constants.last_selection_outline_switch = constants.current_time
 
-        future_x = self.x + x_change
-        future_y = self.y + y_change
+        future_x = (self.x + x_change) % self.grid.coordinate_width
+        future_y = (self.y + y_change) % self.grid.coordinate_height
         roll_result = 0
         if x_change > 0:
             direction = "east"
@@ -73,7 +73,7 @@ class expedition(group):
             direction = "none"
         future_cell = self.grid.find_cell(future_x, future_y)
         if (
-            future_cell.visible == False
+            future_cell.terrain_handler.visible == False
         ):  # if moving to unexplored area, try to explore it
             status.actions["exploration"].on_click(
                 self,
@@ -134,7 +134,7 @@ class expedition(group):
         found_river_source = False
         for current_direction in ["up", "down", "left", "right"]:
             target_cell = current_cell.adjacent_cells[current_direction]
-            if target_cell and not target_cell.visible:
+            if target_cell and not target_cell.terrain_handler.visible:
                 if (
                     current_cell.terrain == "water" or target_cell.terrain == "water"
                 ):  # if on water, discover all adjacent undiscovered tiles. Also, discover all adjacent water tiles, regardless of if currently on water
@@ -144,8 +144,8 @@ class expedition(group):
                         text = "The expedition has discovered a "
                     public_opinion_increase = random.randrange(0, 3)
                     money_increase = 0
-                    if not target_cell.resource == "none":
-                        if target_cell.resource == "natives":
+                    if target_cell.terrain_handler.resource != "none":
+                        if target_cell.terrain_handler.resource == "natives":
                             text += (
                                 target_cell.terrain.upper()
                                 + " tile to the "
@@ -158,9 +158,13 @@ class expedition(group):
                             text += (
                                 target_cell.terrain.upper()
                                 + " tile with a "
-                                + target_cell.resource.upper()
+                                + target_cell.terrain_handler.resource.upper()
                                 + " resource (currently worth "
-                                + str(constants.item_prices[target_cell.resource])
+                                + str(
+                                    constants.item_prices[
+                                        target_cell.terrain_handler.resource
+                                    ]
+                                )
                                 + " money each) to the "
                                 + cardinal_directions[current_direction]
                                 + ". /n /n"
@@ -174,11 +178,15 @@ class expedition(group):
                             + ". /n /n"
                         )
 
-                    if target_cell.terrain_features.get("river source", False):
+                    if target_cell.terrain_handler.terrain_features.get(
+                        "river source", False
+                    ):
                         money_increase = random.randrange(40, 61)
                         text += (
                             "This is the source of the "
-                            + target_cell.terrain_features["river source"]["river_name"]
+                            + target_cell.terrain_handler.terrain_features[
+                                "river source"
+                            ]["river_name"]
                             + " river, which has been long sought after by explorers - you are granted a reward of "
                             + str(money_increase)
                             + " money for this discovery. /n /n"

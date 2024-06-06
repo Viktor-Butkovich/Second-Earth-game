@@ -111,11 +111,13 @@ class exploration(action.action):
         elif subject == "success":
             text += "/n"
             self.public_relations_change = random.randrange(0, 3)
-            if self.future_cell.resource != "none":
-                if self.future_cell.resource == "natives":
+            if self.future_cell.terrain_handler.resource != "none":
+                if self.future_cell.terrain_handler.resource == "natives":
                     text += (
                         "The expedition has discovered a "
-                        + self.future_cell.terrain.upper()
+                        + self.future_cell.terrain_handler.terrain.replace(
+                            "_", " "
+                        ).upper()
                         + " tile containing the village of "
                         + self.future_cell.village.name
                         + ". /n /n"
@@ -123,18 +125,24 @@ class exploration(action.action):
                 else:
                     text += (
                         "The expedition has discovered a "
-                        + self.future_cell.terrain.upper()
+                        + self.future_cell.terrain_handler.terrain.replace(
+                            "_", " "
+                        ).upper()
                         + " tile with a "
-                        + self.future_cell.resource.upper()
+                        + self.future_cell.terrain_handler.resource.upper()
                         + " resource (currently worth "
-                        + str(constants.item_prices[self.future_cell.resource])
+                        + str(
+                            constants.item_prices[
+                                self.future_cell.terrain_handler.resource
+                            ]
+                        )
                         + " money each). /n /n"
                     )
                 self.public_relations_change += 3
             else:
                 text += (
                     "The expedition has discovered a "
-                    + self.future_cell.terrain.upper()
+                    + self.future_cell.terrain_handler.terrain.replace("_", " ").upper()
                     + " tile. /n /n"
                 )
             if self.public_relations_change > 0:  # Royal/National/Imperial
@@ -251,7 +259,7 @@ class exploration(action.action):
         """
         if self.roll_result >= self.current_min_success:
             constants.public_opinion_tracker.change(self.public_relations_change)
-            self.future_cell.set_visibility(True)
+            self.future_cell.terrain_handler.set_visibility(True)
             if self.initial_movement_points >= self.current_unit.get_movement_cost(
                 self.x_change, self.y_change
             ):

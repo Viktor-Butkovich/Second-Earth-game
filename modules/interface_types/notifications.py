@@ -148,15 +148,16 @@ class zoom_notification(notification):
         if target.actor_type == "tile":
             actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
             actor_utility.calibrate_actor_info_display(status.tile_info_display, target)
-            if target.cell.grid.mini_grid != "none":
-                target.grids[0].mini_grid.calibrate(target.x, target.y)
+            for mini_grid in target.cell.grid.mini_grids:
+                mini_grid.calibrate(target.x, target.y)
         elif target.actor_type == "mob":
             if (
                 target.images[0].current_cell != "none"
             ):  # if non-hidden mob, move to front of tile and select
                 target.select()
             else:  # if hidden mob, move to location and select tile
-                target.grids[0].mini_grid.calibrate(target.x, target.y)
+                for mini_grid in target.grids[0].mini_grids:
+                    mini_grid.calibrate(target.x, target.y)
                 actor_utility.calibrate_actor_info_display(
                     status.tile_info_display,
                     target.grids[0].find_cell(target.x, target.y).tile,

@@ -24,7 +24,7 @@ class notification_manager_template:
         self.update_notification_layout()
         self.notification_modes = [
             "strategic",
-            "europe",
+            "earth",
             "ministers",
             "trial",
             "main_menu",

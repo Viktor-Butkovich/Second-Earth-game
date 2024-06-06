@@ -43,7 +43,7 @@ class achievement_manager_template:
             "height": scaling.scale_height(30),
             "modes": [
                 "strategic",
-                "europe",
+                "earth",
                 "ministers",
                 "trial",
                 "main_menu",
@@ -75,13 +75,11 @@ class achievement_manager_template:
         Output:
             None
         """
+        return
         if (not achievement_type in self.achievements) or (
             achievement_type in self.victory_conditions
             and not achievement_type in flags.victories_this_game
         ):
-            with open("save_games/achievements.pickle", "wb") as handle:
-                pickle.dump(self.achievements, handle)
-                handle.close()
             if verbose:
                 attached_interface_elements = (
                     action_utility.generate_free_image_input_dict(
@@ -184,6 +182,10 @@ class achievement_manager_template:
             if not flags.any_slaves and "Land of the Free" not in self.achievements:
                 self.achieve("Land of the Free")
 
+        with open("save_games/achievements.pickle", "wb") as handle:
+            pickle.dump(self.achievements, handle)
+            handle.close()
+
     def get_description(self, achievement_type: str) -> str:
         """
         Description:
@@ -249,6 +251,7 @@ class achievement_manager_template:
         Description:
             Checks if the inputted achievement is being achieved, or checks all achievements if no input is given
         """
+        return
         if achievement_type == "Entrepreneur" or achievement_type == "start of turn":
             if constants.money_tracker.get() >= 10000:
                 self.achieve("Entrepreneur")
@@ -256,7 +259,7 @@ class achievement_manager_template:
         if achievement_type == "Heart of Darkness":
             if status.strategic_map_grid:
                 for current_cell in status.strategic_map_grid.get_flat_cell_list():
-                    if not current_cell.visible:
+                    if not current_cell.terrain_handler.visible:
                         return
                 self.achieve("Heart of Darkness")
 

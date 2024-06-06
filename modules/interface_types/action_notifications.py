@@ -278,7 +278,7 @@ class off_tile_exploration_notification(action_notification):
         input_dict["attached_interface_elements"].append(
             action_utility.generate_free_image_input_dict(
                 action_utility.generate_tile_image_id_list(
-                    cell, force_visibility=(reveal_cell or cell.visible)
+                    cell, force_visibility=(reveal_cell or cell.terrain_handler.visible)
                 ),
                 250,
                 override_input_dict={
@@ -291,7 +291,7 @@ class off_tile_exploration_notification(action_notification):
         )
 
         if reveal_cell:
-            cell.set_visibility(True)
+            cell.terrain_handler.set_visibility(True)
         status.minimap_grid.calibrate(cell.x, cell.y)
         super().__init__(input_dict)
         constants.public_opinion_tracker.change(public_opinion_increase)

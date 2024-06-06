@@ -331,11 +331,9 @@ class building(actor):
         Output:
             boolean: Returns True if any of this building's images is colliding with the mouse, otherwise returns False
         """
-        if self.cell.tile.touching_mouse() or (
-            self.cell.tile.get_equivalent_tile() != "none"
-            and self.cell.tile.get_equivalent_tile().touching_mouse()
-        ):
-            return True
+        for tile in [self.cell.tile] + self.cell.tile.get_equivalent_tiles():
+            if tile.touching_mouse():
+                return True
         return False
 
     def get_build_cost(self):
@@ -508,7 +506,10 @@ class infrastructure_building(building):
             left_cell = self.grids[0].find_cell(self.x - 1, self.y)
             right_cell = self.grids[0].find_cell(self.x + 1, self.y)
             if (not (up_cell == None or down_cell == None)) and (
-                not (up_cell.terrain == "water" or down_cell.terrain == "water")
+                not (
+                    up_cell.terrain_handler.terrain == "water"
+                    or down_cell.terrain_handler.terrain == "water"
+                )
             ):
                 self.connected_cells = [up_cell, down_cell]
                 if self.is_road:
@@ -576,7 +577,7 @@ class infrastructure_building(building):
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
         image_id_list = super().get_image_id_list(override_values)
-        if self.cell.terrain != "water":
+        if self.cell.terrain_handler.terrain != "water":
             connected_road, connected_railroad = (False, False)
             for direction in ["up", "down", "left", "right"]:
                 adjacent_cell = self.cell.adjacent_cells[direction]
@@ -747,7 +748,7 @@ class port(building):
         input_dict["building_type"] = "port"
         super().__init__(from_save, input_dict)
         if (not from_save) and self.cell.village != "none":
-            constants.sound_manager.play_random_music("europe")
+            constants.sound_manager.play_random_music("earth")
 
 
 class warehouses(building):
@@ -1191,7 +1192,7 @@ class slums(building):
         input_dict = {
             "select_on_creation": True,
             "coordinates": (self.cell.x, self.cell.y),
-            "grids": [self.cell.grid, self.cell.grid.mini_grid],
+            "grids": [self.cell.grid] + self.cell.grid.mini_grids,
             "modes": self.cell.grid.modes,
         }
         input_dict.update(status.worker_types["African"].generate_input_dict())

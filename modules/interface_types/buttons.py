@@ -173,244 +173,142 @@ class button(interface_elements.interface_element):
                 local_cell = current_mob.images[0].current_cell
                 adjacent_cell = local_cell.adjacent_cells[non_cardinal_direction]
                 local_infrastructure = local_cell.get_intact_building("infrastructure")
-
-                if adjacent_cell:
-                    passed = False
+                if adjacent_cell.terrain_handler.visible:
+                    tooltip_text.append("Press to move to the " + direction)
+                    adjacent_infrastructure = adjacent_cell.get_intact_building(
+                        "infrastructure"
+                    )
+                    connecting_roads = False
                     if (
-                        current_mob.can_walk and not adjacent_cell.terrain == "water"
-                    ) or local_cell.has_walking_connection(
-                        adjacent_cell
-                    ):  # if walking unit moving onto land or along bridge
-                        passed = True
-                    elif (
-                        current_mob.can_swim
-                        and adjacent_cell.terrain == "water"
-                        and (
-                            (current_mob.can_swim_river and adjacent_cell.y > 0)
-                            or (current_mob.can_swim_ocean and adjacent_cell.y == 0)
+                        current_mob.is_battalion
+                        and not adjacent_cell.get_best_combatant("npmob") == "none"
+                    ) or (
+                        current_mob.is_safari
+                        and not adjacent_cell.get_best_combatant("npmob", "beast")
+                        == "none"
+                    ):
+                        tooltip_text += status.actions["combat"].update_tooltip(
+                            tooltip_info_dict={
+                                "adjacent_infrastructure": adjacent_infrastructure,
+                                "local_infrastructure": local_infrastructure,
+                                "x_change": x_change,
+                                "y_change": y_change,
+                                "local_cell": local_cell,
+                                "adjacent_cell": adjacent_cell,
+                            }
                         )
-                        or adjacent_cell.has_vehicle("ship")
-                    ):  # if swimming unit going to correct kind of water or embarking ship
-                        passed = True
-                    elif (
-                        current_mob.can_walk and adjacent_cell.terrain == "water"
-                    ) and adjacent_cell.y > 0:  # if land unit entering river for maximum movement points
-                        passed = True
+                    else:
+                        message = ""
                         if (
-                            current_mob.is_battalion
-                            and not adjacent_cell.get_best_combatant("npmob") == "none"
-                        ):  # if battalion attacking unit in water:
-                            movement_cost = 1
-
-                    if passed:
-                        if adjacent_cell.visible:
-                            tooltip_text.append("Press to move to the " + direction)
-                            adjacent_infrastructure = adjacent_cell.get_intact_building(
-                                "infrastructure"
-                            )
-                            connecting_roads = False
+                            current_mob.is_vehicle
+                            and current_mob.vehicle_type == "train"
+                        ):
                             if (
-                                current_mob.is_battalion
-                                and not adjacent_cell.get_best_combatant("npmob")
-                                == "none"
-                            ) or (
-                                current_mob.is_safari
-                                and not adjacent_cell.get_best_combatant(
-                                    "npmob", "beast"
-                                )
-                                == "none"
+                                adjacent_infrastructure != "none"
+                                and adjacent_infrastructure.is_railroad
+                                and local_infrastructure != "none"
+                                and local_infrastructure.is_railroad
+                                and local_cell.has_walking_connection(adjacent_cell)
                             ):
-                                tooltip_text += status.actions["combat"].update_tooltip(
-                                    tooltip_info_dict={
-                                        "adjacent_infrastructure": adjacent_infrastructure,
-                                        "local_infrastructure": local_infrastructure,
-                                        "x_change": x_change,
-                                        "y_change": y_change,
-                                        "local_cell": local_cell,
-                                        "adjacent_cell": adjacent_cell,
-                                    }
+                                message = (
+                                    "Costs "
+                                    + str(movement_cost)
+                                    + " movement point"
+                                    + utility.generate_plural(movement_cost)
+                                    + " because the adjacent tile has connecting railroads"
                                 )
                             else:
-                                message = ""
-                                if (
-                                    current_mob.is_vehicle
-                                    and current_mob.vehicle_type == "train"
-                                ):
-                                    if (
-                                        adjacent_infrastructure != "none"
-                                        and adjacent_infrastructure.is_railroad
-                                        and local_infrastructure != "none"
-                                        and local_infrastructure.is_railroad
-                                        and local_cell.has_walking_connection(
-                                            adjacent_cell
-                                        )
-                                    ):
-                                        message = (
-                                            "Costs "
-                                            + str(movement_cost)
-                                            + " movement point"
-                                            + utility.generate_plural(movement_cost)
-                                            + " because the adjacent tile has connecting railroads"
-                                        )
-                                    else:
-                                        message = "Not possible because the adjacent tile does not have connecting railroads"
-                                    tooltip_text.append(message)
-                                    tooltip_text.append(
-                                        "A train can only move along railroads"
-                                    )
-                                else:
-                                    message = (
-                                        "Costs "
-                                        + str(movement_cost)
-                                        + " movement point"
-                                        + utility.generate_plural(movement_cost)
-                                        + " because the adjacent tile has "
-                                        + adjacent_cell.terrain
-                                        + " terrain "
-                                    )
-                                    if local_cell.has_walking_connection(adjacent_cell):
-                                        if (
-                                            local_infrastructure != "none"
-                                            and adjacent_infrastructure != "none"
-                                        ):  # if both have infrastructure
-                                            connecting_roads = True
-                                            message += "and connecting roads"
-                                        elif (
-                                            local_infrastructure == "none"
-                                            and adjacent_infrastructure != "none"
-                                        ):  # if local has no infrastructure but adjacent does
-                                            message += "and no connecting roads"
-                                        elif (
-                                            local_infrastructure != "none"
-                                        ):  # if local has infrastructure but not adjacent
-                                            message += "and no connecting roads"  # + local_infrastructure.infrastructure_type
-                                        else:
-                                            message += "and no connecting roads"
-                                    if adjacent_cell.terrain_features.get(
-                                        "cataract", False
-                                    ):
-                                        message += "and a cataract"
-
-                                    tooltip_text.append(message)
-                                    if (
-                                        (
-                                            current_mob.can_walk
-                                            and adjacent_cell.terrain == "water"
-                                            and (not current_mob.can_swim_river)
-                                        )
-                                        and adjacent_cell.y > 0
-                                        and not local_cell.has_walking_connection(
-                                            adjacent_cell
-                                        )
-                                    ):
-                                        tooltip_text.append(
-                                            "Moving into a river tile costs an entire turn of movement points for units without canoes"
-                                        )
-                                    else:
-                                        tooltip_text.append(
-                                            "Moving into a "
-                                            + adjacent_cell.terrain
-                                            + " tile costs "
-                                            + str(
-                                                constants.terrain_movement_cost_dict[
-                                                    adjacent_cell.terrain
-                                                ]
-                                            )
-                                            + " movement points"
-                                        )
-                            if (
-                                (not current_mob.is_vehicle)
-                                and current_mob.images[0].current_cell.terrain
-                                == "water"
-                                and current_mob.images[0].current_cell.has_vehicle(
-                                    "ship"
-                                )
-                            ):
-                                if (
-                                    current_mob.images[0].current_cell.y == 0
-                                    and not (
-                                        current_mob.can_swim
-                                        and current_mob.can_swim_ocean
-                                    )
-                                ) or (
-                                    current_mob.images[0].current_cell.y > 0
-                                    and not (
-                                        current_mob.can_swim
-                                        and current_mob.can_swim_river
-                                    )
-                                ):  # if could not naturally move into current tile, must be from vehicle
-                                    tooltip_text.append(
-                                        "Moving from a steamship or steamboat in the water after disembarking requires all remaining movement points, at least the usual amount"
-                                    )
-                            if connecting_roads:
-                                tooltip_text.append(
-                                    "Moving between 2 tiles with roads or railroads costs half as many movement points."
-                                )
+                                message = "Not possible because the adjacent tile does not have connecting railroads"
+                            tooltip_text.append(message)
+                            tooltip_text.append("A train can only move along railroads")
                         else:
-                            tooltip_text += status.actions[
-                                "exploration"
-                            ].update_tooltip(tooltip_info_dict={"direction": direction})
-                    else:
-                        tooltip_text.append(
-                            "This unit cannot currently move to the " + direction
-                        )
+                            message = (
+                                "Costs "
+                                + str(movement_cost)
+                                + " movement point"
+                                + utility.generate_plural(movement_cost)
+                                + " because the adjacent tile has "
+                                + adjacent_cell.terrain_handler.terrain.replace(
+                                    "_", " "
+                                )
+                                + " terrain "
+                            )
+                            if local_cell.has_walking_connection(adjacent_cell):
+                                if (
+                                    local_infrastructure != "none"
+                                    and adjacent_infrastructure != "none"
+                                ):  # if both have infrastructure
+                                    connecting_roads = True
+                                    message += "and connecting roads"
+                                elif (
+                                    local_infrastructure == "none"
+                                    and adjacent_infrastructure != "none"
+                                ):  # if local has no infrastructure but adjacent does
+                                    message += "and no connecting roads"
+                                elif (
+                                    local_infrastructure != "none"
+                                ):  # if local has infrastructure but not adjacent
+                                    message += "and no connecting roads"  # + local_infrastructure.infrastructure_type
+                                else:
+                                    message += "and no connecting roads"
+                            if adjacent_cell.terrain_handler.terrain_features.get(
+                                "cataract", False
+                            ):
+                                message += "and a cataract"
 
+                            tooltip_text.append(message)
+                            if (
+                                current_mob.can_walk
+                                and adjacent_cell.terrain_handler.terrain == "water"
+                                and (not current_mob.can_swim_river)
+                            ) and not local_cell.has_walking_connection(adjacent_cell):
+                                tooltip_text.append(
+                                    "Moving into a river tile costs an entire turn of movement points for units without canoes"
+                                )
+                            else:
+                                tooltip_text.append(
+                                    "Moving into a "
+                                    + adjacent_cell.terrain_handler.terrain.replace(
+                                        "_", " "
+                                    )
+                                    + " tile costs "
+                                    + str(
+                                        constants.terrain_movement_cost_dict[
+                                            adjacent_cell.terrain_handler.terrain
+                                        ]
+                                    )
+                                    + " movement points"
+                                )
+                    if (
+                        (not current_mob.is_vehicle)
+                        and current_mob.images[0].current_cell.terrain_handler.terrain
+                        == "water"
+                        and current_mob.images[0].current_cell.has_vehicle("ship")
+                    ):
+                        if (
+                            current_mob.images[0].current_cell.y == 0
+                            and not (
+                                current_mob.can_swim and current_mob.can_swim_ocean
+                            )
+                        ) or (
+                            current_mob.images[0].current_cell.y > 0
+                            and not (
+                                current_mob.can_swim and current_mob.can_swim_river
+                            )
+                        ):  # if could not naturally move into current tile, must be from vehicle
+                            tooltip_text.append(
+                                "Moving from a steamship or steamboat in the water after disembarking requires all remaining movement points, at least the usual amount"
+                            )
+                    if connecting_roads:
+                        tooltip_text.append(
+                            "Moving between 2 tiles with roads or railroads costs half as many movement points."
+                        )
                 else:
-                    tooltip_text.append(
-                        "Moving in this direction would move off of the map"
+                    tooltip_text += status.actions["exploration"].update_tooltip(
+                        tooltip_info_dict={"direction": direction}
                     )
-                if current_mob.can_walk and current_mob.can_swim:  # 1??
-                    if current_mob.can_swim_river and current_mob.can_swim_ocean:  # 111
-                        tooltip_text.append("Can move normally to land and water")
-                    elif (
-                        current_mob.can_swim_river and not current_mob.can_swim_ocean
-                    ):  # 110
-                        tooltip_text.append(
-                            "Can move normally to land and rivers but not ocean"
-                        )
-                    else:  # 101
-                        tooltip_text.append(
-                            "Can move normally to land and ocean but not rivers"
-                        )
-
-                elif current_mob.can_walk and not current_mob.can_swim:  # 100
-                    tooltip_text.append("Can move normally to land but not water")
-
-                elif current_mob.can_swim and not current_mob.can_walk:  # 0??
-                    if current_mob.can_swim_river and current_mob.can_swim_ocean:  # 011
-                        tooltip_text.append("Can move normally to water but not land")
-                    elif (
-                        current_mob.can_swim_river and not current_mob.can_swim_ocean
-                    ):  # 010
-                        tooltip_text.append(
-                            "Can move normally to rivers but not ocean or land"
-                        )
-                    else:  # 101
-                        tooltip_text.append(
-                            "Can move normally to ocean but not rivers or land"
-                        )
-                # 000 is not possible
-
-                if not current_mob.can_swim:
-                    if current_mob.is_battalion:
-                        tooltip_text.append(
-                            "However, can embark a ship, attack an enemy in a river, or spend its maximum movement and become disorganized to enter a river"
-                        )
-                    else:
-                        tooltip_text.append(
-                            "However, can embark a ship in the water by moving to it or spend its maximum movement and become disorganized to enter a river"
-                        )
 
             self.set_tooltip(tooltip_text)
-
-        elif self.button_type == "toggle grid lines":
-            self.set_tooltip(["Press to show or hide grid lines"])
-
-        elif self.button_type == "toggle text box":
-            self.set_tooltip(["Press to show or hide text box"])
-
-        elif self.button_type == "expand text box":
-            self.set_tooltip(["Press to change the size of the text box"])
 
         elif self.button_type == "execute movement routes":
             self.set_tooltip(
@@ -1274,7 +1172,7 @@ class button(interface_elements.interface_element):
                                 current_mob.can_move(x_change, y_change, can_print=True)
                         else:
                             text_utility.print_to_screen(
-                                "You cannot move while in the European HQ screen."
+                                "You cannot move while in the Earth HQ screen."
                             )
                     else:
                         text_utility.print_to_screen(
@@ -1282,22 +1180,6 @@ class button(interface_elements.interface_element):
                         )
             else:
                 text_utility.print_to_screen("You are busy and cannot move.")
-        elif self.button_type == "toggle grid lines":
-            constants.effect_manager.set_effect(
-                "hide_grid_lines",
-                not constants.effect_manager.effect_active("hide_grid_lines"),
-            )
-
-        elif self.button_type == "toggle text box":
-            flags.show_text_box = not flags.show_text_box
-
-        elif self.button_type == "expand text box":
-            if constants.text_box_height == constants.default_text_box_height:
-                constants.text_box_height = scaling.scale_height(
-                    constants.default_display_height - 45
-                )
-            else:
-                constants.text_box_height = constants.default_text_box_height
 
         elif self.button_type == "execute movement routes":
             if main_loop_utility.action_possible():
@@ -1839,14 +1721,14 @@ class button(interface_elements.interface_element):
             elif self.button_type in ["sell commodity", "sell all commodity"]:
                 return (
                     status.displayed_tile
-                    and status.europe_grid in status.displayed_tile.grids
+                    and status.earth_grid in status.displayed_tile.grids
                     and self.attached_label.actor.current_item
                     in constants.collectable_resources
                 )
             elif self.button_type == "sell each commodity":
                 if (
                     status.displayed_tile
-                    and status.europe_grid in status.displayed_tile.grids
+                    and status.earth_grid in status.displayed_tile.grids
                 ):
                     for commodity in constants.collectable_resources:
                         if status.displayed_tile.get_inventory(commodity) > 0:
@@ -2116,7 +1998,7 @@ class same_tile_icon(button):
         self.update()
         return (
             status.displayed_tile
-            and status.displayed_tile.cell.visible
+            and status.displayed_tile.cell.terrain_handler.visible
             and len(self.old_contained_mobs) > self.index
             and super().can_show()
         )
@@ -2143,7 +2025,7 @@ class same_tile_icon(button):
         """
         if (
             status.displayed_tile
-            and status.displayed_tile.cell.visible
+            and status.displayed_tile.cell.terrain_handler.visible
             and super().can_show()
         ):
             displayed_tile = status.displayed_tile
@@ -2445,9 +2327,7 @@ class switch_game_mode_button(button):
             "Does not automatically save the game",
         ]
         self.to_mode_tooltip_dict["strategic"] = ["Enters the strategic map screen"]
-        self.to_mode_tooltip_dict["europe"] = [
-            "Enters the European headquarters screen"
-        ]
+        self.to_mode_tooltip_dict["earth"] = ["Enters the Earth headquarters screen"]
         self.to_mode_tooltip_dict["ministers"] = [
             "Enters the minister conference room screen"
         ]
@@ -3830,3 +3710,58 @@ class anonymous_button(button):
             None
         """
         self.set_tooltip(self.tooltip)
+
+
+class map_mode_button(button):
+    def __init__(self, input_dict):
+        """
+        Description:
+            Initializes this object
+        Input:
+            dictionary input_dict: Keys corresponding to the values needed to initialize this object
+                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
+                'width': int value - pixel width of this element
+                'height': int value - pixel height of this element
+                'modes': string list value - Game modes during which this element can appear
+                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
+                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
+                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
+                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
+                'map_mode": Map mode that this button sets, like "default" or "altitude"
+        Output:
+            None
+        """
+        input_dict["button_type"] = "map mode"
+        self.map_mode = input_dict["map_mode"]
+        super().__init__(input_dict)
+
+    def can_show(self):
+        """
+        Description:
+            Returns whether this button should be drawn
+        Input:
+            None
+        Output:
+            boolean: Returns True if this button can appear during the current game mode and map modes are enabled, otherwise returns False
+        """
+        self.showing_outline = constants.current_map_mode == self.map_mode
+        return super().can_show()
+
+    def on_click(self):
+        constants.current_map_mode = self.map_mode
+        for grid in status.grid_list:
+            for cell in grid.get_flat_cell_list():
+                cell.tile.update_image_bundle()
+
+    def update_tooltip(self):
+        """
+        Description:
+            Sets this button's tooltip to what it should be, depending on its mapped 'update_tooltip' function
+        Input:
+            None
+        Output:
+            None
+        """
+        self.set_tooltip([f"Sets the map mode to {self.map_mode}"])

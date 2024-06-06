@@ -3,7 +3,6 @@
 import random
 import pickle
 from ...util import (
-    scaling,
     game_transitions,
     turn_management_utility,
     text_utility,
@@ -12,7 +11,7 @@ from ...util import (
     actor_utility,
     tutorial_utility,
 )
-from ...interface_types import grids
+from ...interface_types import world_grids
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -91,11 +90,16 @@ class save_load_manager_template:
         country.select()
 
         for grid_type in constants.grid_types_list:
-            grids.create(from_save=False, grid_type=grid_type)
+            world_grids.create(from_save=False, grid_type=grid_type)
 
         game_transitions.set_game_mode("strategic")
         game_transitions.create_strategic_map(from_save=False)
-        status.minimap_grid.calibrate(2, 2)
+        for terrain_parameter in constants.terrain_parameters:
+            status.earth_grid.cell_list[0][0].set_parameter(
+                terrain_parameter,
+                constants.terrain_manager.get_tuning(f"earth_tile_{terrain_parameter}"),
+            )
+        status.minimap_grid.calibrate(0, 0)
 
         for current_commodity in constants.commodity_types:
             if current_commodity != "consumer goods":
@@ -306,12 +310,13 @@ class save_load_manager_template:
 
         # Load grids
         for current_grid_dict in saved_grid_dicts:
-            grids.create(
+            world_grids.create(
                 from_save=True,
                 grid_type=current_grid_dict["grid_type"],
                 input_dict=current_grid_dict,
             )
-        grids.create(from_save=False, grid_type="minimap_grid")
+        world_grids.create(from_save=False, grid_type="scrolling_strategic_map_grid")
+        world_grids.create(from_save=False, grid_type="minimap_grid")
 
         game_transitions.set_game_mode("strategic")
         game_transitions.create_strategic_map(from_save=True)
@@ -338,7 +343,7 @@ class save_load_manager_template:
         minister_utility.update_available_minister_display()
         status.commodity_prices_label.update_label()
 
-        status.minimap_grid.calibrate(2, 2)
+        status.minimap_grid.calibrate(0, 0)
         game_transitions.set_game_mode("strategic")
 
         for current_completed_lore_type in constants.completed_lore_mission_types:

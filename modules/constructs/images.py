@@ -556,6 +556,7 @@ class free_image(image):
         self.has_parent_collection = False
         super().__init__(input_dict["width"], input_dict["height"])
         self.parent_collection = input_dict.get("parent_collection", "none")
+        self.color_key = input_dict.get("color_key", None)
         self.has_parent_collection = self.parent_collection != "none"
         if not self.has_parent_collection:
             status.independent_interface_elements.append(self)
@@ -708,6 +709,8 @@ class free_image(image):
                     self.image = pygame.transform.scale(
                         self.image, (self.width, self.height)
                     )
+                    if self.color_key:
+                        self.image.set_colorkey(self.color_key)
                 else:  # if set to image path list
                     self.contains_bundle = True
                     self.image = image_bundle(self, self.image_id)
@@ -1132,7 +1135,7 @@ class minister_type_image(tooltip_free_image):
                 )  # new_minister.tooltip_text
                 if keyword == "military":
                     self.tooltip_text.append(
-                        "Military-oriented units include military officers and European battalions."
+                        "Military-oriented units include majors and battalions."
                     )
                 elif keyword == "religion":
                     self.tooltip_text.append(
@@ -1145,7 +1148,7 @@ class minister_type_image(tooltip_free_image):
                     self.tooltip_text.append(
                         "The "
                         + current_minister_type
-                        + " also controls the purchase and sale of goods in Europe."
+                        + " also controls the purchase and sale of goods on Earth."
                     )
                 elif keyword == "exploration":
                     self.tooltip_text.append(
@@ -1302,13 +1305,13 @@ class actor_image(image):
         self.image_type = "actor"
         super().__init__(width, height)
         self.actor = actor
-        self.modes = actor.modes
         self.Rect = pygame.Rect(
             self.actor.x, self.actor.y - self.height, self.width, self.height
         )  # (left, top, width, height), bottom left on coordinates
         self.set_image(image_description)
         self.image_description == image_description
         self.grid = grid
+        self.modes = self.grid.modes
         self.outline_width = self.grid.grid_line_width + 1
         self.outline = pygame.Rect(
             self.actor.x,
@@ -1573,7 +1576,7 @@ class mob_image(actor_image):
         Output:
             boolean: Returns True if this image can appear during the current game mode and if its mob is not attached to another actor or behind another mob, otherwise returns False
         """
-        return self.actor.can_show()
+        return self.actor.can_show() and super().can_show()
 
 
 class button_image(actor_image):
@@ -1756,7 +1759,10 @@ class tile_image(actor_image):
         Output:
             None
         """
-        if self.actor.name == "resource icon" and not self.actor.cell.visible:
+        if (
+            self.actor.name == "resource icon"
+            and not self.actor.cell.terrain_handler.visible
+        ):
             return ()  # do not show if resource icon in undiscovered tile
         self.go_to_cell((self.actor.x, self.actor.y))
         self.complete_draw()

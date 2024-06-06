@@ -15,6 +15,9 @@ from modules.tools.data_managers.event_manager_template import event_manager_tem
 from modules.tools.data_managers.achievement_manager_template import (
     achievement_manager_template,
 )
+from modules.tools.data_managers.terrain_manager_template import (
+    terrain_manager_template,
+)
 from modules.tools.data_managers.effect_manager_template import effect_manager_template
 from modules.tools.data_managers.notification_manager_template import (
     notification_manager_template,
@@ -182,6 +185,7 @@ input_manager: input_manager_template = input_manager_template()
 actor_creation_manager: actor_creation_manager_template = (
     actor_creation_manager_template()
 )
+terrain_manager: terrain_manager_template = terrain_manager_template()
 achievement_manager: achievement_manager_template = (
     None  # requires additional setup before initialization
 )
@@ -208,6 +212,18 @@ frames_this_second: int = 0
 last_fps_update: float = 0.0
 
 current_game_mode: str = None
+game_modes: List[str] = ["strategic", "earth", "ministers", "trial", "new_game_setup"]
+current_map_mode: str = "terrain"
+map_modes: List[str] = [
+    "terrain",
+    "altitude",
+    "temperature",
+    "roughness",
+    "vegetation",
+    "soil",
+    "water",
+    "magnetic",
+]
 
 loading_start_time: float = 0.0
 previous_turn_time: float = 0.0
@@ -235,23 +251,20 @@ message: str = ""
 
 grid_types_list: List[str] = [
     "strategic_map_grid",
-    "europe_grid",
-    "asia_grid",
-    "slave_traders_grid",
+    "earth_grid",
+    "scrolling_strategic_map_grid",
     "minimap_grid",
 ]
-abstract_grid_type_list: List[str] = ["europe_grid", "asia_grid", "slave_traders_grid"]
+abstract_grid_type_list: List[str] = ["earth_grid"]
 
 grids_collection_x: int = default_display_width - 740
 grids_collection_y: int = default_display_height - 325
 
 strategic_map_pixel_width: int = 320
 strategic_map_pixel_height: int = 300
-strategic_map_width: int = 15
-strategic_map_height: int = 16
-
-europe_grid_x_offset: int = 30
-europe_grid_y_offset: int = 145
+map_sizes: List[int] = [9, 13, 17, 21, 25, 29]  # 5 + 4 * random.randrange(1, 7)
+earth_grid_x_offset: int = 30
+earth_grid_y_offset: int = 145
 asia_grid_x_offset: int = 175
 asia_grid_y_offset: int = 145
 slave_traders_grid_x_offset: int = 175
@@ -361,8 +374,15 @@ green_screen_colors: List[tuple[int, int, int]] = [
     (110, 107, 3),
 ]
 
-terrain_variant_dict: Dict[str, int] = {}
-terrain_list: List[str] = ["savannah", "mountain", "hills", "jungle", "swamp", "desert"]
+terrain_parameters: List[str] = [
+    "water",
+    "temperature",
+    "vegetation",
+    "roughness",
+    "soil",
+    "altitude",
+]
+
 terrain_colors: Dict[str, tuple[int, int, int]] = {
     "savannah": (150, 200, 104),
     "hills": (50, 205, 50),
@@ -733,3 +753,26 @@ titles: List[str] = [
     "Cavaliere",
     "Patrizio",
 ]
+
+toggle_button_tooltips: Dict[str, Dict[str, str]] = {
+    "wait_until_full": {
+        "default": "Toggles wait until full - waiting until there is a full load to transport or no remaining warehouse space before starting automatic route",
+        "True": "Currently waiting until full",
+        "False": "Currently waiting until there is anything to transport",
+    },
+    "show_planet_mask": {
+        "default": "Toggles a frame around the planet to approximate viewing the planet from space",
+        "True": "Currently showing frame",
+        "False": "Currently not showing frame",
+    },
+    "show_grid_lines": {
+        "default": "Toggles grid lines on the map",
+        "True": "Currently showing grid lines",
+        "False": "Currently not showing grid lines",
+    },
+    "expand_text_box": {
+        "default": "Expands the text box",
+        "True": "Currently expanded",
+        "False": "Currently default size",
+    },
+}

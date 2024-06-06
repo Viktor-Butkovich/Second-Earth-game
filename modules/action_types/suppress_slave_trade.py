@@ -121,7 +121,7 @@ class suppress_slave_trade(action.action):
                 + ". /n /n"
             )
             text += (
-                "Word of your company's suppression of the slave trade reaches Europe, increasing public opinion by "
+                "Word of your company's suppression of the slave trade reaches Earth, increasing public opinion by "
                 + str(self.public_opinion_increase)
                 + ". /n /n"
             )

@@ -78,7 +78,7 @@ def info_displays():
                 ),
                 "width": scaling.scale_width(10),
                 "height": scaling.scale_height(10),
-                "modes": ["strategic", "europe", "ministers", "new_game_setup"],
+                "modes": ["strategic", "earth", "ministers", "new_game_setup"],
                 "init_type": "ordered collection",
                 "description": "general information panel",
                 "resize_with_contents": True,
@@ -182,7 +182,7 @@ def misc():
             {
                 "modes": [
                     "strategic",
-                    "europe",
+                    "earth",
                     "trial",
                     "new_game_setup",
                 ],
@@ -218,7 +218,7 @@ def misc():
         {
             "width": constants.display_width / 2 - scaling.scale_width(35),
             "height": constants.display_height,
-            "modes": ["strategic", "europe", "ministers", "new_game_setup"],
+            "modes": ["strategic", "earth", "ministers", "new_game_setup"],
             "image_id": "misc/empty.png",  # make a good image for this
             "init_type": "safe click panel",
         }
@@ -248,7 +248,7 @@ def misc():
             ),
             "width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
-            "modes": ["strategic", "europe"],
+            "modes": ["strategic", "earth"],
             "init_type": "interface collection",
         }
     )
@@ -371,7 +371,7 @@ def terrain_feature_types_config():
         {
             "terrain_feature_type": "cataract",
             "requirements": {"terrain": "water", "min_y": 1},
-            "frequency": (1, 12),
+            "frequency": (0, 1),  # (1, 12),
             "description": [
                 "A cataract, or waterfall, slows most movement through this section of the river",
                 "Canoes can not traverse cataracts, but canoe units can spend their whole turn moving into a cataract in the same way that non-canoe units can enter rivers",
@@ -417,26 +417,29 @@ def terrain_feature_types_config():
         }
     )
 
+    terrain_feature_types.terrain_feature_type(
+        {
+            "terrain_feature_type": "north pole",
+            "image_id": "North Pole",
+            "description": ["This is the north pole of the planet"],
+        }
+    )
 
-def terrains():
-    """
-    Description:
-        Defines terrains and beasts
-    Input:
-        None
-    Output:
-        None
-    """
-    for current_terrain in constants.terrain_list + ["ocean_water", "river_water"]:
-        current_index = 0
-        while os.path.exists(
-            "graphics/terrains/" + current_terrain + "_" + str(current_index) + ".png"
-        ):
-            current_index += 1
-        current_index -= 1  # back up from index that didn't work
-        constants.terrain_variant_dict[current_terrain] = (
-            current_index + 1
-        )  # number of variants, variants in format 'mountain_0', 'mountain_1', etc.
+    terrain_feature_types.terrain_feature_type(
+        {
+            "terrain_feature_type": "south pole",
+            "image_id": "South Pole",
+            "description": ["This is the south pole of the planet"],
+        }
+    )
+
+    terrain_feature_types.terrain_feature_type(
+        {
+            "terrain_feature_type": "equator",
+            "image_id": "Equator",
+            "description": ["This lies along the equator of the planet"],
+        }
+    )
 
 
 def actions():
@@ -855,7 +858,7 @@ def value_trackers():
                 "height": scaling.scale_height(30),
                 "modes": [
                     "strategic",
-                    "europe",
+                    "earth",
                     "ministers",
                     "trial",
                     "main_menu",
@@ -873,7 +876,7 @@ def value_trackers():
         {
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
-            "modes": ["strategic", "europe", "ministers"],
+            "modes": ["strategic", "earth", "ministers"],
             "image_id": "misc/default_label.png",
             "value_name": "turn",
             "init_type": "value label",
@@ -890,7 +893,7 @@ def value_trackers():
         {
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
-            "modes": ["strategic", "europe", "ministers", "trial"],
+            "modes": ["strategic", "earth", "ministers", "trial"],
             "image_id": "misc/default_label.png",
             "init_type": "money label",
             "parent_collection": value_trackers_ordered_collection,
@@ -909,7 +912,7 @@ def value_trackers():
         {
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
-            "modes": ["strategic", "europe", "ministers", "trial"],
+            "modes": ["strategic", "earth", "ministers", "trial"],
             "image_id": "misc/default_label.png",
             "value_name": "public_opinion",
             "init_type": "value label",
@@ -927,7 +930,7 @@ def value_trackers():
                 "height": scaling.scale_height(30),
                 "modes": [
                     "strategic",
-                    "europe",
+                    "earth",
                     "ministers",
                     "trial",
                     "main_menu",
@@ -947,7 +950,7 @@ def value_trackers():
             ),
             "width": scaling.scale_width(30),
             "height": scaling.scale_height(30),
-            "modes": ["strategic", "europe", "ministers", "trial"],
+            "modes": ["strategic", "earth", "ministers", "trial"],
             "image_id": "buttons/instructions.png",
             "init_type": "show previous reports button",
         }
@@ -959,7 +962,7 @@ def value_trackers():
             ),
             "width": scaling.scale_width(30),
             "height": scaling.scale_height(30),
-            "modes": ["strategic", "europe", "ministers", "trial"],
+            "modes": ["strategic", "earth", "ministers", "trial"],
             "image_id": "buttons/execute_single_movement_route_button.png",
             "init_type": "show lore missions button",
         }
@@ -983,23 +986,32 @@ def buttons():
     Output:
         None
     """
-    # Could implement switch game mode buttons based on state machine logic for different modes
+    status.planet_view_mask = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(320, 0),
+            "width": scaling.scale_width(constants.strategic_map_pixel_width),
+            "height": scaling.scale_height(constants.strategic_map_pixel_height),
+            "parent_collection": status.grids_collection,
+            "modes": ["strategic"],  # Manually drawn by scrolling strategic grid
+            "init_type": "free image",
+            "color_key": (255, 255, 255),
+            "image_id": "misc/planet_view_mask.png",
+        }
+    )
+
     input_dict = {
         "coordinates": scaling.scale_coordinates(0, 10),
         "width": scaling.scale_width(150),
         "height": scaling.scale_height(100),
-        "image_id": "buttons/european_hq_button.png",
-        "modes": ["strategic", "europe"],
-        "to_mode": "europe",
+        "image_id": "misc/empty.png",
+        "modes": ["strategic", "earth"],
+        "to_mode": "earth",
         "init_type": "free image",
         "parent_collection": status.grids_collection,
     }
     strategic_flag_icon = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
-    status.flag_icon_list.append(
-        strategic_flag_icon
-    )  # sets button image to update to flag icon when country changes
 
     input_dict["modes"] = ["ministers"]
     input_dict["coordinates"] = scaling.scale_coordinates(
@@ -1009,7 +1021,7 @@ def buttons():
     ministers_flag_icon = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
-    status.flag_icon_list.append(ministers_flag_icon)
+    # status.flag_icon_list.append(ministers_flag_icon)
 
     input_dict = {
         "coordinates": scaling.scale_coordinates(
@@ -1019,7 +1031,7 @@ def buttons():
         "width": scaling.scale_width(50),
         "keybind_id": pygame.K_1,
         "image_id": "locations/africa_button.png",
-        "modes": ["ministers", "strategic", "europe", "trial"],
+        "modes": ["ministers", "strategic", "earth", "trial"],
         "to_mode": "strategic",
         "init_type": "switch game mode button",
     }
@@ -1033,7 +1045,7 @@ def buttons():
                 1125, constants.default_display_height - 55
             ),
             "image_id": "locations/europe_button.png",
-            "to_mode": "europe",
+            "to_mode": "earth",
             "keybind_id": pygame.K_2,
         }
     )
@@ -1064,7 +1076,7 @@ def buttons():
             ),
             "width": 10,
             "height": 10,
-            "modes": ["strategic", "europe", "ministers", "trial", "new_game_setup"],
+            "modes": ["strategic", "earth", "ministers", "trial", "new_game_setup"],
             "init_type": "ordered collection",
             "member_config": {"order_exempt": True},
             "separation": 5,
@@ -1078,7 +1090,7 @@ def buttons():
             ),
             "width": 10,
             "height": 10,
-            "modes": ["strategic", "europe", "ministers", "new_game_setup"],
+            "modes": ["strategic", "earth", "ministers", "new_game_setup"],
             "init_type": "ordered collection",
             "member_config": {"order_exempt": True},
             "separation": 5,
@@ -1093,7 +1105,7 @@ def buttons():
     input_dict["init_type"] = "switch game mode button"
     input_dict["width"] = scaling.scale_width(50)
     input_dict["height"] = scaling.scale_height(50)
-    input_dict["modes"] = ["strategic", "europe", "ministers", "trial"]
+    input_dict["modes"] = ["strategic", "earth", "ministers", "trial"]
     input_dict["keybind_id"] = pygame.K_ESCAPE
     input_dict["to_mode"] = "main_menu"
     to_main_menu_button = constants.actor_creation_manager.create_interface_element(
@@ -1118,7 +1130,7 @@ def buttons():
         ),
         "width": scaling.scale_width(round(constants.default_display_width * 0.2)),
         "height": scaling.scale_height(50),
-        "modes": ["strategic", "europe", "ministers", "trial"],
+        "modes": ["strategic", "earth", "ministers", "trial"],
         "keybind_id": pygame.K_SPACE,
         "image_id": "buttons/end_turn_button.png",
         "init_type": "end turn button",
@@ -1167,7 +1179,7 @@ def buttons():
         ),
         "width": scaling.scale_width(50),
         "height": scaling.scale_height(50),
-        "modes": ["strategic", "europe", "ministers", "trial"],
+        "modes": ["strategic", "earth", "ministers", "trial"],
         "image_id": "buttons/save_game_button.png",
         "init_type": "save game button",
     }
@@ -1176,35 +1188,43 @@ def buttons():
     )
     rhs_menu_collection.add_member(save_game_button)
 
-    input_dict["coordinates"] = (
-        input_dict["coordinates"][0],
-        scaling.scale_height(constants.default_display_height - 200),
-    )
-    input_dict["modes"] = ["strategic"]
-    input_dict["image_id"] = "buttons/grid_line_button.png"
-    input_dict["init_type"] = "toggle grid lines button"
-    toggle_grid_lines_button = (
-        constants.actor_creation_manager.create_interface_element(input_dict)
-    )
-    rhs_menu_collection.add_member(toggle_grid_lines_button)
-
-    input_dict["coordinates"] = (
-        input_dict["coordinates"][0],
-        scaling.scale_height(constants.default_display_height - 275),
-    )
-    input_dict["modes"] = ["strategic", "europe", "ministers", "trial"]
-    input_dict["keybind_id"] = pygame.K_j
+    input_dict["modes"] = ["strategic", "earth", "ministers", "trial"]
     input_dict["image_id"] = "buttons/text_box_size_button.png"
-    input_dict["init_type"] = "expand text box button"
+    input_dict["init_type"] = "toggle button"
+    input_dict["toggle_variable"] = "expand_text_box"
+    input_dict["attached_to_actor"] = False
     expand_text_box_button = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
     rhs_menu_collection.add_member(expand_text_box_button)
 
+    input_dict["modes"] = ["strategic"]
+    input_dict["image_id"] = "buttons/grid_line_button.png"
+
+    input_dict["init_type"] = "toggle button"
+    input_dict["attached_to_actor"] = False
+    input_dict["toggle_variable"] = "show_grid_lines"
+    toggle_grid_lines_button = (
+        constants.actor_creation_manager.create_interface_element(input_dict)
+    )
+    rhs_menu_collection.add_member(toggle_grid_lines_button)
+
+    if constants.effect_manager.effect_active("allow_planet_mask"):
+        input_dict["init_type"] = "toggle button"
+        input_dict["toggle_variable"] = "show_planet_mask"
+        input_dict["attached_to_actor"] = False
+        input_dict["modes"] = ["strategic"]
+        input_dict["image_id"] = actor_utility.generate_frame(
+            "buttons/toggle_planet_mask_button.png"
+        )
+        rhs_menu_collection.add_member(
+            constants.actor_creation_manager.create_interface_element(input_dict)
+        )
+
     input_dict["coordinates"] = scaling.scale_coordinates(
         110, constants.default_display_height - 50
     )
-    input_dict["modes"] = ["strategic", "europe", "ministers"]
+    input_dict["modes"] = ["strategic", "earth", "ministers"]
     input_dict["keybind_id"] = pygame.K_TAB
     input_dict["image_id"] = "buttons/cycle_units_button.png"
     input_dict["init_type"] = "cycle units button"
@@ -1224,7 +1244,7 @@ def buttons():
     lhs_menu_collection.add_member(free_all_slaves_button)
 
     input_dict["coordinates"] = (scaling.scale_width(165), input_dict["coordinates"][1])
-    input_dict["modes"] = ["strategic", "europe"]
+    input_dict["modes"] = ["strategic", "earth"]
     input_dict["image_id"] = "buttons/disable_sentry_mode_button.png"
     input_dict["init_type"] = "wake up all button"
     wake_up_all_button = constants.actor_creation_manager.create_interface_element(
@@ -1250,22 +1270,33 @@ def buttons():
         input_dict
     )
 
+    if constants.effect_manager.effect_active("map_modes"):
+        input_dict["init_type"] = "map mode button"
+        input_dict["parent_collection"] = rhs_menu_collection
+        input_dict["modes"] = ["strategic", "earth"]
+        for map_mode in constants.map_modes:
+            input_dict["map_mode"] = map_mode
+            input_dict["image_id"] = actor_utility.generate_frame(
+                f"misc/map_modes/{map_mode}.png"
+            )
+            constants.actor_creation_manager.create_interface_element(input_dict)
 
-def europe_screen():
+
+def earth_screen():
     """
     Description:
-        Initializes static interface of Europe screen - purchase buttons for units and items, 8 per column
+        Initializes static interface of Earth screen - purchase buttons for units and items, 8 per column
     Input:
         None
     Output:
         None
     """
-    europe_purchase_buttons = constants.actor_creation_manager.create_interface_element(
+    earth_purchase_buttons = constants.actor_creation_manager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(1500, 20),
             "width": 10,
             "height": 10,
-            "modes": ["europe"],
+            "modes": ["earth"],
             "init_type": "ordered collection",
             "separation": scaling.scale_height(20),
             "reversed": True,
@@ -1282,7 +1313,7 @@ def europe_screen():
                 "width": scaling.scale_width(100),
                 "height": scaling.scale_height(100),
                 "init_type": "recruitment button",
-                "parent_collection": europe_purchase_buttons,
+                "parent_collection": earth_purchase_buttons,
                 "recruitment_type": recruitment_type,
                 "member_config": {
                     "second_dimension_coordinate": -1 * (recruitment_index // 8)
@@ -1293,13 +1324,13 @@ def europe_screen():
     for item_type in [
         "consumer goods",
         "Maxim gun",
-    ]:  # Creates purchase button for items from Europe
+    ]:  # Creates purchase button for items from earth
         constants.actor_creation_manager.create_interface_element(
             {
                 "width": scaling.scale_width(100),
                 "height": scaling.scale_height(100),
                 "init_type": "buy item button",
-                "parent_collection": europe_purchase_buttons,
+                "parent_collection": earth_purchase_buttons,
                 "item_type": item_type,
                 "member_config": {
                     "second_dimension_coordinate": -1 * (recruitment_index // 8)
@@ -1717,7 +1748,7 @@ def mob_interface():
             "coordinates": scaling.scale_coordinates(0, 0),
             "width": scaling.scale_width(400),
             "height": scaling.scale_height(430),
-            "modes": ["strategic", "europe"],
+            "modes": ["strategic", "earth"],
             "init_type": "ordered collection",
             "is_info_display": True,
             "actor_type": "mob",
@@ -1751,7 +1782,7 @@ def mob_interface():
             "coordinates": scaling.scale_coordinates(0, 0),
             "width": scaling.scale_width(115),
             "height": scaling.scale_height(115),
-            "modes": ["strategic", "europe"],
+            "modes": ["strategic", "earth"],
             "actor_image_type": "default",
             "init_type": "actor display free image",
             "parent_collection": status.mob_info_display,
@@ -1763,7 +1794,7 @@ def mob_interface():
         "coordinates": scaling.scale_coordinates(125, -115),
         "width": scaling.scale_width(35),
         "height": scaling.scale_height(35),
-        "modes": ["strategic", "europe"],
+        "modes": ["strategic", "earth"],
         "image_id": "buttons/remove_minister_button.png",
         "init_type": "fire unit button",
         "parent_collection": status.mob_info_display,
@@ -1784,7 +1815,7 @@ def mob_interface():
             "coordinates": scaling.scale_coordinates(200, -105),
             "width": scaling.scale_width(40),
             "height": scaling.scale_height(40),
-            "modes": ["strategic", "europe"],
+            "modes": ["strategic", "earth"],
             "keybind_id": pygame.K_a,
             "image_id": "buttons/left_button.png",
             "init_type": "move left button",
@@ -1797,7 +1828,7 @@ def mob_interface():
             "coordinates": scaling.scale_coordinates(245, -105),
             "width": scaling.scale_width(40),
             "height": scaling.scale_height(40),
-            "modes": ["strategic", "europe"],
+            "modes": ["strategic", "earth"],
             "keybind_id": pygame.K_s,
             "image_id": "buttons/down_button.png",
             "init_type": "move down button",
@@ -1811,7 +1842,7 @@ def mob_interface():
             "coordinates": scaling.scale_coordinates(245, -60),
             "width": scaling.scale_width(40),
             "height": scaling.scale_height(40),
-            "modes": ["strategic", "europe"],
+            "modes": ["strategic", "earth"],
             "keybind_id": pygame.K_w,
             "image_id": "buttons/up_button.png",
             "init_type": "move up button",
@@ -1825,7 +1856,7 @@ def mob_interface():
             "coordinates": scaling.scale_coordinates(290, -105),
             "width": scaling.scale_width(40),
             "height": scaling.scale_height(40),
-            "modes": ["strategic", "europe"],
+            "modes": ["strategic", "earth"],
             "keybind_id": pygame.K_d,
             "image_id": "buttons/right_button.png",
             "init_type": "move right button",
@@ -1912,7 +1943,7 @@ def tile_interface():
                 "coordinates": scaling.scale_coordinates(0, 0),
                 "width": scaling.scale_width(775),
                 "height": scaling.scale_height(10),
-                "modes": ["strategic", "europe"],
+                "modes": ["strategic", "earth"],
                 "init_type": "ordered collection",
                 "is_info_display": True,
                 "actor_type": "tile",
@@ -1941,7 +1972,7 @@ def tile_interface():
         "coordinates": (0, 0),
         "width": scaling.scale_width(25),
         "height": scaling.scale_height(25),
-        "modes": ["strategic", "europe"],
+        "modes": ["strategic", "earth"],
         "init_type": "same tile icon",
         "image_id": "buttons/default_button.png",
         "is_last": False,
@@ -1960,7 +1991,7 @@ def tile_interface():
             "coordinates": (0, 0),
             "width": scaling.scale_width(25),
             "height": scaling.scale_height(15),
-            "modes": ["strategic", "europe"],
+            "modes": ["strategic", "earth"],
             "init_type": "same tile icon",
             "image_id": "buttons/default_button.png",
             "index": 3,
@@ -1975,7 +2006,7 @@ def tile_interface():
             "coordinates": scaling.scale_coordinates(0, separation),
             "width": scaling.scale_width(25),
             "height": scaling.scale_height(15),
-            "modes": ["strategic", "europe"],
+            "modes": ["strategic", "earth"],
             "image_id": "buttons/cycle_passengers_down_button.png",
             "init_type": "cycle same tile button",
             "parent_collection": same_tile_ordered_collection,
@@ -2004,7 +2035,7 @@ def tile_interface():
             "coordinates": scaling.scale_coordinates(5, 5),
             "width": scaling.scale_width(115),
             "height": scaling.scale_height(115),
-            "modes": ["strategic", "europe"],
+            "modes": ["strategic", "earth"],
             "actor_image_type": "default",
             "init_type": "actor display free image",
             "parent_collection": status.tile_info_display,
@@ -2016,6 +2047,12 @@ def tile_interface():
     tile_info_display_labels = [
         "coordinates",
         "terrain",
+        "water",
+        "temperature",
+        "vegetation",
+        "roughness",
+        "soil",
+        "altitude",
         "resource",
         "village",
         "native population",
@@ -2025,12 +2062,16 @@ def tile_interface():
         "terrain features",
     ]
     for current_actor_label_type in tile_info_display_labels:
-        if current_actor_label_type in [
-            "native population",
-            "native available workers",
-            "native aggressiveness",
-            "terrain features",
-        ]:
+        if (
+            current_actor_label_type
+            in [
+                "native population",
+                "native available workers",
+                "native aggressiveness",
+                "terrain features",
+            ]
+            + constants.terrain_parameters
+        ):
             x_displacement = 25
         else:
             x_displacement = 0
@@ -2101,7 +2142,7 @@ def inventory_interface():
                 ),
                 "minimum_width": scaling.scale_width(commodity_prices_width),
                 "height": scaling.scale_height(commodity_prices_height),
-                "modes": ["europe"],
+                "modes": ["earth"],
                 "image_id": "misc/commodity_prices_label.png",
                 "init_type": "commodity prices label",
             }
@@ -2111,12 +2152,12 @@ def inventory_interface():
     input_dict = {
         "width": scaling.scale_width(30),
         "height": scaling.scale_height(30),
-        "modes": ["europe"],
+        "modes": ["earth"],
         "init_type": "commodity button",
     }
     for current_index in range(
         len(constants.commodity_types)
-    ):  # commodity prices in Europe
+    ):  # commodity prices on Earth
         input_dict["coordinates"] = scaling.scale_coordinates(
             commodity_prices_x - 35,
             commodity_prices_y + commodity_prices_height - 65 - (30 * current_index),
@@ -2232,7 +2273,7 @@ def inventory_interface():
             "coordinates": scaling.scale_coordinates(5, 5),
             "width": scaling.scale_width(90),
             "height": scaling.scale_height(90),
-            "modes": ["strategic", "europe"],
+            "modes": ["strategic", "earth"],
             "actor_image_type": "inventory_default",
             "init_type": "actor display free image",
             "parent_collection": status.mob_inventory_info_display,
@@ -2391,7 +2432,7 @@ def inventory_interface():
             "coordinates": scaling.scale_coordinates(5, 5),
             "width": scaling.scale_width(90),
             "height": scaling.scale_height(90),
-            "modes": ["strategic", "europe"],
+            "modes": ["strategic", "earth"],
             "actor_image_type": "inventory_default",
             "init_type": "actor display free image",
             "parent_collection": status.tile_inventory_info_display,
@@ -2554,7 +2595,7 @@ def unit_organization_interface():
             "coordinates": scaling.scale_coordinates(0, 0),
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
-            "modes": ["strategic", "europe"],
+            "modes": ["strategic", "earth"],
             "actor_image_type": "default",
             "default_image_id": "mobs/default/mock_officer.png",
             "init_type": "actor display free image",
@@ -2603,7 +2644,7 @@ def unit_organization_interface():
                 "coordinates": scaling.scale_coordinates(0, 0),
                 "width": scaling.scale_width(image_height - 10),
                 "height": scaling.scale_height(image_height - 10),
-                "modes": ["strategic", "europe"],
+                "modes": ["strategic", "earth"],
                 "actor_image_type": "default",
                 "default_image_id": default_image_id,
                 "init_type": "actor display free image",
@@ -2663,7 +2704,7 @@ def unit_organization_interface():
             "coordinates": scaling.scale_coordinates(0, 0),
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
-            "modes": ["strategic", "europe"],
+            "modes": ["strategic", "earth"],
             "actor_image_type": "default",
             "default_image_id": default_image_id,
             "init_type": "actor display free image",
