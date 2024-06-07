@@ -102,71 +102,22 @@ class flavor_text_manager_template:
         Output:
             string tuple: Returns a tuple containing a random first name and random last name
         """
-        if status.current_country == status.Belgium:
-            self.allow_particles = True
-            if random.randrange(1, 7) >= 4:
-                self.set_flavor_text(
-                    "minister_first_names", "text/names/dutch_first_names.csv"
-                )
-                self.set_flavor_text(
-                    "minister_last_names", "text/names/dutch_last_names.csv"
-                )
-                self.set_flavor_text(
-                    "minister_particles", "text/names/dutch_particles.csv"
-                )
-                self.allow_double_last_names = False
-            else:
-                self.set_flavor_text(
-                    "minister_first_names", "text/names/french_first_names.csv"
-                )
-                self.set_flavor_text(
-                    "minister_last_names", "text/names/french_last_names.csv"
-                )
-                self.set_flavor_text(
-                    "minister_particles", "text/names/french_particles.csv"
-                )
-                self.allow_double_last_names = True
 
         first_name = self.generate_flavor_text("minister_first_names")
-
-        if (
-            status.current_country == status.Germany
-        ):  # Most German nobility had von particle but no inherited title
-            if background == "royal heir" or (
-                background == "aristocrat" and random.randrange(1, 7) >= 5
-            ):
-                while not first_name in constants.titles:
-                    first_name = self.generate_flavor_text("minister_first_names")
-                    if background != "royal heir":
-                        while first_name in [
-                            "Prince",
-                            "Infante",
-                            "Reichsfürst",
-                            "Principe",
-                        ]:  # only allow prince titles for royal heir
-                            first_name = self.generate_flavor_text(
-                                "minister_first_names"
-                            )
-            else:
-                while first_name in constants.titles:
-                    first_name = self.generate_flavor_text("minister_first_names")
+        if background in ["royal heir", "aristocrat"]:
+            while not first_name in constants.titles:
+                first_name = self.generate_flavor_text("minister_first_names")
+                if background != "royal heir":
+                    while first_name in [
+                        "Prince",
+                        "Infante",
+                        "Reichsfürst",
+                        "Principe",
+                    ]:  # only allow prince titles for royal heir
+                        first_name = self.generate_flavor_text("minister_first_names")
         else:
-            if background in ["royal heir", "aristocrat"]:
-                while not first_name in constants.titles:
-                    first_name = self.generate_flavor_text("minister_first_names")
-                    if background != "royal heir":
-                        while first_name in [
-                            "Prince",
-                            "Infante",
-                            "Reichsfürst",
-                            "Principe",
-                        ]:  # only allow prince titles for royal heir
-                            first_name = self.generate_flavor_text(
-                                "minister_first_names"
-                            )
-            else:
-                while first_name in constants.titles:
-                    first_name = self.generate_flavor_text("minister_first_names")
+            while first_name in constants.titles:
+                first_name = self.generate_flavor_text("minister_first_names")
 
         last_name = self.generate_flavor_text("minister_last_names")
 
@@ -182,10 +133,4 @@ class flavor_text_manager_template:
             elif random.randrange(1, 7) >= 4:
                 last_name = self.generate_flavor_text("minister_particles") + last_name
 
-        full_last_name = last_name
-        if self.allow_double_last_names and random.randrange(1, 7) >= 5:
-            second_last_name = self.generate_flavor_text("minister_last_names")
-            while second_last_name == last_name:
-                second_last_name = self.generate_flavor_text("minister_last_names")
-            full_last_name += "-" + second_last_name
-        return (first_name, full_last_name)
+        return (first_name, last_name)

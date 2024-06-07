@@ -33,7 +33,6 @@ class expedition(group):
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'worker': worker or dictionary value - If creating a new group, equals a worker that is part of this group. If loading, equals a dictionary of the saved information necessary to recreate the worker
                 'officer': worker or dictionary value - If creating a new group, equals an officer that is part of this group. If loading, equals a dictionary of the saved information necessary to recreate the officer
-                'canoes_image': string value - File path to the image used by this object when it is in a river
         Output:
             None
         """
@@ -131,7 +130,6 @@ class expedition(group):
         else:
             current_cell = self.images[0].current_cell
         promoted = self.veteran
-        found_river_source = False
         for current_direction in ["up", "down", "left", "right"]:
             target_cell = current_cell.adjacent_cells[current_direction]
             if target_cell and not target_cell.terrain_handler.visible:
@@ -145,63 +143,13 @@ class expedition(group):
                     public_opinion_increase = random.randrange(0, 3)
                     money_increase = 0
                     if target_cell.terrain_handler.resource != "none":
-                        if target_cell.terrain_handler.resource == "natives":
-                            text += (
-                                target_cell.terrain.upper()
-                                + " tile to the "
-                                + cardinal_directions[current_direction]
-                                + " that contains the village of "
-                                + target_cell.village.name
-                                + ". /n /n"
-                            )
-                        else:
-                            text += (
-                                target_cell.terrain.upper()
-                                + " tile with a "
-                                + target_cell.terrain_handler.resource.upper()
-                                + " resource (currently worth "
-                                + str(
-                                    constants.item_prices[
-                                        target_cell.terrain_handler.resource
-                                    ]
-                                )
-                                + " money each) to the "
-                                + cardinal_directions[current_direction]
-                                + ". /n /n"
-                            )
+                        text += f"{target_cell.terrain.upper()} tile with a {target_cell.terrain_handler.resource.upper()} resource (currently worth {constants.item_prices[target_cell.terrain_handler.resource]} money each) to the {cardinal_directions[current_direction]}. /n /n"
                         public_opinion_increase += 3
                     else:
-                        text += (
-                            target_cell.terrain.upper()
-                            + " tile to the "
-                            + cardinal_directions[current_direction]
-                            + ". /n /n"
-                        )
-
-                    if target_cell.terrain_handler.terrain_features.get(
-                        "river source", False
-                    ):
-                        money_increase = random.randrange(40, 61)
-                        text += (
-                            "This is the source of the "
-                            + target_cell.terrain_handler.terrain_features[
-                                "river source"
-                            ]["river_name"]
-                            + " river, which has been long sought after by explorers - you are granted a reward of "
-                            + str(money_increase)
-                            + " money for this discovery. /n /n"
-                        )
-                        public_opinion_increase += random.randrange(10, 31)
-                        found_river_source = True
+                        text += f"{target_cell.terrain.upper()} tile to the {cardinal_directions[current_direction]}. /n /n"
 
                     if public_opinion_increase > 0:  # Royal/National/Imperial
-                        text += (
-                            "The "
-                            + status.current_country.government_type_adjective.capitalize()
-                            + " Geographical Society is pleased with these findings, increasing your public opinion by "
-                            + str(public_opinion_increase)
-                            + ". /n /n"
-                        )
+                        text += f"The Geographical Society is pleased with these findings, increasing your public opinion by {public_opinion_increase}. /n /n"
                     on_reveal, audio = (None, None)
                     if (
                         (not promoted)
@@ -214,8 +162,7 @@ class expedition(group):
                         promoted = True
                     constants.notification_manager.display_notification(
                         {
-                            "message": text
-                            + "Click to remove this notification. /n /n",
+                            "message": f"{text}Click to remove this notification. /n /n",
                             "notification_type": "off_tile_exploration",
                             "on_reveal": on_reveal,
                             "audio": audio,
@@ -227,5 +174,3 @@ class expedition(group):
                             },
                         }
                     )
-        if found_river_source:
-            constants.achievement_manager.achieve("Explorer")

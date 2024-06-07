@@ -202,15 +202,6 @@ class minister:
                 if image_type == "outfit":
                     if self.background in ["army officer", "naval officer"]:
                         outfit_type = "military"
-                    elif self.background in ["aristocrat", "royal heir"]:
-                        if random.randrange(0, 5) == 0:
-                            outfit_type = "armored"
-                    elif (
-                        self.background != "lowborn"
-                        and not status.current_country.has_aristocracy
-                    ):
-                        if random.randrange(0, 20) == 0:
-                            outfit_type = "armored"
                 if outfit_type != "default":
                     possible_sections = actor_utility.get_image_variants(
                         "ministers/portraits/" + image_type + "/default.png",
@@ -247,16 +238,10 @@ class minister:
                     "green_screen": skin_color,
                 }
             elif image_type in ["outfit", "hat"]:
-                if outfit_type in ["military", "armored"]:
-                    self.portrait_sections[image_type] = {
-                        "image_id": image_id,
-                        "green_screen": status.current_country.colors,
-                    }
-                else:
-                    self.portrait_sections[image_type] = {
-                        "image_id": image_id,
-                        "green_screen": suit_colors,
-                    }
+                self.portrait_sections[image_type] = {
+                    "image_id": image_id,
+                    "green_screen": suit_colors,
+                }
             else:
                 self.portrait_sections[image_type] = image_id
         self.update_image_bundle()
@@ -1191,58 +1176,28 @@ class minister:
         elif constants.effect_manager.effect_active("nine_mortal_men"):
             return -10
         if (
-            random.randrange(1, 3) == 1
+            random.randrange(1, 7) >= 4
         ):  # half chance to apply skill modifier, otherwise return 0
             modifier += self.get_skill_modifier()
             if constants.effect_manager.effect_active("show_modifiers"):
                 if modifier >= 0:
-                    print(
-                        "Minister gave modifier of +"
-                        + str(modifier)
-                        + " to "
-                        + roll_type
-                        + " roll."
-                    )
+                    print(f"Minister gave modifier of +{modifier} to {roll_type} roll.")
                 else:
-                    print(
-                        "Minister gave modifier of "
-                        + str(modifier)
-                        + " to "
-                        + roll_type
-                        + " roll."
-                    )
+                    print(f"Minister gave modifier of {modifier} to {roll_type} roll.")
         if constants.effect_manager.effect_active(roll_type + "_plus_modifier"):
-            if not (
-                roll_type == "construction"
-                and status.displayed_mob.officer.officer_type != "engineer"
-            ):
-                # Exclude non-construction gang units from construction modifiers
-                if random.randrange(1, 3) == 1:
-                    modifier += 1
-                    if constants.effect_manager.effect_active("show_modifiers"):
-                        print("Country gave modifier of +1 to " + roll_type + " roll.")
-                elif constants.effect_manager.effect_active("show_modifiers"):
-                    print(
-                        "Country attempted to give +1 modifier to "
-                        + roll_type
-                        + " roll."
-                    )
+            if random.randrange(1, 7) >= 4:
+                modifier += 1
+                if constants.effect_manager.effect_active("show_modifiers"):
+                    print("Generic modifier of +1 to " + roll_type + " roll.")
+            elif constants.effect_manager.effect_active("show_modifiers"):
+                print(f"Attempted to give generic +1 modifier to {roll_type} roll.")
         elif constants.effect_manager.effect_active(roll_type + "_minus_modifier"):
-            if not (
-                roll_type == "construction"
-                and status.displayed_mob.officer.officer_type != "engineer"
-            ):
-                # Exclude non-construction gang units from construction modifiers
-                if random.randrange(1, 3) == 1:
-                    modifier -= 1
-                    if constants.effect_manager.effect_active("show_modifiers"):
-                        print("Country gave modifier of -1 to " + roll_type + " roll.")
-                elif constants.effect_manager.effect_active("show_modifiers"):
-                    print(
-                        "Country attempted to give -1 modifier to "
-                        + roll_type
-                        + " roll."
-                    )
+            if random.randrange(1, 7) >= 4:
+                modifier -= 1
+                if constants.effect_manager.effect_active("show_modifiers"):
+                    print("Gneric modifier of of -1 to " + roll_type + " roll.")
+            elif constants.effect_manager.effect_active("show_modifiers"):
+                print(f"Attempted to give generic -1 modifier to {roll_type} roll.")
         return modifier
 
     def remove_complete(self):
@@ -1414,7 +1369,6 @@ class minister:
                     "You think you can kick me down from your palace in the clouds? ",
                     "I'll make sure to tell all about those judges you bribed. ",
                     "So many dead... what will be left of this land by the time you're done? ",
-                    "What next? Will you murder me like you did those innocents in the village? ",
                     "You'll burn in hell for this. ",
                     "Watch your back, friend. ",
                 ]
@@ -1481,7 +1435,6 @@ class minister:
                     middle_options = [
                         "I hear God weeping at the crimes we commit in His name.",
                         "We sent so many young men to die just to fill our coffers. ",
-                        "We're no better than the wild beasts we fear. ",
                     ]
                     conclusion_options = [
                         "I pray we will be forgiven for the things we've done, and you ought to do the same. ",

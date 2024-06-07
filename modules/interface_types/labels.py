@@ -161,19 +161,6 @@ class value_label(label):
             tooltip_text.append(
                 "Public opinion tends to approach the netural value of 50 over time"
             )
-        if self.value_name == "turn":
-            tooltip_text.append("Current lore mission: ")
-            if status.current_lore_mission == None:
-                text = "    None"
-            else:
-                text = (
-                    "    Find the "
-                    + status.current_lore_mission.name
-                    + " ("
-                    + status.current_lore_mission.lore_type
-                    + ")"
-                )
-            tooltip_text.append(text)
         self.set_tooltip(tooltip_text)
 
 
@@ -275,18 +262,14 @@ class money_label_template(value_label):
         )
         for worker_type in worker_type_info_dicts:
             current_dict = worker_type_info_dicts[worker_type]
-            if worker_type == "slave":
-                verb = "cost"
-            else:
-                verb = "be paid"
             if current_dict["upkeep"] > 0:
                 if current_dict["number"] > 0:
                     tooltip_text.append(
-                        f"    Your {current_dict['number']} {current_dict['name']} will {verb} {current_dict['upkeep']} money, totaling to {current_dict['total_upkeep']} money."
+                        f"    Your {current_dict['number']} {current_dict['name']} will be paid {current_dict['upkeep']} money, totaling to {current_dict['total_upkeep']} money."
                     )
                 else:
                     tooltip_text.append(
-                        f"    Any {current_dict['name']} would each {verb} {current_dict['upkeep']} money."
+                        f"    Any {current_dict['name']} would each be paid {current_dict['upkeep']} money."
                     )
             else:
                 if current_dict["number"] > 0:
@@ -297,16 +280,7 @@ class money_label_template(value_label):
                     tooltip_text.append(
                         f"    Any {current_dict['name']} would not need to be paid."
                     )
-
         tooltip_text.append("")
-        num_available_workers = market_utility.count_available_workers()
-        tooltip_text.append(
-            "Between workers in slums and villages and recently fired wandering workers, the free labor pool consists of "
-            + str(num_available_workers)
-            + " African worker"
-            + utility.generate_plural(num_available_workers)
-            + "."
-        )
 
         if len(status.loan_list) > 0:
             tooltip_text.append("")
@@ -316,35 +290,25 @@ class money_label_template(value_label):
 
         tooltip_text.append("")
         tooltip_text.append(
-            "While public opinion and government subsidies are not entirely predictable, your company is estimated to receive "
-            + str(market_utility.calculate_subsidies(True))
-            + " money in subsidies this turn"
+            f"While public opinion and government subsidies are not entirely predictable, your company is estimated to receive {market_utility.calculate_subsidies(True)} money in subsidies this turn"
         )
 
         total_sale_revenue = market_utility.calculate_total_sale_revenue()
         if total_sale_revenue > 0:
             tooltip_text.append("")
             tooltip_text.append(
-                "Your "
-                + constants.type_minister_dict["trade"]
-                + " has been ordered to sell commodities at the end of the turn for an estimated total of "
-                + str(total_sale_revenue)
-                + " money"
+                f"Your {constants.type_minister_dict['trade']} has been ordered to sell commodities at the end of the turn for an estimated total of {total_sale_revenue} money"
             )
 
         tooltip_text.append("")
         estimated_money_change = market_utility.calculate_end_turn_money_change()
         if estimated_money_change > 0:
             tooltip_text.append(
-                "Between these revenues and expenses, your company is expected to gain about "
-                + str(estimated_money_change)
-                + " money at the end of the turn."
+                f"Between these revenues and expenses, your company is expected to gain about {estimated_money_change} money at the end of the turn."
             )
         elif estimated_money_change < 0:
             tooltip_text.append(
-                "Between these revenues and expenses, your company is expected to lose about "
-                + str(-1 * estimated_money_change)
-                + " money at the end of the turn."
+                f"Between these revenues and expenses, your company is expected to lose about {-1 * estimated_money_change} money at the end of the turn."
             )
         else:
             tooltip_text.append(

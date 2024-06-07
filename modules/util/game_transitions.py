@@ -117,7 +117,6 @@ def set_game_mode(new_game_mode):
             status.tile_info_display, None, override_exempt=True
         )
         minister_utility.calibrate_minister_info_display(None)
-        actor_utility.calibrate_actor_info_display(status.country_info_display, None)
         if new_game_mode == "earth":
             if status.earth_grid.cell_list[0][0].contained_mobs:
                 status.earth_grid.cell_list[0][0].contained_mobs[0].cycle_select()
@@ -158,7 +157,7 @@ def set_game_mode(new_game_mode):
 def create_strategic_map(from_save=False):
     """
     Description:
-        Generates grid terrains/resources/villages if not from save, and sets up tiles attached to each grid cell
+        Generates grid terrains/resources if not from save, and sets up tiles attached to each grid cell
     Input:
         None
     Output:
@@ -168,12 +167,11 @@ def create_strategic_map(from_save=False):
     main_loop_utility.update_display()
 
     for current_grid in status.grid_list:
-        if current_grid.is_abstract_grid:  # if earth/slave traders grid
+        if current_grid.is_abstract_grid:  # if earth grid
             tiles.abstract_tile(
                 False,
                 {
                     "grid": current_grid,
-                    "image": current_grid.tile_image_id,
                     "name": current_grid.name,
                     "modes": current_grid.modes,
                 },
@@ -225,12 +223,8 @@ def to_main_menu(override=False):
         current_actor.remove_complete()
     for current_grid in status.grid_list:
         current_grid.remove_complete()
-    for current_village in status.village_list:
-        current_village.remove_complete()
     for current_minister in status.minister_list:
         current_minister.remove_complete()
-    for current_lore_mission in status.lore_mission_list:
-        current_lore_mission.remove_complete()
     for current_die in status.dice_list:
         current_die.remove_complete()
     status.loan_list = []
@@ -238,16 +232,9 @@ def to_main_menu(override=False):
     status.displayed_tile = None
     constants.message = ""
     status.player_turn_queue = []
-    status.current_lore_mission = None
     if status.current_instructions_page:
         status.current_instructions_page.remove_complete()
         status.current_instructions_page = None
-    if status.current_country:
-        status.current_country.deselect()
-    for current_completed_lore_type in constants.completed_lore_mission_types:
-        status.lore_types_effects_dict[current_completed_lore_type].remove()
-    constants.completed_lore_mission_types = []
-    constants.completed_lore_missions = {}
     set_game_mode("main_menu")
 
 

@@ -1,4 +1,4 @@
-# Contains functionality for worker type templates, such as European, African, Asian, slave workers
+# Contains functionality for worker type templates, such as European, religious workers
 
 import random
 from typing import Dict, List
@@ -45,9 +45,7 @@ class worker_type:
             status.worker_types[self.adjective] = self
 
             self.upkeep: float = input_dict.get("upkeep", 0.0)
-            self.initial_upkeep: float = (
-                self.upkeep
-            )  # Make sure slave worker upkeep doesn't fluctuate
+            self.initial_upkeep: float = self.upkeep
             self.min_upkeep: float = min(0.5, self.initial_upkeep)
 
             self.recruitment_cost: float
@@ -135,63 +133,19 @@ class worker_type:
             "init_type": self.init_type,
             "worker_type": self.adjective,
         }
-        if (
-            self.adjective == "Asian" and random.randrange(1, 7) >= 4
-        ):  # Half chance each for East/South Asian variants
-            input_dict["image"] = "mobs/" + self.name + " 1/default.png"
         return input_dict
 
-    def on_recruit(self, purchased=True) -> None:
+    def on_recruit(self) -> None:
         """
         Description:
             Makes any updates required when worker first recruited (not on load)
         Input:
-            boolean purchased=True: Whether this worker was purchased, only required for slave workers
+            None
         Output:
             None
         """
-        if not self.adjective in ["religious", "slave"]:
+        if not self.adjective in ["religious"]:
             market_utility.attempt_worker_upkeep_change("increase", self.adjective)
-            if self.adjective == "African":
-                constants.achievement_manager.check_achievements("Minimum Wage")
-        elif self.adjective == "slave":
-            if purchased:  # as opposed to captured
-                if not constants.effect_manager.effect_active("no_slave_trade_penalty"):
-                    public_opinion_penalty = 5 + random.randrange(-3, 4)  # 2-8
-                    current_public_opinion = constants.public_opinion_tracker.get()
-                    constants.public_opinion_tracker.change(-1 * public_opinion_penalty)
-                    resulting_public_opinion = constants.public_opinion_tracker.get()
-                    if not resulting_public_opinion == current_public_opinion:
-                        text_utility.print_to_screen(
-                            "Participating in the slave trade has decreased your public opinion from "
-                            + str(current_public_opinion)
-                            + " to "
-                            + str(resulting_public_opinion)
-                            + "."
-                        )
-                else:
-                    text_utility.print_to_screen(
-                        "Your country's prolonged involvement with the slave trade prevented any public opinion penalty."
-                    )
-                market_utility.attempt_slave_recruitment_cost_change("increase")
-                constants.evil_tracker.change(5)
-                actor_utility.set_slave_traders_strength(
-                    constants.slave_traders_strength + 1
-                )
-            else:
-                public_opinion_penalty = 5 + random.randrange(-3, 4)  # 2-8
-                current_public_opinion = constants.public_opinion_tracker.get()
-                constants.public_opinion_tracker.change(-1 * public_opinion_penalty)
-                resulting_public_opinion = constants.public_opinion_tracker.get()
-                if not resulting_public_opinion == current_public_opinion:
-                    text_utility.print_to_screen(
-                        "Your use of captured slaves has decreased your public opinion from "
-                        + str(current_public_opinion)
-                        + " to "
-                        + str(resulting_public_opinion)
-                        + "."
-                    )
-                constants.evil_tracker.change(5)
 
     def on_fire(self, wander=False):
         """
@@ -202,42 +156,10 @@ class worker_type:
         Output:
             None
         """
-        if not self.adjective in ["religious", "slave"]:
+        if not self.adjective in ["religious"]:
             market_utility.attempt_worker_upkeep_change("decrease", self.adjective)
 
-        if self.adjective == "slave":
-            constants.evil_tracker.change(-2)
-            public_opinion_bonus = 4 + random.randrange(
-                -3, 4
-            )  # 1-7, less bonus than penalty for buying slaves on average
-            current_public_opinion = constants.public_opinion_tracker.get()
-            constants.public_opinion_tracker.change(public_opinion_bonus)
-            resulting_public_opinion = constants.public_opinion_tracker.get()
-            if not resulting_public_opinion == current_public_opinion:
-                text_utility.print_to_screen(
-                    "Freeing slaves has increased your public opinion from "
-                    + str(current_public_opinion)
-                    + " to "
-                    + str(resulting_public_opinion)
-                    + "."
-                )
-
-            if wander:
-                text_utility.print_to_screen(
-                    "These freed slaves will wander and eventually settle down in one of your slums."
-                )
-                constants.num_wandering_workers += 1
-            status.worker_types["African"].on_fire(
-                wander=wander
-            )  # Also get effect of adding African worker to labor pool
-
-        if self.adjective == "African" and wander:
-            text_utility.print_to_screen(
-                "These fired workers will wander and eventually settle down in one of your slums."
-            )
-            constants.num_wandering_workers += 1
-
-        elif self.adjective in ["European", "religious"]:
+        if self.adjective in ["European", "religious"]:
             current_public_opinion = constants.public_opinion
             constants.public_opinion_tracker.change(-1)
             resulting_public_opinion = constants.public_opinion

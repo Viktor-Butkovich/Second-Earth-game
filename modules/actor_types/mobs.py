@@ -45,14 +45,13 @@ class mob(actor):
         self.is_officer = False
         self.is_work_crew = False
         self.is_battalion = False
-        self.is_safari = False
         self.is_group = False
         self.is_npmob = False
         self.is_pmob = False
         self.can_explore = False  # if can attempt to explore unexplored areas
         self.can_construct = False  # if can construct buildings
-        self.can_trade = False  # if can trade or create trading posts
-        self.can_convert = False  # if can convert natives or build missions
+        self.can_trade = False
+        self.can_convert = False
         self.number = 1  # how many entities are in a unit, used for verb conjugation
         self.actor_type = "mob"
         self.end_turn_destination = "none"
@@ -77,10 +76,7 @@ class mob(actor):
         status.mob_list.append(self)
         self.set_name(input_dict["name"])
         self.can_swim = False  # if can enter water areas without ships in them
-        self.can_swim_river = False
-        self.can_swim_ocean = False
         self.can_walk = True  # if can enter land areas
-        self.set_has_canoes(False)
         self.max_movement_points = 1
         self.movement_points = self.max_movement_points
         self.movement_cost = 1
@@ -139,7 +135,6 @@ class mob(actor):
                 'image': string value - File path to the image used by this mob
                 'creation_turn': int value - Turn number on which this mob was created
                 'disorganized': boolean value - Whether this unit is currently disorganized
-                'canoes_image': string value - Only saved if this unit has canoes, file path to the image used by this mob when it is in river water
                 'image_variant': int value - Optional variants of default image to use from same file, applied to get_image_id_list but not default image path
         """
         save_dict = super().to_save_dict()
@@ -180,20 +175,10 @@ class mob(actor):
             disorganized = override_values["disorganized"]
         else:
             disorganized = self.disorganized
-        if "has_canoes" in override_values:
-            has_canoes = override_values["has_canoes"]
-        else:
-
-            has_canoes = self.has_canoes
 
         image_id_list = super().get_image_id_list(override_values)
         if disorganized:
-            if self.is_npmob and self.npmob_type == "beast":
-                image_id_list.append("misc/injured_icon.png")
-            else:
-                image_id_list.append("misc/disorganized_icon.png")
-        if has_canoes and self.in_canoes:
-            image_id_list.append("misc/canoes.png")
+            image_id_list.append("misc/disorganized_icon.png")
         return image_id_list
 
     def set_disorganized(self, new_value):
@@ -227,11 +212,6 @@ class mob(actor):
                 modifier -= 1
                 if self.is_officer:
                     modifier -= 1
-            if opponent and opponent.npmob_type == "beast":
-                if self.is_group and self.group_type == "safari":
-                    modifier += 3
-                else:
-                    modifier -= 1
             if include_tile and self.images[0].current_cell.has_intact_building("fort"):
                 modifier += 1
         if self.disorganized:
@@ -252,8 +232,8 @@ class mob(actor):
         # add 3 to modifier and add veteran bonus to get strength
         # 0: lone officer, vehicle
         # 1: disorganized workers/civilian group
-        # 2: veteran lone officer, workers/civilian group, disorganized native warriors
-        # 3: veteran civilian group, disorganized colonial battalion, native warriors
+        # 2: veteran lone officer, workers/civilian group
+        # 3: veteran civilian group, disorganized colonial battalion
         # 4: colonial battalion, disorganized imperial battalion
         # 5: imperial battalion, veteran colonial battalion, disorganized veteran imperial battalion
         # 6: veteran imperial battalion
@@ -389,14 +369,9 @@ class mob(actor):
                         and adjacent_infrastructure.infrastructure_type == "ferry"
                     ):
                         cost = 2
-                elif (
-                    adjacent_cell.terrain_handler.terrain == "water"
-                    and adjacent_cell.y > 0
-                    and (self.can_walk and not self.can_swim_river)
-                    or adjacent_cell.terrain_handler.terrain_features.get(
-                        "cataract", False
-                    )
-                ):  # elif river w/o canoes
+                elif adjacent_cell.terrain_handler.terrain == "water" and (
+                    self.can_walk and not self.can_swim
+                ):  # elif water without boats
                     cost = self.max_movement_points
                 if (not adjacent_cell.terrain_handler.visible) and self.can_explore:
                     cost = self.movement_cost
@@ -426,24 +401,6 @@ class mob(actor):
             if (
                 current_cell.terrain_handler.terrain == "water"
                 and current_cell.terrain_handler.visible
-            ):
-                return True
-        return False
-
-    def adjacent_to_river(self):
-        """
-        Description:
-            Returns whether any of the cells directly adjacent to this mob's cell has the water terrain above y == 0. Otherwise, returns False
-        Input:
-            None
-        Output:
-            boolean: Returns True if any of the cells directly adjacent to this mob's cell has the water terrain above y == 0. Otherwise, returns False
-        """
-        for current_cell in self.images[0].current_cell.adjacent_list:
-            if (
-                current_cell.terrain_handler.terrain == "water"
-                and current_cell.terrain_handler.visible
-                and not current_cell.y == 0
             ):
                 return True
         return False
@@ -723,33 +680,19 @@ class mob(actor):
 
         tooltip_list.append("Combat strength: " + str(self.get_combat_strength()))
         if self.disorganized:
-            if self.is_npmob and self.npmob_type == "beast":
-                tooltip_list.append(
-                    "This unit is currently injured, giving a combat penalty until its next turn"
-                )
-            else:
-                tooltip_list.append(
-                    "This unit is currently disorganized, giving a combat penalty until its next turn"
-                )
+            tooltip_list.append(
+                "This unit is currently disorganized, giving a combat penalty until its next turn"
+            )
 
         if self.end_turn_destination != "none":
             if self.end_turn_destination.cell.grid == status.strategic_map_grid:
                 tooltip_list.append(
                     f"This unit has been issued an order to travel to ({self.end_turn_destination.cell.x}, {self.end_turn_destination.cell.y}) in Africa at the end of the turn"
                 )
-            elif self.end_turn_destination.cell.grid == status.slave_traders_grid:
-                tooltip_list.append(
-                    "This unit has been issued an order to travel to the slave traders at the end of the turn"
-                )
             else:
                 tooltip_list.append(
                     f"This unit has been issued an order to travel to {self.end_turn_destination.cell.grid.grid_type[:-5].capitalize()} at the end of the turn"
                 )
-
-        if self.is_npmob and self.npmob_type == "beast":
-            tooltip_list.append(
-                f"This beast tends to live in {self.preferred_terrains[0]}, {self.preferred_terrains[1]}, and {self.preferred_terrains[2]} terrain"
-            )
 
         if self.is_npmob:
             if self.hostile:
@@ -921,30 +864,14 @@ class mob(actor):
                     return
 
             if self.is_officer or self.is_group or self.is_vehicle:
-                if (
-                    self.is_battalion
-                    or self.is_safari
-                    or (self.is_officer and self.officer_type in ["hunter", "major"])
+                if self.is_battalion or (
+                    self.is_officer and self.officer_type in ["major"]
                 ):
                     constants.sound_manager.play_sound("effects/bolt_action_2")
-                if status.current_country.name == "France":
-                    possible_sounds = [
-                        "voices/french sir 1",
-                        "voices/french sir 2",
-                        "voices/french sir 3",
-                    ]
-                elif status.current_country.name == "Germany":
-                    possible_sounds = [
-                        "voices/german sir 1",
-                        "voices/german sir 2",
-                        "voices/german sir 3",
-                        "voices/german sir 4",
-                        "voices/german sir 5",
-                    ]
-                else:
-                    possible_sounds = ["voices/sir 1", "voices/sir 2", "voices/sir 3"]
-                    if self.is_vehicle and self.vehicle_type == "ship":
-                        possible_sounds.append("voices/steady she goes")
+
+                possible_sounds = ["voices/sir 1", "voices/sir 2", "voices/sir 3"]
+                if self.is_vehicle and self.vehicle_type == "ship":
+                    possible_sounds.append("voices/steady she goes")
         if possible_sounds:
             constants.sound_manager.play_sound(random.choice(possible_sounds))
 
@@ -980,7 +907,7 @@ class mob(actor):
                     and (
                         local_infrastructure.is_road or local_infrastructure.is_railroad
                     )
-                    and not self.can_swim_river
+                    and not self.can_swim
                 ):  # If walking on bridge
                     possible_sounds.append("effects/footsteps")
                 else:
@@ -1025,11 +952,7 @@ class mob(actor):
             if self.images[0].current_cell.terrain_handler.terrain == "water" and not (
                 previous_infrastructure != "none" and previous_infrastructure.is_bridge
             ):
-                if (
-                    (not self.can_swim)
-                    or (self.y == 0 and not self.can_swim_ocean)
-                    or (self.y > 0 and not self.can_swim_river)
-                ):  # board if moving to ship in water
+                if not self.can_swim:  # board if moving to ship in water
                     vehicle = self.images[0].current_cell.get_vehicle(
                         "ship", self.is_worker
                     )
@@ -1067,8 +990,8 @@ class mob(actor):
                     ):  # if came from ship in ocean
                         self.set_movement_points(0)
                     elif previous_cell.y > 0 and not (
-                        self.can_swim and self.can_swim_river
-                    ):  # if came from boat in river
+                        self.can_swim
+                    ):  # if came from boat in water
                         self.set_movement_points(0)
             if (
                 self.can_show()
@@ -1077,20 +1000,17 @@ class mob(actor):
                 and not previous_cell.has_walking_connection(
                     self.images[0].current_cell
                 )
-            ):  # if entering river w/o canoes, spend maximum movement and become disorganized
+            ):  # if entering water w/o canoes, spend maximum movement and become disorganized
                 self.set_disorganized(True)
             if not (
                 self.images[0].current_cell == "none"
                 or self.images[0].current_cell.terrain_handler.terrain == "water"
                 or self.is_vehicle
             ):
-                possible_sounds = ["voices/forward march 1", "voices/forward march 2"]
-                if status.current_country.name == "Germany":
-                    possible_sounds.append("voices/german forward march 1")
-                constants.sound_manager.play_sound(random.choice(possible_sounds))
+                constants.sound_manager.play_sound(
+                    random.choice(["voices/forward march 1", "voices/forward march 2"])
+                )
 
-        if self.has_canoes:
-            self.update_canoes()
         self.last_move_direction = (x_change, y_change)
 
     def can_swim_at(self, current_cell):
@@ -1111,43 +1031,6 @@ class mob(actor):
         if current_cell.y == 0 and self.can_swim_ocean:
             return True
         return False
-
-    def set_has_canoes(self, new_canoes):
-        """
-        Description:
-            Sets this unit to have canoes, automatically updating its in_canoes, swimming capabilities, and images
-        Input:
-            boolean new_canoes: New canoes value
-        Output:
-            None
-        """
-        self.has_canoes = new_canoes
-        self.can_swim = self.has_canoes
-        self.can_swim_ocean = False
-        self.can_swim_river = self.has_canoes
-
-    def update_canoes(self):
-        """
-        Description:
-            If this unit is visible to the player, updates its image to include canoes or not depending on if the unit is in river water - needs to be separately
-                called after set has canoes
-        Input:
-            None
-        Output:
-            None
-        """
-        current_cell = self.images[0].current_cell
-
-        if (
-            current_cell != "none"
-            and current_cell.terrain_handler.terrain == "water"
-            and self.y > 0
-            and not current_cell.terrain_handler.terrain_features.get("cataract", False)
-        ):
-            self.in_canoes = self.has_canoes
-        else:
-            self.in_canoes = False
-        self.update_image_bundle()
 
     def retreat(self):
         """

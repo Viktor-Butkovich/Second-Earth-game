@@ -9,8 +9,8 @@ class effect:
         Description:
             Initializes this object
         Input:
-            string effect_id: Name of effect, like 'british_country_modifier'
-            string effect_type: Type of effect produced by this effect, like 'advertising_plus_modifier'
+            string effect_id: Name of effect, like 'zoology_completion_effect'
+            string effect_type: Type of effect produced by this effect, like 'hunting_plus_modifier'
             effect_manager_template effect_manager: Effect manager that this effect is associated with
         Output:
             None

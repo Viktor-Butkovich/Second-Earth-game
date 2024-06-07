@@ -100,7 +100,7 @@ class world_grid(grid):
                     random.randrange(-5, 13),
                     self.get_tuning("base_temperature_lower_bound"),
                 ),
-                self.get_tuning("base_temperature_upper_bound") + 1,
+                self.get_tuning("base_temperature_upper_bound"),
             )
         else:
             default_temperature = random.randrange(
@@ -844,24 +844,17 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
                     getattr(constants, grid_type + "_x_offset"),
                     getattr(constants, grid_type + "_y_offset"),
                 ),
-                # Like (earth_grid_x_offset, earth_grid_y_offset) or (slave_traders_grid_x_offset, slave_traders_grid_y_offset)
+                # Like (earth_grid_x_offset, earth_grid_y_offset)
                 "width": scaling.scale_width(120),
                 "height": scaling.scale_height(120),
             }
         )
         if grid_type == "earth_grid":
-            input_dict["tile_image_id"] = "locations/earth/earth.png"
             input_dict["modes"].append("earth")
-
-        elif grid_type == "asia_grid":
-            input_dict["tile_image_id"] = "locations/asia.png"
-
-        elif grid_type == "slave_traders_grid":
-            input_dict["tile_image_id"] = "locations/slave_traders/default.png"
 
         input_dict["name"] = (
             grid_type[:-5].replace("_", " ").capitalize()
-        )  # Replaces earth_grid with Earth, slave_traders_grid with Slave traders
+        )  # Replaces earth_grid with Earth
         return_grid = abstract_grid(from_save, input_dict)
 
     setattr(status, grid_type, return_grid)

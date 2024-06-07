@@ -44,8 +44,8 @@ class effect_manager_template:
         Description:
             Creates an effect with the inputted id and type
         Input:
-            string effect_id: Name of effect, like 'british_country_modifier'
-            string effect_type: Type of effect produced by this effect, like 'construction_plus_modifier'
+            string effect_id: Name of effect, like 'zoology_completion_effect'
+            string effect_type: Type of effect produced by this effect, like 'hunting_plus_modifier'
         Output:
             effect: Returns the created effect
         """

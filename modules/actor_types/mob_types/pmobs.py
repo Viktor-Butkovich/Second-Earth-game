@@ -390,16 +390,6 @@ class pmob(mob):
         Output:
             None
         """
-        if (
-            new_value == True
-            and self.is_worker
-            and self.worker_type == "slave"
-            and constants.slave_traders_strength <= 0
-        ):
-            text_utility.print_to_screen(
-                "The slave trade has been eradicated and automatic replacement of slaves is no longer possible"
-            )
-            return ()
         self.automatically_replace = new_value
         displayed_mob = status.displayed_mob
         if self == displayed_mob:
@@ -533,12 +523,7 @@ class pmob(mob):
             if transportation_minister.no_corruption_roll(
                 6, "health_attrition"
             ) == 1 or constants.effect_manager.effect_active("boost_attrition"):
-                worker_type = "none"
-                if self.is_worker:
-                    worker_type = self.worker_type
-                if (not worker_type in ["African", "slave"]) or random.randrange(
-                    1, 7
-                ) <= 2:
+                if random.randrange(1, 7) <= 2:
                     self.attrition_death()
 
     def attrition_death(self, show_notification=True):
@@ -603,11 +588,6 @@ class pmob(mob):
             text += (
                 str(constants.recruitment_costs["officer"])
                 + " money has automatically been spent to recruit a replacement. /n /n"
-            )
-        elif self.is_worker and self.worker_type == "slave":
-            text += (
-                str(constants.recruitment_costs["slave workers"])
-                + " money has automatically been spent to purchase replacements. /n /n"
             )
         return text
 

@@ -41,7 +41,6 @@ class cell:
         )  # (left, top, width, height)
         self.grid.cell_list[x][y] = self
         self.tile = "none"
-        self.village = "none"
         self.settlement = None
         self.terrain_handler: terrain_handler = None
         self.contained_mobs: list = []
@@ -166,10 +165,7 @@ class cell:
         Output:
             boolean: Returns whether attrition should happen here based on this cell's terrain and buildings
         """
-        if self.grid in [
-            status.earth_grid,
-            status.slave_traders_grid,
-        ]:  # no attrition on Earth or with slave traders
+        if self.grid in [status.earth_grid]:  # no attrition on Earth
             if attrition_type == "health":
                 return False
             elif (
@@ -188,8 +184,7 @@ class cell:
                 return False
 
             if (
-                self.has_building("village")
-                or self.has_building("train_station")
+                self.has_building("train_station")
                 or self.has_building("port")
                 or self.has_building("resource")
                 or self.has_building("fort")
@@ -204,7 +199,7 @@ class cell:
 
     def has_building(
         self, building_type
-    ):  # accepts village, train_station, port, trading_post, mission, fort, road, railroad, resource, slums. No forts in game yet
+    ):  # accepts train_station, port, fort, road, railroad, resource, slums
         """
         Description:
             Returns whether this cell has a building of the inputted type, even if the building is damaged
@@ -213,12 +208,7 @@ class cell:
         Output:
             boolean: Returns whether this cell has a building of the inputted type
         """
-        if building_type == "village":
-            if self.village == "none":
-                return False
-            else:
-                return True
-        elif building_type in ["road", "railroad"]:
+        if building_type in ["road", "railroad"]:
             if self.contained_buildings["infrastructure"] == "none":
                 return False
             elif (
@@ -252,13 +242,7 @@ class cell:
         Output:
             boolean: Returns whether this cell has an undamaged building of the inputted type
         """
-        if building_type == "village":
-            if self.village == "none":
-                return False
-            else:
-                return True
-
-        elif building_type in ["road", "railroad"]:
+        if building_type in ["road", "railroad"]:
             if self.contained_buildings["infrastructure"] == "none":
                 return False
             elif (
@@ -300,9 +284,7 @@ class cell:
             building/string: Returns whether this cell's building of the inputted type, or 'none' if that building is not present
         """
         if self.has_building(building_type):
-            if building_type == "village":
-                return self.village
-            elif building_type in ["road", "railroad"]:
+            if building_type in ["road", "railroad"]:
                 return self.contained_buildings["infrastructure"]
             else:
                 return self.contained_buildings[building_type]
@@ -319,10 +301,7 @@ class cell:
             building/string: Returns this cell's undamaged building of the inputted type, or 'none' if that building is damaged or not present
         """
         if self.has_intact_building(building_type):
-            if building_type == "village":
-                return self.village
-
-            elif building_type in ["road", "railroad"]:
+            if building_type in ["road", "railroad"]:
                 return self.contained_buildings["infrastructure"]
 
             else:
@@ -378,28 +357,14 @@ class cell:
                 )
         return contained_buildings_list
 
-    def adjacent_to_buildings(self):
-        """
-        Description:
-            Finds and returns if this cell is adjacent to any buildings, used for beast spawning
-        Input:
-            None
-        Output:
-            boolean: Returns if this cell is adjacent to any buildings
-        """
-        for current_adjacent_cell in self.adjacent_list + [self]:
-            if len(current_adjacent_cell.get_buildings()) > 0:
-                return True
-        return False
-
     def has_destructible_buildings(self):
         """
         Description:
-            Finds and returns if this cell is adjacent has any buildings that can be damaged by native warriors (not roads or railroads), used for native warriors cell targeting
+            Finds and returns if this cell is adjacent has any buildings that can be damaged by enemies (not roads or railroads), used for enemy cell targeting
         Input:
             None
         Output:
-            boolean: Returns if this cell has any buildings that can be damaged by native warriors
+            boolean: Returns if this cell has any buildings that can be damaged by enemies
         """
         for current_building in self.get_intact_buildings():
             if current_building.can_damage():
@@ -538,20 +503,13 @@ class cell:
         Output:
             string/vehicle: Returns the first uncrewed vehicle of the inputted type in this cell, or 'none' if none are present
         """
-        if worker_type == "slave":
-            return "none"
         for current_mob in self.contained_mobs:
             if (
                 current_mob.is_vehicle
                 and (not current_mob.has_crew)
                 and current_mob.vehicle_type == vehicle_type
             ):
-                if not (
-                    worker_type == "African"
-                    and current_mob.can_swim
-                    and current_mob.can_swim_ocean
-                ):
-                    return current_mob
+                return current_mob
         return "none"
 
     def has_worker(self, possible_types=None, required_number=1):
@@ -701,7 +659,7 @@ class cell:
                 return True
         return False
 
-    def get_best_combatant(self, mob_type, target_type="human"):
+    def get_best_combatant(self, mob_type):
         """
         Description:
             Finds and returns the best combatant of the inputted type in this cell. Combat ability is based on the unit's combat modifier and veteran status. Assumes that units in vehicles and buildings have already detached upon being
@@ -709,7 +667,7 @@ class cell:
         Input:
             string mob_type: Can be npmob or pmob, determines what kind of mob is searched for. An attacking pmob will search for the most powerful npmob and vice versa
             string target_type = 'human': Regardless of the mob type being searched for, target_type gives information about the npmob: when a pmob searches for an npmob, it will search for a 'human' or 'beast' npmob. When an npmob
-                searches for a pmob, it will say whether it is a 'human' or 'beast' to correctly choose pmobs specialized at fighting that npmob type, like safaris against beasts
+                searches for a pmob, it will say whether it is a 'human' or 'beast' to correctly choose pmobs specialized at fighting that npmob type
         Output;
             mob: Returns the best combatant of the inputted type in this cell
         """
@@ -718,20 +676,17 @@ class cell:
         if mob_type == "npmob":
             for current_mob in self.contained_mobs:
                 if current_mob.is_npmob:
+                    current_combat_modifier = current_mob.get_combat_modifier()
                     if (
-                        target_type == "human" and not current_mob.npmob_type == "beast"
-                    ) or (target_type == "beast" and current_mob.npmob_type == "beast"):
-                        current_combat_modifier = current_mob.get_combat_modifier()
-                        if (
-                            best_combatants[0] == "none"
-                            or current_combat_modifier > best_combat_modifier
-                        ):  # if first mob or better than previous mobs, set as only best
-                            best_combatants = [current_mob]
-                            best_combat_modifier = current_combat_modifier
-                        elif (
-                            current_combat_modifier == best_combat_modifier
-                        ):  # if equal to previous mobs, add to best
-                            best_combatants.append(current_mob)
+                        best_combatants[0] == "none"
+                        or current_combat_modifier > best_combat_modifier
+                    ):  # if first mob or better than previous mobs, set as only best
+                        best_combatants = [current_mob]
+                        best_combat_modifier = current_combat_modifier
+                    elif (
+                        current_combat_modifier == best_combat_modifier
+                    ):  # if equal to previous mobs, add to best
+                        best_combatants.append(current_mob)
         elif mob_type == "pmob":
             for current_mob in self.contained_mobs:
                 if current_mob.is_pmob:
@@ -739,12 +694,6 @@ class cell:
                         current_mob.get_combat_strength() > 0
                     ):  # unit with 0 combat strength cannot fight
                         current_combat_modifier = current_mob.get_combat_modifier()
-                        if (
-                            current_mob.is_safari and target_type == "beast"
-                        ):  # more likely to pick safaris for defense against beasts
-                            current_combat_modifier += 3
-                        elif target_type == "beast":
-                            current_combat_modifier -= 1
                         if (
                             best_combatants[0] == "none"
                             or current_combat_modifier > best_combat_modifier
@@ -791,7 +740,6 @@ class cell:
         """
         self.contained_mobs = other_cell.contained_mobs
         self.contained_buildings = other_cell.contained_buildings
-        self.village = other_cell.village
         other_cell.terrain_handler.add_cell(self)
         # self.tile.update_image_bundle(override_image=other_cell.tile.image) #correctly copies other cell's image bundle but ends up very pixellated due to size difference
 

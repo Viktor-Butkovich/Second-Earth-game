@@ -99,10 +99,7 @@ class group(pmob):
         )
         previous_selected = status.displayed_mob
         new_worker = constants.actor_creation_manager.create(False, input_dict)
-        if self.worker.worker_type == "slave":
-            new_worker.set_automatically_replace(True)
-        else:
-            new_worker.set_automatically_replace(self.worker.automatically_replace)
+        new_worker.set_automatically_replace(self.worker.automatically_replace)
         self.worker.fire(wander=False)
         self.worker = new_worker
         self.worker.update_image_bundle()
@@ -166,9 +163,7 @@ class group(pmob):
                 6, "health_attrition"
             ) == 1 or constants.effect_manager.effect_active("boost_attrition"):
                 worker_type = self.worker.worker_type
-                if (not worker_type in ["African", "slave"]) or random.randrange(
-                    1, 7
-                ) == 1:
+                if random.randrange(1, 7) == 1:
                     self.attrition_death("worker")
 
     def attrition_death(self, target):

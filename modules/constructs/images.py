@@ -1152,7 +1152,7 @@ class minister_type_image(tooltip_free_image):
                     )
                 elif keyword == "exploration":
                     self.tooltip_text.append(
-                        "Exploration-oriented units include explorers, expeditions, hunters, and safaris."
+                        "Exploration-oriented units include explorers and expeditions."
                     )
                 elif keyword == "construction":
                     self.tooltip_text.append(

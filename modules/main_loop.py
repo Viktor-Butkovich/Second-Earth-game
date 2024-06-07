@@ -255,10 +255,7 @@ def main_loop():
                 spawning = False
                 did_nothing = False
                 moving = False
-                if (
-                    current_enemy.npmob_type == "native_warriors"
-                    and current_enemy.despawning
-                ):
+                if current_enemy.despawning:
                     if (
                         current_enemy == status.displayed_mob
                         or not current_enemy.visible()
@@ -267,8 +264,7 @@ def main_loop():
                         removed = True
 
                 elif (
-                    current_enemy.npmob_type == "native_warriors"
-                    and current_enemy.creation_turn == constants.turn
+                    current_enemy.creation_turn == constants.turn
                 ):  # if unit just created
                     spawn_cell = current_enemy.grids[0].find_cell(
                         current_enemy.x, current_enemy.y
@@ -324,20 +320,9 @@ def main_loop():
                     and current_enemy.visible()
                 ):  # if unit visible and not selected, start its turn
                     if (
-                        current_enemy.npmob_type == "native_warriors"
-                        and current_enemy.find_closest_target() == "none"
+                        current_enemy.find_closest_target() == "none"
                         and not current_enemy.despawning
-                    ):  # if native warriors have no target, they stand still and no movement is shown
-                        did_nothing = True
-                        current_enemy.turn_done = True
-
-                    elif (
-                        current_enemy.npmob_type == "beast"
-                        and current_enemy.find_closest_target
-                        == current_enemy.images[0].current_cell
-                        and not current_enemy.images[0].current_cell.has_pmob()
-                    ):
-                        # if beasts stand still and don't attack anything, no movement is shown
+                    ):  # if enemies have no target, they stand still and no movement is shown
                         did_nothing = True
                         current_enemy.turn_done = True
                     elif (

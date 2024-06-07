@@ -60,7 +60,7 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
     else:
         base_price = constants.building_prices[building_type]
 
-    if building_type in ["train", "steamboat"]:
+    if building_type in ["train"]:
         cost_multiplier = 1
     elif (
         constructor in ["none", None]
@@ -86,12 +86,7 @@ def update_descriptions(target="all"):
         None
     """
     if target == "all":
-        targets_to_update = constants.recruitment_types + [
-            "slums workers",
-            "village workers",
-            "slaves",
-        ]
-        targets_to_update += constants.building_types + [
+        targets_to_update = constants.building_types + [
             "road",
             "railroad",
             "ferry",
@@ -116,14 +111,7 @@ def update_descriptions(target="all"):
                 first_line += "."
                 text_list.append(first_line)
                 text_list.append(
-                    "When combined with workers, an explorer becomes an expedition unit that can explore new tiles, and acquire canoes to move swiftly along rivers."
-                )
-
-            elif current_target == "hunter":
-                first_line += "."
-                text_list.append(first_line)
-                text_list.append(
-                    "When combined with workers, a hunter becomes a safari unit that can track and hunt beasts, and acquire canoes to move swiftly along rivers."
+                    "When combined with workers, an explorer becomes an expedition unit that can explore new tiles."
                 )
 
             elif current_target == "engineer":
@@ -151,72 +139,25 @@ def update_descriptions(target="all"):
                 first_line += " and can personally search for loans and conduct advertising campaigns on Earth."
                 text_list.append(first_line)
                 text_list.append(
-                    "When combined with workers, a merchant becomes a caravan that can build trading posts and trade with native villages."
+                    "When combined with workers, a merchant becomes a caravan that can build trading posts and trade."
                 )
 
             elif current_target == "evangelist":
                 first_line += " and can personally conduct religious campaigns and public relations campaigns on Earth."
                 text_list.append(first_line)
                 text_list.append(
-                    "When combined with religious volunteers, an evangelist becomes a missionaries unit that can build missions and lower the aggressiveness of native villages."
+                    "When combined with religious volunteers, an evangelist becomes a missionaries unit that can build missions."
                 )
 
             elif current_target == "major":
                 first_line += "."
                 text_list.append(first_line)
                 text_list.append(
-                    "When combined with workers, a major becomes a battalion unit that has a very high combat strength, and can attack native warriors and villages, build forts, and capture slaves."
+                    "When combined with workers, a major becomes a battalion unit that has a very high combat strength, and can build forts and attack enemies."
                 )
 
         elif current_target.endswith(" workers"):
-            worker_name = (
-                current_target.replace("slums ", "African ")
-                .replace("labor broker ", "African ")
-                .replace("village ", "African ")
-            )
-            worker_type = worker_name.split(" ")[
-                0
-            ]  # 'African' for 'African workers', 'European' for 'European workers', etc.
-
-            if worker_type != "slave":
-                text_list.append(
-                    worker_name.capitalize()
-                    + " have a varying upkeep, currently "
-                    + str(status.worker_types[worker_type].upkeep)
-                    + " money each turn."
-                )
-            else:
-                text_list.append(
-                    worker_name.capitalize()
-                    + " have a constant upkeep of "
-                    + str(status.worker_types[worker_type].upkeep)
-                    + " money each turn."
-                )
-
-            if worker_type == "European":
-                text_list.append(
-                    worker_name.capitalize()
-                    + " tend to be more susceptible to attrition than African workers, but are more accustomed to modern vehicles and weaponry."
-                )
-            elif worker_type == "Asian":
-                text_list.append(
-                    worker_name.capitalize()
-                    + " tend to be cheaper than European workers and less accustomed to modern vehicles and weaponry, while being easier to obtain and more susceptible to attrition than African workers."
-                )
-            else:
-                text_list.append(
-                    "African workers tend to be more resistant to attrition but are less accustomed to using modern vehicles and weaponry."
-                )
-
-            if worker_type == "slave":
-                if constants.effect_manager.effect_active("no_slave_trade_penalty"):
-                    text_list.append(
-                        "Your country's prolonged involvement with the slave trade will prevent any public opinion penalty from this morally reprehensible act."
-                    )
-                else:
-                    text_list.append(
-                        "Participating in the slave trade is a morally reprehensible act and will be faced with a public opinion penalty."
-                    )
+            text_list.append(current_target.capitalize() + " placeholder description.")
 
         elif current_target == "steamship":
             text_list.append(
@@ -226,20 +167,9 @@ def update_descriptions(target="all"):
                 "Crewing a steamship requires an advanced level of technological training, which is generally only available to European workers in this time period."
             )
 
-        elif current_target == "steamboat":
-            text_list.append(
-                "While useless by itself, a steamboat crewed by workers can quickly transport units and cargo along rivers."
-            )
-            text_list.append(
-                "Crewing a steamboat requires a basic level of technological training, which is generally unavailable to slave workers."
-            )
-
         elif current_target == "train":
             text_list.append(
                 "While useless by itself, a train crewed by workers can quickly transport units and cargo through railroads between train stations."
-            )
-            text_list.append(
-                "Crewing a train requires a basic level of technological training, which is generally unavailable to slave workers."
             )
 
         elif current_target == "resource":
@@ -273,7 +203,7 @@ def update_descriptions(target="all"):
 
         elif current_target == "ferry":
             text_list.append(
-                "A ferry built on a river tile between 2 land tiles allows movement across the river."
+                "A ferry built on a water tile between 2 land tiles allows movement across the water."
             )
             text_list.append(
                 "A ferry allows moving to the ferry tile for 2 movement points, and can later be upgraded to a road bridge."
@@ -281,7 +211,7 @@ def update_descriptions(target="all"):
 
         elif current_target == "road_bridge":
             text_list.append(
-                "A bridge built on a river tile between 2 land tiles allows movement across the river."
+                "A bridge built on a water tile between 2 land tiles allows movement across the water."
             )
             text_list.append(
                 "A road bridge acts as a road between the tiles it connects and can later be upgraded to a railroad bridge."
@@ -289,7 +219,7 @@ def update_descriptions(target="all"):
 
         elif current_target == "railroad_bridge":
             text_list.append(
-                "A bridge built on a river tile between 2 land tiles allows movement across the river."
+                "A bridge built on a water tile between 2 land tiles allows movement across the water."
             )
             text_list.append(
                 "A railroad bridge acts as a railroad between the tiles it connects."
@@ -297,25 +227,13 @@ def update_descriptions(target="all"):
 
         elif current_target == "port":
             text_list.append(
-                "A port allows steamboats and steamships to enter the tile, expands the tile's warehouse capacity, and attracts local labor brokers."
+                "A port allows steamships to enter the tile and expands the tile's warehouse capacity."
             )
-            text_list.append(
-                "A port adjacent to the ocean allows entry by steamships, while a port adjacent to a river allows entry by and assembly of steamboats."
-            )
+            text_list.append("A port adjacent to the water allows entry by steamships.")
 
         elif current_target == "train_station":
             text_list.append(
                 "A train station is required for a train to exchange cargo and passengers, expands the tile's warehouse capacity, and allows assembly of trains."
-            )
-
-        elif current_target == "trading_post":
-            text_list.append(
-                "A trading post increases the likelihood that the natives of the local village will be willing to trade and reduces the risk of hostile interactions when trading."
-            )
-
-        elif current_target == "mission":
-            text_list.append(
-                "A mission decreases the difficulty of converting the natives of the local village and reduces the risk of hostile interactions when converting."
             )
 
         elif current_target == "fort":
@@ -346,57 +264,6 @@ def update_descriptions(target="all"):
                 current_line + " /n /n"
             )  # replaces each tooltip list line with newline characters for notification descriptions
         string_descriptions[current_target] = text
-
-
-def spawn_beast():
-    """
-    Description:
-        Attempts to spawn a beast at a random part of the map, choosing a tile and then choosing a type of animal that can spawn in that tile. The spawn attepmt fails and does nothing if the chosen tile is next to any player buildings
-    Input:
-        None
-    Output:
-        None
-    """
-    return
-
-
-def find_closest_available_worker(destination):
-    """
-    Description:
-        Finds one of the closest African workers and returns its slums or village. Weighted based on the amount available such that a village with more available workers at the same distance is more likely to be chosen
-    Input:
-        pmob destination: Unit that the worker will be sent to, used as a reference point for distance
-    Output:
-        slums/village: Returns the slums or village at which the chosen closest worker is located
-    """
-    possible_sources = []
-    for current_village in status.village_list:
-        if current_village.available_workers > 0:
-            possible_sources.append(current_village)
-    possible_sources += status.slums_list
-
-    min_distance = -1  # makes a list of closest sources
-    min_distance_sources = []
-    for possible_source in possible_sources:
-        current_distance = utility.find_object_distance(destination, possible_source)
-        if min_distance == -1 or current_distance < min_distance:
-            min_distance_sources = [possible_source]
-            min_distance = current_distance
-        elif min_distance == current_distance:
-            min_distance_sources.append(possible_source)
-
-    max_workers = -1  # makes list of closest sources that have the most workers
-    max_workers_sources = ["none"]
-    for possible_source in min_distance_sources:
-        current_workers = possible_source.available_workers
-        if max_workers == -1 or current_workers > max_workers:
-            max_workers_sources = [possible_source]
-            max_workers = current_workers
-        elif max_workers == current_workers:
-            max_workers_sources.append(possible_source)
-    return random.choice(
-        max_workers_sources
-    )  # randomly choose from ['none'] or the list of tied closest sources w/ most workers
 
 
 def create_image_dict(stem):
@@ -465,7 +332,7 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
             calibrate_actor_info_display(status.tile_inventory_info_display, None)
         status.displayed_tile = new_actor
         if new_actor:
-            new_actor.select()  # plays correct music based on tile selected - slave traders/village/earth music
+            new_actor.select()  # plays correct music based on tile selected - main menu/earth music
         if (
             not flags.choosing_destination
         ):  # Don't change tabs while choosing destination
@@ -482,9 +349,6 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
             not flags.choosing_destination
         ):  # Don't change tabs while choosing destination
             select_default_tab(status.mob_tabbed_collection, status.displayed_mob)
-
-    elif info_display == status.country_info_display:
-        status.displayed_country = new_actor
 
     target = "none"
     if new_actor:
@@ -519,64 +383,10 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
         select_interface_tab(tabbed_collection, target_tab)
 
 
-def get_migration_destinations():
-    """
-    Description:
-        Gathers and returns a list of all cells to which migration could occur. Migration can occur to tiles with places of employment, like ports, train stations, and resource production facilities
-    Input:
-        None
-    Output:
-        cell list: Returns list of all cells to which migration could occur
-    """
-    return_list = []
-    for current_building in status.building_list:
-        if current_building.building_type in ["port", "train_station", "resource"]:
-            if not current_building.cell in return_list:
-                if not current_building.damaged:
-                    return_list.append(current_building.cell)
-    return return_list
-
-
-def get_migration_sources():
-    """
-    Description:
-        Gathers and returns a list of all villages from which migration could occur. Migration can occur from villages with at least 1 available worker
-    Input:
-        None
-    Output:
-        village list: Returns list of all villages from which migration could occur
-    """
-    return_list = []
-    for current_village in status.village_list:
-        if current_village.available_workers > 0:
-            return_list.append(current_village)
-    return return_list
-
-
-def get_num_available_workers(location_types):
-    """
-    Description:
-        Calculates and returns the number of workers currently available in the inputted location type, like how many workers are in slums
-    Input:
-        string location_types: Types of locations to count workers from, can be 'village', 'slums', or 'all'
-    Output:
-        int: Returns number of workers currently available in the inputted location type
-    """
-    num_available_workers = 0
-    if not location_types == "village":  # slums or all
-        for current_slums in status.slums_list:
-            # if current_building.building_type == 'slums':
-            num_available_workers += current_slums.available_workers
-    if not location_types == "slums":  # village or all
-        for current_village in status.village_list:
-            num_available_workers += current_village.available_workers
-    return num_available_workers
-
-
 def generate_resource_icon(tile):
     """
     Description:
-        Generates and returns the correct string image file path based on the resource/village and buildings built in the inputted tile
+        Generates and returns the correct string image file path based on the resource and buildings built in the inputted tile
     Input:
         tile tile: Tile to generate a resource icon for
     Output:
@@ -640,44 +450,6 @@ def extract_folder_colors(folder_path):
         red, green, blue, alpha = current_image.get_at((0, 0))
         colors.append((red, green, blue))
     return colors
-
-
-def get_slave_traders_strength_modifier():
-    """
-    Description:
-        Calculates and returns the inverse difficulty modifier for actions related to the slave traders, with a positive modifier making rolls easier
-    Input:
-        None
-    Output:
-        string/int: Returns slave traders inverse difficulty modifier, or 'none' if the strength is 0
-    """
-    strength = constants.slave_traders_strength
-    if strength == 0:
-        strength_modifier = "none"
-    elif strength >= constants.slave_traders_natural_max_strength * 2:  # >= 20
-        strength_modifier = -1
-    elif strength >= constants.slave_traders_natural_max_strength:  # >= 10
-        strength_modifier = 0
-    else:  # < 10
-        strength_modifier = 1
-    return strength_modifier
-
-
-def set_slave_traders_strength(new_strength):
-    """
-    Description:
-        Sets the strength of the slave traders
-    Input:
-        int new_strength: New slave traders strength value
-    Output:
-        None
-    """
-    if new_strength < 0:
-        new_strength = 0
-    constants.slave_traders_strength = new_strength
-    if status.slave_traders_grid != None:
-        slave_traders_tile = status.slave_traders_grid.cell_list[0][0].tile
-        slave_traders_tile.update_image_bundle()
 
 
 def generate_unit_component_image_id(base_image, component, to_front=False):
@@ -746,9 +518,7 @@ def generate_group_image_id_list(worker, officer):
         else:
             soldier = worker.image_dict["default"]
         left_worker_dict["image_id"] = soldier
-        left_worker_dict["green_screen"] = status.current_country.colors
         right_worker_dict["image_id"] = soldier
-        right_worker_dict["green_screen"] = status.current_country.colors
     elif officer.officer_type in ["merchant", "driver"]:
         if "porter" in worker.image_dict:
             porter = worker.image_dict["porter"]

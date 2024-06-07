@@ -26,11 +26,6 @@ class sound_manager_template:
                 for current_song in os.listdir("sounds/music/generic")
             ],  # remove file extensions
             "main menu": ["main theme"],
-            "village peaceful": ["natives/village peaceful"],
-            "village neutral": ["natives/village neutral"],
-            "village aggressive": ["natives/village aggressive"],
-            "slave traders": ["slave traders/slave traders theme"],
-            "asia": ["asia/asia theme 1", "asia/asia theme 2"],
         }
         self.previous_state = "none"
         self.previous_song = "none"
@@ -174,7 +169,7 @@ class sound_manager_template:
     def play_random_music(self, current_state, previous_song="none"):
         """
         Description:
-            Plays random music depending on the current state of the game, like 'main menu', 'earth', or 'village', and the current player country
+            Plays random music depending on the current state of the game, like 'main menu' or 'earth'
         Input:
             string current_state: Descriptor for the current state of the game to play music for
             string previous_song: The previous song that just ended, if any, to avoid playing it again unless it is the only option
@@ -193,32 +188,16 @@ class sound_manager_template:
         elif len(possible_songs) > 0:
             chosen_song = random.choice(possible_songs)
             if (
-                not previous_song == "none"
+                previous_song != "none"
             ):  # plays different song if multiple choices available
                 while chosen_song == previous_song:
                     chosen_song = random.choice(possible_songs)
         else:
             chosen_song = "none"
-        if current_state in [
-            "slave traders",
-            "asia",
-            "village peaceful",
-            "village neutral",
-            "village aggressive",
-        ] or self.previous_state in [
-            "slave traders",
-            "asia",
-            "village peaceful",
-            "village neutral",
-            "village aggressive",
-        ]:
-            time_interval = 0.4
-        else:
-            time_interval = 0.75
-        if (not state_changed) and (not chosen_song == "none"):
+        if (not state_changed) and (chosen_song != "none"):
             self.play_music(chosen_song)
         else:
-            self.music_transition(chosen_song, time_interval)
+            self.music_transition(chosen_song, time_interval=0.75)
         self.previous_song = chosen_song
 
     def song_done(self):

@@ -231,33 +231,6 @@ class actor_display_label(label):
         elif self.actor_label_type == "tooltip":
             self.message_start = ""
 
-        elif self.actor_label_type == "native aggressiveness":
-            self.message_start = "Aggressiveness: "
-
-        elif self.actor_label_type == "native population":
-            self.message_start = "Total population: "
-
-        elif self.actor_label_type == "native available workers":
-            self.message_start = "Available workers: "
-            african_workers_image_id_list = ["buttons/default_button_alt.png"]
-            left_worker_dict = {
-                "image_id": "mobs/African workers/default.png",
-                "size": 0.8,
-                "x_offset": -0.2,
-                "y_offset": 0,
-                "level": 1,
-            }
-            african_workers_image_id_list.append(left_worker_dict)
-
-            right_worker_dict = left_worker_dict.copy()
-            right_worker_dict["x_offset"] *= -1
-            african_workers_image_id_list.append(right_worker_dict)
-            input_dict["init_type"] = "hire african workers button"
-            input_dict["image_id"] = african_workers_image_id_list
-            input_dict["hire_source_type"] = "village"
-            input_dict["width"], input_dict["height"] = (m_size + 5, m_size + 5)
-            self.add_attached_button(input_dict)
-
         elif self.actor_label_type in [
             "mob inventory capacity",
             "tile inventory capacity",
@@ -291,31 +264,6 @@ class actor_display_label(label):
 
         elif self.actor_label_type == "terrain":
             self.message_start = "Terrain: "
-            for worker_type in ["slave", "Asian"]:
-                current_image_id_list = ["buttons/default_button_alt.png"]
-                left_worker_dict = {
-                    "image_id": "mobs/" + worker_type + " workers/default.png",
-                    "size": 0.8,
-                    "x_offset": -0.2,
-                    "y_offset": 0,
-                    "level": 1,
-                }
-                current_image_id_list.append(left_worker_dict)
-
-                right_worker_dict = left_worker_dict.copy()
-                right_worker_dict["x_offset"] *= -1
-
-                if worker_type == "Asian":
-                    right_worker_dict["image_id"] = (
-                        "mobs/" + worker_type + " workers 1/default.png"
-                    )
-
-                current_image_id_list.append(right_worker_dict)
-                input_dict["init_type"] = "recruit workers button"
-                input_dict["worker_type"] = worker_type
-                input_dict["image_id"] = current_image_id_list
-                input_dict["width"], input_dict["height"] = (m_size + 5, m_size + 5)
-                self.add_attached_button(input_dict)
 
         elif self.actor_label_type == "minister":
             self.message_start = "Minister: "
@@ -357,7 +305,7 @@ class actor_display_label(label):
             self.parent_collection.can_show_override = self  # parent collection is considered showing when this label can show, allowing ordered collection to work correctly
             self.image_y_displacement = 5
 
-        elif self.actor_label_type in ["minister_name", "country_name"]:
+        elif self.actor_label_type in ["minister_name"]:
             self.message_start = "Name: "
             if self.actor_label_type == "minister_name":
                 input_dict["width"], input_dict["height"] = (s_size, s_size)
@@ -372,9 +320,6 @@ class actor_display_label(label):
                         )
                         if button_input_dict:
                             self.add_attached_button(button_input_dict)
-
-        elif self.actor_label_type == "country_effect":
-            self.message_start = "Effect: "
 
         elif self.actor_label_type == "minister_office":
             self.message_start = "Office: "
@@ -402,54 +347,15 @@ class actor_display_label(label):
 
         elif self.actor_label_type == "slums":
             self.message_start = "Slums population: "
-            african_workers_image_id_list = ["buttons/default_button_alt.png"]
-            left_worker_dict = {
-                "image_id": "mobs/African workers/default.png",
-                "size": 0.8,
-                "x_offset": -0.2,
-                "y_offset": 0,
-                "level": 1,
-            }
-            african_workers_image_id_list.append(left_worker_dict)
-
-            right_worker_dict = left_worker_dict.copy()
-            right_worker_dict["x_offset"] *= -1
-            african_workers_image_id_list.append(right_worker_dict)
-            input_dict["init_type"] = "hire african workers button"
-            input_dict["image_id"] = african_workers_image_id_list
-            input_dict["width"], input_dict["height"] = (m_size + 5, m_size + 5)
-            input_dict["hire_source_type"] = "slums"
-            self.add_attached_button(input_dict)
 
         elif (
             self.actor_label_type in constants.building_types
             and self.actor_label_type != "resource"
         ):
             self.message_start = ""
-            if self.actor_label_type == "port":
-                input_dict["init_type"] = "labor broker button"
-                african_workers_image_id_list = ["buttons/default_button_alt.png"]
-                left_worker_dict = {
-                    "image_id": "mobs/African workers/default.png",
-                    "size": 0.8,
-                    "x_offset": -0.2,
-                    "y_offset": 0,
-                    "level": 1,
-                }
-                african_workers_image_id_list.append(left_worker_dict)
-
-                right_worker_dict = left_worker_dict.copy()
-                right_worker_dict["x_offset"] *= -1
-                african_workers_image_id_list.append(right_worker_dict)
-                input_dict["image_id"] = african_workers_image_id_list
-                input_dict["width"], input_dict["height"] = (m_size + 5, m_size + 5)
-                self.add_attached_button(input_dict)
 
         elif self.actor_label_type == "combat_strength":
             self.message_start = "Combat strength: "
-
-        elif self.actor_label_type == "preferred_terrains":
-            self.message_start = "Preferred terrain: "
 
         elif self.actor_label_type == "building work crews":
             self.message_start = "Work crews: "
@@ -616,26 +522,6 @@ class actor_display_label(label):
                 self.set_tooltip(tooltip_text)
 
         elif self.actor_label_type in [
-            "native aggressiveness",
-            "native population",
-            "native available workers",
-        ]:
-            tooltip_text = [self.message]
-            if self.actor_label_type == "native aggressiveness":
-                tooltip_text.append(
-                    "Corresponds to the chance that the people of this village will attack nearby company units"
-                )
-            elif self.actor_label_type == "native population":
-                tooltip_text.append(
-                    "The total population of this village, which grows over time unless attacked or if willing villagers leave to become company workers"
-                )
-            elif self.actor_label_type == "native available workers":
-                tooltip_text.append(
-                    "The portion of this village's population that would be willing to work for your company"
-                )
-            self.set_tooltip(tooltip_text)
-
-        elif self.actor_label_type in [
             "mob inventory capacity",
             "tile inventory capacity",
         ]:
@@ -643,14 +529,10 @@ class actor_display_label(label):
             if self.actor_label_type == "mob inventory capacity":
                 if not self.actor == "none":
                     tooltip_text.append(
-                        "This unit is currently holding "
-                        + str(self.actor.get_inventory_used())
-                        + " commodities"
+                        f"This unit is currently holding {self.actor.get_inventory_used()} commodities"
                     )
                     tooltip_text.append(
-                        "This unit can hold a maximum of "
-                        + str(self.actor.inventory_capacity)
-                        + " commodities"
+                        f"This unit can hold a maximum of {self.actor.inventory_capacity} commodities"
                     )
             elif self.actor_label_type == "tile inventory capacity":
                 if not self.actor == "none":
@@ -660,14 +542,10 @@ class actor_display_label(label):
                         tooltip_text.append("This tile can hold infinite commodities")
                     else:
                         tooltip_text.append(
-                            "This tile currently contains "
-                            + str(self.actor.get_inventory_used())
-                            + " commodities"
+                            f"This tile currently contains {self.actor.get_inventory_used()} commodities"
                         )
                         tooltip_text.append(
-                            "This tile can retain a maximum of "
-                            + str(self.actor.inventory_capacity)
-                            + " commodities"
+                            f"This tile can retain a maximum of {self.actor.inventory_capacity} commodities"
                         )
                         tooltip_text.append(
                             "If this tile is holding commodities exceeding its capacity before resource production at the end of the turn, extra commodities will be lost"
@@ -682,12 +560,8 @@ class actor_display_label(label):
                     tooltip_text = self.actor.controlling_minister.tooltip_text
                 else:
                     tooltip_text = [
-                        "The "
-                        + self.actor.controlling_minister_type
-                        + " is responsible for controlling this unit",
-                        "As there is currently no "
-                        + self.actor.controlling_minister_type
-                        + ", this unit will not be able to complete most actions until one is appointed",
+                        f"The {self.actor.controlling_minister_type} is responsible for controlling this unit",
+                        f"As there is currently no {self.actor.controlling_minister_type}, this unit will not be able to complete most actions until one is appointed",
                     ]
             self.set_tooltip(tooltip_text)
 
@@ -699,30 +573,18 @@ class actor_display_label(label):
                         self.actor.corruption_evidence - self.actor.fabricated_evidence
                     )
                     tooltip_text.append(
-                        "Your prosecutor has found "
-                        + str(real_evidence)
-                        + " piece"
-                        + utility.generate_plural(real_evidence)
-                        + " of evidence of corruption against this minister."
+                        f"Your prosecutor has found {real_evidence} piece{utility.generate_plural(real_evidence)} of evidence of corruption against this minister."
                     )
                     if self.actor.fabricated_evidence > 0:
                         tooltip_text.append(
-                            "Additionally, your prosecutor has fabricated "
-                            + str(self.actor.fabricated_evidence)
-                            + " piece"
-                            + utility.generate_plural(self.actor.corruption_evidence)
-                            + " of fake evidence against this minister."
+                            f"Additionally, your prosecutor has fabricated {self.actor.fabricated_evidence} piece{utility.generate_plural(self.actor.corruption_evidence)} of fake evidence against this minister."
                         )
                     tooltip_text.append(
                         "Each piece of evidence, real or fabricated, increases the chance of a trial's success. After a trial, all fabricated evidence and about half of the real evidence are rendered unusable"
                     )
                 else:
                     tooltip_text.append(
-                        "Your prosecutor has found "
-                        + str(self.actor.corruption_evidence)
-                        + " piece"
-                        + utility.generate_plural(self.actor.corruption_evidence)
-                        + " of evidence of corruption against this minister"
+                        f"Your prosecutor has found {self.actor.corruption_evidence} piece{utility.generate_plural(self.actor.corruption_evidence)} of evidence of corruption against this minister."
                     )
                     tooltip_text.append(
                         "A corrupt minister may let goods go missing, steal the money given for a task and report a failure, or otherwise benefit themselves at the expense of your company"
@@ -771,12 +633,7 @@ class actor_display_label(label):
                                 skill_type
                             ]  # like General to military
                             tooltip_text.append(
-                                "    "
-                                + str(rank)
-                                + ". "
-                                + skill_name.capitalize()
-                                + ": "
-                                + self.actor.apparent_skill_descriptions[skill_type]
+                                f"    {rank}. {skill_name.capitalize()}: {self.actor.apparent_skill_descriptions[skill_type]}"
                             )
             self.set_tooltip(tooltip_text)
 
@@ -791,10 +648,7 @@ class actor_display_label(label):
             )
             if not self.attached_building == "none":
                 tooltip_text.append(
-                    "Work crews: "
-                    + str(len(self.attached_building.contained_work_crews))
-                    + "/"
-                    + str(self.attached_building.scale)
+                    f"Work crews: {len(self.attached_building.contained_work_crews)}/{self.attached_building.scale}"
                 )
                 for current_work_crew in self.attached_building.contained_work_crews:
                     tooltip_text.append(
@@ -819,9 +673,6 @@ class actor_display_label(label):
 
         elif self.actor_label_type == "slums":
             tooltip_text = [self.message]
-            tooltip_text.append(
-                "Villagers exposed to consumer goods through trade, fired workers, and freed slaves will wander and eventually move to slums in search of work"
-            )
             tooltip_text.append(
                 "Slums can form around ports, train stations, and resource production facilities"
             )
@@ -874,21 +725,6 @@ class actor_display_label(label):
                         )
             self.set_tooltip(tooltip_text)
 
-        elif self.actor_label_type == "slave_traders_strength":
-            tooltip_text = [self.message]
-            tooltip_text.append(
-                "Any actions to combat the slave traders will be more difficult when strength is 20 or higher and easier when strength is 9 or lower"
-            )
-            tooltip_text.append(
-                "The slave trade will be permanently eradicated once strength has been decreased to 0"
-            )
-            tooltip_text.append("Strength will increase by 1 for each slave purchased")
-            tooltip_text.append(
-                "Additionally, when decreased, strength will increase by 1 each turn until it returns to its original value of "
-                + str(constants.slave_traders_natural_max_strength)
-            )
-            self.set_tooltip(tooltip_text)
-
         elif self.actor_label_type in constants.terrain_parameters:
             tooltip_text = [self.message]
             if self.actor != "none":
@@ -923,47 +759,15 @@ class actor_display_label(label):
                 self.set_label(self.message_start + utility.capitalize(new_actor.name))
 
             elif self.actor_label_type == "coordinates":
-                self.set_label(
-                    self.message_start
-                    + "("
-                    + str(new_actor.x)
-                    + ", "
-                    + str(new_actor.y)
-                    + ")"
-                )
+                self.set_label(f"{self.message_start}({new_actor.x}, {new_actor.y})")
 
             elif self.actor_label_type == "terrain":
                 if new_actor.grid.is_abstract_grid:
                     self.set_label(utility.capitalize(new_actor.grid.name))
                 elif self.actor.cell.terrain_handler.visible:
-                    if new_actor.cell.terrain_handler.terrain == "water":
-                        if new_actor.cell.y == 0:
-                            self.set_label(
-                                self.message_start
-                                + "ocean "
-                                + str(
-                                    new_actor.cell.terrain_handler.terrain.replace(
-                                        "_", " "
-                                    )
-                                )
-                            )
-                        else:
-                            self.set_label(
-                                self.message_start
-                                + "river "
-                                + str(
-                                    new_actor.cell.terrain_handler.terrain.replace(
-                                        "_", " "
-                                    )
-                                )
-                            )
-                    else:
-                        self.set_label(
-                            self.message_start
-                            + str(
-                                new_actor.cell.terrain_handler.terrain.replace("_", " ")
-                            )
-                        )
+                    self.set_label(
+                        f"{self.message_start} {new_actor.cell.terrain_handler.terrain.replace('_', ' ')}"
+                    )
                 else:
                     self.set_label(self.message_start + "unknown")
 
@@ -971,10 +775,9 @@ class actor_display_label(label):
                 if new_actor.grid.is_abstract_grid:
                     self.set_label(self.message_start + "n/a")
                 elif new_actor.cell.terrain_handler.visible:
-                    if not new_actor.cell.has_building("village"):
-                        self.set_label(
-                            self.message_start + new_actor.cell.terrain_handler.resource
-                        )
+                    self.set_label(
+                        self.message_start + new_actor.cell.terrain_handler.resource
+                    )
                 else:
                     self.set_label(self.message_start + "unknown")
 
@@ -991,16 +794,6 @@ class actor_display_label(label):
                         new_actor.cell.get_building("resource").name.capitalize()
                     )
 
-            elif self.actor_label_type == "village":
-                if (
-                    new_actor.cell.terrain_handler.visible
-                    and new_actor.cell.has_building("village")
-                    and new_actor.cell.terrain_handler.visible
-                ):
-                    self.set_label(
-                        new_actor.cell.get_building("village").name + " village"
-                    )
-
             elif self.actor_label_type == "movement":
                 if self.actor.is_pmob:
                     if (
@@ -1008,14 +801,11 @@ class actor_display_label(label):
                         and new_actor.has_crew
                         and (not new_actor.has_infinite_movement)
                         and not new_actor.temp_movement_disabled
-                    ) or not new_actor.is_vehicle:  # if riverboat/train with crew or normal unit
+                    ) or not new_actor.is_vehicle:  # if train with crew or normal unit
                         self.set_label(
-                            self.message_start
-                            + str(new_actor.movement_points)
-                            + "/"
-                            + str(new_actor.max_movement_points)
+                            f"{self.message_start}{new_actor.movement_points}/{new_actor.max_movement_points}"
                         )
-                    else:  # if ship or riverboat/train without crew
+                    else:  # if ship or train without crew
                         if not new_actor.has_infinite_movement:
                             if (
                                 new_actor.movement_points == 0
@@ -1046,18 +836,6 @@ class actor_display_label(label):
                 self.set_label(
                     self.message_start + str(self.actor.get_combat_strength())
                 )
-
-            elif self.actor_label_type == "preferred_terrains":
-                if self.actor.is_npmob and self.actor.npmob_type == "beast":
-                    self.set_label(
-                        self.message_start
-                        + " "
-                        + self.actor.preferred_terrains[0]
-                        + ", "
-                        + self.actor.preferred_terrains[1]
-                        + ", "
-                        + self.actor.preferred_terrains[2]
-                    )
 
             elif self.actor_label_type == "controllable":
                 if not self.actor.is_pmob:
@@ -1092,14 +870,7 @@ class actor_display_label(label):
             elif self.actor_label_type == "passengers":
                 if self.actor.is_vehicle:
                     if not self.actor.has_crew:
-                        if self.actor.can_swim and self.actor.can_swim_ocean:
-                            self.set_label(
-                                "Requires a European worker crew to function"
-                            )
-                        else:
-                            self.set_label(
-                                "Requires a non-slave worker crew to function"
-                            )
+                        self.set_label("Requires a worker crew to function")
                     else:
                         if len(self.actor.contained_mobs) == 0:
                             self.set_label(self.message_start + "none")
@@ -1129,37 +900,6 @@ class actor_display_label(label):
                         self.set_label(
                             self.message_start
                             + str(utility.capitalize(self.actor.officer.name))
-                        )
-
-            elif self.actor_label_type in [
-                "native aggressiveness",
-                "native population",
-                "native available workers",
-            ]:
-                if (
-                    self.actor.cell.has_building("village")
-                    and self.actor.cell.terrain_handler.visible
-                ):  # if village present
-                    if self.actor_label_type == "native aggressiveness":
-                        self.set_label(
-                            self.message_start
-                            + str(
-                                self.actor.cell.get_building("village").aggressiveness
-                            )
-                        )
-                    elif self.actor_label_type == "native population":
-                        self.set_label(
-                            self.message_start
-                            + str(self.actor.cell.get_building("village").population)
-                        )
-                    elif self.actor_label_type == "native available workers":
-                        self.set_label(
-                            self.message_start
-                            + str(
-                                self.actor.cell.get_building(
-                                    "village"
-                                ).available_workers
-                            )
                         )
 
             elif self.actor_label_type in [
@@ -1262,11 +1002,8 @@ class actor_display_label(label):
                     ]
                 )
 
-            elif self.actor_label_type in ["minister_name", "country_name"]:
+            elif self.actor_label_type == "minister_name":
                 self.set_label(self.message_start + new_actor.name)
-
-            elif self.actor_label_type == "country_effect":
-                self.set_label(self.message_start + new_actor.get_effect_descriptor())
 
             elif self.actor_label_type == "minister_office":
                 self.set_label(self.message_start + new_actor.current_position)
@@ -1286,17 +1023,6 @@ class actor_display_label(label):
                             self.actor_label_type
                         ).name.capitalize()
                     )
-
-            elif self.actor_label_type == "canoes":
-                self.set_label("Equipped with canoes to move along rivers")
-
-            elif self.actor_label_type == "slave_traders_strength":
-                self.set_label(
-                    "Strength: "
-                    + str(constants.slave_traders_strength)
-                    + "/"
-                    + str(constants.slave_traders_natural_max_strength)
-                )
 
             elif self.actor_label_type == "inventory_name":
                 self.set_label(
@@ -1346,20 +1072,11 @@ class actor_display_label(label):
             self.actor.cell.terrain_handler.resource == "none"
             or (not self.actor.cell.terrain_handler.visible)
             or self.actor.grid.is_abstract_grid
-            or (
-                self.actor.cell.terrain_handler.visible
-                and self.actor.cell.has_building("village")
-            )
         ):
             return False
         elif self.actor_label_type == "resource building" and (
             (not self.actor.cell.terrain_handler.visible)
             or (not self.actor.cell.has_building("resource"))
-        ):
-            return False
-        elif self.actor_label_type == "village" and (
-            (not self.actor.cell.terrain_handler.visible)
-            or (not self.actor.cell.has_building("village"))
         ):
             return False
         elif (
@@ -1387,17 +1104,6 @@ class actor_display_label(label):
             return False
         elif (
             self.actor_label_type in ["attitude", "controllable"] and self.actor.is_pmob
-        ):
-            return False
-        elif self.actor_label_type == "preferred_terrains" and not (
-            self.actor.is_npmob and self.actor.npmob_type == "beast"
-        ):
-            return False
-        elif self.actor_label_type == "canoes" and not self.actor.has_canoes:
-            return False
-        elif (
-            self.actor_label_type == "slave_traders_strength"
-            and self.actor.grid != status.slave_traders_grid
         ):
             return False
         elif (
@@ -1666,29 +1372,6 @@ class building_efficiency_label(actor_display_label):
             return False
 
 
-class native_info_label(
-    actor_display_label
-):  # possible actor_label_types: native aggressiveness, native population, native available workers
-    """
-    Label that shows the population, aggressiveness, or number of available workers in a displayed tile's village
-    """
-
-    def can_show(self, skip_parent_collection=False):
-        """
-        Description:
-            Returns whether this label should be drawn
-        Input:
-            None
-        Output:
-            boolean: Returns same value as superclass as long as the displayed tile is explored and has a village, otherwise returns False
-        """
-        return (
-            super().can_show(skip_parent_collection=skip_parent_collection)
-            and self.actor.cell.has_building("village")
-            and self.actor.cell.terrain_handler.visible
-        )
-
-
 class terrain_feature_label(actor_display_label):
     """
     Label that shows a particular type of terrain feature, if present
@@ -1709,7 +1392,7 @@ class terrain_feature_label(actor_display_label):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
                 'actor_type': string value - Type of actor to display the information of, like 'mob' or 'tile'
-                'terrain_feature_type': string value - Type of terrain feature associated with, like 'cataract'
+                'terrain_feature_type': string value - Type of terrain feature associated with, like 'equator'
         Output:
             None
         """

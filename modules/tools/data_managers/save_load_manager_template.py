@@ -56,14 +56,8 @@ class save_load_manager_template:
         self.copied_constants.append("sold_commodities")
         self.copied_constants.append("item_prices")
         self.copied_constants.append("recruitment_costs")
-        self.copied_constants.append("num_wandering_workers")
-        self.copied_constants.append("slave_traders_strength")
-        self.copied_constants.append("slave_traders_natural_max_strength")
-        self.copied_constants.append("completed_lore_mission_types")
-        self.copied_constants.append("completed_lore_missions")
 
         self.copied_statuses = []
-        self.copied_statuses.append("current_country_name")
         self.copied_statuses.append("previous_production_report")
         self.copied_statuses.append("previous_sales_report")
         self.copied_statuses.append("previous_financial_report")
@@ -72,22 +66,19 @@ class save_load_manager_template:
 
         self.copied_flags = []
         self.copied_flags.append("prosecution_bribed_judge")
-        self.copied_flags.append("any_slaves")
         self.copied_flags.append("victories_this_game")
 
-    def new_game(self, country):
+    def new_game(self):
         """
         Description:
             Creates a new game and leaves the main menu
         Input:
-            country country: Country being played in the new game
+            None
         Output:
             None
         """
         flags.creating_new_game = True
-        flags.any_slaves = False
         flags.victories_this_game = []
-        country.select()
 
         for grid_type in constants.grid_types_list:
             world_grids.create(from_save=False, grid_type=grid_type)
@@ -116,10 +107,6 @@ class save_load_manager_template:
                     current_commodity, constants.consumer_goods_starting_price
                 )
 
-        constants.slave_traders_natural_max_strength = 10  # regenerates to natural strength, can increase indefinitely when slaves are purchased
-        actor_utility.set_slave_traders_strength(
-            constants.slave_traders_natural_max_strength
-        )
         flags.player_turn = True
         status.previous_financial_report = None
 
@@ -129,7 +116,6 @@ class save_load_manager_template:
 
         for worker_type_name in status.worker_types:
             status.worker_types[worker_type_name].reset()
-        constants.num_wandering_workers = 0
         actor_utility.reset_action_prices()
         for current_commodity in constants.commodity_types:
             constants.sold_commodities[current_commodity] = 0
@@ -143,11 +129,6 @@ class save_load_manager_template:
         constants.money_tracker.change(0)  # updates projected income display
         constants.evil_tracker.set(0)
         constants.fear_tracker.set(1)
-
-        for i in range(1, random.randrange(5, 8)):
-            turn_management_utility.manage_villages(verbose=False)
-            turn_management_utility.manage_warriors()
-            actor_utility.spawn_beast()
 
         minister_utility.update_available_minister_display()
 
@@ -208,10 +189,7 @@ class save_load_manager_template:
                 saved_actor_dicts.append(current_pmob.to_save_dict())
 
         for current_npmob in status.npmob_list:
-            if (
-                current_npmob.saves_normally
-            ):  # for units like native warriors that are saved as part a village and not as their own unit, do not attempt to save from here
-                saved_actor_dicts.append(current_npmob.to_save_dict())
+            saved_actor_dicts.append(current_npmob.to_save_dict())
 
         for current_building in status.building_list:
             saved_actor_dicts.append(current_building.to_save_dict())
@@ -227,22 +205,8 @@ class save_load_manager_template:
             saved_minister_dicts.append(current_minister.to_save_dict())
             if constants.effect_manager.effect_active("show_corruption_on_save"):
                 print(
-                    current_minister.name
-                    + ", "
-                    + current_minister.current_position
-                    + ", skill modifier: "
-                    + str(current_minister.get_skill_modifier())
-                    + ", corruption threshold: "
-                    + str(current_minister.corruption_threshold)
-                    + ", stolen money: "
-                    + str(current_minister.stolen_money)
-                    + ", personal savings: "
-                    + str(current_minister.personal_savings)
+                    f"{current_minister.name}, {current_minister.current_position}, skill modifier: {current_minister.get_skill_modifier()}, corruption threshold: {current_minister.corruption_threshold}, stolen money: {current_minister.stolen_money}, personal savings: {current_minister.personal_savings}"
                 )
-
-        saved_lore_mission_dicts = []
-        for current_lore_mission in status.lore_mission_list:
-            saved_lore_mission_dicts.append(current_lore_mission.to_save_dict())
 
         with open(file_path, "wb") as handle:  # write wb, read rb
             pickle.dump(saved_constants, handle)
@@ -252,7 +216,6 @@ class save_load_manager_template:
             pickle.dump(saved_worker_types, handle)
             pickle.dump(saved_actor_dicts, handle)
             pickle.dump(saved_minister_dicts, handle)
-            pickle.dump(saved_lore_mission_dicts, handle)
             handle.close()
         text_utility.print_to_screen("Game successfully saved to " + file_path)
 
@@ -281,7 +244,6 @@ class save_load_manager_template:
                 saved_worker_types = pickle.load(handle)
                 saved_actor_dicts = pickle.load(handle)
                 saved_minister_dicts = pickle.load(handle)
-                saved_lore_mission_dicts = pickle.load(handle)
                 handle.close()
         except:
             text_utility.print_to_screen("There is no " + file_path + " save file yet.")
@@ -301,10 +263,6 @@ class save_load_manager_template:
         constants.evil_tracker.set(constants.evil)
         constants.fear_tracker.set(constants.fear)
 
-        getattr(
-            status, status.current_country_name
-        ).select()  # selects the country object with the same identifier as the saved country name
-
         text_utility.print_to_screen("")
         text_utility.print_to_screen("Turn " + str(constants.turn))
 
@@ -320,10 +278,6 @@ class save_load_manager_template:
 
         game_transitions.set_game_mode("strategic")
         game_transitions.create_strategic_map(from_save=True)
-        if constants.effect_manager.effect_active("eradicate_slave_trade"):
-            actor_utility.set_slave_traders_strength(0)
-        else:
-            actor_utility.set_slave_traders_strength(constants.slave_traders_strength)
 
         for current_worker_type in saved_worker_types:
             worker_types.worker_type(True, current_worker_type)
@@ -335,19 +289,12 @@ class save_load_manager_template:
             constants.actor_creation_manager.create_minister(
                 True, current_minister_dict
             )
-        for current_lore_mission_dict in saved_lore_mission_dicts:
-            constants.actor_creation_manager.create_lore_mission(
-                True, current_lore_mission_dict
-            )
         constants.available_minister_left_index = -2
         minister_utility.update_available_minister_display()
         status.commodity_prices_label.update_label()
 
         status.minimap_grid.calibrate(0, 0)
         game_transitions.set_game_mode("strategic")
-
-        for current_completed_lore_type in constants.completed_lore_mission_types:
-            status.lore_types_effects_dict[current_completed_lore_type].apply()
 
         tutorial_utility.show_tutorial_notifications()
 

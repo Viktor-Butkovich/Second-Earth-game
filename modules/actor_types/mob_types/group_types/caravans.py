@@ -11,7 +11,7 @@ import modules.constants.flags as flags
 
 class caravan(group):
     """
-    A group with a merchant officer that is able to establish trading posts and trade with native villages
+    A group with a merchant officer
     """
 
     def __init__(self, from_save, input_dict):

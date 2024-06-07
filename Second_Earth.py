@@ -11,12 +11,10 @@ try:
         terrain_feature_types_config,
         commodities,
         def_ministers,
-        def_countries,
         new_game_setup_screen,
         info_displays,
         transactions,
         actions,
-        lore,
         value_trackers,
         buttons,
         earth_screen,
@@ -28,7 +26,6 @@ try:
         settlement_interface,
         inventory_interface,
         minister_interface,
-        country_interface,
     )
     main_loop.main_loop()
 

@@ -27,7 +27,6 @@ capital: bool = False
 r_ctrl: bool = False
 l_ctrl: bool = False
 ctrl: bool = False
-any_slaves: bool = False
 show_planet_mask: bool = False
 show_grid_lines: bool = True
 expand_text_box: bool = False

@@ -66,20 +66,9 @@ class actor:
         if self.actor_type == "mob":
             if self.is_pmob:
                 if self.is_worker:
-                    if self.worker_type == "religious":
-                        init_type = "church_volunteers"
-                    elif self.worker_type == "slave":
-                        init_type = "slaves"
-                    else:
-                        init_type = "workers"
+                    init_type = "workers"
                 elif self.is_vehicle:
-                    if self.vehicle_type == "train":
-                        init_type = "train"
-                    elif self.vehicle_type == "ship":
-                        if self.can_swim_river:
-                            init_type = "boat"
-                        else:
-                            init_type = "ship"
+                    init_type = self.vehicle_type
                 elif self.is_officer:
                     init_type = self.officer_type
                 elif self.is_group:
@@ -373,12 +362,7 @@ class actor:
                 )
             else:
                 lost_commodities_message += (
-                    "and "
-                    + str(amount_lost)
-                    + " "
-                    + unit_word
-                    + " of "
-                    + lost_commodity
+                    f"and {amount_lost} {unit_word} of {lost_commodity}"
                 )
         if not lost_commodities_message == "":
             if len(types_lost_list) == 1 and amounts_lost_list[0] == 1:
@@ -387,36 +371,16 @@ class actor:
                 was_word = "were"
             if status.strategic_map_grid in self.grids:
                 location_message = "at (" + str(self.x) + ", " + str(self.y) + ")"
-            elif status.slave_traders_grid in self.grids:
-                location_message = "in the Arab slave markets"
             else:
                 location_message = f"in {self.grids[0].name}"
 
             if self.actor_type == "tile":
                 transportation_minister.display_message(
-                    "Minister of Transportation "
-                    + transportation_minister.name
-                    + " reports that "
-                    + lost_commodities_message
-                    + " "
-                    + location_message
-                    + " "
-                    + was_word
-                    + " lost, damaged, or misplaced. /n /n"
+                    f"Minister of Transportation {transportation_minister.name} reports that {lost_commodities_message} {location_message} {was_word} lost, damaged, or misplaced.\n\n"
                 )
             elif self.actor_type == "mob":
                 transportation_minister.display_message(
-                    "Minister of Transportation "
-                    + transportation_minister.name
-                    + " reports that "
-                    + lost_commodities_message
-                    + " carried by the "
-                    + self.name
-                    + " "
-                    + location_message
-                    + " "
-                    + was_word
-                    + " lost, damaged, or misplaced. /n /n"
+                    f"Minister of Transportation {transportation_minister.name} reports that {lost_commodities_message} carried by the {self.name} {location_message} {was_word} lost, damaged, or misplaced.\n\n"
                 )
         if stealing and value_stolen > 0:
             transportation_minister.steal_money(value_stolen, "inventory_attrition")

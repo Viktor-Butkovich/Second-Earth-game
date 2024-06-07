@@ -265,10 +265,6 @@ strategic_map_pixel_height: int = 300
 map_sizes: List[int] = [9, 13, 17, 21, 25, 29]  # 5 + 4 * random.randrange(1, 7)
 earth_grid_x_offset: int = 30
 earth_grid_y_offset: int = 145
-asia_grid_x_offset: int = 175
-asia_grid_y_offset: int = 145
-slave_traders_grid_x_offset: int = 175
-slave_traders_grid_y_offset: int = 0
 
 minimap_grid_pixel_width: int = strategic_map_pixel_width * 2
 minimap_grid_pixel_height: int = strategic_map_pixel_height * 2
@@ -286,8 +282,6 @@ building_types: List[str] = [
     "port",
     "infrastructure",
     "train_station",
-    "trading_post",
-    "mission",
     "fort",
     "slums",
     "warehouses",
@@ -303,12 +297,9 @@ building_prices: Dict[str, int] = {
     "railroad_bridge": 300,
     "port": 15,
     "train_station": 10,
-    "trading_post": 5,
-    "mission": 5,
     "fort": 5,
     "warehouses": 5,
     "train": 10,
-    "steamboat": 10,
 }
 base_action_prices: Dict[str, int] = {}
 action_types: List[str] = []
@@ -491,7 +482,33 @@ resource_building_dict: Dict[str, str] = {
     "rubber": "plantation",
 }
 
-weighted_backgrounds: List[str] = []
+weighted_backgrounds: List[str] = [
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "banker",
+    "merchant",
+    "lawyer",
+    "industrialist",
+    "industrialist",
+    "industrialist",
+    "industrialist",
+    "industrialist",
+    "industrialist",
+    "natural scientist",
+    "doctor",
+    "politician",
+    "politician",
+    "army officer",
+    "naval officer",
+]
 background_status_dict: Dict[str, int] = {
     "lowborn": 1,
     "banker": 2,
@@ -588,7 +605,6 @@ minister_limit: int = 15
 
 officer_types: List[str] = [
     "explorer",
-    "hunter",
     "engineer",
     "driver",
     "foreman",
@@ -598,7 +614,6 @@ officer_types: List[str] = [
 ]
 officer_group_type_dict: Dict[str, str] = {
     "explorer": "expedition",
-    "hunter": "safari",
     "engineer": "construction_gang",
     "driver": "porters",
     "foreman": "work_crew",
@@ -608,7 +623,6 @@ officer_group_type_dict: Dict[str, str] = {
 }
 officer_minister_dict: Dict[str, str] = {
     "explorer": type_minister_dict["exploration"],
-    "hunter": type_minister_dict["exploration"],
     "engineer": type_minister_dict["construction"],
     "driver": type_minister_dict["transportation"],
     "foreman": type_minister_dict["production"],
@@ -618,7 +632,6 @@ officer_minister_dict: Dict[str, str] = {
 }
 group_minister_dict: Dict[str, str] = {
     "expedition": type_minister_dict["exploration"],
-    "safari": type_minister_dict["exploration"],
     "construction_gang": type_minister_dict["construction"],
     "porters": type_minister_dict["transportation"],
     "work_crew": type_minister_dict["production"],
@@ -626,7 +639,6 @@ group_minister_dict: Dict[str, str] = {
     "missionaries": type_minister_dict["religion"],
     "battalion": type_minister_dict["military"],
 }
-country_specific_units: List[str] = ["major"]
 recruitment_types: List[str] = officer_types + ["European workers", "steamship"]
 recruitment_costs: Dict[str, int] = {
     "European workers": 0,
@@ -634,81 +646,12 @@ recruitment_costs: Dict[str, int] = {
     "officer": 5,
 }
 
-num_wandering_workers: int = 0
-
 worker_upkeep_increment: float = 0.25
-slave_recruitment_cost_increment: float = 1.0
 base_upgrade_price: float = 20.0  # 20 for 1st upgrade, 40 for 2nd, 80 for 3rd, etc.
 consumer_goods_starting_price: int = 1
 
-slave_traders_natural_max_strength: int = 0  # regenerates to natural strength, can increase indefinitely when slaves are purchased
-slave_traders_strength: int = 0
-
 list_descriptions: Dict[str, List[str]] = {}
 string_descriptions: Dict[str, str] = {}
-
-lore_types: List[str] = [
-    "zoology",
-    "botany",
-    "archaeology",
-    "anthropology",
-    "paleontology",
-    "theology",
-]
-lore_types_artifact_dict: Dict[str, List[str]] = {
-    "zoology": ["Monkey", "Serpent", "Beetle", "Hawk", "Panther", "Spider"],
-    "botany": ["Orchid", "Vine", "Root", "Bark", "Stalk", "Fruit"],
-    "archaeology": ["Tomb", "Stele", "Mask", "Statue", "City", "Temple"],
-    "anthropology": ["Urn", "Skull", "Totem", "Headdress", "Spear", "Idol"],
-    "paleontology": [
-        "saurus Fossil",
-        "tops Fossil",
-        "don Fossil",
-        "raptor Fossil",
-        "nyx Fossil",
-        "mut Fossil",
-    ],
-    "theology": ["Grail", "Ark", "Bone", "Crown", "Shroud", "Blood"],
-}
-lore_types_adjective_dict: Dict[str, List[str]] = {
-    "zoology": ["Albino ", "Devil ", "Royal ", "Vampire ", "Assassin ", "Storm "],
-    "botany": [
-        "Blood ",
-        "Midnight ",
-        "Thorny ",
-        "Strangler ",
-        "Carnivorous ",
-        "Ghost ",
-    ],
-    "archaeology": [
-        "Emperor's ",
-        "Golden ",
-        "Lost ",
-        "Antediluvian ",
-        "Ancient ",
-        "Forbidden ",
-    ],
-    "anthropology": [
-        "Crystal ",
-        "Golden ",
-        "Great Chief's ",
-        "Sky ",
-        "Moon ",
-        "Volcano ",
-    ],
-    "paleontology": ["Tyranno", "Bronto", "Stego", "Tricera", "Pterano", "Dimetro"],
-    "theology": ["Lost ", "Holy ", "Prester John's ", "Mary's ", "True ", "Sacred "],
-}
-lore_types_effect_descriptions_dict: Dict[str, str] = {
-    "zoology": "chance of a positive modifier for hunting rolls",
-    "botany": "lower chance of unit attrition death",
-    "archaeology": "chance of a positive modifier for attacking rolls against native warriors",
-    "anthropology": "chance of a positive modifier for native conversion rolls",
-    "paleontology": "chance of a positive modifier for public relations campaign rolls",
-    "theology": "chance of a positive modifier for religious campaign rolls",
-}
-completed_lore_mission_types: List[str] = []
-completed_lore_missions: Dict[str, str] = {}
 
 titles: List[str] = [
     "Duke",

@@ -156,9 +156,7 @@ class vehicle(pmob):
                 if transportation_minister.no_corruption_roll(
                     6, "health_attrition"
                 ) == 1 or constants.effect_manager.effect_active("boost_attrition"):
-                    if (not worker_type in ["African", "slave"]) or random.randrange(
-                        1, 7
-                    ) == 1:  # only 1/6 chance of continuing attrition for African workers, others automatically continue
+                    if random.randrange(1, 7) == 1:
                         if current_sub_mob == self.crew:  # if crew died of attrition
                             crew = self.crew
                             if not current_sub_mob.automatically_replace:
@@ -566,8 +564,6 @@ class ship(vehicle):
         self.has_infinite_movement = True
         self.vehicle_type = "ship"
         self.can_swim = True
-        self.can_swim_river = False
-        self.can_swim_ocean = True
         self.can_walk = False
         self.travel_possible = True  # if this mob would ever be able to travel
         if not from_save:
@@ -632,65 +628,3 @@ class ship(vehicle):
             Returns the name of this type of vehicle
         """
         return "steamship"
-
-
-class boat(ship):
-    """
-    Vehicle that behaves similarly to a ship but moves in river water instead and has large inventory capacity and limited movement points
-    """
-
-    def __init__(self, from_save, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
-                'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_ship.png'
-                'name': string value - Required if from save, this mob's name
-                'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
-                'movement_points': int value - Required if from save, how many movement points this actor currently has
-                'crew': worker, string, or dictionary value - If no crew, equals 'none'. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
-                    recreate the worker to serve as crew
-                'passenger_dicts': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each of this vehicle's passengers
-        Output:
-            None
-        """
-        super().__init__(from_save, input_dict)
-        self.set_max_movement_points(12)
-        self.has_infinite_movement = False
-        self.vehicle_type = "ship"
-        self.can_swim_river = True
-        self.can_swim_ocean = False
-        self.can_walk = False
-        self.travel_possible = False
-        if not from_save:
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
-
-    def get_movement_cost(self, x_change, y_change):
-        """
-        Description:
-            Returns the cost in movement points of moving by the inputted amounts. Unlike most pmobs, steamboats use their default movement cost to move to all water or port tiles
-        Input:
-            int x_change: How many cells would be moved to the right in the hypothetical movement
-            int y_change: How many cells would be moved upward in the hypothetical movement
-        Output:
-            double: How many movement points would be spent by moving by the inputted amount
-        """
-        return self.movement_cost
-
-    def get_vehicle_name(self) -> str:
-        """
-        Description:
-            Returns the name of this type of vehicle
-        Input:
-            None
-        Output:
-            Returns the name of this type of vehicle
-        """
-        return "steamboat"
