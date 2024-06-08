@@ -18,6 +18,9 @@ from modules.tools.data_managers.achievement_manager_template import (
 from modules.tools.data_managers.terrain_manager_template import (
     terrain_manager_template,
 )
+from modules.tools.data_managers.character_manager_template import (
+    character_manager_template,
+)
 from modules.tools.data_managers.effect_manager_template import effect_manager_template
 from modules.tools.data_managers.notification_manager_template import (
     notification_manager_template,
@@ -186,6 +189,7 @@ actor_creation_manager: actor_creation_manager_template = (
     actor_creation_manager_template()
 )
 terrain_manager: terrain_manager_template = terrain_manager_template()
+character_manager: character_manager_template = character_manager_template()
 achievement_manager: achievement_manager_template = (
     None  # requires additional setup before initialization
 )

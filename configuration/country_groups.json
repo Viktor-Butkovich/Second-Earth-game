@@ -1,0 +1,191 @@
+{
+    "note": "Using ten millions as units, such that the current world total is 811 units",
+    "South Asian": {
+        "metadata": {
+            "space_representation": 0.4
+        },
+        "populations": {
+            "India": 142,
+            "Pakistan": 24,
+            "Bangladesh": 17,
+            "Nepal": 3,
+            "Sri Lanka": 2
+        }
+    },
+    "East Asian": {
+        "metadata": {
+            "space_representation": 0.5
+        },
+        "populations": {
+            "China": 142,
+            "Japan": 12,
+            "South Korea": 5,
+            "North Korea": 3,
+            "Taiwan": 2,
+            "Hong Kong": 1,
+            "Singapore": 1
+        }
+    },
+    "Southeast Asian": {
+        "metadata": {
+            "space_representation": 0.3
+        },
+        "populations": {
+            "Indonesia": 28,
+            "Philippines": 12,
+            "Vietnam": 10,
+            "Thailand": 7,
+            "Myanmar": 5,
+            "Malaysia": 3,
+            "Cambodia": 2,
+            "Papua New Guinea": 1,
+            "Laos": 1
+        }
+    },
+    "Western Bloc": {
+        "metadata": {
+            "space_representation": 1.0
+        },
+        "populations": {
+            "USA": 34,
+            "Germany": 8,
+            "UK": 7,
+            "France": 6,
+            "Italy": 6,
+            "South Africa": 6,
+            "Canada": 4,
+            "Australia": 3,
+            "Netherlands": 2,
+            "Belgium": 1,
+            "Greece": 1,
+            "Sweden": 1,
+            "Portugal": 1,
+            "Israel": 1,
+            "Austria": 1,
+            "Switzerland": 1,
+            "Denmark": 1,
+            "Finland": 1,
+            "Norway": 1,
+            "New Zealand": 1,
+            "Ireland": 1,
+            "Misc. Western": 1
+        }
+    },
+    "Eastern Bloc": {
+        "metadata": {
+            "space_representation": 1.0
+        },
+        "populations": {
+            "Russia": 15,
+            "Poland": 4,
+            "Ukraine": 4,
+            "Uzbekistan": 3,
+            "Romania": 2,
+            "Kazakhstan": 2,
+            "Czech Republic": 2,
+            "Azerbaijan": 1,
+            "Hungary": 1,
+            "Tajikistan": 1,
+            "Belarus": 1,
+            "Serbia": 1,
+            "Kyrgyzstan": 1,
+            "Bulgaria": 1,
+            "Turkmenistan": 1,
+            "Slovakia": 1,
+            "Misc. Eastern": 4
+        }
+    },
+    "African": {
+        "metadata": {
+            "space_representation": 0.3
+        },
+        "populations": {
+            "Nigeria": 22,
+            "Ethiopia": 13,
+            "DR Congo": 10,
+            "Tanzania": 7,
+            "Kenya": 5,
+            "Uganda": 5,
+            "Sudan": 5,
+            "Angola": 4,
+            "Ghana": 3,
+            "Mozambique": 3,
+            "Madagascar": 3,
+            "Ivory Cost": 3,
+            "Cameroon": 3,
+            "Niger": 3,
+            "Mali": 2,
+            "Burkina Faso": 2,
+            "Malawi": 2,
+            "Zambia": 2,
+            "Chad": 2,
+            "Senegal": 2,
+            "Zimbabwe": 2,
+            "Guinea": 1,
+            "Rwanda": 1,
+            "Benin": 1,
+            "Burundi": 1,
+            "South Sudan": 1,
+            "Togo": 1,
+            "Sierra Leone": 1,
+            "Congo": 1,
+            "Central African Republic": 1,
+            "Liberia": 1,
+            "Misc. African": 2
+        }
+    },
+    "Arabic": {
+        "metadata": {
+            "space_representation": 0.45
+        },
+        "populations": {
+            "Egypt": 11,
+            "Iran": 9,
+            "Turkey": 8,
+            "Algeria": 5,
+            "Iraq": 4,
+            "Morocco": 4,
+            "Afghanistan": 4,
+            "Saudi Arabia": 3,
+            "Yemen": 3,
+            "Niger": 3,
+            "Syria": 2,
+            "Somalia": 2,
+            "Tunisia": 1,
+            "Jordan": 1,
+            "UAE": 1,
+            "Libya": 1,
+            "Palestine": 1,
+            "Lebanon": 1,
+            "Misc. Arabic": 1
+        }
+    },
+    "Latin": {
+        "metadata": {
+            "space_representation": 0.2
+        },
+        "populations": {
+            "Brazil": 22,
+            "Mexico": 13,
+            "Colombia": 5,
+            "Spain": 5,
+            "Argentina": 5,
+            "Peru": 3,
+            "Venezuela": 3,
+            "Chile": 2,
+            "Ecuador": 2,
+            "Guatemala": 2,
+            "Bolivia": 1,
+            "Honduras": 1,
+            "Nicaragua": 1,
+            "Paraguay": 1,
+            "El Salvador": 1,
+            "Costa Rica": 1,
+            "Misc. Latin": 2,
+            "Haiti": 1,
+            "Dominican republic": 1,
+            "Cuba": 1,
+            "Misc. Caribbean": 1
+        }
+    }
+}

@@ -55,5 +55,5 @@
     "large_map_sizes": [29, 35, 41, 47, 53, 59],
 
     "earth_preset": false,
-    "mars_preset": true
+    "mars_preset": false
 }
