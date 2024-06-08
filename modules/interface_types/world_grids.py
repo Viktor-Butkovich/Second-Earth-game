@@ -791,11 +791,15 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
     )
 
     if grid_type == "strategic_map_grid":
-        map_size = input_dict.get("map_size", random.choice(constants.map_sizes))
+        if constants.effect_manager.effect_active("large_map"):
+            map_size_list = constants.terrain_manager.get_tuning("large_map_sizes")
+        else:
+            map_size_list = constants.terrain_manager.get_tuning("map_sizes")
+        map_size = input_dict.get("map_size", random.choice(map_size_list))
         if constants.terrain_manager.get_tuning("earth_preset"):
-            map_size = constants.map_sizes[3]
+            map_size = map_size_list[3]
         elif constants.terrain_manager.get_tuning("mars_preset"):
-            map_size = constants.map_sizes[1]
+            map_size = map_size_list[1]
         input_dict.update(
             {
                 "modes": [],  # Acts as source of truth for mini grids, but this grid is not directly shown

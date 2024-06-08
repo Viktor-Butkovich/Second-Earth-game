@@ -262,7 +262,6 @@ grids_collection_y: int = default_display_height - 325
 
 strategic_map_pixel_width: int = 320
 strategic_map_pixel_height: int = 300
-map_sizes: List[int] = [9, 13, 17, 21, 25, 29]  # 5 + 4 * random.randrange(1, 7)
 earth_grid_x_offset: int = 30
 earth_grid_y_offset: int = 145
 

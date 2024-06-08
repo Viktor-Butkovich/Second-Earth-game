@@ -28,8 +28,7 @@
       "enable_crash_button",
       "map_modes",
       "allow_planet_mask",
-      "earth_preset",
-      "mars_preset"
+      "large_map"
    ],
    "active_effects": [
       "fullscreen"
