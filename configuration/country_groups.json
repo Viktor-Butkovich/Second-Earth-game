@@ -10,6 +10,13 @@
             "Bangladesh": 17,
             "Nepal": 3,
             "Sri Lanka": 2
+        },
+        "demographics": {
+            "default": {
+                "Indian": 98,
+                "British": 1,
+                "diaspora": 1
+            }
         }
     },
     "East Asian": {
@@ -22,8 +29,32 @@
             "South Korea": 5,
             "North Korea": 3,
             "Taiwan": 2,
-            "Hong Kong": 1,
-            "Singapore": 1
+            "Hong Kong": 1
+        },
+        "demographics": {
+            "default": {
+                "Chinese": 90,
+                "Central Asian": 5,
+                "Filipino": 2,
+                "diaspora": 3
+            },
+            "Japan": {
+                "Japanese": 92,
+                "Central Asian": 2,
+                "Southeast Asian": 2,
+                "Chinese": 2,
+                "Korean": 1,
+                "diaspora": 1
+            },
+            "South Korea": {
+                "Korean": 95,
+                "Chinese": 2,
+                "American": 2,
+                "diaspora": 1
+            },
+            "North Korea": {
+                "Korean": 100
+            }
         }
     },
     "Southeast Asian": {
@@ -39,7 +70,24 @@
             "Malaysia": 3,
             "Cambodia": 2,
             "Papua New Guinea": 1,
-            "Laos": 1
+            "Laos": 1,
+            "Singapore": 1
+        },
+        "demographics": {
+            "default": {
+                "Southeast Asian": 95,
+                "Chinese": 2,
+                "Filipino": 2,
+                "diaspora": 1
+            },
+            "Philippines": {
+                "Filipino": 90,
+                "Latin": 5,
+                "Japanese": 1,
+                "Chinese": 1,
+                "American": 2,
+                "diaspora": 1
+            }
         }
     },
     "Western Bloc": {
@@ -69,6 +117,110 @@
             "New Zealand": 1,
             "Ireland": 1,
             "Misc. Western": 1
+        },
+        "demographics": {
+            "USA": {
+                "American": 58,
+                "Latin": 19,
+                "African American": 12,
+                "Chinese": 1,
+                "Japanese": 1,
+                "Korean": 1,
+                "Filipino": 1,
+                "Indigeneous North American": 1,
+                "diaspora": 6
+            },
+            "Germany": {
+                "German": 71,
+                "Eastern European": 7,
+                "Arabic": 5,
+                "West African": 1,
+                "East African": 1,
+                "Italian": 1,
+                "diaspora": 14
+            },
+            "UK": {
+                "British": 82,
+                "Indian": 7,
+                "Chinese": 1,
+                "West African": 2,
+                "East African": 2,
+                "diaspora": 6
+            },
+            "Ireland": "UK",
+            "France": {
+                "French": 76,
+                "Arabic": 9,
+                "West African": 5,
+                "East African": 2,
+                "Eastern European": 2,
+                "Portuguese": 1,
+                "Latin": 1,
+                "diaspora": 4
+            },
+            "Italy": {
+                "Italian": 91,
+                "Arabic": 2,
+                "Eastern European": 2,
+                "French": 1,
+                "German": 1,
+                "Indian": 1,
+                "diaspora": 2
+            },
+            "Scandinavian": {
+                "Scandinavian": 90,
+                "Arabic": 5,
+                "Eastern European": 3,
+                "diaspora": 2
+            },
+            "Denmark": "Scandinavian",
+            "Norway": "Scandinavian",
+            "Finland": "Scandinavian",
+            "Sweden": "Scandinavian",
+            "South Africa": {
+                "West African": 43,
+                "East African": 43,
+                "British": 9,
+                "Indian": 2,
+                "diaspora": 3
+            },
+            "Canada": {
+                "British": 31,
+                "French": 20,
+                "American": 20,
+                "Indigeneous North American": 5,
+                "African American": 2,
+                "West African": 1,
+                "East African": 1,
+                "Arabic": 2,
+                "Chinese": 4,
+                "Filipino": 3,
+                "Indian": 7,
+                "Latin": 2,
+                "diaspora": 2
+            },
+            "Australia": {
+                "British": 72,
+                "Aboriginal Australian": 5,
+                "Chinese": 5,
+                "Italian": 4,
+                "German": 4,
+                "Indian": 3,
+                "Filipino": 2,
+                "Southeast Asian": 2,
+                "diaspora": 3
+            },
+            "New Zealand": "Australia",
+            "default": {
+                "Dutch": 20,
+                "French": 20,
+                "German": 20,
+                "Portuguese": 20,
+                "British": 5,
+                "Arabic": 5,
+                "Eastern European": 5,
+                "diaspora": 5
+            }
         }
     },
     "Eastern Bloc": {
@@ -136,7 +288,7 @@
     },
     "Arabic": {
         "metadata": {
-            "space_representation": 0.45
+            "space_representation": 0.4
         },
         "populations": {
             "Egypt": 11,
