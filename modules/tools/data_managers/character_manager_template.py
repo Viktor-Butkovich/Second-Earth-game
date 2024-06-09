@@ -185,4 +185,4 @@ class character_manager_template:
                 file_name = f"text/names/{ethnicity.lower().replace(' ', '_')}_first_names_male.csv"
             else:
                 file_name = f"text/names/{ethnicity.lower().replace(' ', '_')}_first_names_female.csv"
-        return random.choice(csv_utility.read_csv(file_name))
+        return random.choice(csv_utility.read_csv(file_name))[0]
