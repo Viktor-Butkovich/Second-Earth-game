@@ -1,7 +1,7 @@
 # Manages character generation, minister/officer/worker backgrounds, names, appearance, ethnicity, and other personal details
 
 from typing import List, Dict
-from ...util import csv_utility, utility
+from ...util import csv_utility, utility, actor_utility
 import json
 import random
 
@@ -15,6 +15,146 @@ class character_manager_template:
         """
         Description:
             Initializes this object
+        Input:
+            None
+        Output:
+            None
+        """
+        self.demographics_setup()
+        self.appearances_setup()
+
+    def appearances_setup(self) -> None:
+        """
+        Description:
+            Reads in possible character appearances image files
+        Input:
+            None
+        Output:
+            None
+        """
+        self.portrait_section_types = [
+            "base_skin",
+            "mouth",
+            "nose",
+            "eyes",
+            "hair",
+            "outfit",
+            "facial_hair",
+            "hat",
+            "portrait",
+        ]
+        self.hair_colors = actor_utility.extract_folder_colors(
+            "ministers/portraits/hair/colors/"
+        )
+        self.skin_colors = actor_utility.extract_folder_colors(
+            "ministers/portraits/base_skin/colors/"
+        )
+        self.clothing_colors = actor_utility.extract_folder_colors(
+            "ministers/portraits/outfit/suit_colors/"
+        )
+        self.accessory_colors = actor_utility.extract_folder_colors(
+            "ministers/portraits/outfit/accessory_colors/"
+        )
+
+        self.skin_images = actor_utility.get_image_variants(
+            "ministers/portraits/base_skin/default.png", "base_skin"
+        )
+        self.hat_images = actor_utility.get_image_variants(
+            "ministers/portraits/hat/default.png", "hat"
+        )
+        self.all_hair_images = actor_utility.get_image_variants(
+            "ministers/portraits/hair/default.png", "no_hat"
+        )
+        self.hat_compatible_hair_images = actor_utility.get_image_variants(
+            "ministers/portraits/hair/default.png", "hair"
+        )
+        self.outfit_images = actor_utility.get_image_variants(
+            "ministers/portraits/outfit/default.png", "outfit"
+        )
+        self.facial_hair_images = actor_utility.get_image_variants(
+            f"ministers/portraits/facial_hair/default.png", "facial_hair"
+        )
+        self.mouth_images = actor_utility.get_image_variants(
+            f"ministers/portraits/mouth/default.png", "mouth"
+        )
+        self.nose_images = actor_utility.get_image_variants(
+            f"ministers/portraits/nose/default.png", "nose"
+        )
+        self.eyes_images = actor_utility.get_image_variants(
+            f"ministers/portraits/eyes/default.png", "eyes"
+        )
+        self.portrait_images = actor_utility.get_image_variants(
+            f"ministers/portraits/portrait/default.png", "portrait"
+        )
+
+    def generate_appearance(self, minister) -> None:
+        """
+        Description:
+            Generates random portrait sections for the inputted minister during initialization
+        Input:
+            minister minister: Minister to generate appearance of
+        Output:
+            Dict[str, image_id]: Returns dictionary of image ids for each portrait section
+        """
+        portrait_sections = {}
+        for portrait_section in self.portrait_section_types:
+            portrait_sections[portrait_section] = "misc/empty.png"
+        hair_color = random.choice(self.hair_colors)
+        skin_color = random.choice(self.skin_colors)
+        suit_colors = random.sample(self.clothing_colors, 2) + [
+            random.choice(self.accessory_colors)
+        ]
+
+        possible_skin_images = self.skin_images
+        portrait_sections["base_skin"] = {
+            "image_id": random.choice(possible_skin_images),
+            "green_screen": skin_color,
+        }
+
+        has_hat = random.choice([True, False])
+        if has_hat:
+            possible_hat_images = self.hat_images
+            portrait_sections["hat"] = {
+                "image_id": random.choice(possible_hat_images),
+                "green_screen": suit_colors,
+            }
+
+        possible_outfit_images = self.outfit_images
+        portrait_sections["outfit"] = {
+            "image_id": random.choice(possible_outfit_images),
+            "green_screen": suit_colors,
+        }
+
+        if has_hat:
+            possible_hair_images = self.hat_compatible_hair_images
+        else:
+            possible_hair_images = self.all_hair_images
+        if random.randrange(0, 10) == 0:
+            possible_hair_images = ["misc/empty.png"]
+        portrait_sections["hair"] = {
+            "image_id": random.choice(possible_hair_images),
+            "green_screen": hair_color,
+        }
+
+        possible_facial_hair_images = self.facial_hair_images
+        if random.randrange(0, 5) == 0:
+            possible_facial_hair_images = ["misc/empty.png"]
+        portrait_sections["facial_hair"] = {
+            "image_id": random.choice(possible_facial_hair_images),
+            "green_screen": hair_color,
+        }
+
+        portrait_sections["mouth"] = random.choice(self.mouth_images)
+        portrait_sections["nose"] = random.choice(self.nose_images)
+        portrait_sections["eyes"] = random.choice(self.eyes_images)
+        portrait_sections["portrait"] = random.choice(self.portrait_images)
+
+        return portrait_sections
+
+    def demographics_setup(self) -> None:
+        """
+        Description:
+            Sets up character generation demographics
         Input:
             None
         Output:
@@ -117,7 +257,7 @@ class character_manager_template:
                 round(ethnic_group_total_weights[ethnic_group])
             )
 
-    def test(self) -> None:
+    def demographics_test(self) -> None:
         """
         Description:
             Prints 100 random names to the console

@@ -438,7 +438,7 @@ def get_image_variants(base_path, keyword="default"):
 def extract_folder_colors(folder_path):
     """
     Description:
-        Iterates through a folder's files and finds the first color in each image, returning that colors RGB values
+        Iterates through a folder's files and finds the first color in each image, returning that color's RGB values
     Input:
         string folder_path: Folder path to search through, like 'ministers/portraits/hair/colors'
     Output:

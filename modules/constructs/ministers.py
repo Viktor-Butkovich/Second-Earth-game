@@ -3,11 +3,8 @@
 import random, os
 from typing import List, Tuple, Dict
 from ..util import (
-    tutorial_utility,
     utility,
-    actor_utility,
     minister_utility,
-    main_loop_utility,
     scaling,
 )
 import modules.constants.constants as constants
@@ -125,7 +122,10 @@ class minister:
             self.interests_setup()
             self.corruption_setup()
             status.available_minister_list.append(self)
-            self.portrait_sections_setup()
+            self.portrait_sections = constants.character_manager.generate_appearance(
+                self
+            )
+            self.update_image_bundle()
             self.stolen_money: int = 0
             self.undetected_corruption_events: List[Tuple[float, str]] = []
             self.corruption_evidence: int = 0
@@ -149,102 +149,6 @@ class minister:
             return self.name
         else:
             return self.first_name[0] + ". " + self.last_name
-
-    def portrait_sections_setup(self):
-        """
-        Description:
-            Retrieves appearance variants from graphics folders and creates a random image bundle personalized for this minister's background on first creation
-        Input:
-            None
-        Output:
-            None
-        """
-        hair_color = random.choice(
-            actor_utility.extract_folder_colors("ministers/portraits/hair/colors/")
-        )  # same colors folder shared for hair and facial hair
-        skin_color = random.choice(
-            actor_utility.extract_folder_colors("ministers/portraits/base_skin/colors/")
-        )
-        possible_suit_colors = actor_utility.extract_folder_colors(
-            "ministers/portraits/outfit/suit_colors/"
-        )
-        suit_colors = [
-            random.choice(possible_suit_colors),
-            random.choice(possible_suit_colors),
-        ]
-        while suit_colors[1] == suit_colors[0]:
-            suit_colors[1] = random.choice(possible_suit_colors)
-        suit_colors.append(
-            random.choice(
-                actor_utility.extract_folder_colors(
-                    "ministers/portraits/outfit/accessory_colors/"
-                )
-            )
-        )
-        outfit_type = "default"
-        for image_type in self.portrait_section_types:
-            possible_sections = actor_utility.get_image_variants(
-                "ministers/portraits/" + image_type + "/default.png", image_type
-            )
-            if image_type in ["hair", "facial_hair"]:
-                if image_type == "facial_hair":
-                    if random.randrange(0, 5) == 0:
-                        possible_sections = ["misc/empty.png"]
-                elif image_type == "hair":
-                    if random.randrange(0, 10) == 0:
-                        possible_sections = ["misc/empty.png"]
-                    else:
-                        possible_sections += actor_utility.get_image_variants(
-                            "ministers/portraits/" + image_type + "/default.png",
-                            "no_hat",
-                        )
-            elif image_type in ["outfit", "hat"]:
-                if image_type == "outfit":
-                    if self.background in ["army officer", "naval officer"]:
-                        outfit_type = "military"
-                if outfit_type != "default":
-                    possible_sections = actor_utility.get_image_variants(
-                        "ministers/portraits/" + image_type + "/default.png",
-                        outfit_type,
-                    )
-                if image_type == "hat":
-                    if random.randrange(0, 2) != 0 or (
-                        outfit_type == "armored" and random.randrange(0, 5) != 0
-                    ):
-                        possible_sections = ["misc/empty.png"]
-                    else:
-                        if self.portrait_sections["hair"][
-                            "image_id"
-                        ] in actor_utility.get_image_variants(
-                            "ministers/portraits/hair/default.png", "no_hat"
-                        ):
-                            self.portrait_sections["hair"]["image_id"] = random.choice(
-                                actor_utility.get_image_variants(
-                                    "ministers/portraits/hair/default.png", "hair"
-                                )
-                            )
-            if len(possible_sections) > 0:
-                image_id = random.choice(possible_sections)
-            else:
-                image_id = "misc/empty.png"
-            if image_type in ["hair", "facial_hair"]:
-                self.portrait_sections[image_type] = {
-                    "image_id": image_id,
-                    "green_screen": hair_color,
-                }
-            elif image_type in ["base_skin"]:
-                self.portrait_sections[image_type] = {
-                    "image_id": image_id,
-                    "green_screen": skin_color,
-                }
-            elif image_type in ["outfit", "hat"]:
-                self.portrait_sections[image_type] = {
-                    "image_id": image_id,
-                    "green_screen": suit_colors,
-                }
-            else:
-                self.portrait_sections[image_type] = image_id
-        self.update_image_bundle()
 
     def update_tooltip(self):
         """
@@ -421,14 +325,7 @@ class minister:
         if prosecutor != "none":
             if constants.effect_manager.effect_active("show_minister_stealing"):
                 print(
-                    self.current_position
-                    + " "
-                    + self.name
-                    + " stole "
-                    + str(value)
-                    + " money from "
-                    + constants.transaction_descriptions[theft_type]
-                    + "."
+                    f"{self.current_position} {self.name} stole {value} money from {constants.transaction_descriptions[theft_type]}."
                 )
             difficulty = self.no_corruption_roll(6, "minister_stealing")
             result = prosecutor.no_corruption_roll(6, "minister_stealing_detection")
@@ -445,38 +342,14 @@ class minister:
                             "The theft was caught by the prosecutor, who accepted a bribe to not create evidence."
                         )
                         print(
-                            prosecutor.current_position
-                            + " "
-                            + prosecutor.name
-                            + " has now stolen a total of "
-                            + str(prosecutor.stolen_money)
-                            + " money."
+                            f"{prosecutor.current_position} {prosecutor.name} has now stolen a total of {prosecutor.stolen_money} money."
                         )
                 else:  # if prosecutor refuses bribe, still keep money but create evidence
                     self.corruption_evidence += 1
                     evidence_message = ""
-                    evidence_message += (
-                        "Prosecutor "
-                        + prosecutor.name
-                        + " suspects that "
-                        + self.current_position
-                        + " "
-                        + self.name
-                        + " just engaged in corrupt activity relating to "
-                    )
-                    evidence_message += (
-                        constants.transaction_descriptions[theft_type]
-                        + " and has filed a piece of evidence against him. /n /n"
-                    )
-                    evidence_message += (
-                        "There are now "
-                        + str(self.corruption_evidence)
-                        + " piece"
-                        + utility.generate_plural(self.corruption_evidence)
-                        + " of evidence against "
-                        + self.name
-                        + ". /n /n"
-                    )
+                    evidence_message += f"Prosecutor {prosecutor.name} suspects that {self.current_position} {self.name} just engaged in corrupt activity relating to "
+                    evidence_message += f"{constants.transaction_descriptions[theft_type]} and has filed a piece of evidence against him. /n /n"
+                    evidence_message += f"There are now {self.corruption_evidence} piece{utility.generate_plural(self.corruption_evidence)} of evidence against {self.name}. /n /n"
                     evidence_message += "Each piece of evidence can help in a trial to remove a corrupt minister from office. /n /n"
                     prosecutor.display_message(
                         evidence_message,
@@ -518,12 +391,7 @@ class minister:
 
         if constants.effect_manager.effect_active("show_minister_stealing"):
             print(
-                self.current_position
-                + " "
-                + self.name
-                + " has now stolen a total of "
-                + str(self.stolen_money)
-                + " money."
+                f"{self.current_position} {self.name} has now stolen a total of {self.stolen_money} money."
             )
 
         if value > 0:
