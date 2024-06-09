@@ -392,6 +392,13 @@
             "Palestine": 1,
             "Lebanon": 1,
             "Misc. Arabic": 1
+        },
+        "demographics": {
+            "default": {
+                "Arabic": 95,
+                "Central Asian": 4,
+                "diaspora": 1
+            }
         }
     },
     "Latin": {
@@ -420,6 +427,28 @@
             "Dominican republic": 1,
             "Cuba": 1,
             "Misc. Caribbean": 1
+        },
+        "demographics": {
+            "default": {
+                "Latin": 83,
+                "Indigeneous Latin American": 15,
+                "diaspora": 2
+            },
+            "Spain": {
+                "Latin": 90,
+                "Arabic": 5,
+                "French": 1,
+                "Italian": 1,
+                "diaspora": 3
+            },
+            "Argentina": {
+                "Latin": 35,
+                "German": 30,
+                "Italian": 20,
+                "Indigeneous Latin American": 8,
+                "diaspora": 7
+            },
+            "Chile": "Argentina"
         }
     }
 }
