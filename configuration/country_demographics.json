@@ -1,20 +1,27 @@
 {
-    "note": "Using ten millions as units, such that the current world total is 811 units",
     "South Asian": {
         "metadata": {
             "space_representation": 0.4
         },
         "populations": {
-            "India": 142,
+            "India": 141,
             "Pakistan": 24,
             "Bangladesh": 17,
             "Nepal": 3,
-            "Sri Lanka": 2
+            "Sri Lanka": 2,
+            "Misc. Indian": 1
         },
+        "miscellaneous": ["Bhutan", "Maldives"],
         "demographics": {
             "default": {
                 "Indian": 98,
                 "British": 1,
+                "diaspora": 1
+            },
+            "Pakistan": {
+                "Indian": 93,
+                "Iranian": 4,
+                "Arabic": 2,
                 "diaspora": 1
             }
         }
@@ -71,8 +78,9 @@
             "Cambodia": 2,
             "Papua New Guinea": 1,
             "Laos": 1,
-            "Singapore": 1
+            "Misc. Southeast Asian": 1
         },
+        "miscellaneous": ["Singapore", "Timore-Leste", "Mauritius", "Fiji", "Brunei", "Solomon Islands", "Vanuatu", "Samoa", "Kiribati", "Tonga", "Micronesia", "Palau", "Marshall Islands", "Tuvalu", "Nauru"],
         "demographics": {
             "default": {
                 "Southeast Asian": 95,
@@ -118,6 +126,7 @@
             "Ireland": 1,
             "Misc. Western": 1
         },
+        "miscellaneous": ["Luxembourg", "Cyprus", "Iceland", "Malta", "Liechtenstein", "Monaco", "Andorra", "San Marino", "Vatican City"],
         "demographics": {
             "USA": {
                 "American": 58,
@@ -208,14 +217,21 @@
                 "diaspora": 3
             },
             "New Zealand": "Australia",
+            "Portugal": {
+                "Portuguese": 85,
+                "Arabic": 5,
+                "Latin": 5,
+                "French": 2,
+                "British": 1,
+                "diaspora": 2
+            },
             "default": {
                 "Dutch": 20,
                 "French": 20,
-                "German": 20,
-                "Portuguese": 20,
+                "German": 30,
                 "British": 5,
                 "Arabic": 5,
-                "Eastern European": 5,
+                "Eastern European": 15,
                 "diaspora": 5
             }
         }
@@ -241,8 +257,9 @@
             "Bulgaria": 1,
             "Turkmenistan": 1,
             "Slovakia": 1,
-            "Misc. Eastern": 4
+            "Misc. Eastern": 5
         },
+        "miscellaneous": ["Estonia", "Slovenia", "North Macedonia", "Latvia", "Lithuania", "Croatia", "Georgia", "Mongolia", "Moldova", "Bosnia and Herzegovina", "Albania", "Armenia", "Montenegro"],
         "demographics": {
             "Russia": {
                 "Eastern European": 79,
@@ -257,7 +274,8 @@
             },
             "Central Asia": {
                 "Central Asian": 94,
-                "Eastern European": 5,
+                "Eastern European": 3,
+                "Iranian": 2,
                 "diaspora": 1
             },
             "Poland": "Eastern Europe",
@@ -269,7 +287,19 @@
             "Serbia": "Eastern Europe",
             "Bulgaria": "Eastern Europe",
             "Slovakia": "Eastern Europe",
-            "Misc. Eastern": "Eastern Europe",
+            "Estonia": "Eastern Europe",
+            "Slovenia": "Eastern Europe",
+            "North Macedonia": "Eastern Europe",
+            "Latvia": "Eastern Europe",
+            "Lithuania": "Eastern Europe",
+            "Croatia": "Eastern Europe",
+            "Georgia": "Central Asia",
+            "Moldova": "Eastern Europe",
+            "Bosnia and Herzegovina": "Eastern Europe",
+            "Albania": "Eastern Europe",
+            "Montenegro": "Eastern Europe",
+            "Armenia": "Central Asia",
+            "Mongolia": "Central Asia",
             "Uzbekistan": "Central Asia",
             "Kazakhstan": "Central Asia",
             "Azerbaijan": "Central Asia",
@@ -316,6 +346,7 @@
             "Liberia": 1,
             "Misc. African": 2
         },
+        "miscellaneous": ["Eswatini", "Djibouti", "Guinea-Bissau", "Gabon", "Equatorial Guinea", "Lesotho", "Namibia", "Botswana", "Mauritania", "Eritrea", "Gambia"],
         "demographics": {
             "default": {
                 "West African": 48,
@@ -323,13 +354,13 @@
                 "diaspora": 4
             },
             "West Africa": {
-                "West African": 95,
-                "East African": 2,
+                "West African": 96,
+                "East African": 1,
                 "diaspora": 3
             },
             "East Africa": {
-                "East African": 95,
-                "West African": 2,
+                "East African": 96,
+                "West African": 1,
                 "diaspora": 3
             }
         },
@@ -390,10 +421,31 @@
             "Lebanon": 1,
             "Misc. Arabic": 1
         },
+        "miscellaneous": ["Qatar", "Oman", "Kuwait", "Bahrain"],
         "demographics": {
             "default": {
-                "Arabic": 95,
-                "Central Asian": 4,
+                "Arabic": 93,
+                "Central Asian": 3,
+                "Iranian": 3,
+                "diaspora": 1
+            },
+            "Iran:": {
+                "Iranian": 78,
+                "Central Asian": 18,
+                "Arabic": 3,
+                "diaspora": 1
+            },
+            "Afghanistan": {
+                "Central Asian": 75,
+                "Iranian": 20,
+                "Arabic": 4,
+                "diaspora": 1
+            },
+            "Turkey": {
+                "Central Asian": 90,
+                "Eastern European": 5,
+                "Arabic": 2,
+                "Iranian": 2,
                 "diaspora": 1
             }
         }
@@ -422,9 +474,9 @@
             "Misc. Latin": 2,
             "Haiti": 1,
             "Dominican republic": 1,
-            "Cuba": 1,
-            "Misc. Caribbean": 1
+            "Cuba": 1
         },
+        "miscellaneous": ["Panama", "Uruguay", "Puerto Rico", "Jamaica", "Trinidad and Tobago"],
         "demographics": {
             "default": {
                 "Latin": 83,

@@ -102,7 +102,7 @@ def generate_article(word, add_space=False):
     a_an_exceptions = ["European", "unit"]
     if word[-1] == "s" and (not word in plural_exceptions):
         return ""
-    elif word[0] in vowels and (not word in a_an_exceptions):
+    elif word[0].lower() in vowels and (not word in a_an_exceptions):
         return "an" + space
     else:
         return "a" + space
