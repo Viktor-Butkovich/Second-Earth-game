@@ -110,7 +110,7 @@ class minister:
             (
                 self.first_name,
                 self.last_name,
-            ) = constants.flavor_text_manager.generate_minister_name(self.background)
+            ) = constants.character_manager.generate_name()
             self.name = self.first_name + " " + self.last_name
             self.status_number: int = constants.background_status_dict[self.background]
             self.status: str = status_number_dict[self.status_number]

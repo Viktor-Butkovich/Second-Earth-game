@@ -108,9 +108,10 @@ class character_manager_template:
         for i in range(100):
             country = self.generate_country()
             ethnicity = self.generate_ethnicity(country)
+            masculine = random.choice([True, False])
             print(ethnicity, "person from", country)
             print(
-                self.get_name(ethnicity, last=False),
+                self.get_name(ethnicity, last=False, masculine=masculine),
                 self.get_name(ethnicity, last=True),
             )
 
@@ -155,14 +156,23 @@ class character_manager_template:
             ethnicity = random.choices(
                 self.ethnic_groups, self.ethnic_group_weights, k=1
             )[0]
+        return (
+            self.get_name(
+                ethnicity, last=False, masculine=random.choice([True, False])
+            ),
+            self.get_name(ethnicity, last=True),
+        )
 
-    def get_name(self, ethnicity: str, last: bool = False) -> str:
+    def get_name(
+        self, ethnicity: str, last: bool = False, masculine: bool = False
+    ) -> str:
         """
         Description:
             Returns a random name for a character, using a file based on ethnicity and whether the name is a first or last name
         Input:
             string ethnicity: Ethnicity of the character
             bool last: Whether the name should be a last name
+            bool masculine: Whether the name should be masculine or feminine, if a first name
         Output:
             string: Returns name for a character
         """
@@ -171,7 +181,8 @@ class character_manager_template:
                 f"text/names/{ethnicity.lower().replace(' ', '_')}_last_names.csv"
             )
         else:
-            file_name = (
-                f"text/names/{ethnicity.lower().replace(' ', '_')}_first_names.csv"
-            )
+            if masculine:
+                file_name = f"text/names/{ethnicity.lower().replace(' ', '_')}_first_names_male.csv"
+            else:
+                file_name = f"text/names/{ethnicity.lower().replace(' ', '_')}_first_names_female.csv"
         return random.choice(csv_utility.read_csv(file_name))
