@@ -127,8 +127,7 @@
                 "Japanese": 1,
                 "Korean": 1,
                 "Filipino": 1,
-                "Indigeneous North American": 1,
-                "diaspora": 6
+                "diaspora": 7
             },
             "Germany": {
                 "German": 71,
@@ -187,8 +186,7 @@
             "Canada": {
                 "British": 31,
                 "French": 20,
-                "American": 20,
-                "Indigeneous North American": 5,
+                "American": 25,
                 "African American": 2,
                 "West African": 1,
                 "East African": 1,
@@ -200,8 +198,7 @@
                 "diaspora": 2
             },
             "Australia": {
-                "British": 72,
-                "Aboriginal Australian": 5,
+                "British": 77,
                 "Chinese": 5,
                 "Italian": 4,
                 "German": 4,
