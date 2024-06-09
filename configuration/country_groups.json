@@ -245,6 +245,40 @@
             "Turkmenistan": 1,
             "Slovakia": 1,
             "Misc. Eastern": 4
+        },
+        "demographics": {
+            "Russia": {
+                "Eastern European": 79,
+                "Central Asian": 20,
+                "diaspora": 1
+            },
+            "Eastern Europe": {
+                "Eastern European": 92,
+                "German": 3,
+                "Central Asian": 3,
+                "diaspora": 2
+            },
+            "Central Asia": {
+                "Central Asian": 94,
+                "Eastern European": 5,
+                "diaspora": 1
+            },
+            "Poland": "Eastern Europe",
+            "Ukraine": "Eastern Europe",
+            "Romania": "Eastern Europe",
+            "Czech Republic": "Eastern Europe",
+            "Hungary": "Eastern Europe",
+            "Belarus": "Eastern Europe",
+            "Serbia": "Eastern Europe",
+            "Bulgaria": "Eastern Europe",
+            "Slovakia": "Eastern Europe",
+            "Misc. Eastern": "Eastern Europe",
+            "Uzbekistan": "Central Asia",
+            "Kazakhstan": "Central Asia",
+            "Azerbaijan": "Central Asia",
+            "Tajikistan": "Central Asia",
+            "Kyrgyzstan": "Central Asia",
+            "Turkmenistan": "Central Asia"
         }
     },
     "African": {
@@ -284,7 +318,55 @@
             "Central African Republic": 1,
             "Liberia": 1,
             "Misc. African": 2
-        }
+        },
+        "demographics": {
+            "default": {
+                "West African": 48,
+                "East African": 48,
+                "diaspora": 4
+            },
+            "West Africa": {
+                "West African": 95,
+                "East African": 2,
+                "diaspora": 3
+            },
+            "East Africa": {
+                "East African": 95,
+                "West African": 2,
+                "diaspora": 3
+            }
+        },
+        "Nigeria": "West Africa",
+        "Ethiopia": "East Africa",
+        "DR Congo": "West Africa",
+        "Tanzania": "East Africa",
+        "Kenya": "East Africa",
+        "Uganda": "East Africa",
+        "Sudan": "East Africa",
+        "Angola": "West Africa",
+        "Ghana": "West Africa",
+        "Mozambique": "East Africa",
+        "Madagascar": "East Africa",
+        "Ivory Cost": "West Africa",
+        "Cameroon": "West Africa",
+        "Niger": "West Africa",
+        "Mali": "West Africa",
+        "Burkina Faso": "West Africa",
+        "Malawi": "East Africa",
+        "Zambia": "East Africa",
+        "Chad": "West Africa",
+        "Senegal": "West Africa",
+        "Zimbabwe": "East Africa",
+        "Guinea": "West Africa",
+        "Rwanda": "East Africa",
+        "Benin": "West Africa",
+        "Burundi": "East Africa",
+        "South Sudan": "East Africa",
+        "Togo": "West Africa",
+        "Sierra Leone": "West Africa",
+        "Congo": "West Africa",
+        "Central African Republic": "West Africa",
+        "Liberia": "West Africa"
     },
     "Arabic": {
         "metadata": {
