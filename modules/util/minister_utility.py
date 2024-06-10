@@ -2,6 +2,7 @@
 
 import modules.constants.constants as constants
 import modules.constants.status as status
+import modules.constants.flags as flags
 import modules.util.game_transitions as game_transitions
 
 
@@ -45,6 +46,8 @@ def calibrate_minister_info_display(new_minister):
     if status.displayed_minister:
         target = new_minister
     status.minister_info_display.calibrate(target)
+    flags.show_selection_outlines = True
+    constants.last_selection_outline_switch = constants.current_time
 
 
 def calibrate_trial_info_display(info_display, new_minister):
