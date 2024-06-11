@@ -40,6 +40,7 @@ class character_manager_template:
             "hair",
             "outfit",
             "facial_hair",
+            "accessories",
             "hat",
             "portrait",
         ]
@@ -63,6 +64,8 @@ class character_manager_template:
             "ministers/portraits/hat/default.png", "hat"
         )
         self.all_hair_images = actor_utility.get_image_variants(
+            "ministers/portraits/hair/default.png", "hair"
+        ) + actor_utility.get_image_variants(
             "ministers/portraits/hair/default.png", "no_hat"
         )
         self.hat_compatible_hair_images = actor_utility.get_image_variants(
@@ -74,6 +77,11 @@ class character_manager_template:
         self.facial_hair_images = actor_utility.get_image_variants(
             f"ministers/portraits/facial_hair/default.png", "facial_hair"
         )
+        self.accessories_images = {
+            "glasses": actor_utility.get_image_variants(
+                f"ministers/portraits/accessories/default.png", "glasses"
+            ),
+        }
         self.mouth_images = actor_utility.get_image_variants(
             f"ministers/portraits/mouth/default.png", "mouth"
         )
@@ -94,62 +102,195 @@ class character_manager_template:
         Input:
             minister minister: Minister to generate appearance of
         Output:
-            Dict[str, image_id]: Returns dictionary of image ids for each portrait section
+            List[image_id]: Returns list of image id's for each portrait section
         """
-        portrait_sections = {}
-        for portrait_section in self.portrait_section_types:
-            portrait_sections[portrait_section] = "misc/empty.png"
-        hair_color = random.choice(self.hair_colors)
-        skin_color = random.choice(self.skin_colors)
-        suit_colors = random.sample(self.clothing_colors, 2) + [
-            random.choice(self.accessory_colors)
-        ]
-
-        possible_skin_images = self.skin_images
-        portrait_sections["base_skin"] = {
-            "image_id": random.choice(possible_skin_images),
-            "green_screen": skin_color,
+        portrait_sections = []
+        metadata = {
+            "hair_color": random.choice(self.hair_colors),
+            "skin_color": random.choice(self.skin_colors),
+            "suit_colors": random.sample(self.clothing_colors, 2)
+            + [random.choice(self.accessory_colors)],
+            "has_hat": random.randrange(1, 7) >= 5,
         }
 
-        has_hat = random.choice([True, False])
-        if has_hat:
-            possible_hat_images = self.hat_images
-            portrait_sections["hat"] = {
-                "image_id": random.choice(possible_hat_images),
-                "green_screen": suit_colors,
-            }
-
-        possible_outfit_images = self.outfit_images
-        portrait_sections["outfit"] = {
-            "image_id": random.choice(possible_outfit_images),
-            "green_screen": suit_colors,
-        }
-
-        if has_hat:
-            possible_hair_images = self.hat_compatible_hair_images
-        else:
-            possible_hair_images = self.all_hair_images
-        if random.randrange(0, 10) == 0:
-            possible_hair_images = ["misc/empty.png"]
-        portrait_sections["hair"] = {
-            "image_id": random.choice(possible_hair_images),
-            "green_screen": hair_color,
-        }
-
-        possible_facial_hair_images = self.facial_hair_images
-        if random.randrange(0, 5) == 0:
-            possible_facial_hair_images = ["misc/empty.png"]
-        portrait_sections["facial_hair"] = {
-            "image_id": random.choice(possible_facial_hair_images),
-            "green_screen": hair_color,
-        }
-
-        portrait_sections["mouth"] = random.choice(self.mouth_images)
-        portrait_sections["nose"] = random.choice(self.nose_images)
-        portrait_sections["eyes"] = random.choice(self.eyes_images)
-        portrait_sections["portrait"] = random.choice(self.portrait_images)
+        self.generate_skin(portrait_sections, metadata)
+        self.generate_outfit(portrait_sections, metadata)
+        self.generate_hair(portrait_sections, metadata)
+        self.generate_facial_hair(portrait_sections, metadata)
+        self.generate_nose(portrait_sections, metadata)
+        self.generate_mouth(portrait_sections, metadata)
+        self.generate_eyes(portrait_sections, metadata)
+        self.generate_accessories(portrait_sections, metadata)
+        self.generate_portrait(portrait_sections, metadata)
 
         return portrait_sections
+
+    def generate_outfit(self, portrait_sections, metadata) -> None:
+        """
+        Description:
+            Generates random outfit for a character, adding it to the inputted list
+        Input:
+            image_id list: List of image id's for each portrait section
+            dictionary metadata: Metadata for the character, allowing coordination between sections
+        Output:
+            None
+        """
+        portrait_sections.append(
+            {
+                "image_id": random.choice(self.outfit_images),
+                "green_screen": metadata["suit_colors"],
+            }
+        )
+
+    def generate_hair(self, portrait_sections, metadata) -> None:
+        """
+        Description:
+            Generates random hair for a character, adding it to the inputted list
+        Input:
+            image_id list: List of image id's for each portrait section
+            dictionary metadata: Metadata for the character, allowing coordination between sections
+        Output:
+            None
+        """
+        portrait_sections.append(
+            {
+                "image_id": random.choice(self.hair_images),
+                "green_screen": metadata["hair_color"],
+            }
+        )
+
+    def generate_skin(self, portrait_sections, metadata) -> None:
+        """
+        Description:
+            Generates random skin for a character, adding it to the inputted list
+        Input:
+            image_id list: List of image id's for each portrait section
+            dictionary metadata: Metadata for the character, allowing coordination between sections
+        Output:
+            None
+        """
+        portrait_sections.append(
+            {
+                "image_id": random.choice(self.skin_images),
+                "green_screen": metadata["skin_color"],
+            }
+        )
+
+    def generate_hair(self, portrait_sections, metadata) -> None:
+        """
+        Description:
+            Generates random hair for a character, adding it to the inputted list
+        Input:
+            image_id list: List of image id's for each portrait section
+            dictionary metadata: Metadata for the character, allowing coordination between sections
+        Output:
+            None
+        """
+        if random.randrange(1, 11) != 0:
+            if metadata["has_hat"]:
+                possible_hair_images = self.hat_compatible_hair_images
+            else:
+                possible_hair_images = self.all_hair_images
+            portrait_sections.append(
+                {
+                    "image_id": random.choice(possible_hair_images),
+                    "green_screen": metadata["hair_color"],
+                    "layer": 3,
+                }
+            )
+
+    def generate_facial_hair(self, portrait_sections, metadata) -> None:
+        """
+        Description:
+            Generates random facial hair for a character, adding it to the inputted list
+        Input:
+            image_id list: List of image id's for each portrait section
+            dictionary metadata: Metadata for the character, allowing coordination between sections
+        Output:
+            None
+        """
+        if random.randrange(1, 6) != 0:
+            portrait_sections.append(
+                {
+                    "image_id": random.choice(self.facial_hair_images),
+                    "green_screen": metadata["hair_color"],
+                }
+            )
+
+    def generate_accessories(self, portrait_sections, metadata) -> None:
+        """
+        Description:
+            Generates random accessories for a character, adding them to the inputted list
+        Input:
+            image_id list: List of image id's for each portrait section
+            dictionary metadata: Metadata for the character, allowing coordination between sections
+        Output:
+            None
+        """
+        if random.randrange(1, 7) >= 4:
+            portrait_sections.append(
+                {
+                    "image_id": random.choice(self.accessories_images["glasses"]),
+                    "green_screen": random.choice(self.clothing_colors),
+                    "layer": 2,
+                }
+            )
+        if metadata["has_hat"]:
+            portrait_sections.append(
+                {
+                    "image_id": random.choice(self.hat_images),
+                    "green_screen": metadata["suit_colors"],
+                    "layer": 4,
+                }
+            )
+
+    def generate_nose(self, portrait_sections, metadata) -> None:
+        """
+        Description:
+            Generates a random nose for a character, adding it to the inputted list
+        Input:
+            image_id list: List of image id's for each portrait section
+            dictionary metadata: Metadata for the character, allowing coordination between sections
+        Output:
+            None
+        """
+        portrait_sections.append(random.choice(self.nose_images))
+
+    def generate_mouth(self, portrait_sections, metadata) -> None:
+        """
+        Description:
+            Generates a random mouth for a character, adding it to the inputted list
+        Input:
+            image_id list: List of image id's for each portrait section
+            dictionary metadata: Metadata for the character, allowing coordination between sections
+        Output:
+            None
+        """
+        portrait_sections.append(random.choice(self.mouth_images))
+
+    def generate_eyes(self, portrait_sections, metadata) -> None:
+        """
+        Description:
+            Generates random eyes for a character, adding it to the inputted list
+        Input:
+            image_id list: List of image id's for each portrait section
+            dictionary metadata: Metadata for the character, allowing coordination between sections
+        Output:
+            None
+        """
+        portrait_sections.append(random.choice(self.eyes_images))
+
+    def generate_portrait(self, portrait_sections, metadata) -> None:
+        """
+        Description:
+            Generates a random background portrait for a character, adding it to the inputted list
+        Input:
+            image_id list: List of image id's for each portrait section
+            dictionary metadata: Metadata for the character, allowing coordination between sections
+        Output:
+            None
+        """
+        portrait_sections.append(random.choice(self.portrait_images))
 
     def demographics_setup(self) -> None:
         """

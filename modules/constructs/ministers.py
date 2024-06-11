@@ -45,18 +45,6 @@ class minister:
         self.actor_type = "minister"  # used for actor display labels and images
         status.minister_list.append(self)
         self.tooltip_text: List[str] = []
-        self.portrait_section_types: List[str] = [
-            "base_skin",
-            "mouth",
-            "nose",
-            "eyes",
-            "hair",
-            "outfit",
-            "facial_hair",
-            "hat",
-            "portrait",
-        ]
-        self.portrait_sections: Dict = {}
         status_number_dict: Dict[int, str] = {
             1: "low",
             2: "moderate",
@@ -85,7 +73,7 @@ class minister:
             self.interests: Tuple[str, str] = input_dict["interests"]
             self.corruption: int = input_dict["corruption"]
             self.corruption_threshold: int = 10 - self.corruption
-            self.portrait_sections = input_dict["portrait_sections"]
+            self.image_id_list = input_dict["image_id_list"]
             self.update_image_bundle()
             self.stolen_money: float = input_dict["stolen_money"]
             self.undetected_corruption_events: List[Tuple[float, str]] = input_dict[
@@ -122,9 +110,7 @@ class minister:
             self.interests_setup()
             self.corruption_setup()
             status.available_minister_list.append(self)
-            self.portrait_sections = constants.character_manager.generate_appearance(
-                self
-            )
+            self.image_id_list = constants.character_manager.generate_appearance(self)
             self.update_image_bundle()
             self.stolen_money: int = 0
             self.undetected_corruption_events: List[Tuple[float, str]] = []
@@ -423,7 +409,7 @@ class minister:
                 'just_removed': boolean value - Whether this minister was just removed from office and will be fired at the end of the turn
                 'corruption_evidence': int value - Number of pieces of evidence that can be used against this minister in a trial, includes fabricated evidence
                 'fabricated_evidence': int value - Number of temporary fabricated pieces of evidence that can be used against this minister in a trial this turn
-                'portrait_sections': string list value - List of image file paths for each of this minister's portrait sections
+                'image_id_list': image id list value - List of image id's for each portrait section of this minister
                 'voice_set': string value - Name of voice set assigned to this minister
         """
         save_dict = {}
@@ -447,7 +433,7 @@ class minister:
         save_dict["just_removed"] = self.just_removed
         save_dict["background"] = self.background
         save_dict["personal_savings"] = self.personal_savings
-        save_dict["portrait_sections"] = self.portrait_sections
+        save_dict["image_id_list"] = self.image_id_list
         save_dict["voice_set"] = self.voice_set
         return save_dict
 
@@ -461,10 +447,7 @@ class minister:
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        image_id_list = []
-        for portrait_section_type in self.portrait_section_types:
-            image_id_list.append(self.portrait_sections[portrait_section_type])
-        return image_id_list
+        return self.image_id_list
 
     def update_image_bundle(self):
         self.image_id = self.get_image_id_list()
