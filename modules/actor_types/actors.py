@@ -5,6 +5,7 @@ import random
 from ..util import text_utility, utility, actor_utility, scaling, market_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
+from typing import Dict
 
 
 class actor:
@@ -12,7 +13,7 @@ class actor:
     Object that can exist within certain coordinates on one or more grids and can optionally be able to hold an inventory of commodities
     """
 
-    def __init__(self, from_save, input_dict):
+    def __init__(self, from_save, input_dict, original_constructor=True):
         """
         Description:
             Initializes this object
@@ -45,6 +46,23 @@ class actor:
         self.infinite_inventory_capacity = False
         self.inventory_capacity = 0
         self.inventory = input_dict.get("inventory", {})
+        self.finish_init(original_constructor, from_save, input_dict)
+
+    def finish_init(
+        self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
+    ):
+        """
+        Description:
+            Finishes initialization of this actor, called after the original is finished
+                Helps with calling functions that are for setup but require that most initialization is complete before they are called
+        Input:
+            boolean original_constructor: Whether this is the original constructor call for this object
+        Output:
+            None
+        """
+        if original_constructor:
+            self.update_image_bundle()
+            self.update_tooltip()
 
     def to_save_dict(self):
         """

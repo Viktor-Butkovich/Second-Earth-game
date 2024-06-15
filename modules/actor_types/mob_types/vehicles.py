@@ -14,7 +14,7 @@ class vehicle(pmob):
     pmob that requires an attached worker to function and can carry other mobs as passengers
     """
 
-    def __init__(self, from_save, input_dict):
+    def __init__(self, from_save, input_dict, original_constructor: bool = True):
         """
         Description:
             Initializes this object
@@ -36,14 +36,13 @@ class vehicle(pmob):
         Output:
             None
         """
-        self.initializing = True  # when pmobs embark a vehicle, the vehicle is selected if the vehicle is not initializing
         self.vehicle_type = "vehicle"
         input_dict["image"] = input_dict["image_dict"]["default"]
         self.contained_mobs = []
         self.ejected_crew = "none"
         self.ejected_passengers = []
         self.travel_possible = False
-        super().__init__(from_save, input_dict)
+        super().__init__(from_save, input_dict, original_constructor=False)
         self.image_dict = input_dict["image_dict"]  # should have default and uncrewed
         self.is_vehicle = True
         if not from_save:
@@ -69,7 +68,6 @@ class vehicle(pmob):
                 ).embark_vehicle(
                     self
                 )  # create passengers and merge as passengers
-        self.initializing = False
         self.set_controlling_minister_type(
             constants.type_minister_dict["transportation"]
         )
@@ -80,6 +78,7 @@ class vehicle(pmob):
                 status.mob_info_display, None, override_exempt=True
             )
             self.select()
+        self.finish_init(original_constructor, from_save, input_dict)
 
     def set_crew(self, new_crew):
         """
@@ -581,11 +580,7 @@ class ship(vehicle):
         """
         num_ships = 0
         for current_mob in self.images[0].current_cell.contained_mobs:
-            if (
-                current_mob.is_pmob
-                and current_mob.is_vehicle
-                and current_mob.can_swim_ocean
-            ):
+            if current_mob.is_pmob and current_mob.is_vehicle and current_mob.can_swim:
                 num_ships += 1
         if (
             num_ships <= 1

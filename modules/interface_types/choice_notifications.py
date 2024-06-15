@@ -211,12 +211,7 @@ class choice_button(buttons.button):
         if self.button_type == "recruitment":
             self.set_tooltip(
                 [
-                    utility.capitalize(self.verb)
-                    + " a "
-                    + self.recruitment_type
-                    + " for "
-                    + str(self.cost)
-                    + " money"
+                    f"{utility.capitalize(self.verb)} a {self.recruitment_type} for {str(self.cost)} money"
                 ]
             )
 

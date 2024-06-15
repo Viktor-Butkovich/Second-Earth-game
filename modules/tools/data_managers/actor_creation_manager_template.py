@@ -456,27 +456,9 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             verb = "recruit"
 
         if recruitment_name.endswith(" workers"):
-            message = (
-                "Are you sure you want to "
-                + verb
-                + " a unit of "
-                + recruitment_name
-                + " for "
-                + str(choice_info_dict["cost"])
-                + " money? /n /n"
-            )
+            message = f"Are you sure you want to {verb} a unit of {recruitment_name} for {choice_info_dict['cost']} money?\n\n"
         else:
-            message = (
-                "Are you sure you want to "
-                + verb
-                + " "
-                + utility.generate_article(recruitment_name)
-                + " "
-                + recruitment_name
-                + " for "
-                + str(choice_info_dict["cost"])
-                + " money? /n /n"
-            )
+            message = f"Are you sure you want to {verb} {utility.generate_article(recruitment_name)} {recruitment_name} for {str(choice_info_dict['cost'])} money?\n\n"
 
         actor_utility.update_descriptions(recruitment_type)
         message += constants.string_descriptions[recruitment_type]

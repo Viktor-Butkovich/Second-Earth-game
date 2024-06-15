@@ -2,6 +2,7 @@
 
 from typing import List, Dict
 from ...util import csv_utility, utility, actor_utility
+import modules.constants.status as status
 import json
 import random
 
@@ -95,7 +96,83 @@ class character_manager_template:
             f"ministers/portraits/portrait/default.png", "portrait"
         )
 
-    def generate_appearance(self, minister) -> None:
+    def find_portrait_section(self, section: str, portrait_image_id: list) -> int:
+        """
+        Description:
+            Finds the index of a section of the inputted portrait, such as which image dict is the hair section
+        Input:
+            string section: Section to find
+            list portrait_image_id: Portrait list image_id to search through
+        Output:
+            int: Returns index of section in list, if section present
+        """
+        for i, portrait_section in enumerate(portrait_image_id):
+            if (
+                portrait_section.get("metadata", {}).get("portrait_section", None)
+                == section
+            ):
+                return i
+        return None
+
+    def generate_unit_portrait(self, unit) -> List[Dict[str, any]]:
+        """
+        Description:
+            Generates a minister-style portrait for the inputted unit
+        Input:
+            mob unit: Unit to generate portrait of
+        Output:
+            List[Dict[str, any]]: Returns list of image id's for each portrait section
+        """
+        minister_face = []
+        if unit.is_pmob:
+            if unit.is_officer:
+                minister_face = self.generate_appearance(None, full_body=True)
+                for part in minister_face:
+                    part["x_size"] = part.get("size", 1.0) * 0.42
+                    part["y_size"] = part["x_size"] * 1
+                    # part["size"] = part.get("size", 1.0) * 0.5
+                    part["x_offset"] = part.get("x_offset", 0) + 0.01
+                    part["y_offset"] = part.get("y_offset", 0) + 0.32
+                    part["level"] = part.get("level", 1) - 5
+
+                hat_section_index = self.find_portrait_section("hat", minister_face)
+                # Add officer hat, saving original hat for later
+                # minister_face[hat_section_index] = {
+                #    "image_id": f"mobs/{unit.officer_type}/hat.png",
+                #    "metadata": minister_face[hat_section_index].get("metadata", {}),
+                #    "original_section": minister_face[hat_section_index],
+                # }
+                # Add officer-specific hats but as minister hats, not mob images
+
+                hidden_sections = ["eyes", "nose"]  # ["eyes", "mouth"]
+                if (
+                    not minister_face[
+                        self.find_portrait_section("hair", minister_face)
+                    ]["image_id"]
+                    in self.hat_compatible_hair_images
+                ):
+                    hidden_sections.append("hair")
+
+                for (
+                    section
+                ) in (
+                    hidden_sections
+                ):  # While officer, hide any unapplicable portrait sections but save for later
+                    section_index = self.find_portrait_section(section, minister_face)
+                    if section_index != None:
+                        minister_face[section_index] = {
+                            "image_id": "misc/empty.png",
+                            "metadata": minister_face[section_index].get(
+                                "metadata", {}
+                            ),
+                            "original_section": minister_face[section_index],
+                        }
+
+        return minister_face
+
+    def generate_appearance(
+        self, minister, full_body: bool = False
+    ) -> List[Dict[str, any]]:
         """
         Description:
             Generates random portrait sections for the inputted minister during initialization
@@ -111,6 +188,7 @@ class character_manager_template:
             "suit_colors": random.sample(self.clothing_colors, 2)
             + [random.choice(self.accessory_colors)],
             "has_hat": random.randrange(1, 7) >= 5,
+            "full_body": full_body,
         }
 
         self.generate_skin(portrait_sections, metadata)
@@ -135,29 +213,14 @@ class character_manager_template:
         Output:
             None
         """
-        portrait_sections.append(
-            {
-                "image_id": random.choice(self.outfit_images),
-                "green_screen": metadata["suit_colors"],
-            }
-        )
-
-    def generate_hair(self, portrait_sections, metadata) -> None:
-        """
-        Description:
-            Generates random hair for a character, adding it to the inputted list
-        Input:
-            image_id list: List of image id's for each portrait section
-            dictionary metadata: Metadata for the character, allowing coordination between sections
-        Output:
-            None
-        """
-        portrait_sections.append(
-            {
-                "image_id": random.choice(self.hair_images),
-                "green_screen": metadata["hair_color"],
-            }
-        )
+        if not metadata["full_body"]:
+            portrait_sections.append(
+                {
+                    "image_id": random.choice(self.outfit_images),
+                    "green_screen": metadata["suit_colors"],
+                    "metadata": {"portrait_section": "outfit"},
+                }
+            )
 
     def generate_skin(self, portrait_sections, metadata) -> None:
         """
@@ -173,6 +236,7 @@ class character_manager_template:
             {
                 "image_id": random.choice(self.skin_images),
                 "green_screen": metadata["skin_color"],
+                "metadata": {"portrait_section": "skin"},
             }
         )
 
@@ -191,13 +255,16 @@ class character_manager_template:
                 possible_hair_images = self.hat_compatible_hair_images
             else:
                 possible_hair_images = self.all_hair_images
-            portrait_sections.append(
-                {
-                    "image_id": random.choice(possible_hair_images),
-                    "green_screen": metadata["hair_color"],
-                    "layer": 3,
-                }
-            )
+        else:
+            possible_hair_images = ["misc/empty.png"]
+        portrait_sections.append(
+            {
+                "image_id": random.choice(possible_hair_images),
+                "green_screen": metadata["hair_color"],
+                "layer": status.HAIR_LAYER,
+                "metadata": {"portrait_section": "hair"},
+            }
+        )
 
     def generate_facial_hair(self, portrait_sections, metadata) -> None:
         """
@@ -214,6 +281,7 @@ class character_manager_template:
                 {
                     "image_id": random.choice(self.facial_hair_images),
                     "green_screen": metadata["hair_color"],
+                    "metadata": {"portrait_section": "facial_hair"},
                 }
             )
 
@@ -232,17 +300,22 @@ class character_manager_template:
                 {
                     "image_id": random.choice(self.accessories_images["glasses"]),
                     "green_screen": random.choice(self.clothing_colors),
-                    "layer": 2,
+                    "layer": status.GLASSES_LAYER,
+                    "metadata": {"portrait_section": "glasses"},
                 }
             )
         if metadata["has_hat"]:
-            portrait_sections.append(
-                {
-                    "image_id": random.choice(self.hat_images),
-                    "green_screen": metadata["suit_colors"],
-                    "layer": 4,
-                }
-            )
+            hat_images = self.hat_images
+        else:
+            hat_images = ["misc/empty.png"]
+        portrait_sections.append(
+            {
+                "image_id": random.choice(hat_images),
+                "green_screen": metadata["suit_colors"],
+                "layer": status.HAT_LAYER,
+                "metadata": {"portrait_section": "hat"},
+            }
+        )
 
     def generate_nose(self, portrait_sections, metadata) -> None:
         """
@@ -254,7 +327,12 @@ class character_manager_template:
         Output:
             None
         """
-        portrait_sections.append(random.choice(self.nose_images))
+        portrait_sections.append(
+            {
+                "image_id": random.choice(self.nose_images),
+                "metadata": {"portrait_section": "nose"},
+            }
+        )
 
     def generate_mouth(self, portrait_sections, metadata) -> None:
         """
@@ -266,7 +344,12 @@ class character_manager_template:
         Output:
             None
         """
-        portrait_sections.append(random.choice(self.mouth_images))
+        portrait_sections.append(
+            {
+                "image_id": random.choice(self.mouth_images),
+                "metadata": {"portrait_section": "mouth"},
+            }
+        )
 
     def generate_eyes(self, portrait_sections, metadata) -> None:
         """
@@ -278,7 +361,12 @@ class character_manager_template:
         Output:
             None
         """
-        portrait_sections.append(random.choice(self.eyes_images))
+        portrait_sections.append(
+            {
+                "image_id": random.choice(self.eyes_images),
+                "metadata": {"portrait_section": "eyes"},
+            }
+        )
 
     def generate_portrait(self, portrait_sections, metadata) -> None:
         """
@@ -290,7 +378,13 @@ class character_manager_template:
         Output:
             None
         """
-        portrait_sections.append(random.choice(self.portrait_images))
+        if not metadata["full_body"]:
+            portrait_sections.append(
+                {
+                    "image_id": random.choice(self.portrait_images),
+                    "metadata": {"portrait_section": "portrait"},
+                }
+            )
 
     def demographics_setup(self) -> None:
         """

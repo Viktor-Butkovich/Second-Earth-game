@@ -20,7 +20,7 @@ class pmob(mob):
     Short for player-controlled mob, mob controlled by the player
     """
 
-    def __init__(self, from_save, input_dict):
+    def __init__(self, from_save, input_dict, original_constructor: bool = True):
         """
         Description:
             Initializes this object
@@ -49,7 +49,7 @@ class pmob(mob):
             None
         """
         self.sentry_mode = False
-        super().__init__(from_save, input_dict)
+        super().__init__(from_save, input_dict, original_constructor=False)
         self.selection_outline_color = "bright green"
         status.pmob_list.append(self)
         self.is_pmob = True
@@ -106,6 +106,7 @@ class pmob(mob):
                 )
                 self.select()
         self.attached_cell_icon_list = []
+        self.finish_init(original_constructor, from_save, input_dict)
 
     def to_save_dict(self):
         """
@@ -805,7 +806,7 @@ class pmob(mob):
         vehicle.hide_images()
         vehicle.show_images()  # moves vehicle images to front
         if (
-            focus and not vehicle.initializing
+            focus and not flags.loading_save
         ):  # don't select vehicle if loading in at start of game
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, None, override_exempt=True

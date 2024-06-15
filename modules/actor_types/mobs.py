@@ -7,7 +7,7 @@ from .actors import actor
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
-from typing import List
+from typing import List, Dict
 
 
 class mob(actor):
@@ -15,7 +15,7 @@ class mob(actor):
     Actor that can be selected and move within and between grids, but cannot necessarily controlled
     """
 
-    def __init__(self, from_save, input_dict):
+    def __init__(self, from_save, input_dict, original_constructor: bool = True):
         """
         Description:
             Initializes this object
@@ -55,7 +55,7 @@ class mob(actor):
         self.number = 1  # how many entities are in a unit, used for verb conjugation
         self.actor_type = "mob"
         self.end_turn_destination = "none"
-        super().__init__(from_save, input_dict)
+        super().__init__(from_save, input_dict, original_constructor=False)
         if isinstance(input_dict["image"], str):
             self.image_dict = {"default": input_dict["image"]}
         else:
@@ -97,6 +97,27 @@ class mob(actor):
                 self.creation_turn = 0
             else:
                 self.creation_turn = constants.turn
+        self.finish_init(original_constructor, from_save, input_dict)
+
+    def finish_init(
+        self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
+    ):
+        """
+        Description:
+            Finishes initialization of this actor, called after the original is finished
+        Input:
+            boolean original_constructor: Whether this is the original constructor call for this object
+        Output:
+            None
+        """
+        if original_constructor:
+            if not from_save:
+                self.image_dict[
+                    "portrait"
+                ] = constants.character_manager.generate_unit_portrait(self)
+            else:
+                self.image_dict["portrait"] = input_dict.get("portrait", [])
+            super().finish_init(original_constructor, from_save, input_dict)
 
     def image_variants_setup(self, from_save, input_dict):
         """
@@ -140,7 +161,8 @@ class mob(actor):
         save_dict = super().to_save_dict()
         save_dict["movement_points"] = self.movement_points
         save_dict["max_movement_points"] = self.max_movement_points
-        save_dict["image"] = self.image_dict["default"]  # self.image_dict['default']
+        save_dict["image"] = self.image_dict["default"]
+        save_dict["portrait"] = self.image_dict["portrait"]
         save_dict["creation_turn"] = self.creation_turn
         save_dict["disorganized"] = self.disorganized
         if hasattr(self, "image_variant"):
@@ -179,6 +201,7 @@ class mob(actor):
         image_id_list = super().get_image_id_list(override_values)
         if disorganized:
             image_id_list.append("misc/disorganized_icon.png")
+        image_id_list += self.image_dict.get("portrait", [])
         return image_id_list
 
     def set_disorganized(self, new_value):

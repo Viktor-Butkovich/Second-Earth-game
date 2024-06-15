@@ -121,3 +121,7 @@ initial_tutorial_completed: bool = False
 north_pole: cell = None
 south_pole: cell = None
 equator: List[cell] = None
+
+HAT_LAYER: int = 4
+GLASSES_LAYER: int = 2
+HAIR_LAYER: int = 3

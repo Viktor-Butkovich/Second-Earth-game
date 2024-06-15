@@ -217,6 +217,33 @@ class image_bundle(image):
         self.members.insert(index, new_member)
         self.combined_surface = self.generate_combined_surface()
 
+    def get_blit_sequence(self):
+        """
+        Description:
+            Generates and returns a list of tuples of image surfaces and their respective blit offsets for each member image in this bundle, designed as input for Pygame.blits
+        Input:
+            None
+        Output:
+            list: Returns list of tuples of image surfaces and their respective blit offsets for each member image in this bundle
+        """
+        blit_sequence = []
+        for member in self.members:
+            if (
+                type(member) == image_bundle
+            ):  # Recursively get blit sequence for image bundle members
+                blit_sequence += member.get_blit_sequence()
+            elif member.image_id != "misc/empty.png":
+                if member.is_offset:
+                    blit_sequence.append(
+                        (
+                            member.image,
+                            ((member.get_blit_x_offset(), member.get_blit_y_offset())),
+                        )
+                    )
+                else:
+                    blit_sequence.append((member.image, (0, 0)))
+        return blit_sequence
+
     def generate_combined_surface(self):
         """
         Description:
@@ -234,18 +261,7 @@ class image_bundle(image):
         combined_surface.set_colorkey(
             constants.color_dict["transparent"], pygame.RLEACCEL
         )
-        blit_sequence = []
-        for member in self.members:
-            if member.image_id != "misc/empty.png":
-                if member.is_offset:
-                    blit_sequence.append(
-                        (
-                            member.image,
-                            ((member.get_blit_x_offset(), member.get_blit_y_offset())),
-                        )
-                    )
-                else:
-                    blit_sequence.append((member.image, (0, 0)))
+        blit_sequence = self.get_blit_sequence()
         if blit_sequence:
             combined_surface.blits(blit_sequence)
         return combined_surface
@@ -388,7 +404,7 @@ class bundle_image:
                 self.has_green_screen = False
             if "font" in image_id:
                 self.font = image_id["font"]
-            elif not self.image_id.endswith(".png"):
+            elif type(self.image_id) == str and not self.image_id.endswith(".png"):
                 self.font = constants.myfont
             if "free" in image_id:
                 self.free = image_id["free"]
@@ -470,11 +486,11 @@ class bundle_image:
         Output:
             None
         """
-        if self.image_id.endswith(".png"):
+        if type(self.image_id) == str and self.image_id.endswith(".png"):
             full_image_id = "graphics/" + self.image_id
         else:
             full_image_id = self.image_id
-        key = full_image_id
+        key = str(full_image_id)
         if self.is_offset and self.has_green_screen:
             for current_green_screen_color in self.green_screen_colors:
                 key += str(current_green_screen_color)

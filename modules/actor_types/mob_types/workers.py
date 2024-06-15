@@ -15,7 +15,7 @@ class worker(pmob):
     pmob that is required for resource buildings to produce commodities, officers to form group, and vehicles to function
     """
 
-    def __init__(self, from_save, input_dict):
+    def __init__(self, from_save, input_dict, original_constructor: bool = True):
         """
         Description:
             Initializes this object
@@ -37,7 +37,7 @@ class worker(pmob):
         Output:
             None
         """
-        super().__init__(from_save, input_dict)
+        super().__init__(from_save, input_dict, original_constructor=False)
         self.number = 2  # Workers is plural
         self.is_worker = True
         self.is_church_volunteers = False
@@ -62,6 +62,7 @@ class worker(pmob):
                 )  # updates mob info display list to account for is_worker changing
                 self.selection_sound()
         constants.money_label.check_for_updates()
+        self.finish_init(original_constructor, from_save, input_dict)
 
     def replace(self, attached_group="none"):
         """
@@ -155,8 +156,8 @@ class worker(pmob):
         self.remove_from_turn_queue()
         vehicle.add_to_turn_queue()
         if (
-            not vehicle.initializing
-        ):  # don't select vehicle if loading in at start of game
+            not flags.loading_save
+        ):  # Don't select vehicle if loading in at start of game
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, None, override_exempt=True
             )

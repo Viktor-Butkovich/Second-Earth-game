@@ -15,7 +15,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
     An actor that appears under other actors and occupies a grid cell, being able to act as a passive icon, resource, terrain, or a hidden area
     """
 
-    def __init__(self, from_save, input_dict):
+    def __init__(self, from_save, input_dict, original_constructor=True):
         """
         Description:
             Initializes this object
@@ -38,7 +38,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             input_dict["grid"]
         ]  # give actor a 1-item list of grids as input
         self.name_icon = None
-        super().__init__(from_save, input_dict)
+        super().__init__(from_save, input_dict, original_constructor=False)
         self.set_name(input_dict["name"])
         self.image_dict = {"default": input_dict["image"]}
         self.image = images.tile_image(
@@ -77,8 +77,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         self.inventory[current_commodity] = 10
         else:
             self.terrain = "none"
-        self.update_tooltip()
-        self.update_image_bundle()
+        self.finish_init(original_constructor, from_save, input_dict)
         if (
             self.name == "default"
         ):  # Set tile name to that of any terrain features, if applicable

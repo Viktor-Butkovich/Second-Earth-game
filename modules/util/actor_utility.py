@@ -480,7 +480,7 @@ def generate_unit_component_image_id(base_image, component, to_front=False):
             "y_offset": 0,
             "level": -1,
         }
-    else:
+    elif component == "center":
         return_dict = {
             "image_id": base_image,
             "size": 0.85,
@@ -493,6 +493,40 @@ def generate_unit_component_image_id(base_image, component, to_front=False):
     if to_front:
         return_dict["level"] *= -1
     return return_dict
+
+
+def generate_unit_component_portrait(base_image, component, to_front=False):
+    """
+    Description:
+        Generates and returns an image id dict for the inputted base_image moved to the inputted section of the frame, like 'center portrait' for a group's officer's portrait
+            As portraits are image id lists, they are handled differently than normal unit component images
+    Input:
+        string base_image: Base image file path to display
+        string component: Section of the frame to display base image in, like 'group left'
+        boolean to_front=False: Whether image level/layer should be a positive or negative
+    Output:
+        list: Returns generated image id list
+    """
+    return_list = []
+    if component == "center portrait":
+        for section in base_image:
+            return_list.append(
+                {
+                    "image_id": section["image_id"],
+                    "x_size": 0.85
+                    * section.get("size", 1.0)
+                    * section.get("x_size", 1.0),
+                    "y_size": 0.85
+                    * section.get("size", 1.0)
+                    * section.get("y_size", 1.0),
+                    "x_offset": section.get("x_offset", 0) - 0.01,
+                    "y_offset": section.get("y_offset", 0) - 0.1,
+                    "level": section.get("level", 0) - 1,
+                    "green_screen": section.get("green_screen", []),
+                }
+            )
+
+    return return_list
 
 
 def generate_group_image_id_list(worker, officer):
@@ -530,8 +564,11 @@ def generate_group_image_id_list(worker, officer):
     officer_dict = generate_unit_component_image_id(
         officer.image_dict["default"], "center"
     )
+    officer_portrait_list = generate_unit_component_portrait(
+        officer.image_dict["portrait"], "center portrait"
+    )
 
-    return [left_worker_dict, right_worker_dict, officer_dict]
+    return [left_worker_dict, right_worker_dict, officer_dict] + officer_portrait_list
 
 
 def generate_group_name(worker, officer, add_veteran=False):

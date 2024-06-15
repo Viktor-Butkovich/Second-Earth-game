@@ -41,7 +41,6 @@ class minister:
         Output:
             None
         """
-        self.initializing = True
         self.actor_type = "minister"  # used for actor display labels and images
         status.minister_list.append(self)
         self.tooltip_text: List[str] = []
@@ -120,7 +119,6 @@ class minister:
         minister_utility.update_available_minister_display()
         self.stolen_already: bool = False
         self.update_tooltip()
-        self.initializing: bool = False
 
     def get_f_lname(self):
         """
@@ -703,7 +701,7 @@ class minister:
             self.apparent_skill_descriptions[skill_type] = random.choice(
                 constants.minister_skill_to_description_dict[new_value]
             )
-            if not (flags.creating_new_game or self.initializing):
+            if not (flags.loading_save or flags.creating_new_game):
                 self.update_tooltip()
             if status.displayed_minister == self:
                 minister_utility.calibrate_minister_info_display(self)
@@ -803,7 +801,7 @@ class minister:
             self.apparent_corruption_description = random.choice(
                 constants.minister_corruption_to_description_dict[new_value]
             )
-            if not (flags.creating_new_game or self.initializing):
+            if not (flags.loading_save or flags.creating_new_game):
                 self.update_tooltip()
             if status.displayed_minister == self:
                 minister_utility.calibrate_minister_info_display(self)
