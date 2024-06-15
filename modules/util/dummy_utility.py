@@ -161,6 +161,8 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
         dummy_input_dict["group_type"] = constants.officer_group_type_dict[
             officer.officer_type
         ]
+        dummy_input_dict["disorganized"] = worker.disorganized
+        dummy_input_dict["veteran"] = officer.veteran
         if dummy_input_dict["group_type"] == "battalion":
             dummy_input_dict["disorganized"] = True
             if worker.worker_type == "European":
@@ -180,15 +182,14 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
         )
         dummy_input_dict["is_officer"] = False
         dummy_input_dict["is_group"] = True
-        image_id_list = officer.get_image_id_list()
-        image_id_list.remove(
-            officer.image_dict["default"]
-        )  # group default image is empty
+        image_id_list = []
         dummy_input_dict[
             "image_id_list"
         ] = image_id_list + actor_utility.generate_group_image_id_list(worker, officer)
         if dummy_input_dict.get("disorganized", False):
             dummy_input_dict["image_id_list"].append("misc/disorganized_icon.png")
+        if dummy_input_dict.get("veteran", False):
+            dummy_input_dict["image_id_list"].append("misc/veteran_icon.png")
 
         return_value = constants.actor_creation_manager.create_dummy(dummy_input_dict)
     return return_value

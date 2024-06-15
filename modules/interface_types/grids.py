@@ -600,9 +600,17 @@ class mini_grid(grid):
             int: y coordinate of this grid corresponding to the inputted y coordinate
         """
         return (
-            int(original_x - self.center_x + (round(self.coordinate_width - 1) / 2))
+            (
+                int(original_x - self.center_x + (round(self.coordinate_width - 1) / 2))
+                % status.strategic_map_grid.coordinate_width
+            )
             % self.coordinate_width,
-            int(original_y - self.center_y + round((self.coordinate_height - 1) / 2))
+            (
+                int(
+                    original_y - self.center_y + round((self.coordinate_height - 1) / 2)
+                )
+                % status.strategic_map_grid.coordinate_height
+            )
             % self.coordinate_height,
         )
 

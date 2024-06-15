@@ -42,12 +42,6 @@ class officer(pmob):
         )
         if not from_save:
             self.veteran = False
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, None, override_exempt=True
-            )
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, self
-            )  # updates mob info display list to account for is_officer changing
             self.selection_sound()
         else:
             self.veteran = input_dict["veteran"]

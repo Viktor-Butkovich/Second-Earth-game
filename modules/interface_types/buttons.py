@@ -2813,45 +2813,23 @@ class reorganize_unit_button(button):
         ):
             if self.parent_collection.autofill_actors["procedure"] == "merge":
                 self.tooltip_text.append(
-                    "Press to combine the "
-                    + self.parent_collection.autofill_actors["officer"].name
-                    + " and the "
-                    + self.parent_collection.autofill_actors["worker"].name
-                    + " into a "
-                    + self.parent_collection.autofill_actors["group"].name
+                    f"Press to combine the {self.parent_collection.autofill_actors['officer'].name} and the {self.parent_collection.autofill_actors['worker'].name} into a {self.parent_collection.autofill_actors['group'].name}"
                 )
             elif self.parent_collection.autofill_actors["procedure"] == "split":
                 self.tooltip_text.append(
-                    "Press to separate the "
-                    + self.parent_collection.autofill_actors["group"].name
-                    + " into a "
-                    + self.parent_collection.autofill_actors["officer"].name
-                    + " and "
-                    + self.parent_collection.autofill_actors["worker"].name
+                    f"Press to separate the {self.parent_collection.autofill_actors['group'].name} into a {self.parent_collection.autofill_actors['officer'].name} and {self.parent_collection.autofill_actors['worker'].name}"
                 )
             elif self.parent_collection.autofill_actors["procedure"] == "crew":
                 self.tooltip_text.append(
-                    "Press to combine the "
-                    + self.parent_collection.autofill_actors["officer"].name
-                    + " and the "
-                    + self.parent_collection.autofill_actors["worker"].name
-                    + " into a crewed "
-                    + self.parent_collection.autofill_actors["group"].name
+                    f"Press to combine the {self.parent_collection.autofill_actors['officer'].name} and the {self.parent_collection.autofill_actors['worker'].name} into a crewed {self.parent_collection.autofill_actors['group'].name}"
                 )
             elif self.parent_collection.autofill_actors["procedure"] == "uncrew":
                 self.tooltip_text.append(
-                    "Press to separate the "
-                    + self.parent_collection.autofill_actors["group"].name
-                    + " into "
-                    + self.parent_collection.autofill_actors["worker"].name
-                    + " and a non-crewed "
-                    + self.parent_collection.autofill_actors["officer"].name
+                    f"Press to separate the {self.parent_collection.autofill_actors['group'].name} into {self.parent_collection.autofill_actors['worker'].name} and a non-crewed {self.parent_collection.autofill_actors['officer'].name}"
                 )
         elif self.parent_collection.autofill_actors["procedure"] != "none":
             self.tooltip_text.append(
-                "The "
-                + self.parent_collection.autofill_actors["procedure"]
-                + " procedure is controlled by the other button"
+                f"The {self.parent_collection.autofill_actors['procedure']} procedure is controlled by the other button"
             )
         else:
             self.tooltip_text.append(
@@ -2934,12 +2912,7 @@ class reorganize_unit_button(button):
                         )
                     else:
                         text_utility.print_to_screen(
-                            status.worker_types[
-                                procedure_actors["worker"].worker_type
-                            ].name.capitalize()
-                            + " cannot crew "
-                            + procedure_actors["officer"].get_vehicle_name()
-                            + "s."
+                            f"{status.worker_types[procedure_actors['worker'].worker_type].name.capitalize()} cannot crew {procedure_actors['officer'].get_vehicle_name()}s."
                         )
 
                 elif procedure_type == "split":
@@ -2951,9 +2924,7 @@ class reorganize_unit_button(button):
                         or procedure_actors["group"].get_held_commodities()
                     ):
                         text_utility.print_to_screen(
-                            "You cannot remove the crew from a "
-                            + procedure_actors["group"].vehicle_type
-                            + " with passengers or cargo."
+                            f"You cannot remove the crew from a {procedure_actors['group'].vehicle_type} with passengers or cargo."
                         )
                     else:
                         procedure_actors["group"].crew.uncrew_vehicle(

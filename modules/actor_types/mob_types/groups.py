@@ -63,6 +63,7 @@ class group(pmob):
         self.set_group_type("none")
         self.update_image_bundle()
         if not from_save:
+            self.set_disorganized(self.worker.disorganized)
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, None, override_exempt=True
             )

@@ -123,16 +123,13 @@ class minister:
     def get_f_lname(self):
         """
         Description:
-            Returns this minister's name in the form [first initial] [last name] - uses full aristocratic titles, if applicable
+            Returns this minister's name in the form [first initial] [last name]
         Input:
             None
         Output:
             str: Returns this minister's name in the form [first initial] [last name]
         """
-        if self.first_name in constants.titles:
-            return self.name
-        else:
-            return self.first_name[0] + ". " + self.last_name
+        return self.first_name[0] + ". " + self.last_name
 
     def update_tooltip(self):
         """
@@ -682,11 +679,12 @@ class minister:
                 self.set_apparent_skill(
                     current_minister_type,
                     self.specific_skills[current_minister_type] + self.general_skill,
+                    setup=True,
                 )
             else:
-                self.set_apparent_skill(current_minister_type, 0)
+                self.set_apparent_skill(current_minister_type, 0, setup=True)
 
-    def set_apparent_skill(self, skill_type, new_value):
+    def set_apparent_skill(self, skill_type, new_value, setup: bool = False):
         """
         Description:
             Sets this minister's apparent skill and apparent skill description to match the new apparent skill value for the inputted skill type
@@ -701,7 +699,7 @@ class minister:
             self.apparent_skill_descriptions[skill_type] = random.choice(
                 constants.minister_skill_to_description_dict[new_value]
             )
-            if not (flags.loading_save or flags.creating_new_game):
+            if not setup:
                 self.update_tooltip()
             if status.displayed_minister == self:
                 minister_utility.calibrate_minister_info_display(self)

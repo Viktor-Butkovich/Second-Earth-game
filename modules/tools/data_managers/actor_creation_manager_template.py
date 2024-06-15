@@ -135,7 +135,6 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         Output:
             actor: Returns the unit that was created
         """
-        # make sure dummies include things like veteran stars, disorganized, etc.
         new_actor = dummy.dummy(input_dict)
         return new_actor
 

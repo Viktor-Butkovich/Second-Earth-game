@@ -128,11 +128,10 @@ class character_manager_template:
             if unit.is_officer:
                 minister_face = self.generate_appearance(None, full_body=True)
                 for part in minister_face:
-                    part["x_size"] = part.get("size", 1.0) * 0.42
+                    part["x_size"] = part.get("size", 1.0) * 0.47
                     part["y_size"] = part["x_size"] * 1
-                    # part["size"] = part.get("size", 1.0) * 0.5
                     part["x_offset"] = part.get("x_offset", 0) + 0.01
-                    part["y_offset"] = part.get("y_offset", 0) + 0.32
+                    part["y_offset"] = part.get("y_offset", 0) + 0.345
                     part["level"] = part.get("level", 1) - 5
 
                 hat_section_index = self.find_portrait_section("hat", minister_face)
@@ -144,7 +143,7 @@ class character_manager_template:
                 # }
                 # Add officer-specific hats but as minister hats, not mob images
 
-                hidden_sections = ["eyes", "nose"]  # ["eyes", "mouth"]
+                hidden_sections = ["nose"]  # ["eyes", "mouth"]
                 if (
                     not minister_face[
                         self.find_portrait_section("hair", minister_face)
