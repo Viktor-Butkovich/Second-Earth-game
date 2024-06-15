@@ -98,10 +98,11 @@ class interface_element:
         Output:
             None
         """
-        if self in status.independent_interface_elements:
-            status.independent_interface_elements = utility.remove_from_list(
-                status.independent_interface_elements, self
-            )
+        if self.has_parent_collection:
+            self.parent_collection.remove_member(self)
+        status.independent_interface_elements = utility.remove_from_list(
+            status.independent_interface_elements, self
+        )
 
     def draw(self):
         """

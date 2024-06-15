@@ -40,8 +40,6 @@ except Exception:  # displays error message and records error message in crash l
 # Add random events
 # Add debug settings menu within game, rather than needing to edit .json out of game
 # Add autosave and multiple save slots
-# Performance impacts from repeated exit/load - not everything is being removed each time
-#     Possibly old grids still exist and are drawing under the new ones
 # Add ambient sounds
 #
 # Possible issues:

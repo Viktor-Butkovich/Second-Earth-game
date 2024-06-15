@@ -31,7 +31,6 @@ def update_display():
         draw_loading_screen()
     else:
         possible_tooltip_drawers = []
-
         traversal_utility.draw_interface_elements(status.independent_interface_elements)
         # could modify with a layer dictionary to display elements on different layers - currently, drawing elements in order of collection creation is working w/o overlap
         # issues
