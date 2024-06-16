@@ -3,11 +3,11 @@ import random
 
 from .pmobs import pmob
 from ...util import actor_utility
-from ...util import market_utility
 from ...util import text_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
+from typing import Dict
 
 
 class worker(pmob):
@@ -49,20 +49,47 @@ class worker(pmob):
 
         if not from_save:
             self.second_image_variant = random.randrange(0, len(self.image_variants))
-        self.update_image_bundle()
-        if not from_save:
-            if ("select_on_creation" in input_dict) and input_dict[
-                "select_on_creation"
-            ]:
-                actor_utility.calibrate_actor_info_display(
-                    status.mob_info_display, None, override_exempt=True
-                )
-                actor_utility.calibrate_actor_info_display(
-                    status.mob_info_display, self
-                )  # updates mob info display list to account for is_worker changing
-                self.selection_sound()
         constants.money_label.check_for_updates()
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def finish_init(
+        self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
+    ):
+        """
+        Description:
+            Finishes initialization of this actor, called after the original is finished
+        Input:
+            boolean original_constructor: Whether this is the original constructor call for this object
+        Output:
+            None
+        """
+        if original_constructor:
+            if not from_save:
+                self.image_dict[
+                    "left portrait"
+                ] = constants.character_manager.generate_unit_portrait(self)
+                self.image_dict[
+                    "right portrait"
+                ] = constants.character_manager.generate_unit_portrait(self)
+            else:
+                self.image_dict["left portrait"] = input_dict.get("left portrait", [])
+                self.image_dict["right portrait"] = input_dict.get("right portrait", [])
+            super().finish_init(original_constructor, from_save, input_dict)
+
+            self.image_dict["portrait"] = []
+            self.update_image_bundle()
+
+            if not from_save:
+                if ("select_on_creation" in input_dict) and input_dict[
+                    "select_on_creation"
+                ]:
+                    actor_utility.calibrate_actor_info_display(
+                        status.mob_info_display, None, override_exempt=True
+                    )
+                    actor_utility.calibrate_actor_info_display(
+                        status.mob_info_display, self
+                    )  # updates mob info display list to account for is_worker changing
+                    self.selection_sound()
 
     def replace(self, attached_group="none"):
         """
@@ -275,10 +302,16 @@ class worker(pmob):
                 self.image_dict["default"], "left"
             )
         )
+        image_id_list += actor_utility.generate_unit_component_portrait(
+            self.image_dict["left portrait"], "left"
+        )
         image_id_list.append(
             actor_utility.generate_unit_component_image_id(
                 self.image_variants[self.second_image_variant], "right"
             )
+        )
+        image_id_list += actor_utility.generate_unit_component_portrait(
+            self.image_dict["right portrait"], "right"
         )
         return image_id_list
 

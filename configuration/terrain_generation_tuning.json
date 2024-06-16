@@ -29,7 +29,7 @@
     "roughness_worm_bound": 3,
 
     "min_water_multiplier": 0,
-    "med_water_multiplier": 10,
+    "med_water_multiplier": 15,
     "max_water_multiplier": 50,
     "water_placement_candidates": 15,
 

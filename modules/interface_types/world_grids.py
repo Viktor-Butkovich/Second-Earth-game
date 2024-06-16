@@ -269,7 +269,7 @@ class world_grid(grid):
         elif self.get_tuning("mars_preset"):
             water_multiplier = self.get_tuning("mars_water_multiplier")
         else:
-            if random.randrange(1, 7) >= 4:
+            if random.randrange(1, 7) >= 5:
                 water_multiplier = random.randrange(
                     self.get_tuning("min_water_multiplier"),
                     self.get_tuning("max_water_multiplier") + 1,

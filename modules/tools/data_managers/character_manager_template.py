@@ -51,6 +51,9 @@ class character_manager_template:
         self.skin_colors = actor_utility.extract_folder_colors(
             "ministers/portraits/base_skin/colors/"
         )
+        self.eye_colors = actor_utility.extract_folder_colors(
+            "ministers/portraits/eyes/colors/"
+        )
         self.clothing_colors = actor_utility.extract_folder_colors(
             "ministers/portraits/outfit/suit_colors/"
         )
@@ -118,54 +121,44 @@ class character_manager_template:
         """
         Description:
             Generates a minister-style portrait for the inputted unit
+                This makes a base portrait, while actor_utility's generate_unit_component_portrait edits the base portrait for display in the correct part of
+                    the unit image
         Input:
             mob unit: Unit to generate portrait of
         Output:
             List[Dict[str, any]]: Returns list of image id's for each portrait section
         """
         minister_face = []
-        if unit.is_pmob:
-            if unit.is_officer:
-                minister_face = self.generate_appearance(None, full_body=True)
-                for part in minister_face:
-                    part["x_size"] = part.get("size", 1.0) * 0.47
-                    part["y_size"] = part["x_size"] * 1
-                    part["x_offset"] = part.get("x_offset", 0) + 0.01
-                    part["y_offset"] = part.get("y_offset", 0) + 0.345
-                    part["level"] = part.get("level", 1) - 5
+        if unit.is_pmob and (unit.is_officer or unit.is_worker):
+            minister_face = self.generate_appearance(None, full_body=True)
+            for part in minister_face:
+                part["x_size"] = part.get("size", 1.0) * 0.47
+                part["y_size"] = part["x_size"] * 1.0
+                part["x_offset"] = part.get("x_offset", 0) + 0.01
+                part["y_offset"] = part.get("y_offset", 0) + 0.342
+                part["level"] = part.get("level", 1) - 5
 
-                hat_section_index = self.find_portrait_section("hat", minister_face)
-                # Add officer hat, saving original hat for later
-                # minister_face[hat_section_index] = {
-                #    "image_id": f"mobs/{unit.officer_type}/hat.png",
-                #    "metadata": minister_face[hat_section_index].get("metadata", {}),
-                #    "original_section": minister_face[hat_section_index],
-                # }
-                # Add officer-specific hats but as minister hats, not mob images
+            hidden_sections = ["nose"]
+            if (
+                not minister_face[self.find_portrait_section("hair", minister_face)][
+                    "image_id"
+                ]
+                in self.hat_compatible_hair_images
+            ):
+                hidden_sections.append("hair")
 
-                hidden_sections = ["nose"]  # ["eyes", "mouth"]
-                if (
-                    not minister_face[
-                        self.find_portrait_section("hair", minister_face)
-                    ]["image_id"]
-                    in self.hat_compatible_hair_images
-                ):
-                    hidden_sections.append("hair")
-
-                for (
-                    section
-                ) in (
-                    hidden_sections
-                ):  # While officer, hide any unapplicable portrait sections but save for later
-                    section_index = self.find_portrait_section(section, minister_face)
-                    if section_index != None:
-                        minister_face[section_index] = {
-                            "image_id": "misc/empty.png",
-                            "metadata": minister_face[section_index].get(
-                                "metadata", {}
-                            ),
-                            "original_section": minister_face[section_index],
-                        }
+            for (
+                section
+            ) in (
+                hidden_sections
+            ):  # While officer, hide any unapplicable portrait sections but save for later
+                section_index = self.find_portrait_section(section, minister_face)
+                if section_index != None:
+                    minister_face[section_index] = {
+                        "image_id": "misc/empty.png",
+                        "metadata": minister_face[section_index].get("metadata", {}),
+                        "original_section": minister_face[section_index],
+                    }
 
         return minister_face
 
@@ -181,9 +174,11 @@ class character_manager_template:
             List[image_id]: Returns list of image id's for each portrait section
         """
         portrait_sections = []
+        hair_color = random.choice(self.hair_colors)
         metadata = {
-            "hair_color": random.choice(self.hair_colors),
+            "hair_color": hair_color,
             "skin_color": random.choice(self.skin_colors),
+            "eye_color": [random.choice(self.eye_colors), hair_color],
             "suit_colors": random.sample(self.clothing_colors, 2)
             + [random.choice(self.accessory_colors)],
             "has_hat": random.randrange(1, 7) >= 5,
@@ -363,6 +358,7 @@ class character_manager_template:
         portrait_sections.append(
             {
                 "image_id": random.choice(self.eyes_images),
+                "green_screen": metadata["eye_color"],
                 "metadata": {"portrait_section": "eyes"},
             }
         )

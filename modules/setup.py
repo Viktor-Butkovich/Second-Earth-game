@@ -2194,7 +2194,7 @@ def unit_organization_interface():
             "member_config": {
                 "calibrate_exempt": True,
                 "x_offset": scaling.scale_width(lhs_x_offset + rhs_x_offset),
-                "y_offset": -0.5 * (image_height - 5),
+                "y_offset": scaling.scale_height(-0.5 * (image_height)),
             },
         }
     )
@@ -2231,7 +2231,7 @@ def unit_organization_interface():
             "member_config": {
                 "calibrate_exempt": True,
                 "x_offset": scaling.scale_width(lhs_x_offset + rhs_x_offset),
-                "y_offset": -0.5 * (image_height - 5),
+                "y_offset": scaling.scale_height(-0.5 * (image_height)),
             },
         }
     )
@@ -2245,7 +2245,7 @@ def unit_organization_interface():
             {
                 "coordinates": scaling.scale_coordinates(
                     lhs_x_offset + rhs_x_offset - 60 - 15,
-                    -1 * (image_height - 15) + 40 - 15 + 30,
+                    -1 * (image_height - 15) + 40 - 15 + 30 + 5,
                 ),
                 "width": scaling.scale_width(60),
                 "height": scaling.scale_height(25),
@@ -2265,7 +2265,7 @@ def unit_organization_interface():
             {
                 "coordinates": scaling.scale_coordinates(
                     lhs_x_offset + rhs_x_offset - 60 - 15,
-                    -1 * (image_height - 15) + 40 - 15,
+                    -1 * (image_height - 15) + 40 - 15 + 5,
                 ),
                 "width": scaling.scale_width(60),
                 "height": scaling.scale_height(25),

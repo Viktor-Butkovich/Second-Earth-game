@@ -163,6 +163,10 @@ class mob(actor):
         save_dict["max_movement_points"] = self.max_movement_points
         save_dict["image"] = self.image_dict["default"]
         save_dict["portrait"] = self.image_dict["portrait"]
+        if "left portrait" in self.image_dict:
+            save_dict["left portrait"] = self.image_dict["left portrait"]
+        if "right portrait" in self.image_dict:
+            save_dict["right portrait"] = self.image_dict["right portrait"]
         save_dict["creation_turn"] = self.creation_turn
         save_dict["disorganized"] = self.disorganized
         if hasattr(self, "image_variant"):
