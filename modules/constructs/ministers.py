@@ -54,6 +54,8 @@ class minister:
             self.first_name: str = input_dict["first_name"]
             self.last_name: str = input_dict["last_name"]
             self.name: str = self.first_name + " " + self.last_name
+            self.ethnicity: str = input_dict["ethnicity"]
+            self.masculine: bool = input_dict["masculine"]
             self.current_position: str = input_dict["current_position"]
             self.background: str = input_dict["background"]
             self.status_number: int = constants.background_status_dict[self.background]
@@ -91,10 +93,14 @@ class minister:
             self.background: str = random.choice(constants.weighted_backgrounds)
             self.first_name: str
             self.last_name: str
+            self.ethnicity: str = constants.character_manager.generate_ethnicity()
+            self.masculine: bool = random.choice([True, False])
             (
                 self.first_name,
                 self.last_name,
-            ) = constants.character_manager.generate_name()
+            ) = constants.character_manager.generate_name(
+                self.ethnicity, self.masculine
+            )
             self.name = self.first_name + " " + self.last_name
             self.status_number: int = constants.background_status_dict[self.background]
             self.status: str = status_number_dict[self.status_number]
@@ -109,7 +115,9 @@ class minister:
             self.interests_setup()
             self.corruption_setup()
             status.available_minister_list.append(self)
-            self.image_id_list = constants.character_manager.generate_appearance(self)
+            self.image_id_list = constants.character_manager.generate_appearance(
+                self, full_body=False
+            )
             self.update_image_bundle()
             self.stolen_money: int = 0
             self.undetected_corruption_events: List[Tuple[float, str]] = []
@@ -154,6 +162,7 @@ class minister:
             )
         self.tooltip_text.append("Background: " + self.background)
         self.tooltip_text.append("Social status: " + self.status)
+        self.tooltip_text.append("Ethnicity: " + self.ethnicity)
         self.tooltip_text.append(
             "Interests: " + self.interests[0] + " and " + self.interests[1]
         )
@@ -430,6 +439,8 @@ class minister:
         save_dict["personal_savings"] = self.personal_savings
         save_dict["image_id_list"] = self.image_id_list
         save_dict["voice_set"] = self.voice_set
+        save_dict["ethnicity"] = self.ethnicity
+        save_dict["masculine"] = self.masculine
         return save_dict
 
     def get_image_id_list(self, override_values={}):

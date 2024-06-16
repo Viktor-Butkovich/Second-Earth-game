@@ -1,10 +1,11 @@
 # Manages character generation, minister/officer/worker backgrounds, names, appearance, ethnicity, and other personal details
 
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from ...util import csv_utility, utility, actor_utility
 import modules.constants.status as status
 import json
 import random
+import pygame
 
 
 class character_manager_template:
@@ -33,7 +34,9 @@ class character_manager_template:
         Output:
             None
         """
-        self.portrait_section_types = [
+        with open("configuration/character_appearances.json") as active_file:
+            appearances_dict: Dict[str, any] = json.load(active_file)
+        self.portrait_section_types: List[str] = [
             "base_skin",
             "mouth",
             "nose",
@@ -45,57 +48,83 @@ class character_manager_template:
             "hat",
             "portrait",
         ]
-        self.hair_colors = actor_utility.extract_folder_colors(
-            "ministers/portraits/hair/colors/"
-        )
-        self.skin_colors = actor_utility.extract_folder_colors(
-            "ministers/portraits/base_skin/colors/"
-        )
-        self.eye_colors = actor_utility.extract_folder_colors(
-            "ministers/portraits/eyes/colors/"
-        )
-        self.clothing_colors = actor_utility.extract_folder_colors(
+        self.skin_colors: Dict[str, List[Tuple[int, int, int]]] = {}
+        for ethnicity, color_list in appearances_dict["skin_color"].items():
+            self.skin_colors[ethnicity] = []
+            for color in color_list:
+                self.skin_colors[ethnicity].append(
+                    pygame.image.load(
+                        f"graphics/ministers/portraits/base_skin/colors/color{color}.png"
+                    ).get_at((0, 0))[:3]
+                )
+                # Get RGB values of first pixel's color from each skin color image in the allowed [0, 1, ...] numbers for that ethnicity
+
+        self.hair_colors: Dict[str, List[Tuple[int, int, int]]] = {}
+        for ethnicity, color_list in appearances_dict["hair_color"].items():
+            self.hair_colors[ethnicity] = []
+            for color in color_list:
+                self.hair_colors[ethnicity].append(
+                    pygame.image.load(
+                        f"graphics/ministers/portraits/hair/colors/color{color}.png"
+                    ).get_at((0, 0))[:3]
+                )
+
+        self.eye_colors: Dict[str, List[Tuple[int, int, int]]] = {}
+        for ethnicity, color_list in appearances_dict["eye_color"].items():
+            self.eye_colors[ethnicity] = []
+            for color in color_list:
+                self.eye_colors[ethnicity].append(
+                    pygame.image.load(
+                        f"graphics/ministers/portraits/eyes/colors/color{color}.png"
+                    ).get_at((0, 0))[:3]
+                )
+
+        self.clothing_colors: List[
+            Tuple[int, int, int]
+        ] = actor_utility.extract_folder_colors(
             "ministers/portraits/outfit/suit_colors/"
         )
-        self.accessory_colors = actor_utility.extract_folder_colors(
+        self.accessory_colors: List[
+            Tuple[int, int, int]
+        ] = actor_utility.extract_folder_colors(
             "ministers/portraits/outfit/accessory_colors/"
         )
 
-        self.skin_images = actor_utility.get_image_variants(
+        self.skin_images: List[str] = actor_utility.get_image_variants(
             "ministers/portraits/base_skin/default.png", "base_skin"
         )
-        self.hat_images = actor_utility.get_image_variants(
+        self.hat_images: List[str] = actor_utility.get_image_variants(
             "ministers/portraits/hat/default.png", "hat"
         )
-        self.all_hair_images = actor_utility.get_image_variants(
+        self.all_hair_images: List[str] = actor_utility.get_image_variants(
             "ministers/portraits/hair/default.png", "hair"
         ) + actor_utility.get_image_variants(
             "ministers/portraits/hair/default.png", "no_hat"
         )
-        self.hat_compatible_hair_images = actor_utility.get_image_variants(
+        self.hat_compatible_hair_images: List[str] = actor_utility.get_image_variants(
             "ministers/portraits/hair/default.png", "hair"
         )
-        self.outfit_images = actor_utility.get_image_variants(
+        self.outfit_images: List[str] = actor_utility.get_image_variants(
             "ministers/portraits/outfit/default.png", "outfit"
         )
-        self.facial_hair_images = actor_utility.get_image_variants(
+        self.facial_hair_images: List[str] = actor_utility.get_image_variants(
             f"ministers/portraits/facial_hair/default.png", "facial_hair"
         )
-        self.accessories_images = {
+        self.accessories_images: Dict[str, List[str]] = {
             "glasses": actor_utility.get_image_variants(
                 f"ministers/portraits/accessories/default.png", "glasses"
             ),
         }
-        self.mouth_images = actor_utility.get_image_variants(
+        self.mouth_images: List[str] = actor_utility.get_image_variants(
             f"ministers/portraits/mouth/default.png", "mouth"
         )
-        self.nose_images = actor_utility.get_image_variants(
+        self.nose_images: List[str] = actor_utility.get_image_variants(
             f"ministers/portraits/nose/default.png", "nose"
         )
-        self.eyes_images = actor_utility.get_image_variants(
+        self.eyes_images: List[str] = actor_utility.get_image_variants(
             f"ministers/portraits/eyes/default.png", "eyes"
         )
-        self.portrait_images = actor_utility.get_image_variants(
+        self.portrait_images: List[str] = actor_utility.get_image_variants(
             f"ministers/portraits/portrait/default.png", "portrait"
         )
 
@@ -174,15 +203,45 @@ class character_manager_template:
             List[image_id]: Returns list of image id's for each portrait section
         """
         portrait_sections = []
-        hair_color = random.choice(self.hair_colors)
+
+        if minister and hasattr(
+            minister, "ethnicity"
+        ):  # Choose a proportionally random ethnicity if minister does not have one yet or no minister inputted
+            ethnicity = minister.ethnicity
+        else:
+            ethnicity = self.generate_ethnicity()
+        while ethnicity == "diaspora":
+            ethnicity = random.choices(
+                self.ethnic_groups, self.ethnic_group_weights, k=1
+            )[0]
+        if minister and hasattr(minister, "masculine"):
+            masculine = minister.masculine
+        else:
+            masculine = random.choice([True, False])
+
+        hair_color = random.choice(
+            self.hair_colors[ethnicity.lower().replace(" ", "_")]
+        )
+        if (
+            random.randrange(1, 7) == 1
+        ):  # 1/6 chance of some shade of gray/white hair, regardless of ethnicity
+            base = random.randrange(83, 229)
+            hair_color = (base, base, base)
+
         metadata = {
             "hair_color": hair_color,
-            "skin_color": random.choice(self.skin_colors),
-            "eye_color": [random.choice(self.eye_colors), hair_color],
+            "skin_color": random.choice(
+                self.skin_colors[ethnicity.lower().replace(" ", "_")]
+            ),
+            "eye_color": random.choice(
+                self.eye_colors[ethnicity.lower().replace(" ", "_")]
+            ),
             "suit_colors": random.sample(self.clothing_colors, 2)
             + [random.choice(self.accessory_colors)],
             "has_hat": random.randrange(1, 7) >= 5,
             "full_body": full_body,
+            "ethnicity": ethnicity,
+            "masculine": masculine,
         }
 
         self.generate_skin(portrait_sections, metadata)
@@ -358,7 +417,7 @@ class character_manager_template:
         portrait_sections.append(
             {
                 "image_id": random.choice(self.eyes_images),
-                "green_screen": metadata["eye_color"],
+                "green_screen": [metadata["eye_color"], metadata["hair_color"]],
                 "metadata": {"portrait_section": "eyes"},
             }
         )

@@ -1,0 +1,196 @@
+{
+    "skin_color": {
+        "african_american": [11, 12, 13, 14, 15, 16, 17],
+        "american": [0, 1, 2, 3, 4, 5, 6, 7],
+        "arabic": [4, 5, 7, 8, 9, 11, 12, 13, 14, 15, 16],
+        "british": [0, 1, 2, 3, 4, 5, 6, 7],
+        "central_asian": [4, 5, 7, 8, 9, 18, 19],
+        "chinese": [7, 9, 18, 19],
+        "dutch": [0, 1, 2, 3, 4, 5, 6, 7],
+        "east_african": [15, 16, 17],
+        "eastern_european": [0, 1, 2, 3, 6],
+        "filipino": [7, 9, 18, 1, 9, 10],
+        "french": [0, 1, 2, 3, 4, 5, 6, 7],
+        "german": [0, 1, 2, 3, 4, 5, 6, 7],
+        "indian": [11, 12, 13, 14, 15, 16],
+        "indigeneous_latin_american": [11, 12, 13, 14, 15, 16],
+        "iranian": [4, 5, 7, 9, 10, 11],
+        "italian": [0, 1, 2, 3, 4, 5, 6, 7],
+        "japanese": [1, 4, 5, 7],
+        "korean": [7, 9, 18, 1],
+        "latin": [8, 9, 10, 11, 12],
+        "portuguese": [0, 1, 2, 3, 4, 5, 6, 7],
+        "scandinavian": [0, 1, 2, 3, 6],
+        "southeast_asian": [7, 9, 18, 1, 9, 10],
+        "west_african": [15, 16, 17]
+    },
+    "hair_color": {
+        "african_american": [0, 5, 13, 14],
+        "american": [1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 16, 18, 19, 20, 21, 22],
+        "arabic": [0, 3, 5, 8, 10, 13, 14, 15, 16],
+        "british": [1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 16, 18, 19, 20, 21, 22],
+        "central_asian": [0, 3, 5, 13, 14],
+        "chinese": [0, 3, 5, 13, 14],
+        "dutch": [1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 16, 18, 19, 20, 21, 22],
+        "east_african": [0, 5, 13, 14],
+        "eastern_european": [1, 3, 6, 7, 11, 12, 17, 19],
+        "filipino": [0, 8, 13, 14],
+        "french": [1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 16, 18, 19, 20, 21, 22],
+        "german": [1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 16, 18, 19, 20, 21, 22],
+        "indian": [0, 5, 13, 14],
+        "indigeneous_latin_american": [0, 5, 13, 14],
+        "iranian": [0, 5, 13, 14],
+        "italian": [2, 3, 5, 6, 8, 10, 15, 17],
+        "japanese": [0, 3, 5, 13, 14],
+        "korean": [0, 3, 5, 13, 14],
+        "latin": [2, 3, 5, 6, 8, 10, 15, 17],
+        "portuguese": [2, 3, 5, 6, 8, 10, 15, 17],
+        "scandinavian": [1, 4, 7, 12, 22],
+        "southeast_asian": [0, 8, 13, 14],
+        "west_african": [0, 5, 13, 14]
+    },
+    "hair": {
+        "african_american": {
+            "masculine": [],
+            "feminine": []
+        },
+        "american": {
+            "masculine": [],
+            "feminine": []
+        },
+        "arabic": {
+            "masculine": [],
+            "feminine": []
+        },
+        "british": {
+            "masculine": [],
+            "feminine": []
+        },
+        "central_asian": {
+            "masculine": [],
+            "feminine": []
+        },
+        "chinese": {
+            "masculine": [],
+            "feminine": []
+        },
+        "dutch": {
+            "masculine": [],
+            "feminine": []
+        },
+        "east_african": {
+            "masculine": [],
+            "feminine": []
+        },
+        "eastern_european": {
+            "masculine": [],
+            "feminine": []
+        },
+        "filipino": {
+            "masculine": [],
+            "feminine": []
+        },
+        "french": {
+            "masculine": [],
+            "feminine": []
+        },
+        "german": {
+            "masculine": [],
+            "feminine": []
+        },
+        "indian": {
+            "masculine": [],
+            "feminine": []
+        },
+        "indigeneous_latin_american": {
+            "masculine": [],
+            "feminine": []
+        },
+        "iranian": {
+            "masculine": [],
+            "feminine": []
+        },
+        "italian": {
+            "masculine": [],
+            "feminine": []
+        },
+        "japanese": {
+            "masculine": [],
+            "feminine": []
+        },
+        "korean": {
+            "masculine": [],
+            "feminine": []
+        },
+        "latin": {
+            "masculine": [],
+            "feminine": []
+        },
+        "portuguese": {
+            "masculine": [],
+            "feminine": []
+        },
+        "scandinavian": {
+            "masculine": [],
+            "feminine": []
+        },
+        "southeast_asian": {
+            "masculine": [],
+            "feminine": []
+        },
+        "west_african": {
+            "masculine": [],
+            "feminine": []
+        }
+    },
+    "facial_hair": {
+        "african_american": [],
+        "american": [],
+        "arabic": [],
+        "british": [],
+        "central_asian": [],
+        "chinese": [],
+        "dutch": [],
+        "east_african": [],
+        "eastern_european": [],
+        "filipino": [],
+        "french": [],
+        "german": [],
+        "indian": [],
+        "indigeneous_latin_american": [],
+        "iranian": [],
+        "italian": [],
+        "japanese": [],
+        "korean": [],
+        "latin": [],
+        "portuguese": [],
+        "scandinavian": [],
+        "southeast_asian": [],
+        "west_african": []
+    },
+    "eye_color": {
+        "african_american": [0, 1, 8, 9],
+        "american": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        "arabic": [0, 1, 8, 9],
+        "british": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        "central_asian": [0, 1, 8, 9],
+        "chinese": [0, 1, 8, 9],
+        "dutch": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        "east_african": [0, 1, 8, 9],
+        "eastern_european": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        "filipino": [0, 1, 8, 9],
+        "french": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        "german": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        "indian": [0, 1, 8, 9],
+        "indigeneous_latin_american": [0, 1, 8, 9],
+        "iranian": [0, 1, 8, 9],
+        "italian": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        "japanese": [0, 1, 8, 9],
+        "korean": [0, 1, 8, 9],
+        "latin": [0, 1, 8, 9],
+        "portuguese": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        "scandinavian": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        "southeast_asian": [0, 1, 8, 9],
+        "west_african": [0, 1, 8, 9]
+    }
+}

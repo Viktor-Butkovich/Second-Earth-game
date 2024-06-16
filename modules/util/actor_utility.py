@@ -4,6 +4,7 @@ import random
 import os
 import pygame
 import math
+from typing import List, Tuple
 from . import utility, text_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -435,7 +436,7 @@ def get_image_variants(base_path, keyword="default"):
     return variants
 
 
-def extract_folder_colors(folder_path):
+def extract_folder_colors(folder_path: str) -> List[Tuple[int, int, int]]:
     """
     Description:
         Iterates through a folder's files and finds the first color in each image, returning that color's RGB values
