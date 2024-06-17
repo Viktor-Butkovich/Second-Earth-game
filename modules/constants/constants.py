@@ -247,7 +247,7 @@ notification_font_size: float = None
 myfont: font = None
 fonts: Dict[str, font] = {}
 
-default_music_volume: float = 0.5
+default_music_volume: float = 0.3
 
 current_instructions_page_index: int = 0
 current_instructions_page_text: str = ""
