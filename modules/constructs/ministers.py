@@ -727,7 +727,7 @@ class minister:
         for file_name in os.listdir("sounds/" + folder_path):
             for key in self.voice_lines:
                 if file_name.startswith(key):
-                    file_name = file_name[:-4]  # cuts off last 4 characters - .wav
+                    file_name = file_name[:-4]  # cuts off last 4 characters - .ogg/.wav
                     self.voice_lines[key].append(folder_path + "/" + file_name)
 
     def interests_setup(self):

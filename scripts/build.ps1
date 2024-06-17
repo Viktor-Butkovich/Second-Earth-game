@@ -13,6 +13,7 @@ cd SE_exe
 Move-Item -Path dist/Second_Earth.exe
 rm Second_Earth.spec -force
 rmdir build -force -Recurse
+rmdir sound_editing -force -Recurse
 rm dist -force -Recurse
 rm modules -force -Recurse
 rm -force Second_Earth.py

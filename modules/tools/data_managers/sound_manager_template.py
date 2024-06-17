@@ -57,12 +57,15 @@ class sound_manager_template:
         Description:
             Plays the sound effect from the inputted file
         Input:
-            string file_name: Name of .wav file to play sound of
+            string file_name: Name of .ogg/.wav file to play sound of
             double volume = 0.3: Volume from 0.0 to 1.0 to play sound at - mixer usually uses a default of 1.0
         Output:
             Channel: Returns the pygame mixer Channel object that the sound was played on
         """
-        current_sound = pygame.mixer.Sound("sounds/" + file_name + ".wav")
+        try:
+            current_sound = pygame.mixer.Sound(f"sounds/{file_name}.ogg")
+        except:
+            current_sound = pygame.mixer.Sound(f"sounds/{file_name}.wav")
         current_sound.set_volume(volume)
         channel = pygame.mixer.find_channel(force=True)
         channel.play(current_sound)
@@ -73,13 +76,16 @@ class sound_manager_template:
         Description:
             Queues the sound effect from the inputted file to be played once the inputted channel is done with its current sound
         Input:
-            string file_name: Name of .wav file to play sound of
+            string file_name: Name of .ogg/.wav file to play sound of
             Channel channel: Pygame mixer channel to queue the sound in
             double volume = 0.3: Volume from 0.0 to 1.0 to play sound at - mixer usually uses a default of 1.0
         Output:
             None
         """
-        current_sound = pygame.mixer.Sound("sounds/" + file_name + ".wav")
+        try:
+            current_sound = pygame.mixer.Sound(f"sounds/{file_name}.ogg")
+        except:
+            current_sound = pygame.mixer.Sound(f"sounds/{file_name}.wav")
         current_sound.set_volume(volume)
         channel.queue(current_sound)
 
@@ -95,7 +101,10 @@ class sound_manager_template:
         """
         if volume < 0:  # negative volume value -> use default
             volume = constants.default_music_volume
-        pygame.mixer.music.load("sounds/music/" + file_name + ".wav")
+        try:
+            pygame.mixer.music.load(f"sounds/music/{file_name}.ogg")
+        except:
+            pygame.mixer.music.load(f"sounds/music/{file_name}.wav")
         pygame.mixer.music.set_volume(volume)
         pygame.mixer.music.play(0)  # music loops when loop argument is -1
 
