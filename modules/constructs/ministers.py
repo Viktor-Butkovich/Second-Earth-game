@@ -782,11 +782,11 @@ class minister:
         )  # minimum roll on D6 required for corruption to occur
 
         if constants.effect_manager.effect_active("transparent_ministers"):
-            self.set_apparent_corruption(self.corruption)
+            self.set_apparent_corruption(self.corruption, setup=True)
         else:
-            self.set_apparent_corruption(0)
+            self.set_apparent_corruption(0, setup=True)
 
-    def set_apparent_corruption(self, new_value):
+    def set_apparent_corruption(self, new_value, setup: bool = False):
         """
         Description:
             Sets this minister's apparent corruption and apparent corruption description to match the new apparent corruption value
@@ -800,7 +800,7 @@ class minister:
             self.apparent_corruption_description = random.choice(
                 constants.minister_corruption_to_description_dict[new_value]
             )
-            if not (flags.loading_save or flags.creating_new_game):
+            if not setup:
                 self.update_tooltip()
             if status.displayed_minister == self:
                 minister_utility.calibrate_minister_info_display(self)
