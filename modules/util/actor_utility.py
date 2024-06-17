@@ -103,11 +103,7 @@ def update_descriptions(target="all"):
         string_descriptions = constants.string_descriptions
         text_list = []
         if current_target in constants.officer_types:
-            first_line = (
-                utility.capitalize(current_target)
-                + "s are controlled by the "
-                + constants.officer_minister_dict[current_target]
-            )
+            first_line = f"{utility.capitalize(current_target)}s are controlled by the {constants.officer_minister_dict[current_target]}"
             if current_target == "explorer":
                 first_line += "."
                 text_list.append(first_line)
