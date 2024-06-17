@@ -563,47 +563,14 @@ def generate_group_image_id_list(worker, officer):
     Output:
         list: Returns image id list of dictionaries for each part of the group image
     """
-    # left_worker_dict = generate_unit_component_image_id(
-    #    worker.image_dict["default"], "group left"
-    # )
-    # right_worker_dict = generate_unit_component_image_id(
-    #    worker.image_variants[worker.second_image_variant], "group right"
-    # )
-
-    # if officer.officer_type == "major":
-    #    if "soldier" in worker.image_dict:
-    #        soldier = worker.image_dict["soldier"]
-    #    else:
-    #        soldier = worker.image_dict["default"]
-    #    left_worker_dict["image_id"] = soldier
-    #    right_worker_dict["image_id"] = soldier
-    # elif officer.officer_type in ["merchant", "driver"]:
-    #    if "porter" in worker.image_dict:
-    #        porter = worker.image_dict["porter"]
-    #    else:
-    #        porter = worker.image_dict["default"]
-    #    left_worker_dict["image_id"] = porter
-    #    right_worker_dict["image_id"] = porter
-
-    # officer_dict = generate_unit_component_image_id(
-    #    officer.image_dict["default"], "center"
-    # )
-
-    left_worker_portrait_list = generate_unit_component_portrait(
-        worker.image_dict["left portrait"], "group left"
-    )
-    right_worker_portrait_list = generate_unit_component_portrait(
-        worker.image_dict["right portrait"], "group right"
-    )
-    officer_portrait_list = generate_unit_component_portrait(
-        officer.image_dict["portrait"], "center"
-    )
-
     return (
-        # [left_worker_dict, right_worker_dict, officer_dict]
-        left_worker_portrait_list
-        + right_worker_portrait_list
-        + officer_portrait_list
+        generate_unit_component_portrait(
+            worker.image_dict["left portrait"], "group left"
+        )
+        + generate_unit_component_portrait(
+            worker.image_dict["right portrait"], "group right"
+        )
+        + generate_unit_component_portrait(officer.image_dict["portrait"], "center")
     )
 
 

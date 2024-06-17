@@ -96,14 +96,28 @@ class character_manager_template:
         self.hat_images: List[str] = actor_utility.get_image_variants(
             "ministers/portraits/hat/default.png", "hat"
         )
-        self.all_hair_images: List[str] = actor_utility.get_image_variants(
-            "ministers/portraits/hair/default.png", "hair"
-        ) + actor_utility.get_image_variants(
-            "ministers/portraits/hair/default.png", "no_hat"
-        )
-        self.hat_compatible_hair_images: List[str] = actor_utility.get_image_variants(
-            "ministers/portraits/hair/default.png", "hair"
-        )
+        self.all_hair_images: List[str] = {
+            "masculine": actor_utility.get_image_variants(
+                "ministers/portraits/hair/masculine/default.png", "hair"
+            )
+            + actor_utility.get_image_variants(
+                "ministers/portraits/hair/masculine/default.png", "no_hat"
+            ),
+            "feminine": actor_utility.get_image_variants(
+                "ministers/portraits/hair/feminine/default.png", "hair"
+            )
+            + actor_utility.get_image_variants(
+                "ministers/portraits/hair/feminine/default.png", "no_hat"
+            ),
+        }
+        self.hat_compatible_hair_images: List[str] = {
+            "masculine": actor_utility.get_image_variants(
+                "ministers/portraits/hair/masculine/default.png", "hair"
+            ),
+            "feminine": actor_utility.get_image_variants(
+                "ministers/portraits/hair/feminine/default.png", "hair"
+            ),
+        }
         self.outfit_images: List[str] = actor_utility.get_image_variants(
             "ministers/portraits/outfit/default.png", "outfit"
         )
@@ -339,9 +353,13 @@ class character_manager_template:
         """
         if random.randrange(1, 11) != 0:
             if metadata["has_hat"]:
-                possible_hair_images = self.hat_compatible_hair_images
+                possible_hair_images = self.hat_compatible_hair_images[
+                    "masculine" if metadata["masculine"] else "feminine"
+                ]
             else:
-                possible_hair_images = self.all_hair_images
+                possible_hair_images = self.all_hair_images[
+                    "masculine" if metadata["masculine"] else "feminine"
+                ]
         else:
             possible_hair_images = ["misc/empty.png"]
         portrait_sections.append(
@@ -363,7 +381,7 @@ class character_manager_template:
         Output:
             None
         """
-        if random.randrange(1, 6) != 0:
+        if metadata["masculine"] and random.randrange(1, 6) != 0:
             portrait_sections.append(
                 {
                     "image_id": random.choice(self.facial_hair_images),

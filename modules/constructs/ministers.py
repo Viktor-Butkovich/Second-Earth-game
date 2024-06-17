@@ -712,7 +712,10 @@ class minister:
             None
         """
         if not from_save:
-            self.voice_set = random.choice(os.listdir("sounds/voices/voice sets"))
+            if self.masculine:
+                self.voice_set = f"masculine/{random.choice(os.listdir('sounds/voices/voice sets/masculine'))}"
+            else:
+                self.voice_set = f"feminine/{random.choice(os.listdir('sounds/voices/voice sets/feminine'))}"
         self.voice_lines = {
             "acknowledgement": [],
             "fired": [],
