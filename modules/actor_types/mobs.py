@@ -114,7 +114,9 @@ class mob(actor):
             if not from_save:
                 self.image_dict[
                     "portrait"
-                ] = constants.character_manager.generate_unit_portrait(self)
+                ] = constants.character_manager.generate_unit_portrait(
+                    self, metadata={"body_image": self.image_dict["default"]}
+                )
             else:
                 self.image_dict["portrait"] = input_dict.get("portrait", [])
             super().finish_init(original_constructor, from_save, input_dict)
@@ -203,9 +205,13 @@ class mob(actor):
             disorganized = self.disorganized
 
         image_id_list = super().get_image_id_list(override_values)
+
+        if self.image_dict.get("portrait", []) != []:
+            image_id_list += self.image_dict["portrait"]
+            if self.image_dict["default"] in image_id_list:
+                image_id_list.remove(self.image_dict["default"])
         if disorganized:
             image_id_list.append("misc/disorganized_icon.png")
-        image_id_list += self.image_dict.get("portrait", [])
         return image_id_list
 
     def set_disorganized(self, new_value):

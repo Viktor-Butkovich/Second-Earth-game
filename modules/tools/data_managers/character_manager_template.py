@@ -146,7 +146,9 @@ class character_manager_template:
                 return i
         return None
 
-    def generate_unit_portrait(self, unit) -> List[Dict[str, any]]:
+    def generate_unit_portrait(
+        self, unit, metadata: Dict[str, any] = None
+    ) -> List[Dict[str, any]]:
         """
         Description:
             Generates a minister-style portrait for the inputted unit
@@ -159,15 +161,17 @@ class character_manager_template:
         """
         minister_face = []
         if unit.is_pmob and (unit.is_officer or unit.is_worker):
-            minister_face = self.generate_appearance(None, full_body=True)
+            minister_face = self.generate_appearance(
+                unit, full_body=True, metadata=metadata
+            )
             for part in minister_face:
-                part["x_size"] = part.get("size", 1.0) * 0.47
-                part["y_size"] = part["x_size"] * 1.0
+                part["x_size"] = part.get("size", 1.0) * part.get("x_size", 1.0) * 0.47
+                part["y_size"] = part.get("size", 1.0) * part.get("y_size", 1.0) * 0.47
                 part["x_offset"] = part.get("x_offset", 0) + 0.01
                 part["y_offset"] = part.get("y_offset", 0) + 0.342
                 part["level"] = part.get("level", 1) - 5
 
-            hidden_sections = ["nose"]
+            hidden_sections = []  # ["nose"]
             if (
                 not minister_face[self.find_portrait_section("hair", minister_face)][
                     "image_id"
@@ -192,7 +196,7 @@ class character_manager_template:
         return minister_face
 
     def generate_appearance(
-        self, minister, full_body: bool = False
+        self, minister, full_body: bool = False, metadata: Dict[str, any] = None
     ) -> List[Dict[str, any]]:
         """
         Description:
@@ -228,24 +232,27 @@ class character_manager_template:
             base = random.randrange(83, 229)
             hair_color = (base, base, base)
 
-        metadata = {
-            "hair_color": hair_color,
-            "skin_color": random.choice(
-                self.skin_colors[ethnicity.lower().replace(" ", "_")]
-            ),
-            "eye_color": random.choice(
-                self.eye_colors[ethnicity.lower().replace(" ", "_")]
-            ),
-            "suit_colors": random.sample(self.clothing_colors, 2)
-            + [random.choice(self.accessory_colors)],
-            "has_hat": random.randrange(1, 7) >= 5,
-            "full_body": full_body,
-            "ethnicity": ethnicity,
-            "masculine": masculine,
-        }
+        if not metadata:
+            metadata = {}
+        metadata.update(
+            {
+                "hair_color": hair_color,
+                "skin_color": random.choice(
+                    self.skin_colors[ethnicity.lower().replace(" ", "_")]
+                ),
+                "eye_color": random.choice(
+                    self.eye_colors[ethnicity.lower().replace(" ", "_")]
+                ),
+                "suit_colors": random.sample(self.clothing_colors, 2)
+                + [random.choice(self.accessory_colors)],
+                "has_hat": random.randrange(1, 7) >= 5,
+                "full_body": full_body,
+                "ethnicity": ethnicity,
+                "masculine": masculine,
+            }
+        )
 
         self.generate_skin(portrait_sections, metadata)
-        self.generate_outfit(portrait_sections, metadata)
         self.generate_hair(portrait_sections, metadata)
         self.generate_facial_hair(portrait_sections, metadata)
         self.generate_nose(portrait_sections, metadata)
@@ -253,27 +260,54 @@ class character_manager_template:
         self.generate_eyes(portrait_sections, metadata)
         self.generate_accessories(portrait_sections, metadata)
         self.generate_portrait(portrait_sections, metadata)
+        if full_body:
+            self.generate_body(portrait_sections, metadata)
+        else:
+            self.generate_portrait(portrait_sections, metadata)
+            self.generate_outfit(portrait_sections, metadata)
 
         return portrait_sections
 
-    def generate_outfit(self, portrait_sections, metadata) -> None:
+    def generate_body(self, portrait_sections, metadata) -> None:
         """
         Description:
-            Generates random outfit for a character, adding it to the inputted list
+            Generates random full-body outfit for a character, adding it to the inputted list
         Input:
             image_id list: List of image id's for each portrait section
             dictionary metadata: Metadata for the character, allowing coordination between sections
         Output:
             None
         """
-        if not metadata["full_body"]:
-            portrait_sections.append(
-                {
-                    "image_id": random.choice(self.outfit_images),
-                    "green_screen": metadata["suit_colors"],
-                    "metadata": {"portrait_section": "outfit"},
-                }
-            )
+        portrait_sections.append(
+            {
+                "image_id": metadata["body_image"],
+                "x_size": 2.2,
+                "y_size": 2.18,
+                "y_offset": -0.34,
+                "x_offset": -0.015,
+                "level": 1,
+                "green_screen": metadata["skin_color"],
+                "metadata": {"portrait_section": "full_body"},
+            }
+        )
+
+    def generate_outfit(self, portrait_sections, metadata) -> None:
+        """
+        Description:
+            Generates random "bust" outfit for a character, adding it to the inputted list
+        Input:
+            image_id list: List of image id's for each portrait section
+            dictionary metadata: Metadata for the character, allowing coordination between sections
+        Output:
+            None
+        """
+        portrait_sections.append(
+            {
+                "image_id": random.choice(self.outfit_images),
+                "green_screen": metadata["suit_colors"],
+                "metadata": {"portrait_section": "outfit"},
+            }
+        )
 
     def generate_skin(self, portrait_sections, metadata) -> None:
         """

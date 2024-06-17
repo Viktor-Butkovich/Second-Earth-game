@@ -150,25 +150,22 @@ class minister:
         """
         self.tooltip_text = []
         if not self.current_position == "none":
-            keyword = constants.minister_type_dict[
-                self.current_position
-            ]  # type, like military
             self.tooltip_text.append(
-                "This is " + self.name + ", your " + self.current_position + "."
+                f"This is {self.name}, your {self.current_position}."
             )
         else:
             self.tooltip_text.append(
-                "This is " + self.name + ", an available minister candidate."
+                f"This is {self.name}, an available minister candidate."
             )
-        self.tooltip_text.append("Background: " + self.background)
-        self.tooltip_text.append("Social status: " + self.status)
-        self.tooltip_text.append("Ethnicity: " + self.ethnicity)
+        self.tooltip_text.append(f"Background: {self.background}")
+        self.tooltip_text.append(f"Social status: {self.status}")
+        self.tooltip_text.append(f"Ethnicity: {self.ethnicity}")
         self.tooltip_text.append(
-            "Interests: " + self.interests[0] + " and " + self.interests[1]
+            f"Interests: {self.interests[0]} and {self.interests[1]}"
         )
 
         if self.apparent_corruption_description != "unknown":
-            self.tooltip_text.append("Loyalty: " + self.apparent_corruption_description)
+            self.tooltip_text.append(f"Loyalty: {self.apparent_corruption_description}")
 
         if self.current_position == "none":
             displayed_skill = self.get_max_apparent_skill()
@@ -181,19 +178,9 @@ class minister:
             ]  # like General to military]
             if self.apparent_skill_descriptions[displayed_skill] != "unknown":
                 if self.current_position == "none":
-                    message = (
-                        "Highest ability: "
-                        + self.apparent_skill_descriptions[displayed_skill]
-                        + " ("
-                        + displayed_skill_name
-                        + ")"
-                    )
+                    message = f"Highest ability: {self.apparent_skill_descriptions[displayed_skill]} ({displayed_skill_name})"
                 else:
-                    message = (
-                        displayed_skill_name.capitalize()
-                        + " ability: "
-                        + self.apparent_skill_descriptions[displayed_skill]
-                    )
+                    message = f"{displayed_skill_name.capitalize()} ability: {self.apparent_skill_descriptions[displayed_skill]}"
                 self.tooltip_text.append(message)
 
         rank = 0

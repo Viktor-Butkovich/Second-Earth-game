@@ -67,15 +67,21 @@ class worker(pmob):
             if not from_save:
                 self.image_dict[
                     "left portrait"
-                ] = constants.character_manager.generate_unit_portrait(self)
+                ] = constants.character_manager.generate_unit_portrait(
+                    self, metadata={"body_image": self.image_dict["default"]}
+                )
                 self.image_dict[
                     "right portrait"
-                ] = constants.character_manager.generate_unit_portrait(self)
+                ] = constants.character_manager.generate_unit_portrait(
+                    self,
+                    metadata={
+                        "body_image": self.image_variants[self.second_image_variant]
+                    },
+                )
             else:
                 self.image_dict["left portrait"] = input_dict.get("left portrait", [])
                 self.image_dict["right portrait"] = input_dict.get("right portrait", [])
             super().finish_init(original_constructor, from_save, input_dict)
-
             self.image_dict["portrait"] = []
             self.update_image_bundle()
 
@@ -296,19 +302,10 @@ class worker(pmob):
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
         image_id_list = super().get_image_id_list(override_values)
-        image_id_list.remove(self.image_dict["default"])  # remove default middle worker
-        image_id_list.append(
-            actor_utility.generate_unit_component_image_id(
-                self.image_dict["default"], "left"
-            )
-        )
+        if self.image_dict["default"] in image_id_list:
+            image_id_list.remove(self.image_dict["default"])
         image_id_list += actor_utility.generate_unit_component_portrait(
             self.image_dict["left portrait"], "left"
-        )
-        image_id_list.append(
-            actor_utility.generate_unit_component_image_id(
-                self.image_variants[self.second_image_variant], "right"
-            )
         )
         image_id_list += actor_utility.generate_unit_component_portrait(
             self.image_dict["right portrait"], "right"

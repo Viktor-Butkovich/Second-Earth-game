@@ -531,6 +531,9 @@ def generate_unit_component_portrait(
                 edited_section["y_offset"] += 0.043
                 edited_section["x_size"] *= 0.94
                 edited_section["y_size"] *= 0.94
+            if section["metadata"]["portrait_section"] == "full_body":
+                edited_section["x_offset"] += 0.008
+                edited_section["y_offset"] += 0.055
         elif component.endswith("right"):
             edited_section["x_offset"] += 0.245
             edited_section["y_offset"] += 0.043
@@ -539,6 +542,12 @@ def generate_unit_component_portrait(
                 edited_section["y_offset"] += 0.043
                 edited_section["x_size"] *= 0.94
                 edited_section["y_size"] *= 0.94
+            if section["metadata"]["portrait_section"] == "full_body":
+                edited_section["x_offset"] += 0.018
+                edited_section["y_offset"] += 0.055
+        elif section["metadata"]["portrait_section"] == "full_body":
+            edited_section["x_offset"] += 0.015
+            edited_section["y_offset"] += 0.05
         return_list.append(edited_section)
 
     return return_list
@@ -554,31 +563,31 @@ def generate_group_image_id_list(worker, officer):
     Output:
         list: Returns image id list of dictionaries for each part of the group image
     """
-    left_worker_dict = generate_unit_component_image_id(
-        worker.image_dict["default"], "group left"
-    )
-    right_worker_dict = generate_unit_component_image_id(
-        worker.image_variants[worker.second_image_variant], "group right"
-    )
+    # left_worker_dict = generate_unit_component_image_id(
+    #    worker.image_dict["default"], "group left"
+    # )
+    # right_worker_dict = generate_unit_component_image_id(
+    #    worker.image_variants[worker.second_image_variant], "group right"
+    # )
 
-    if officer.officer_type == "major":
-        if "soldier" in worker.image_dict:
-            soldier = worker.image_dict["soldier"]
-        else:
-            soldier = worker.image_dict["default"]
-        left_worker_dict["image_id"] = soldier
-        right_worker_dict["image_id"] = soldier
-    elif officer.officer_type in ["merchant", "driver"]:
-        if "porter" in worker.image_dict:
-            porter = worker.image_dict["porter"]
-        else:
-            porter = worker.image_dict["default"]
-        left_worker_dict["image_id"] = porter
-        right_worker_dict["image_id"] = porter
+    # if officer.officer_type == "major":
+    #    if "soldier" in worker.image_dict:
+    #        soldier = worker.image_dict["soldier"]
+    #    else:
+    #        soldier = worker.image_dict["default"]
+    #    left_worker_dict["image_id"] = soldier
+    #    right_worker_dict["image_id"] = soldier
+    # elif officer.officer_type in ["merchant", "driver"]:
+    #    if "porter" in worker.image_dict:
+    #        porter = worker.image_dict["porter"]
+    #    else:
+    #        porter = worker.image_dict["default"]
+    #    left_worker_dict["image_id"] = porter
+    #    right_worker_dict["image_id"] = porter
 
-    officer_dict = generate_unit_component_image_id(
-        officer.image_dict["default"], "center"
-    )
+    # officer_dict = generate_unit_component_image_id(
+    #    officer.image_dict["default"], "center"
+    # )
 
     left_worker_portrait_list = generate_unit_component_portrait(
         worker.image_dict["left portrait"], "group left"
@@ -591,8 +600,8 @@ def generate_group_image_id_list(worker, officer):
     )
 
     return (
-        [left_worker_dict, right_worker_dict, officer_dict]
-        + left_worker_portrait_list
+        # [left_worker_dict, right_worker_dict, officer_dict]
+        left_worker_portrait_list
         + right_worker_portrait_list
         + officer_portrait_list
     )

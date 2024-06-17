@@ -7,12 +7,11 @@ from ...util import (
     text_utility,
     utility,
     actor_utility,
-    minister_utility,
-    game_transitions,
 )
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
+from typing import Dict
 
 
 class pmob(mob):
@@ -98,6 +97,22 @@ class pmob(mob):
                 []
             )  # first item is next step, last item is current location
             self.wait_until_full = False
+        self.attached_cell_icon_list = []
+        self.finish_init(original_constructor, from_save, input_dict)
+
+    def finish_init(
+        self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
+    ):
+        """
+        Description:
+            Finishes initialization of this actor, called after the original is finished
+        Input:
+            boolean original_constructor: Whether this is the original constructor call for this object
+        Output:
+            None
+        """
+        if original_constructor:
+            super().finish_init(original_constructor, from_save, input_dict)
             if ("select_on_creation" in input_dict) and input_dict[
                 "select_on_creation"
             ]:
@@ -105,8 +120,6 @@ class pmob(mob):
                     status.mob_info_display, None, override_exempt=True
                 )
                 self.select()
-        self.attached_cell_icon_list = []
-        self.finish_init(original_constructor, from_save, input_dict)
 
     def to_save_dict(self):
         """
