@@ -31,6 +31,9 @@
       "large_map"
    ],
    "active_effects": [
-      "fullscreen"
+      "fullscreen",
+      "skip_intro",
+      "allow_planet_mask",
+      "map_modes"
    ]
 }

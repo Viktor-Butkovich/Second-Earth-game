@@ -16,6 +16,12 @@ rmdir build -force -Recurse
 rmdir sound_editing -force -Recurse
 rm dist -force -Recurse
 rm modules -force -Recurse
+rm misc -force -Recurse
 rm -force Second_Earth.py
 rm -force configuration/dev_config.json
+rm -force configuration/demographic_util.py
 rm -force save_games/*.pickle
+rm -force .gitattributes
+Remove-Item -Path notes\* -Exclude "Crash Log.txt"
+Get-ChildItem -Path "graphics" -Filter "*.xcf" -Recurse | Remove-Item -Force
+Get-ChildItem -Path "graphics" -Filter "*drawing*tools*" -Recurse | Remove-Item -Force -Recurse
