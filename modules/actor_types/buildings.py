@@ -136,21 +136,12 @@ class building(actor):
         tooltip_text = [text_utility.remove_underscores(self.name.capitalize())]
         if self.building_type == "resource":
             tooltip_text.append(
-                "Work crews: "
-                + str(len(self.contained_work_crews))
-                + "/"
-                + str(self.scale)
+                f"Work crews: {len(self.contained_work_crews)}/{self.scale}"
             )
             for current_work_crew in self.contained_work_crews:
                 tooltip_text.append("    " + current_work_crew.name)
             tooltip_text.append(
-                "Lets "
-                + str(self.scale)
-                + " attached work crews each attempt to produce "
-                + str(self.efficiency)
-                + " units of "
-                + self.resource_type
-                + " each turn"
+                f"Lets {self.scale} attached work crews each attempt to produce {self.efficiency} units of {self.resource_type} each turn"
             )
         elif self.building_type == "port":
             tooltip_text.append("Allows ships to enter this tile")

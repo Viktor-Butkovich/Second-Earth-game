@@ -711,17 +711,11 @@ class actor_display_label(label):
                 else:
                     if self.actor.veteran:
                         tooltip_text.append(
-                            "In combat, this unit would roll 2 dice with a "
-                            + sign
-                            + str(modifier)
-                            + " modiifer, taking the higher of the 2 results"
+                            f"In combat, this unit would roll 2 dice with a {sign}{modifier} modifier, taking the higher of the 2 results"
                         )
                     else:
                         tooltip_text.append(
-                            "In combat, this unit would roll 1 die with a "
-                            + sign
-                            + str(modifier)
-                            + " modiifer"
+                            f"In combat, this unit would roll 1 die with a {sign}{modifier} modifier"
                         )
             self.set_tooltip(tooltip_text)
 
@@ -834,7 +828,7 @@ class actor_display_label(label):
 
             elif self.actor_label_type == "combat_strength":
                 self.set_label(
-                    self.message_start + str(self.actor.get_combat_strength())
+                    f"{self.message_start}{str(self.actor.get_combat_strength())}"
                 )
 
             elif self.actor_label_type == "controllable":
@@ -893,13 +887,11 @@ class actor_display_label(label):
                 if self.actor.is_group:
                     if self.actor_label_type == "workers":
                         self.set_label(
-                            self.message_start
-                            + str(utility.capitalize(self.actor.worker.name))
+                            f"{self.message_start}{str(utility.capitalize(self.actor.worker.name))}"
                         )
                     else:
                         self.set_label(
-                            self.message_start
-                            + str(utility.capitalize(self.actor.officer.name))
+                            f"{self.message_start}{str(utility.capitalize(self.actor.officer.name))}"
                         )
 
             elif self.actor_label_type in [
@@ -915,12 +907,7 @@ class actor_display_label(label):
                 elif self.actor.infinite_inventory_capacity:
                     text = self.message_start + "unlimited"
                 else:
-                    text = (
-                        self.message_start
-                        + str(inventory_used)
-                        + "/"
-                        + str(self.actor.inventory_capacity)
-                    )
+                    text = f"{self.message_start}{inventory_used}/{self.actor.inventory_capacity}"
                 inventory_grid = getattr(status, self.actor_type + "_inventory_grid")
                 if inventory_grid.inventory_page > 0:
                     minimum = (inventory_grid.inventory_page * 27) + 1
@@ -929,7 +916,7 @@ class actor_display_label(label):
                     )
                     maximum = min(minimum + 26, functional_capacity)
                     if maximum >= minimum:
-                        text += " (" + str(minimum) + "-" + str(maximum) + ")"
+                        text += f" ({minimum}-{maximum})"
                 self.set_label(text)
 
             elif self.actor_label_type == "minister":
@@ -941,15 +928,11 @@ class actor_display_label(label):
             elif self.actor_label_type == "evidence":
                 if new_actor.fabricated_evidence == 0:
                     self.set_label(
-                        self.message_start + str(new_actor.corruption_evidence)
+                        f"{self.message_start}{str(new_actor.corruption_evidence)}"
                     )
                 else:
                     self.set_label(
-                        self.message_start
-                        + str(new_actor.corruption_evidence)
-                        + " ("
-                        + str(new_actor.fabricated_evidence)
-                        + ")"
+                        f"{self.message_start}{new_actor.corruption_evidence} ({new_actor.fabricated_evidence})"
                     )
 
             elif self.actor_label_type == "background":
@@ -960,10 +943,7 @@ class actor_display_label(label):
 
             elif self.actor_label_type == "interests":
                 self.set_label(
-                    self.message_start
-                    + new_actor.interests[0]
-                    + " and "
-                    + new_actor.interests[1]
+                    f"{self.message_start} {new_actor.interests[0]} and {new_actor.interests[1]}"
                 )
 
             elif self.actor_label_type == "ability":
@@ -978,12 +958,7 @@ class actor_display_label(label):
                     displayed_skill_name = constants.minister_type_dict[
                         displayed_skill
                     ]  # like General to military
-                    message += (
-                        new_actor.apparent_skill_descriptions[displayed_skill]
-                        + " ("
-                        + displayed_skill_name
-                        + ")"
-                    )
+                    message += f"{new_actor.apparent_skill_descriptions[displayed_skill]} ({displayed_skill_name})"
                 else:
                     message += displayed_skill
                 self.set_label(message)
@@ -1011,37 +986,32 @@ class actor_display_label(label):
             elif self.actor_label_type == "slums":
                 if self.actor.cell.has_building("slums"):
                     self.set_label(
-                        self.message_start
-                        + str(self.actor.cell.get_building("slums").available_workers)
+                        f"{self.message_start}{str(self.actor.cell.get_building('slums').available_workers)}"
                     )
 
             elif self.actor_label_type in constants.building_types:
                 if self.actor.cell.has_building(self.actor_label_type):
                     self.set_label(
-                        self.message_start
-                        + self.actor.cell.get_building(
-                            self.actor_label_type
-                        ).name.capitalize()
+                        f"{self.message_start}{self.actor.cell.get_building(self.actor_label_type).name.capitalize()}"
                     )
 
             elif self.actor_label_type == "inventory_name":
                 self.set_label(
-                    self.message_start + utility.capitalize(new_actor.current_item)
+                    f"{self.message_start}{utility.capitalize(new_actor.current_item)}"
                 )
 
             elif self.actor_label_type == "inventory_quantity":
                 self.set_label(
-                    self.message_start
-                    + str(new_actor.actor.get_inventory(new_actor.current_item))
+                    f"{self.message_start}{str(new_actor.actor.get_inventory(new_actor.current_item))}"
                 )
 
             elif self.actor_label_type == "settlement":
                 if new_actor.cell.settlement:
                     self.set_label(
-                        self.message_start + str(new_actor.cell.settlement.name)
+                        f"{self.message_start}{str(new_actor.cell.settlement.name)}"
                     )
                 else:
-                    self.set_label(self.message_start + " n/a")
+                    self.set_label(f"{self.message_start} n/a")
 
             elif self.actor_label_type in constants.terrain_parameters:
                 value = new_actor.cell.get_parameter(self.actor_label_type)
@@ -1052,7 +1022,7 @@ class actor_display_label(label):
         elif self.actor_label_type == "tooltip":
             return  # do not set text for tooltip label
         else:
-            self.set_label(self.message_start + "n/a")
+            self.set_label(f"{self.message_start}n/a")
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -1287,10 +1257,7 @@ class building_work_crews_label(actor_display_label):
             self.attached_building = new_actor.cell.get_building(self.building_type)
             if not self.attached_building == "none":
                 self.set_label(
-                    self.message_start
-                    + str(len(self.attached_building.contained_work_crews))
-                    + "/"
-                    + str(self.attached_building.scale)
+                    f"{self.message_start}{len(self.attached_building.contained_work_crews)}/{self.attached_building.scale}"
                 )
                 self.show_label = True
 
@@ -1354,7 +1321,7 @@ class building_efficiency_label(actor_display_label):
         if new_actor != "none":
             self.attached_building = new_actor.cell.get_building(self.building_type)
             if not self.attached_building == "none":
-                self.set_label("Efficiency: " + str(self.attached_building.efficiency))
+                self.set_label(f"Efficiency: {self.attached_building.efficiency}")
                 self.show_label = True
 
     def can_show(self, skip_parent_collection=False):

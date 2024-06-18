@@ -51,17 +51,11 @@ class public_relations_campaign(action.campaign):
             None
         """
         return [
-            "Attempts to spread word of your company's benevolent goals and righteous deeds in Africa for "
-            + str(self.get_price())
-            + " money",
+            f"Attempts to spread word of your company's benevolent goals and righteous deeds in Africa for {self.get_price()} money",
             "Can only be done on Earth",
-            "If successful, increases your company's public opinion",
+            f"If successful, increases your company's public opinion",
             "Costs all remaining movement points, at least 1",
-            "Each "
-            + self.name
-            + " attempted doubles the cost of other "
-            + self.name
-            + "s in the same turn",
+            f"Each {self.name} attempted doubles the cost of other {self.name}s in the same turn",
         ]
 
     def generate_notification_text(self, subject):
@@ -76,16 +70,12 @@ class public_relations_campaign(action.campaign):
         text = super().generate_notification_text(subject)
         if subject == "confirmation":
             text += "Are you sure you want to start a public relations campaign? /n /nIf successful, your company's public opinion will increase by between 1 and 6 /n /n"
-            text += "The campaign will cost " + str(self.get_price()) + " money. /n /n"
+            text += f"The campaign will cost {self.get_price()} money. /n /n"
         elif subject == "initial":
             text += "The evangelist campaigns to increase your company's public opinion with word of your company's benevolent goals and righteous deeds in Africa. /n /n"
         elif subject == "success":
             self.public_relations_change = random.randrange(1, 7)
-            text += (
-                "Met with gullible and enthusiastic audiences, the evangelist successfully improves your company's public opinion by "
-                + str(self.public_relations_change)
-                + ". /n /n"
-            )
+            text += f"Met with gullible and enthusiastic audiences, the evangelist successfully improves your company's public opinion by {self.public_relations_change}. /n /n"
         elif subject == "failure":
             text += "Whether by a lack of charisma, a reluctant audience, or a doomed cause, the evangelist fails to improve your company's public opinion. /n /n"
         elif subject == "critical_failure":

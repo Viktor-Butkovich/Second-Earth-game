@@ -698,10 +698,7 @@ class mob(actor):
                 self.is_vehicle and not self.has_crew
             ):
                 tooltip_list.append(
-                    "Movement points: "
-                    + str(self.movement_points)
-                    + "/"
-                    + str(self.max_movement_points)
+                    f"Movement points: {self.movement_points}/{self.max_movement_points}"
                 )
             elif self.temp_movement_disabled or self.is_vehicle and not self.has_crew:
                 tooltip_list.append("No movement")
@@ -711,7 +708,7 @@ class mob(actor):
         else:
             tooltip_list.append("Movement points: ???")
 
-        tooltip_list.append("Combat strength: " + str(self.get_combat_strength()))
+        tooltip_list.append(f"Combat strength: {self.get_combat_strength()}")
         if self.disorganized:
             tooltip_list.append(
                 "This unit is currently disorganized, giving a combat penalty until its next turn"

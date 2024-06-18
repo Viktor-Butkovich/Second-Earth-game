@@ -69,14 +69,11 @@ class exploration(action.action):
                 "Press to attempt to explore in the " + tooltip_info_dict["direction"]
             )
             message.append(
-                "Attempting to explore would cost "
-                + str(self.get_price())
-                + " money and all remaining movement points, at least 1"
+                f"Attempting to explore would cost {self.get_price()} money and all remaining movement points, at least 1"
             )
         else:
             message.append(
-                "This unit cannot currently move to the "
-                + tooltip_info_dict["direction"]
+                f"This unit cannot currently move to the {tooltip_info_dict['direction']}"
             )
             message.append("This unit cannot move into unexplored areas")
         return message
@@ -180,15 +177,12 @@ class exploration(action.action):
         if super().start(unit):
             constants.notification_manager.display_notification(
                 {
-                    "message": action_utility.generate_risk_message(self, unit)
-                    + self.generate_notification_text("confirmation"),
+                    "message": f"{action_utility.generate_risk_message(self, unit)}{self.generate_notification_text('confirmation')}",
                     "choices": [
                         {
                             "on_click": (self.middle, []),
                             "tooltip": [
-                                "Attempt an exploration for "
-                                + str(self.get_price())
-                                + " money"
+                                f"Attempt an exploration for {self.get_price()} money"
                             ],
                             "message": "Explore",
                         },
@@ -231,9 +225,7 @@ class exploration(action.action):
             else:
                 constants.notification_manager.display_notification(
                     {
-                        "message": "This unit's "
-                        + str(self.initial_movement_points)
-                        + " remaining movement points are not enough to move into the newly explored tile. /n /n",
+                        "message": f"This unit's {self.initial_movement_points} remaining movement points are not enough to move into the newly explored tile. /n /n",
                     }
                 )
                 status.minimap_grid.calibrate(self.current_unit.x, self.current_unit.y)

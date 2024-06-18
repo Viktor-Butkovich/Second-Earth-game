@@ -75,7 +75,7 @@ class embark_all_passengers_button(button):
                     ):  # vehicles and enemies won't be picked up as passengers
                         passenger.embark_vehicle(vehicle)
                 constants.sound_manager.play_sound(
-                    "voices/all aboard " + str(random.randrange(1, 4))
+                    f"voices/all aboard {random.randrange(1, 4)}"
                 )
         else:
             text_utility.print_to_screen(
@@ -823,9 +823,7 @@ class embark_vehicle_button(button):
                         for vehicle in vehicles:
                             constants.notification_manager.display_notification(
                                 {
-                                    "message": "There are "
-                                    + str(len(vehicles))
-                                    + " possible vehicles to embark - click next until you find the vehicle you would like to embark. /n /n",
+                                    "message": f"There are {len(vehicles)} possible vehicles to embark - click next until you find the vehicle you would like to embark. /n /n",
                                     "choices": [
                                         {
                                             "on_click": (
@@ -858,17 +856,15 @@ class embark_vehicle_button(button):
                             vehicle.set_sentry_mode(False)
                         rider.embark_vehicle(vehicle)
                         constants.sound_manager.play_sound(
-                            "voices/all aboard " + str(random.randrange(1, 4))
+                            f"voices/all aboard {random.randrange(1, 4)}"
                         )
             else:
                 text_utility.print_to_screen(
-                    "You must select a unit in the same tile as a crewed "
-                    + self.vehicle_type
-                    + " to embark."
+                    f"You must select a unit in the same tile as a crewed {self.vehicle_type} to embark."
                 )
         else:
             text_utility.print_to_screen(
-                "You are busy and cannot embark a " + self.vehicle_type + "."
+                f"You are busy and cannot embark a {self.vehicle_type}."
             )
 
     def finish_embark_vehicle(self, rider, vehicle):
@@ -885,7 +881,7 @@ class embark_vehicle_button(button):
         vehicle.set_sentry_mode(False)
         rider.embark_vehicle(vehicle)
         constants.sound_manager.play_sound(
-            "voices/all aboard " + str(random.randrange(1, 4))
+            f"voices/all aboard {random.randrange(1, 4)}"
         )
 
     def skip_embark_vehicle(self, rider, vehicles, index):
@@ -1391,38 +1387,19 @@ class remove_minister_button(button):
         if main_loop_utility.action_possible():
             appointed_minister = status.displayed_minister
             public_opinion_penalty = appointed_minister.status_number
-            text = (
-                "Are you sure you want to remove "
-                + appointed_minister.name
-                + " from office? If removed, he will return to the pool of available ministers and be available to reappoint until the end of the turn. /n /n"
-            )
-            text += (
-                "Removing "
-                + appointed_minister.name
-                + " from office would incur a small public opinion penalty of "
-                + str(public_opinion_penalty)
-                + ", even if he were reappointed. /n /n"
-            )
+            text = f"Are you sure you want to remove {appointed_minister.name} from office? If removed, he will return to the pool of available ministers and be available to reappoint until the end of the turn. /n /n"
+            text += f"Removing {appointed_minister.name} from office would incur a small public opinion penalty of {public_opinion_penalty}, even if he were reappointed. /n /n"
             text += (
                 appointed_minister.name
                 + " expects to be reappointed to a different position by the end of the turn. If not reappointed, he will be fired permanently and incur a much larger public opinion penalty. /n /n"
             )
             if appointed_minister.status_number >= 3:
                 if appointed_minister.status_number == 4:
-                    text += (
-                        appointed_minister.name
-                        + " is of extremely high social status, so firing him would cause a national outrage. /n /n"
-                    )
+                    text += f"{appointed_minister.name} is of extremely high social status, so firing him would cause a national outrage. \n \n"
                 else:
-                    text += (
-                        appointed_minister.name
-                        + " is of high social status, so firing him would reflect particularly poorly on your company. /n /n"
-                    )
+                    text += f"{appointed_minister.name} is of high social status, so firing him would reflect particularly poorly on your company. \n \n"
             elif appointed_minister.status_number == 1:
-                text += (
-                    appointed_minister.name
-                    + " is of low social status, so firing him would have a relatively minimal impact on your company's reputation. /n /n"
-                )
+                text += f"{appointed_minister.name} is of low social status, so firing him would have a relatively minimal impact on your company's reputation. \n \n"
             constants.notification_manager.display_notification(
                 {"message": text, "choices": ["confirm remove minister", "none"]}
             )
@@ -1498,9 +1475,7 @@ class to_trial_button(button):
                         )
             else:
                 text_utility.print_to_screen(
-                    "You do not have the "
-                    + str(constants.action_prices["trial"])
-                    + " money needed to start a trial."
+                    f"You do not have the {constants.action_prices['trial']} money needed to start a trial."
                 )
         else:
             text_utility.print_to_screen("You are busy and cannot start a trial.")
@@ -1558,12 +1533,7 @@ class fabricate_evidence_button(button):
                 defense = status.displayed_defense
                 prosecutor = status.displayed_prosecution
                 prosecutor.display_message(
-                    prosecutor.current_position
-                    + " "
-                    + prosecutor.name
-                    + " reports that evidence has been successfully fabricated for "
-                    + str(self.get_cost())
-                    + " money. /n /nEach new fabricated evidence will cost twice as much as the last, and fabricated evidence becomes useless at the end of the turn or after it is used in a trial. /n /n"
+                    f"{prosecutor.current_position} {prosecutor.name} reports that evidence has been successfully fabricated for {str(self.get_cost())} money.\n\nEach new fabricated evidence will cost twice as much as the last, and fabricated evidence becomes useless at the end of the turn or after it is used in a trial.\n\n"
                 )
                 defense.fabricated_evidence += 1
                 defense.corruption_evidence += 1
@@ -1572,9 +1542,7 @@ class fabricate_evidence_button(button):
                 )  # updates trial display with new evidence
             else:
                 text_utility.print_to_screen(
-                    "You do not have the "
-                    + str(self.get_cost())
-                    + " money needed to fabricate evidence."
+                    f"You do not have the {str(self.get_cost())} money needed to fabricate evidence."
                 )
         else:
             text_utility.print_to_screen("You are busy and cannot fabricate evidence.")
@@ -1648,12 +1616,7 @@ class bribe_judge_button(button):
                     flags.prosecution_bribed_judge = True
                     prosecutor = status.displayed_prosecution
                     prosecutor.display_message(
-                        prosecutor.current_position
-                        + " "
-                        + prosecutor.name
-                        + " reports that the judge has been successfully bribed for "
-                        + str(self.get_cost())
-                        + " money. /n /nThis may provide a bonus in the next trial this turn. /n /n"
+                        f"{prosecutor.current_position} {prosecutor.name} reports that the judge has been successfully bribed for {self.get_cost()} money.\n\nThis may provide a bonus in the next trial this turn.\n\n"
                     )
                 else:
                     text_utility.print_to_screen(
@@ -1661,9 +1624,7 @@ class bribe_judge_button(button):
                     )
             else:
                 text_utility.print_to_screen(
-                    "You do not have the "
-                    + str(self.get_cost())
-                    + " money needed to bribe the judge."
+                    f"You do not have the {self.get_cost()} money needed to bribe the judge."
                 )
         else:
             text_utility.print_to_screen("You are busy and cannot fabricate evidence.")

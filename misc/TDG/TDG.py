@@ -120,18 +120,10 @@ save_load_tools.load_terrains(file_name, global_manager)
 current_input = ["start"]
 while current_input[0] != "quit":
     print(
-        "\nDisplay mode: "
-        + global_manager.get("current_display_mode").upper()
-        + "("
-        + utility.comma_list(
-            global_manager.get("valid_commands")[
-                global_manager.get("current_display_mode")
-            ]
-        )
-        + ")"
+        f"\nDisplay mode: {global_manager.get('current_display_mode').upper()}({utility.comma_list(global_manager.get('valid_commands')[global_manager.get('current_display_mode')])})"
     )
     if global_manager.get("current_display_mode") == "terrain_view":
-        print("Selected terrain: " + global_manager.get("displayed_terrain").name)
+        print(f"Selected terrain: {global_manager.get('displayed_terrain').name}")
         print(global_manager.get("displayed_terrain"))
     elif global_manager.get("current_display_mode") == "point_view":
         print(global_manager.get("displayed_point"))
@@ -182,16 +174,11 @@ while current_input[0] != "quit":
                 input_commands.find_possible_expansion(current_input, global_manager)
         else:
             print(
-                current_input[0]
-                + " is not a valid command in the "
-                + global_manager.get("current_display_mode")
-                + " display mode\n"
+                f"{current_input[0]} is not a valid command in the {global_manager.get('current_display_mode')} display mode\n"
             )
     else:
         print(
-            "That is not a valid command in the "
-            + global_manager.get("current_display_mode")
-            + " display mode\n"
+            f"That is not a valid command in the {global_manager.get('current_display_mode')} display mode\n"
         )
 
 current_input = utility.extract_arguments(

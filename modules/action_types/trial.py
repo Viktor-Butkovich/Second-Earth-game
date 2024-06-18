@@ -82,9 +82,9 @@ class trial(action.campaign):
             None
         """
         return [
-            "Tries the defending minister in an attempt to remove him from office and imprison him for corruption",
-            "Costs " + str(self.get_price()) + " money",
-            "Each trial attempted doubles the cost of other trials in the same turn",
+            f"Tries the defending minister in an attempt to remove him from office and imprison him for corruption",
+            f"Costs {self.get_price()} money",
+            f"Each trial attempted doubles the cost of other trials in the same turn",
         ]
 
     def generate_audio(self, subject):
@@ -112,20 +112,10 @@ class trial(action.campaign):
         """
         text = super().generate_notification_text(subject)
         if subject == "confirmation":
-            text += (
-                "Are you sure you want to start a trial against "
-                + status.displayed_defense.name
-                + "? You have "
-                + str(status.displayed_defense.corruption_evidence)
-                + " pieces of evidence to use. /n /n"
-            )
+            text += f"Are you sure you want to start a trial against {status.displayed_defense.name}? You have {status.displayed_defense.corruption_evidence} pieces of evidence to use. /n /n"
             text += "Your prosecutor may roll 1 die for each piece of evidence, and the trial is successful with a 5+ on any evidence dice. /n /n"
             text += "However, the defense may spend from their personal savings (perhaps stolen from your company) to hire lawyers and negate some of the evidence. /n /n"
-            text += (
-                "Along with any money paid for bribery or fabricated evidence, a trial fee of "
-                + str(self.get_price())
-                + " money is also required. /n /n"
-            )
+            text += f"Along with any money paid for bribery or fabricated evidence, a trial fee of {self.get_price()} money is also required. /n /n"
         elif subject == "initial":
             new_clothing_types = ["jewelry", "robes", "wig"]
             if not (
@@ -189,53 +179,21 @@ class trial(action.campaign):
             ]
 
             if self.current_trial["num_lawyers"] == 0:
-                text += (
-                    "As the defense decided not to hire any additional lawyers, each piece of evidence remains usable, allowing "
-                    + str(self.current_trial["effective_evidence"])
-                    + " evidence rolls to attempt to win the trial. /n /n"
-                )
+                text += f"As the defense decided not to hire any additional lawyers, each piece of evidence remains usable, allowing {self.current_trial['effective_evidence']} evidence rolls to attempt to win the trial. /n /n"
             else:
-                text += (
-                    "The defense hired "
-                    + str(self.current_trial["num_lawyers"])
-                    + " additional lawyer"
-                    + utility.generate_plural(self.current_trial["num_lawyers"])
-                    + ", cancelling out "
-                    + str(self.current_trial["num_lawyers"])
-                    + " piece"
-                )
-                text += (
-                    utility.generate_plural(self.current_trial["num_lawyers"])
-                    + " of evidence. This leaves "
-                    + str(self.current_trial["effective_evidence"])
-                    + " evidence roll"
-                )
-                text += (
-                    utility.generate_plural(self.current_trial["effective_evidence"])
-                    + " to attempt to win the trial. /n /n"
-                )
+                text += f"The defense hired {self.current_trial['num_lawyers']} additional lawyer{utility.generate_plural(self.current_trial['num_lawyers'])}, cancelling out {self.current_trial['num_lawyers']} piece"
+                text += f"{utility.generate_plural(self.current_trial['num_lawyers'])} of evidence. This leaves {self.current_trial['effective_evidence']} evidence roll"
+                text += f"{utility.generate_plural(self.current_trial['effective_evidence'])} to attempt to win the trial. /n /n"
 
-            text += (
-                str(self.current_trial["corruption_evidence"]) + " initial evidence - "
-            )
-            text += str(self.current_trial["num_lawyers"]) + " defense lawyers "
+            text += f"{self.current_trial['corruption_evidence']} initial evidence - "
+            text += f"{self.current_trial['num_lawyers']} defense lawyers "
             if self.current_trial["judge_modifier"] < 0:
-                text += (
-                    "- "
-                    + str(abs(self.current_trial["judge_modifier"]))
-                    + " judge bias "
-                )
+                text += f"- {abs(self.current_trial['judge_modifier'])} judge bias "
             elif self.current_trial["judge_bias"] > 0:
-                text += (
-                    "+ " + str(self.current_trial["judge_modifier"]) + " judge bias "
-                )
+                text += f"+ {self.current_trial['judge_modifier']} judge bias "
             else:
                 text += "+ 0 judge bias "
-            text += (
-                "= "
-                + str(self.current_trial["effective_evidence"])
-                + " evidence rolls /n /n"
-            )
+            text += f"= {self.current_trial['effective_evidence']} evidence rolls\n\n"
         return text
 
     def on_click(self, unit):
@@ -344,13 +302,11 @@ class trial(action.campaign):
         if self.current_trial["trial_rolls"]:
             for i in range(0, roll_result_index + 1):
                 remaining_rolls_message = (
-                    "Evidence rolls remaining: " + str(len(self.roll_lists)) + " /n /n"
+                    f"Evidence rolls remaining: {len(self.roll_lists)} \n \n"
                 )
                 constants.notification_manager.display_notification(
                     {
-                        "message": remaining_rolls_message
-                        + text
-                        + self.generate_notification_text("roll_message"),
+                        "message": f"{remaining_rolls_message}{text}{self.generate_notification_text('roll_message')}",
                         "notification_type": "action",
                         "attached_interface_elements": self.generate_attached_interface_elements(
                             "die"
@@ -369,9 +325,7 @@ class trial(action.campaign):
                 current_roll_list = self.roll_lists.pop(0)
                 constants.notification_manager.display_notification(
                     {
-                        "message": remaining_rolls_message
-                        + text
-                        + current_roll_list[1],
+                        "message": f"{remaining_rolls_message}{text}{current_roll_list[1]}",
                         "notification_type": "action",
                     }
                 )
@@ -419,29 +373,13 @@ class trial(action.campaign):
         defense = status.displayed_defense
         if self.roll_result >= self.current_min_success:
             confiscated_money = defense.stolen_money / 2.0
-            text = (
-                "You have won the trial, removing "
-                + defense.name
-                + " as "
-                + defense.current_position
-                + " and putting him in prison. /n /n"
-            )
+            text = f"You have won the trial, removing {defense.name} as {defense.current_position} and putting him in prison. /n /n"
             if confiscated_money > 0:
-                text += (
-                    "While most of "
-                    + defense.name
-                    + "'s money was spent on the trial or unaccounted for, authorities managed to confiscate "
-                    + str(confiscated_money)
-                    + " money, which has been given to your company as compensation. /n /n"
-                )
+                text += f"While most of {defense.name}'s money was spent on the trial or unaccounted for, authorities managed to confiscate {str(confiscated_money)} money, which has been given to your company as compensation. /n /n"
                 text += " /n /n"
                 constants.money_tracker.change(confiscated_money, "trial_compensation")
             else:
-                text += (
-                    "Authorities searched "
-                    + defense.name
-                    + "'s properties but were not able to find any stolen money with which to compensate your company. Perhaps it remains hidden, had already been spent, or had never been stolen. /n /n"
-                )
+                text += f"Authorities searched {defense.name}'s properties but were not able to find any stolen money with which to compensate your company. Perhaps it remains hidden, had already been spent, or had never been stolen. /n /n"
             constants.notification_manager.display_notification(
                 {
                     "message": text,
@@ -484,13 +422,7 @@ class trial(action.campaign):
                     lost_evidence += 1
 
             if fabricated_evidence > 0:
-                text += (
-                    "Fabricated evidence is temporary, so the "
-                    + str(fabricated_evidence)
-                    + " piece"
-                    + utility.generate_plural(fabricated_evidence)
-                    + " of fabricated evidence used in this trial "
-                )
+                text += f"Fabricated evidence is temporary, so the {fabricated_evidence} piece{utility.generate_plural(fabricated_evidence)} of fabricated evidence used in this trial "
                 text += (
                     utility.conjugate("be", fabricated_evidence)
                     + " now irrelevant to future trials. /n /n"
@@ -501,35 +433,11 @@ class trial(action.campaign):
                     text += "All of the real evidence used in this trial remains potent enough to be used in future trials against "
                     text += defense.name + ". /n /n"
                 elif lost_evidence < real_evidence:  # if some evidence lost
-                    text += (
-                        "Of the "
-                        + str(real_evidence)
-                        + " piece"
-                        + utility.generate_plural(real_evidence)
-                        + " of real evidence used in this trial, "
-                        + str(remaining_evidence)
-                    )
-                    text += (
-                        " "
-                        + utility.conjugate("remain", remaining_evidence)
-                        + " potent enough to be relevant to future trials against "
-                        + defense.name
-                        + ", while "
-                        + str(lost_evidence)
-                        + " "
-                        + utility.conjugate("be", lost_evidence)
-                    )
+                    text += f"Of the {real_evidence} piece{utility.generate_plural(real_evidence)} of real evidence used in this trial, {remaining_evidence}"
+                    text += f" {utility.conjugate('remain', remaining_evidence)} potent enough to be relevant to future trials against {defense.name}, while {lost_evidence} {utility.conjugate('be', lost_evidence)}"
                     text += " now irrelevant. /n /n"
                 else:  # if all evidence lost
-                    text += (
-                        "Of the "
-                        + str(real_evidence)
-                        + " piece"
-                        + utility.generate_plural(real_evidence)
-                        + " of real evidence used in this trial, none remain potent enough to be relevant to future trials against "
-                        + defense.name
-                        + ". /n /n"
-                    )
+                    text += f"Of the {real_evidence} piece{utility.generate_plural(real_evidence)} of real evidence used in this trial, none remain potent enough to be relevant to future trials against {defense.name}. /n /n"
 
             defense.fabricated_evidence = 0
             defense.corruption_evidence = remaining_evidence

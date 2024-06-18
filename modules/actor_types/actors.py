@@ -368,15 +368,15 @@ class actor:
                 unit_word = "units"
             if is_first and is_last:
                 lost_commodities_message += (
-                    str(amount_lost) + " " + unit_word + " of " + lost_commodity
+                    f"{amount_lost} {unit_word} of {lost_commodity}"
                 )
             elif len(types_lost_list) == 2 and is_first:
                 lost_commodities_message += (
-                    str(amount_lost) + " " + unit_word + " of " + lost_commodity + " "
+                    f"{amount_lost} {unit_word} of {lost_commodity} "
                 )
             elif not is_last:
                 lost_commodities_message += (
-                    str(amount_lost) + " " + unit_word + " of " + lost_commodity + ", "
+                    f"{amount_lost} {unit_word} of {lost_commodity}, "
                 )
             else:
                 lost_commodities_message += (
@@ -388,7 +388,7 @@ class actor:
             else:
                 was_word = "were"
             if status.strategic_map_grid in self.grids:
-                location_message = "at (" + str(self.x) + ", " + str(self.y) + ")"
+                location_message = f"at ({self.x}, {self.y})"
             else:
                 location_message = f"in {self.grids[0].name}"
 

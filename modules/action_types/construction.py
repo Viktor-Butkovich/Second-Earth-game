@@ -134,9 +134,7 @@ class construction(action.action):
         )
 
         message.append(
-            "Attempting to build costs "
-            + str(cost)
-            + " money and all remaining movement points, at least 1"
+            f"Attempting to build costs {cost} money and all remaining movement points, at least 1"
         )
         if self.building_type in ["train"]:
             message.append(
@@ -177,56 +175,22 @@ class construction(action.action):
 
         if subject == "confirmation":
             text += (
-                "Are you sure you want to start building a "
-                + self.building_name
-                + "? /n /n"
+                f"Are you sure you want to start building a {self.building_name}? /n /n"
             )
             text += (
-                "The planning and materials will cost "
-                + str(self.get_price())
-                + " money. /n /n"
+                f"The planning and materials will cost {self.get_price()} money. /n /n"
             )
             text += "If successful, a " + self.building_name + " will be built. "
             text += constants.string_descriptions[self.building_type]
         elif subject == "initial":
-            text += (
-                "The "
-                + self.current_unit.name
-                + " attempts to "
-                + verb
-                + " a "
-                + self.building_name
-                + ". /n /n"
-            )
+            text += f"The {self.current_unit.name} attempts to {verb} a {self.building_name}. /n /n"
         elif subject == "success":
-            text += (
-                "The "
-                + self.current_unit.name
-                + " successfully "
-                + preterit_verb
-                + " the "
-                + self.building_name
-                + ". /n /n"
-            )
+            text += f"The {self.current_unit.name} successfully {preterit_verb} the {self.building_name}. /n /n"
         elif subject == "failure":
-            text += (
-                "Little progress was made and the "
-                + self.current_unit.officer.name
-                + " requests more time and funds to complete the "
-                + noun
-                + " of the "
-                + self.building_name
-                + ". /n /n"
-            )
+            text += f"Little progress was made and the {self.current_unit.officer.name} requests more time and funds to complete the {noun} of the {self.building_name}. /n /n"
         elif subject == "critical_success":
             text += self.generate_notification_text("success")
-            text += (
-                "The "
-                + self.current_unit.officer.name
-                + " managed the "
-                + noun
-                + " well enough to become a veteran. /n /n"
-            )
+            text += f"The {self.current_unit.officer.name} managed the {noun} well enough to become a veteran. /n /n"
         return text
 
     def get_price(self):

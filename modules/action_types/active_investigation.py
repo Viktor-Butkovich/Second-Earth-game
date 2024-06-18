@@ -54,15 +54,9 @@ class active_investigation(action.campaign):
         """
         if status.displayed_minister:
             return [
-                "Orders your Prosecutor to conduct an active investigation against "
-                + status.displayed_minister.name
-                + " for "
-                + str(self.get_price())
-                + " money",
-                "If successful, information may be uncovered regarding this minister's loyalty, skills, or past crimes",
-                "Each "
-                + self.name
-                + " attempted doubles the cost of other active investigations in the same turn",
+                f"Orders your Prosecutor to conduct an active investigation against {status.displayed_minister.name} for {str(self.get_price())} money",
+                f"If successful, information may be uncovered regarding this minister's loyalty, skills, or past crimes",
+                f"Each {self.name} attempted doubles the cost of other active investigations in the same turn",
             ]
         else:
             return []
@@ -78,38 +72,18 @@ class active_investigation(action.campaign):
         """
         text = super().generate_notification_text(subject)
         if subject == "confirmation":
-            text += (
-                "Are you sure you want to conduct an active investigation against "
-                + status.displayed_minister.name
-            )
+            text += f"Are you sure you want to conduct an active investigation against {status.displayed_minister.name}"
             if status.displayed_minister.current_position != "none":
-                text += ", your " + status.displayed_minister.current_position
+                text += f", your {status.displayed_minister.current_position}"
             text += "? /n /n"
-            text += (
-                "This may uncover information regarding "
-                + status.displayed_minister.name
-                + "'s loyalty, skills, or past crimes. /n /n"
-            )
-            text += (
-                "The investigation will cost "
-                + str(self.get_price())
-                + " money. /n /n "
-            )
+            text += f"This may uncover information regarding {status.displayed_minister.name}'s loyalty, skills, or past crimes. /n /n"
+            text += f"The investigation will cost {str(self.get_price())} money. /n /n "
         elif subject == "initial":
-            text += (
-                "Prosecutor "
-                + status.current_ministers["Prosecutor"].name
-                + " launches an investigation against "
-            )
+            text += f"Prosecutor {status.current_ministers['Prosecutor'].name} launches an investigation against "
             if status.displayed_minister.current_position != "none":
-                text += (
-                    status.displayed_minister.current_position
-                    + " "
-                    + status.displayed_minister.name
-                    + ". /n /n"
-                )
+                text += f"{status.displayed_minister.current_position} {status.displayed_minister.name}. /n /n"
             else:
-                text += status.displayed_minister.name + ". /n /n"
+                text += f"{status.displayed_minister.name}. /n /n"
         return text
 
     def can_show(self):
@@ -259,22 +233,14 @@ class active_investigation(action.campaign):
                     category_name = category
                 else:
                     category_name = constants.minister_type_dict[category]
-                message += (
-                    "    " + category_name.capitalize() + ": " + new_values[category]
-                )
+                message += f"    {category_name.capitalize()}: {new_values[category]}"
                 if previous_values[category] == "unknown":  # if unknown
                     message += " /n"
                 else:
-                    message += " (formerly " + previous_values[category] + ") /n"
+                    message += f" (formerly {previous_values[category]}) /n"
             if corruption_event:
                 theft_amount, theft_type = corruption_event
-                message += (
-                    "    Evidence of a previous theft of "
-                    + str(theft_amount)
-                    + " money relating to "
-                    + constants.transaction_descriptions[theft_type]
-                    + ". /n"
-                )
+                message += f"    Evidence of a previous theft of {theft_amount} money relating to {constants.transaction_descriptions[theft_type]}. /n"
                 audio = prosecutor.get_voice_line("evidence")
         else:
             message = "The investigation failed to make any significant discoveries. /n"

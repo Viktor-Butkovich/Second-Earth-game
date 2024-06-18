@@ -69,15 +69,11 @@ class advertising_campaign(action.campaign):
             None
         """
         return [
-            "Attempts to advertise a chosen commodity and increase its price for "
-            + str(self.get_price())
-            + " money",
-            "Can only be done on Earth",
-            "If successful, increases the price of a chosen commodity while randomly decreasing the price of another",
-            "Costs all remaining movement points, at least 1",
-            "Each "
-            + self.name
-            + " attempted doubles the cost of other advertising campaigns in the same turn",
+            f"Attempts to advertise a chosen commodity and increase its price for {self.get_price()} money",
+            f"Can only be done on Earth",
+            f"If successful, increases the price of a chosen commodity while randomly decreasing the price of another",
+            f"Costs all remaining movement points, at least 1",
+            f"Each {self.name} attempted doubles the cost of other advertising campaigns in the same turn",
         ]
 
     def generate_notification_text(self, subject):
@@ -91,20 +87,10 @@ class advertising_campaign(action.campaign):
         """
         text = super().generate_notification_text(subject)
         if subject == "confirmation":
-            text += (
-                "Are you sure you want to start an advertising campaign for "
-                + self.target_commodity
-                + "? If successful, the price of "
-                + self.target_commodity
-                + " will increase, decreasing the price of another random commodity. /n /n"
-            )
-            text += "The campaign will cost " + str(self.get_price()) + " money. /n /n "
+            text += f"Are you sure you want to start an advertising campaign for {self.target_commodity}? If successful, the price of {self.target_commodity} will increase, decreasing the price of another random commodity. /n /n"
+            text += f"The campaign will cost {self.get_price()} money. /n /n "
         elif subject == "initial":
-            text += (
-                "The merchant attempts to increase public demand for "
-                + self.target_commodity
-                + ". /n /n"
-            )
+            text += f"The merchant attempts to increase public demand for {self.target_commodity}. /n /n"
             (
                 advertising_message,
                 index,
@@ -113,18 +99,17 @@ class advertising_campaign(action.campaign):
             )
             self.success_audio = [
                 {
-                    "sound_id": "voices/advertising/messages/" + str(index),
+                    "sound_id": f"voices/advertising/messages/{index}",
                     "dampen_music": True,
                     "dampen_time_interval": 0.75,
                     "volume": 1.0,
                 },
                 {
-                    "sound_id": "voices/advertising/commodities/"
-                    + self.target_commodity,
+                    "sound_id": f"voices/advertising/commodities/{self.target_commodity}",
                     "in_sequence": True,
                 },
             ]
-            text += advertising_message + " /n /n"
+            text += f"{advertising_message} /n /n"
         elif subject == "success":
             increase = 1
             if self.roll_result >= 6:
@@ -136,38 +121,15 @@ class advertising_campaign(action.campaign):
             unadvertised_final_price = unadvertised_original_price - increase
             if unadvertised_final_price < 1:
                 unadvertised_final_price = 1
-            text += (
-                "The merchant successfully advertised for "
-                + self.target_commodity
-                + ", increasing its price from "
-                + str(advertised_original_price)
-                + " to "
-            )
-            text += (
-                str(advertised_original_price + increase)
-                + ". The price of "
-                + self.target_unadvertised_commodity
-                + " decreased from "
-                + str(unadvertised_original_price)
-                + " to "
-                + str(unadvertised_final_price)
-                + ". /n /n"
-            )
+            text += f"The merchant successfully advertised for {self.target_commodity}, increasing its price from {advertised_original_price} to "
+            text += f"{advertised_original_price + increase}. The price of {self.target_unadvertised_commodity} decreased from {unadvertised_original_price} to {unadvertised_final_price}. /n /n"
             if self.roll_result >= 6:
-                text += (
-                    "The advertising campaign was so popular that the value of "
-                    + self.target_commodity
-                    + " increased by 2 instead of 1. /n /n"
-                )
+                text += f"The advertising campaign was so popular that the value of {self.target_commodity} increased by 2 instead of 1. /n /n"
         elif subject == "critical_success":
             text += self.generate_notification_text("success")
             text += "This merchant is now a veteran. /n /n"
         elif subject == "failure":
-            text += (
-                "The merchant failed to increase the popularity of "
-                + self.target_commodity
-                + ". /n /n"
-            )
+            text += f"The merchant failed to increase the popularity of {self.target_commodity}. /n /n"
         elif subject == "critical_failure":
             text += self.generate_notification_text("failure")
             text += "Embarassed by this utter failure, the merchant quits your company. /n /n"

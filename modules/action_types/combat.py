@@ -71,17 +71,7 @@ class combat(action.action):
         message.append(
             "Attacking an enemy unit costs 5 money and requires only 1 movement point, but staying in the enemy's tile afterward would require the usual movement"
         )
-        text = (
-            "Staying afterward would cost "
-            + str(final_movement_cost - 1)
-            + " more movement point"
-            + utility.generate_plural(final_movement_cost - 1)
-            + " because the adjacent tile has "
-            + tooltip_info_dict["adjacent_cell"].terrain_handler.terrain.replace(
-                "_", " "
-            )
-            + " terrain "
-        )
+        text = f"Staying afterward would cost {final_movement_cost - 1} more movement point{utility.generate_plural(final_movement_cost - 1)} because the adjacent tile has {tooltip_info_dict['adjacent_cell'].terrain_handler.terrain.replace('_', ' ')} terrain"
         if tooltip_info_dict["local_cell"].has_walking_connection(
             tooltip_info_dict["adjacent_cell"]
         ):
@@ -574,7 +564,7 @@ class combat(action.action):
         text += self.generate_notification_text("opponent_roll")
 
         if len(self.roll_lists) > 1:
-            text += "The higher result, " + str(self.roll_result) + ", was used. /n"
+            text += f"The higher result, {self.roll_result}, was used. \n"
         else:
             text += "/n"
 
@@ -585,16 +575,7 @@ class combat(action.action):
         else:
             description = "VICTORY"
         text += "Overall result: /n"
-        text += (
-            str(self.roll_result + self.current_roll_modifier)
-            + " - "
-            + str(self.opponent_roll_result + self.opponent_roll_modifier)
-            + " = "
-            + str(self.total_roll_result)
-            + ": "
-            + description
-            + " /n /n"
-        )
+        text += f"{self.roll_result + self.current_roll_modifier} - {self.opponent_roll_result + self.opponent_roll_modifier} = {self.total_roll_result}: {description} /n /n"
 
         constants.notification_manager.display_notification(
             {

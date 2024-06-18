@@ -24,7 +24,7 @@ import math
 def print_inventory_dict(inventory_dict):
     print()
     for inventory_type in inventory_dict:
-        print(inventory_type.capitalize() + ": " + str(inventory_dict[inventory_type]))
+        print(f"{inventory_type.capitalize()}: {inventory_dict[inventory_type]}")
 
 
 def print_planet(planet_dict, parameter_dict, parameter_keywords_dict):
@@ -40,22 +40,9 @@ def print_planet(planet_dict, parameter_dict, parameter_keywords_dict):
         else:
             tabs = "\t\t"
         print(
-            current_parameter.capitalize()
-            + ": "
-            + str(planet_dict[current_parameter])
-            + " - "
-            + parameter_keywords_dict[current_parameter][planet_dict[current_parameter]]
-            + " "
-            + tabs
-            + "(difference "
-            + str(difference)
-            + ", difficulty "
-            + str(difficulty)
-            + ")"
+            f"{current_parameter.capitalize()}: {planet_dict[current_parameter]} - {parameter_keywords_dict[current_parameter][planet_dict[current_parameter]]} {tabs}(difference {difference}, difficulty {difficulty})"
         )
-    print(
-        "Total difficulty: " + str(get_planet_difficulty(planet_dict, parameter_dict))
-    )
+    print(f"Total difficulty: {get_planet_difficulty(planet_dict, parameter_dict)}")
 
 
 def get_parameter_difference(parameter, planet_dict, parameter_dict):
@@ -210,8 +197,8 @@ while not purchase_phase_complete:
     used_inventory = 0
     for inventory_type in inventory_dict:
         print_inventory_dict(inventory_dict)
-        print("Used inventory: " + str(used_inventory) + "/27")
-        print("How much " + inventory_type + " do you want to purchase? ")
+        print(f"Used inventory: {used_inventory}/27")
+        print(f"How much {inventory_type} do you want to purchase? ")
         valid_input = False
         while not valid_input:
             purchased = input()
@@ -226,7 +213,7 @@ while not purchase_phase_complete:
             else:
                 print("That is not a valid input")
     print_inventory_dict(inventory_dict)
-    print("Used inventory: " + str(used_inventory) + "/27")
+    print(f"Used inventory: {used_inventory}/27")
     completion_confirmation = input(
         "Enter restart to restart, or enter anything else to continue: "
     )
@@ -241,7 +228,7 @@ while inventory_dict["fuel"] > 0 and not landed:
     inventory_dict["fuel"] -= 1
     used_inventory -= 1
     print_inventory_dict(inventory_dict)
-    print("Used inventory: " + str(used_inventory) + "/27")
+    print(f"Used inventory: {used_inventory}/27")
     print()
     planet_present = False
     if random.randrange(1, 7) >= 4:
@@ -263,23 +250,23 @@ while inventory_dict["fuel"] > 0 and not landed:
             won = False
             done = False
             counter = 1
-            print("\nRoll difficulty: " + str(planet_difficulty))
+            print(f"\nRoll difficulty: {planet_difficulty}")
             while inventory_dict["workers"] > 0 and not done:
                 print_inventory_dict(inventory_dict)
-                print("Used inventory: " + str(used_inventory) + "/27")
+                print(f"Used inventory: {used_inventory}/27")
                 worker_requirements = ["air", "water", "food", "consumer goods"]
                 requirements_filled = True
                 for requirement in worker_requirements:
                     if inventory_dict[requirement] > 0:
                         inventory_dict[requirement] -= 1
-                        print("Worker " + str(counter) + " consumed 1 " + requirement)
+                        print(f"Worker {counter} consumed 1 {requirement}")
                         used_inventory -= 1
                     else:
-                        print("Worker " + str(counter) + " ran out of " + requirement)
+                        print(f"Worker {counter} ran out of {requirement}")
                         done = True
                 if not done:
                     roll = random.randrange(1, 7)
-                    print("Worker " + str(counter) + " rolled a " + str(roll))
+                    print(f"Worker {counter} rolled a {roll}")
                     if roll >= planet_difficulty:
                         done = True
                         won = True
