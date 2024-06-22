@@ -193,7 +193,7 @@ class trial(action.campaign):
                 text += f"+ {self.current_trial['judge_modifier']} judge bias "
             else:
                 text += "+ 0 judge bias "
-            text += f"= {self.current_trial['effective_evidence']} evidence rolls\n\n"
+            text += f"= {self.current_trial['effective_evidence']} evidence rolls /n /n"
         return text
 
     def on_click(self, unit):
@@ -302,7 +302,7 @@ class trial(action.campaign):
         if self.current_trial["trial_rolls"]:
             for i in range(0, roll_result_index + 1):
                 remaining_rolls_message = (
-                    f"Evidence rolls remaining: {len(self.roll_lists)} \n \n"
+                    f"Evidence rolls remaining: {len(self.roll_lists)} /n /n"
                 )
                 constants.notification_manager.display_notification(
                     {

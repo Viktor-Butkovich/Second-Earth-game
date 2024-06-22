@@ -107,18 +107,18 @@ class repair(action.action):
         """
         text = super().generate_notification_text(subject)
         if subject == "confirmation":
-            text += f"Are you sure you want to start repairing this {self.current_building.name}? \n \n"
+            text += f"Are you sure you want to start repairing this {self.current_building.name}? /n /n"
             text += f"The planning and materials will cost {str(self.get_price())} money (half of the building's initial cost). /n /n"
-            text += f"If successful, the {self.current_building.name} will be restored to full functionality.\n\n"
+            text += f"If successful, the {self.current_building.name} will be restored to full functionality. /n /n"
         elif subject == "initial":
-            text += f"The {self.current_unit.name} attempts to repair the {self.current_building.name}. \n \n"
+            text += f"The {self.current_unit.name} attempts to repair the {self.current_building.name}. /n /n"
         elif subject == "success":
-            text += f"The {self.current_unit.name} successfully repaired the {self.current_building.name}. \n \n"
+            text += f"The {self.current_unit.name} successfully repaired the {self.current_building.name}. /n /n"
         elif subject == "failure":
-            text += f"Little progress was made and the {self.current_unit.officer.name} requests more time and funds to complete the repair. \n \n"
+            text += f"Little progress was made and the {self.current_unit.officer.name} requests more time and funds to complete the repair. /n /n"
         elif subject == "critical_success":
             text += self.generate_notification_text("success")
-            text += f"The {self.current_unit.officer.name} managed the repair well enough to become a veteran.\n\n"
+            text += f"The {self.current_unit.officer.name} managed the repair well enough to become a veteran. /n /n"
         return text
 
     def get_price(self):

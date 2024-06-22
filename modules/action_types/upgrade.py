@@ -121,7 +121,7 @@ class upgrade(action.action):
         if subject == "confirmation":
             value = getattr(self.current_building, self.building_type)
             text += f"Are you sure you want to start upgrading this {noun}'s {self.building_name}? /n /n"
-            text += f"The planning and materials will cost {self.get_price()} money. Each upgrade to a building doubles the cost of all future upgrades to that building.\n\n"
+            text += f"The planning and materials will cost {self.get_price()} money. Each upgrade to a building doubles the cost of all future upgrades to that building. /n /n"
             text += f"If successful, this {noun}'s {self.building_name} will increase from {value} to {value + 1}. /n /n"
             text += constants.string_descriptions[self.building_type]
         elif subject == "initial":

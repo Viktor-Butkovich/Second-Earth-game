@@ -394,11 +394,11 @@ class actor:
 
             if self.actor_type == "tile":
                 transportation_minister.display_message(
-                    f"Minister of Transportation {transportation_minister.name} reports that {lost_commodities_message} {location_message} {was_word} lost, damaged, or misplaced.\n\n"
+                    f"Minister of Transportation {transportation_minister.name} reports that {lost_commodities_message} {location_message} {was_word} lost, damaged, or misplaced. /n /n"
                 )
             elif self.actor_type == "mob":
                 transportation_minister.display_message(
-                    f"Minister of Transportation {transportation_minister.name} reports that {lost_commodities_message} carried by the {self.name} {location_message} {was_word} lost, damaged, or misplaced.\n\n"
+                    f"Minister of Transportation {transportation_minister.name} reports that {lost_commodities_message} carried by the {self.name} {location_message} {was_word} lost, damaged, or misplaced. /n /n"
                 )
         if stealing and value_stolen > 0:
             transportation_minister.steal_money(value_stolen, "inventory_attrition")

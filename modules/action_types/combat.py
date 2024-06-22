@@ -564,7 +564,7 @@ class combat(action.action):
         text += self.generate_notification_text("opponent_roll")
 
         if len(self.roll_lists) > 1:
-            text += f"The higher result, {self.roll_result}, was used. \n"
+            text += f"The higher result, {self.roll_result}, was used. /n"
         else:
             text += "/n"
 

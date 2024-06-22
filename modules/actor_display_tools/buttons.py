@@ -1395,11 +1395,11 @@ class remove_minister_button(button):
             )
             if appointed_minister.status_number >= 3:
                 if appointed_minister.status_number == 4:
-                    text += f"{appointed_minister.name} is of extremely high social status, so firing him would cause a national outrage. \n \n"
+                    text += f"{appointed_minister.name} is of extremely high social status, so firing him would cause a national outrage. /n /n"
                 else:
-                    text += f"{appointed_minister.name} is of high social status, so firing him would reflect particularly poorly on your company. \n \n"
+                    text += f"{appointed_minister.name} is of high social status, so firing him would reflect particularly poorly on your company. /n /n"
             elif appointed_minister.status_number == 1:
-                text += f"{appointed_minister.name} is of low social status, so firing him would have a relatively minimal impact on your company's reputation. \n \n"
+                text += f"{appointed_minister.name} is of low social status, so firing him would have a relatively minimal impact on your company's reputation. /n /n"
             constants.notification_manager.display_notification(
                 {"message": text, "choices": ["confirm remove minister", "none"]}
             )
@@ -1533,7 +1533,7 @@ class fabricate_evidence_button(button):
                 defense = status.displayed_defense
                 prosecutor = status.displayed_prosecution
                 prosecutor.display_message(
-                    f"{prosecutor.current_position} {prosecutor.name} reports that evidence has been successfully fabricated for {str(self.get_cost())} money.\n\nEach new fabricated evidence will cost twice as much as the last, and fabricated evidence becomes useless at the end of the turn or after it is used in a trial.\n\n"
+                    f"{prosecutor.current_position} {prosecutor.name} reports that evidence has been successfully fabricated for {str(self.get_cost())} money. /n /nEach new fabricated evidence will cost twice as much as the last, and fabricated evidence becomes useless at the end of the turn or after it is used in a trial. /n /n"
                 )
                 defense.fabricated_evidence += 1
                 defense.corruption_evidence += 1
@@ -1616,7 +1616,7 @@ class bribe_judge_button(button):
                     flags.prosecution_bribed_judge = True
                     prosecutor = status.displayed_prosecution
                     prosecutor.display_message(
-                        f"{prosecutor.current_position} {prosecutor.name} reports that the judge has been successfully bribed for {self.get_cost()} money.\n\nThis may provide a bonus in the next trial this turn.\n\n"
+                        f"{prosecutor.current_position} {prosecutor.name} reports that the judge has been successfully bribed for {self.get_cost()} money. /n /nThis may provide a bonus in the next trial this turn. /n /n"
                     )
                 else:
                     text_utility.print_to_screen(
