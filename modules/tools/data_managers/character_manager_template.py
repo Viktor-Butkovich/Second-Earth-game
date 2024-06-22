@@ -110,7 +110,7 @@ class character_manager_template:
                 "ministers/portraits/hair/feminine/default.png", "no_hat"
             ),
         }
-        self.hat_compatible_hair_images: List[str] = {
+        self.hat_compatible_hair_images: Dict[str, List[str]] = {
             "masculine": actor_utility.get_image_variants(
                 "ministers/portraits/hair/masculine/default.png", "hair"
             ),
@@ -142,7 +142,7 @@ class character_manager_template:
             f"ministers/portraits/portrait/default.png", "portrait"
         )
 
-    def find_portrait_section(self, section: str, portrait_image_id: list) -> int:
+    def find_portrait_section(self, section: str, portrait_image_id: List[any]) -> int:
         """
         Description:
             Finds the index of a section of the inputted portrait, such as which image dict is the hair section
@@ -185,14 +185,14 @@ class character_manager_template:
                 part["y_offset"] = part.get("y_offset", 0) + 0.342
                 part["level"] = part.get("level", 1) - 5
 
-            hidden_sections = []  # ["nose"]
+            hidden_sections = []
             if (
-                not minister_face[self.find_portrait_section("hair", minister_face)][
+                False
+            ):  # Following should be used for any officer/worker type that always wears a hat
+                if not minister_face[self.find_portrait_section("hair", minister_face)][
                     "image_id"
-                ]
-                in self.hat_compatible_hair_images
-            ):
-                hidden_sections.append("hair")
+                ] in self.get_hair_images(metadata, allow_hat_incompatible=False):
+                    hidden_sections.append("hair")
 
             for (
                 section
@@ -282,7 +282,9 @@ class character_manager_template:
 
         return portrait_sections
 
-    def generate_body(self, portrait_sections, metadata) -> None:
+    def generate_body(
+        self, portrait_sections: List[any], metadata: Dict[str, any]
+    ) -> None:
         """
         Description:
             Generates random full-body outfit for a character, adding it to the inputted list
@@ -305,7 +307,9 @@ class character_manager_template:
             }
         )
 
-    def generate_outfit(self, portrait_sections, metadata) -> None:
+    def generate_outfit(
+        self, portrait_sections: List[any], metadata: Dict[str, any]
+    ) -> None:
         """
         Description:
             Generates random "bust" outfit for a character, adding it to the inputted list
@@ -323,7 +327,9 @@ class character_manager_template:
             }
         )
 
-    def generate_skin(self, portrait_sections, metadata) -> None:
+    def generate_skin(
+        self, portrait_sections: List[any], metadata: Dict[str, any]
+    ) -> None:
         """
         Description:
             Generates random skin for a character, adding it to the inputted list
@@ -341,7 +347,30 @@ class character_manager_template:
             }
         )
 
-    def generate_hair(self, portrait_sections, metadata) -> None:
+    def get_hair_images(
+        self, metadata: Dict[str, any], allow_hat_incompatible: bool = False
+    ) -> List[str]:
+        """
+        Description:
+            Returns a list of hair images that are compatible with hats for a character
+        Input:
+            dictionary metadata: Metadata for the character, including masculine boolean flag
+            boolean allow_hat_incompatible: Whether to allow hair images that are incompatible with hats
+        Output:
+            List[str]: Returns list of image id's for each portrait section
+        """
+        if allow_hat_incompatible:
+            return self.all_hair_images[
+                "masculine" if metadata["masculine"] else "feminine"
+            ]
+        else:
+            return self.hat_compatible_hair_images[
+                "masculine" if metadata["masculine"] else "feminine"
+            ]
+
+    def generate_hair(
+        self, portrait_sections: List[any], metadata: Dict[str, any]
+    ) -> None:
         """
         Description:
             Generates random hair for a character, adding it to the inputted list
@@ -351,15 +380,15 @@ class character_manager_template:
         Output:
             None
         """
-        if random.randrange(1, 11) != 0:
+        if random.randrange(1, 11) != 0 or (not metadata["masculine"]):
             if metadata["has_hat"]:
-                possible_hair_images = self.hat_compatible_hair_images[
-                    "masculine" if metadata["masculine"] else "feminine"
-                ]
+                possible_hair_images = self.get_hair_images(
+                    metadata, allow_hat_incompatible=False
+                )
             else:
-                possible_hair_images = self.all_hair_images[
-                    "masculine" if metadata["masculine"] else "feminine"
-                ]
+                possible_hair_images = self.get_hair_images(
+                    metadata, allow_hat_incompatible=True
+                )
         else:
             possible_hair_images = ["misc/empty.png"]
         portrait_sections.append(
@@ -371,7 +400,9 @@ class character_manager_template:
             }
         )
 
-    def generate_facial_hair(self, portrait_sections, metadata) -> None:
+    def generate_facial_hair(
+        self, portrait_sections: List[any], metadata: Dict[str, any]
+    ) -> None:
         """
         Description:
             Generates random facial hair for a character, adding it to the inputted list
@@ -390,7 +421,9 @@ class character_manager_template:
                 }
             )
 
-    def generate_accessories(self, portrait_sections, metadata) -> None:
+    def generate_accessories(
+        self, portrait_sections: List[any], metadata: Dict[str, any]
+    ) -> None:
         """
         Description:
             Generates random accessories for a character, adding them to the inputted list
@@ -422,7 +455,9 @@ class character_manager_template:
             }
         )
 
-    def generate_nose(self, portrait_sections, metadata) -> None:
+    def generate_nose(
+        self, portrait_sections: List[any], metadata: Dict[str, any]
+    ) -> None:
         """
         Description:
             Generates a random nose for a character, adding it to the inputted list
@@ -439,7 +474,9 @@ class character_manager_template:
             }
         )
 
-    def generate_mouth(self, portrait_sections, metadata) -> None:
+    def generate_mouth(
+        self, portrait_sections: List[any], metadata: Dict[str, any]
+    ) -> None:
         """
         Description:
             Generates a random mouth for a character, adding it to the inputted list
@@ -456,7 +493,9 @@ class character_manager_template:
             }
         )
 
-    def generate_eyes(self, portrait_sections, metadata) -> None:
+    def generate_eyes(
+        self, portrait_sections: List[any], metadata: Dict[str, any]
+    ) -> None:
         """
         Description:
             Generates random eyes for a character, adding it to the inputted list
@@ -474,7 +513,9 @@ class character_manager_template:
             }
         )
 
-    def generate_portrait(self, portrait_sections, metadata) -> None:
+    def generate_portrait(
+        self, portrait_sections: List[any], metadata: Dict[str, any]
+    ) -> None:
         """
         Description:
             Generates a random background portrait for a character, adding it to the inputted list

@@ -41,6 +41,7 @@ except Exception:  # displays error message and records error message in crash l
 # Add debug settings menu within game, rather than needing to edit .json out of game
 # Add autosave and multiple save slots
 # Add ambient sounds
+# Continue adding new songs
 #
 # Possible issues:
 # Look into special character glitch for Queiros Portuguese name, possibly font issue not having correct special character in the settlement font (but does in minister screen font)
