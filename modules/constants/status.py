@@ -125,3 +125,4 @@ equator: List[cell] = None
 HAT_LAYER: int = 4
 GLASSES_LAYER: int = 2
 HAIR_LAYER: int = 3
+FACIAL_HAIR_LAYER: int = 5

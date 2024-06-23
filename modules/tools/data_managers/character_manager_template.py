@@ -90,20 +90,25 @@ class character_manager_template:
             "ministers/portraits/outfit/accessory_colors/"
         )
 
-        self.skin_images: List[str] = actor_utility.get_image_variants(
-            "ministers/portraits/base_skin/default.png", "base_skin"
-        )
+        self.skin_images: Dict[bool, List[str]] = {
+            True: actor_utility.get_image_variants(
+                "ministers/portraits/base_skin/default.png", "masculine"
+            ),
+            False: actor_utility.get_image_variants(
+                "ministers/portraits/base_skin/default.png", "feminine"
+            ),
+        }
         self.hat_images: List[str] = actor_utility.get_image_variants(
             "ministers/portraits/hat/default.png", "hat"
         )
         self.all_hair_images: List[str] = {
-            "masculine": actor_utility.get_image_variants(
+            True: actor_utility.get_image_variants(
                 "ministers/portraits/hair/masculine/default.png", "hair"
             )
             + actor_utility.get_image_variants(
                 "ministers/portraits/hair/masculine/default.png", "no_hat"
             ),
-            "feminine": actor_utility.get_image_variants(
+            False: actor_utility.get_image_variants(
                 "ministers/portraits/hair/feminine/default.png", "hair"
             )
             + actor_utility.get_image_variants(
@@ -111,10 +116,10 @@ class character_manager_template:
             ),
         }
         self.hat_compatible_hair_images: Dict[str, List[str]] = {
-            "masculine": actor_utility.get_image_variants(
+            True: actor_utility.get_image_variants(
                 "ministers/portraits/hair/masculine/default.png", "hair"
             ),
-            "feminine": actor_utility.get_image_variants(
+            False: actor_utility.get_image_variants(
                 "ministers/portraits/hair/feminine/default.png", "hair"
             ),
         }
@@ -189,9 +194,12 @@ class character_manager_template:
             if (
                 False
             ):  # Following should be used for any officer/worker type that always wears a hat
-                if not minister_face[self.find_portrait_section("hair", minister_face)][
-                    "image_id"
-                ] in self.get_hair_images(metadata, allow_hat_incompatible=False):
+                if (
+                    not minister_face[
+                        self.find_portrait_section("hair", minister_face)
+                    ]["image_id"]
+                    in self.hat_compatible_hair_images[metadata["masculine"]]
+                ):
                     hidden_sections.append("hair")
 
             for (
@@ -324,6 +332,7 @@ class character_manager_template:
                 "image_id": random.choice(self.outfit_images),
                 "green_screen": metadata["suit_colors"],
                 "metadata": {"portrait_section": "outfit"},
+                "level": status.HAIR_LAYER + random.choice([-1, 1]),
             }
         )
 
@@ -341,32 +350,32 @@ class character_manager_template:
         """
         portrait_sections.append(
             {
-                "image_id": random.choice(self.skin_images),
+                "image_id": random.choice(self.skin_images[metadata["masculine"]]),
                 "green_screen": metadata["skin_color"],
                 "metadata": {"portrait_section": "skin"},
             }
         )
 
-    def get_hair_images(
-        self, metadata: Dict[str, any], allow_hat_incompatible: bool = False
-    ) -> List[str]:
-        """
-        Description:
-            Returns a list of hair images that are compatible with hats for a character
-        Input:
-            dictionary metadata: Metadata for the character, including masculine boolean flag
-            boolean allow_hat_incompatible: Whether to allow hair images that are incompatible with hats
-        Output:
-            List[str]: Returns list of image id's for each portrait section
-        """
-        if allow_hat_incompatible:
-            return self.all_hair_images[
-                "masculine" if metadata["masculine"] else "feminine"
-            ]
-        else:
-            return self.hat_compatible_hair_images[
-                "masculine" if metadata["masculine"] else "feminine"
-            ]
+    # def get_hair_images(
+    #    self, metadata: Dict[str, any], allow_hat_incompatible: bool = False
+    # ) -> List[str]:
+    #    """
+    #    Description:
+    #        Returns a list of hair images that are compatible with hats for a character
+    #    Input:
+    #        dictionary metadata: Metadata for the character, including masculine boolean flag
+    #        boolean allow_hat_incompatible: Whether to allow hair images that are incompatible with hats
+    #    Output:
+    #        List[str]: Returns list of image id's for each portrait section
+    #    """
+    #    if allow_hat_incompatible:
+    #        return self.all_hair_images[
+    #            "masculine" if metadata["masculine"] else "feminine"
+    #        ]
+    #    else:
+    #        return self.hat_compatible_hair_images[
+    #            "masculine" if metadata["masculine"] else "feminine"
+    #        ]
 
     def generate_hair(
         self, portrait_sections: List[any], metadata: Dict[str, any]
@@ -382,13 +391,11 @@ class character_manager_template:
         """
         if random.randrange(1, 11) != 0 or (not metadata["masculine"]):
             if metadata["has_hat"]:
-                possible_hair_images = self.get_hair_images(
-                    metadata, allow_hat_incompatible=False
-                )
+                possible_hair_images = self.hat_compatible_hair_images[
+                    metadata["masculine"]
+                ]
             else:
-                possible_hair_images = self.get_hair_images(
-                    metadata, allow_hat_incompatible=True
-                )
+                possible_hair_images = self.all_hair_images[metadata["masculine"]]
         else:
             possible_hair_images = ["misc/empty.png"]
         portrait_sections.append(
@@ -418,6 +425,7 @@ class character_manager_template:
                     "image_id": random.choice(self.facial_hair_images),
                     "green_screen": metadata["hair_color"],
                     "metadata": {"portrait_section": "facial_hair"},
+                    "layer": status.FACIAL_HAIR_LAYER,
                 }
             )
 

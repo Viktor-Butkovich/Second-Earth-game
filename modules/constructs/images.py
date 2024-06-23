@@ -491,58 +491,62 @@ class bundle_image:
         else:
             full_image_id = self.image_id
         key = str(full_image_id)
-        if self.is_offset and self.has_green_screen:
-            for current_green_screen_color in self.green_screen_colors:
-                key += str(current_green_screen_color)
-        if key in status.rendered_images:  # if image already loaded, use it
-            self.image = status.rendered_images[key]
-        else:  # if image not loaded, load it and add it to the loaded images
-            if full_image_id.endswith(".png"):
-                self.text = False
-                try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
-                    self.image = pygame.image.load(full_image_id)
-                except:
-                    print(full_image_id)
-                    self.image = pygame.image.load(full_image_id)
-                self.image.convert()
-                if self.is_offset and self.has_green_screen:
-                    width, height = self.image.get_size()
-                    index = 0
-                    for current_green_screen_color in constants.green_screen_colors:
-                        if index < len(self.green_screen_colors):
-                            if (
-                                type(self.green_screen_colors[index]) == str
-                            ):  # like 'red'
-                                replace_with = self.bundle.constants.color_dict[
-                                    self.green_screen_colors[index]
-                                ]
-                            else:  # like (255, 0, 0)
-                                replace_with = self.green_screen_colors[index]
-                            for x in range(width):
-                                for y in range(height):
-                                    current_color = self.image.get_at((x, y))
-                                    if (
-                                        current_color[0]
-                                        == current_green_screen_color[0]
-                                        and current_color[1]
-                                        == current_green_screen_color[1]
-                                        and current_color[2]
-                                        == current_green_screen_color[2]
-                                    ):
-                                        self.image.set_at(
-                                            (x, y),
-                                            (
-                                                replace_with[0],
-                                                replace_with[1],
-                                                replace_with[2],
-                                                current_color[3],
-                                            ),
-                                        )  # preserves alpha value
-                        index += 1
-            else:
-                self.text = True
-                self.image = text_utility.text(self.image_id, self.font)
-            status.rendered_images[key] = self.image
+        try:
+            if self.is_offset and self.has_green_screen:
+                for current_green_screen_color in self.green_screen_colors:
+                    key += str(current_green_screen_color)
+            if key in status.rendered_images:  # if image already loaded, use it
+                self.image = status.rendered_images[key]
+            else:  # if image not loaded, load it and add it to the loaded images
+                if full_image_id.endswith(".png"):
+                    self.text = False
+                    try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
+                        self.image = pygame.image.load(full_image_id)
+                    except:
+                        print(full_image_id)
+                        self.image = pygame.image.load(full_image_id)
+                    self.image.convert()
+                    if self.is_offset and self.has_green_screen:
+                        width, height = self.image.get_size()
+                        index = 0
+                        for current_green_screen_color in constants.green_screen_colors:
+                            if index < len(self.green_screen_colors):
+                                if (
+                                    type(self.green_screen_colors[index]) == str
+                                ):  # like 'red'
+                                    replace_with = self.bundle.constants.color_dict[
+                                        self.green_screen_colors[index]
+                                    ]
+                                else:  # like (255, 0, 0)
+                                    replace_with = self.green_screen_colors[index]
+                                for x in range(width):
+                                    for y in range(height):
+                                        current_color = self.image.get_at((x, y))
+                                        if (
+                                            current_color[0]
+                                            == current_green_screen_color[0]
+                                            and current_color[1]
+                                            == current_green_screen_color[1]
+                                            and current_color[2]
+                                            == current_green_screen_color[2]
+                                        ):
+                                            self.image.set_at(
+                                                (x, y),
+                                                (
+                                                    replace_with[0],
+                                                    replace_with[1],
+                                                    replace_with[2],
+                                                    current_color[3],
+                                                ),
+                                            )  # preserves alpha value
+                            index += 1
+                else:
+                    self.text = True
+                    self.image = text_utility.text(self.image_id, self.font)
+                status.rendered_images[key] = self.image
+        except:
+            print(full_image_id)
+            print(0 / 0)
 
 
 class free_image(image):

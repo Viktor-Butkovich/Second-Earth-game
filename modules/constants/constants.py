@@ -663,7 +663,7 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
         "False": "Currently waiting until there is anything to transport",
     },
     "show_planet_mask": {
-        "default": "Toggles a frame around the planet to approximate viewing the planet from space",
+        "default": "Toggles a frame around the planet to approximate viewing from space",
         "True": "Currently showing frame",
         "False": "Currently not showing frame",
     },
