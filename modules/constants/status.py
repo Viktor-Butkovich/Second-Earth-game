@@ -122,7 +122,8 @@ north_pole: cell = None
 south_pole: cell = None
 equator: List[cell] = None
 
-HAT_LAYER: int = 4
-GLASSES_LAYER: int = 2
-HAIR_LAYER: int = 3
-FACIAL_HAIR_LAYER: int = 5
+HAT_LEVEL: int = 6
+EYES_LEVEL: int = 2
+GLASSES_LEVEL: int = 3
+HAIR_LEVEL: int = 4
+FACIAL_HAIR_LEVEL: int = 8

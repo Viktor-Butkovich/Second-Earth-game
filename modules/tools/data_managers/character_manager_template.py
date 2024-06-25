@@ -140,9 +140,14 @@ class character_manager_template:
         self.nose_images: List[str] = actor_utility.get_image_variants(
             f"ministers/portraits/nose/default.png", "nose"
         )
-        self.eyes_images: List[str] = actor_utility.get_image_variants(
-            f"ministers/portraits/eyes/default.png", "eyes"
-        )
+        self.eyes_images: Dict[bool, List[str]] = {
+            True: actor_utility.get_image_variants(
+                "ministers/portraits/eyes/default.png", "masculine"
+            ),
+            False: actor_utility.get_image_variants(
+                "ministers/portraits/eyes/default.png", "feminine"
+            ),
+        }
         self.portrait_images: List[str] = actor_utility.get_image_variants(
             f"ministers/portraits/portrait/default.png", "portrait"
         )
@@ -332,7 +337,7 @@ class character_manager_template:
                 "image_id": random.choice(self.outfit_images),
                 "green_screen": metadata["suit_colors"],
                 "metadata": {"portrait_section": "outfit"},
-                "level": status.HAIR_LAYER + random.choice([-1, 1]),
+                "level": status.HAIR_LEVEL + random.choice([-1, 1]),
             }
         )
 
@@ -402,7 +407,7 @@ class character_manager_template:
             {
                 "image_id": random.choice(possible_hair_images),
                 "green_screen": metadata["hair_color"],
-                "layer": status.HAIR_LAYER,
+                "level": status.HAIR_LEVEL,
                 "metadata": {"portrait_section": "hair"},
             }
         )
@@ -425,7 +430,7 @@ class character_manager_template:
                     "image_id": random.choice(self.facial_hair_images),
                     "green_screen": metadata["hair_color"],
                     "metadata": {"portrait_section": "facial_hair"},
-                    "layer": status.FACIAL_HAIR_LAYER,
+                    "level": status.FACIAL_HAIR_LEVEL,
                 }
             )
 
@@ -446,7 +451,7 @@ class character_manager_template:
                 {
                     "image_id": random.choice(self.accessories_images["glasses"]),
                     "green_screen": random.choice(self.clothing_colors),
-                    "layer": status.GLASSES_LAYER,
+                    "level": status.GLASSES_LEVEL,
                     "metadata": {"portrait_section": "glasses"},
                 }
             )
@@ -458,7 +463,7 @@ class character_manager_template:
             {
                 "image_id": random.choice(hat_images),
                 "green_screen": metadata["suit_colors"],
-                "layer": status.HAT_LAYER,
+                "level": status.HAT_LEVEL,
                 "metadata": {"portrait_section": "hat"},
             }
         )
@@ -515,9 +520,10 @@ class character_manager_template:
         """
         portrait_sections.append(
             {
-                "image_id": random.choice(self.eyes_images),
+                "image_id": random.choice(self.eyes_images[metadata["masculine"]]),
                 "green_screen": [metadata["eye_color"], metadata["hair_color"]],
                 "metadata": {"portrait_section": "eyes"},
+                "level": status.EYES_LEVEL,
             }
         )
 
