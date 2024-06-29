@@ -49,124 +49,117 @@
         "southeast_asian": [0, 8, 13, 14],
         "west_african": [0, 5, 13, 14]
     },
-    "hair": {
+    "hair_types": {
+        "types": ["straight", "curly"],
         "african_american": {
-            "masculine": [],
-            "feminine": []
+            "straight": 0.1,
+            "curly": 0.9
         },
         "american": {
-            "masculine": [],
-            "feminine": []
+            "straight": 0.9,
+            "curly": 0.1
         },
         "arabic": {
-            "masculine": [],
-            "feminine": []
+            "straight": 0.7,
+            "curly": 0.3
         },
         "british": {
-            "masculine": [],
-            "feminine": []
+            "straight": 0.9,
+            "curly": 0.1
         },
         "central_asian": {
-            "masculine": [],
-            "feminine": []
+            "straight": 1.0
         },
         "chinese": {
-            "masculine": [],
-            "feminine": []
+            "straight": 1.0
         },
         "dutch": {
-            "masculine": [],
-            "feminine": []
+            "straight": 0.9,
+            "curly": 0.1
         },
         "east_african": {
-            "masculine": [],
-            "feminine": []
+            "curly": 1.0
         },
         "eastern_european": {
-            "masculine": [],
-            "feminine": []
+            "straight": 0.9,
+            "curly": 0.1
         },
         "filipino": {
-            "masculine": [],
-            "feminine": []
+            "straight": 1.0
         },
         "french": {
-            "masculine": [],
-            "feminine": []
+            "straight": 0.9,
+            "curly": 0.1
         },
         "german": {
-            "masculine": [],
-            "feminine": []
+            "straight": 0.9,
+            "curly": 0.1
         },
         "indian": {
-            "masculine": [],
-            "feminine": []
+            "straight": 0.9,
+            "curly": 0.1
         },
         "indigeneous_latin_american": {
-            "masculine": [],
-            "feminine": []
+            "straight": 0.5,
+            "curly": 0.5
         },
         "iranian": {
-            "masculine": [],
-            "feminine": []
+            "straight": 0.7,
+            "curly": 0.3
         },
         "italian": {
-            "masculine": [],
-            "feminine": []
+            "straight": 0.9,
+            "curly": 0.1
         },
         "japanese": {
-            "masculine": [],
-            "feminine": []
+            "straight": 1.0
         },
         "korean": {
-            "masculine": [],
-            "feminine": []
+            "straight": 1.0
         },
         "latin": {
-            "masculine": [],
-            "feminine": []
+            "straight": 0.5,
+            "curly": 0.5
         },
         "portuguese": {
-            "masculine": [],
-            "feminine": []
+            "straight": 0.9,
+            "curly": 0.1
         },
         "scandinavian": {
-            "masculine": [],
-            "feminine": []
+            "straight": 0.9,
+            "curly": 0.1
         },
         "southeast_asian": {
-            "masculine": [],
-            "feminine": []
+            "straight": 1.0
         },
         "west_african": {
-            "masculine": [],
-            "feminine": []
+            "curly": 1.0
         }
     },
     "facial_hair": {
-        "african_american": [],
-        "american": [],
-        "arabic": [],
-        "british": [],
-        "central_asian": [],
-        "chinese": [],
-        "dutch": [],
-        "east_african": [],
-        "eastern_european": [],
-        "filipino": [],
-        "french": [],
-        "german": [],
-        "indian": [],
-        "indigeneous_latin_american": [],
-        "iranian": [],
-        "italian": [],
-        "japanese": [],
-        "korean": [],
-        "latin": [],
-        "portuguese": [],
-        "scandinavian": [],
-        "southeast_asian": [],
-        "west_african": []
+        "african_american": 0.8,
+        "american": 0.8,
+        "arabic": 0.95,
+        "british": 0.8,
+        "central_asian": 0.9,
+        "chinese": 0.3,
+        "dutch": 0.8,
+        "east_african": 0.6,
+        "eastern_european": 0.8,
+        "filipino": 0.4,
+        "french": 0.8,
+        "german": 0.8,
+        "indian": 0.9,
+        "indigeneous_latin_american": 0.4,
+        "iranian": 0.9,
+        "italian": 0.8,
+        "japanese": 0.4,
+        "korean": 0.3,
+        "latin": 0.6,
+        "portuguese": 0.8,
+        "scandinavian": 0.8,
+        "southeast_asian": 0.4,
+        "west_african": 0.6
     },
     "eye_color": {
         "african_american": [0, 1, 8, 9],

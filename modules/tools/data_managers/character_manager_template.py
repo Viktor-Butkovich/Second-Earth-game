@@ -69,6 +69,14 @@ class character_manager_template:
                     ).get_at((0, 0))[:3]
                 )
 
+        self.hair_types: dict = {}
+        for ethnicity, hair_type_dict in appearances_dict["hair_types"].items():
+            self.hair_types[ethnicity] = hair_type_dict
+
+        self.facial_hair_frequencies: Dict[str, float] = {}
+        for ethnicity, frequency in appearances_dict["facial_hair"].items():
+            self.facial_hair_frequencies[ethnicity] = frequency
+
         self.eye_colors: Dict[str, List[Tuple[int, int, int]]] = {}
         for ethnicity, color_list in appearances_dict["eye_color"].items():
             self.eye_colors[ethnicity] = []
@@ -101,28 +109,16 @@ class character_manager_template:
         self.hat_images: List[str] = actor_utility.get_image_variants(
             "ministers/portraits/hat/default.png", "hat"
         )
-        self.all_hair_images: List[str] = {
-            True: actor_utility.get_image_variants(
-                "ministers/portraits/hair/masculine/default.png", "hair"
+
+        self.hair_images: Dict[bool, Dict[str, List[str]]] = {True: {}, False: {}}
+        for hair_type in self.hair_types["types"]:
+            self.hair_images[True][hair_type] = actor_utility.get_image_variants(
+                f"ministers/portraits/hair/masculine/default.png", hair_type
             )
-            + actor_utility.get_image_variants(
-                "ministers/portraits/hair/masculine/default.png", "no_hat"
-            ),
-            False: actor_utility.get_image_variants(
-                "ministers/portraits/hair/feminine/default.png", "hair"
+            self.hair_images[False][hair_type] = actor_utility.get_image_variants(
+                f"ministers/portraits/hair/feminine/default.png", hair_type
             )
-            + actor_utility.get_image_variants(
-                "ministers/portraits/hair/feminine/default.png", "no_hat"
-            ),
-        }
-        self.hat_compatible_hair_images: Dict[str, List[str]] = {
-            True: actor_utility.get_image_variants(
-                "ministers/portraits/hair/masculine/default.png", "hair"
-            ),
-            False: actor_utility.get_image_variants(
-                "ministers/portraits/hair/feminine/default.png", "hair"
-            ),
-        }
+
         self.outfit_images: List[str] = actor_utility.get_image_variants(
             "ministers/portraits/outfit/default.png", "outfit"
         )
@@ -136,6 +132,9 @@ class character_manager_template:
         }
         self.mouth_images: List[str] = actor_utility.get_image_variants(
             f"ministers/portraits/mouth/default.png", "mouth"
+        )
+        self.exaggerated_mouth_images: List[str] = actor_utility.get_image_variants(
+            f"ministers/portraits/mouth/default.png", "exaggerated"
         )
         self.nose_images: List[str] = actor_utility.get_image_variants(
             f"ministers/portraits/nose/default.png", "nose"
@@ -195,17 +194,10 @@ class character_manager_template:
                 part["y_offset"] = part.get("y_offset", 0) + 0.342
                 part["level"] = part.get("level", 1) - 5
 
-            hidden_sections = []
-            if (
-                False
-            ):  # Following should be used for any officer/worker type that always wears a hat
-                if (
-                    not minister_face[
-                        self.find_portrait_section("hair", minister_face)
-                    ]["image_id"]
-                    in self.hat_compatible_hair_images[metadata["masculine"]]
-                ):
-                    hidden_sections.append("hair")
+            if unit.is_worker:
+                hidden_sections = ["eyes", "hat"]
+            else:
+                hidden_sections = ["eyes", "hat"]
 
             for (
                 section
@@ -259,11 +251,25 @@ class character_manager_template:
             base = random.randrange(83, 229)
             hair_color = (base, base, base)
 
+        hair_type = random.choices(
+            list(self.hair_types[ethnicity.lower().replace(" ", "_")].keys()),
+            self.hair_types[ethnicity.lower().replace(" ", "_")].values(),
+            k=1,
+        )[0]
+        # Randomly choose hair type from ethnicity's weighted hair types
+
+        has_facial_hair = (
+            masculine
+            and random.random()
+            < self.facial_hair_frequencies[ethnicity.lower().replace(" ", "_")]
+        )
+
         if not metadata:
             metadata = {}
         metadata.update(
             {
                 "hair_color": hair_color,
+                "hair_type": hair_type,
                 "skin_color": random.choice(
                     self.skin_colors[ethnicity.lower().replace(" ", "_")]
                 ),
@@ -273,6 +279,7 @@ class character_manager_template:
                 "suit_colors": random.sample(self.clothing_colors, 2)
                 + [random.choice(self.accessory_colors)],
                 "has_hat": random.randrange(1, 7) >= 5,
+                "has_facial_hair": has_facial_hair,
                 "full_body": full_body,
                 "ethnicity": ethnicity,
                 "masculine": masculine,
@@ -361,27 +368,6 @@ class character_manager_template:
             }
         )
 
-    # def get_hair_images(
-    #    self, metadata: Dict[str, any], allow_hat_incompatible: bool = False
-    # ) -> List[str]:
-    #    """
-    #    Description:
-    #        Returns a list of hair images that are compatible with hats for a character
-    #    Input:
-    #        dictionary metadata: Metadata for the character, including masculine boolean flag
-    #        boolean allow_hat_incompatible: Whether to allow hair images that are incompatible with hats
-    #    Output:
-    #        List[str]: Returns list of image id's for each portrait section
-    #    """
-    #    if allow_hat_incompatible:
-    #        return self.all_hair_images[
-    #            "masculine" if metadata["masculine"] else "feminine"
-    #        ]
-    #    else:
-    #        return self.hat_compatible_hair_images[
-    #            "masculine" if metadata["masculine"] else "feminine"
-    #        ]
-
     def generate_hair(
         self, portrait_sections: List[any], metadata: Dict[str, any]
     ) -> None:
@@ -395,12 +381,9 @@ class character_manager_template:
             None
         """
         if random.randrange(1, 11) != 0 or (not metadata["masculine"]):
-            if metadata["has_hat"]:
-                possible_hair_images = self.hat_compatible_hair_images[
-                    metadata["masculine"]
-                ]
-            else:
-                possible_hair_images = self.all_hair_images[metadata["masculine"]]
+            possible_hair_images = self.hair_images[metadata["masculine"]][
+                metadata["hair_type"]
+            ]
         else:
             possible_hair_images = ["misc/empty.png"]
         portrait_sections.append(
@@ -424,7 +407,7 @@ class character_manager_template:
         Output:
             None
         """
-        if metadata["masculine"] and random.randrange(1, 6) != 0:
+        if metadata["has_facial_hair"]:
             portrait_sections.append(
                 {
                     "image_id": random.choice(self.facial_hair_images),
@@ -499,9 +482,13 @@ class character_manager_template:
         Output:
             None
         """
+        if metadata["full_body"]:
+            image_id = random.choice(self.exaggerated_mouth_images)
+        else:
+            image_id = random.choice(self.mouth_images)
         portrait_sections.append(
             {
-                "image_id": random.choice(self.mouth_images),
+                "image_id": image_id,
                 "metadata": {"portrait_section": "mouth"},
             }
         )
@@ -544,6 +531,7 @@ class character_manager_template:
                 {
                     "image_id": random.choice(self.portrait_images),
                     "metadata": {"portrait_section": "portrait"},
+                    "level": status.PORTRAIT_LEVEL,
                 }
             )
 
