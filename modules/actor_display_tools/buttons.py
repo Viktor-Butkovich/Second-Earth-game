@@ -75,7 +75,7 @@ class embark_all_passengers_button(button):
                     ):  # vehicles and enemies won't be picked up as passengers
                         passenger.embark_vehicle(vehicle)
                 constants.sound_manager.play_sound(
-                    "voices/all aboard " + str(random.randrange(1, 4))
+                    f"voices/all aboard {random.randrange(1, 4)}"
                 )
         else:
             text_utility.print_to_screen(
@@ -823,9 +823,7 @@ class embark_vehicle_button(button):
                         for vehicle in vehicles:
                             constants.notification_manager.display_notification(
                                 {
-                                    "message": "There are "
-                                    + str(len(vehicles))
-                                    + " possible vehicles to embark - click next until you find the vehicle you would like to embark. /n /n",
+                                    "message": f"There are {len(vehicles)} possible vehicles to embark - click next until you find the vehicle you would like to embark. /n /n",
                                     "choices": [
                                         {
                                             "on_click": (
@@ -858,17 +856,15 @@ class embark_vehicle_button(button):
                             vehicle.set_sentry_mode(False)
                         rider.embark_vehicle(vehicle)
                         constants.sound_manager.play_sound(
-                            "voices/all aboard " + str(random.randrange(1, 4))
+                            f"voices/all aboard {random.randrange(1, 4)}"
                         )
             else:
                 text_utility.print_to_screen(
-                    "You must select a unit in the same tile as a crewed "
-                    + self.vehicle_type
-                    + " to embark."
+                    f"You must select a unit in the same tile as a crewed {self.vehicle_type} to embark."
                 )
         else:
             text_utility.print_to_screen(
-                "You are busy and cannot embark a " + self.vehicle_type + "."
+                f"You are busy and cannot embark a {self.vehicle_type}."
             )
 
     def finish_embark_vehicle(self, rider, vehicle):
@@ -885,7 +881,7 @@ class embark_vehicle_button(button):
         vehicle.set_sentry_mode(False)
         rider.embark_vehicle(vehicle)
         constants.sound_manager.play_sound(
-            "voices/all aboard " + str(random.randrange(1, 4))
+            f"voices/all aboard {random.randrange(1, 4)}"
         )
 
     def skip_embark_vehicle(self, rider, vehicles, index):
@@ -1191,102 +1187,6 @@ class work_crew_to_building_button(button):
             )
 
 
-class labor_broker_button(button):
-    """
-    Buttons that commands a vehicle without crew or an officer to use a labor broker in a port to recruit a worker from a nearby village, with a price based on the village's aggressiveness and distance
-    """
-
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'width': int value - pixel width of this element
-                'height': int value - pixel height of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-        Output:
-            None
-        """
-        input_dict["button_type"] = "labor broker"
-        super().__init__(input_dict)
-
-    def on_click(self):
-        """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands an officer or vehicle without crew to use a labor broker in a port
-        Input:
-            None
-        Output:
-            None
-        """
-        if main_loop_utility.action_possible():
-            if status.displayed_tile.cell.has_intact_building("port"):
-                cost_info_list = self.get_cost()
-                if cost_info_list != "none":
-                    if constants.money_tracker.get() >= cost_info_list[1]:
-                        if minister_utility.positions_filled():
-                            constants.actor_creation_manager.display_recruitment_choice_notification(
-                                {
-                                    "recruitment_type": "African worker labor broker",
-                                    "cost": cost_info_list[1],
-                                    "mob_image_id": "mobs/African worker/default.png",
-                                    "type": "recruitment",
-                                    "source_type": "labor broker",
-                                    "village": cost_info_list[0],
-                                },
-                                "African workers",
-                            )
-                    else:
-                        text_utility.print_to_screen(
-                            "You cannot afford the recruitment cost of "
-                            + str(cost_info_list[1])
-                            + " for the cheapest available worker. "
-                        )
-                else:
-                    text_utility.print_to_screen(
-                        "There are no eligible villages to recruit workers from."
-                    )
-            else:
-                text_utility.print_to_screen(
-                    "This port is damaged and cannot use a labor broker."
-                )
-        else:
-            text_utility.print_to_screen("You are busy and cannot use a labor broker.")
-
-    def get_cost(self):
-        """
-        Description:
-            Calculates and returns the cost of using a labor broker in a port at the currently selected unit's location, based on nearby villages' aggressiveness and distance from the port
-        Input:
-            None
-        Output:
-            string/list: If no valid villages are found, returns 'none'. Otherwise, returns a list with the village as the first item and the cost as the second item
-        """
-        lowest_cost_village = "none"
-        lowest_cost = 0
-        for current_village in status.village_list:
-            if current_village.population > 0:
-                distance = int(
-                    utility.find_object_distance(current_village, status.displayed_tile)
-                )
-                cost = (2 * current_village.aggressiveness) + distance
-                if cost < lowest_cost or lowest_cost_village == "none":
-                    lowest_cost_village = current_village
-                    lowest_cost = cost
-        if lowest_cost_village == "none":
-            return "none"
-        else:
-            return [lowest_cost_village, lowest_cost]
-
-
 class switch_theatre_button(button):
     """
     Button starts choosing a destination for a ship to travel between theatres, like between Earth and the planet. A destination is chosen when the player clicks a tile in another theatre.
@@ -1487,38 +1387,19 @@ class remove_minister_button(button):
         if main_loop_utility.action_possible():
             appointed_minister = status.displayed_minister
             public_opinion_penalty = appointed_minister.status_number
-            text = (
-                "Are you sure you want to remove "
-                + appointed_minister.name
-                + " from office? If removed, he will return to the pool of available ministers and be available to reappoint until the end of the turn. /n /n"
-            )
-            text += (
-                "Removing "
-                + appointed_minister.name
-                + " from office would incur a small public opinion penalty of "
-                + str(public_opinion_penalty)
-                + ", even if he were reappointed. /n /n"
-            )
+            text = f"Are you sure you want to remove {appointed_minister.name} from office? If removed, he will return to the pool of available ministers and be available to reappoint until the end of the turn. /n /n"
+            text += f"Removing {appointed_minister.name} from office would incur a small public opinion penalty of {public_opinion_penalty}, even if he were reappointed. /n /n"
             text += (
                 appointed_minister.name
                 + " expects to be reappointed to a different position by the end of the turn. If not reappointed, he will be fired permanently and incur a much larger public opinion penalty. /n /n"
             )
             if appointed_minister.status_number >= 3:
                 if appointed_minister.status_number == 4:
-                    text += (
-                        appointed_minister.name
-                        + " is of extremely high social status, so firing him would cause a national outrage. /n /n"
-                    )
+                    text += f"{appointed_minister.name} is of extremely high social status, so firing him would cause a national outrage. /n /n"
                 else:
-                    text += (
-                        appointed_minister.name
-                        + " is of high social status, so firing him would reflect particularly poorly on your company. /n /n"
-                    )
+                    text += f"{appointed_minister.name} is of high social status, so firing him would reflect particularly poorly on your company. /n /n"
             elif appointed_minister.status_number == 1:
-                text += (
-                    appointed_minister.name
-                    + " is of low social status, so firing him would have a relatively minimal impact on your company's reputation. /n /n"
-                )
+                text += f"{appointed_minister.name} is of low social status, so firing him would have a relatively minimal impact on your company's reputation. /n /n"
             constants.notification_manager.display_notification(
                 {"message": text, "choices": ["confirm remove minister", "none"]}
             )
@@ -1594,9 +1475,7 @@ class to_trial_button(button):
                         )
             else:
                 text_utility.print_to_screen(
-                    "You do not have the "
-                    + str(constants.action_prices["trial"])
-                    + " money needed to start a trial."
+                    f"You do not have the {constants.action_prices['trial']} money needed to start a trial."
                 )
         else:
             text_utility.print_to_screen("You are busy and cannot start a trial.")
@@ -1654,12 +1533,7 @@ class fabricate_evidence_button(button):
                 defense = status.displayed_defense
                 prosecutor = status.displayed_prosecution
                 prosecutor.display_message(
-                    prosecutor.current_position
-                    + " "
-                    + prosecutor.name
-                    + " reports that evidence has been successfully fabricated for "
-                    + str(self.get_cost())
-                    + " money. /n /nEach new fabricated evidence will cost twice as much as the last, and fabricated evidence becomes useless at the end of the turn or after it is used in a trial. /n /n"
+                    f"{prosecutor.current_position} {prosecutor.name} reports that evidence has been successfully fabricated for {str(self.get_cost())} money. /n /nEach new fabricated evidence will cost twice as much as the last, and fabricated evidence becomes useless at the end of the turn or after it is used in a trial. /n /n"
                 )
                 defense.fabricated_evidence += 1
                 defense.corruption_evidence += 1
@@ -1668,9 +1542,7 @@ class fabricate_evidence_button(button):
                 )  # updates trial display with new evidence
             else:
                 text_utility.print_to_screen(
-                    "You do not have the "
-                    + str(self.get_cost())
-                    + " money needed to fabricate evidence."
+                    f"You do not have the {str(self.get_cost())} money needed to fabricate evidence."
                 )
         else:
             text_utility.print_to_screen("You are busy and cannot fabricate evidence.")
@@ -1744,12 +1616,7 @@ class bribe_judge_button(button):
                     flags.prosecution_bribed_judge = True
                     prosecutor = status.displayed_prosecution
                     prosecutor.display_message(
-                        prosecutor.current_position
-                        + " "
-                        + prosecutor.name
-                        + " reports that the judge has been successfully bribed for "
-                        + str(self.get_cost())
-                        + " money. /n /nThis may provide a bonus in the next trial this turn. /n /n"
+                        f"{prosecutor.current_position} {prosecutor.name} reports that the judge has been successfully bribed for {self.get_cost()} money. /n /nThis may provide a bonus in the next trial this turn. /n /n"
                     )
                 else:
                     text_utility.print_to_screen(
@@ -1757,183 +1624,10 @@ class bribe_judge_button(button):
                     )
             else:
                 text_utility.print_to_screen(
-                    "You do not have the "
-                    + str(self.get_cost())
-                    + " money needed to bribe the judge."
+                    f"You do not have the {self.get_cost()} money needed to bribe the judge."
                 )
         else:
             text_utility.print_to_screen("You are busy and cannot fabricate evidence.")
-
-
-class hire_african_workers_button(button):
-    """
-    Button that hires available workers from the displayed village/slum
-    """
-
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'width': int value - pixel width of this element
-                'height': int value - pixel height of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'hire_source_type': string value - Type of location workers are hired from, like 'village' or 'slums'
-        Output:
-            None
-        """
-        self.hire_source_type = input_dict["hire_source_type"]
-        if self.hire_source_type == "village":
-            input_dict["button_type"] = "hire village worker"
-        elif self.hire_source_type == "slums":
-            input_dict["button_type"] = "hire slums worker"
-        super().__init__(input_dict)
-
-    def can_show(self, skip_parent_collection=False):
-        """
-        Description:
-            Returns whether this button should be drawn
-        Input:
-            None
-        Output:
-            boolean: Returns same as superclass if a village/slum with available workers is displayed, otherwise returns False
-        """
-        if super().can_show(skip_parent_collection=skip_parent_collection):
-            if status.displayed_tile:
-                if self.hire_source_type == "village":
-                    attached_village = status.displayed_tile.cell.get_building(
-                        "village"
-                    )
-                    if not attached_village == "none":
-                        if attached_village.can_recruit_worker():
-                            return True
-                elif self.hire_source_type == "slums":
-                    attached_slums = status.displayed_tile.cell.contained_buildings[
-                        "slums"
-                    ]
-                    if not attached_slums == "none":
-                        return True
-        return False
-
-    def on_click(self):
-        """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button hires an available worker from the displayed village/slum
-        Input:
-            None
-        Output:
-            None
-        """
-        if main_loop_utility.action_possible():
-            if not status.displayed_tile.cell.has_npmob():
-                choice_info_dict = {
-                    "recruitment_type": "African worker " + self.hire_source_type,
-                    "cost": 0,
-                    "mob_image_id": "mobs/African worker/default.png",
-                    "type": "recruitment",
-                    "source_type": self.hire_source_type,
-                }
-                constants.actor_creation_manager.display_recruitment_choice_notification(
-                    choice_info_dict, "African workers"
-                )
-            else:
-                text_utility.print_to_screen(
-                    "You cannot recruit workers when hostile units are present."
-                )
-        else:
-            text_utility.print_to_screen("You are busy and cannot hire a worker.")
-
-
-class recruit_workers_button(button):
-    """
-    Button that buys workers from an abstract grid - currently either slave workers from slave traders or Asian workers from Asia
-    """
-
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'width': int value - pixel width of this element
-                'height': int value - pixel height of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'worker_type': str value - Type of workers this button recruits, like 'slave' or 'Asian'
-        Output:
-            None
-        """
-        input_dict["button_type"] = "recruit workers"
-        self.worker_type = input_dict["worker_type"]
-        super().__init__(input_dict)
-
-    def can_show(self, skip_parent_collection=False):
-        """
-        Description:
-            Returns whether this button should be drawn
-        Input:
-            None
-        Output:
-            boolean: Returns same as superclass if the displayed tile is in the slave traders grid, otherwise returns False
-        """
-        if (
-            super().can_show(skip_parent_collection=skip_parent_collection)
-            and status.displayed_tile
-        ):
-            if self.worker_type == "slave":
-                if (
-                    status.displayed_tile.cell.grid == status.slave_traders_grid
-                    and constants.slave_traders_strength > 0
-                ):
-                    return True
-            elif self.worker_type == "Asian":
-                if status.displayed_tile.cell.grid == status.asia_grid:
-                    return True
-        return False
-
-    def on_click(self):
-        """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button buys slaves from slave traders
-        Input:
-            None
-        Output:
-            None
-        """
-        if main_loop_utility.action_possible():
-            cost = status.worker_types[self.worker_type].recruitment_cost
-            if constants.money_tracker.get() >= cost:
-                choice_info_dict = {
-                    "recruitment_type": self.worker_type + " workers",
-                    "cost": cost,
-                }
-                constants.actor_creation_manager.display_recruitment_choice_notification(
-                    choice_info_dict, self.worker_type + " workers"
-                )
-            else:
-                text_utility.print_to_screen(
-                    "You do not have enough money to purhase "
-                    + self.worker_type
-                    + " workers."
-                )
-        else:
-            text_utility.print_to_screen(
-                "You are busy and cannot purchase " + self.worker_type + " workers."
-            )
 
 
 class automatic_route_button(button):

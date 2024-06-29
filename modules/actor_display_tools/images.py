@@ -44,22 +44,10 @@ class actor_display_free_image(free_image):
         """
         self.actor = new_actor
         if new_actor != "none":
-            if self.actor_image_type in ["minister_default", "country_default"]:
+            if self.actor_image_type in ["minister_default"]:
                 self.set_image(new_actor.image_id)
             elif self.actor_image_type in ["inventory_default"]:
                 self.set_image(new_actor.image.image_id)
-            elif self.actor_image_type == "possible_artifact_location":
-                if (
-                    status.current_lore_mission
-                    and status.current_lore_mission.has_revealed_possible_artifact_location(
-                        new_actor.x, new_actor.y
-                    )
-                ):
-                    self.set_image(
-                        "misc/possible_artifact_location_icon.png"
-                    )  # only show icon if revealed location in displayed tile
-                else:
-                    self.set_image(["misc/mob_background.png", "misc/pmob_outline.png"])
             else:
                 image_id_list = []
                 default_image_key = "default"
@@ -174,7 +162,7 @@ class minister_background_image(mob_background_image):
     Image that appears behind a minister and changes to match their current office
     """
 
-    def get_image_id_list(self, override_values={}):
+    def get_image_id_list(self, force_visibility=False):
         """
         Description:
             Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and

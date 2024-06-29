@@ -332,8 +332,6 @@ class terrain_handler:
             for cell in self.attached_cells:
                 if cell.tile != "none":
                     cell.tile.update_image_bundle()
-        if new_visibility:
-            constants.achievement_manager.check_achievements("Heart of Darkness")
 
     def add_cell(self, cell) -> None:
         """

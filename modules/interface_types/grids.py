@@ -387,20 +387,14 @@ class grid(interface_elements.interface_element):
         Description:
             Uses a series of requirements to choose and a return a random cell in this grid that fits those requirements
         Input:
-            dictionary choice_info_dict: String keys corresponding to various values such as 'allowed_terrains', 'ocean_allowed', and 'nearby_buildings_allowed' to use as requirements for the chosen cell
+            dictionary choice_info_dict: String keys corresponding to various values such as 'allowed_terrains' to use as requirements for the chosen cell
         Output:
             cell: Returns a random cell in this grid that fits the inputted requirements
         """
         allowed_terrains = requirements_dict["allowed_terrains"]
-        ocean_allowed = requirements_dict["ocean_allowed"]
-        nearby_buildings_allowed = requirements_dict["nearby_buildings_allowed"]
         possible_cells = []
         for current_cell in self.get_flat_cell_list():
             if not current_cell.terrain_handler.terrain in allowed_terrains:
-                continue
-            if (not ocean_allowed) and current_cell.y == 0:
-                continue
-            if (not nearby_buildings_allowed) and current_cell.adjacent_to_buildings():
                 continue
             possible_cells.append(current_cell)
         if len(possible_cells) == 0:
@@ -606,9 +600,17 @@ class mini_grid(grid):
             int: y coordinate of this grid corresponding to the inputted y coordinate
         """
         return (
-            int(original_x - self.center_x + (round(self.coordinate_width - 1) / 2))
+            (
+                int(original_x - self.center_x + (round(self.coordinate_width - 1) / 2))
+                % status.strategic_map_grid.coordinate_width
+            )
             % self.coordinate_width,
-            int(original_y - self.center_y + round((self.coordinate_height - 1) / 2))
+            (
+                int(
+                    original_y - self.center_y + round((self.coordinate_height - 1) / 2)
+                )
+                % status.strategic_map_grid.coordinate_height
+            )
             % self.coordinate_height,
         )
 
@@ -743,5 +745,4 @@ class abstract_grid(grid):
         super().__init__(from_save, input_dict)
         self.is_abstract_grid = True
         self.name = input_dict["name"]
-        self.tile_image_id = input_dict["tile_image_id"]
         self.cell_list[0][0].terrain_handler.set_visibility(True)

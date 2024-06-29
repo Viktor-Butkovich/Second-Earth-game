@@ -11,7 +11,7 @@ class officer(pmob):
     pmob that is considered an officer and can join groups and become a veteran
     """
 
-    def __init__(self, from_save, input_dict):
+    def __init__(self, from_save, input_dict, original_constructor: bool = True):
         """
         Description:
             Initializes this object
@@ -34,7 +34,7 @@ class officer(pmob):
         Output:
             None
         """
-        super().__init__(from_save, input_dict)
+        super().__init__(from_save, input_dict, original_constructor=False)
         self.is_officer = True
         self.officer_type = input_dict.get("officer_type", type(self).__name__)
         self.set_controlling_minister_type(
@@ -42,17 +42,12 @@ class officer(pmob):
         )
         if not from_save:
             self.veteran = False
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, None, override_exempt=True
-            )
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, self
-            )  # updates mob info display list to account for is_officer changing
             self.selection_sound()
         else:
             self.veteran = input_dict["veteran"]
             if self.veteran:
                 self.load_veteran()
+        self.finish_init(original_constructor, from_save, input_dict)
 
     def replace(self, attached_group="none"):
         """

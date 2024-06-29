@@ -10,7 +10,6 @@ import modules.util.scaling as scaling
 import modules.util.actor_utility as actor_utility
 import modules.util.game_transitions as game_transitions
 import modules.constructs.fonts as fonts
-import modules.constructs.countries as countries
 import modules.constructs.worker_types as worker_types
 import modules.constructs.equipment_types as equipment_types
 import modules.constructs.terrain_feature_types as terrain_feature_types
@@ -22,26 +21,15 @@ from modules.tools.data_managers import (
 from modules.action_types import (
     public_relations_campaign,
     religious_campaign,
-    suppress_slave_trade,
     advertising_campaign,
-    conversion,
     combat,
     exploration,
     construction,
     upgrade,
     repair,
     loan_search,
-    rumor_search,
-    artifact_search,
-    trade,
-    willing_to_trade,
-    slave_capture,
     active_investigation,
-    track_beasts,
     trial,
-    canoe_purchase,
-    canoe_construction,
-    attack_village,
 )
 
 
@@ -272,39 +260,9 @@ def worker_types_config():
         {
             "adjective": "European",
             "upkeep": 6.0,
-            "can_crew": ["steamship", "steamboat", "train"],
+            "can_crew": ["steamship", "train"],
             "upkeep_variance": True,
-            "fired_description": "Unlike African workers, fired European workers will return home rather than settle in slums. /n /n"
-            + "Firing European workers reflects poorly on your company and will incur a public opinion penalty of 1. /n /n",
-        },
-    )
-    worker_types.worker_type(
-        False,
-        {
-            "adjective": "African",
-            "upkeep": 4.0,
-            "can_crew": ["steamboat", "train"],
-            "fired_description": "Fired workers will enter the labor pool and wander, eventually settling in slums where they may be hired again. /n /n",
-        },
-    )
-    worker_types.worker_type(
-        False,
-        {
-            "adjective": "Asian",
-            "upkeep": 4.0,
-            "can_crew": ["steamboat", "train"],
-            "upkeep_variance": True,
-            "fired_description": "Like European workers, fired Asian workers will return home rather than settle in slums, but can be fired with no effect on your reputation. /n /n",
-        },
-    )
-    worker_types.worker_type(
-        False,
-        {
-            "init_type": "slaves",
-            "adjective": "slave",
-            "recruitment_cost": 5.0,
-            "upkeep": 2.0,
-            "fired_description": "Firing slaves frees them, increasing public opinion. Freed slaves join the labor pool and are automatically hired as workers. /n /n",
+            "fired_description": "Fired description. /n /n",
         },
     )
     worker_types.worker_type(
@@ -313,7 +271,7 @@ def worker_types_config():
             "adjective": "religious",
             "name": "church volunteers",
             "upkeep": 0.0,
-            "fired_description": "Unlike African workers, fired church volunteers will never settle in slums and will instead return to Europe. /n /n"
+            "fired_description": "Fired church volunteers will never settle in slums and will instead return to Europe. /n /n"
             + "Firing church volunteers reflects poorly on your company and will incur a public opinion penalty of 1. /n /n",
         },
     )
@@ -328,34 +286,7 @@ def equipment_types_config():
     Output:
         None
     """
-    equipment_types.equipment_type(
-        {
-            "equipment_type": "Maxim gun",
-            "requirement": "is_battalion",
-            "effects": {
-                "positive_modifiers": [
-                    "combat",
-                    "attack_village",
-                    "suppress_slave_trade",
-                ],
-                "max_movement_points": -1,
-            },
-            "description": [
-                "A Maxim gun provides a positive modifier (half chance of +1) to all combat rolls, but decreases movement points by 1",
-                "Can only be equipped by battalions",
-            ],
-        }
-    )
-    equipment_types.equipment_type(
-        {
-            "equipment_type": "canoes",
-            "requirement": ["is_safari", "can_explore"],
-            "description": [
-                "Canoes allow units to travel through river water for 1 movement point, except for cataracts",
-                "Can only be equipped by expeditions and safaris",
-            ],
-        }
-    )
+    return
 
 
 def terrain_feature_types_config():
@@ -367,56 +298,6 @@ def terrain_feature_types_config():
     Output:
         None
     """
-    terrain_feature_types.terrain_feature_type(
-        {
-            "terrain_feature_type": "cataract",
-            "requirements": {"terrain": "water", "min_y": 1},
-            "frequency": (0, 1),  # (1, 12),
-            "description": [
-                "A cataract, or waterfall, slows most movement through this section of the river",
-                "Canoes can not traverse cataracts, but canoe units can spend their whole turn moving into a cataract in the same way that non-canoe units can enter rivers",
-                "Steamboats can not traverse cataracts, but can circumvent them through a series of adjacent ports",
-                "Other units treat cataracts as usual river water",
-            ],
-        }
-    )
-    terrain_feature_types.terrain_feature_type(
-        {
-            "terrain_feature_type": "cannibals",
-            "requirements": {"resource": "natives"},
-            "frequency": (1, 3),
-            "level": 1,  # Appears above village icon
-            "description": [
-                "Locals rumor that this village traditionally practices cannibalism",
-                "Warriors from this village will be more formidable in combat",
-                "Any successful religious conversion at yellow or lower aggressiveness will convince the villagers to abandon cannibalism",
-            ],
-        }
-    )
-
-    terrain_feature_types.terrain_feature_type(
-        {
-            "terrain_feature_type": "river mouth",
-            "image_id": "misc/empty.png",
-            "description": [
-                "This river will lead inland for some distance, eventually stopping at its source",
-                "Rivers are much easier to explore - an expedition on a river automatically explores all adjacent tiles",
-                "Discovering the source of a river is much sought after, and will result in rewards from your country's Geographical Society",
-            ],
-        }
-    )
-
-    terrain_feature_types.terrain_feature_type(
-        {
-            "terrain_feature_type": "river source",
-            "image_id": "misc/empty.png",
-            "description": [
-                "This is a river's point of origin, which has been sought after by explorers for hundreds of years",
-                "Your country's Geographical Sociey will grant rewards for any river sources discovered",
-            ],
-        }
-    )
-
     terrain_feature_types.terrain_feature_type(
         {
             "terrain_feature_type": "north pole",
@@ -451,35 +332,24 @@ def actions():
     Output:
         none
     """
-    for building_type in constants.building_types + ["train", "steamboat"]:
+    for building_type in constants.building_types + ["train"]:
         if not building_type in [
             "warehouses",
             "slums",
         ]:  # only include buildings that can be built manually
             construction.construction(building_type=building_type)
-            if not building_type in ["train", "steamboat", "infrastructure"]:
+            if not building_type in ["train", "infrastructure"]:
                 repair.repair(building_type=building_type)
     for upgrade_type in constants.upgrade_types:
         upgrade.upgrade(building_type=upgrade_type)
     public_relations_campaign.public_relations_campaign()
     religious_campaign.religious_campaign()
-    suppress_slave_trade.suppress_slave_trade()
     advertising_campaign.advertising_campaign()
-    conversion.conversion()
     combat.combat()
     exploration.exploration()
     loan_search.loan_search()
-    rumor_search.rumor_search()
-    artifact_search.artifact_search()
-    willing_to_trade.willing_to_trade()
-    trade.trade()
-    slave_capture.slave_capture()
-    attack_village.attack_village()
     active_investigation.active_investigation()
-    track_beasts.track_beasts()
     trial.trial()
-    canoe_purchase.canoe_purchase()
-    canoe_construction.canoe_consruction()
 
     for action_type in status.actions:
         if status.actions[action_type].placement_type == "free":
@@ -526,266 +396,6 @@ def def_ministers():
         status.current_ministers[current_minister_type] = None
 
 
-def def_countries():
-    """
-    Description:
-        Defines countries with associated passive effects and background, name, and unit sets
-    Input:
-        None
-    Output:
-        None
-    """
-    # 25 backgrounds by default
-    default_weighted_backgrounds = [
-        "lowborn",
-        "lowborn",
-        "lowborn",
-        "lowborn",
-        "lowborn",
-        "lowborn",
-        "lowborn",
-        "lowborn",
-        "lowborn",
-        "lowborn",
-        "banker",
-        "merchant",
-        "lawyer",
-        "industrialist",
-        "industrialist",
-        "industrialist",
-        "industrialist",
-        "industrialist",
-        "industrialist",
-        "natural scientist",
-        "doctor",
-        "politician",
-        "politician",
-        "army officer",
-        "naval officer",
-    ]
-
-    # each country adds 18 backgrounds for what is more common in that country - half middle, half upper class
-    british_weighted_backgrounds = default_weighted_backgrounds + [
-        "merchant",
-        "lawyer",
-        "natural scientist",
-        "doctor",
-        "naval officer",
-        "naval officer",
-        "naval officer",
-        "preacher",
-        "preacher",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "royal heir",
-    ]
-
-    status.Britain = countries.country(
-        {
-            "name": "Britain",
-            "adjective": "british",
-            "government_type_adjective": "royal",
-            "religion": "protestant",
-            "allow_particles": False,
-            "aristocratic_particles": False,
-            "allow_double_last_names": False,
-            "background_set": british_weighted_backgrounds,
-            "country_effect": constants.effect_manager.create_effect(
-                "british_country_modifier", "construction_plus_modifier"
-            ),
-        }
-    )
-
-    french_weighted_backgrounds = default_weighted_backgrounds + [
-        "merchant",
-        "lawyer",
-        "natural scientist",
-        "doctor",
-        "doctor",
-        "naval officer",
-        "army officer",
-        "priest",
-        "priest",
-        "politician",
-        "politician",
-        "politician",
-        "politician",
-        "politician",
-        "politician",
-        "industrialist",
-        "industrialist",
-        "business magnate",
-    ]
-
-    status.France = countries.country(
-        {
-            "name": "France",
-            "adjective": "french",
-            "government_type_adjective": "national",
-            "religion": "catholic",
-            "allow_particles": True,
-            "aristocratic_particles": False,
-            "allow_double_last_names": True,
-            "background_set": french_weighted_backgrounds,
-            "country_effect": constants.effect_manager.create_effect(
-                "french_country_modifier", "conversion_plus_modifier"
-            ),
-            "has_aristocracy": False,
-        }
-    )
-
-    german_weighted_backgrounds = default_weighted_backgrounds + [
-        "merchant",
-        "lawyer",
-        "natural scientist",
-        "doctor",
-        "army officer",
-        "army officer",
-        "army officer",
-        "preacher",
-        "preacher",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "royal heir",
-    ]
-
-    status.Germany = countries.country(
-        {
-            "name": "Germany",
-            "adjective": "german",
-            "government_type_adjective": "imperial",
-            "religion": "protestant",
-            "allow_particles": True,
-            "aristocratic_particles": True,
-            "allow_double_last_names": False,
-            "background_set": german_weighted_backgrounds,
-            "country_effect": constants.effect_manager.create_effect(
-                "german_country_modifier", "combat_plus_modifier"
-            ),
-        }
-    )
-
-    belgian_weighted_backgrounds = default_weighted_backgrounds + [
-        "merchant",
-        "lawyer",
-        "natural scientist",
-        "doctor",
-        "army officer",
-        "army officer",
-        "naval officer",
-        "priest",
-        "priest",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "royal heir",
-    ]
-
-    status.Belgium = countries.hybrid_country(
-        {
-            "name": "Belgium",
-            "adjective": "belgian",
-            "government_type_adjective": "royal",
-            "religion": "catholic",
-            "background_set": belgian_weighted_backgrounds,
-            "country_effect": constants.effect_manager.create_effect(
-                "belgian_country_modifier", "slave_capture_plus_modifier"
-            ),
-        }
-    )
-
-    portuguese_weighted_backgrounds = default_weighted_backgrounds + [
-        "merchant",
-        "lawyer",
-        "natural scientist",
-        "natural scientist",
-        "doctor",
-        "naval officer",
-        "naval officer",
-        "priest",
-        "priest",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "royal heir",
-    ]
-
-    status.Portugal = countries.country(
-        {
-            "name": "Portugal",
-            "adjective": "portuguese",
-            "government_type_adjective": "royal",
-            "religion": "catholic",
-            "allow_particles": True,
-            "aristocratic_particles": False,
-            "allow_double_last_names": False,
-            "background_set": portuguese_weighted_backgrounds,
-            "country_effect": constants.effect_manager.create_effect(
-                "portuguese_country_modifier", "no_slave_trade_penalty"
-            ),
-        }
-    )
-
-    italian_weighted_backgrounds = default_weighted_backgrounds + [
-        "merchant",
-        "lawyer",
-        "lawyer",
-        "natural scientist",
-        "doctor",
-        "army officer",
-        "naval officer",
-        "priest",
-        "priest",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "aristocrat",
-        "royal heir",
-    ]
-
-    status.Italy = countries.country(
-        {
-            "name": "Italy",
-            "adjective": "italian",
-            "government_type_adjective": "royal",
-            "religion": "catholic",
-            "allow_particles": True,
-            "aristocratic_particles": True,
-            "allow_double_last_names": False,
-            "background_set": italian_weighted_backgrounds,
-            "country_effect": constants.effect_manager.create_effect(
-                "italian_country_modifier", "combat_minus_modifier"
-            ),
-        }
-    )
-
-
 def transactions():
     """
     Description:
@@ -801,42 +411,6 @@ def transactions():
         ]
     actor_utility.update_descriptions()
     actor_utility.reset_action_prices()
-    actor_utility.set_slave_traders_strength(0)
-
-
-def lore():
-    """
-    Description:
-        Defines the types of lore missions, artifacts within each one, and the current lore mission
-    Input:
-        None
-    Output:
-        None
-    """
-    status.lore_types_effects_dict["zoology"] = constants.effect_manager.create_effect(
-        "zoology_completion_effect", "hunting_plus_modifier"
-    )
-    status.lore_types_effects_dict["botany"] = constants.effect_manager.create_effect(
-        "botany_completion_effect", "health_attrition_plus_modifier"
-    )
-    status.lore_types_effects_dict[
-        "archaeology"
-    ] = constants.effect_manager.create_effect(
-        "archaeology_completion_effect", "combat_plus_modifier"
-    )
-    status.lore_types_effects_dict[
-        "anthropology"
-    ] = constants.effect_manager.create_effect(
-        "anthropology_completion_effect", "conversion_plus_modifier"
-    )
-    status.lore_types_effects_dict[
-        "paleontology"
-    ] = constants.effect_manager.create_effect(
-        "paleontology_completion_effect", "public_relations_campaign_modifier"
-    )
-    status.lore_types_effects_dict["theology"] = constants.effect_manager.create_effect(
-        "theology_completion_effect", "religious_campaign_plus_modifier"
-    )
 
 
 def value_trackers():
@@ -953,18 +527,6 @@ def value_trackers():
             "modes": ["strategic", "earth", "ministers", "trial"],
             "image_id": "buttons/instructions.png",
             "init_type": "show previous reports button",
-        }
-    )
-    constants.actor_creation_manager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(
-                225, constants.default_display_height - 70
-            ),
-            "width": scaling.scale_width(30),
-            "height": scaling.scale_height(30),
-            "modes": ["strategic", "earth", "ministers", "trial"],
-            "image_id": "buttons/execute_single_movement_route_button.png",
-            "init_type": "show lore missions button",
         }
     )
 
@@ -1232,16 +794,7 @@ def buttons():
         input_dict
     )
     lhs_menu_collection.add_member(cycle_units_button)
-
-    input_dict["coordinates"] = (scaling.scale_width(55), input_dict["coordinates"][1])
-    input_dict["modes"] = ["strategic"]
     del input_dict["keybind_id"]
-    input_dict["image_id"] = "buttons/free_slaves_button.png"
-    input_dict["init_type"] = "confirm free all button"
-    free_all_slaves_button = constants.actor_creation_manager.create_interface_element(
-        input_dict
-    )
-    lhs_menu_collection.add_member(free_all_slaves_button)
 
     input_dict["coordinates"] = (scaling.scale_width(165), input_dict["coordinates"][1])
     input_dict["modes"] = ["strategic", "earth"]
@@ -1321,10 +874,7 @@ def earth_screen():
             }
         )
 
-    for item_type in [
-        "consumer goods",
-        "Maxim gun",
-    ]:  # Creates purchase button for items from earth
+    for item_type in ["consumer goods"]:  # Creates purchase button for items from earth
         constants.actor_creation_manager.create_interface_element(
             {
                 "width": scaling.scale_width(100),
@@ -1700,34 +1250,34 @@ def new_game_setup_screen():
     Output:
         None
     """
-    current_country_index = 0
-    country_image_width = 300
-    country_image_height = 200
-    country_separation = 50
-    countries_per_row = 3
+    current_index = 0
+    image_width = 300
+    image_height = 200
+    separation = 50
+    per_row = 3
     input_dict = {
-        "width": scaling.scale_width(country_image_width),
-        "height": scaling.scale_height(country_image_height),
+        "width": scaling.scale_width(image_width),
+        "height": scaling.scale_height(image_height),
         "modes": ["new_game_setup"],
-        "init_type": "country selection image",
+        "init_type": "___ selection image",
     }
-    for current_country in status.country_list:
+    """
         input_dict["coordinates"] = scaling.scale_coordinates(
             (constants.default_display_width / 2)
-            - (countries_per_row * (country_image_width + country_separation) / 2)
-            + (country_image_width + country_separation)
-            * (current_country_index % countries_per_row)
-            + country_separation / 2,
+            - (countries_per_row * (image_width + separation) / 2)
+            + (image_width + separation)
+            * (current_index % countries_per_row)
+            + separation / 2,
             constants.default_display_height / 2
             + 50
             - (
-                (country_image_height + country_separation)
-                * (current_country_index // countries_per_row)
+                (image_height + separation)
+                * (index // countries_per_row)
             ),
         )
-        input_dict["country"] = current_country
         constants.actor_creation_manager.create_interface_element(input_dict)
-        current_country_index += 1
+        current_index += 1
+    """
 
 
 def mob_interface():
@@ -1804,12 +1354,6 @@ def mob_interface():
         input_dict
     )
 
-    input_dict["image_id"] = "buttons/free_slaves_button.png"
-    input_dict["init_type"] = "free unit slaves button"
-    status.free_unit_slaves_button = (
-        constants.actor_creation_manager.create_interface_element(input_dict)
-    )
-
     left_arrow_button = constants.actor_creation_manager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(200, -105),
@@ -1872,9 +1416,7 @@ def mob_interface():
         "officer",
         "workers",
         "movement",
-        "canoes",
         "combat_strength",
-        "preferred_terrains",
         "attitude",
         "controllable",
         "crew",
@@ -2054,23 +1596,12 @@ def tile_interface():
         "soil",
         "altitude",
         "resource",
-        "village",
-        "native population",
-        "native available workers",
-        "native aggressiveness",
-        "slave_traders_strength",
         "terrain features",
     ]
     for current_actor_label_type in tile_info_display_labels:
         if (
             current_actor_label_type
-            in [
-                "native population",
-                "native available workers",
-                "native aggressiveness",
-                "terrain features",
-            ]
-            + constants.terrain_parameters
+            in ["terrain features"] + constants.terrain_parameters
         ):
             x_displacement = 25
         else:
@@ -2084,15 +1615,7 @@ def tile_interface():
             "parent_collection": status.tile_info_display,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
-
-        if current_actor_label_type in [
-            "native population",
-            "native available workers",
-            "native aggressiveness",
-        ]:
-            input_dict["init_type"] = current_actor_label_type + " label"
-            constants.actor_creation_manager.create_interface_element(input_dict)
-        elif current_actor_label_type == "terrain features":
+        if current_actor_label_type == "terrain features":
             input_dict["init_type"] = "terrain feature label"
             for terrain_feature_type in status.terrain_feature_types:
                 input_dict["terrain_feature_type"] = terrain_feature_type
@@ -2492,15 +2015,11 @@ def settlement_interface():
         "current building work crew",
         "fort",
         "slums",
-        "trading_post",
-        "mission",
         "infrastructure",
     ]
     for current_actor_label_type in settlement_info_display_labels:
         if current_actor_label_type in [
             "settlement",
-            "trading_post",
-            "mission",
             "infrastructure",
         ]:  # Left align any top-level buildings
             x_displacement = 0
@@ -2675,7 +2194,7 @@ def unit_organization_interface():
             "member_config": {
                 "calibrate_exempt": True,
                 "x_offset": scaling.scale_width(lhs_x_offset + rhs_x_offset),
-                "y_offset": -0.5 * (image_height - 5),
+                "y_offset": scaling.scale_height(-0.5 * (image_height)),
             },
         }
     )
@@ -2712,7 +2231,7 @@ def unit_organization_interface():
             "member_config": {
                 "calibrate_exempt": True,
                 "x_offset": scaling.scale_width(lhs_x_offset + rhs_x_offset),
-                "y_offset": -0.5 * (image_height - 5),
+                "y_offset": scaling.scale_height(-0.5 * (image_height)),
             },
         }
     )
@@ -2726,7 +2245,7 @@ def unit_organization_interface():
             {
                 "coordinates": scaling.scale_coordinates(
                     lhs_x_offset + rhs_x_offset - 60 - 15,
-                    -1 * (image_height - 15) + 40 - 15 + 30,
+                    -1 * (image_height - 15) + 40 - 15 + 30 + 5,
                 ),
                 "width": scaling.scale_width(60),
                 "height": scaling.scale_height(25),
@@ -2746,7 +2265,7 @@ def unit_organization_interface():
             {
                 "coordinates": scaling.scale_coordinates(
                     lhs_x_offset + rhs_x_offset - 60 - 15,
-                    -1 * (image_height - 15) + 40 - 15,
+                    -1 * (image_height - 15) + 40 - 15 + 5,
                 ),
                 "width": scaling.scale_width(60),
                 "height": scaling.scale_height(25),
@@ -2909,101 +2428,6 @@ def minister_interface():
         input_dict["actor_label_type"] = current_actor_label_type
         constants.actor_creation_manager.create_interface_element(input_dict)
     # minister info labels setup
-
-
-def country_interface():
-    """
-    Description:
-        Initializes country selection interface
-    Input:
-        None
-    Output:
-        int actor_display_current_y: Value that tracks the location of interface as it is created, used by other setup functions
-    """
-
-    status.country_info_display = (
-        constants.actor_creation_manager.create_interface_element(
-            {
-                "coordinates": (5, -5),
-                "width": 10,
-                "height": 10,
-                "modes": ["new_game_setup"],
-                "init_type": "ordered collection",
-                "is_info_display": True,
-                "actor_type": "country",
-                "allow_minimize": True,
-                "allow_move": True,
-                "description": "country information panel",
-                "parent_collection": status.info_displays_collection,
-            }
-        )
-    )
-
-    # country background image
-    country_free_image_background = (
-        constants.actor_creation_manager.create_interface_element(
-            {
-                "image_id": "misc/mob_background.png",
-                "coordinates": scaling.scale_coordinates(0, 0),
-                "width": scaling.scale_width(125),
-                "height": scaling.scale_height(125),
-                "modes": ["new_game_setup"],
-                "init_type": "mob background image",
-                "parent_collection": status.country_info_display,
-                "member_config": {"order_overlap": True},
-            }
-        )
-    )
-
-    # country image
-    country_free_image = constants.actor_creation_manager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(0, 0),
-            "width": scaling.scale_width(115),
-            "height": scaling.scale_height(115),
-            "modes": ["new_game_setup"],
-            "actor_image_type": "country_default",
-            "init_type": "actor display free image",
-            "parent_collection": status.country_info_display,
-            "member_config": {
-                "order_overlap": True,
-                "order_x_offset": 5,
-                "order_y_offset": -5,
-            },
-        }
-    )
-
-    # country background image's tooltip
-    country_free_image_background_tooltip = (
-        constants.actor_creation_manager.create_interface_element(
-            {
-                "minimum_width": scaling.scale_width(125),
-                "height": scaling.scale_height(125),
-                "image_id": "misc/empty.png",
-                "actor_label_type": "tooltip",
-                "actor_type": "country",
-                "init_type": "actor display label",
-                "parent_collection": status.country_info_display,
-                "member_config": {"order_overlap": False},
-            }
-        )
-    )
-
-    input_dict = {
-        "minimum_width": scaling.scale_width(10),
-        "height": scaling.scale_height(30),
-        "image_id": "misc/default_label.png",
-        "actor_type": "country",
-        "init_type": "actor display label",
-        "parent_collection": status.country_info_display,
-    }
-    # country info labels setup
-    country_info_display_labels = ["country_name", "country_effect"]
-    for current_actor_label_type in country_info_display_labels:
-        x_displacement = 0
-        input_dict["coordinates"] = scaling.scale_coordinates(x_displacement, 0)
-        input_dict["actor_label_type"] = current_actor_label_type
-        constants.actor_creation_manager.create_interface_element(input_dict)
 
 
 def manage_crash(exception):

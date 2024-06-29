@@ -13,37 +13,19 @@ class terrain:
         for current_parameter_type in self.global_manager.get("parameter_types"):
             self.parameter_dict[current_parameter_type] = parameters.parameter(
                 current_parameter_type,
-                input_dict["min_" + current_parameter_type],
-                input_dict["max_" + current_parameter_type],
+                input_dict[f"min_{current_parameter_type}"],
+                input_dict[f"max_{current_parameter_type}"],
             )
         global_manager.get("terrain_list").append(self)
 
     def __str__(self):
-        return_value = "\nName: " + self.name
+        return_value = f"\nName: {self.name}"
         for current_parameter_type in self.global_manager.get("parameter_types"):
             current_parameter = self.parameter_dict[current_parameter_type]
-            return_value += (
-                "\n\t"
-                + str(current_parameter.name).capitalize()
-                + ": "
-                + str(current_parameter.min)
-                + "-"
-                + str(current_parameter.max)
-            )
-            return_value += (
-                " ("
-                + self.global_manager.get("parameter_keywords")[current_parameter_type][
-                    current_parameter.min
-                ]
-            )
-            return_value += (
-                " - "
-                + self.global_manager.get("parameter_keywords")[current_parameter_type][
-                    current_parameter.max
-                ]
-                + ")"
-            )
-        return_value += "\n\tVolume: " + str(self.volume())
+            return_value += f"\n\t{str(current_parameter.name).capitalize()}: {str(current_parameter.min)}-{str(current_parameter.max)}"
+            return_value += f" ({self.global_manager.get('parameter_keywords')[current_parameter_type][current_parameter.min]})"
+            return_value += f" - {self.global_manager.get('parameter_keywords')[current_parameter_type][current_parameter.max]})"
+        return_value += f"\n\tVolume: {self.volume()}"
         return_value += "\n"
         return return_value
 
@@ -55,8 +37,8 @@ class terrain:
         save_dict["name"] = self.name
         for parameter_type in self.global_manager.get("parameter_types"):
             current_parameter = self.parameter_dict[parameter_type]
-            save_dict["min_" + current_parameter.name] = current_parameter.min
-            save_dict["max_" + current_parameter.name] = current_parameter.max
+            save_dict[f"min_{current_parameter.name}"] = current_parameter.min
+            save_dict[f"max_{current_parameter.name}"] = current_parameter.max
         return save_dict
 
     def remove(self):
@@ -156,7 +138,7 @@ class point:
                 segment_size, current_parameter_type, False
             )
             for i in range(0, 6):
-                starting_text = str(i + 1) + ": "
+                starting_text = f"{i + 1}: "
                 text = self.global_manager.get("parameter_keywords")[
                     current_parameter_type
                 ][i + 1]
@@ -170,11 +152,9 @@ class point:
                 if local_terrain == "none":
                     text += "()"
                 else:
-                    text += "(" + local_terrain.name + ")"
-                current_line += starting_text + self.fill_empty_space(
-                    segment_size - 3, text, False
-                )
-            return_value += "\n" + current_line
+                    text += f"({local_terrain.name})"
+                current_line += f"{starting_text}{self.fill_empty_space(segment_size - 3, text, False)}"
+            return_value += f"\n{current_line}"
 
             current_line = ""
             for i in range(0, 7):
@@ -182,7 +162,7 @@ class point:
                 if self.parameter_dict[current_parameter_type] == i:
                     text = "X"
                 current_line += self.fill_empty_space(segment_size, text, False)
-            return_value += "\n" + current_line + "\n"
+            return_value += f"\n{current_line}\n"
         return return_value
 
     def generate_adjacent_parameter_dict(self, changed_parameter_type, new_value):
@@ -201,9 +181,9 @@ class point:
         string = str(string)
         while len(string) < length:
             if add_to_start:
-                string = " " + string
+                string = f" {string}"
                 add_to_start = False
             else:
-                string = string + " "
+                string = f"{string} "
                 add_to_start = to_start  # True
         return string

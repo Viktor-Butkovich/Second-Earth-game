@@ -34,12 +34,9 @@ class npmob(mob):
         """
         super().__init__(from_save, input_dict)
         self.can_swim = True
-        self.can_swim_river = True
-        self.can_swim_ocean = False
         self.hostile = False
         self.can_damage_buildings = False
         self.is_npmob = True
-        self.saves_normally = True  # units like native warriors are attached to other objects and do not save normally
         self.npmob_type = "npmob"
         self.aggro_distance = 0
         self.selection_outline_color = "bright red"
@@ -76,14 +73,12 @@ class npmob(mob):
     def visible(self):
         """
         Description:
-            Returns whether this unit is currently visible to the player. Non-tracked beasts, not-yet-spawned native warriors, and npmobs in unexplored tiles are not visible
+            Returns whether this unit is currently visible to the player. npmobs in unexplored tiles are not visible
         Input:
             None
         Output:
             boolean: Returns whether this unit is currently visible to the player
         """
-        if self.npmob_type == "beast" and self.hidden:
-            return False
         return (
             self.images[0].current_cell != "none"
             and self.images[0].current_cell.terrain_handler.visible
@@ -167,8 +162,6 @@ class npmob(mob):
         else:
             self.kill_noncombatants()
             self.damage_buildings()
-            if self.npmob_type == "beast":
-                self.set_hidden(True)
             if len(status.attacker_queue) > 0:
                 status.attacker_queue.pop(0).attempt_local_combat()
             elif (
@@ -249,9 +242,7 @@ class npmob(mob):
             None
         """
         closest_target = self.find_closest_target()
-        if (
-            self.npmob_type == "native_warriors" and random.randrange(1, 7) <= 3
-        ):  # half chance of moving randomly instead
+        if random.randrange(1, 7) <= 3:  # half chance of moving randomly instead
             if not self.visible():
                 current_cell = self.grids[0].find_cell(self.x, self.y)
             else:
@@ -261,7 +252,7 @@ class npmob(mob):
                 closest_target.y == 0
             ):  # npmobs avoid the ocean if can't swim in ocean
                 closest_target = random.choice(current_cell.adjacent_list)
-        if not closest_target == "none":
+        if closest_target != "none":
             if not (
                 closest_target.x == self.x and closest_target.y == self.y
             ):  # don't move if target is own tile
@@ -356,16 +347,12 @@ class npmob(mob):
         Output:
             None
         """
-        if not (self.npmob_type == "beast" and self.hidden):
-            for current_image in self.images:
-                current_image.remove_from_cell()
+        for current_image in self.images:
+            current_image.remove_from_cell()
         self.movement_points -= self.get_movement_cost(x_change, y_change)
         self.x += x_change
         self.y += y_change
-        if not (self.npmob_type == "beast" and self.hidden):
-            for current_image in self.images:
-                current_image.add_to_cell()
-            self.movement_sound()
-        if self.has_canoes:
-            self.update_canoes()
+        for current_image in self.images:
+            current_image.add_to_cell()
+        self.movement_sound()
         self.last_move_direction = (x_change, y_change)

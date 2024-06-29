@@ -26,11 +26,6 @@ class sound_manager_template:
                 for current_song in os.listdir("sounds/music/generic")
             ],  # remove file extensions
             "main menu": ["main theme"],
-            "village peaceful": ["natives/village peaceful"],
-            "village neutral": ["natives/village neutral"],
-            "village aggressive": ["natives/village aggressive"],
-            "slave traders": ["slave traders/slave traders theme"],
-            "asia": ["asia/asia theme 1", "asia/asia theme 2"],
         }
         self.previous_state = "none"
         self.previous_song = "none"
@@ -62,12 +57,15 @@ class sound_manager_template:
         Description:
             Plays the sound effect from the inputted file
         Input:
-            string file_name: Name of .wav file to play sound of
+            string file_name: Name of .ogg/.wav file to play sound of
             double volume = 0.3: Volume from 0.0 to 1.0 to play sound at - mixer usually uses a default of 1.0
         Output:
             Channel: Returns the pygame mixer Channel object that the sound was played on
         """
-        current_sound = pygame.mixer.Sound("sounds/" + file_name + ".wav")
+        try:
+            current_sound = pygame.mixer.Sound(f"sounds/{file_name}.ogg")
+        except:
+            current_sound = pygame.mixer.Sound(f"sounds/{file_name}.wav")
         current_sound.set_volume(volume)
         channel = pygame.mixer.find_channel(force=True)
         channel.play(current_sound)
@@ -78,13 +76,16 @@ class sound_manager_template:
         Description:
             Queues the sound effect from the inputted file to be played once the inputted channel is done with its current sound
         Input:
-            string file_name: Name of .wav file to play sound of
+            string file_name: Name of .ogg/.wav file to play sound of
             Channel channel: Pygame mixer channel to queue the sound in
             double volume = 0.3: Volume from 0.0 to 1.0 to play sound at - mixer usually uses a default of 1.0
         Output:
             None
         """
-        current_sound = pygame.mixer.Sound("sounds/" + file_name + ".wav")
+        try:
+            current_sound = pygame.mixer.Sound(f"sounds/{file_name}.ogg")
+        except:
+            current_sound = pygame.mixer.Sound(f"sounds/{file_name}.wav")
         current_sound.set_volume(volume)
         channel.queue(current_sound)
 
@@ -100,7 +101,10 @@ class sound_manager_template:
         """
         if volume < 0:  # negative volume value -> use default
             volume = constants.default_music_volume
-        pygame.mixer.music.load("sounds/music/" + file_name + ".wav")
+        try:
+            pygame.mixer.music.load(f"sounds/music/{file_name}.ogg")
+        except:
+            pygame.mixer.music.load(f"sounds/music/{file_name}.wav")
         pygame.mixer.music.set_volume(volume)
         pygame.mixer.music.play(0)  # music loops when loop argument is -1
 
@@ -174,7 +178,7 @@ class sound_manager_template:
     def play_random_music(self, current_state, previous_song="none"):
         """
         Description:
-            Plays random music depending on the current state of the game, like 'main menu', 'earth', or 'village', and the current player country
+            Plays random music depending on the current state of the game, like 'main menu' or 'earth'
         Input:
             string current_state: Descriptor for the current state of the game to play music for
             string previous_song: The previous song that just ended, if any, to avoid playing it again unless it is the only option
@@ -193,32 +197,16 @@ class sound_manager_template:
         elif len(possible_songs) > 0:
             chosen_song = random.choice(possible_songs)
             if (
-                not previous_song == "none"
+                previous_song != "none"
             ):  # plays different song if multiple choices available
                 while chosen_song == previous_song:
                     chosen_song = random.choice(possible_songs)
         else:
             chosen_song = "none"
-        if current_state in [
-            "slave traders",
-            "asia",
-            "village peaceful",
-            "village neutral",
-            "village aggressive",
-        ] or self.previous_state in [
-            "slave traders",
-            "asia",
-            "village peaceful",
-            "village neutral",
-            "village aggressive",
-        ]:
-            time_interval = 0.4
-        else:
-            time_interval = 0.75
-        if (not state_changed) and (not chosen_song == "none"):
+        if (not state_changed) and (chosen_song != "none"):
             self.play_music(chosen_song)
         else:
-            self.music_transition(chosen_song, time_interval)
+            self.music_transition(chosen_song, time_interval=0.75)
         self.previous_song = chosen_song
 
     def song_done(self):

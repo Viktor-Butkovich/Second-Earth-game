@@ -3,12 +3,12 @@
     "min_altitude_worm_multiplier": 200,
     "med_altitude_worm_multiplier": 350,
     "max_altitude_worm_multiplier": 500,
-    "altitude_changes": [1],
-    "altitude_bounds": [1, 1, 1, 2],
+    "altitude_changes": [1, 2, 1, 2, 1, 2, -1],
+    "altitude_bounds": [1, 1, 1, 1, 1, 2, 2, 3],
     "smooth_altitude": true,
 
     "base_temperature_lower_bound": -4,
-    "base_temperature_upper_bound": 10,
+    "base_temperature_upper_bound": 11,
     "initial_temperature_variation": 1,
     "weighted_temperature_bounds": true,
     "min_pole_worm_multiplier": 200,
@@ -29,7 +29,7 @@
     "roughness_worm_bound": 3,
 
     "min_water_multiplier": 0,
-    "med_water_multiplier": 10,
+    "med_water_multiplier": 15,
     "max_water_multiplier": 50,
     "water_placement_candidates": 15,
 
@@ -50,6 +50,9 @@
     "mars_base_temperature": -1,
     "mars_roughness_multiplier": 20,
     "mars_water_multiplier": 6,
+
+    "map_sizes": [11, 15, 19, 23, 27, 31],
+    "large_map_sizes": [29, 35, 41, 47, 53, 59],
 
     "earth_preset": false,
     "mars_preset": false

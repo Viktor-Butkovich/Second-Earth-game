@@ -48,17 +48,11 @@ class religious_campaign(action.campaign):
             None
         """
         return [
-            "Attempts to campaign for church volunteers for "
-            + str(self.get_price())
-            + " money",
+            f"Attempts to campaign for church volunteers for {self.get_price()} money",
             "Can only be done on Earth",
-            "If successful, recruits a free unit of church volunteers that can join with an evangelist to form a group of missionaries that can convert native villages",
+            f"If successful, recruits a free unit of church volunteers that can join with an evangelist to form a group of missionaries",
             "Costs all remaining movement points, at least 1",
-            "Each "
-            + self.name
-            + " attempted doubles the cost of other "
-            + self.name
-            + "s in the same turn",
+            f"Each {self.name} attempted doubles the cost of other {self.name}s in the same turn",
         ]
 
     def generate_notification_text(self, subject):
@@ -70,26 +64,21 @@ class religious_campaign(action.campaign):
         Output:
             string: Returns text for the inputted subject
         """
-        text = super().generate_notification_text(subject)
+        text = f"{super().generate_notification_text(subject)}"
         if subject == "confirmation":
-            text += "Are you sure you want to start a religious campaign? /n /nIf successful, a religious campaign will convince church volunteers to join you, allowing the formation of groups of missionaries that can convert native "
-            text += (
-                "villages. /n /nThe campaign will cost "
-                + str(self.get_price())
-                + " money. /n /n"
-            )
+            text += f"Are you sure you want to start a religious campaign? /n /nIf successful, a religious campaign will convince church volunteers to join you, allowing the formation of groups of missionaries. /n /nThe campaign will cost {self.get_price()} money. /n /n"
         elif subject == "initial":
-            text += "The evangelist campaigns for the support of church volunteers to join him in converting the African natives. /n /n"
+            text += f"The evangelist campaigns for the support of church volunteers to join him. /n /n"
         elif subject == "success":
-            text += "Inspired by the evangelist's message to save the heathens from their own ignorance, a group of church volunteers joins you. /n /n"
+            text += f"Inspired by the evangelist's message to save the heathens from their own ignorance, a group of church volunteers joins you. /n /n"
         elif subject == "failure":
-            text += "Whether by a lack of charisma, a reluctant audience, or a doomed cause, the evangelist fails to gather any volunteers. /n /n"
+            text += f"Whether by a lack of charisma, a reluctant audience, or a doomed cause, the evangelist fails to gather any volunteers. /n /n"
         elif subject == "critical_failure":
-            text += self.generate_notification_text("failure")
-            text += "The evangelist is disturbed by the lack of faith of your country's people and decides to abandon your company. /n /n"
+            text += f"{self.generate_notification_text('failure')}"
+            text += f"The evangelist is disturbed by the lack of faith of your people and decides to abandon your company. /n /n"
         elif subject == "critical_success":
-            text += self.generate_notification_text("success")
-            text += "With fiery word and true belief in his cause, the evangelist becomes a veteran and will be more successful in future ventures. /n /n"
+            text += f"{self.generate_notification_text('success')}"
+            text += f"With fiery word and true belief in his cause, the evangelist becomes a veteran and will be more successful in future ventures. /n /n"
         return text
 
     def generate_attached_interface_elements(self, subject):
@@ -124,25 +113,6 @@ class religious_campaign(action.campaign):
                 )
             )
         return return_list
-
-    def generate_audio(self, subject):
-        """
-        Description:
-            Returns list of audio dicts of sounds to play when notification appears, based on the inputted subject and other current circumstances
-        Input:
-            string subject: Determines sound dicts
-        Output:
-            dictionary list: Returns list of sound dicts for inputted subject
-        """
-        audio = super().generate_audio(subject)
-        if subject == "roll_finished":
-            if self.roll_result >= self.current_min_success:
-                if status.current_country.religion == "protestant":
-                    sound_id = "effects/onward_christian_soldiers"
-                elif status.current_country.religion == "catholic":
-                    sound_id = "effects/ave_maria"
-                audio.append({"sound_id": sound_id, "dampen_music": True})
-        return audio
 
     def can_show(self):
         """
@@ -188,19 +158,16 @@ class religious_campaign(action.campaign):
         if super().start(unit):
             constants.notification_manager.display_notification(
                 {
-                    "message": action_utility.generate_risk_message(self, unit)
-                    + self.generate_notification_text("confirmation"),
+                    "message": f"{action_utility.generate_risk_message(self, unit)}{self.generate_notification_text('confirmation')}",
                     "choices": [
                         {
                             "on_click": (self.middle, []),
                             "tooltip": [
-                                "Starts a "
-                                + self.name
-                                + ", possibly convincing church volunteers to join you"
+                                f"Starts a {self.name}, possibly convincing church volunteers to join you"
                             ],
                             "message": "Start campaign",
                         },
-                        {"tooltip": ["Stop " + self.name], "message": "Stop campaign"},
+                        {"tooltip": [f"Stop {self.name}"], "message": "Stop campaign"},
                     ],
                 }
             )

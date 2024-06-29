@@ -69,14 +69,11 @@ class exploration(action.action):
                 "Press to attempt to explore in the " + tooltip_info_dict["direction"]
             )
             message.append(
-                "Attempting to explore would cost "
-                + str(self.get_price())
-                + " money and all remaining movement points, at least 1"
+                f"Attempting to explore would cost {self.get_price()} money and all remaining movement points, at least 1"
             )
         else:
             message.append(
-                "This unit cannot currently move to the "
-                + tooltip_info_dict["direction"]
+                f"This unit cannot currently move to the {tooltip_info_dict['direction']}"
             )
             message.append("This unit cannot move into unexplored areas")
         return message
@@ -92,67 +89,23 @@ class exploration(action.action):
         """
         text = super().generate_notification_text(subject)
         if subject == "confirmation":
-            text += (
-                "Are you sure you want to spend "
-                + str(self.get_price())
-                + " money to attempt an exploration to the "
-                + self.direction
-                + "?"
-            )
+            text += f"Are you sure you want to spend {self.get_price()} money to attempt an exploration to the {self.direction}?"
         elif subject == "initial":
             self.future_cell = self.current_unit.grid.find_cell(
                 self.current_unit.x + self.x_change, self.current_unit.y + self.y_change
             )
             text += "The expedition heads towards the " + self.direction + ". /n /n"
-            text += (
-                constants.flavor_text_manager.generate_flavor_text(self.action_type)
-                + " /n /n"
-            )
+            text += f"{constants.flavor_text_manager.generate_flavor_text(self.action_type)} /n /n"
         elif subject == "success":
             text += "/n"
             self.public_relations_change = random.randrange(0, 3)
             if self.future_cell.terrain_handler.resource != "none":
-                if self.future_cell.terrain_handler.resource == "natives":
-                    text += (
-                        "The expedition has discovered a "
-                        + self.future_cell.terrain_handler.terrain.replace(
-                            "_", " "
-                        ).upper()
-                        + " tile containing the village of "
-                        + self.future_cell.village.name
-                        + ". /n /n"
-                    )
-                else:
-                    text += (
-                        "The expedition has discovered a "
-                        + self.future_cell.terrain_handler.terrain.replace(
-                            "_", " "
-                        ).upper()
-                        + " tile with a "
-                        + self.future_cell.terrain_handler.resource.upper()
-                        + " resource (currently worth "
-                        + str(
-                            constants.item_prices[
-                                self.future_cell.terrain_handler.resource
-                            ]
-                        )
-                        + " money each). /n /n"
-                    )
+                text += f"The expedition has discovered a {self.future_cell.terrain_handler.terrain.replace('_', ' ').upper()} tile with a {self.future_cell.terrain_handler.resource.upper()} resource (currently worth {constants.item_prices[self.future_cell.terrain_handler.resource]} money each). /n /n"
                 self.public_relations_change += 3
             else:
-                text += (
-                    "The expedition has discovered a "
-                    + self.future_cell.terrain_handler.terrain.replace("_", " ").upper()
-                    + " tile. /n /n"
-                )
+                text += f"The expedition has discovered a {self.future_cell.terrain_handler.terrain.replace('_', ' ').upper()} tile. /n /n"
             if self.public_relations_change > 0:  # Royal/National/Imperial
-                text += (
-                    "The "
-                    + status.current_country.government_type_adjective.capitalize()
-                    + " Geographical Society is pleased with these findings, increasing your public opinion by "
-                    + str(self.public_relations_change)
-                    + ". /n /n"
-                )
+                text += f"The Geographical Society is pleased with these findings, increasing your public opinion by {self.public_relations_change}. /n /n"
         elif subject == "failure":
             text += "The expedition was not able to explore the tile. /n /n"
         elif subject == "critical_failure":
@@ -224,15 +177,12 @@ class exploration(action.action):
         if super().start(unit):
             constants.notification_manager.display_notification(
                 {
-                    "message": action_utility.generate_risk_message(self, unit)
-                    + self.generate_notification_text("confirmation"),
+                    "message": f"{action_utility.generate_risk_message(self, unit)}{self.generate_notification_text('confirmation')}",
                     "choices": [
                         {
                             "on_click": (self.middle, []),
                             "tooltip": [
-                                "Attempt an exploration for "
-                                + str(self.get_price())
-                                + " money"
+                                f"Attempt an exploration for {self.get_price()} money"
                             ],
                             "message": "Explore",
                         },
@@ -275,9 +225,7 @@ class exploration(action.action):
             else:
                 constants.notification_manager.display_notification(
                     {
-                        "message": "This unit's "
-                        + str(self.initial_movement_points)
-                        + " remaining movement points are not enough to move into the newly explored tile. /n /n",
+                        "message": f"This unit's {self.initial_movement_points} remaining movement points are not enough to move into the newly explored tile. /n /n",
                     }
                 )
                 status.minimap_grid.calibrate(self.current_unit.x, self.current_unit.y)

@@ -46,7 +46,7 @@ def delete(input_list, global_manager):
         else:
             deleted_terrain = utility.get_terrain_by_name(input_list[1], global_manager)
         if deleted_terrain == "none":
-            print(str(input_list[1]) + " is not a terrain")
+            print(f"{input_list[1]} is not a terrain")
             return ()
         if deleted_terrain == global_manager.get("displayed_terrain"):
             global_manager.set("current_display_mode", "browse")
@@ -59,7 +59,7 @@ def delete(input_list, global_manager):
 def list(input_list, global_manager):
     counter = 1
     for current_terrain in global_manager.get("terrain_list"):
-        print(str(counter) + ". " + current_terrain.name)
+        print(f"{counter}. {current_terrain.name}")
         counter += 1
 
 
@@ -83,7 +83,7 @@ def select(input_list, global_manager):
                 input_list[1], global_manager
             )
         if selected_terrain == "none":
-            print(str(input_list[1]) + " is not a terrain")
+            print(f"{input_list[1]} is not a terrain")
             return ()
         global_manager.set("displayed_terrain", selected_terrain)
         global_manager.set("current_display_mode", "terrain_view")
@@ -245,8 +245,7 @@ def select_first_overlap(input_list, global_manager):
                             for current_terrain in matching_terrains:
                                 matching_terrain_names.append(current_terrain.name)
                             print(
-                                "Overlapping terrains: "
-                                + utility.comma_list(matching_terrain_names)
+                                f"Overlapping terrains: {utility.comma_list(matching_terrain_names)}"
                             )
                             terrain_dict["init_type"] = "point"
                             global_manager.set(
@@ -271,7 +270,7 @@ def check_point_overlap(input_list, global_manager):
     if len(matching_terrains) > 1:
         for current_terrain in matching_terrains:
             matching_terrain_names.append(current_terrain.name)
-        print("Overlapping terrains: " + utility.comma_list(matching_terrain_names))
+        print(f"Overlapping terrains: {utility.comma_list(matching_terrain_names)}")
     else:
         print("No overlap")
 
@@ -291,27 +290,18 @@ def volume_summary(input_list, global_manager):
                 max_terrain = current_terrain
                 max_volume = max_terrain.volume()
         current_volume = max_terrain.volume()
-        current_line = (
-            max_terrain.name
-            + ": "
-            + str(current_volume)
-            + "/"
-            + str(possible_volume)
-            + " ("
-        )
+        current_line = f"{max_terrain.name}: {current_volume}/{possible_volume} ({math.floor(current_volume / possible_volume * 100 * 100) / 100}%)"
         current_line += (
-            str(math.floor(current_volume / possible_volume * 100 * 100) / 100) + "%)"
+            f"{str(math.floor(current_volume / possible_volume * 100 * 100) / 100)}%)"
         )
         print(current_line)
         printed_list.append(max_terrain)
         total_volume += current_volume
     print()
     unused_volume = possible_volume - total_volume
-    current_line = (
-        "Undefined: " + str(unused_volume) + "/" + str(possible_volume) + " ("
-    )
+    current_line = f"Undefined: {unused_volume}/{possible_volume} ({math.floor(unused_volume / possible_volume * 100 * 100) / 100}%)"
     current_line += (
-        str(math.floor(unused_volume / possible_volume * 100 * 100) / 100) + "%)"
+        f"{str(math.floor(unused_volume / possible_volume * 100 * 100) / 100)}%)"
     )
     print(current_line)
 
@@ -336,18 +326,14 @@ def find_possible_expansion(input_list, global_manager):
             if global_manager.get("current_display_mode") == "terrain_view":
                 current_terrain = global_manager.get("displayed_terrain")
                 if current_terrain.expansion_possible(current_parameter, change_type):
-                    option_list.append(current_parameter + " " + str(change_type))
+                    option_list.append(f"{current_parameter} {change_type}")
             else:
                 for current_terrain in global_manager.get("terrain_list"):
                     if current_terrain.expansion_possible(
                         current_parameter, change_type
                     ):
                         option_list.append(
-                            current_terrain.name
-                            + " "
-                            + current_parameter
-                            + " "
-                            + str(change_type)
+                            f"{current_terrain.name} {current_parameter} {str(change_type)}"
                         )
     return_value = utility.comma_list(option_list)
     print(return_value)

@@ -106,24 +106,17 @@ class action:
         self.current_unit = unit
         if not main_loop_utility.action_possible():
             text_utility.print_to_screen(
-                "You are busy and cannot start a " + self.name + "."
+                f"You are busy and cannot start a {self.name}."
             )
             return False
         elif self.actor_type == "mob" and not (unit.movement_points >= 1):
             text_utility.print_to_screen(
-                utility.generate_article(self.name).capitalize()
-                + " "
-                + self.name
-                + " requires all remaining movement points, at least 1."
+                f"{utility.generate_article(self.name).capitalize()} {self.name} requires all remaining movement points, at least 1."
             )
             return False
         elif constants.money < self.get_price():
             text_utility.print_to_screen(
-                "You do not have the "
-                + str(self.get_price())
-                + " money needed for a "
-                + self.name
-                + "."
+                f"You do not have the {self.get_price()} money needed for a {self.name}."
             )
             return False
         elif self.actor_type == "mob" and not minister_utility.positions_filled():
@@ -167,7 +160,7 @@ class action:
         if subject == "roll_message":
             base_roll_message = "Click to roll. "
             full_roll_message = (
-                base_roll_message + str(self.current_min_success) + "+ required "
+                f"{base_roll_message}{self.current_min_success}+ required"
             )
             officer_name = self.current_unit.name
             if self.actor_type == "mob" and self.current_unit.veteran:
@@ -184,11 +177,7 @@ class action:
             else:
                 text += base_roll_message
         elif subject == "impossible":
-            text += (
-                "As a "
-                + str(self.current_min_success)
-                + "+ would be required to succeed this roll, it is impossible and may not be attempted. /n /n"
-            )
+            text += f"As a {self.current_min_success}+ would be required to succeed this roll, it is impossible and may not be attempted. /n /n"
         return text
 
     def generate_attached_interface_elements(self, subject):
@@ -473,13 +462,7 @@ class action:
                 else:
                     word = "FAILURE"
                 result_outcome_dict[i] = word
-            text += (
-                "The higher result, "
-                + str(self.roll_result)
-                + ": "
-                + result_outcome_dict[self.roll_result]
-                + ", was used. /n /n"
-            )
+            text += f"The higher result, {self.roll_result}: {result_outcome_dict[self.roll_result]}, was used. /n /n"
         else:
             text += "/n"
         constants.notification_manager.display_notification(

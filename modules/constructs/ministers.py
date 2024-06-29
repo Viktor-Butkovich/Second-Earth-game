@@ -3,11 +3,8 @@
 import random, os
 from typing import List, Tuple, Dict
 from ..util import (
-    tutorial_utility,
     utility,
-    actor_utility,
     minister_utility,
-    main_loop_utility,
     scaling,
 )
 import modules.constants.constants as constants
@@ -44,22 +41,9 @@ class minister:
         Output:
             None
         """
-        self.initializing = True
         self.actor_type = "minister"  # used for actor display labels and images
         status.minister_list.append(self)
         self.tooltip_text: List[str] = []
-        self.portrait_section_types: List[str] = [
-            "base_skin",
-            "mouth",
-            "nose",
-            "eyes",
-            "hair",
-            "outfit",
-            "facial_hair",
-            "hat",
-            "portrait",
-        ]
-        self.portrait_sections: Dict = {}
         status_number_dict: Dict[int, str] = {
             1: "low",
             2: "moderate",
@@ -70,6 +54,8 @@ class minister:
             self.first_name: str = input_dict["first_name"]
             self.last_name: str = input_dict["last_name"]
             self.name: str = self.first_name + " " + self.last_name
+            self.ethnicity: str = input_dict["ethnicity"]
+            self.masculine: bool = input_dict["masculine"]
             self.current_position: str = input_dict["current_position"]
             self.background: str = input_dict["background"]
             self.status_number: int = constants.background_status_dict[self.background]
@@ -88,7 +74,7 @@ class minister:
             self.interests: Tuple[str, str] = input_dict["interests"]
             self.corruption: int = input_dict["corruption"]
             self.corruption_threshold: int = 10 - self.corruption
-            self.portrait_sections = input_dict["portrait_sections"]
+            self.image_id_list = input_dict["image_id_list"]
             self.update_image_bundle()
             self.stolen_money: float = input_dict["stolen_money"]
             self.undetected_corruption_events: List[Tuple[float, str]] = input_dict[
@@ -107,10 +93,14 @@ class minister:
             self.background: str = random.choice(constants.weighted_backgrounds)
             self.first_name: str
             self.last_name: str
+            self.ethnicity: str = constants.character_manager.generate_ethnicity()
+            self.masculine: bool = random.choice([True, False])
             (
                 self.first_name,
                 self.last_name,
-            ) = constants.flavor_text_manager.generate_minister_name(self.background)
+            ) = constants.character_manager.generate_name(
+                self.ethnicity, self.masculine
+            )
             self.name = self.first_name + " " + self.last_name
             self.status_number: int = constants.background_status_dict[self.background]
             self.status: str = status_number_dict[self.status_number]
@@ -125,7 +115,10 @@ class minister:
             self.interests_setup()
             self.corruption_setup()
             status.available_minister_list.append(self)
-            self.portrait_sections_setup()
+            self.image_id_list = constants.character_manager.generate_appearance(
+                self, full_body=False
+            )
+            self.update_image_bundle()
             self.stolen_money: int = 0
             self.undetected_corruption_events: List[Tuple[float, str]] = []
             self.corruption_evidence: int = 0
@@ -134,132 +127,17 @@ class minister:
         minister_utility.update_available_minister_display()
         self.stolen_already: bool = False
         self.update_tooltip()
-        self.initializing: bool = False
 
     def get_f_lname(self):
         """
         Description:
-            Returns this minister's name in the form [first initial] [last name] - uses full aristocratic titles, if applicable
+            Returns this minister's name in the form [first initial] [last name]
         Input:
             None
         Output:
             str: Returns this minister's name in the form [first initial] [last name]
         """
-        if self.first_name in constants.titles:
-            return self.name
-        else:
-            return self.first_name[0] + ". " + self.last_name
-
-    def portrait_sections_setup(self):
-        """
-        Description:
-            Retrieves appearance variants from graphics folders and creates a random image bundle personalized for this minister's background on first creation
-        Input:
-            None
-        Output:
-            None
-        """
-        hair_color = random.choice(
-            actor_utility.extract_folder_colors("ministers/portraits/hair/colors/")
-        )  # same colors folder shared for hair and facial hair
-        skin_color = random.choice(
-            actor_utility.extract_folder_colors("ministers/portraits/base_skin/colors/")
-        )
-        possible_suit_colors = actor_utility.extract_folder_colors(
-            "ministers/portraits/outfit/suit_colors/"
-        )
-        suit_colors = [
-            random.choice(possible_suit_colors),
-            random.choice(possible_suit_colors),
-        ]
-        while suit_colors[1] == suit_colors[0]:
-            suit_colors[1] = random.choice(possible_suit_colors)
-        suit_colors.append(
-            random.choice(
-                actor_utility.extract_folder_colors(
-                    "ministers/portraits/outfit/accessory_colors/"
-                )
-            )
-        )
-        outfit_type = "default"
-        for image_type in self.portrait_section_types:
-            possible_sections = actor_utility.get_image_variants(
-                "ministers/portraits/" + image_type + "/default.png", image_type
-            )
-            if image_type in ["hair", "facial_hair"]:
-                if image_type == "facial_hair":
-                    if random.randrange(0, 5) == 0:
-                        possible_sections = ["misc/empty.png"]
-                elif image_type == "hair":
-                    if random.randrange(0, 10) == 0:
-                        possible_sections = ["misc/empty.png"]
-                    else:
-                        possible_sections += actor_utility.get_image_variants(
-                            "ministers/portraits/" + image_type + "/default.png",
-                            "no_hat",
-                        )
-            elif image_type in ["outfit", "hat"]:
-                if image_type == "outfit":
-                    if self.background in ["army officer", "naval officer"]:
-                        outfit_type = "military"
-                    elif self.background in ["aristocrat", "royal heir"]:
-                        if random.randrange(0, 5) == 0:
-                            outfit_type = "armored"
-                    elif (
-                        self.background != "lowborn"
-                        and not status.current_country.has_aristocracy
-                    ):
-                        if random.randrange(0, 20) == 0:
-                            outfit_type = "armored"
-                if outfit_type != "default":
-                    possible_sections = actor_utility.get_image_variants(
-                        "ministers/portraits/" + image_type + "/default.png",
-                        outfit_type,
-                    )
-                if image_type == "hat":
-                    if random.randrange(0, 2) != 0 or (
-                        outfit_type == "armored" and random.randrange(0, 5) != 0
-                    ):
-                        possible_sections = ["misc/empty.png"]
-                    else:
-                        if self.portrait_sections["hair"][
-                            "image_id"
-                        ] in actor_utility.get_image_variants(
-                            "ministers/portraits/hair/default.png", "no_hat"
-                        ):
-                            self.portrait_sections["hair"]["image_id"] = random.choice(
-                                actor_utility.get_image_variants(
-                                    "ministers/portraits/hair/default.png", "hair"
-                                )
-                            )
-            if len(possible_sections) > 0:
-                image_id = random.choice(possible_sections)
-            else:
-                image_id = "misc/empty.png"
-            if image_type in ["hair", "facial_hair"]:
-                self.portrait_sections[image_type] = {
-                    "image_id": image_id,
-                    "green_screen": hair_color,
-                }
-            elif image_type in ["base_skin"]:
-                self.portrait_sections[image_type] = {
-                    "image_id": image_id,
-                    "green_screen": skin_color,
-                }
-            elif image_type in ["outfit", "hat"]:
-                if outfit_type in ["military", "armored"]:
-                    self.portrait_sections[image_type] = {
-                        "image_id": image_id,
-                        "green_screen": status.current_country.colors,
-                    }
-                else:
-                    self.portrait_sections[image_type] = {
-                        "image_id": image_id,
-                        "green_screen": suit_colors,
-                    }
-            else:
-                self.portrait_sections[image_type] = image_id
-        self.update_image_bundle()
+        return self.first_name[0] + ". " + self.last_name
 
     def update_tooltip(self):
         """
@@ -272,24 +150,22 @@ class minister:
         """
         self.tooltip_text = []
         if not self.current_position == "none":
-            keyword = constants.minister_type_dict[
-                self.current_position
-            ]  # type, like military
             self.tooltip_text.append(
-                "This is " + self.name + ", your " + self.current_position + "."
+                f"This is {self.name}, your {self.current_position}."
             )
         else:
             self.tooltip_text.append(
-                "This is " + self.name + ", an available minister candidate."
+                f"This is {self.name}, an available minister candidate."
             )
-        self.tooltip_text.append("Background: " + self.background)
-        self.tooltip_text.append("Social status: " + self.status)
+        self.tooltip_text.append(f"Background: {self.background}")
+        self.tooltip_text.append(f"Social status: {self.status}")
+        self.tooltip_text.append(f"Ethnicity: {self.ethnicity}")
         self.tooltip_text.append(
-            "Interests: " + self.interests[0] + " and " + self.interests[1]
+            f"Interests: {self.interests[0]} and {self.interests[1]}"
         )
 
         if self.apparent_corruption_description != "unknown":
-            self.tooltip_text.append("Loyalty: " + self.apparent_corruption_description)
+            self.tooltip_text.append(f"Loyalty: {self.apparent_corruption_description}")
 
         if self.current_position == "none":
             displayed_skill = self.get_max_apparent_skill()
@@ -302,19 +178,9 @@ class minister:
             ]  # like General to military]
             if self.apparent_skill_descriptions[displayed_skill] != "unknown":
                 if self.current_position == "none":
-                    message = (
-                        "Highest ability: "
-                        + self.apparent_skill_descriptions[displayed_skill]
-                        + " ("
-                        + displayed_skill_name
-                        + ")"
-                    )
+                    message = f"Highest ability: {self.apparent_skill_descriptions[displayed_skill]} ({displayed_skill_name})"
                 else:
-                    message = (
-                        displayed_skill_name.capitalize()
-                        + " ability: "
-                        + self.apparent_skill_descriptions[displayed_skill]
-                    )
+                    message = f"{displayed_skill_name.capitalize()} ability: {self.apparent_skill_descriptions[displayed_skill]}"
                 self.tooltip_text.append(message)
 
         rank = 0
@@ -436,14 +302,7 @@ class minister:
         if prosecutor != "none":
             if constants.effect_manager.effect_active("show_minister_stealing"):
                 print(
-                    self.current_position
-                    + " "
-                    + self.name
-                    + " stole "
-                    + str(value)
-                    + " money from "
-                    + constants.transaction_descriptions[theft_type]
-                    + "."
+                    f"{self.current_position} {self.name} stole {value} money from {constants.transaction_descriptions[theft_type]}."
                 )
             difficulty = self.no_corruption_roll(6, "minister_stealing")
             result = prosecutor.no_corruption_roll(6, "minister_stealing_detection")
@@ -460,38 +319,14 @@ class minister:
                             "The theft was caught by the prosecutor, who accepted a bribe to not create evidence."
                         )
                         print(
-                            prosecutor.current_position
-                            + " "
-                            + prosecutor.name
-                            + " has now stolen a total of "
-                            + str(prosecutor.stolen_money)
-                            + " money."
+                            f"{prosecutor.current_position} {prosecutor.name} has now stolen a total of {prosecutor.stolen_money} money."
                         )
                 else:  # if prosecutor refuses bribe, still keep money but create evidence
                     self.corruption_evidence += 1
                     evidence_message = ""
-                    evidence_message += (
-                        "Prosecutor "
-                        + prosecutor.name
-                        + " suspects that "
-                        + self.current_position
-                        + " "
-                        + self.name
-                        + " just engaged in corrupt activity relating to "
-                    )
-                    evidence_message += (
-                        constants.transaction_descriptions[theft_type]
-                        + " and has filed a piece of evidence against him. /n /n"
-                    )
-                    evidence_message += (
-                        "There are now "
-                        + str(self.corruption_evidence)
-                        + " piece"
-                        + utility.generate_plural(self.corruption_evidence)
-                        + " of evidence against "
-                        + self.name
-                        + ". /n /n"
-                    )
+                    evidence_message += f"Prosecutor {prosecutor.name} suspects that {self.current_position} {self.name} just engaged in corrupt activity relating to "
+                    evidence_message += f"{constants.transaction_descriptions[theft_type]} and has filed a piece of evidence against him. /n /n"
+                    evidence_message += f"There are now {self.corruption_evidence} piece{utility.generate_plural(self.corruption_evidence)} of evidence against {self.name}. /n /n"
                     evidence_message += "Each piece of evidence can help in a trial to remove a corrupt minister from office. /n /n"
                     prosecutor.display_message(
                         evidence_message,
@@ -533,12 +368,7 @@ class minister:
 
         if constants.effect_manager.effect_active("show_minister_stealing"):
             print(
-                self.current_position
-                + " "
-                + self.name
-                + " has now stolen a total of "
-                + str(self.stolen_money)
-                + " money."
+                f"{self.current_position} {self.name} has now stolen a total of {self.stolen_money} money."
             )
 
         if value > 0:
@@ -570,7 +400,7 @@ class minister:
                 'just_removed': boolean value - Whether this minister was just removed from office and will be fired at the end of the turn
                 'corruption_evidence': int value - Number of pieces of evidence that can be used against this minister in a trial, includes fabricated evidence
                 'fabricated_evidence': int value - Number of temporary fabricated pieces of evidence that can be used against this minister in a trial this turn
-                'portrait_sections': string list value - List of image file paths for each of this minister's portrait sections
+                'image_id_list': image id list value - List of image id's for each portrait section of this minister
                 'voice_set': string value - Name of voice set assigned to this minister
         """
         save_dict = {}
@@ -594,8 +424,10 @@ class minister:
         save_dict["just_removed"] = self.just_removed
         save_dict["background"] = self.background
         save_dict["personal_savings"] = self.personal_savings
-        save_dict["portrait_sections"] = self.portrait_sections
+        save_dict["image_id_list"] = self.image_id_list
         save_dict["voice_set"] = self.voice_set
+        save_dict["ethnicity"] = self.ethnicity
+        save_dict["masculine"] = self.masculine
         return save_dict
 
     def get_image_id_list(self, override_values={}):
@@ -608,10 +440,7 @@ class minister:
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        image_id_list = []
-        for portrait_section_type in self.portrait_section_types:
-            image_id_list.append(self.portrait_sections[portrait_section_type])
-        return image_id_list
+        return self.image_id_list
 
     def update_image_bundle(self):
         self.image_id = self.get_image_id_list()
@@ -848,11 +677,12 @@ class minister:
                 self.set_apparent_skill(
                     current_minister_type,
                     self.specific_skills[current_minister_type] + self.general_skill,
+                    setup=True,
                 )
             else:
-                self.set_apparent_skill(current_minister_type, 0)
+                self.set_apparent_skill(current_minister_type, 0, setup=True)
 
-    def set_apparent_skill(self, skill_type, new_value):
+    def set_apparent_skill(self, skill_type, new_value, setup: bool = False):
         """
         Description:
             Sets this minister's apparent skill and apparent skill description to match the new apparent skill value for the inputted skill type
@@ -867,7 +697,7 @@ class minister:
             self.apparent_skill_descriptions[skill_type] = random.choice(
                 constants.minister_skill_to_description_dict[new_value]
             )
-            if not (flags.creating_new_game or self.initializing):
+            if not setup:
                 self.update_tooltip()
             if status.displayed_minister == self:
                 minister_utility.calibrate_minister_info_display(self)
@@ -882,7 +712,10 @@ class minister:
             None
         """
         if not from_save:
-            self.voice_set = random.choice(os.listdir("sounds/voices/voice sets"))
+            if self.masculine:
+                self.voice_set = f"masculine/{random.choice(os.listdir('sounds/voices/voice sets/masculine'))}"
+            else:
+                self.voice_set = f"feminine/{random.choice(os.listdir('sounds/voices/voice sets/feminine'))}"
         self.voice_lines = {
             "acknowledgement": [],
             "fired": [],
@@ -894,7 +727,7 @@ class minister:
         for file_name in os.listdir("sounds/" + folder_path):
             for key in self.voice_lines:
                 if file_name.startswith(key):
-                    file_name = file_name[:-4]  # cuts off last 4 characters - .wav
+                    file_name = file_name[:-4]  # cuts off last 4 characters - .ogg/.wav
                     self.voice_lines[key].append(folder_path + "/" + file_name)
 
     def interests_setup(self):
@@ -949,11 +782,11 @@ class minister:
         )  # minimum roll on D6 required for corruption to occur
 
         if constants.effect_manager.effect_active("transparent_ministers"):
-            self.set_apparent_corruption(self.corruption)
+            self.set_apparent_corruption(self.corruption, setup=True)
         else:
-            self.set_apparent_corruption(0)
+            self.set_apparent_corruption(0, setup=True)
 
-    def set_apparent_corruption(self, new_value):
+    def set_apparent_corruption(self, new_value, setup: bool = False):
         """
         Description:
             Sets this minister's apparent corruption and apparent corruption description to match the new apparent corruption value
@@ -967,7 +800,7 @@ class minister:
             self.apparent_corruption_description = random.choice(
                 constants.minister_corruption_to_description_dict[new_value]
             )
-            if not (flags.creating_new_game or self.initializing):
+            if not setup:
                 self.update_tooltip()
             if status.displayed_minister == self:
                 minister_utility.calibrate_minister_info_display(self)
@@ -1191,58 +1024,28 @@ class minister:
         elif constants.effect_manager.effect_active("nine_mortal_men"):
             return -10
         if (
-            random.randrange(1, 3) == 1
+            random.randrange(1, 7) >= 4
         ):  # half chance to apply skill modifier, otherwise return 0
             modifier += self.get_skill_modifier()
             if constants.effect_manager.effect_active("show_modifiers"):
                 if modifier >= 0:
-                    print(
-                        "Minister gave modifier of +"
-                        + str(modifier)
-                        + " to "
-                        + roll_type
-                        + " roll."
-                    )
+                    print(f"Minister gave modifier of +{modifier} to {roll_type} roll.")
                 else:
-                    print(
-                        "Minister gave modifier of "
-                        + str(modifier)
-                        + " to "
-                        + roll_type
-                        + " roll."
-                    )
+                    print(f"Minister gave modifier of {modifier} to {roll_type} roll.")
         if constants.effect_manager.effect_active(roll_type + "_plus_modifier"):
-            if not (
-                roll_type == "construction"
-                and status.displayed_mob.officer.officer_type != "engineer"
-            ):
-                # Exclude non-construction gang units from construction modifiers
-                if random.randrange(1, 3) == 1:
-                    modifier += 1
-                    if constants.effect_manager.effect_active("show_modifiers"):
-                        print("Country gave modifier of +1 to " + roll_type + " roll.")
-                elif constants.effect_manager.effect_active("show_modifiers"):
-                    print(
-                        "Country attempted to give +1 modifier to "
-                        + roll_type
-                        + " roll."
-                    )
+            if random.randrange(1, 7) >= 4:
+                modifier += 1
+                if constants.effect_manager.effect_active("show_modifiers"):
+                    print("Generic modifier of +1 to " + roll_type + " roll.")
+            elif constants.effect_manager.effect_active("show_modifiers"):
+                print(f"Attempted to give generic +1 modifier to {roll_type} roll.")
         elif constants.effect_manager.effect_active(roll_type + "_minus_modifier"):
-            if not (
-                roll_type == "construction"
-                and status.displayed_mob.officer.officer_type != "engineer"
-            ):
-                # Exclude non-construction gang units from construction modifiers
-                if random.randrange(1, 3) == 1:
-                    modifier -= 1
-                    if constants.effect_manager.effect_active("show_modifiers"):
-                        print("Country gave modifier of -1 to " + roll_type + " roll.")
-                elif constants.effect_manager.effect_active("show_modifiers"):
-                    print(
-                        "Country attempted to give -1 modifier to "
-                        + roll_type
-                        + " roll."
-                    )
+            if random.randrange(1, 7) >= 4:
+                modifier -= 1
+                if constants.effect_manager.effect_active("show_modifiers"):
+                    print("Gneric modifier of of -1 to " + roll_type + " roll.")
+            elif constants.effect_manager.effect_active("show_modifiers"):
+                print(f"Attempted to give generic -1 modifier to {roll_type} roll.")
         return modifier
 
     def remove_complete(self):
@@ -1414,7 +1217,6 @@ class minister:
                     "You think you can kick me down from your palace in the clouds? ",
                     "I'll make sure to tell all about those judges you bribed. ",
                     "So many dead... what will be left of this land by the time you're done? ",
-                    "What next? Will you murder me like you did those innocents in the village? ",
                     "You'll burn in hell for this. ",
                     "Watch your back, friend. ",
                 ]
@@ -1481,7 +1283,6 @@ class minister:
                     middle_options = [
                         "I hear God weeping at the crimes we commit in His name.",
                         "We sent so many young men to die just to fill our coffers. ",
-                        "We're no better than the wild beasts we fear. ",
                     ]
                     conclusion_options = [
                         "I pray we will be forgiven for the things we've done, and you ought to do the same. ",

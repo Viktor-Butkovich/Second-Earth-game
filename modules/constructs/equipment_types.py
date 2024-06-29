@@ -10,8 +10,7 @@ import random
 class equipment_type:
     """
     Equipment template that tracks the effects, descriptions, and requirements of a particular equipment type
-        Equipment inclues any item that provides an optional enhancement to a unit's capabilities, so essential battalion rifles are not included,
-            while optional but powerful Maxim guns are
+        Equipment inclues any item that provides an optional enhancement to a unit's capabilities
     """
 
     def __init__(self, input_dict: Dict) -> None:
@@ -81,9 +80,6 @@ class equipment_type:
             None
         """
         unit.equipment[self.equipment_type] = True
-        if self.equipment_type == "canoes":
-            unit.set_has_canoes(True)
-            unit.update_canoes()
         if self.effects.get("max_movement_points", 0) != 0:
             unit.set_max_movement_points(
                 4 + self.effects["max_movement_points"],
@@ -101,9 +97,6 @@ class equipment_type:
             None
         """
         del unit.equipment[self.equipment_type]
-        if self.equipment_type == "canoes":
-            unit.set_has_canoes(False)
-            unit.update_canoes()
         if self.effects.get("max_movement_points", 0) != 0:
             unit.set_max_movement_points(4, initial_setup=False, allow_increase=False)
 
@@ -136,7 +129,7 @@ def transfer(item_type: str, amount, source_type: str) -> None:
     Description:
         Transfers amount of item type from the source inventory to the other (tile to mob and vice versa, if picking up or dropping)
     Input:
-        string item_type: Type of item to transfer, like 'ivory' or 'Maxim gun'
+        string item_type: Type of item to transfer, like 'diamond' or 'rifles'
         int/str amount: Amount of item to transfer, or 'all' if transferring all
         string source_type: Item origin, like 'tile_inventory' or 'mob_inventory'
     Output:

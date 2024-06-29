@@ -90,17 +90,7 @@ class upgrade(action.action):
                 noun = self.current_building.name
             value = getattr(self.current_building, self.building_type)
             message.append(
-                "Attempts to increase this "
-                + noun
-                + "'s "
-                + self.building_name
-                + " from "
-                + str(value)
-                + " to "
-                + str(value + 1)
-                + " for "
-                + str(self.get_price())
-                + " money"
+                f"Attempts to increase this {noun}'s {self.building_name} from {value} to {value + 1} for {self.get_price()} money"
             )
             message += constants.list_descriptions[self.building_type]
             message.append(
@@ -130,63 +120,19 @@ class upgrade(action.action):
 
         if subject == "confirmation":
             value = getattr(self.current_building, self.building_type)
-            text += (
-                "Are you sure you want to start upgrading this "
-                + noun
-                + "'s "
-                + self.building_name
-                + "? /n /n"
-            )
-            text += (
-                "The planning and materials will cost "
-                + str(self.get_price())
-                + " money. Each upgrade to a building doubles the cost of all future upgrades to that building. /n /n"
-            )
-            text += (
-                "If successful, this "
-                + noun
-                + "'s "
-                + self.building_name
-                + " will increase from "
-                + str(value)
-                + " to "
-                + str(value + 1)
-                + ". /n /n"
-            )
+            text += f"Are you sure you want to start upgrading this {noun}'s {self.building_name}? /n /n"
+            text += f"The planning and materials will cost {self.get_price()} money. Each upgrade to a building doubles the cost of all future upgrades to that building. /n /n"
+            text += f"If successful, this {noun}'s {self.building_name} will increase from {value} to {value + 1}. /n /n"
             text += constants.string_descriptions[self.building_type]
         elif subject == "initial":
-            text += (
-                "The "
-                + self.current_unit.name
-                + " attempts to upgrade the "
-                + noun
-                + "'s "
-                + self.building_name
-                + ". /n /n"
-            )
+            text += f"The {self.current_unit.name} attempts to upgrade the {noun}'s {self.building_name}. /n /n"
         elif subject == "success":
-            text += (
-                "The "
-                + self.current_unit.name
-                + " successfully upgraded the "
-                + noun
-                + "'s "
-                + self.building_name
-                + ". /n /n"
-            )
+            text += f"The {self.current_unit.name} successfully upgraded the {noun}'s {self.building_name}. /n /n"
         elif subject == "failure":
-            text += (
-                "Little progress was made and the "
-                + self.current_unit.officer.name
-                + " requests more time and funds to complete the upgrade. /n /n"
-            )
+            text += f"Little progress was made and the {self.current_unit.officer.name} requests more time and funds to complete the upgrade. /n /n"
         elif subject == "critical_success":
             text += self.generate_notification_text("success")
-            text += (
-                "The "
-                + self.current_unit.officer.name
-                + " managed the upgrade well enough to become a veteran. /n /n"
-            )
+            text += f"The {self.current_unit.officer.name} managed the upgrade well enough to become a veteran. /n /n"
         return text
 
     def get_price(self):

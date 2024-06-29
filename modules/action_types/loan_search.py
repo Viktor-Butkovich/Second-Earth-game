@@ -50,15 +50,11 @@ class loan_search(action.campaign):
             None
         """
         return [
-            "Attempts to find a 100 money loan offer with a favorable interest rate for "
-            + str(self.get_price())
-            + " money",
+            f"Attempts to find a 100 money loan offer with a favorable interest rate for {self.get_price()} money",
             "Can only be done on Earth",
             "While automatically successful, the offered interest rate may vary",
-            "Costs all remaining movement points, at least 1",
-            "Each "
-            + self.name
-            + " attempted doubles the cost of other loan searches in the same turn",
+            f"Costs all remaining movement points, at least 1",
+            f"Each {self.name} attempted doubles the cost of other loan searches in the same turn",
         ]
 
     def generate_notification_text(self, subject):
@@ -73,21 +69,11 @@ class loan_search(action.campaign):
         text = super().generate_notification_text(subject)
         if subject == "confirmation":
             text += "Are you sure you want to search for a 100 money loan? A loan will always be available, but the merchant's success will determine the interest rate found. /n /n"
-            text += "The search will cost " + str(self.get_price()) + " money. /n /n "
+            text += f"The search will cost {self.get_price()} money. /n /n "
         elif subject == "success":
             text += "Loan offer: /n /n"
-            text += (
-                "The company will be provided an immediate sum of "
-                + str(self.current_proposed_loan["principal"])
-                + " money. /n /n"
-            )
-            text += (
-                "In return, the company will be obligated to pay back "
-                + str(self.current_proposed_loan["interest"])
-                + " money per turn for 10 turns, for a total of "
-                + str(self.current_proposed_loan["total_paid"])
-                + " money. /n /n"
-            )
+            text += f"The company will be provided an immediate sum of {self.current_proposed_loan['principal']} money. /n /n"
+            text += f"In return, the company will be obligated to pay back {self.current_proposed_loan['interest']} money per turn for 10 turns, for a total of {self.current_proposed_loan['total_paid']} money. /n /n"
             text += "Do you accept this exchange? /n /n"
         elif subject == "critical_success":
             text += self.generate_notification_text("success")

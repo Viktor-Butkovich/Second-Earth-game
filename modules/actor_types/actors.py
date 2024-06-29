@@ -5,6 +5,7 @@ import random
 from ..util import text_utility, utility, actor_utility, scaling, market_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
+from typing import Dict
 
 
 class actor:
@@ -12,7 +13,7 @@ class actor:
     Object that can exist within certain coordinates on one or more grids and can optionally be able to hold an inventory of commodities
     """
 
-    def __init__(self, from_save, input_dict):
+    def __init__(self, from_save, input_dict, original_constructor=True):
         """
         Description:
             Initializes this object
@@ -45,6 +46,23 @@ class actor:
         self.infinite_inventory_capacity = False
         self.inventory_capacity = 0
         self.inventory = input_dict.get("inventory", {})
+        self.finish_init(original_constructor, from_save, input_dict)
+
+    def finish_init(
+        self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
+    ):
+        """
+        Description:
+            Finishes initialization of this actor, called after the original is finished
+                Helps with calling functions that are for setup but require that most initialization is complete before they are called
+        Input:
+            boolean original_constructor: Whether this is the original constructor call for this object
+        Output:
+            None
+        """
+        if original_constructor:
+            self.update_image_bundle()
+            self.update_tooltip()
 
     def to_save_dict(self):
         """
@@ -66,20 +84,9 @@ class actor:
         if self.actor_type == "mob":
             if self.is_pmob:
                 if self.is_worker:
-                    if self.worker_type == "religious":
-                        init_type = "church_volunteers"
-                    elif self.worker_type == "slave":
-                        init_type = "slaves"
-                    else:
-                        init_type = "workers"
+                    init_type = "workers"
                 elif self.is_vehicle:
-                    if self.vehicle_type == "train":
-                        init_type = "train"
-                    elif self.vehicle_type == "ship":
-                        if self.can_swim_river:
-                            init_type = "boat"
-                        else:
-                            init_type = "ship"
+                    init_type = self.vehicle_type
                 elif self.is_officer:
                     init_type = self.officer_type
                 elif self.is_group:
@@ -361,24 +368,19 @@ class actor:
                 unit_word = "units"
             if is_first and is_last:
                 lost_commodities_message += (
-                    str(amount_lost) + " " + unit_word + " of " + lost_commodity
+                    f"{amount_lost} {unit_word} of {lost_commodity}"
                 )
             elif len(types_lost_list) == 2 and is_first:
                 lost_commodities_message += (
-                    str(amount_lost) + " " + unit_word + " of " + lost_commodity + " "
+                    f"{amount_lost} {unit_word} of {lost_commodity} "
                 )
             elif not is_last:
                 lost_commodities_message += (
-                    str(amount_lost) + " " + unit_word + " of " + lost_commodity + ", "
+                    f"{amount_lost} {unit_word} of {lost_commodity}, "
                 )
             else:
                 lost_commodities_message += (
-                    "and "
-                    + str(amount_lost)
-                    + " "
-                    + unit_word
-                    + " of "
-                    + lost_commodity
+                    f"and {amount_lost} {unit_word} of {lost_commodity}"
                 )
         if not lost_commodities_message == "":
             if len(types_lost_list) == 1 and amounts_lost_list[0] == 1:
@@ -386,37 +388,17 @@ class actor:
             else:
                 was_word = "were"
             if status.strategic_map_grid in self.grids:
-                location_message = "at (" + str(self.x) + ", " + str(self.y) + ")"
-            elif status.slave_traders_grid in self.grids:
-                location_message = "in the Arab slave markets"
+                location_message = f"at ({self.x}, {self.y})"
             else:
                 location_message = f"in {self.grids[0].name}"
 
             if self.actor_type == "tile":
                 transportation_minister.display_message(
-                    "Minister of Transportation "
-                    + transportation_minister.name
-                    + " reports that "
-                    + lost_commodities_message
-                    + " "
-                    + location_message
-                    + " "
-                    + was_word
-                    + " lost, damaged, or misplaced. /n /n"
+                    f"Minister of Transportation {transportation_minister.name} reports that {lost_commodities_message} {location_message} {was_word} lost, damaged, or misplaced. /n /n"
                 )
             elif self.actor_type == "mob":
                 transportation_minister.display_message(
-                    "Minister of Transportation "
-                    + transportation_minister.name
-                    + " reports that "
-                    + lost_commodities_message
-                    + " carried by the "
-                    + self.name
-                    + " "
-                    + location_message
-                    + " "
-                    + was_word
-                    + " lost, damaged, or misplaced. /n /n"
+                    f"Minister of Transportation {transportation_minister.name} reports that {lost_commodities_message} carried by the {self.name} {location_message} {was_word} lost, damaged, or misplaced. /n /n"
                 )
         if stealing and value_stolen > 0:
             transportation_minister.steal_money(value_stolen, "inventory_attrition")

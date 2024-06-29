@@ -1,0 +1,503 @@
+{
+    "South Asian": {
+        "metadata": {
+            "space_representation": 0.4
+        },
+        "populations": {
+            "India": 141,
+            "Pakistan": 24,
+            "Bangladesh": 17,
+            "Nepal": 3,
+            "Sri Lanka": 2,
+            "Misc. Indian": 1
+        },
+        "miscellaneous": ["Bhutan", "Maldives"],
+        "demographics": {
+            "default": {
+                "Indian": 98,
+                "British": 1,
+                "diaspora": 1
+            },
+            "Pakistan": {
+                "Indian": 93,
+                "Iranian": 4,
+                "Arabic": 2,
+                "diaspora": 1
+            }
+        }
+    },
+    "East Asian": {
+        "metadata": {
+            "space_representation": 0.5
+        },
+        "populations": {
+            "China": 142,
+            "Japan": 12,
+            "South Korea": 5,
+            "North Korea": 3,
+            "Taiwan": 2,
+            "Hong Kong": 1
+        },
+        "demographics": {
+            "default": {
+                "Chinese": 90,
+                "Central Asian": 5,
+                "Filipino": 2,
+                "diaspora": 3
+            },
+            "Japan": {
+                "Japanese": 92,
+                "Central Asian": 2,
+                "Southeast Asian": 2,
+                "Chinese": 2,
+                "Korean": 1,
+                "diaspora": 1
+            },
+            "South Korea": {
+                "Korean": 95,
+                "Chinese": 2,
+                "American": 2,
+                "diaspora": 1
+            },
+            "North Korea": {
+                "Korean": 100
+            }
+        }
+    },
+    "Southeast Asian": {
+        "metadata": {
+            "space_representation": 0.3
+        },
+        "populations": {
+            "Indonesia": 28,
+            "Philippines": 12,
+            "Vietnam": 10,
+            "Thailand": 7,
+            "Myanmar": 5,
+            "Malaysia": 3,
+            "Cambodia": 2,
+            "Papua New Guinea": 1,
+            "Laos": 1,
+            "Misc. Southeast Asian": 1
+        },
+        "miscellaneous": ["Singapore", "Timore-Leste", "Mauritius", "Fiji", "Brunei", "Solomon Islands", "Vanuatu", "Samoa", "Kiribati", "Tonga", "Micronesia", "Palau", "Marshall Islands", "Tuvalu", "Nauru"],
+        "demographics": {
+            "default": {
+                "Southeast Asian": 95,
+                "Chinese": 2,
+                "Filipino": 2,
+                "diaspora": 1
+            },
+            "Philippines": {
+                "Filipino": 90,
+                "Latin": 5,
+                "Japanese": 1,
+                "Chinese": 1,
+                "American": 2,
+                "diaspora": 1
+            }
+        }
+    },
+    "Western Bloc": {
+        "metadata": {
+            "space_representation": 1.0
+        },
+        "populations": {
+            "USA": 34,
+            "Germany": 8,
+            "UK": 7,
+            "France": 6,
+            "Italy": 6,
+            "South Africa": 6,
+            "Canada": 4,
+            "Australia": 3,
+            "Netherlands": 2,
+            "Belgium": 1,
+            "Greece": 1,
+            "Sweden": 1,
+            "Portugal": 1,
+            "Israel": 1,
+            "Austria": 1,
+            "Switzerland": 1,
+            "Denmark": 1,
+            "Finland": 1,
+            "Norway": 1,
+            "New Zealand": 1,
+            "Ireland": 1,
+            "Misc. Western": 1
+        },
+        "miscellaneous": ["Luxembourg", "Cyprus", "Iceland", "Malta", "Liechtenstein", "Monaco", "Andorra", "San Marino", "Vatican City"],
+        "demographics": {
+            "USA": {
+                "American": 58,
+                "Latin": 19,
+                "African American": 12,
+                "Chinese": 1,
+                "Japanese": 1,
+                "Korean": 1,
+                "Filipino": 1,
+                "diaspora": 7
+            },
+            "Germany": {
+                "German": 71,
+                "Eastern European": 7,
+                "Arabic": 5,
+                "West African": 1,
+                "East African": 1,
+                "Italian": 1,
+                "diaspora": 14
+            },
+            "UK": {
+                "British": 82,
+                "Indian": 7,
+                "Chinese": 1,
+                "West African": 2,
+                "East African": 2,
+                "diaspora": 6
+            },
+            "Ireland": "UK",
+            "France": {
+                "French": 76,
+                "Arabic": 9,
+                "West African": 5,
+                "East African": 2,
+                "Eastern European": 2,
+                "Portuguese": 1,
+                "Latin": 1,
+                "diaspora": 4
+            },
+            "Italy": {
+                "Italian": 91,
+                "Arabic": 2,
+                "Eastern European": 2,
+                "French": 1,
+                "German": 1,
+                "Indian": 1,
+                "diaspora": 2
+            },
+            "Scandinavian": {
+                "Scandinavian": 90,
+                "Arabic": 5,
+                "Eastern European": 3,
+                "diaspora": 2
+            },
+            "Denmark": "Scandinavian",
+            "Norway": "Scandinavian",
+            "Finland": "Scandinavian",
+            "Sweden": "Scandinavian",
+            "South Africa": {
+                "West African": 43,
+                "East African": 43,
+                "British": 9,
+                "Indian": 2,
+                "diaspora": 3
+            },
+            "Canada": {
+                "British": 31,
+                "French": 20,
+                "American": 25,
+                "African American": 2,
+                "West African": 1,
+                "East African": 1,
+                "Arabic": 2,
+                "Chinese": 4,
+                "Filipino": 3,
+                "Indian": 7,
+                "Latin": 2,
+                "diaspora": 2
+            },
+            "Australia": {
+                "British": 77,
+                "Chinese": 5,
+                "Italian": 4,
+                "German": 4,
+                "Indian": 3,
+                "Filipino": 2,
+                "Southeast Asian": 2,
+                "diaspora": 3
+            },
+            "New Zealand": "Australia",
+            "Portugal": {
+                "Portuguese": 85,
+                "Arabic": 5,
+                "Latin": 5,
+                "French": 2,
+                "British": 1,
+                "diaspora": 2
+            },
+            "default": {
+                "Dutch": 20,
+                "French": 20,
+                "German": 30,
+                "British": 5,
+                "Arabic": 5,
+                "Eastern European": 15,
+                "diaspora": 5
+            }
+        }
+    },
+    "Eastern Bloc": {
+        "metadata": {
+            "space_representation": 1.0
+        },
+        "populations": {
+            "Russia": 15,
+            "Poland": 4,
+            "Ukraine": 4,
+            "Uzbekistan": 3,
+            "Romania": 2,
+            "Kazakhstan": 2,
+            "Czech Republic": 2,
+            "Azerbaijan": 1,
+            "Hungary": 1,
+            "Tajikistan": 1,
+            "Belarus": 1,
+            "Serbia": 1,
+            "Kyrgyzstan": 1,
+            "Bulgaria": 1,
+            "Turkmenistan": 1,
+            "Slovakia": 1,
+            "Misc. Eastern": 5
+        },
+        "miscellaneous": ["Estonia", "Slovenia", "North Macedonia", "Latvia", "Lithuania", "Croatia", "Georgia", "Mongolia", "Moldova", "Bosnia and Herzegovina", "Albania", "Armenia", "Montenegro"],
+        "demographics": {
+            "Russia": {
+                "Eastern European": 79,
+                "Central Asian": 20,
+                "diaspora": 1
+            },
+            "Eastern Europe": {
+                "Eastern European": 92,
+                "German": 3,
+                "Central Asian": 3,
+                "diaspora": 2
+            },
+            "Central Asia": {
+                "Central Asian": 94,
+                "Eastern European": 3,
+                "Iranian": 2,
+                "diaspora": 1
+            },
+            "Poland": "Eastern Europe",
+            "Ukraine": "Eastern Europe",
+            "Romania": "Eastern Europe",
+            "Czech Republic": "Eastern Europe",
+            "Hungary": "Eastern Europe",
+            "Belarus": "Eastern Europe",
+            "Serbia": "Eastern Europe",
+            "Bulgaria": "Eastern Europe",
+            "Slovakia": "Eastern Europe",
+            "Estonia": "Eastern Europe",
+            "Slovenia": "Eastern Europe",
+            "North Macedonia": "Eastern Europe",
+            "Latvia": "Eastern Europe",
+            "Lithuania": "Eastern Europe",
+            "Croatia": "Eastern Europe",
+            "Georgia": "Central Asia",
+            "Moldova": "Eastern Europe",
+            "Bosnia and Herzegovina": "Eastern Europe",
+            "Albania": "Eastern Europe",
+            "Montenegro": "Eastern Europe",
+            "Armenia": "Central Asia",
+            "Mongolia": "Central Asia",
+            "Uzbekistan": "Central Asia",
+            "Kazakhstan": "Central Asia",
+            "Azerbaijan": "Central Asia",
+            "Tajikistan": "Central Asia",
+            "Kyrgyzstan": "Central Asia",
+            "Turkmenistan": "Central Asia"
+        }
+    },
+    "African": {
+        "metadata": {
+            "space_representation": 0.3
+        },
+        "populations": {
+            "Nigeria": 22,
+            "Ethiopia": 13,
+            "DR Congo": 10,
+            "Tanzania": 7,
+            "Kenya": 5,
+            "Uganda": 5,
+            "Sudan": 5,
+            "Angola": 4,
+            "Ghana": 3,
+            "Mozambique": 3,
+            "Madagascar": 3,
+            "Ivory Cost": 3,
+            "Cameroon": 3,
+            "Niger": 3,
+            "Mali": 2,
+            "Burkina Faso": 2,
+            "Malawi": 2,
+            "Zambia": 2,
+            "Chad": 2,
+            "Senegal": 2,
+            "Zimbabwe": 2,
+            "Guinea": 1,
+            "Rwanda": 1,
+            "Benin": 1,
+            "Burundi": 1,
+            "South Sudan": 1,
+            "Togo": 1,
+            "Sierra Leone": 1,
+            "Congo": 1,
+            "Central African Republic": 1,
+            "Liberia": 1,
+            "Misc. African": 2
+        },
+        "miscellaneous": ["Eswatini", "Djibouti", "Guinea-Bissau", "Gabon", "Equatorial Guinea", "Lesotho", "Namibia", "Botswana", "Mauritania", "Eritrea", "Gambia"],
+        "demographics": {
+            "default": {
+                "West African": 48,
+                "East African": 48,
+                "diaspora": 4
+            },
+            "West Africa": {
+                "West African": 96,
+                "East African": 1,
+                "diaspora": 3
+            },
+            "East Africa": {
+                "East African": 96,
+                "West African": 1,
+                "diaspora": 3
+            }
+        },
+        "Nigeria": "West Africa",
+        "Ethiopia": "East Africa",
+        "DR Congo": "West Africa",
+        "Tanzania": "East Africa",
+        "Kenya": "East Africa",
+        "Uganda": "East Africa",
+        "Sudan": "East Africa",
+        "Angola": "West Africa",
+        "Ghana": "West Africa",
+        "Mozambique": "East Africa",
+        "Madagascar": "East Africa",
+        "Ivory Cost": "West Africa",
+        "Cameroon": "West Africa",
+        "Niger": "West Africa",
+        "Mali": "West Africa",
+        "Burkina Faso": "West Africa",
+        "Malawi": "East Africa",
+        "Zambia": "East Africa",
+        "Chad": "West Africa",
+        "Senegal": "West Africa",
+        "Zimbabwe": "East Africa",
+        "Guinea": "West Africa",
+        "Rwanda": "East Africa",
+        "Benin": "West Africa",
+        "Burundi": "East Africa",
+        "South Sudan": "East Africa",
+        "Togo": "West Africa",
+        "Sierra Leone": "West Africa",
+        "Congo": "West Africa",
+        "Central African Republic": "West Africa",
+        "Liberia": "West Africa"
+    },
+    "Arabic": {
+        "metadata": {
+            "space_representation": 0.4
+        },
+        "populations": {
+            "Egypt": 11,
+            "Iran": 9,
+            "Turkey": 8,
+            "Algeria": 5,
+            "Iraq": 4,
+            "Morocco": 4,
+            "Afghanistan": 4,
+            "Saudi Arabia": 3,
+            "Yemen": 3,
+            "Niger": 3,
+            "Syria": 2,
+            "Somalia": 2,
+            "Tunisia": 1,
+            "Jordan": 1,
+            "UAE": 1,
+            "Libya": 1,
+            "Palestine": 1,
+            "Lebanon": 1,
+            "Misc. Arabic": 1
+        },
+        "miscellaneous": ["Qatar", "Oman", "Kuwait", "Bahrain"],
+        "demographics": {
+            "default": {
+                "Arabic": 93,
+                "Central Asian": 3,
+                "Iranian": 3,
+                "diaspora": 1
+            },
+            "Iran:": {
+                "Iranian": 78,
+                "Central Asian": 18,
+                "Arabic": 3,
+                "diaspora": 1
+            },
+            "Afghanistan": {
+                "Central Asian": 75,
+                "Iranian": 20,
+                "Arabic": 4,
+                "diaspora": 1
+            },
+            "Turkey": {
+                "Central Asian": 90,
+                "Eastern European": 5,
+                "Arabic": 2,
+                "Iranian": 2,
+                "diaspora": 1
+            }
+        }
+    },
+    "Latin": {
+        "metadata": {
+            "space_representation": 0.2
+        },
+        "populations": {
+            "Brazil": 22,
+            "Mexico": 13,
+            "Colombia": 5,
+            "Spain": 5,
+            "Argentina": 5,
+            "Peru": 3,
+            "Venezuela": 3,
+            "Chile": 2,
+            "Ecuador": 2,
+            "Guatemala": 2,
+            "Bolivia": 1,
+            "Honduras": 1,
+            "Nicaragua": 1,
+            "Paraguay": 1,
+            "El Salvador": 1,
+            "Costa Rica": 1,
+            "Misc. Latin": 2,
+            "Haiti": 1,
+            "Dominican republic": 1,
+            "Cuba": 1
+        },
+        "miscellaneous": ["Panama", "Uruguay", "Puerto Rico", "Jamaica", "Trinidad and Tobago"],
+        "demographics": {
+            "default": {
+                "Latin": 83,
+                "Indigeneous Latin American": 15,
+                "diaspora": 2
+            },
+            "Spain": {
+                "Latin": 90,
+                "Arabic": 5,
+                "French": 1,
+                "Italian": 1,
+                "diaspora": 3
+            },
+            "Argentina": {
+                "Latin": 35,
+                "German": 30,
+                "Italian": 20,
+                "Indigeneous Latin American": 8,
+                "diaspora": 7
+            },
+            "Chile": "Argentina"
+        }
+    }
+}

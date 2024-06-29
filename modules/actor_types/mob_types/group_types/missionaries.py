@@ -8,7 +8,7 @@ import modules.constants.status as status
 
 class missionaries(group):
     """
-    A group with an evangelist officer and church volunteer workers that can build churches and convert native villages
+    A group with an evangelist officer and church volunteer workers that can build churches
     """
 
     def __init__(self, from_save, input_dict):

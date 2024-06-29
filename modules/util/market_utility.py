@@ -113,7 +113,7 @@ def attempt_worker_upkeep_change(change_type, worker_type):
         Controls the chance to increase worker upkeep when a worker leaves the labor pool or decrease worker upkeep when a worker joins the labor pool
     Input:
         string change_type: 'increase' or 'decrease' depending on whether a worker is being added to or removed from the labor pool, decides whether worker price increases or decreases
-        string worker_type: 'European' or 'African', decides which type of worker has a price change
+        string worker_type: Like 'European', decides which type of worker has a price change
     Output:
         None
     """
@@ -123,77 +123,16 @@ def attempt_worker_upkeep_change(change_type, worker_type):
             changed_price = round(current_price + constants.worker_upkeep_increment, 2)
             status.worker_types[worker_type].upkeep = changed_price
             text_utility.print_to_screen(
-                "Hiring "
-                + utility.generate_article(worker_type)
-                + " "
-                + worker_type
-                + " worker increased "
-                + worker_type
-                + " worker upkeep from "
-                + str(current_price)
-                + " to "
-                + str(changed_price)
-                + "."
+                f"Hiring {utility.generate_article(worker_type)} {worker_type} worker increased {worker_type} worker upkeep from {current_price} to {changed_price}."
             )
         elif change_type == "decrease":
             changed_price = round(current_price - constants.worker_upkeep_increment, 2)
             if changed_price >= status.worker_types[worker_type].min_upkeep:
                 status.worker_types[worker_type].upkeep = changed_price
                 text_utility.print_to_screen(
-                    "Adding "
-                    + utility.generate_article(worker_type)
-                    + " "
-                    + worker_type
-                    + " worker to the labor pool decreased "
-                    + worker_type
-                    + " worker upkeep from "
-                    + str(current_price)
-                    + " to "
-                    + str(changed_price)
-                    + "."
+                    f"Adding {utility.generate_article(worker_type)} {worker_type} worker to the labor pool decreased {worker_type} worker upkeep from {current_price} to {changed_price}."
                 )
-            if worker_type == "African":
-                constants.achievement_manager.check_achievements("Minimum Wage")
         constants.money_label.check_for_updates()
-
-
-def attempt_slave_recruitment_cost_change(change_type):
-    """
-    Description:
-        Controls the chance to increase slave recruitment cost when a slave worker is bought or decrease the recruitment cost over time
-    Input:
-        string change_type: 'increase' or 'decrease' depending on whether a worker is being added to or removed from the labor pool, decides whether worker price increases or decreases
-        string worker_type: 'European' or 'African', decides which type of worker has a price change
-    Output:
-        None
-    """
-    if random.randrange(1, 7) >= 4:
-        current_price = status.worker_types["slave"].recruitment_cost
-        if change_type == "increase":
-            changed_price = round(
-                current_price + constants.slave_recruitment_cost_increment, 2
-            )
-            status.worker_types["slave"].set_recruitment_cost(changed_price)
-            text_utility.print_to_screen(
-                "Buying slave workers increased the recruitment cost of slave workers from "
-                + str(current_price)
-                + " to "
-                + str(changed_price)
-                + "."
-            )
-        elif change_type == "decrease":
-            changed_price = round(
-                current_price - constants.slave_recruitment_cost_increment, 2
-            )
-            if changed_price >= status.worker_types["slave"].min_recruitment_cost:
-                status.worker_types["slave"].set_recruitment_cost(changed_price)
-                text_utility.print_to_screen(
-                    "Adding slaves to the slave recruitment pool decreased the recruitment cost of slave workers from "
-                    + str(current_price)
-                    + " to "
-                    + str(changed_price)
-                    + "."
-                )
 
 
 def calculate_subsidies(projected=False):
@@ -255,24 +194,6 @@ def calculate_end_turn_money_change():
         estimated_change -= current_loan.interest
     estimated_change += calculate_total_sale_revenue()
     return round(estimated_change, 2)
-
-
-def count_available_workers():
-    """
-    Description:
-        Counts and returns the total number of wandering workers and available workers between all villages and slums
-    Input:
-        None
-    Output:
-        int: Returns the total number of wandering workers and available workers between all villages and slums
-    """
-    num_available_workers = 0
-    for current_village in status.village_list:
-        num_available_workers += current_village.available_workers
-    for current_slums in status.slums_list:
-        num_available_workers += current_slums.available_workers
-    num_available_workers += constants.num_wandering_workers
-    return num_available_workers
 
 
 class loan:

@@ -217,6 +217,33 @@ class image_bundle(image):
         self.members.insert(index, new_member)
         self.combined_surface = self.generate_combined_surface()
 
+    def get_blit_sequence(self):
+        """
+        Description:
+            Generates and returns a list of tuples of image surfaces and their respective blit offsets for each member image in this bundle, designed as input for Pygame.blits
+        Input:
+            None
+        Output:
+            list: Returns list of tuples of image surfaces and their respective blit offsets for each member image in this bundle
+        """
+        blit_sequence = []
+        for member in self.members:
+            if (
+                type(member) == image_bundle
+            ):  # Recursively get blit sequence for image bundle members
+                blit_sequence += member.get_blit_sequence()
+            elif member.image_id != "misc/empty.png":
+                if member.is_offset:
+                    blit_sequence.append(
+                        (
+                            member.image,
+                            ((member.get_blit_x_offset(), member.get_blit_y_offset())),
+                        )
+                    )
+                else:
+                    blit_sequence.append((member.image, (0, 0)))
+        return blit_sequence
+
     def generate_combined_surface(self):
         """
         Description:
@@ -234,18 +261,7 @@ class image_bundle(image):
         combined_surface.set_colorkey(
             constants.color_dict["transparent"], pygame.RLEACCEL
         )
-        blit_sequence = []
-        for member in self.members:
-            if member.image_id != "misc/empty.png":
-                if member.is_offset:
-                    blit_sequence.append(
-                        (
-                            member.image,
-                            ((member.get_blit_x_offset(), member.get_blit_y_offset())),
-                        )
-                    )
-                else:
-                    blit_sequence.append((member.image, (0, 0)))
+        blit_sequence = self.get_blit_sequence()
         if blit_sequence:
             combined_surface.blits(blit_sequence)
         return combined_surface
@@ -388,7 +404,7 @@ class bundle_image:
                 self.has_green_screen = False
             if "font" in image_id:
                 self.font = image_id["font"]
-            elif not self.image_id.endswith(".png"):
+            elif type(self.image_id) == str and not self.image_id.endswith(".png"):
                 self.font = constants.myfont
             if "free" in image_id:
                 self.free = image_id["free"]
@@ -470,63 +486,67 @@ class bundle_image:
         Output:
             None
         """
-        if self.image_id.endswith(".png"):
+        if type(self.image_id) == str and self.image_id.endswith(".png"):
             full_image_id = "graphics/" + self.image_id
         else:
             full_image_id = self.image_id
-        key = full_image_id
-        if self.is_offset and self.has_green_screen:
-            for current_green_screen_color in self.green_screen_colors:
-                key += str(current_green_screen_color)
-        if key in status.rendered_images:  # if image already loaded, use it
-            self.image = status.rendered_images[key]
-        else:  # if image not loaded, load it and add it to the loaded images
-            if full_image_id.endswith(".png"):
-                self.text = False
-                try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
-                    self.image = pygame.image.load(full_image_id)
-                except:
-                    print(full_image_id)
-                    self.image = pygame.image.load(full_image_id)
-                self.image.convert()
-                if self.is_offset and self.has_green_screen:
-                    width, height = self.image.get_size()
-                    index = 0
-                    for current_green_screen_color in constants.green_screen_colors:
-                        if index < len(self.green_screen_colors):
-                            if (
-                                type(self.green_screen_colors[index]) == str
-                            ):  # like 'red'
-                                replace_with = self.bundle.constants.color_dict[
-                                    self.green_screen_colors[index]
-                                ]
-                            else:  # like (255, 0, 0)
-                                replace_with = self.green_screen_colors[index]
-                            for x in range(width):
-                                for y in range(height):
-                                    current_color = self.image.get_at((x, y))
-                                    if (
-                                        current_color[0]
-                                        == current_green_screen_color[0]
-                                        and current_color[1]
-                                        == current_green_screen_color[1]
-                                        and current_color[2]
-                                        == current_green_screen_color[2]
-                                    ):
-                                        self.image.set_at(
-                                            (x, y),
-                                            (
-                                                replace_with[0],
-                                                replace_with[1],
-                                                replace_with[2],
-                                                current_color[3],
-                                            ),
-                                        )  # preserves alpha value
-                        index += 1
-            else:
-                self.text = True
-                self.image = text_utility.text(self.image_id, self.font)
-            status.rendered_images[key] = self.image
+        key = str(full_image_id)
+        try:
+            if self.is_offset and self.has_green_screen:
+                for current_green_screen_color in self.green_screen_colors:
+                    key += str(current_green_screen_color)
+            if key in status.rendered_images:  # if image already loaded, use it
+                self.image = status.rendered_images[key]
+            else:  # if image not loaded, load it and add it to the loaded images
+                if full_image_id.endswith(".png"):
+                    self.text = False
+                    try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
+                        self.image = pygame.image.load(full_image_id)
+                    except:
+                        print(full_image_id)
+                        self.image = pygame.image.load(full_image_id)
+                    self.image.convert()
+                    if self.is_offset and self.has_green_screen:
+                        width, height = self.image.get_size()
+                        index = 0
+                        for current_green_screen_color in constants.green_screen_colors:
+                            if index < len(self.green_screen_colors):
+                                if (
+                                    type(self.green_screen_colors[index]) == str
+                                ):  # like 'red'
+                                    replace_with = self.bundle.constants.color_dict[
+                                        self.green_screen_colors[index]
+                                    ]
+                                else:  # like (255, 0, 0)
+                                    replace_with = self.green_screen_colors[index]
+                                for x in range(width):
+                                    for y in range(height):
+                                        current_color = self.image.get_at((x, y))
+                                        if (
+                                            current_color[0]
+                                            == current_green_screen_color[0]
+                                            and current_color[1]
+                                            == current_green_screen_color[1]
+                                            and current_color[2]
+                                            == current_green_screen_color[2]
+                                        ):
+                                            self.image.set_at(
+                                                (x, y),
+                                                (
+                                                    replace_with[0],
+                                                    replace_with[1],
+                                                    replace_with[2],
+                                                    current_color[3],
+                                                ),
+                                            )  # preserves alpha value
+                            index += 1
+                else:
+                    self.text = True
+                    self.image = text_utility.text(self.image_id, self.font)
+                status.rendered_images[key] = self.image
+        except:
+            print(full_image_id)
+            print(0 / 0)
 
 
 class free_image(image):
@@ -1152,7 +1172,7 @@ class minister_type_image(tooltip_free_image):
                     )
                 elif keyword == "exploration":
                     self.tooltip_text.append(
-                        "Exploration-oriented units include explorers, expeditions, hunters, and safaris."
+                        "Exploration-oriented units include explorers and expeditions."
                     )
                 elif keyword == "construction":
                     self.tooltip_text.append(

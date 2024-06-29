@@ -100,7 +100,7 @@ class world_grid(grid):
                     random.randrange(-5, 13),
                     self.get_tuning("base_temperature_lower_bound"),
                 ),
-                self.get_tuning("base_temperature_upper_bound") + 1,
+                self.get_tuning("base_temperature_upper_bound"),
             )
         else:
             default_temperature = random.randrange(
@@ -269,7 +269,7 @@ class world_grid(grid):
         elif self.get_tuning("mars_preset"):
             water_multiplier = self.get_tuning("mars_water_multiplier")
         else:
-            if random.randrange(1, 7) >= 4:
+            if random.randrange(1, 7) >= 5:
                 water_multiplier = random.randrange(
                     self.get_tuning("min_water_multiplier"),
                     self.get_tuning("max_water_multiplier") + 1,
@@ -791,11 +791,15 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
     )
 
     if grid_type == "strategic_map_grid":
-        map_size = input_dict.get("map_size", random.choice(constants.map_sizes))
+        if constants.effect_manager.effect_active("large_map"):
+            map_size_list = constants.terrain_manager.get_tuning("large_map_sizes")
+        else:
+            map_size_list = constants.terrain_manager.get_tuning("map_sizes")
+        map_size = input_dict.get("map_size", random.choice(map_size_list))
         if constants.terrain_manager.get_tuning("earth_preset"):
-            map_size = constants.map_sizes[3]
+            map_size = map_size_list[3]
         elif constants.terrain_manager.get_tuning("mars_preset"):
-            map_size = constants.map_sizes[1]
+            map_size = map_size_list[1]
         input_dict.update(
             {
                 "modes": [],  # Acts as source of truth for mini grids, but this grid is not directly shown
@@ -844,24 +848,17 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
                     getattr(constants, grid_type + "_x_offset"),
                     getattr(constants, grid_type + "_y_offset"),
                 ),
-                # Like (earth_grid_x_offset, earth_grid_y_offset) or (slave_traders_grid_x_offset, slave_traders_grid_y_offset)
+                # Like (earth_grid_x_offset, earth_grid_y_offset)
                 "width": scaling.scale_width(120),
                 "height": scaling.scale_height(120),
             }
         )
         if grid_type == "earth_grid":
-            input_dict["tile_image_id"] = "locations/earth/earth.png"
             input_dict["modes"].append("earth")
-
-        elif grid_type == "asia_grid":
-            input_dict["tile_image_id"] = "locations/asia.png"
-
-        elif grid_type == "slave_traders_grid":
-            input_dict["tile_image_id"] = "locations/slave_traders/default.png"
 
         input_dict["name"] = (
             grid_type[:-5].replace("_", " ").capitalize()
-        )  # Replaces earth_grid with Earth, slave_traders_grid with Slave traders
+        )  # Replaces earth_grid with Earth
         return_grid = abstract_grid(from_save, input_dict)
 
     setattr(status, grid_type, return_grid)

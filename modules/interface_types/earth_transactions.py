@@ -40,18 +40,7 @@ class recruitment_button(button):
             None
         """
         self.recruitment_type = input_dict["recruitment_type"]
-        if self.recruitment_type in constants.country_specific_units:
-            if status.current_country:
-                self.mob_image_id = (
-                    "mobs/"
-                    + self.recruitment_type
-                    + "/"
-                    + status.current_country.adjective
-                    + "/default.png"
-                )
-            else:
-                self.mob_image_id = "mobs/default/default.png"
-        elif self.recruitment_type in constants.recruitment_types:
+        if self.recruitment_type in constants.recruitment_types:
             self.mob_image_id = "mobs/" + self.recruitment_type + "/default.png"
         else:
             self.mob_image_id = "mobs/default/default.png"
@@ -118,30 +107,6 @@ class recruitment_button(button):
                 )
         else:
             text_utility.print_to_screen("You are busy and cannot recruit a unit")
-
-    def calibrate(self, country):
-        """
-        Description:
-            Sets this button's image to the country-specific version for its unit, like a British or French major. Should make sure self.recruitment_type is in the country_specific_units
-                list
-        Input:
-            country country: Country that this button's unit should match
-        Output:
-            None
-        """
-        self.mob_image_id = {
-            "image_id": "mobs/"
-            + self.recruitment_type
-            + "/"
-            + country.adjective
-            + "/default.png",
-            "size": 0.95,
-            "x_offset": 0,
-            "y_offset": 0,
-            "level": 1,
-        }
-        image_id_list = ["buttons/default_button_alt.png", self.mob_image_id]
-        self.image.set_image(image_id_list)
 
     def update_tooltip(self):
         """

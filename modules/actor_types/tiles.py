@@ -2,8 +2,8 @@
 
 import pygame
 import random
-from ..constructs import images, villages
-from ..util import utility, actor_utility, main_loop_utility, text_utility
+from ..constructs import images
+from ..util import utility, actor_utility, main_loop_utility
 from .actors import actor
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -15,7 +15,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
     An actor that appears under other actors and occupies a grid cell, being able to act as a passive icon, resource, terrain, or a hidden area
     """
 
-    def __init__(self, from_save, input_dict):
+    def __init__(self, from_save, input_dict, original_constructor=True):
         """
         Description:
             Initializes this object
@@ -38,7 +38,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             input_dict["grid"]
         ]  # give actor a 1-item list of grids as input
         self.name_icon = None
-        super().__init__(from_save, input_dict)
+        super().__init__(from_save, input_dict, original_constructor=False)
         self.set_name(input_dict["name"])
         self.image_dict = {"default": input_dict["image"]}
         self.image = images.tile_image(
@@ -77,8 +77,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         self.inventory[current_commodity] = 10
         else:
             self.terrain = "none"
-        self.update_tooltip()
-        self.update_image_bundle()
+        self.finish_init(original_constructor, from_save, input_dict)
         if (
             self.name == "default"
         ):  # Set tile name to that of any terrain features, if applicable
@@ -287,24 +286,8 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 equivalent_tiles = self.get_equivalent_tiles()
                 if equivalent_tiles and self.show_terrain:
                     image_id_list = equivalent_tiles[0].get_image_id_list()
-                else:
-                    image_id_list.append(
-                        self.image_dict["default"]
-                    )  # blank void image if outside of matched area
-            elif self.cell.grid.grid_type == "slave_traders_grid":
-                image_id_list.append(self.image_dict["default"])
-                strength_modifier = actor_utility.get_slave_traders_strength_modifier()
-                if strength_modifier == "none":
-                    adjective = "no"
-                elif strength_modifier < 0:
-                    adjective = "high"
-                elif strength_modifier > 0:
-                    adjective = "low"
-                else:
-                    adjective = "normal"
-                image_id_list.append(
-                    "locations/slave_traders/" + adjective + "_strength.png"
-                )
+            elif self.cell.grid == status.earth_grid:
+                image_id_list = []
             else:
                 if (
                     self.cell.terrain_handler.visible or force_visibility
@@ -456,17 +439,11 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         tooltip_message.append(
                             f"    {terrain_parameter}: {constants.terrain_manager.terrain_parameter_keywords[terrain_parameter][value]} ({value}/{self.cell.terrain_handler.maxima.get(terrain_parameter, 6)})"
                         )
-                if not self.cell.village == "none":  # if village present, show village
-                    tooltip_message += self.cell.village.get_tooltip()
-                elif (
-                    not self.cell.terrain_handler.resource == "none"
-                ):  # if not village but other resource present, show resource
+                if (
+                    self.cell.terrain_handler.resource != "none"
+                ):  # if resource present, show resource
                     tooltip_message.append(
-                        "This tile has "
-                        + utility.generate_article(self.cell.terrain_handler.resource)
-                        + " "
-                        + self.cell.terrain_handler.resource
-                        + " resource"
+                        f"This tile has {utility.generate_article(self.cell.terrain_handler.resource)} {self.cell.terrain_handler.resource} resource"
                     )
                 for terrain_feature in self.cell.terrain_handler.terrain_features:
                     tooltip_message.append(
@@ -474,15 +451,6 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     )
             else:
                 tooltip_message.append("This tile has not been explored")
-            if status.current_lore_mission:
-                if status.current_lore_mission.has_revealed_possible_artifact_location(
-                    coordinates[0], coordinates[1]
-                ):
-                    tooltip_message.append(
-                        "There are rumors that the "
-                        + status.current_lore_mission.name
-                        + " may be found here"
-                    )
             self.set_tooltip(tooltip_message)
         else:
             self.set_tooltip([])
@@ -534,35 +502,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
         if music_override or (
             flags.player_turn and main_loop_utility.action_possible()
         ):
-            if (
-                self.cell.grid.grid_type == "slave_traders_grid"
-                and constants.slave_traders_strength > 0
-            ):
-                if constants.sound_manager.previous_state != "slave traders":
-                    constants.event_manager.clear()
-                    constants.sound_manager.play_random_music("slave traders")
-            elif self.cell.grid.grid_type == "asia_grid":
-                if constants.sound_manager.previous_state != "asia":
-                    constants.event_manager.clear()
-                    constants.sound_manager.play_random_music("asia")
-            elif (
-                self.cell.village != "none"
-                and self.cell.terrain_handler.visible
-                and self.cell.village.population > 0
-                and not self.cell.has_intact_building("port")
-            ):
-                new_state = (
-                    "village " + self.cell.village.get_aggressiveness_adjective()
-                )
-                if (
-                    constants.sound_manager.previous_state != new_state
-                ):  # village_peaceful/neutral/aggressive
-                    constants.event_manager.clear()
-                    constants.sound_manager.play_random_music(new_state)
-            else:
-                if constants.sound_manager.previous_state != "earth":
-                    constants.event_manager.clear()
-                    constants.sound_manager.play_random_music("earth")
+            if constants.sound_manager.previous_state != "earth":
+                constants.event_manager.clear()
+                constants.sound_manager.play_random_music("earth")
 
 
 class abstract_tile(tile):
@@ -586,6 +528,8 @@ class abstract_tile(tile):
         """
         input_dict["coordinates"] = (0, 0)
         input_dict["show_terrain"] = False
+        self.grid_image_id = ["locations/earth/earth.png"]
+        input_dict["image"] = self.grid_image_id
         super().__init__(from_save, input_dict)
 
     def update_tooltip(self):
@@ -597,15 +541,7 @@ class abstract_tile(tile):
         Output:
             None
         """
-        if self.cell.grid.grid_type == "slave_traders_grid":
-            self.set_tooltip(
-                [
-                    self.name,
-                    "Slave traders strength: " + str(constants.slave_traders_strength),
-                ]
-            )
-        else:
-            self.set_tooltip([self.name])
+        self.set_tooltip([self.name])
 
     def can_show_tooltip(self):
         """
@@ -620,3 +556,6 @@ class abstract_tile(tile):
             return True
         else:
             return False
+
+    def get_image_id_list(self):
+        return self.grid_image_id

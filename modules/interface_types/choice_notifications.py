@@ -139,7 +139,7 @@ class choice_button(buttons.button):
             self.recruitment_type = self.notification.choice_info_dict[
                 "recruitment_type"
             ]
-            if self.recruitment_type in ["steamship", "slave workers"]:
+            if self.recruitment_type in ["steamship"]:
                 self.message = "Purchase"
                 self.verb = "purchase"
             else:
@@ -209,30 +209,11 @@ class choice_button(buttons.button):
             None
         """
         if self.button_type == "recruitment":
-            if self.recruitment_type in [
-                "African worker village",
-                "African worker slums",
-                "African worker labor broker",
-            ]:
-                self.set_tooltip(
-                    [
-                        utility.capitalize(self.verb)
-                        + " an African worker for "
-                        + str(self.cost)
-                        + " money"
-                    ]
-                )
-            else:
-                self.set_tooltip(
-                    [
-                        utility.capitalize(self.verb)
-                        + " a "
-                        + self.recruitment_type
-                        + " for "
-                        + str(self.cost)
-                        + " money"
-                    ]
-                )
+            self.set_tooltip(
+                [
+                    f"{utility.capitalize(self.verb)} a {self.recruitment_type} for {str(self.cost)} money"
+                ]
+            )
 
         elif self.button_type == "end turn":
             self.set_tooltip(["End the current turn"])
@@ -266,82 +247,43 @@ class recruitment_choice_button(choice_button):
         Output:
             None
         """
-        input_dict = {"select_on_creation": True}
-        if self.recruitment_type == "slave workers":
-            constants.money_tracker.change(-1 * self.cost, "unit_recruitment")
-            input_dict.update(status.worker_types["slave"].generate_input_dict())
-            input_dict["grids"] = [status.slave_traders_grid]
-            attached_cell = input_dict["grids"][0].cell_list[0][0]
-            input_dict["coordinates"] = (attached_cell.x, attached_cell.y)
-            input_dict["modes"] = input_dict["grids"][0].modes
-            input_dict["purchased"] = True
-            constants.actor_creation_manager.create(False, input_dict)
+        input_dict = {"select_on_creation": True, "coordinates": (0, 0)}
+        if (
+            status.displayed_tile
+        ):  # When recruiting in abstract grid, the correct tile will be selected - use that tile's grids
+            input_dict["grids"] = status.displayed_tile.grids
+        else:  # If no tile selected, assume recruiting on Earth
+            input_dict["grids"] = [status.earth_grid]
+        if self.mob_image_id:
+            input_dict["image"] = self.mob_image_id
+        input_dict["modes"] = input_dict["grids"][0].modes
+        constants.money_tracker.change(-1 * self.cost, "unit_recruitment")
+        if self.recruitment_type in constants.officer_types:
+            name = ""
+            for character in self.recruitment_type:
+                if not character == "_":
+                    name += character
+                else:
+                    name += " "
+            input_dict["name"] = name
+            input_dict["init_type"] = self.recruitment_type
+            input_dict["officer_type"] = self.recruitment_type
 
-        elif self.recruitment_type == "African worker village":
-            status.displayed_tile.cell.get_building("village").recruit_worker()
+        elif self.recruitment_type.endswith(" workers"):
+            input_dict.update(
+                status.worker_types[
+                    self.recruitment_type.replace(" workers", "")
+                ].generate_input_dict()
+            )  # Like European workers
 
-        elif self.recruitment_type == "African worker slums":
-            status.displayed_tile.cell.get_building("slums").recruit_worker()
-
-        elif self.recruitment_type == "African worker labor broker":
-            input_dict = {
-                "select_on_creation": True,
-                "coordinates": (
-                    status.displayed_tile.cell.x,
-                    status.displayed_tile.cell.y,
-                ),
-                "grids": [status.displayed_tile.cell.grid]
-                + status.displayed_tile.cell.grid.mini_grids,
-                "modes": status.displayed_tile.cell.grid.modes,
+        elif self.recruitment_type == "steamship":
+            image_dict = {
+                "default": self.mob_image_id,
+                "uncrewed": "mobs/steamship/uncrewed.png",
             }
-            input_dict.update(status.worker_types["African"].generate_input_dict())
-            constants.money_tracker.change(
-                -1 * self.notification.choice_info_dict["cost"], "unit_recruitment"
-            )
-            self.notification.choice_info_dict["village"].change_population(-1)
-            market_utility.attempt_worker_upkeep_change(
-                "decrease", "African"
-            )  # adds 1 worker to the pool
-            worker = constants.actor_creation_manager.create(False, input_dict)
-
-        else:
-            input_dict["coordinates"] = (0, 0)
-            if (
-                status.displayed_tile
-            ):  # When recruiting in Asia, slave traders, Africa, etc., tile will be selected - use that tile's grids
-                input_dict["grids"] = status.displayed_tile.grids
-            else:  # If no tile selected, assume recruiting on Earth
-                input_dict["grids"] = [status.earth_grid]
-            if self.mob_image_id:
-                input_dict["image"] = self.mob_image_id
-            input_dict["modes"] = input_dict["grids"][0].modes
-            constants.money_tracker.change(-1 * self.cost, "unit_recruitment")
-            if self.recruitment_type in constants.officer_types:
-                name = ""
-                for character in self.recruitment_type:
-                    if not character == "_":
-                        name += character
-                    else:
-                        name += " "
-                input_dict["name"] = name
-                input_dict["init_type"] = self.recruitment_type
-                input_dict["officer_type"] = self.recruitment_type
-
-            elif self.recruitment_type.endswith(" workers"):
-                input_dict.update(
-                    status.worker_types[
-                        self.recruitment_type.replace(" workers", "")
-                    ].generate_input_dict()
-                )  # Like European workers
-
-            elif self.recruitment_type == "steamship":
-                image_dict = {
-                    "default": self.mob_image_id,
-                    "uncrewed": "mobs/steamship/uncrewed.png",
-                }
-                input_dict["image_dict"] = image_dict
-                input_dict["name"] = "steamship"
-                input_dict["crew"] = "none"
-                input_dict["init_type"] = "ship"
-            constants.actor_creation_manager.create(False, input_dict)
+            input_dict["image_dict"] = image_dict
+            input_dict["name"] = "steamship"
+            input_dict["crew"] = "none"
+            input_dict["init_type"] = "ship"
+        constants.actor_creation_manager.create(False, input_dict)
         super().on_click()

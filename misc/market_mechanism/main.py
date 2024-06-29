@@ -39,25 +39,16 @@ class owner:
         self.num_participants -= quantity
         if self.num_participants <= 0 and self in status.owners:
             if self.seller:
-                print(self.name + " has no more to sell")
+                print(f"{self.name} has no more to sell")
             else:
-                print(self.name + " has no more to buy")
+                print(f"{self.name} has no more to buy")
             self.remove()
 
     def remove(self) -> None:
         # if self.num_participants > 0:
         participants = open("participants.txt", "a")
         participants.write(
-            str(int(self.seller))
-            + " "
-            + str(self.num_participants + self.production)
-            + " "
-            + str(self.price)
-            + " "
-            + str(self.production)
-            + " "
-            + str(self.name)
-            + "\n"
+            f"{int(self.seller)} {self.num_participants + self.production} {self.price} {self.production} {self.name}\n"
         )
         participants.close()
         if self.seller:
@@ -70,9 +61,7 @@ class owner:
         if random.randrange(1, 7) >= 4:
             self.looking_for_better_deal = True
             self.worsen_price()
-            print(
-                self.name + " is now looking for a better deal for " + str(self.price)
-            )
+            print(f"{self.name} is now looking for a better deal for {self.price}")
 
     def improve_price(self) -> None:
         if self.seller:
@@ -95,22 +84,12 @@ class owner:
     def print_summary(self) -> None:
         if self.seller:
             print(
-                self.name
-                + " wants to sell "
-                + str(self.num_participants)
-                + " for "
-                + str(self.price)
-                + " each",
+                f"{self.name} wants to sell {self.num_participants} for {self.price} each",
                 end="",
             )
         else:
             print(
-                self.name
-                + " wants to buy "
-                + str(self.num_participants)
-                + " for "
-                + str(self.price)
-                + " each",
+                f"{self.name} wants to buy {self.num_participants} for {self.price} each",
                 end="",
             )
         if self.looking_for_better_deal:
@@ -144,17 +123,13 @@ def print_total_owners():
     num_selling = 0
     for current_seller in status.sellers:
         num_selling += current_seller.num_participants
-    print(str(len(status.buyers)) + " buyers want to buy a total of " + str(num_buying))
-    print(
-        str(len(status.sellers))
-        + " sellers want to sell a total of "
-        + str(num_selling)
-    )
+    print(f"{len(status.buyers)} buyers want to buy a total of {num_buying}")
+    print(f"{len(status.sellers)} sellers want to sell a total of {num_selling}")
     print()
 
 
 def print_summary():
-    print("Round " + str(status.round) + ": ")
+    print(f"Round {status.round}: ")
     print_total_owners()
     for current_buyer in status.buyers:
         current_buyer.print_summary()
@@ -172,39 +147,19 @@ def conduct_round() -> bool:
         participant_2: Tuple[owner, int] = get_random_participant()
         if participant_1[0].seller:
             print(
-                "Participant 1: seller "
-                + str(participant_1[1])
-                + " of "
-                + participant_1[0].name
-                + " for "
-                + str(participant_1[0].price)
+                f"Participant 1: seller {participant_1[1]} of {participant_1[0].name} for {participant_1[0].price}"
             )
         else:
             print(
-                "Participant 1: buyer "
-                + str(participant_1[1])
-                + " of "
-                + participant_1[0].name
-                + " for "
-                + str(participant_1[0].price)
+                f"Participant 1: buyer {participant_1[1]} of {participant_1[0].name} for {participant_1[0].price}"
             )
         if participant_2[0].seller:
             print(
-                "Participant 2: seller "
-                + str(participant_2[1])
-                + " of "
-                + participant_2[0].name
-                + " for "
-                + str(participant_2[0].price)
+                f"Participant 2: seller {participant_2[1]} of {participant_2[0].name} for {participant_2[0].price}"
             )
         else:
             print(
-                "Participant 2: buyer "
-                + str(participant_2[1])
-                + " of "
-                + participant_2[0].name
-                + " for "
-                + str(participant_2[0].price)
+                f"Participant 2: buyer {participant_2[1]} of {participant_2[0].name} for {participant_2[0].price}"
             )
         print()
         transaction = False
@@ -228,14 +183,7 @@ def conduct_round() -> bool:
             ):
                 quantity += 1
             print(
-                buyer_owner.name
-                + " bought "
-                + str(quantity)
-                + " from "
-                + seller_owner.name
-                + " for "
-                + str(seller_owner.price)
-                + " each"
+                f"{buyer_owner.name} bought {quantity} from {seller_owner.name} for {seller_owner.price} each"
             )
             total_price = status.total_sold * status.average_price
             total_price += quantity * seller_owner.price
@@ -255,29 +203,22 @@ def conduct_round() -> bool:
                         if current_owner.looking_for_better_deal:
                             current_owner.improve_price()
                             print(
-                                current_owner.name
-                                + " failed to find a transaction and stopped looking for a better deal (price returned to "
-                                + str(current_owner.price)
-                                + ")"
+                                f"{current_owner.name} failed to find a transaction and stopped looking for a better deal (price returned to {current_owner.price})"
                             )
                             current_owner.looking_for_better_deal = False
                         else:
                             print(
-                                current_owner.name
-                                + " failed to find a transaction and left the market"
+                                f"{current_owner.name} failed to find a transaction and left the market"
                             )
                             current_owner.remove_participants(1)
                     elif decision >= 6 and not current_owner.looking_for_better_deal:
                         current_owner.improve_price()
                         print(
-                            current_owner.name
-                            + " failed to find a transaction and relaxed their price to "
-                            + str(current_owner.price)
+                            f"{current_owner.name} failed to find a transaction and relaxed their price to {current_owner.price}"
                         )
                     else:
                         print(
-                            current_owner.name
-                            + " failed to find a transaction but stayed in the market"
+                            f"{current_owner.name} failed to find a transaction but stayed in the market"
                         )
     elif not status.buyers:
         for current_seller in status.sellers.copy():
@@ -294,9 +235,9 @@ def conduct_round() -> bool:
     print_summary()
     print()
     print_total_owners()
-    print("Total sold: " + str(status.total_sold))
+    print(f"Total sold: {status.total_sold}")
     if status.total_sold > 0:
-        print("Average sale price: " + str(status.average_price))
+        print(f"Average sale price: {status.average_price}")
     if not status.skip_input:
         input("Press enter to start the next round.")
     status.round += 1
@@ -432,9 +373,9 @@ while conduct_round():
     print()
 print()
 print_summary()
-print("Total sold: " + str(status.total_sold))
+print(f"Total sold: {status.total_sold}")
 if status.total_sold > 0:
-    print("Average sale price: " + str(status.average_price))
+    print(f"Average sale price: {status.average_price}")
 print()
 
 """

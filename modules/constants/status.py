@@ -3,7 +3,6 @@ from typing import Dict, List, Any
 from modules.actor_types.tiles import tile
 from modules.actor_types.mobs import mob
 from modules.constructs.ministers import minister
-from modules.constructs.countries import country
 from modules.constructs.worker_types import worker_type
 from modules.constructs.equipment_types import equipment_type
 from modules.constructs.terrain_feature_types import terrain_feature_type
@@ -29,10 +28,7 @@ from modules.actor_types.buildings import building, slums, resource_building
 from modules.actor_types.mobs import mob
 from modules.actor_types.mob_types.pmobs import pmob
 from modules.actor_types.mob_types.npmobs import npmob
-from modules.actor_types.mob_types.npmob_types.beasts import beast
-from modules.constructs.villages import village
 from modules.constructs.settlements import settlement
-from modules.constructs.lore_missions import lore_mission
 from modules.util.market_utility import loan
 from modules.action_types.action import action
 from modules.tools.effects import effect
@@ -41,16 +37,7 @@ strategic_map_grid: world_grid = None
 scrolling_strategic_map_grid: mini_grid = None
 minimap_grid: mini_grid = None
 earth_grid: abstract_grid = None
-asia_grid: abstract_grid = None
-slave_traders_grid: abstract_grid = None
 planet_view_mask: free_image = None
-
-Britain: country = None
-France: country = None
-Germany: country = None
-Belgium: country = None
-Portugal: country = None
-Italy: country = None
 
 actions: Dict[str, action] = {}
 
@@ -61,7 +48,6 @@ displayed_tile_inventory: item_icon = None
 displayed_minister: minister = None
 displayed_defense: minister = None
 displayed_prosecution: minister = None
-displayed_country: country = None
 displayed_notification: notification = None
 
 rendered_images: Dict[str, pygame.Surface] = {}
@@ -70,7 +56,6 @@ recruitment_button_list: List[button] = []
 instructions_list: List[str] = []
 minister_list: List[minister] = []
 available_minister_list: List[minister] = []
-country_list: List[country] = []
 worker_types: Dict[str, worker_type] = {}
 equipment_types: Dict[str, equipment_type] = {}
 terrain_feature_types: Dict[str, terrain_feature_type] = {}
@@ -85,8 +70,6 @@ actor_list: List[actor] = []
 mob_list: List[mob] = []
 pmob_list: List[pmob] = []
 npmob_list: List[npmob] = []
-beast_list: List[beast] = []
-village_list: List[village] = []
 settlement_list: List[settlement] = []
 building_list: List[building] = []
 slums_list: List[slums] = []
@@ -98,7 +81,6 @@ player_turn_queue: List[pmob] = []
 independent_interface_elements: List[Any] = []
 dice_list: List[die] = []
 draw_list: List[Any] = []
-lore_mission_list: List[lore_mission] = []
 same_tile_icon_list: List[same_tile_icon] = []
 
 loading_image: image = None
@@ -112,7 +94,6 @@ tile_info_display: ordered_collection = None
 tile_inventory_info_display: ordered_collection = None
 tile_inventory_grid: inventory_grid = None
 minister_info_display: ordered_collection = None
-country_info_display: ordered_collection = None
 prosecution_info_display: ordered_collection = None
 defense_info_display: ordered_collection = None
 mob_tabbed_collection: tabbed_collection = None
@@ -123,15 +104,11 @@ tile_inventory_collection: ordered_collection = None
 commodity_prices_label: commodity_prices_label_template = None
 reorganize_unit_left_button: button = None
 reorganize_unit_right_button: button = None
-free_unit_slaves_button: button = None
 cursor_image: pygame.image = None
 next_boarded_vehicle: pmob = None
 text_box_destination: callable = None
 
 current_instructions_page: instructions_page = None
-current_country: country = None
-current_country_name: str = None
-current_lore_mission: lore_mission = None
 current_ministers: Dict[str, minister] = {}
 lore_types_effects_dict: Dict[str, effect] = {}
 previous_production_report: str = None
@@ -144,3 +121,11 @@ initial_tutorial_completed: bool = False
 north_pole: cell = None
 south_pole: cell = None
 equator: List[cell] = None
+
+HAT_LEVEL: int = 6
+EYES_LEVEL: int = 2
+GLASSES_LEVEL: int = 3
+HAIR_LEVEL: int = 4
+FACIAL_HAIR_LEVEL: int = 8
+PORTRAIT_LEVEL: int = 10
+LABEL_LEVEL: int = 11

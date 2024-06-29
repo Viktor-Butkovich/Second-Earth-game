@@ -11,12 +11,10 @@ try:
         terrain_feature_types_config,
         commodities,
         def_ministers,
-        def_countries,
         new_game_setup_screen,
         info_displays,
         transactions,
         actions,
-        lore,
         value_trackers,
         buttons,
         earth_screen,
@@ -28,7 +26,6 @@ try:
         settlement_interface,
         inventory_interface,
         minister_interface,
-        country_interface,
     )
     main_loop.main_loop()
 
@@ -43,12 +40,11 @@ except Exception:  # displays error message and records error message in crash l
 # Add random events
 # Add debug settings menu within game, rather than needing to edit .json out of game
 # Add autosave and multiple save slots
-# Performance impacts from repeated exit/load - not everything is being removed each time
-#     Possibly old grids still exist and are drawing under the new ones
 # Add ambient sounds
+# Continue adding new songs
 #
 # Possible issues:
 # Look into special character glitch for Queiros Portuguese name, possibly font issue not having correct special character in the settlement font (but does in minister screen font)
 #
 #   new SE features:
-# Make main theme louder
+# Continue adding hairstyles

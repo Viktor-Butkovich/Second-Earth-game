@@ -29,19 +29,9 @@ class settlement:
         self.x = self.cell.x
         self.y = self.cell.y
         if not from_save:
-            if self.cell.village != "none":
-                self.name = self.cell.village.name
-            else:
-                self.name = constants.flavor_text_manager.generate_flavor_text(
-                    "settlement_names"
-                )
-                if random.randrange(1, 7) >= 4:
-                    if self.cell.has_building("port"):
-                        if status.current_country.adjective == "british":
-                            self.name = "Port " + self.name
-                    elif self.cell.has_building("fort"):
-                        if status.current_country.adjective == "british":
-                            self.name = "Fort " + self.name
+            self.name = constants.flavor_text_manager.generate_flavor_text(
+                "settlement_names"
+            )
         else:
             self.name = input_dict["name"]
         self.cell.tile.set_name(self.name)

@@ -7,12 +7,11 @@ from ...util import (
     text_utility,
     utility,
     actor_utility,
-    minister_utility,
-    game_transitions,
 )
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
+from typing import Dict
 
 
 class pmob(mob):
@@ -20,7 +19,7 @@ class pmob(mob):
     Short for player-controlled mob, mob controlled by the player
     """
 
-    def __init__(self, from_save, input_dict):
+    def __init__(self, from_save, input_dict, original_constructor: bool = True):
         """
         Description:
             Initializes this object
@@ -49,7 +48,7 @@ class pmob(mob):
             None
         """
         self.sentry_mode = False
-        super().__init__(from_save, input_dict)
+        super().__init__(from_save, input_dict, original_constructor=False)
         self.selection_outline_color = "bright green"
         status.pmob_list.append(self)
         self.is_pmob = True
@@ -98,6 +97,22 @@ class pmob(mob):
                 []
             )  # first item is next step, last item is current location
             self.wait_until_full = False
+        self.attached_cell_icon_list = []
+        self.finish_init(original_constructor, from_save, input_dict)
+
+    def finish_init(
+        self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
+    ):
+        """
+        Description:
+            Finishes initialization of this actor, called after the original is finished
+        Input:
+            boolean original_constructor: Whether this is the original constructor call for this object
+        Output:
+            None
+        """
+        if original_constructor:
+            super().finish_init(original_constructor, from_save, input_dict)
             if ("select_on_creation" in input_dict) and input_dict[
                 "select_on_creation"
             ]:
@@ -105,7 +120,6 @@ class pmob(mob):
                     status.mob_info_display, None, override_exempt=True
                 )
                 self.select()
-        self.attached_cell_icon_list = []
 
     def to_save_dict(self):
         """
@@ -390,16 +404,6 @@ class pmob(mob):
         Output:
             None
         """
-        if (
-            new_value == True
-            and self.is_worker
-            and self.worker_type == "slave"
-            and constants.slave_traders_strength <= 0
-        ):
-            text_utility.print_to_screen(
-                "The slave trade has been eradicated and automatic replacement of slaves is no longer possible"
-            )
-            return ()
         self.automatically_replace = new_value
         displayed_mob = status.displayed_mob
         if self == displayed_mob:
@@ -533,12 +537,7 @@ class pmob(mob):
             if transportation_minister.no_corruption_roll(
                 6, "health_attrition"
             ) == 1 or constants.effect_manager.effect_active("boost_attrition"):
-                worker_type = "none"
-                if self.is_worker:
-                    worker_type = self.worker_type
-                if (not worker_type in ["African", "slave"]) or random.randrange(
-                    1, 7
-                ) <= 2:
+                if random.randrange(1, 7) <= 2:
                     self.attrition_death()
 
     def attrition_death(self, show_notification=True):
@@ -603,11 +602,6 @@ class pmob(mob):
             text += (
                 str(constants.recruitment_costs["officer"])
                 + " money has automatically been spent to recruit a replacement. /n /n"
-            )
-        elif self.is_worker and self.worker_type == "slave":
-            text += (
-                str(constants.recruitment_costs["slave workers"])
-                + " money has automatically been spent to purchase replacements. /n /n"
             )
         return text
 
@@ -825,7 +819,7 @@ class pmob(mob):
         vehicle.hide_images()
         vehicle.show_images()  # moves vehicle images to front
         if (
-            focus and not vehicle.initializing
+            focus and not flags.loading_save
         ):  # don't select vehicle if loading in at start of game
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, None, override_exempt=True

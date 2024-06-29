@@ -54,9 +54,9 @@ def remove_from_list(received_list, item_to_remove):
 def create_terrain(global_manager, parameter_dict={}):
     input_dict = {"init_type": "terrain"}
     counter = 1
-    while get_terrain_by_name("default" + str(counter), global_manager) != "none":
+    while get_terrain_by_name(f"default{counter}", global_manager) != "none":
         counter += 1
-    input_dict["name"] = "default" + str(counter)
+    input_dict["name"] = f"default{counter}"
     for current_parameter_type in global_manager.get("parameter_types"):
         if len(parameter_dict) == 0:
             input_dict["min_" + current_parameter_type] = 1

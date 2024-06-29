@@ -182,10 +182,6 @@ class button(interface_elements.interface_element):
                     if (
                         current_mob.is_battalion
                         and not adjacent_cell.get_best_combatant("npmob") == "none"
-                    ) or (
-                        current_mob.is_safari
-                        and not adjacent_cell.get_best_combatant("npmob", "beast")
-                        == "none"
                     ):
                         tooltip_text += status.actions["combat"].update_tooltip(
                             tooltip_info_dict={
@@ -210,29 +206,13 @@ class button(interface_elements.interface_element):
                                 and local_infrastructure.is_railroad
                                 and local_cell.has_walking_connection(adjacent_cell)
                             ):
-                                message = (
-                                    "Costs "
-                                    + str(movement_cost)
-                                    + " movement point"
-                                    + utility.generate_plural(movement_cost)
-                                    + " because the adjacent tile has connecting railroads"
-                                )
+                                message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent tile has connecting railroads"
                             else:
                                 message = "Not possible because the adjacent tile does not have connecting railroads"
                             tooltip_text.append(message)
                             tooltip_text.append("A train can only move along railroads")
                         else:
-                            message = (
-                                "Costs "
-                                + str(movement_cost)
-                                + " movement point"
-                                + utility.generate_plural(movement_cost)
-                                + " because the adjacent tile has "
-                                + adjacent_cell.terrain_handler.terrain.replace(
-                                    "_", " "
-                                )
-                                + " terrain "
-                            )
+                            message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent tile has {adjacent_cell.terrain_handler.terrain.replace('_', ' ')} terrain"
                             if local_cell.has_walking_connection(adjacent_cell):
                                 if (
                                     local_infrastructure != "none"
@@ -251,33 +231,19 @@ class button(interface_elements.interface_element):
                                     message += "and no connecting roads"  # + local_infrastructure.infrastructure_type
                                 else:
                                     message += "and no connecting roads"
-                            if adjacent_cell.terrain_handler.terrain_features.get(
-                                "cataract", False
-                            ):
-                                message += "and a cataract"
 
                             tooltip_text.append(message)
                             if (
                                 current_mob.can_walk
                                 and adjacent_cell.terrain_handler.terrain == "water"
-                                and (not current_mob.can_swim_river)
+                                and (not current_mob.can_swim)
                             ) and not local_cell.has_walking_connection(adjacent_cell):
                                 tooltip_text.append(
-                                    "Moving into a river tile costs an entire turn of movement points for units without canoes"
+                                    "Moving into a water tile costs an entire turn of movement points for units without boats"
                                 )
                             else:
                                 tooltip_text.append(
-                                    "Moving into a "
-                                    + adjacent_cell.terrain_handler.terrain.replace(
-                                        "_", " "
-                                    )
-                                    + " tile costs "
-                                    + str(
-                                        constants.terrain_movement_cost_dict[
-                                            adjacent_cell.terrain_handler.terrain
-                                        ]
-                                    )
-                                    + " movement points"
+                                    f"Moving into a {adjacent_cell.terrain_handler.terrain.replace('_', ' ')} tile costs {constants.terrain_movement_cost_dict[adjacent_cell.terrain_handler.terrain]} movement points"
                                 )
                     if (
                         (not current_mob.is_vehicle)
@@ -286,18 +252,10 @@ class button(interface_elements.interface_element):
                         and current_mob.images[0].current_cell.has_vehicle("ship")
                     ):
                         if (
-                            current_mob.images[0].current_cell.y == 0
-                            and not (
-                                current_mob.can_swim and current_mob.can_swim_ocean
-                            )
-                        ) or (
-                            current_mob.images[0].current_cell.y > 0
-                            and not (
-                                current_mob.can_swim and current_mob.can_swim_river
-                            )
+                            not current_mob.can_swim
                         ):  # if could not naturally move into current tile, must be from vehicle
                             tooltip_text.append(
-                                "Moving from a steamship or steamboat in the water after disembarking requires all remaining movement points, at least the usual amount"
+                                "Moving from a steamship in the water after disembarking requires all remaining movement points, at least the usual amount"
                             )
                     if connecting_roads:
                         tooltip_text.append(
@@ -595,20 +553,6 @@ class button(interface_elements.interface_element):
                 ]
             )
 
-        elif self.button_type == "build steamboat":
-            actor_utility.update_descriptions("steamboat")
-            cost = actor_utility.get_building_cost(status.displayed_mob, "train")
-            self.set_tooltip(
-                [
-                    "Orders parts for and attempts to assemble a steamboat in this unit's tile for "
-                    + str(cost)
-                    + " money",
-                    "Can only be assembled on a port",
-                    "Costs all remaining movement points, at least 1",
-                    "Unlike buildings, the cost of vehicle assembly is not impacted by local terrain",
-                ]
-            )
-
         elif self.button_type == "cycle units":
             tooltip_text = ["Selects the next unit in the turn order"]
             turn_queue = status.player_turn_queue
@@ -616,16 +560,6 @@ class button(interface_elements.interface_element):
                 for current_pmob in turn_queue:
                     tooltip_text.append("    " + utility.capitalize(current_pmob.name))
             self.set_tooltip(tooltip_text)
-
-        elif self.button_type == "track beasts":
-            self.set_tooltip(
-                [
-                    "Attempts to reveal beasts in this tile and adjacent tiles",
-                    "If successful, beasts in the area will be visible until the end of the turn, allowing the safari to hunt them",
-                    "Cannot reveal beasts in unexplored tiles",
-                    "Costs 1 movement point",
-                ]
-            )
 
         elif self.button_type == "new game":
             self.set_tooltip(["Starts a new game"])
@@ -683,34 +617,6 @@ class button(interface_elements.interface_element):
                 ]
             )
 
-        elif self.button_type in ["free all", "confirm free all"]:
-            self.set_tooltip(
-                ["Frees all slaves from your company, converting them to workers"]
-            )
-
-        elif self.button_type == "hire village worker":
-            actor_utility.update_descriptions("village workers")
-            self.set_tooltip(
-                ["Recruits a unit of African workers for 0 money"]
-                + constants.list_descriptions["village workers"]
-            )
-
-        elif self.button_type == "labor broker":
-            actor_utility.update_descriptions("village workers")
-            self.set_tooltip(
-                [
-                    "Uses a local labor broker to find and hire a unit of African workers from a nearby village",
-                    "The worker's recruitment cost depends on the distance and aggressiveness of the chosen village",
-                ]
-            )
-
-        elif self.button_type == "hire slums worker":
-            actor_utility.update_descriptions("slums workers")
-            self.set_tooltip(
-                ["Recruits a unit of African workers for 0 money"]
-                + constants.list_descriptions["slums workers"]
-            )
-
         elif self.button_type == "recruit workers":
             actor_utility.update_descriptions(self.worker_type + " workers")
             self.set_tooltip(
@@ -726,9 +632,6 @@ class button(interface_elements.interface_element):
 
         elif self.button_type == "rename settlement":
             self.set_tooltip(["Displays a typing prompt to rename this settlement"])
-
-        elif self.button_type == "show lore missions":
-            self.set_tooltip(["Displays any completed or current lore missions"])
 
         elif self.button_type == "show previous reports":
             self.set_tooltip(
@@ -1187,7 +1090,7 @@ class button(interface_elements.interface_element):
                     if not constants.current_game_mode == "strategic":
                         game_transitions.set_game_mode("strategic")
 
-                    unit_types = ["porters", "steamboat", "steamship", "train"]
+                    unit_types = ["porters", "steamship", "train"]
                     moved_units = {}
                     attempted_units = {}
                     for current_unit_type in unit_types:
@@ -1199,10 +1102,8 @@ class button(interface_elements.interface_element):
                             if current_pmob.is_vehicle:
                                 if current_pmob.vehicle_type == "train":
                                     unit_type = "train"
-                                elif current_pmob.can_swim_ocean:
+                                elif current_pmob.can_swim:
                                     unit_type = "steamship"
-                                else:
-                                    unit_type = "steamboat"
                             else:
                                 unit_type = "porters"
                             attempted_units[unit_type] += 1
@@ -1456,12 +1357,7 @@ class button(interface_elements.interface_element):
 
         elif self.button_type == "new game":
             if constants.current_game_mode == "new_game_setup":
-                if status.displayed_country:
-                    constants.save_load_manager.new_game(status.displayed_country)
-                else:
-                    text_utility.print_to_screen(
-                        "You cannot start a game without selecting a country."
-                    )
+                constants.save_load_manager.new_game()
             else:
                 game_transitions.set_game_mode("new_game_setup")
 
@@ -1482,76 +1378,6 @@ class button(interface_elements.interface_element):
         elif self.button_type == "fire":
             fired_unit = status.displayed_mob
             fired_unit.fire()
-
-        elif self.button_type == "free":
-            displayed_mob = status.displayed_mob
-            if displayed_mob.is_group:
-                displayed_mob.replace_worker("African")
-            elif displayed_mob.is_worker:
-                displayed_mob.free_and_replace()
-
-        elif self.button_type == "confirm free all":
-            num_slaves = 0
-            for current_pmob in status.pmob_list:
-                if (
-                    current_pmob.is_group and current_pmob.worker.worker_type == "slave"
-                ) or (
-                    current_pmob.is_worker
-                    and (not current_pmob.in_group)
-                    and current_pmob.worker_type == "slave"
-                ):
-                    num_slaves += 1
-            if num_slaves > 0:
-                constants.notification_manager.display_notification(
-                    {
-                        "message": "Are you sure you want to free all of your company's slaves? /n /n",
-                        "transfer_interface_elements": True,
-                        "choices": ["free all", "Cancel"],
-                    }
-                )
-            else:
-                text_utility.print_to_screen("Your company has no slaves to free.")
-
-        elif self.button_type == "free all":
-            pmob_list = utility.copy_list(
-                status.pmob_list
-            )  # alllows iterating through each unit without any issues from removing from list during iteration
-            old_public_opinion = constants.public_opinion
-            num_freed = 0
-            for current_pmob in pmob_list:
-                if current_pmob.is_group and current_pmob.worker.worker_type == "slave":
-                    num_freed += 1
-                    current_pmob.replace_worker("African")
-                elif (
-                    current_pmob.is_worker
-                    and (not current_pmob.in_group)
-                    and current_pmob.worker_type == "slave"
-                ):
-                    num_freed += 1
-                    current_pmob.free_and_replace()
-            public_opinion_increase = constants.public_opinion - old_public_opinion
-            if num_freed > 0:
-                message = (
-                    "A total of "
-                    + str(num_freed)
-                    + " unit"
-                    + utility.generate_plural(num_freed)
-                    + " of slaves "
-                    + utility.conjugate("be", num_freed, "preterite")
-                    + " freed and hired as workers"
-                )
-                message += (
-                    ", increasing public opinion by a total of "
-                    + str(public_opinion_increase)
-                    + ". /n /n"
-                )
-                constants.notification_manager.display_notification(
-                    {
-                        "message": message,
-                    }
-                )
-            else:
-                text_utility.print_to_screen("Your company has no slaves to free.")
 
         elif self.button_type == "confirm main menu":
             game_transitions.to_main_menu()
@@ -1763,7 +1589,7 @@ class remove_equipment_button(button):
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'equipment_type': string value - Type of equipment, like 'Maxim gun'
+                'equipment_type': string value - Type of equipment, like 'rifles'
         Output:
             None
         """
@@ -2165,13 +1991,6 @@ class fire_unit_button(button):
             boolean: Returns same as superclass if there is a selected unit, otherwise returns False
         """
         if super().can_show(skip_parent_collection=skip_parent_collection):
-            if (
-                status.free_unit_slaves_button
-                and status.free_unit_slaves_button.can_show(
-                    skip_parent_collection=skip_parent_collection
-                )
-            ):
-                return False
             if self.attached_mob != status.displayed_mob:
                 self.attached_mob = status.displayed_mob
             if self.attached_mob and self.attached_mob.is_pmob:
@@ -2199,99 +2018,6 @@ class fire_unit_button(button):
                 tooltip_text.append(
                     "Firing this unit will also fire all of its passengers."
                 )
-            self.set_tooltip(tooltip_text)
-
-
-class free_unit_slaves_button(button):
-    """
-    Button that frees any slaves in the selected unit and immediately recruits them as African workers
-    """
-
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'width': int value - pixel width of this element
-                'height': int value - pixel height of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-        Output:
-            None
-        """
-        self.attached_mob = "none"
-        input_dict["button_type"] = "free unit slaves"
-        super().__init__(input_dict)
-
-    def on_click(self):
-        """
-        Description:
-            Controls this button's behavior when clicked. This type of button fires the selected unit
-        Input:
-            None
-        Output:
-            None
-        """
-        if main_loop_utility.action_possible():
-            if not (
-                self.attached_mob.is_vehicle
-                and self.attached_mob.vehicle_type == "ship"
-                and not self.attached_mob.can_leave()
-            ):
-                message = (
-                    "Are you sure you want to fire the slaves in this unit? /n /n"
-                    + status.worker_types["slave"].fired_description
-                )
-                constants.notification_manager.display_notification(
-                    {"message": message, "choices": ["free", "cancel"]}
-                )
-        else:
-            text_utility.print_to_screen("You are busy and cannot free slaves")
-
-    def can_show(self, skip_parent_collection=False):
-        """
-        Description:
-            Returns whether this button should be drawn
-        Input:
-            None
-        Output:
-            boolean: Returns same as superclass if there is a selected unit, otherwise returns False
-        """
-        if super().can_show(skip_parent_collection=skip_parent_collection):
-            self.attached_mob = status.displayed_mob
-            return (
-                self.attached_mob
-                and self.attached_mob.is_pmob
-                and self.attached_mob.get_worker()
-                and self.attached_mob.get_worker().worker_type == "slave"
-            )
-        return False
-
-    def update_tooltip(self):
-        """
-        Description:
-            Sets this button's tooltip to what it should be, depending on its button_type. This type of button describes how firing units works
-        Input:
-            None
-        Output:
-            None
-        """
-        if not self.showing:
-            self.set_tooltip([])
-        else:
-            tooltip_text = [
-                "Click to free this unit's slaves",
-                status.worker_types[
-                    self.attached_mob.get_worker().worker_type
-                ].fired_description.replace("/n", ""),
-            ]
             self.set_tooltip(tooltip_text)
 
 
@@ -2589,111 +2315,6 @@ class minister_portrait_image(button):
         self.set_tooltip(self.tooltip_text)
 
 
-class country_selection_image(button):
-    """
-    Button that can be calibrated to a country to show that country and selects the country when clicked
-    """
-
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'width': int value - pixel width of this element
-                'height': int value - pixel height of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'country': country value - Country to start this button calibrated to, or 'none' if not initially calibrated to any country
-        Output:
-            None
-        """
-        self.default_image_id = "misc/empty.png"
-        self.current_country = "none"
-        input_dict["button_type"] = "country images"
-        input_dict["image_id"] = self.default_image_id
-        super().__init__(input_dict)
-        self.current_country = input_dict["country"]
-        self.calibrate(self.current_country)
-
-    def draw(self):
-        """
-        Description:
-            Draws this button's image along with a white background and, if its country is currently selected, a flashing green outline
-        Input:
-            None
-        Output:
-            None
-        """
-        if self.showing:  # draw outline around portrait if country selected
-            if not self.current_country == "none":
-                pygame.draw.rect(
-                    constants.game_display, constants.color_dict["white"], self.Rect
-                )  # draw white background
-                if (
-                    status.displayed_country == self.current_country
-                    and flags.show_selection_outlines
-                ):
-                    pygame.draw.rect(
-                        constants.game_display,
-                        constants.color_dict["bright green"],
-                        self.outline,
-                    )
-        super().draw()
-
-    def on_click(self):
-        """
-        Description:
-            Controls this button's behavior when clicked. This type of button selects its attached country when clicked
-        Input:
-            None
-        Output:
-            None
-        """
-        if main_loop_utility.action_possible():
-            actor_utility.calibrate_actor_info_display(
-                status.country_info_display, self.current_country
-            )
-        else:
-            text_utility.print_to_screen(
-                "You are busy and cannot select another country."
-            )
-
-    def calibrate(self, new_country):
-        """
-        Description:
-            Attaches this button to the inputted country and updates this button's image to that of the country
-        Input:
-            string/country new_country: The country whose information is matched by this button. If this equals 'none', this button is detached from any country
-        Output:
-            None
-        """
-        if not new_country == "none":
-            new_country.update_tooltip()
-            self.tooltip_text = new_country.tooltip_text
-            self.image.set_image(new_country.flag_image_id)
-        else:
-            self.image.set_image(self.default_image_id)
-        self.current_country = new_country
-
-    def update_tooltip(self):
-        """
-        Description:
-            Sets this button's tooltip to what it should be, depending on its button_type. This type of button copies the tooltip text of its attached country, or says there is no attached country if there is none attached
-        Input:
-            None
-        Output:
-            None
-        """
-        if not self.current_country == "none":
-            self.current_country.update_tooltip()
-            self.tooltip_text = self.current_country.tooltip_text
-        self.set_tooltip(self.tooltip_text)
-
-
 class cycle_available_ministers_button(button):
     """
     Button that cycles through the ministers available to be appointed
@@ -2940,76 +2561,6 @@ class commodity_button(button):
         return False
 
 
-class show_lore_missions_button(button):
-    """
-    Button that can be clicked to display report of current and completed lore missions
-    """
-
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'width': int value - pixel width of this element
-                'height': int value - pixel height of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-        Output:
-            None
-        """
-        input_dict["button_type"] = "show lore missions"
-        super().__init__(input_dict)
-
-    def can_show(self, skip_parent_collection=False):
-        """
-        Description:
-            Returns whether this button should be drawn
-        Input:
-            None
-        Output:
-            boolean: Returns True if the player has a current lore mission or has completed any, otherwise returns False
-        """
-        return super().can_show(skip_parent_collection=skip_parent_collection) and (
-            status.current_lore_mission or constants.completed_lore_missions
-        )
-
-    def on_click(self):
-        """
-        Description:
-            Controls this button's behavior when clicked. This type of button displays the previous turn's financial report again
-        Input:
-            None
-        Output:
-            None
-        """
-        if main_loop_utility.action_possible():
-            report = "Lore missions report: /n /n"
-            if status.current_lore_mission:
-                report += f"Current mission: {status.current_lore_mission.name} ({status.current_lore_mission.lore_type}) /n /n"
-            else:
-                report += "Current mission: None /n /n"
-            if constants.completed_lore_missions:
-                report += "Completed missions: /n"
-                for mission in constants.completed_lore_missions:
-                    report += (
-                        f"{mission} ({constants.completed_lore_missions[mission]}) /n"
-                    )
-            constants.notification_manager.display_notification(
-                {
-                    "message": report,
-                }
-            )
-        else:
-            text_utility.print_to_screen("You are busy and cannot view lore missions")
-
-
 class show_previous_reports_button(button):
     """
     Button appearing near money label that can be clicked to display the previous turn's production, sales, and financial reports again
@@ -3125,8 +2676,6 @@ class tab_button(button):
             if self.identifier == "settlement":
                 return_value = bool(
                     status.displayed_tile.cell.settlement
-                    or status.displayed_tile.cell.has_building("trading_post")
-                    or status.displayed_tile.cell.has_building("mission")
                     or status.displayed_tile.cell.has_building("infrastructure")
                 )
 
@@ -3264,45 +2813,23 @@ class reorganize_unit_button(button):
         ):
             if self.parent_collection.autofill_actors["procedure"] == "merge":
                 self.tooltip_text.append(
-                    "Press to combine the "
-                    + self.parent_collection.autofill_actors["officer"].name
-                    + " and the "
-                    + self.parent_collection.autofill_actors["worker"].name
-                    + " into a "
-                    + self.parent_collection.autofill_actors["group"].name
+                    f"Press to combine the {self.parent_collection.autofill_actors['officer'].name} and the {self.parent_collection.autofill_actors['worker'].name} into a {self.parent_collection.autofill_actors['group'].name}"
                 )
             elif self.parent_collection.autofill_actors["procedure"] == "split":
                 self.tooltip_text.append(
-                    "Press to separate the "
-                    + self.parent_collection.autofill_actors["group"].name
-                    + " into a "
-                    + self.parent_collection.autofill_actors["officer"].name
-                    + " and "
-                    + self.parent_collection.autofill_actors["worker"].name
+                    f"Press to separate the {self.parent_collection.autofill_actors['group'].name} into a {self.parent_collection.autofill_actors['officer'].name} and {self.parent_collection.autofill_actors['worker'].name}"
                 )
             elif self.parent_collection.autofill_actors["procedure"] == "crew":
                 self.tooltip_text.append(
-                    "Press to combine the "
-                    + self.parent_collection.autofill_actors["officer"].name
-                    + " and the "
-                    + self.parent_collection.autofill_actors["worker"].name
-                    + " into a crewed "
-                    + self.parent_collection.autofill_actors["group"].name
+                    f"Press to combine the {self.parent_collection.autofill_actors['officer'].name} and the {self.parent_collection.autofill_actors['worker'].name} into a crewed {self.parent_collection.autofill_actors['group'].name}"
                 )
             elif self.parent_collection.autofill_actors["procedure"] == "uncrew":
                 self.tooltip_text.append(
-                    "Press to separate the "
-                    + self.parent_collection.autofill_actors["group"].name
-                    + " into "
-                    + self.parent_collection.autofill_actors["worker"].name
-                    + " and a non-crewed "
-                    + self.parent_collection.autofill_actors["officer"].name
+                    f"Press to separate the {self.parent_collection.autofill_actors['group'].name} into {self.parent_collection.autofill_actors['worker'].name} and a non-crewed {self.parent_collection.autofill_actors['officer'].name}"
                 )
         elif self.parent_collection.autofill_actors["procedure"] != "none":
             self.tooltip_text.append(
-                "The "
-                + self.parent_collection.autofill_actors["procedure"]
-                + " procedure is controlled by the other button"
+                f"The {self.parent_collection.autofill_actors['procedure']} procedure is controlled by the other button"
             )
         else:
             self.tooltip_text.append(
@@ -3385,12 +2912,7 @@ class reorganize_unit_button(button):
                         )
                     else:
                         text_utility.print_to_screen(
-                            status.worker_types[
-                                procedure_actors["worker"].worker_type
-                            ].name.capitalize()
-                            + " cannot crew "
-                            + procedure_actors["officer"].get_vehicle_name()
-                            + "s."
+                            f"{status.worker_types[procedure_actors['worker'].worker_type].name.capitalize()} cannot crew {procedure_actors['officer'].get_vehicle_name()}s."
                         )
 
                 elif procedure_type == "split":
@@ -3402,9 +2924,7 @@ class reorganize_unit_button(button):
                         or procedure_actors["group"].get_held_commodities()
                     ):
                         text_utility.print_to_screen(
-                            "You cannot remove the crew from a "
-                            + procedure_actors["group"].vehicle_type
-                            + " with passengers or cargo."
+                            f"You cannot remove the crew from a {procedure_actors['group'].vehicle_type} with passengers or cargo."
                         )
                     else:
                         procedure_actors["group"].crew.uncrew_vehicle(

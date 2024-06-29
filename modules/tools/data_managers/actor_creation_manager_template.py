@@ -12,7 +12,6 @@ from ...actor_types.mob_types.group_types import (
     porters,
     work_crews,
 )
-from ...actor_types.mob_types.npmob_types import native_warriors, beasts
 from ...interface_types import (
     dice,
     buttons,
@@ -30,7 +29,7 @@ from ...interface_types import (
 from ...actor_display_tools import buttons as actor_display_buttons
 from ...actor_display_tools import labels as actor_display_labels
 from ...actor_display_tools import images as actor_display_images
-from ...constructs import ministers, lore_missions, images, settlements
+from ...constructs import ministers, images, settlements
 from ...util import utility, actor_utility, market_utility
 from .. import mouse_followers
 import modules.constants.constants as constants
@@ -69,8 +68,6 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             new_actor = mobs.mob(from_save, input_dict)
         elif init_type == "workers":
             new_actor = workers.worker(from_save, input_dict)
-        elif init_type == "slaves":
-            new_actor = workers.slave_worker(from_save, input_dict)
         elif init_type == "church_volunteers":
             new_actor = workers.church_volunteers(from_save, input_dict)
         elif init_type == "train":
@@ -81,10 +78,6 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             new_actor = vehicles.boat(from_save, input_dict)
         elif init_type in constants.officer_types:
             new_actor = officers.officer(from_save, input_dict)
-        elif init_type == "native_warriors":
-            new_actor = native_warriors.native_warriors(from_save, input_dict)
-        elif init_type == "beast":
-            new_actor = beasts.beast(from_save, input_dict)
 
         # groups
         elif init_type == "porters":
@@ -101,16 +94,10 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             new_actor = expeditions.expedition(from_save, input_dict)
         elif init_type == "battalion":
             new_actor = battalions.battalion(from_save, input_dict)
-        elif init_type == "safari":
-            new_actor = battalions.safari(from_save, input_dict)
 
         # buildings
         elif init_type == "infrastructure":
             new_actor = buildings.infrastructure_building(from_save, input_dict)
-        elif init_type == "trading_post":
-            new_actor = buildings.trading_post(from_save, input_dict)
-        elif init_type == "mission":
-            new_actor = buildings.mission(from_save, input_dict)
         elif init_type == "fort":
             new_actor = buildings.fort(from_save, input_dict)
         elif init_type == "train_station":
@@ -148,7 +135,6 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         Output:
             actor: Returns the unit that was created
         """
-        # make sure dummies include things like veteran stars, disorganized, etc.
         new_actor = dummy.dummy(input_dict)
         return new_actor
 
@@ -191,16 +177,12 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                     new_element = buttons.cycle_same_tile_button(input_dict)
                 elif base == "fire unit":
                     new_element = buttons.fire_unit_button(input_dict)
-                elif base == "free unit slaves":
-                    new_element = buttons.free_unit_slaves_button(input_dict)
                 elif base == "switch game mode":
                     new_element = buttons.switch_game_mode_button(input_dict)
                 elif base == "cycle available ministers":
                     new_element = buttons.cycle_available_ministers_button(input_dict)
                 elif base == "commodity":
                     new_element = buttons.commodity_button(input_dict)
-                elif base == "show lore missions":
-                    new_element = buttons.show_lore_missions_button(input_dict)
                 elif base == "show previous reports":
                     new_element = buttons.show_previous_reports_button(input_dict)
                 elif base == "tab":
@@ -299,8 +281,6 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                     new_element = actor_display_buttons.work_crew_to_building_button(
                         input_dict
                     )
-                elif base == "labor broker":
-                    new_element = actor_display_buttons.labor_broker_button(input_dict)
                 elif base == "switch theatre":
                     new_element = actor_display_buttons.switch_theatre_button(
                         input_dict
@@ -321,10 +301,6 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                     )
                 elif base == "bribe judge":
                     new_element = actor_display_buttons.bribe_judge_button(input_dict)
-                elif base == "hire african workers":
-                    new_element = actor_display_buttons.hire_african_workers_button(
-                        input_dict
-                    )
                 elif base == "recruit workers":
                     new_element = actor_display_buttons.recruit_workers_button(
                         input_dict
@@ -345,8 +321,6 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             init_type == "minister portrait image"
         ):  # actually a button, fix misleading name eventually
             new_element = buttons.minister_portrait_image(input_dict)
-        elif init_type == "country selection image":  # ^likewise
-            new_element = buttons.country_selection_image(input_dict)
         elif init_type == "item icon":
             new_element = inventory_interface.item_icon(input_dict)
         elif init_type == "die":
@@ -387,13 +361,6 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                     new_element = actor_display_labels.building_efficiency_label(
                         input_dict
                     )
-                elif base in [
-                    "native info",
-                    "native population",
-                    "native available workers",
-                    "native aggressiveness",
-                ]:
-                    new_element = actor_display_labels.native_info_label(input_dict)
                 elif base == "terrain feature":
                     new_element = actor_display_labels.terrain_feature_label(input_dict)
 
@@ -475,54 +442,22 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                 'cost': double value - Recruitment cost of the unit
                 'mob_image_id': string value - File path to the image used by the recruited unit
                 'type': string value - Type of choice notification to display, always 'recruitment' for recruitment notificatoins
-                'source_type': string value - Only used when recruiting African workers, tracks whether workers came from available village workers, slums, or a labor broker
             string recruitment_name: Name used in the notification to signify the unit, like 'explorer'
         Output:
             None
         """
         recruitment_type = recruitment_name
-        if recruitment_name in ["slave workers", "steamship"]:
+        if recruitment_name in ["steamship"]:
             verb = "purchase"
         elif recruitment_name.endswith(" workers"):
             verb = "hire"
-            if recruitment_name == "African workers":
-                recruitment_type = (
-                    choice_info_dict["source_type"] + " workers"
-                )  # slums workers or village workers
         else:
             verb = "recruit"
 
-        if (
-            recruitment_name == "African workers"
-            and choice_info_dict["source_type"] == "labor broker"
-        ):
-            message = (
-                "Are you sure you want to pay a labor broker "
-                + str(choice_info_dict["cost"])
-                + " money to hire a unit of African workers from a nearby village? /n /n"
-            )
-        elif recruitment_name.endswith(" workers"):
-            message = (
-                "Are you sure you want to "
-                + verb
-                + " a unit of "
-                + recruitment_name
-                + " for "
-                + str(choice_info_dict["cost"])
-                + " money? /n /n"
-            )
+        if recruitment_name.endswith(" workers"):
+            message = f"Are you sure you want to {verb} a unit of {recruitment_name} for {choice_info_dict['cost']} money? /n /n"
         else:
-            message = (
-                "Are you sure you want to "
-                + verb
-                + " "
-                + utility.generate_article(recruitment_name)
-                + " "
-                + recruitment_name
-                + " for "
-                + str(choice_info_dict["cost"])
-                + " money? /n /n"
-            )
+            message = f"Are you sure you want to {verb} {utility.generate_article(recruitment_name)} {recruitment_name} for {str(choice_info_dict['cost'])} money? /n /n"
 
         actor_utility.update_descriptions(recruitment_type)
         message += constants.string_descriptions[recruitment_type]
@@ -587,15 +522,3 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             None
         """
         ministers.minister(from_save, input_dict)
-
-    def create_lore_mission(self, from_save, input_dict):
-        """
-        Description:
-            Creates either a new random lore mission or loads a saved lore mission
-        Input:
-            boolean from_save: True if the object is being recreated from a save file, False if it is being newly created
-            dictionary input_dict: Keys corresponding to the values needed to initialize the object, with contents varying based on the type of object
-        Output:
-            None
-        """
-        lore_missions.lore_mission(from_save, input_dict)

@@ -136,27 +136,16 @@ class building(actor):
         tooltip_text = [text_utility.remove_underscores(self.name.capitalize())]
         if self.building_type == "resource":
             tooltip_text.append(
-                "Work crews: "
-                + str(len(self.contained_work_crews))
-                + "/"
-                + str(self.scale)
+                f"Work crews: {len(self.contained_work_crews)}/{self.scale}"
             )
             for current_work_crew in self.contained_work_crews:
                 tooltip_text.append("    " + current_work_crew.name)
             tooltip_text.append(
-                "Lets "
-                + str(self.scale)
-                + " attached work crews each attempt to produce "
-                + str(self.efficiency)
-                + " units of "
-                + self.resource_type
-                + " each turn"
+                f"Lets {self.scale} attached work crews each attempt to produce {self.efficiency} units of {self.resource_type} each turn"
             )
         elif self.building_type == "port":
             tooltip_text.append("Allows ships to enter this tile")
-            tooltip_text.append(
-                "Steamboats and steamships can move between ports, but steamships can never move beyond coastal ports"
-            )
+            tooltip_text.append("Steamships can move between ports")
         elif self.building_type == "infrastructure":
             if self.is_bridge:
                 tooltip_text.append("Allows movement across the bridge")
@@ -197,17 +186,7 @@ class building(actor):
             )
         elif self.building_type == "slums":
             tooltip_text.append(
-                "Contains "
-                + str(self.available_workers)
-                + " African workers in search of employment"
-            )
-        elif self.building_type == "trading_post":
-            tooltip_text.append(
-                "Increases the success chance of caravans trading with this tile's village"
-            )
-        elif self.building_type == "mission":
-            tooltip_text.append(
-                "Increases the success chance of missionaries converting this tile's village"
+                f"Contains {self.available_workers} workers in search of employment"
             )
         elif self.building_type == "fort":
             tooltip_text.append(
@@ -215,10 +194,7 @@ class building(actor):
             )
         elif self.building_type == "warehouses":
             tooltip_text.append(
-                "Level "
-                + str(self.warehouse_level)
-                + " warehouses allow an inventory capacity of "
-                + str(9 * self.warehouse_level)
+                f"Level {self.warehouse_level} warehouses allow an inventory capacity of {9 * self.warehouse_level}"
             )
 
         if self.damaged:
@@ -371,8 +347,6 @@ class building(actor):
         image_id = {"image_id": self.image_dict["default"]}
         relative_coordinates = {
             "fort": (-1, 1),
-            "trading_post": (0, 1),
-            "mission": (1, 1),
             "train_station": (0, -1),
             "port": (1, -1),
         }.get(self.building_type, (0, 0))
@@ -616,58 +590,6 @@ class infrastructure_building(building):
         return image_id_list
 
 
-class trading_post(building):
-    """
-    Building in a village that increases success chance of trading
-    """
-
-    def __init__(self, from_save, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
-                'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'name': string value - Required if from save, this building's name
-                'modes': string list value - Game modes during which this building's images can appear
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
-        Output:
-            None
-        """
-        input_dict["building_type"] = "trading_post"
-        super().__init__(from_save, input_dict)
-
-
-class mission(building):
-    """
-    Building in village that increases success chance of conversion
-    """
-
-    def __init__(self, from_save, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
-                'image': string value - File path to the image used by this object
-                'name': string value - Required if from save, this building's name
-                'modes': string list value - Game modes during which this building's images can appear
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
-        Output:
-            None
-        """
-        input_dict["building_type"] = "mission"
-        super().__init__(from_save, input_dict)
-
-
 class fort(building):
     """
     Building that grants a +1 combat modifier to your units fighting in its tile
@@ -724,7 +646,7 @@ class train_station(building):
 
 class port(building):
     """
-    Building adjacent to water that allows steamships/steamboats to enter the tile, allows ships to travel to this tile if it is along the ocean, and increases the tile's inventory capacity
+    Building adjacent to water that allows steamships to enter the tile, allows ships to travel to this tile if it is along the ocean, and increases the tile's inventory capacity
     """
 
     def __init__(self, from_save, input_dict):
@@ -747,7 +669,7 @@ class port(building):
         """
         input_dict["building_type"] = "port"
         super().__init__(from_save, input_dict)
-        if (not from_save) and self.cell.village != "none":
+        if not from_save:
             constants.sound_manager.play_random_music("earth")
 
 
@@ -979,10 +901,7 @@ class resource_building(building):
                 if transportation_minister.no_corruption_roll(
                     6, "health_attrition"
                 ) == 1 or constants.effect_manager.effect_active("boost_attrition"):
-                    worker_type = current_work_crew.worker.worker_type
-                    if (not worker_type in ["African", "slave"]) or random.randrange(
-                        1, 7
-                    ) == 1:
+                    if random.randrange(1, 7) == 1:
                         worker_attrition_list.append(current_work_crew)
         for current_work_crew in worker_attrition_list:
             current_work_crew.attrition_death("worker")
@@ -1071,7 +990,7 @@ class resource_building(building):
 
 class slums(building):
     """
-    Building automatically formed by unemployed workers and freed slaves around places of employment
+    Building automatically formed by unemployed workers around places of employment
     """
 
     def __init__(self, from_save, input_dict):
@@ -1195,7 +1114,6 @@ class slums(building):
             "grids": [self.cell.grid] + self.cell.grid.mini_grids,
             "modes": self.cell.grid.modes,
         }
-        input_dict.update(status.worker_types["African"].generate_input_dict())
         constants.actor_creation_manager.create(False, input_dict)
         self.change_population(-1)
 

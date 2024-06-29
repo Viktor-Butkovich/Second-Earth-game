@@ -31,7 +31,6 @@ def update_display():
         draw_loading_screen()
     else:
         possible_tooltip_drawers = []
-
         traversal_utility.draw_interface_elements(status.independent_interface_elements)
         # could modify with a layer dictionary to display elements on different layers - currently, drawing elements in order of collection creation is working w/o overlap
         # issues
@@ -464,9 +463,7 @@ def manage_lmb_down(clicked_button):
                 if constants.current_game_mode == "ministers":
                     minister_utility.calibrate_minister_info_display(None)
                 elif constants.current_game_mode == "new_game_setup":
-                    actor_utility.calibrate_actor_info_display(
-                        status.country_info_display, None, override_exempt=True
-                    )
+                    nothing = 0
                 else:
                     actor_utility.calibrate_actor_info_display(
                         status.mob_info_display, None, override_exempt=True
@@ -611,26 +608,6 @@ def manage_lmb_down(clicked_button):
                                     # railroad bridge allows anything to move through
                                     text_utility.print_to_screen(
                                         "This unit cannot create movement routes through water."
-                                    )
-                                    return ()
-                                elif (
-                                    target_cell.terrain_handler.terrain == "water"
-                                    and displayed_mob.can_swim
-                                    and (not displayed_mob.can_swim_ocean)
-                                    and destination_y == 0
-                                ):
-                                    text_utility.print_to_screen(
-                                        "This unit cannot create movement routes through ocean water."
-                                    )
-                                    return ()
-                                elif (
-                                    target_cell.terrain_handler.terrain == "water"
-                                    and displayed_mob.can_swim
-                                    and (not displayed_mob.can_swim_river)
-                                    and destination_y > 0
-                                ):
-                                    text_utility.print_to_screen(
-                                        "This unit cannot create movement routes through river water."
                                     )
                                     return ()
                                 elif (
