@@ -143,11 +143,7 @@ class terrain_manager_template:
 
             current_variant = 0
             while os.path.exists(
-                "graphics/terrains/"
-                + terrain_name
-                + "_"
-                + str(current_variant)
-                + ".png"
+                f"graphics/terrains/{terrain_name}_{current_variant}.png"
             ):
                 current_variant += 1
             current_variant -= 1  # back up from index that didn't work
@@ -363,6 +359,8 @@ class terrain_handler:
         """
         self.attached_cells.remove(cell)
         cell.terrain_handler = None
+        if not self.attached_cells:
+            del self
 
     def flow(self) -> None:
         """
@@ -399,3 +397,45 @@ class terrain_handler:
         if flowed:  # Flow could recursively trigger flows in adjacent cells
             for adjacent_cell in self.attached_cells[0].adjacent_list:
                 adjacent_cell.terrain_handler.flow()
+
+    def get_color_filter(self) -> Dict[str, int]:
+        """
+        Description:
+            Returns the color filter for this terrain handler's world handler, if any
+        Input:
+            None
+        Output:
+            dictionary: Color filter for this terrain handler's world handler
+        """
+        if self.default_cell.grid.world_handler:
+            return self.default_cell.grid.world_handler.color_filter
+        else:
+            return {"red": 1, "green": 1, "blue": 1}
+
+
+class world_handler:
+    """
+    "Single source of truth" handler for planet-wide characteristics
+    """
+
+    def __init__(self, attached_grid, input_dict: Dict[str, any]) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            cell attached_grid: Default grid to attach this handler to
+            dictionary input_dict: Dictionary of saved information necessary to recreate this terrain handler if loading grid, or None if creating new terrain handler
+        """
+        self.default_grid = attached_grid
+        self.color_filter = input_dict["color_filter"]
+
+    def to_save_dict(self) -> Dict[str, any]:
+        """
+        Description:
+            Uses this object's values to create a dictionary that can be saved and used as input to recreate it on loading
+        Input:
+            None
+        Output:
+            dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
+        """
+        return {"color_filter": self.color_filter}

@@ -269,7 +269,6 @@ class tile(actor):  # to do: make terrain tiles a subclass
             return_list.append(equivalent_cell.tile)
         return return_list
 
-    # maybe make these into general actor functions? override update image bundle for tile to account for resources/buildings, have group version with multiple entities
     def get_image_id_list(self, force_visibility=False):
         """
         Description:
@@ -299,6 +298,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             "x_offset": 0,
                             "y_offset": 0,
                             "level": -9,
+                            "color_filter": self.cell.terrain_handler.get_color_filter(),
                         }
                     )
                     for terrain_feature in self.cell.terrain_handler.terrain_features:
@@ -397,13 +397,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         if new_terrain in constants.terrain_manager.terrain_list:
-            self.image_dict["default"] = (
-                "terrains/"
-                + new_terrain
-                + "_"
-                + str(self.cell.terrain_handler.terrain_variant)
-                + ".png"
-            )
+            self.image_dict[
+                "default"
+            ] = f"terrains/{new_terrain}_{self.cell.terrain_handler.terrain_variant}.png"
         elif new_terrain == "none":
             self.image_dict["default"] = "terrains/hidden.png"
         if update_image_bundle:

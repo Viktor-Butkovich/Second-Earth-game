@@ -6,6 +6,7 @@ from typing import Dict, List
 from .grids import grid, mini_grid, abstract_grid
 from .cells import cell
 from ..util import scaling, utility
+from ..tools.data_managers import terrain_manager_template
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -15,6 +16,47 @@ class world_grid(grid):
     """
     Grid representing the "single source of truth" for a particular world, containing original cells and terrain/world parameters
     """
+
+    def __init__(self, from_save: bool, input_dict: Dict[str, any]) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
+            dictionary input_dict: Keys corresponding to the values needed to initialize this object
+                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of the bottom left corner of this grid
+                'width': int value - Pixel width of this grid
+                'height': int value - Pixel height of this grid
+                'coordinate_width': int value - Number of columns in this grid
+                'coordinate_height': int value - Number of rows in this grid
+                'internal_line_color': string value - Color in the color_dict dictionary for lines between cells, like 'bright blue'
+                'external_line_color': string value - Color in the color_dict dictionary for lines on the outside of the grid, like 'bright blue'
+                'list modes': string list value - Game modes during which this grid can appear
+                'grid_line_width': int value - Pixel width of lines between cells. Lines on the outside of the grid are one pixel thicker
+                'cell_list': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each cell in this grid
+                'grid_type': str value - Type of grid, like 'strategic_map_grid' or 'earth_grid'
+        Output:
+            None
+        """
+        super().__init__(from_save, input_dict)
+        if from_save:
+            self.world_handler = terrain_manager_template.world_handler(
+                self, input_dict["world_handler"]
+            )
+        else:
+            if self.get_tuning("earth_preset"):
+                color_filter = self.get_tuning("earth_color_filter")
+            elif self.get_tuning("mars_preset"):
+                color_filter = self.get_tuning("mars_color_filter")
+            else:
+                color_filter = {
+                    "red": random.randrange(90, 111) / 100,
+                    "green": random.randrange(90, 111) / 100,
+                    "blue": random.randrange(90, 111) / 100,
+                }
+            self.world_handler = terrain_manager_template.world_handler(
+                self, {"color_filter": color_filter}
+            )
 
     def create_world(self, from_save: bool):
         """

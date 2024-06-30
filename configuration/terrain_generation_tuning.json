@@ -46,10 +46,12 @@
     "earth_base_temperature": 3,
     "earth_roughness_multiplier": 60,
     "earth_water_multiplier": 40,
+    "earth_color_filter": {"red": 1, "green": 1, "blue": 1},
 
     "mars_base_temperature": -1,
     "mars_roughness_multiplier": 20,
     "mars_water_multiplier": 6,
+    "mars_color_filter": {"red": 1.1, "green": 0.95, "blue": 0.95},
 
     "map_sizes": [11, 15, 19, 23, 27, 31],
     "large_map_sizes": [29, 35, 41, 47, 53, 59],
