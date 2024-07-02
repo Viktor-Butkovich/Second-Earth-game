@@ -299,6 +299,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             "y_offset": 0,
                             "level": -9,
                             "color_filter": self.cell.terrain_handler.get_color_filter(),
+                            "green_screen": self.cell.terrain_handler.get_green_screen(),
                         }
                     )
                     for terrain_feature in self.cell.terrain_handler.terrain_features:

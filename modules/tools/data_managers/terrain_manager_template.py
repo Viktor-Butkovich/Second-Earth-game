@@ -412,6 +412,36 @@ class terrain_handler:
         else:
             return {"red": 1, "green": 1, "blue": 1}
 
+    def get_green_screen(self) -> Dict[str, Dict[str, any]]:
+        """
+        Description:
+            Returns a "smart green screen" dictionary for this terrain handler, or None for default tile appearance
+                {
+                    'water': {
+                        'base_color': (20, 20, 200),
+                        'tolerance': 50,
+                        'replacement_color': (200, 20, 20)
+                    },
+                    'sand': {
+                        ...
+                    }...
+                }
+                Take all colors that are within 50 (tolerance) of the base color and replace them with a new color, while retaining the same difference from
+                    the new color as it did with the old color. If a spot of water is slightly darker than the base water color, replace it with something
+                    slightly darker than the replacement color, while ignoring anything that is not within 50 of the base water color.
+                Each category can have a preset base color/tolerance determined during asset creation, as well as a procedural replacement color
+                Each category can have a preset smart green screen, with per-terrain or per-tile modifications controlled by world and terrain handlers
+                    World handler handles per-terrain modifications, like dunes sand being slightly different from desert sand, while both are still "Mars red"
+                    Terrain handler handler per-tile modifications, like a tile with earth-imported soil looking different from default planet soil
+                This system could also work for skin shading, polar dust, light levels, vegetation, resources, building appearances, etc.
+        Input:
+            None
+        Output:
+            dictionary: Smart green screen dictionary for this terrain handler, or None for default tile appearance
+        """
+        # This is the authoritative source for terrain green screens, used by get_image_id_list and referencing constants for presets and world handler for world variations
+        return None
+
 
 class world_handler:
     """

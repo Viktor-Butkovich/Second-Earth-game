@@ -3,7 +3,7 @@
 import random
 import pygame
 import itertools
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from . import cells, interface_elements
 from ..util import actor_utility, utility
 from ..tools.data_managers import terrain_manager_template
@@ -277,7 +277,7 @@ class grid(interface_elements.interface_element):
                 self.grid_line_width + 1,
             )
 
-    def find_cell_center(self, coordinates):
+    def find_cell_center(self, coordinates) -> Tuple[int, int]:
         """
         Description:
             Returns the pixel coordinates of the center of this grid's cell that occupies the inputted grid coordinates
