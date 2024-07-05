@@ -39,24 +39,11 @@ class world_grid(grid):
             None
         """
         super().__init__(from_save, input_dict)
-        if from_save:
-            self.world_handler = terrain_manager_template.world_handler(
-                self, input_dict["world_handler"]
+        self.world_handler: terrain_manager_template.world_handler = (
+            terrain_manager_template.world_handler(
+                self, from_save, input_dict.get("world_handler", {})
             )
-        else:
-            if self.get_tuning("earth_preset"):
-                color_filter = self.get_tuning("earth_color_filter")
-            elif self.get_tuning("mars_preset"):
-                color_filter = self.get_tuning("mars_color_filter")
-            else:
-                color_filter = {
-                    "red": random.randrange(90, 111) / 100,
-                    "green": random.randrange(90, 111) / 100,
-                    "blue": random.randrange(90, 111) / 100,
-                }
-            self.world_handler = terrain_manager_template.world_handler(
-                self, {"color_filter": color_filter}
-            )
+        )
 
     def create_world(self, from_save: bool):
         """
@@ -136,24 +123,7 @@ class world_grid(grid):
         Output:
             None
         """
-        if self.get_tuning("weighted_temperature_bounds"):
-            default_temperature = min(
-                max(
-                    random.randrange(-5, 13),
-                    self.get_tuning("base_temperature_lower_bound"),
-                ),
-                self.get_tuning("base_temperature_upper_bound"),
-            )
-        else:
-            default_temperature = random.randrange(
-                self.get_tuning("base_temperature_lower_bound"),
-                self.get_tuning("base_temperature_upper_bound") + 1,
-            )
-        if self.get_tuning("earth_preset"):
-            default_temperature = self.get_tuning("earth_base_temperature")
-        elif self.get_tuning("mars_preset"):
-            default_temperature = self.get_tuning("mars_base_temperature")
-
+        default_temperature = self.world_handler.default_temperature
         for cell in self.get_flat_cell_list():
             cell.set_parameter(
                 "temperature",
@@ -306,22 +276,7 @@ class world_grid(grid):
         Output:
             None
         """
-        if self.get_tuning("earth_preset"):
-            water_multiplier = self.get_tuning("earth_water_multiplier")
-        elif self.get_tuning("mars_preset"):
-            water_multiplier = self.get_tuning("mars_water_multiplier")
-        else:
-            if random.randrange(1, 7) >= 5:
-                water_multiplier = random.randrange(
-                    self.get_tuning("min_water_multiplier"),
-                    self.get_tuning("max_water_multiplier") + 1,
-                )
-            else:
-                water_multiplier = random.randrange(
-                    self.get_tuning("min_water_multiplier"),
-                    self.get_tuning("med_water_multiplier") + 1,
-                )
-        total_water = (water_multiplier * self.area) // 10
+        total_water = (self.world_handler.water_multiplier * self.area) // 10
 
         for water in range(total_water):
             self.place_water()

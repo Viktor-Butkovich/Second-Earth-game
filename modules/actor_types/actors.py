@@ -3,9 +3,10 @@
 import pygame
 import random
 from ..util import text_utility, utility, actor_utility, scaling, market_utility
+from ..interface_types.grids import grid
 import modules.constants.constants as constants
 import modules.constants.status as status
-from typing import Dict
+from typing import Dict, List
 
 
 class actor:
@@ -32,12 +33,12 @@ class actor:
         self.modes = input_dict["modes"]
         self.x, self.y = input_dict["coordinates"]
         if self.from_save:
-            self.grid = getattr(status, input_dict["grid_type"])
-            self.grids = [self.grid] + self.grid.mini_grids
+            self.grid: grid = getattr(status, input_dict["grid_type"])
+            self.grids: List[grid] = [self.grid] + self.grid.mini_grids
             self.set_name(input_dict["name"])
         else:
-            self.grids = input_dict["grids"]
-            self.grid = self.grids[0]
+            self.grid: grid = input_dict["grids"][0]
+            self.grids: List[grid] = input_dict["grids"]
             self.set_name("placeholder")
         self.set_coordinates(self.x, self.y)
 

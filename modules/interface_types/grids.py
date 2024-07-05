@@ -746,14 +746,9 @@ class abstract_grid(grid):
         input_dict["coordinate_width"] = 1
         input_dict["coordinate_height"] = 1
         super().__init__(from_save, input_dict)
-        if from_save:
-            self.world_handler = terrain_manager_template.world_handler(
-                self, input_dict["world_handler"]
-            )
-        else:
-            self.world_handler = terrain_manager_template.world_handler(
-                self, {"color_filter": {"red": 1, "green": 1, "blue": 1}}
-            )
         self.is_abstract_grid = True
+        self.world_handler = terrain_manager_template.world_handler(
+            self, from_save, input_dict.get("world_handler", {})
+        )
         self.name = input_dict["name"]
         self.cell_list[0][0].terrain_handler.set_visibility(True)

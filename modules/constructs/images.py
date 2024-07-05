@@ -505,6 +505,18 @@ class bundle_image:
         if self.image != "none":
             self.image = pygame.transform.scale(self.image, (self.width, self.height))
 
+    def get_color_difference(self, color1, color2):
+        """
+        Description:
+            Calculates and returns the difference between two colors
+        Input:
+            int tuple color1: RGB values of first color
+            int tuple color2: RGB values of second color
+        Output:
+            int tuple: Returns difference between two colors
+        """
+        return [a - b for a, b in zip(color1, color2)]
+
     def load(self):
         """
         Description:
@@ -565,11 +577,87 @@ class bundle_image:
                             ):
                                 if self.has_green_screen:
                                     if smart_green_screen:
-                                        for (
-                                            category,
-                                            metadata,
-                                        ) in self.smart_green_screen.items():
-                                            return
+                                        replaced = False
+                                        for terrain_type in self.green_screen_colors:
+                                            if not replaced:
+                                                metadata = self.green_screen_colors[
+                                                    terrain_type
+                                                ]
+                                                for base_color in metadata[
+                                                    "base_colors"
+                                                ]:
+                                                    displacement = (
+                                                        self.get_color_difference(
+                                                            (red, green, blue),
+                                                            base_color,
+                                                        )
+                                                    )
+                                                    if (
+                                                        sum(
+                                                            [
+                                                                abs(a)
+                                                                for a in displacement
+                                                            ]
+                                                        )
+                                                        <= metadata["tolerance"]
+                                                    ):
+                                                        replaced = True
+                                                        difference_proportion = (
+                                                            min(
+                                                                red / base_color[0], 1.5
+                                                            ),
+                                                            min(
+                                                                green / base_color[1],
+                                                                1.5,
+                                                            ),
+                                                            min(
+                                                                blue / base_color[2],
+                                                                1.5,
+                                                            ),
+                                                        )
+                                                        red = min(
+                                                            max(
+                                                                round(
+                                                                    metadata[
+                                                                        "replacement_color"
+                                                                    ][0]
+                                                                    * difference_proportion[
+                                                                        0
+                                                                    ]
+                                                                ),
+                                                                0,
+                                                            ),
+                                                            255,
+                                                        )
+                                                        green = min(
+                                                            max(
+                                                                round(
+                                                                    metadata[
+                                                                        "replacement_color"
+                                                                    ][1]
+                                                                    * difference_proportion[
+                                                                        1
+                                                                    ]
+                                                                ),
+                                                                0,
+                                                            ),
+                                                            255,
+                                                        )
+                                                        blue = min(
+                                                            max(
+                                                                round(
+                                                                    metadata[
+                                                                        "replacement_color"
+                                                                    ][2]
+                                                                    * difference_proportion[
+                                                                        2
+                                                                    ]
+                                                                ),
+                                                                0,
+                                                            ),
+                                                            255,
+                                                        )
+                                                        break
                                     else:
                                         for (
                                             index,

@@ -160,9 +160,197 @@ class terrain_manager_template:
         Output:
             string: Returns the terrain type that the inputted parameters classify as
         """
+        # return random.choice(["mesa", "mountain", "desert"])
         return self.parameter_to_terrain[
             f"{max(min(terrain_parameters['temperature'], 6), 1)}{terrain_parameters['roughness']}{terrain_parameters['vegetation']}{terrain_parameters['soil']}{terrain_parameters['water']}"
         ]
+
+
+class world_handler:
+    """
+    "Single source of truth" handler for planet-wide characteristics
+    """
+
+    def __init__(
+        self, attached_grid, from_save: bool, input_dict: Dict[str, any]
+    ) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            cell attached_grid: Default grid to attach this handler to
+            dictionary input_dict: Dictionary of saved information necessary to recreate this terrain handler if loading grid, or None if creating new terrain handler
+        """
+        self.default_grid = attached_grid
+        if not from_save and not self.default_grid.is_abstract_grid:
+            if self.get_tuning("earth_preset"):
+                input_dict["color_filter"] = self.get_tuning("earth_color_filter")
+            elif self.get_tuning("mars_preset"):
+                input_dict["color_filter"] = self.get_tuning("mars_color_filter")
+            else:
+                input_dict["color_filter"] = {
+                    "red": random.randrange(95, 106) / 100,
+                    "green": random.randrange(95, 106) / 100,
+                    "blue": random.randrange(95, 106) / 100,
+                }
+            green_screen_multipliers = {"sand": random.randrange(60, 111) / 100}
+            rock_multiplier = random.randrange(60, 151) / 100
+            rock_color = (
+                random.randrange(90, 121) * rock_multiplier,
+                random.randrange(70, 101) * rock_multiplier,
+                random.randrange(45, 61) * rock_multiplier,
+            )
+            sand_multiplier = random.randrange(60, 151) / 100
+            input_dict["green_screen"] = {
+                "ice": {
+                    "base_colors": [(150, 203, 230)],
+                    "tolerance": 180,
+                    "replacement_color": (
+                        round(random.randrange(140, 181)),
+                        round(random.randrange(190, 231)),
+                        round(random.randrange(220, 261)),
+                    ),
+                },
+                "sand": {
+                    "base_colors": [(220, 180, 80)],
+                    "tolerance": 50,
+                    "replacement_color": (
+                        round(random.randrange(200, 256) * sand_multiplier),
+                        round(random.randrange(140, 201) * sand_multiplier),
+                        round(random.randrange(55, 96) * sand_multiplier),
+                    ),
+                },
+                "water": {
+                    "base_colors": [(5, 55, 200)],
+                    "tolerance": 80,
+                    "replacement_color": (
+                        round(random.randrange(1, 41)),
+                        round(random.randrange(15, 96)),
+                        round(random.randrange(150, 231)),
+                    ),
+                },
+                "rock": {
+                    "base_colors": [(90, 90, 90)],
+                    "tolerance": 70,
+                    "replacement_color": (
+                        round(rock_color[0]),
+                        round(rock_color[1]),
+                        round(rock_color[2]),
+                    ),
+                },
+                "mountaintop": {
+                    "base_colors": [(233, 20, 233)],
+                    "tolerance": 75,
+                    "replacement_color": (
+                        round(rock_color[0] * 1.4),
+                        round(rock_color[1] * 1.4),
+                        round(rock_color[2] * 1.4),
+                    ),
+                },
+                "faults": {
+                    "base_colors": [(54, 53, 40)],
+                    "tolerance": 0,
+                    "replacement_color": (
+                        round(rock_color[0] * 0.5),
+                        round(rock_color[1] * 0.5),
+                        round(rock_color[2] * 0.5),
+                    ),
+                },
+            }
+
+            if self.get_tuning("weighted_temperature_bounds"):
+                input_dict["default_temperature"] = min(
+                    max(
+                        random.randrange(-5, 13),
+                        self.get_tuning("base_temperature_lower_bound"),
+                    ),
+                    self.get_tuning("base_temperature_upper_bound"),
+                )
+            else:
+                input_dict["default_temperature"] = random.randrange(
+                    self.get_tuning("base_temperature_lower_bound"),
+                    self.get_tuning("base_temperature_upper_bound") + 1,
+                )
+            if self.get_tuning("earth_preset"):
+                input_dict["default_temperature"] = self.get_tuning(
+                    "earth_base_temperature"
+                )
+            elif self.get_tuning("mars_preset"):
+                input_dict["default_temperature"] = self.get_tuning(
+                    "mars_base_temperature"
+                )
+
+            if self.get_tuning("earth_preset"):
+                input_dict["water_multiplier"] = self.get_tuning(
+                    "earth_water_multiplier"
+                )
+            elif self.get_tuning("mars_preset"):
+                input_dict["water_multiplier"] = self.get_tuning(
+                    "mars_water_multiplier"
+                )
+            else:
+                if random.randrange(1, 7) >= 5:
+                    input_dict["water_multiplier"] = random.randrange(
+                        self.get_tuning("min_water_multiplier"),
+                        self.get_tuning("max_water_multiplier") + 1,
+                    )
+                else:
+                    input_dict["water_multiplier"] = random.randrange(
+                        self.get_tuning("min_water_multiplier"),
+                        self.get_tuning("med_water_multiplier") + 1,
+                    )
+
+        self.green_screen: Dict[str, Dict[str, any]] = input_dict.get(
+            "green_screen", {}
+        )
+        self.color_filter: Dict[str, float] = input_dict.get(
+            "color_filter", {"red": 1, "green": 1, "blue": 1}
+        )
+        self.default_temperature: int = input_dict.get("default_temperature", 0)
+        self.water_multiplier: int = input_dict.get("water_multiplier", 0)
+
+    def get_tuning(self, tuning_type):
+        """
+        Description:
+            Gets the tuning value for the inputted tuning type, returning the default version if none is available
+        Input:
+            string tuning_type: Tuning type to get the value of
+        Output:
+            any: Tuning value for the inputted tuning type
+        """
+        if self.default_grid.is_abstract_grid:
+            return None
+        else:  # If world grid
+            return self.default_grid.get_tuning(tuning_type)
+
+    def to_save_dict(self) -> Dict[str, any]:
+        """
+        Description:
+            Uses this object's values to create a dictionary that can be saved and used as input to recreate it on loading
+        Input:
+            None
+        Output:
+            dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
+        """
+        return {
+            "color_filter": self.color_filter,
+            "green_screen": self.green_screen,
+            "default_temperature": self.default_temperature,
+            "water_multiplier": self.water_multiplier,
+        }
+
+    def get_green_screen(self, terrain: str) -> Dict[str, Dict[str, any]]:
+        """
+        Description:
+            Returns the green screen for the inputted terrain type on this world
+        Input:
+            None
+        Output:
+            dictionary: Green screen for the inputted terrain type on this world
+        """
+        # Make any per-terrain modifications
+
+        return self.green_screen
 
 
 class terrain_handler:
@@ -242,7 +430,7 @@ class terrain_handler:
                 status.strategic_map_grid.place_water(frozen_bound=9)
 
         old_terrain = self.terrain
-        self.terrain = constants.terrain_manager.classify(self.terrain_parameters)
+        self.set_terrain(constants.terrain_manager.classify(self.terrain_parameters))
         if old_terrain != self.terrain:
             for cell in self.attached_cells:
                 if cell.tile != "none":
@@ -407,10 +595,21 @@ class terrain_handler:
         Output:
             dictionary: Color filter for this terrain handler's world handler
         """
-        if self.default_cell.grid.world_handler:
-            return self.default_cell.grid.world_handler.color_filter
+        if self.get_world_handler():
+            return self.get_world_handler().color_filter
         else:
             return {"red": 1, "green": 1, "blue": 1}
+
+    def get_world_handler(self) -> world_handler:
+        """
+        Description:
+            Returns the world handler corresponding to this terrain handler
+        Input:
+            None
+        Output:
+            world_handler: World handler corresponding to this terrain handler, or None if none exists yet
+        """
+        return self.default_cell.grid.world_handler
 
     def get_green_screen(self) -> Dict[str, Dict[str, any]]:
         """
@@ -434,38 +633,14 @@ class terrain_handler:
                     World handler handles per-terrain modifications, like dunes sand being slightly different from desert sand, while both are still "Mars red"
                     Terrain handler handler per-tile modifications, like a tile with earth-imported soil looking different from default planet soil
                 This system could also work for skin shading, polar dust, light levels, vegetation, resources, building appearances, etc.
+            Serves as authoritative source for terrain green screens, used by get_image_id_list and referencing constants for presets and world handler for world variations
         Input:
             None
         Output:
             dictionary: Smart green screen dictionary for this terrain handler, or None for default tile appearance
         """
-        # This is the authoritative source for terrain green screens, used by get_image_id_list and referencing constants for presets and world handler for world variations
-        return None
+        world_green_screen = self.get_world_handler().get_green_screen(self.terrain)
 
+        # Make any per-tile modifications
 
-class world_handler:
-    """
-    "Single source of truth" handler for planet-wide characteristics
-    """
-
-    def __init__(self, attached_grid, input_dict: Dict[str, any]) -> None:
-        """
-        Description:
-            Initializes this object
-        Input:
-            cell attached_grid: Default grid to attach this handler to
-            dictionary input_dict: Dictionary of saved information necessary to recreate this terrain handler if loading grid, or None if creating new terrain handler
-        """
-        self.default_grid = attached_grid
-        self.color_filter = input_dict["color_filter"]
-
-    def to_save_dict(self) -> Dict[str, any]:
-        """
-        Description:
-            Uses this object's values to create a dictionary that can be saved and used as input to recreate it on loading
-        Input:
-            None
-        Output:
-            dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
-        """
-        return {"color_filter": self.color_filter}
+        return world_green_screen
