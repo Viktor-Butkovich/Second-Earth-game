@@ -382,7 +382,7 @@ terrain_colors: Dict[str, tuple[int, int, int]] = {
     "hills": (50, 205, 50),
     "jungle": (0, 100, 0),
     "water": (0, 0, 200),
-    "mountain": (100, 100, 100),
+    "mountains": (100, 100, 100),
     "swamp": (100, 100, 50),
     "desert": (255, 248, 104),
     "none": (0, 0, 0),
@@ -392,18 +392,18 @@ terrain_animal_dict: Dict[str, tuple[str, str, str]] = {
     "hills": ["gorilla", "Cape buffalo", "hippopotamus"],
     "jungle": ["gorilla", "crocodile", "leopard"],
     "water": ["crocodile", "hippopotamus", "leopard"],
-    "mountain": ["lion", "gorilla", "leopard"],
+    "mountains": ["lion", "gorilla", "leopard"],
     "swamp": ["bull elephant", "crocodile", "hippopotamus"],
     "desert": ["lion", "bull elephant", "Cape buffalo"],
 }
 animal_terrain_dict: Dict[str, tuple[str, str, str]] = {
-    "lion": ["savannah", "desert", "mountain"],
+    "lion": ["savannah", "desert", "mountains"],
     "bull elephant": ["savannah", "swamp", "desert"],
     "Cape buffalo": ["savannah", "hills", "desert"],
     "crocodile": ["water", "swamp", "jungle"],
     "hippopotamus": ["water", "swamp", "hills"],
-    "gorilla": ["mountain", "jungle", "hills"],
-    "leopard": ["jungle", "mountain", "water"],
+    "gorilla": ["mountains", "jungle", "hills"],
+    "leopard": ["jungle", "mountains", "water"],
 }
 animal_adjectives: List[str] = [
     "man-eating",
@@ -422,7 +422,7 @@ terrain_movement_cost_dict: Dict[str, int] = {
     "hills": 2,
     "jungle": 3,
     "water": 1,
-    "mountain": 3,
+    "mountains": 3,
     "swamp": 3,
     "desert": 2,
 }
@@ -431,7 +431,7 @@ terrain_build_cost_multiplier_dict: Dict[str, int] = {
     "hills": 2,
     "jungle": 3,
     "water": 1,
-    "mountain": 3,
+    "mountains": 3,
     "swamp": 3,
     "desert": 2,
 }
@@ -441,7 +441,7 @@ terrain_attrition_dict: Dict[str, int] = {
     "hills": 1,
     "jungle": 3,
     "water": 2,
-    "mountain": 2,
+    "mountains": 2,
     "swamp": 3,
     "desert": 2,
 }

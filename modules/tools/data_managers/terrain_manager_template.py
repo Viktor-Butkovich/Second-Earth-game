@@ -149,7 +149,7 @@ class terrain_manager_template:
             current_variant -= 1  # back up from index that didn't work
             self.terrain_variant_dict[terrain_name] = (
                 current_variant + 1
-            )  # number of variants, variants in format 'mountain_0', 'mountain_1', etc.
+            )  # number of variants, variants in format 'mountains_0', 'mountains_1', etc.
 
     def classify(self, terrain_parameters):
         """
@@ -160,7 +160,7 @@ class terrain_manager_template:
         Output:
             string: Returns the terrain type that the inputted parameters classify as
         """
-        # return random.choice(["mesa", "mountain", "desert"])
+        # return random.choice(["mesa", "mountains", "desert"])
         return self.parameter_to_terrain[
             f"{max(min(terrain_parameters['temperature'], 6), 1)}{terrain_parameters['roughness']}{terrain_parameters['vegetation']}{terrain_parameters['soil']}{terrain_parameters['water']}"
         ]
@@ -472,7 +472,7 @@ class terrain_handler:
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
                 'visible': boolean value - Whether this handler's cells are visible or not
                 'terrain': string value - Terrain type of this handler's cells and their tiles, like 'swamp'
-                'terrain_variant': int value - Variant number to use for image file path, like mountain_0
+                'terrain_variant': int value - Variant number to use for image file path, like mountains_0
                 'terrain_features': string/boolean dictionary value - Dictionary containing an entry for each terrain feature in this handler's cells
                 'terrain_parameters': string/int dictionary value - Dictionary containing 1-6 parameters for this handler's cells, like 'temperature': 1
                 'resource': string value - Resource type of this handler's cells and their tiles, like 'exotic wood'
