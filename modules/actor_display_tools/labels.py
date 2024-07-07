@@ -760,7 +760,7 @@ class actor_display_label(label):
                     self.set_label(utility.capitalize(new_actor.grid.name))
                 elif self.actor.cell.terrain_handler.visible:
                     self.set_label(
-                        f"{self.message_start} {new_actor.cell.terrain_handler.terrain.replace('_', ' ')}"
+                        f"{self.message_start}{new_actor.cell.terrain_handler.terrain.replace('_', ' ')}"
                     )
                 else:
                     self.set_label(self.message_start + "unknown")

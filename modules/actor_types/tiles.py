@@ -429,7 +429,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             if self.cell.terrain_handler.visible:
                 if self.cell.terrain_handler.terrain != "none":
                     tooltip_message.append(
-                        f"This is {utility.generate_article(self.cell.terrain_handler.terrain.replace('_', '' ''))} {self.cell.terrain_handler.terrain.replace('_', ' ')} tile"
+                        f"This is {utility.generate_article(self.cell.terrain_handler.terrain.replace('_', ' '), add_space=True)}{self.cell.terrain_handler.terrain.replace('_', ' ')} tile"
                     )
                     for terrain_parameter in constants.terrain_parameters:
                         value = self.cell.get_parameter(terrain_parameter)

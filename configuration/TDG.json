@@ -378,7 +378,7 @@
     },
     "wetland": {
         "name": "wetland",
-        "min_temperature": 1,
+        "min_temperature": 2,
         "max_temperature": 6,
         "min_roughness": 1,
         "max_roughness": 4,
@@ -662,8 +662,8 @@
         "min_water": 3,
         "max_water": 4
     },
-    "mud_barrens": {
-        "name": "mud_barrens",
+    "mud_flats": {
+        "name": "mud_flats",
         "min_temperature": 2,
         "max_temperature": 6,
         "min_roughness": 1,
@@ -804,5 +804,18 @@
         "max_soil": 2,
         "min_water": 1,
         "max_water": 2
+    },
+    "frozen_wetland": {
+        "name": "frozen_wetland",
+        "min_temperature": 1,
+        "max_temperature": 1,
+        "min_roughness": 1,
+        "max_roughness": 4,
+        "min_vegetation": 2,
+        "max_vegetation": 3,
+        "min_soil": 1,
+        "max_soil": 6,
+        "min_water": 4,
+        "max_water": 4
     }
 }

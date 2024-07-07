@@ -100,7 +100,7 @@ def generate_article(word, add_space=False):
     vowels = ["a", "e", "i", "o", "u"]
     plural_exceptions = ["hills", "genius", "brainless", "treacherous"]
     a_an_exceptions = ["European", "unit"]
-    if word[-1] == "s" and (not word in plural_exceptions):
+    if word[-1] == "s" and (not word in plural_exceptions) and (not " " in word):
         return ""
     elif word[0].lower() in vowels and (not word in a_an_exceptions):
         return "an" + space
