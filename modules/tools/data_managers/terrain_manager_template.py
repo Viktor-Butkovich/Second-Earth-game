@@ -193,14 +193,22 @@ class world_handler:
                     "green": random.randrange(95, 106) / 100,
                     "blue": random.randrange(95, 106) / 100,
                 }
-            green_screen_multipliers = {"sand": random.randrange(60, 111) / 100}
             rock_multiplier = random.randrange(60, 151) / 100
             rock_color = (
                 random.randrange(90, 121) * rock_multiplier,
                 random.randrange(70, 101) * rock_multiplier,
                 random.randrange(45, 61) * rock_multiplier,
             )
-            sand_multiplier = random.randrange(60, 151) / 100
+            sand_color = (
+                random.randrange(205, 256),
+                random.randrange(150, 186),
+                random.randrange(20, 161),
+            )
+            water_color = (
+                random.randrange(1, 41),
+                random.randrange(15, 96),
+                random.randrange(150, 231),
+            )
             input_dict["green_screen"] = {
                 "ice": {
                     "base_colors": [(150, 203, 230)],
@@ -211,22 +219,40 @@ class world_handler:
                         round(random.randrange(220, 261)),
                     ),
                 },
+                "dirt": {
+                    "base_colors": [(124, 99, 29)],
+                    "tolerance": 50,
+                    "replacement_color": (
+                        round((sand_color[0] + rock_color[0]) / 2),
+                        round((sand_color[1] + rock_color[1]) / 2),
+                        round((sand_color[2] + rock_color[2]) / 2),
+                    ),
+                },
                 "sand": {
                     "base_colors": [(220, 180, 80)],
                     "tolerance": 50,
                     "replacement_color": (
-                        round(random.randrange(200, 256) * sand_multiplier),
-                        round(random.randrange(140, 201) * sand_multiplier),
-                        round(random.randrange(55, 96) * sand_multiplier),
+                        round(sand_color[0]),
+                        round(sand_color[1]),
+                        round(sand_color[2]),
                     ),
                 },
-                "water": {
+                "deep water": {
                     "base_colors": [(5, 55, 200)],
                     "tolerance": 80,
                     "replacement_color": (
-                        round(random.randrange(1, 41)),
-                        round(random.randrange(15, 96)),
-                        round(random.randrange(150, 231)),
+                        round(water_color[0]),
+                        round(water_color[1]),
+                        round(water_color[2]),
+                    ),
+                },
+                "muddy water": {
+                    "base_colors": [(54, 108, 144)],
+                    "tolerance": 80,
+                    "replacement_color": (
+                        round(water_color[0]),
+                        round(water_color[1]),
+                        round(water_color[2]),
                     ),
                 },
                 "rock": {

@@ -324,8 +324,8 @@
         "min_water": 3,
         "max_water": 3
     },
-    "barren": {
-        "name": "barren",
+    "barrens": {
+        "name": "barrens",
         "min_temperature": 1,
         "max_temperature": 6,
         "min_roughness": 1,
@@ -335,7 +335,7 @@
         "min_soil": 3,
         "max_soil": 6,
         "min_water": 1,
-        "max_water": 4
+        "max_water": 2
     },
     "boiling_ocean": {
         "name": "boiling_ocean",
@@ -417,7 +417,7 @@
     },
     "wasteland": {
         "name": "wasteland",
-        "min_temperature": 1,
+        "min_temperature": 3,
         "max_temperature": 6,
         "min_roughness": 1,
         "max_roughness": 2,
@@ -671,6 +671,45 @@
         "min_vegetation": 1,
         "max_vegetation": 3,
         "min_soil": 1,
+        "max_soil": 6,
+        "min_water": 3,
+        "max_water": 4
+    },
+    "frozen_wasteland": {
+        "name": "frozen_wasteland",
+        "min_temperature": 1,
+        "max_temperature": 2,
+        "min_roughness": 1,
+        "max_roughness": 2,
+        "min_vegetation": 1,
+        "max_vegetation": 1,
+        "min_soil": 1,
+        "max_soil": 2,
+        "min_water": 3,
+        "max_water": 4
+    },
+    "mud_barrens": {
+        "name": "mud_barrens",
+        "min_temperature": 3,
+        "max_temperature": 6,
+        "min_roughness": 1,
+        "max_roughness": 2,
+        "min_vegetation": 1,
+        "max_vegetation": 1,
+        "min_soil": 3,
+        "max_soil": 6,
+        "min_water": 3,
+        "max_water": 4
+    },
+    "ice_barrens": {
+        "name": "ice_barrens",
+        "min_temperature": 1,
+        "max_temperature": 2,
+        "min_roughness": 1,
+        "max_roughness": 2,
+        "min_vegetation": 1,
+        "max_vegetation": 1,
+        "min_soil": 3,
         "max_soil": 6,
         "min_water": 3,
         "max_water": 4
