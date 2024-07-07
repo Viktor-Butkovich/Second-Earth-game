@@ -506,9 +506,15 @@ class terrain_handler:
             None
         """
         self.terrain = new_terrain
-        self.terrain_variant = random.randrange(
-            0, constants.terrain_manager.terrain_variant_dict.get(new_terrain, 1)
-        )
+        try:
+            self.terrain_variant = random.randrange(
+                0, constants.terrain_manager.terrain_variant_dict.get(new_terrain, 1)
+            )
+        except:
+            print(f"Error loading {new_terrain} variant")
+            self.terrain_variant = random.randrange(
+                0, constants.terrain_manager.terrain_variant_dict.get(new_terrain, 1)
+            )
         for cell in self.attached_cells:
             if cell.tile != "none":
                 cell.tile.set_terrain(self.terrain, update_image_bundle=False)
