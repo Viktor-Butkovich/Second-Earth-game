@@ -195,15 +195,23 @@ class world_handler:
                 }
             rock_multiplier = random.randrange(60, 151) / 100
             rock_color = (
-                random.randrange(90, 121) * rock_multiplier,
-                random.randrange(70, 101) * rock_multiplier,
-                random.randrange(45, 61) * rock_multiplier,
+                random.randrange(80, 131) * rock_multiplier,
+                random.randrange(60, 111) * rock_multiplier,
+                random.randrange(40, 66) * rock_multiplier,
             )
-            sand_color = (
-                random.randrange(205, 256),
-                random.randrange(150, 186),
-                random.randrange(20, 161),
-            )
+            if random.randrange(1, 4) != 1:
+                sand_color = (
+                    random.randrange(205, 256),
+                    random.randrange(130, 196),
+                    random.randrange(20, 161),
+                )
+            else:
+                base_sand_color = random.randrange(50, 200)
+                sand_color = (
+                    base_sand_color * random.randrange(80, 121) / 100,
+                    base_sand_color * random.randrange(80, 121) / 100,
+                    base_sand_color * random.randrange(80, 121) / 100,
+                )
             water_color = (
                 random.randrange(1, 41),
                 random.randrange(15, 96),
@@ -238,12 +246,12 @@ class world_handler:
                     ),
                 },
                 "shadowed sand": {
-                    "base_colors": [(160, 130, 55)],
-                    "tolerance": 25,
+                    "base_colors": [(184, 153, 64)],
+                    "tolerance": 35,
                     "replacement_color": (
-                        round(sand_color[0] * 0.7),
-                        round(sand_color[1] * 0.7),
-                        round(sand_color[2] * 0.7),
+                        round(sand_color[0] * 0.8),
+                        round(sand_color[1] * 0.8),
+                        round(sand_color[2] * 0.8),
                     ),
                 },
                 "deep water": {
