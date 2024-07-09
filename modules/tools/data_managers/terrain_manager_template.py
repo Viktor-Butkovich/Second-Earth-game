@@ -237,6 +237,15 @@ class world_handler:
                         round(sand_color[2]),
                     ),
                 },
+                "shadowed sand": {
+                    "base_colors": [(160, 130, 55)],
+                    "tolerance": 25,
+                    "replacement_color": (
+                        round(sand_color[0] * 0.7),
+                        round(sand_color[1] * 0.7),
+                        round(sand_color[2] * 0.7),
+                    ),
+                },
                 "deep water": {
                     "base_colors": [(5, 55, 200)],
                     "tolerance": 80,
