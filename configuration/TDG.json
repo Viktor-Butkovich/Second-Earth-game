@@ -335,7 +335,7 @@
         "min_soil": 3,
         "max_soil": 6,
         "min_water": 1,
-        "max_water": 2
+        "max_water": 1
     },
     "boiling_ocean": {
         "name": "boiling_ocean",
@@ -400,7 +400,7 @@
         "min_soil": 1,
         "max_soil": 2,
         "min_water": 1,
-        "max_water": 2
+        "max_water": 1
     },
     "frozen_mountains": {
         "name": "frozen_mountains",
@@ -817,5 +817,31 @@
         "max_soil": 6,
         "min_water": 4,
         "max_water": 4
+    },
+    "snowy_desert": {
+        "name": "snowy_desert",
+        "min_temperature": 1,
+        "max_temperature": 3,
+        "min_roughness": 1,
+        "max_roughness": 2,
+        "min_vegetation": 1,
+        "max_vegetation": 1,
+        "min_soil": 1,
+        "max_soil": 2,
+        "min_water": 2,
+        "max_water": 2
+    },
+    "snowy_barrens": {
+        "name": "snowy_barrens",
+        "min_temperature": 1,
+        "max_temperature": 6,
+        "min_roughness": 1,
+        "max_roughness": 2,
+        "min_vegetation": 1,
+        "max_vegetation": 1,
+        "min_soil": 3,
+        "max_soil": 6,
+        "min_water": 2,
+        "max_water": 2
     }
 }

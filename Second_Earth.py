@@ -58,3 +58,8 @@ except Exception:  # displays error message and records error message in crash l
 # high temperature low soil high water: wasteland hills
 # high temperature high soil low water: crags
 # high temperature high soil high water: flooded crags
+
+# Add more ice dunes variants
+# Add more snowy variants
+# Figure out wasteland hills/flooded dunes
+# Add crags
