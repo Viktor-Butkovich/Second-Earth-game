@@ -302,6 +302,20 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             "green_screen": self.cell.terrain_handler.get_green_screen(),
                         }
                     )
+                    for (
+                        terrain_overlay_image
+                    ) in self.cell.terrain_handler.get_overlay_images():
+                        image_id_list.append(
+                            {
+                                "image_id": terrain_overlay_image,
+                                "size": 1,
+                                "x_offset": 0,
+                                "y_offset": 0,
+                                "level": -8,
+                                "color_filter": self.cell.terrain_handler.get_color_filter(),
+                                "green_screen": self.cell.terrain_handler.get_green_screen(),
+                            }
+                        )
                     for terrain_feature in self.cell.terrain_handler.terrain_features:
                         new_image_id = self.cell.terrain_handler.terrain_features[
                             terrain_feature

@@ -452,6 +452,40 @@ class terrain_handler:
             parameter_name, self.terrain_parameters[parameter_name] + change
         )
 
+    def has_snow(self) -> bool:
+        """
+        Description:
+            Returns whether this terrain would have snow based on its temperature and water levels
+        Input:
+            None
+        Output:
+            boolean: True if this terrain would have snow, False if not
+        """
+        return (
+            self.get_parameter("temperature")
+            <= constants.terrain_manager.get_tuning("water_freezing_point")
+            and self.get_parameter("water") >= 2
+        )
+
+    def get_overlay_images(self) -> List[str]:
+        """
+        Description:
+            Gets any overlay images that are part of terrain but not from original image
+        Input:
+            None
+        Output:
+            string list: List of overlay image file paths
+        """
+        return_list = []
+        if self.has_snow():
+            if "mountains" in self.terrain:
+                return_list.append(
+                    f"terrains/mountains_snow_{self.terrain_variant % 6}.png"
+                )
+            else:
+                return_list.append(f"terrains/snow_{self.terrain_variant % 4}.png")
+        return return_list
+
     def set_parameter(self, parameter_name: str, new_value: int) -> None:
         """
         Description:

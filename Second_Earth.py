@@ -60,6 +60,7 @@ except Exception:  # displays error message and records error message in crash l
 # high temperature high soil high water: flooded crags
 
 # Add more ice dunes variants
-# Add more snowy variants
 # Figure out wasteland hills/flooded dunes
 # Add crags
+# Minister table projection not using smart green screens, probably because it directly uses tile image ID
+# Fix low contrast oceans
