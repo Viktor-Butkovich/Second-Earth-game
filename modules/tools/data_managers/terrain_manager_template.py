@@ -311,7 +311,7 @@ class world_handler:
         )
 
         water_color = (
-            random.randrange(11, 41),
+            random.randrange(7, 25),
             random.randrange(15, 96),
             random.randrange(150, 221),
         )
@@ -354,21 +354,21 @@ class world_handler:
                 ),
             },
             "deep water": {
-                "base_colors": [(5, 55, 200)],
-                "tolerance": 80,
+                "base_colors": [(24, 62, 152)],
+                "tolerance": 75,
                 "replacement_color": (
-                    round(water_color[0]),
-                    round(water_color[1]),
-                    round(water_color[2]),
+                    round(water_color[0] * 0.9),
+                    round(water_color[1] * 0.9),
+                    round(water_color[2] * 1),
                 ),
             },
-            "muddy water": {
-                "base_colors": [(54, 108, 144)],
-                "tolerance": 80,
+            "shallow water": {
+                "base_colors": [(65, 26, 93)],
+                "tolerance": 75,
                 "replacement_color": (
                     round(water_color[0]),
-                    round(water_color[1]),
-                    round(water_color[2]),
+                    round(water_color[1] * 1.1),
+                    round(water_color[2] * 1),
                 ),
             },
             "rock": {
@@ -485,6 +485,20 @@ class terrain_handler:
             and self.get_parameter("water") >= 2
         )
 
+    def boiling(self) -> bool:
+        """
+        Description:
+            Returns whether this terrain would have snow based on its temperature and water levels
+        Input:
+            None
+        Output:
+            boolean: True if this terrain would have snow, False if not
+        """
+        return (
+            self.get_parameter("temperature") >= constants.terrain_manager.get_tuning("water_boiling_point") - 4
+            and self.get_parameter("water") >= 3
+        )
+
     def get_overlay_images(self) -> List[str]:
         """
         Description:
@@ -496,12 +510,9 @@ class terrain_handler:
         """
         return_list = []
         if self.has_snow():
-            if "mountains" in self.terrain:
-                return_list.append(
-                    f"terrains/mountains_snow_{self.terrain_variant % 6}.png"
-                )
-            else:
-                return_list.append(f"terrains/snow_{self.terrain_variant % 4}.png")
+            return_list.append(f"terrains/snow_{self.terrain_variant % 4}.png")
+        elif self.boiling():
+            return_list.append(f"terrains/boiling_{self.terrain_variant % 4}.png")
         return return_list
 
     def set_parameter(self, parameter_name: str, new_value: int) -> None:
