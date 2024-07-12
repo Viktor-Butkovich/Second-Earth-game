@@ -193,113 +193,7 @@ class world_handler:
                     "green": random.randrange(95, 106) / 100,
                     "blue": random.randrange(95, 106) / 100,
                 }
-            rock_multiplier = random.randrange(60, 151) / 100
-            rock_color = (
-                random.randrange(80, 131) * rock_multiplier,
-                random.randrange(60, 111) * rock_multiplier,
-                random.randrange(40, 66) * rock_multiplier,
-            )
-            if random.randrange(1, 4) != 1:
-                sand_color = (
-                    random.randrange(205, 256),
-                    random.randrange(130, 196),
-                    random.randrange(20, 161),
-                )
-            else:
-                base_sand_color = random.randrange(50, 200)
-                sand_color = (
-                    base_sand_color * random.randrange(80, 121) / 100,
-                    base_sand_color * random.randrange(80, 121) / 100,
-                    base_sand_color * random.randrange(80, 121) / 100,
-                )
-            water_color = (
-                random.randrange(1, 41),
-                random.randrange(15, 96),
-                random.randrange(150, 231),
-            )
-            input_dict["green_screen"] = {
-                "ice": {
-                    "base_colors": [(150, 203, 230)],
-                    "tolerance": 180,
-                    "replacement_color": (
-                        round(random.randrange(140, 181)),
-                        round(random.randrange(190, 231)),
-                        round(random.randrange(220, 261)),
-                    ),
-                },
-                "dirt": {
-                    "base_colors": [(124, 99, 29)],
-                    "tolerance": 50,
-                    "replacement_color": (
-                        round((sand_color[0] + rock_color[0]) / 2),
-                        round((sand_color[1] + rock_color[1]) / 2),
-                        round((sand_color[2] + rock_color[2]) / 2),
-                    ),
-                },
-                "sand": {
-                    "base_colors": [(220, 180, 80)],
-                    "tolerance": 50,
-                    "replacement_color": (
-                        round(sand_color[0]),
-                        round(sand_color[1]),
-                        round(sand_color[2]),
-                    ),
-                },
-                "shadowed sand": {
-                    "base_colors": [(184, 153, 64)],
-                    "tolerance": 35,
-                    "replacement_color": (
-                        round(sand_color[0] * 0.8),
-                        round(sand_color[1] * 0.8),
-                        round(sand_color[2] * 0.8),
-                    ),
-                },
-                "deep water": {
-                    "base_colors": [(5, 55, 200)],
-                    "tolerance": 80,
-                    "replacement_color": (
-                        round(water_color[0]),
-                        round(water_color[1]),
-                        round(water_color[2]),
-                    ),
-                },
-                "muddy water": {
-                    "base_colors": [(54, 108, 144)],
-                    "tolerance": 80,
-                    "replacement_color": (
-                        round(water_color[0]),
-                        round(water_color[1]),
-                        round(water_color[2]),
-                    ),
-                },
-                "rock": {
-                    "base_colors": [(90, 90, 90)],
-                    "tolerance": 70,
-                    "replacement_color": (
-                        round(rock_color[0]),
-                        round(rock_color[1]),
-                        round(rock_color[2]),
-                    ),
-                },
-                "mountaintop": {
-                    "base_colors": [(233, 20, 233)],
-                    "tolerance": 75,
-                    "replacement_color": (
-                        round(rock_color[0] * 1.4),
-                        round(rock_color[1] * 1.4),
-                        round(rock_color[2] * 1.4),
-                    ),
-                },
-                "faults": {
-                    "base_colors": [(54, 53, 40)],
-                    "tolerance": 0,
-                    "replacement_color": (
-                        round(rock_color[0] * 0.5),
-                        round(rock_color[1] * 0.5),
-                        round(rock_color[2] * 0.5),
-                    ),
-                },
-            }
+            input_dict["green_screen"] = self.generate_green_screen()
 
             if self.get_tuning("weighted_temperature_bounds"):
                 input_dict["default_temperature"] = min(
@@ -380,6 +274,130 @@ class world_handler:
             "green_screen": self.green_screen,
             "default_temperature": self.default_temperature,
             "water_multiplier": self.water_multiplier,
+        }
+
+    def generate_green_screen(self) -> Dict[str, Dict[str, any]]:
+        """
+        Description:
+            Generate a smart green screen dictionary for this world handler, containing color configuration for each terrain surface type
+        Input:
+            None
+        Output:
+            None
+        """
+        if self.get_tuning("mars_preset"):
+            sand_color = (170, 107, 60)
+
+        elif random.randrange(1, 4) != 1:
+            sand_color = (
+                random.randrange(150, 240),
+                random.randrange(70, 196),
+                random.randrange(20, 161),
+            )
+
+        else:
+            base_sand_color = random.randrange(50, 200)
+            sand_color = (
+                base_sand_color * random.randrange(80, 121) / 100,
+                base_sand_color * random.randrange(80, 121) / 100,
+                base_sand_color * random.randrange(80, 121) / 100,
+            )
+
+        rock_multiplier = random.randrange(80, 141) / 100
+        rock_color = (
+            sand_color[0] * 0.45 * rock_multiplier,
+            sand_color[1] * 0.5 * rock_multiplier,
+            max(50, sand_color[2] * 0.6) * rock_multiplier,
+        )
+
+        water_color = (
+            random.randrange(11, 41),
+            random.randrange(15, 96),
+            random.randrange(150, 221),
+        )
+
+        return {
+            "ice": {
+                "base_colors": [(150, 203, 230)],
+                "tolerance": 180,
+                "replacement_color": (
+                    round(random.randrange(140, 181)),
+                    round(random.randrange(190, 231)),
+                    round(random.randrange(220, 261)),
+                ),
+            },
+            "dirt": {
+                "base_colors": [(124, 99, 29)],
+                "tolerance": 50,
+                "replacement_color": (
+                    round((sand_color[0] + rock_color[0]) / 2),
+                    round((sand_color[1] + rock_color[1]) / 2),
+                    round((sand_color[2] + rock_color[2]) / 2),
+                ),
+            },
+            "sand": {
+                "base_colors": [(220, 180, 80)],
+                "tolerance": 50,
+                "replacement_color": (
+                    round(sand_color[0]),
+                    round(sand_color[1]),
+                    round(sand_color[2]),
+                ),
+            },
+            "shadowed sand": {
+                "base_colors": [(184, 153, 64)],
+                "tolerance": 35,
+                "replacement_color": (
+                    round(sand_color[0] * 0.8),
+                    round(sand_color[1] * 0.8),
+                    round(sand_color[2] * 0.8),
+                ),
+            },
+            "deep water": {
+                "base_colors": [(5, 55, 200)],
+                "tolerance": 80,
+                "replacement_color": (
+                    round(water_color[0]),
+                    round(water_color[1]),
+                    round(water_color[2]),
+                ),
+            },
+            "muddy water": {
+                "base_colors": [(54, 108, 144)],
+                "tolerance": 80,
+                "replacement_color": (
+                    round(water_color[0]),
+                    round(water_color[1]),
+                    round(water_color[2]),
+                ),
+            },
+            "rock": {
+                "base_colors": [(90, 90, 90)],
+                "tolerance": 90,
+                "replacement_color": (
+                    round(rock_color[0]),
+                    round(rock_color[1]),
+                    round(rock_color[2]),
+                ),
+            },
+            "mountaintop": {
+                "base_colors": [(233, 20, 233)],
+                "tolerance": 75,
+                "replacement_color": (
+                    round(rock_color[0] * 1.4),
+                    round(rock_color[1] * 1.4),
+                    round(rock_color[2] * 1.4),
+                ),
+            },
+            "faults": {
+                "base_colors": [(54, 53, 40)],
+                "tolerance": 0,
+                "replacement_color": (
+                    round(rock_color[0] * 0.5),
+                    round(rock_color[1] * 0.5),
+                    round(rock_color[2] * 0.5),
+                ),
+            },
         }
 
     def get_green_screen(self, terrain: str) -> Dict[str, Dict[str, any]]:

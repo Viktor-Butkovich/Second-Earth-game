@@ -50,7 +50,7 @@
 
     "mars_base_temperature": -1,
     "mars_roughness_multiplier": 20,
-    "mars_water_multiplier": 6,
+    "mars_water_multiplier": 5,
     "mars_color_filter": {"red": 1.1, "green": 0.95, "blue": 0.95},
 
     "map_sizes": [11, 15, 19, 23, 27, 31],
