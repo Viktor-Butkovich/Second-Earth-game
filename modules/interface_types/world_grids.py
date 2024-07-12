@@ -361,7 +361,39 @@ class world_grid(grid):
         else:
             for cell in self.get_flat_cell_list():
                 cell.set_parameter("soil", random.randrange(1, 4))
-        self.smooth("soil")
+
+        num_worms = random.randrange(
+            self.get_tuning("min_soil_multiplier"),
+            self.get_tuning("max_soil_multiplier") + 1,
+        )
+        for i in range(num_worms):
+            min_length = (
+                random.randrange(
+                    self.get_tuning("min_soil_worm_multiplier"),
+                    self.get_tuning("med_soil_worm_multiplier"),
+                )
+                * self.area
+            ) // 25**2
+            max_length = (
+                random.randrange(
+                    self.get_tuning("med_soil_worm_multiplier"),
+                    self.get_tuning("max_soil_worm_multiplier"),
+                )
+                * self.area
+            ) // 25**2
+            self.make_random_terrain_parameter_worm(
+                min_length,
+                max_length,
+                "soil",
+                random.choice([-1, 1]),
+                bound=1,
+            )
+
+        self.bound(
+            "soil",
+            1,
+            3,
+        )
 
     def generate_vegetation(self) -> None:
         """

@@ -28,6 +28,12 @@
     "max_roughness_worm_multiplier": 40,
     "roughness_worm_bound": 3,
 
+    "min_soil_multiplier": 0,
+    "max_soil_multiplier": 80,
+    "min_soil_worm_multiplier": 40,
+    "med_soil_worm_multiplier": 60,
+    "max_soil_worm_multiplier": 80,
+
     "min_water_multiplier": 0,
     "med_water_multiplier": 15,
     "max_water_multiplier": 50,
