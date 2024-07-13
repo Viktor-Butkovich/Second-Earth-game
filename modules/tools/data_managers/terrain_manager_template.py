@@ -495,7 +495,8 @@ class terrain_handler:
             boolean: True if this terrain would have snow, False if not
         """
         return (
-            self.get_parameter("temperature") >= constants.terrain_manager.get_tuning("water_boiling_point") - 4
+            self.get_parameter("temperature")
+            >= constants.terrain_manager.get_tuning("water_boiling_point") - 4
             and self.get_parameter("water") >= 3
         )
 
