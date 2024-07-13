@@ -558,8 +558,8 @@
         "min_water": 3,
         "max_water": 3
     },
-    "crags": {
-        "name": "crags",
+    "barren_chaos": {
+        "name": "barren_chaos",
         "min_temperature": 1,
         "max_temperature": 6,
         "min_roughness": 3,
@@ -701,8 +701,8 @@
         "min_water": 1,
         "max_water": 2
     },
-    "flooded_crags": {
-        "name": "flooded_crags",
+    "flooded_chaos": {
+        "name": "flooded_chaos",
         "min_temperature": 2,
         "max_temperature": 6,
         "min_roughness": 3,
@@ -714,8 +714,8 @@
         "min_water": 3,
         "max_water": 4
     },
-    "ice_crags": {
-        "name": "ice_crags",
+    "frozen_chaos": {
+        "name": "frozen_chaos",
         "min_temperature": 1,
         "max_temperature": 1,
         "min_roughness": 3,

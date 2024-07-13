@@ -328,7 +328,7 @@ class world_handler:
             },
             "dirt": {
                 "base_colors": [(124, 99, 29)],
-                "tolerance": 50,
+                "tolerance": 60,
                 "replacement_color": (
                     round((sand_color[0] + rock_color[0]) / 2),
                     round((sand_color[1] + rock_color[1]) / 2),

@@ -48,18 +48,5 @@ except Exception:  # displays error message and records error message in crash l
 #
 #   new SE features:
 # Continue adding hairstyles
-# Work on dunes, cold dunes, ice dunes, crags, ice crags, flooded crags, wasteland hills terrains
-
-# low temperature low soil low water: cold dunes
-# low temperature low soil high water: ice dunes
-# low temperature high soil low water: crags
-# low temperature high soil high water: ice crags
-# high temperature low soil low water: dunes
-# high temperature low soil high water: wasteland hills
-# high temperature high soil low water: crags
-# high temperature high soil high water: flooded crags
-
-# Figure out wasteland hills/flooded dunes
-# Add crags
 # Minister table projection not using smart green screens, probably because it directly uses tile image ID
-# Fix low contrast oceans
+# Continue on wasteland hills, mud mountains, wasteland mountains, frozen mountains
