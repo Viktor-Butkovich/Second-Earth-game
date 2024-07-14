@@ -49,4 +49,3 @@ except Exception:  # displays error message and records error message in crash l
 #   new SE features:
 # Continue adding hairstyles
 # Minister table projection not using smart green screens, probably because it directly uses tile image ID
-# Add increase/decrease parameter "god buttons" to tile interface with corresponding dev config option

@@ -1830,3 +1830,40 @@ class toggle_button(button):
                     ],
                 ]
             )
+
+
+class change_parameter_button(button):
+    """
+    Button that, when god mode is enabled, allows changing the selected tile's terrain handler parameter values
+    """
+
+    def __init__(self, input_dict) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            dictionary input_dict: Keys corresponding to the values needed to initialize this object
+        Output:
+            None
+        """
+        input_dict["button_type"] = "change parameter"
+        self.change = input_dict["change"]
+        super().__init__(input_dict)
+
+    def on_click(self) -> None:
+        """
+        Description;
+            Changes this button's parameter of its label's tile's terrain handler
+        Input:
+            None
+        Output:
+            None
+        """
+        if main_loop_utility.action_possible():
+            self.attached_label.actor.cell.terrain_handler.change_parameter(
+                self.attached_label.actor_label_type, self.change
+            )
+        else:
+            text_utility.print_to_screen(
+                "You are busy and cannot change this parameter."
+            )

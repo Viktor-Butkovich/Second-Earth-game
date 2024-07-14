@@ -28,12 +28,14 @@
       "enable_crash_button",
       "map_modes",
       "allow_planet_mask",
-      "large_map"
+      "large_map",
+      "god_mode"
    ],
    "active_effects": [
       "fullscreen",
       "skip_intro",
       "allow_planet_mask",
-      "map_modes"
+      "map_modes",
+      "god_mode"
    ]
 }

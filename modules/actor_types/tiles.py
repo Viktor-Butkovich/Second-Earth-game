@@ -419,6 +419,8 @@ class tile(actor):  # to do: make terrain tiles a subclass
             self.image_dict["default"] = "terrains/hidden.png"
         if update_image_bundle:
             self.update_image_bundle()
+        if self == status.displayed_tile:
+            actor_utility.calibrate_actor_info_display(status.tile_info_display, self)
 
     def update_tooltip(self):
         """

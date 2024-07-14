@@ -311,7 +311,10 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                     )
                 elif base == "toggle":
                     new_element = actor_display_buttons.toggle_button(input_dict)
-
+                elif base == "change parameter":
+                    new_element = actor_display_buttons.change_parameter_button(
+                        input_dict
+                    )
                 else:  # if given init type cycle passengers button, will initialize as base button class with button type cycle passengers
                     input_dict["button_type"] = base
                     new_element = buttons.button(input_dict)

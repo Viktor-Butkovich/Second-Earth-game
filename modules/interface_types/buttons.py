@@ -768,20 +768,16 @@ class button(interface_elements.interface_element):
                 verb = utility.conjugate("be", amount, "preterite")  # was or were
                 self.set_tooltip(
                     [
-                        "The "
-                        + self.parent_collection.autofill_actors[
-                            self.autofill_target_type
-                        ].name
-                        + " here "
-                        + verb
-                        + " automatically selected for the "
-                        + self.parent_collection.autofill_actors["procedure"]
-                        + " procedure",
-                        "Press to cycle to the next available "
-                        + self.autofill_target_type,
+                        f"The {self.parent_collection.autofill_actors[self.autofill_target_type].name} here {verb} automatically selected for the {self.parent_collection.autofill_actors['procedure']} procedure",
+                        f"Press to cycle to the next available {self.autofill_target_type}",
                     ]
                 )
-
+        elif self.button_type == "change parameter":
+            self.set_tooltip(
+                [
+                    f"Changes this tile's {self.attached_label.actor_label_type} by {self.change}"
+                ]
+            )
         else:
             self.set_tooltip(["placeholder"])
 

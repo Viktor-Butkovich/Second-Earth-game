@@ -4,7 +4,7 @@ import random
 import json
 import os
 from typing import List, Dict
-from ...util import utility
+from ...util import utility, actor_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -463,12 +463,56 @@ class terrain_handler:
         Input:
             string parameter_name: Name of the parameter to change
             int change: Amount to change the parameter by
+            boolean update_image: Whether to update the image of any attached tiles after changing the parameter
         Output:
             None
         """
         self.set_parameter(
             parameter_name, self.terrain_parameters[parameter_name] + change
         )
+
+    def set_parameter(self, parameter_name: str, new_value: int) -> None:
+        """
+        Description:
+            Sets the value of a parameter for this handler's cells
+        Input:
+            string parameter_name: Name of the parameter to change
+            int new_value: New value for the parameter
+            boolean update_image: Whether to update the image of any attached tiles after setting the parameter
+        Output:
+            None
+        """
+        overlay_images = self.get_overlay_images()
+
+        self.terrain_parameters[parameter_name] = max(
+            self.minima.get(parameter_name, 1),
+            min(new_value, self.maxima.get(parameter_name, 6)),
+        )
+
+        if parameter_name == "water" and self.terrain_parameters["temperature"] >= 10:
+            while self.terrain_parameters["water"] > 1:
+                self.terrain_parameters["water"] -= 1
+                status.strategic_map_grid.place_water(frozen_bound=9)
+        elif (
+            parameter_name == "temperature"
+            and self.terrain_parameters["temperature"] >= 10
+        ):
+            self.set_parameter("water", 1)
+
+        new_terrain = constants.terrain_manager.classify(self.terrain_parameters)
+
+        if self.terrain != new_terrain or overlay_images != self.get_overlay_images():
+            self.set_terrain(new_terrain)
+            for cell in self.attached_cells:
+                if cell.tile != "none":
+                    cell.tile.set_terrain(self.terrain, update_image_bundle=True)
+
+        if status.displayed_tile:
+            for cell in self.attached_cells:
+                if cell.tile == status.displayed_tile:
+                    actor_utility.calibrate_actor_info_display(
+                        status.tile_info_display, cell.tile
+                    )
 
     def has_snow(self) -> bool:
         """
@@ -516,33 +560,6 @@ class terrain_handler:
             return_list.append(f"terrains/boiling_{self.terrain_variant % 4}.png")
         return return_list
 
-    def set_parameter(self, parameter_name: str, new_value: int) -> None:
-        """
-        Description:
-            Sets the value of a parameter for this handler's cells
-        Input:
-            string parameter_name: Name of the parameter to change
-            int new_value: New value for the parameter
-        Output:
-            None
-        """
-        self.terrain_parameters[parameter_name] = max(
-            self.minima.get(parameter_name, 1),
-            min(new_value, self.maxima.get(parameter_name, 6)),
-        )
-
-        if parameter_name == "water" and self.terrain_parameters["temperature"] >= 10:
-            while self.terrain_parameters["water"] > 1:
-                self.terrain_parameters["water"] -= 1
-                status.strategic_map_grid.place_water(frozen_bound=9)
-
-        old_terrain = self.terrain
-        self.set_terrain(constants.terrain_manager.classify(self.terrain_parameters))
-        if old_terrain != self.terrain:
-            for cell in self.attached_cells:
-                if cell.tile != "none":
-                    cell.tile.set_terrain(self.terrain, update_image_bundle=True)
-
     def to_save_dict(self) -> Dict[str, any]:
         """
         Description:
@@ -586,16 +603,26 @@ class terrain_handler:
         Output:
             None
         """
-        self.terrain = new_terrain
         try:
-            self.terrain_variant = random.randrange(
-                0, constants.terrain_manager.terrain_variant_dict.get(new_terrain, 1)
-            )
+            if hasattr(
+                self, "terrain_variant"
+            ) and constants.terrain_manager.terrain_variant_dict.get(
+                self.terrain, 1
+            ) == constants.terrain_manager.terrain_variant_dict.get(
+                new_terrain, 1
+            ):
+                pass  # Keep same terrain variant if number of variants is the same - keep same basic mountain layout, etc.
+            else:
+                self.terrain_variant = random.randrange(
+                    0,
+                    constants.terrain_manager.terrain_variant_dict.get(new_terrain, 1),
+                )
         except:
             print(f"Error loading {new_terrain} variant")
             self.terrain_variant = random.randrange(
                 0, constants.terrain_manager.terrain_variant_dict.get(new_terrain, 1)
             )
+        self.terrain = new_terrain
         for cell in self.attached_cells:
             if cell.tile != "none":
                 cell.tile.set_terrain(self.terrain, update_image_bundle=False)
