@@ -584,8 +584,8 @@
         "min_water": 1,
         "max_water": 2
     },
-    "wasteland_hills": {
-        "name": "wasteland_hills",
+    "wasteland_dunes": {
+        "name": "wasteland_dunes",
         "min_temperature": 2,
         "max_temperature": 6,
         "min_roughness": 3,

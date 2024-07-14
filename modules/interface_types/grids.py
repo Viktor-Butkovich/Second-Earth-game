@@ -92,9 +92,10 @@ class grid(interface_elements.interface_element):
         Output:
             List: List of images representing this grid - approximation of very zoomed out grid
         """
+        return "misc/empty.png"
         return_list = [{"image_id": "misc/lines.png", "level": 10}]
         for current_cell in self.get_flat_cell_list():
-            image_id = current_cell.tile.get_image_id_list()[0]
+            image_id = current_cell.tile.get_image_id_list()
             if type(image_id) == dict:
                 image_id = image_id["image_id"]
             return_list.append(
