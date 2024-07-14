@@ -140,7 +140,7 @@
             },
             "Germany": {
                 "German": 71,
-                "Eastern European": 7,
+                "Slavic": 7,
                 "Arabic": 5,
                 "West African": 1,
                 "East African": 1,
@@ -161,7 +161,7 @@
                 "Arabic": 9,
                 "West African": 5,
                 "East African": 2,
-                "Eastern European": 2,
+                "Slavic": 2,
                 "Portuguese": 1,
                 "Latin": 1,
                 "diaspora": 4
@@ -169,7 +169,7 @@
             "Italy": {
                 "Italian": 91,
                 "Arabic": 2,
-                "Eastern European": 2,
+                "Slavic": 2,
                 "French": 1,
                 "German": 1,
                 "Indian": 1,
@@ -178,7 +178,7 @@
             "Scandinavian": {
                 "Scandinavian": 90,
                 "Arabic": 5,
-                "Eastern European": 3,
+                "Slavic": 3,
                 "diaspora": 2
             },
             "Denmark": "Scandinavian",
@@ -231,7 +231,7 @@
                 "German": 30,
                 "British": 5,
                 "Arabic": 5,
-                "Eastern European": 15,
+                "Slavic": 15,
                 "diaspora": 5
             }
         }
@@ -257,24 +257,24 @@
             "Bulgaria": 1,
             "Turkmenistan": 1,
             "Slovakia": 1,
-            "Misc. Eastern": 5
+            "Misc. Slavic": 5
         },
         "miscellaneous": ["Estonia", "Slovenia", "North Macedonia", "Latvia", "Lithuania", "Croatia", "Georgia", "Mongolia", "Moldova", "Bosnia and Herzegovina", "Albania", "Armenia", "Montenegro"],
         "demographics": {
             "Russia": {
-                "Eastern European": 79,
+                "Slavic": 79,
                 "Central Asian": 20,
                 "diaspora": 1
             },
             "Eastern Europe": {
-                "Eastern European": 92,
+                "Slavic": 92,
                 "German": 3,
                 "Central Asian": 3,
                 "diaspora": 2
             },
             "Central Asia": {
                 "Central Asian": 94,
-                "Eastern European": 3,
+                "Slavic": 3,
                 "Iranian": 2,
                 "diaspora": 1
             },
@@ -443,7 +443,7 @@
             },
             "Turkey": {
                 "Central Asian": 90,
-                "Eastern European": 5,
+                "Slavic": 5,
                 "Arabic": 2,
                 "Iranian": 2,
                 "diaspora": 1

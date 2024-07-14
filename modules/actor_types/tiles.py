@@ -269,7 +269,6 @@ class tile(actor):  # to do: make terrain tiles a subclass
             return_list.append(equivalent_cell.tile)
         return return_list
 
-    # maybe make these into general actor functions? override update image bundle for tile to account for resources/buildings, have group version with multiple entities
     def get_image_id_list(self, force_visibility=False):
         """
         Description:
@@ -299,8 +298,24 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             "x_offset": 0,
                             "y_offset": 0,
                             "level": -9,
+                            "color_filter": self.cell.terrain_handler.get_color_filter(),
+                            "green_screen": self.cell.terrain_handler.get_green_screen(),
                         }
                     )
+                    for (
+                        terrain_overlay_image
+                    ) in self.cell.terrain_handler.get_overlay_images():
+                        image_id_list.append(
+                            {
+                                "image_id": terrain_overlay_image,
+                                "size": 1,
+                                "x_offset": 0,
+                                "y_offset": 0,
+                                "level": -8,
+                                "color_filter": self.cell.terrain_handler.get_color_filter(),
+                                "green_screen": self.cell.terrain_handler.get_green_screen(),
+                            }
+                        )
                     for terrain_feature in self.cell.terrain_handler.terrain_features:
                         new_image_id = self.cell.terrain_handler.terrain_features[
                             terrain_feature
@@ -397,17 +412,15 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         if new_terrain in constants.terrain_manager.terrain_list:
-            self.image_dict["default"] = (
-                "terrains/"
-                + new_terrain
-                + "_"
-                + str(self.cell.terrain_handler.terrain_variant)
-                + ".png"
-            )
+            self.image_dict[
+                "default"
+            ] = f"terrains/{new_terrain}_{self.cell.terrain_handler.terrain_variant}.png"
         elif new_terrain == "none":
             self.image_dict["default"] = "terrains/hidden.png"
         if update_image_bundle:
             self.update_image_bundle()
+        if self == status.displayed_tile:
+            actor_utility.calibrate_actor_info_display(status.tile_info_display, self)
 
     def update_tooltip(self):
         """
@@ -432,7 +445,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             if self.cell.terrain_handler.visible:
                 if self.cell.terrain_handler.terrain != "none":
                     tooltip_message.append(
-                        f"This is {utility.generate_article(self.cell.terrain_handler.terrain.replace('_', '' ''))} {self.cell.terrain_handler.terrain.replace('_', ' ')} tile"
+                        f"This is {utility.generate_article(self.cell.terrain_handler.terrain.replace('_', ' '), add_space=True)}{self.cell.terrain_handler.terrain.replace('_', ' ')} tile"
                     )
                     for terrain_parameter in constants.terrain_parameters:
                         value = self.cell.get_parameter(terrain_parameter)

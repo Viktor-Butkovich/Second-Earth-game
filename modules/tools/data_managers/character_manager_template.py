@@ -571,7 +571,7 @@ class character_manager_template:
         In format:
         {
             "Russia": {
-                "ethnic_groups": ["Eastern European", "Central Asian", "diaspora"],
+                "ethnic_groups": ["Slavic", "Central Asian", "diaspora"],
                 "ethnic_group_weights": [79, 20, 1]
             },
             "USA": ...

@@ -126,6 +126,7 @@ class actor_display_label(label):
                     )
                     if button_input_dict:
                         self.add_attached_button(button_input_dict)
+
         elif self.actor_label_type == "movement":
             self.message_start = "Movement points: "
 
@@ -430,6 +431,20 @@ class actor_display_label(label):
             input_dict["init_type"] = "rename settlement button"
             input_dict["image_id"] = "buttons/rename.png"
             self.add_attached_button(input_dict)
+
+        elif self.actor_label_type in constants.terrain_parameters:
+            self.message_start = utility.capitalize(self.actor_label_type) + ": "
+            if constants.effect_manager.effect_active("god_mode"):
+                input_dict["init_type"] = "change parameter button"
+                input_dict["width"], input_dict["height"] = (s_size, s_size)
+
+                input_dict["change"] = -1
+                input_dict["image_id"] = "buttons/cycle_ministers_down_button.png"
+                self.add_attached_button(input_dict)
+
+                input_dict["change"] = 1
+                input_dict["image_id"] = "buttons/cycle_ministers_up_button.png"
+                self.add_attached_button(input_dict)
 
         else:
             self.message_start = (
@@ -760,7 +775,7 @@ class actor_display_label(label):
                     self.set_label(utility.capitalize(new_actor.grid.name))
                 elif self.actor.cell.terrain_handler.visible:
                     self.set_label(
-                        f"{self.message_start} {new_actor.cell.terrain_handler.terrain.replace('_', ' ')}"
+                        f"{self.message_start}{new_actor.cell.terrain_handler.terrain.replace('_', ' ')}"
                     )
                 else:
                     self.set_label(self.message_start + "unknown")

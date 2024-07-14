@@ -77,6 +77,7 @@ class save_load_manager_template:
         Output:
             None
         """
+        status.rendered_images = {}
         flags.creating_new_game = True
         flags.victories_this_game = []
 
@@ -228,6 +229,7 @@ class save_load_manager_template:
         Output:
             None
         """
+        status.rendered_images = {}
         flags.loading_save = True
 
         text_utility.print_to_screen("")

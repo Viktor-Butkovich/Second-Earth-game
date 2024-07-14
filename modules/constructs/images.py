@@ -361,8 +361,29 @@ class bundle_image:
                     'x_offset' = 0: float value - x-axis offset of image, with 1 being shifted a full width to the right
                     'y_offset' = 0: float value - y-axis offset of image, with 1 being shifted a full height upward
                     'level' = 0: int value - Layer for image to appear on, with 0 being the default layer, positive levels being above it, and negative levels being below it
-                    'green_screen': string list value - List of colors to use to replace particular preset colors in this image - if given ['red'] or 'red', replace each instance of the 1st
-                        preset green screen color of (62, 82, 82) with color_dict['red']
+                    'green_screen': Tuple[int] | List[Tuple[int]] | Dict[str, Dict[str, any]] value - List of colors to use to replace particular preset colors in this image
+                        If given [(255, 0, 0)] or (255, 0, 0), replace each instance of the 1st preset green screen color of (62, 82, 82) with red
+                        If given [(255, 0, 0), (0, 0, 0)], replace 1st preset green screen color with red, and 2nd preset green screen color with black
+                        If given "smart green screen" dict value in the following format:
+                            {
+                                'water': {
+                                    'base_color': (20, 20, 200),
+                                    'tolerance': 50,
+                                    'replacement_color': (200, 20, 20)
+                                },
+                                'sand': {
+                                    ...
+                                }...
+                            }
+                            Take all colors that are within 50 (tolerance) of the base color and replace them with a new color, while retaining the same difference from
+                                the new color as it did with the old color. If a spot of water is slightly darker than the base water color, replace it with something
+                                slightly darker than the replacement color, while ignoring anything that is not within 50 of the base water color.
+                            Each category can have a preset base color/tolerance determined during asset creation, as well as a procedural replacement color
+                            Each category can have a preset smart green screen, with per-terrain or per-tile modifications controlled by world and terrain handlers
+                                World handler handles per-terrain modifications, like dunes sand being slightly different from desert sand, while both are still "Mars red"
+                                Terrain handler handler per-tile modifications, like a tile with earth-imported soil looking different from default planet soil
+                            This system could also work for skin shading, polar dust, light levels, vegetation, resources, building appearances, etc.
+                    'color_filter': dictionary value - Dictionary of RGB values to add to each pixel in this image
             string member_type: String to designate this member's type, allowing it to be specifically removed or found based on type later, 'default' by default
             boolean is_offset = False: Whether this is an offset image that takes a dictionary image id or a normal image that takes a string image id
         Output:
@@ -398,10 +419,17 @@ class bundle_image:
                 if type(image_id["green_screen"]) == list:
                     for index in range(0, len(image_id["green_screen"])):
                         self.green_screen_colors.append(image_id["green_screen"][index])
+                elif type(image_id["green_screen"]) == dict:
+                    self.green_screen_colors = image_id["green_screen"]
                 else:
                     self.green_screen_colors.append(image_id["green_screen"])
             else:
                 self.has_green_screen = False
+            if "color_filter" in image_id:
+                self.has_color_filter = True
+                self.color_filter = image_id["color_filter"]
+            else:
+                self.has_color_filter = False
             if "font" in image_id:
                 self.font = image_id["font"]
             elif type(self.image_id) == str and not self.image_id.endswith(".png"):
@@ -477,6 +505,18 @@ class bundle_image:
         if self.image != "none":
             self.image = pygame.transform.scale(self.image, (self.width, self.height))
 
+    def get_color_difference(self, color1, color2):
+        """
+        Description:
+            Calculates and returns the difference between two colors
+        Input:
+            int tuple color1: RGB values of first color
+            int tuple color2: RGB values of second color
+        Output:
+            int tuple: Returns difference between two colors
+        """
+        return [a - b for a, b in zip(color1, color2)]
+
     def load(self):
         """
         Description:
@@ -491,62 +531,191 @@ class bundle_image:
         else:
             full_image_id = self.image_id
         key = str(full_image_id)
-        try:
-            if self.is_offset and self.has_green_screen:
-                for current_green_screen_color in self.green_screen_colors:
-                    key += str(current_green_screen_color)
-            if key in status.rendered_images:  # if image already loaded, use it
-                self.image = status.rendered_images[key]
-            else:  # if image not loaded, load it and add it to the loaded images
-                if full_image_id.endswith(".png"):
-                    self.text = False
-                    try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
-                        self.image = pygame.image.load(full_image_id)
-                    except:
-                        print(full_image_id)
-                        self.image = pygame.image.load(full_image_id)
-                    self.image.convert()
-                    if self.is_offset and self.has_green_screen:
-                        width, height = self.image.get_size()
-                        index = 0
-                        for current_green_screen_color in constants.green_screen_colors:
-                            if index < len(self.green_screen_colors):
-                                if (
-                                    type(self.green_screen_colors[index]) == str
-                                ):  # like 'red'
-                                    replace_with = self.bundle.constants.color_dict[
-                                        self.green_screen_colors[index]
-                                    ]
-                                else:  # like (255, 0, 0)
-                                    replace_with = self.green_screen_colors[index]
-                                for x in range(width):
-                                    for y in range(height):
-                                        current_color = self.image.get_at((x, y))
-                                        if (
-                                            current_color[0]
-                                            == current_green_screen_color[0]
-                                            and current_color[1]
-                                            == current_green_screen_color[1]
-                                            and current_color[2]
-                                            == current_green_screen_color[2]
-                                        ):
-                                            self.image.set_at(
-                                                (x, y),
+        if self.is_offset:
+            if self.has_green_screen:
+                key += str(self.green_screen_colors)
+            if self.has_color_filter:
+                key += str(self.color_filter)
+
+        if key in status.rendered_images:  # if image already loaded, use it
+            self.image = status.rendered_images[key]
+        else:  # if image not loaded, load it and add it to the loaded images
+            if full_image_id.endswith(".png"):
+                self.text = False
+                try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
+                    self.image = pygame.image.load(full_image_id)
+                except:
+                    print(full_image_id)
+                    self.image = pygame.image.load(full_image_id)
+                self.image.convert()
+                if self.is_offset and (self.has_green_screen or self.has_color_filter):
+                    width, height = self.image.get_size()
+                    smart_green_screen = (
+                        self.has_green_screen and type(self.green_screen_colors) == dict
+                    )
+                    color_cache = (
+                        {}
+                    )  # Avoid re-computing color changes for that starting color for the rest of the image
+                    for x in range(width):
+                        for y in range(height):
+                            (
+                                original_red,
+                                original_green,
+                                original_blue,
+                                alpha,
+                            ) = self.image.get_at((x, y))
+                            red, green, blue = (
+                                original_red,
+                                original_green,
+                                original_blue,
+                            )
+                            if (
+                                color_cache.get(
+                                    (original_red, original_green, original_blue), None
+                                )
+                                == None
+                            ):
+                                if self.has_green_screen:
+                                    if smart_green_screen:
+                                        replaced = False
+                                        for terrain_type in self.green_screen_colors:
+                                            if not replaced:
+                                                metadata = self.green_screen_colors[
+                                                    terrain_type
+                                                ]
+                                                for base_color in metadata[
+                                                    "base_colors"
+                                                ]:
+                                                    displacement = (
+                                                        self.get_color_difference(
+                                                            (red, green, blue),
+                                                            base_color,
+                                                        )
+                                                    )
+                                                    if (
+                                                        sum(
+                                                            [
+                                                                abs(a)
+                                                                for a in displacement
+                                                            ]
+                                                        )
+                                                        <= metadata["tolerance"]
+                                                    ):
+                                                        replaced = True
+                                                        difference_proportion = (
+                                                            min(
+                                                                red / base_color[0], 1.5
+                                                            ),
+                                                            min(
+                                                                green / base_color[1],
+                                                                1.5,
+                                                            ),
+                                                            min(
+                                                                blue / base_color[2],
+                                                                1.5,
+                                                            ),
+                                                        )
+                                                        red = min(
+                                                            max(
+                                                                round(
+                                                                    metadata[
+                                                                        "replacement_color"
+                                                                    ][0]
+                                                                    * difference_proportion[
+                                                                        0
+                                                                    ]
+                                                                ),
+                                                                0,
+                                                            ),
+                                                            255,
+                                                        )
+                                                        green = min(
+                                                            max(
+                                                                round(
+                                                                    metadata[
+                                                                        "replacement_color"
+                                                                    ][1]
+                                                                    * difference_proportion[
+                                                                        1
+                                                                    ]
+                                                                ),
+                                                                0,
+                                                            ),
+                                                            255,
+                                                        )
+                                                        blue = min(
+                                                            max(
+                                                                round(
+                                                                    metadata[
+                                                                        "replacement_color"
+                                                                    ][2]
+                                                                    * difference_proportion[
+                                                                        2
+                                                                    ]
+                                                                ),
+                                                                0,
+                                                            ),
+                                                            255,
+                                                        )
+                                                        break
+                                    else:
+                                        for (
+                                            index,
+                                            current_green_screen_color,
+                                        ) in enumerate(constants.green_screen_colors):
+                                            # If pixel matches preset green screen color, replace it with the image's corresponding replacement color
+                                            if (
+                                                red,
+                                                green,
+                                                blue,
+                                            ) == current_green_screen_color:
                                                 (
-                                                    replace_with[0],
-                                                    replace_with[1],
-                                                    replace_with[2],
-                                                    current_color[3],
-                                                ),
-                                            )  # preserves alpha value
-                            index += 1
-                else:
-                    self.text = True
-                    self.image = text_utility.text(self.image_id, self.font)
-                status.rendered_images[key] = self.image
-        except:
-            print(full_image_id)
-            print(0 / 0)
+                                                    red,
+                                                    green,
+                                                    blue,
+                                                ) = self.green_screen_colors[index]
+                                                break
+                                if self.has_color_filter:
+                                    red = round(
+                                        max(
+                                            min(
+                                                self.color_filter.get("red", 1) * red,
+                                                255,
+                                            ),
+                                            0,
+                                        )
+                                    )
+                                    green = round(
+                                        max(
+                                            min(
+                                                self.color_filter.get("green", 1)
+                                                * green,
+                                                255,
+                                            ),
+                                            0,
+                                        )
+                                    )
+                                    blue = round(
+                                        max(
+                                            min(
+                                                self.color_filter.get("blue", 1) * blue,
+                                                255,
+                                            ),
+                                            0,
+                                        )
+                                    )
+                                color_cache[
+                                    (original_red, original_green, original_blue)
+                                ] = (red, green, blue)
+                            else:
+                                red, green, blue = color_cache[
+                                    (original_red, original_green, original_blue)
+                                ]
+                            self.image.set_at((x, y), (red, green, blue, alpha))
+            else:
+                self.text = True
+                self.image = text_utility.text(self.image_id, self.font)
+            status.rendered_images[key] = self.image
 
 
 class free_image(image):

@@ -105,7 +105,7 @@ class cell:
                 'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
                 'visible': boolean value - Whether this cell is visible or not
                 'terrain': string value - Terrain type of this cell and its tile, like 'swamp'
-                'terrain_variant': int value - Variant number to use for image file path, like mountain_0
+                'terrain_variant': int value - Variant number to use for image file path, like mountains_0
                 'terrain feature': string/boolean dictionary value - Dictionary containing a True entry for each terrain feature type in this cell
                 'resource': string value - Resource type of this cell and its tile, like 'exotic wood'
                 'inventory': string/string dictionary value - Version of the inventory dictionary of this cell's tile only containing commodity types with 1+ units held

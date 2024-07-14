@@ -6,6 +6,7 @@ from typing import Dict, List
 from .grids import grid, mini_grid, abstract_grid
 from .cells import cell
 from ..util import scaling, utility
+from ..tools.data_managers import terrain_manager_template
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -15,6 +16,34 @@ class world_grid(grid):
     """
     Grid representing the "single source of truth" for a particular world, containing original cells and terrain/world parameters
     """
+
+    def __init__(self, from_save: bool, input_dict: Dict[str, any]) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
+            dictionary input_dict: Keys corresponding to the values needed to initialize this object
+                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of the bottom left corner of this grid
+                'width': int value - Pixel width of this grid
+                'height': int value - Pixel height of this grid
+                'coordinate_width': int value - Number of columns in this grid
+                'coordinate_height': int value - Number of rows in this grid
+                'internal_line_color': string value - Color in the color_dict dictionary for lines between cells, like 'bright blue'
+                'external_line_color': string value - Color in the color_dict dictionary for lines on the outside of the grid, like 'bright blue'
+                'list modes': string list value - Game modes during which this grid can appear
+                'grid_line_width': int value - Pixel width of lines between cells. Lines on the outside of the grid are one pixel thicker
+                'cell_list': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each cell in this grid
+                'grid_type': str value - Type of grid, like 'strategic_map_grid' or 'earth_grid'
+        Output:
+            None
+        """
+        super().__init__(from_save, input_dict)
+        self.world_handler: terrain_manager_template.world_handler = (
+            terrain_manager_template.world_handler(
+                self, from_save, input_dict.get("world_handler", {})
+            )
+        )
 
     def create_world(self, from_save: bool):
         """
@@ -94,24 +123,7 @@ class world_grid(grid):
         Output:
             None
         """
-        if self.get_tuning("weighted_temperature_bounds"):
-            default_temperature = min(
-                max(
-                    random.randrange(-5, 13),
-                    self.get_tuning("base_temperature_lower_bound"),
-                ),
-                self.get_tuning("base_temperature_upper_bound"),
-            )
-        else:
-            default_temperature = random.randrange(
-                self.get_tuning("base_temperature_lower_bound"),
-                self.get_tuning("base_temperature_upper_bound") + 1,
-            )
-        if self.get_tuning("earth_preset"):
-            default_temperature = self.get_tuning("earth_base_temperature")
-        elif self.get_tuning("mars_preset"):
-            default_temperature = self.get_tuning("mars_base_temperature")
-
+        default_temperature = self.world_handler.default_temperature
         for cell in self.get_flat_cell_list():
             cell.set_parameter(
                 "temperature",
@@ -264,22 +276,7 @@ class world_grid(grid):
         Output:
             None
         """
-        if self.get_tuning("earth_preset"):
-            water_multiplier = self.get_tuning("earth_water_multiplier")
-        elif self.get_tuning("mars_preset"):
-            water_multiplier = self.get_tuning("mars_water_multiplier")
-        else:
-            if random.randrange(1, 7) >= 5:
-                water_multiplier = random.randrange(
-                    self.get_tuning("min_water_multiplier"),
-                    self.get_tuning("max_water_multiplier") + 1,
-                )
-            else:
-                water_multiplier = random.randrange(
-                    self.get_tuning("min_water_multiplier"),
-                    self.get_tuning("med_water_multiplier") + 1,
-                )
-        total_water = (water_multiplier * self.area) // 10
+        total_water = (self.world_handler.water_multiplier * self.area) // 10
 
         for water in range(total_water):
             self.place_water()
@@ -364,7 +361,39 @@ class world_grid(grid):
         else:
             for cell in self.get_flat_cell_list():
                 cell.set_parameter("soil", random.randrange(1, 4))
-        self.smooth("soil")
+
+        num_worms = random.randrange(
+            self.get_tuning("min_soil_multiplier"),
+            self.get_tuning("max_soil_multiplier") + 1,
+        )
+        for i in range(num_worms):
+            min_length = (
+                random.randrange(
+                    self.get_tuning("min_soil_worm_multiplier"),
+                    self.get_tuning("med_soil_worm_multiplier"),
+                )
+                * self.area
+            ) // 25**2
+            max_length = (
+                random.randrange(
+                    self.get_tuning("med_soil_worm_multiplier"),
+                    self.get_tuning("max_soil_worm_multiplier"),
+                )
+                * self.area
+            ) // 25**2
+            self.make_random_terrain_parameter_worm(
+                min_length,
+                max_length,
+                "soil",
+                random.choice([-1, 1]),
+                bound=1,
+            )
+
+        self.bound(
+            "soil",
+            1,
+            3,
+        )
 
     def generate_vegetation(self) -> None:
         """

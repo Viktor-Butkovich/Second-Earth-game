@@ -3,9 +3,10 @@
 import random
 import pygame
 import itertools
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from . import cells, interface_elements
 from ..util import actor_utility, utility
+from ..tools.data_managers import terrain_manager_template
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -39,6 +40,7 @@ class grid(interface_elements.interface_element):
         """
         super().__init__(input_dict)
         status.grid_list.append(self)
+        self.world_handler = None
         self.grid_type = input_dict["grid_type"]
         self.grid_line_width: int = input_dict.get("grid_line_width", 3)
         self.from_save = from_save
@@ -90,9 +92,10 @@ class grid(interface_elements.interface_element):
         Output:
             List: List of images representing this grid - approximation of very zoomed out grid
         """
+        return "misc/empty.png"
         return_list = [{"image_id": "misc/lines.png", "level": 10}]
         for current_cell in self.get_flat_cell_list():
-            image_id = current_cell.tile.get_image_id_list()[0]
+            image_id = current_cell.tile.get_image_id_list()
             if type(image_id) == dict:
                 image_id = image_id["image_id"]
             return_list.append(
@@ -124,6 +127,7 @@ class grid(interface_elements.interface_element):
         return {
             "grid_type": self.grid_type,
             "map_size": self.coordinate_width,
+            "world_handler": self.world_handler.to_save_dict(),
             "cell_list": [
                 current_cell.to_save_dict()
                 for current_cell in self.get_flat_cell_list()
@@ -274,7 +278,7 @@ class grid(interface_elements.interface_element):
                 self.grid_line_width + 1,
             )
 
-    def find_cell_center(self, coordinates):
+    def find_cell_center(self, coordinates) -> Tuple[int, int]:
         """
         Description:
             Returns the pixel coordinates of the center of this grid's cell that occupies the inputted grid coordinates
@@ -744,5 +748,8 @@ class abstract_grid(grid):
         input_dict["coordinate_height"] = 1
         super().__init__(from_save, input_dict)
         self.is_abstract_grid = True
+        self.world_handler = terrain_manager_template.world_handler(
+            self, from_save, input_dict.get("world_handler", {})
+        )
         self.name = input_dict["name"]
         self.cell_list[0][0].terrain_handler.set_visibility(True)
