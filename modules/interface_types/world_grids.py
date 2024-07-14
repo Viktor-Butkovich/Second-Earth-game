@@ -292,7 +292,13 @@ class world_grid(grid):
         """
         best_frozen = None
         best_liquid = None
-        for candidate in self.sample(k=self.get_tuning("water_placement_candidates")):
+        for candidate in self.sample(
+            k=round(
+                self.get_tuning("water_placement_candidates")
+                * (self.coordinate_width**2)
+                / (25**2)
+            )
+        ):
             if candidate.get_parameter("water") < 6:
                 if (
                     candidate.get_parameter("temperature") <= frozen_bound

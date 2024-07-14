@@ -52,3 +52,4 @@ except Exception:  # displays error message and records error message in crash l
 # Add new unit art
 # Add new minister positions with placehold color-coded squares
 # Add new minister appointing system - selecting an unappointed minister should highlight all available positions, and clicking on one appoint w/ a confirmation check
+# Work on tile knowledge system, pixellated view

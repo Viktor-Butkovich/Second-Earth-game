@@ -489,19 +489,29 @@ class terrain_handler:
             min(new_value, self.maxima.get(parameter_name, 6)),
         )
 
-        if parameter_name == "water" and self.terrain_parameters["temperature"] >= constants.terrain_manager.get_tuning("water_boiling_point"):
+        if parameter_name == "water" and self.terrain_parameters[
+            "temperature"
+        ] >= constants.terrain_manager.get_tuning("water_boiling_point"):
             while self.terrain_parameters["water"] > 1:
                 self.terrain_parameters["water"] -= 1
-                status.strategic_map_grid.place_water(frozen_bound=constants.terrain_manager.get_tuning("water_boiling_point") - 1)
-        elif (
-            parameter_name == "temperature"
-            and self.terrain_parameters["temperature"] >= constants.terrain_manager.get_tuning("water_boiling_point")
-        ):
+                status.strategic_map_grid.place_water(
+                    frozen_bound=constants.terrain_manager.get_tuning(
+                        "water_boiling_point"
+                    )
+                    - 1
+                )
+        elif parameter_name == "temperature" and self.terrain_parameters[
+            "temperature"
+        ] >= constants.terrain_manager.get_tuning("water_boiling_point"):
             self.set_parameter("water", 1)
 
         new_terrain = constants.terrain_manager.classify(self.terrain_parameters)
 
-        if constants.current_map_mode != "terrain" or self.terrain != new_terrain or overlay_images != self.get_overlay_images():
+        if (
+            constants.current_map_mode != "terrain"
+            or self.terrain != new_terrain
+            or overlay_images != self.get_overlay_images()
+        ):
             self.set_terrain(new_terrain)
             for cell in self.attached_cells:
                 if cell.tile != "none":
@@ -701,7 +711,7 @@ class terrain_handler:
             None
         """
         flowed = False
-        if self.terrain_parameters["water"] >= 3 and self.terrain_parameters[
+        if self.terrain_parameters["water"] >= 5 and self.terrain_parameters[
             "temperature"
         ] > constants.terrain_manager.get_tuning(
             "water_freezing_point"
@@ -722,7 +732,7 @@ class terrain_handler:
                         self.change_parameter("water", -1)
                         flowed = True
 
-        if flowed: # Flow could recursively trigger flows in adjacent cells
+        if flowed:  # Flow could recursively trigger flows in adjacent cells
             for adjacent_cell in self.attached_cells[0].adjacent_list:
                 adjacent_cell.terrain_handler.flow()
 
