@@ -436,6 +436,7 @@ class actor_display_label(label):
             self.message_start = utility.capitalize(self.actor_label_type) + ": "
             if constants.effect_manager.effect_active("god_mode"):
                 input_dict["init_type"] = "change parameter button"
+                input_dict["width"], input_dict["height"] = (s_size, s_size)
 
                 input_dict["change"] = -1
                 input_dict["image_id"] = "buttons/cycle_ministers_down_button.png"
