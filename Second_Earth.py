@@ -49,3 +49,6 @@ except Exception:  # displays error message and records error message in crash l
 #   new SE features:
 # Continue adding hairstyles
 # Minister table projection not using smart green screens, probably because it directly uses tile image ID
+# Add new unit art
+# Add new minister positions with placehold color-coded squares
+# Add new minister appointing system - selecting an unappointed minister should highlight all available positions, and clicking on one appoint w/ a confirmation check
