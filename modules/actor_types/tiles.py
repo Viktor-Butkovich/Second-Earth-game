@@ -300,6 +300,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             "level": -9,
                             "color_filter": self.cell.terrain_handler.get_color_filter(),
                             "green_screen": self.cell.terrain_handler.get_green_screen(),
+                            "pixellated": not self.cell.terrain_handler.knowledge_available(
+                                constants.TERRAIN_KNOWLEDGE
+                            ),
                         }
                     )
                     for (
@@ -314,6 +317,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                                 "level": -8,
                                 "color_filter": self.cell.terrain_handler.get_color_filter(),
                                 "green_screen": self.cell.terrain_handler.get_green_screen(),
+                                "pixellated": not self.cell.terrain_handler.knowledge_available(
+                                    constants.TERRAIN_KNOWLEDGE
+                                ),
                             }
                         )
                     for terrain_feature in self.cell.terrain_handler.terrain_features:
@@ -330,7 +336,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                                 new_image_id, y_offset=-0.75
                             )
                         image_id_list = utility.combine(image_id_list, new_image_id)
-                    if self.cell.terrain_handler.resource != "none":
+                    if (
+                        self.cell.terrain_handler.resource != "none"
+                    ):  # If resource visible based on current knowledge
                         resource_icon = actor_utility.generate_resource_icon(self)
                         if type(resource_icon) == str:
                             image_id_list.append(resource_icon)
@@ -435,13 +443,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         if self.show_terrain:  # if is terrain, show tooltip
             tooltip_message = []
             coordinates = self.get_main_grid_coordinates()
-            tooltip_message.append(
-                "Coordinates: ("
-                + str(coordinates[0])
-                + ", "
-                + str(coordinates[1])
-                + ")"
-            )
+            tooltip_message.append(f"Coordinates: ({coordinates[0]}, {coordinates[1]})")
             if self.cell.terrain_handler.visible:
                 if self.cell.terrain_handler.terrain != "none":
                     tooltip_message.append(

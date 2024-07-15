@@ -28,6 +28,14 @@ class terrain_manager_template:
         self.parameter_to_terrain: Dict[str, str] = {}
         self.terrain_list: List[str] = []
         self.terrain_parameter_keywords = {
+            "knowledge": {
+                1: "orbital view",
+                2: "scouted",
+                3: "surveyed",
+                4: "studied I",
+                5: "studied II",
+                6: "studied III",
+            },
             "altitude": {
                 1: "very low",
                 2: "low",
@@ -434,6 +442,7 @@ class terrain_handler:
         self.terrain_parameters: Dict[str, int] = input_dict.get(
             "terrain_parameters",
             {
+                "knowledge": 1,
                 "altitude": 1,
                 "temperature": 1,
                 "roughness": 1,
@@ -455,6 +464,23 @@ class terrain_handler:
         self.default_cell = attached_cell
         self.attached_cells: list = []
         self.add_cell(attached_cell)
+
+    def knowledge_available(self, information_type: str) -> bool:
+        """
+        Description:
+            Returns whether the inputted type of information is visible for this terrain handler, based on knowledge of the tile
+        Input:
+            string information_type: Type of information to check visibility of, like 'terrain' or 'hidden_units'
+        Output:
+            None
+        """
+        if information_type == constants.TERRAIN_KNOWLEDGE:
+            return (
+                self.get_parameter("knowledge")
+                >= constants.TERRAIN_KNOWLEDGE_REQUIREMENT
+            )
+        else:
+            return True
 
     def change_parameter(self, parameter_name: str, change: int) -> None:
         """
@@ -511,6 +537,7 @@ class terrain_handler:
             constants.current_map_mode != "terrain"
             or self.terrain != new_terrain
             or overlay_images != self.get_overlay_images()
+            or parameter_name == "knowledge"
         ):
             self.set_terrain(new_terrain)
             for cell in self.attached_cells:

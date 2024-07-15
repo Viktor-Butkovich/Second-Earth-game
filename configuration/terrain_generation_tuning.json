@@ -42,6 +42,7 @@
     "water_freezing_point": 1,
     "water_boiling_point": 10,
 
+    "earth_tile_knowledge": 6,
     "earth_tile_temperature": 3,
     "earth_tile_water": 5,
     "earth_tile_vegetation": 5,

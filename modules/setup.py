@@ -1588,6 +1588,7 @@ def tile_interface():
     # tile info labels setup
     tile_info_display_labels = [
         "coordinates",
+        "knowledge",
         "terrain",
         "water",
         "temperature",
@@ -1601,7 +1602,8 @@ def tile_interface():
     for current_actor_label_type in tile_info_display_labels:
         if (
             current_actor_label_type
-            in ["terrain features"] + constants.terrain_parameters
+            in ["terrain features", "terrain"] + constants.terrain_parameters
+            and current_actor_label_type != "knowledge"
         ):
             x_displacement = 25
         else:

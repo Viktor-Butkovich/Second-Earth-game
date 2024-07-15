@@ -369,6 +369,7 @@ green_screen_colors: List[tuple[int, int, int]] = [
 ]
 
 terrain_parameters: List[str] = [
+    "knowledge",
     "water",
     "temperature",
     "vegetation",
@@ -678,3 +679,7 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
         "False": "Currently default size",
     },
 }
+
+PIXELLATED_SIZE: int = 2
+TERRAIN_KNOWLEDGE: str = "terrain"
+TERRAIN_KNOWLEDGE_REQUIREMENT: int = 2
