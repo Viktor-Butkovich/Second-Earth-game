@@ -641,6 +641,16 @@ class world_grid(grid):
         return (
             self.x_distance(cell1, cell2) ** 2 + self.y_distance(cell1, cell2) ** 2
         ) ** 0.5
+
+    def cell_distance(self, cell1, cell2):
+        """
+        Description:
+            Calculates and returns the non-diagonal distance between two cells
+        Input:
+            cell cell1: First cell
+            cell cell2: Second cell
+        Output: int: Returns the non-diagonal distance between the two cells
+        """
         return self.x_distance(cell1, cell2) + self.y_distance(cell1, cell2)
 
     def create_resource_list_dict(self):
@@ -804,10 +814,25 @@ class world_grid(grid):
                     and south_pole_distance > north_pole_distance
                 )
             ):
-                cell.terrain_handler.terrain_features["equator"] = {
-                    "feature_type": "equator",
+                status.equator.append(
+                    cell
+                )  # Need to re-create equator on load if used for anything besides world generation
+
+            if (
+                self.cell_distance(status.south_pole, cell)
+                == self.coordinate_width // 4
+            ):
+                cell.terrain_handler.terrain_features["southern tropic"] = {
+                    "feature_type": "southern tropic",
                 }
-                status.equator.append(cell)
+
+            if (
+                self.cell_distance(status.north_pole, cell)
+                == self.coordinate_width // 4
+            ):
+                cell.terrain_handler.terrain_features["northern tropic"] = {
+                    "feature_type": "northern tropic",
+                }
 
 
 def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -> grid:

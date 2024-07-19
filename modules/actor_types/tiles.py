@@ -364,7 +364,11 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     f"misc/map_modes/{self.cell.get_parameter(constants.current_map_mode)}.png"
                 )
         elif constants.current_map_mode == "magnetic":
-            if self.cell.terrain_handler.terrain_features.get("equator", False):
+            if self.cell.terrain_handler.terrain_features.get(
+                "southern tropic", False
+            ) or self.cell.terrain_handler.terrain_features.get(
+                "northern tropic", False
+            ):
                 image_id_list.append("misc/map_modes/equator.png")
             elif self.cell.terrain_handler.terrain_features.get("north pole", False):
                 image_id_list.append("misc/map_modes/north_pole.png")

@@ -682,4 +682,6 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
 
 PIXELLATED_SIZE: int = 2
 TERRAIN_KNOWLEDGE: str = "terrain"
-TERRAIN_KNOWLEDGE_REQUIREMENT: int = 2
+TERRAIN_KNOWLEDGE_REQUIREMENT: int = (
+    1 if effect_manager.effect_active("remove_fog_of_war") else 2
+)

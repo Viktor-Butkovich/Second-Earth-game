@@ -317,8 +317,26 @@ def terrain_feature_types_config():
     terrain_feature_types.terrain_feature_type(
         {
             "terrain_feature_type": "equator",
-            "image_id": "Equator",
+            "image_id": "misc/empty.png",
             "description": ["This lies along the equator of the planet"],
+        }
+    )
+    terrain_feature_types.terrain_feature_type(
+        {
+            "terrain_feature_type": "northern tropic",
+            "image_id": "Northern Tropic",
+            "description": [
+                "This tropic lies along the northern edge of the planet's equatorial zone"
+            ],
+        }
+    )
+    terrain_feature_types.terrain_feature_type(
+        {
+            "terrain_feature_type": "southern tropic",
+            "image_id": "Southern Tropic",
+            "description": [
+                "This tropic lies along the southern edge of the planet's equatorial zone"
+            ],
         }
     )
 
