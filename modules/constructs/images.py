@@ -1146,7 +1146,10 @@ class directional_indicator_image(tooltip_free_image):
         Output:
             boolean: Returns True if this image can currently appear, otherwise returns False
         """
-        return super().can_show(skip_parent_collection=skip_parent_collection) and self.hosting_tile == None
+        return (
+            super().can_show(skip_parent_collection=skip_parent_collection)
+            and self.hosting_tile == None
+        )
 
     def get_image_id_list(self):
         """
@@ -1181,29 +1184,52 @@ class directional_indicator_image(tooltip_free_image):
             None
         """
         anchor = getattr(status, self.anchor_key, None)
-        if not anchor: # Don't attempt to calibrate if anchor cell is not yet defined
+        if not anchor:  # Don't attempt to calibrate if anchor cell is not yet defined
             return
 
-        status.scrolling_strategic_map_grid.find_cell(*status.scrolling_strategic_map_grid.get_mini_grid_coordinates(anchor.x, anchor.y)).tile.add_hosted_image(self)
+        status.scrolling_strategic_map_grid.find_cell(
+            *status.scrolling_strategic_map_grid.get_mini_grid_coordinates(
+                anchor.x, anchor.y
+            )
+        ).tile.add_hosted_image(self)
         if status.minimap_grid.is_on_mini_grid(anchor.x, anchor.y):
-            status.minimap_grid.find_cell(*status.minimap_grid.get_mini_grid_coordinates(anchor.x, anchor.y)).tile.add_hosted_image(self)
+            status.minimap_grid.find_cell(
+                *status.minimap_grid.get_mini_grid_coordinates(anchor.x, anchor.y)
+            ).tile.add_hosted_image(self)
         else:
             if self.hosting_tile:
                 self.hosting_tile.remove_hosted_image(self)
-            anchor_scrolling_cell = status.scrolling_strategic_map_grid.find_cell(*status.scrolling_strategic_map_grid.get_mini_grid_coordinates(anchor.x, anchor.y))
-            anchor_scrolling_coordinates = anchor_scrolling_cell.x, anchor_scrolling_cell.y
-            x_offset = status.scrolling_strategic_map_grid.coordinate_width // 2 - anchor_scrolling_coordinates[0]
-            y_offset = status.scrolling_strategic_map_grid.coordinate_height // 2 - anchor_scrolling_coordinates[1]
+            anchor_scrolling_cell = status.scrolling_strategic_map_grid.find_cell(
+                *status.scrolling_strategic_map_grid.get_mini_grid_coordinates(
+                    anchor.x, anchor.y
+                )
+            )
+            anchor_scrolling_coordinates = (
+                anchor_scrolling_cell.x,
+                anchor_scrolling_cell.y,
+            )
+            x_offset = (
+                status.scrolling_strategic_map_grid.coordinate_width // 2
+                - anchor_scrolling_coordinates[0]
+            )
+            y_offset = (
+                status.scrolling_strategic_map_grid.coordinate_height // 2
+                - anchor_scrolling_coordinates[1]
+            )
             if abs(x_offset) > abs(y_offset):
                 slope = y_offset / x_offset
 
                 if x_offset < 0:
                     slope *= -1
 
-                x_position = status.minimap_grid.x + status.minimap_grid.width - self.width // 2
+                x_position = (
+                    status.minimap_grid.x + status.minimap_grid.width - self.width // 2
+                )
                 x_origin = status.minimap_grid.x + (status.minimap_grid.width // 2)
                 y_origin = status.minimap_grid.y + (status.minimap_grid.height // 2)
-                y_position = (y_origin - slope * (x_position - x_origin)) - self.height // 2
+                y_position = (
+                    y_origin - slope * (x_position - x_origin)
+                ) - self.height // 2
 
                 if x_offset > 0:
                     x_position -= status.minimap_grid.width
@@ -1212,27 +1238,54 @@ class directional_indicator_image(tooltip_free_image):
                     slope = y_offset / x_offset
                     if y_offset < 0:
                         slope *= -1
-                    y_position = status.minimap_grid.y + status.minimap_grid.height - self.height // 2
+                    y_position = (
+                        status.minimap_grid.y
+                        + status.minimap_grid.height
+                        - self.height // 2
+                    )
                     y_origin = status.minimap_grid.y + (status.minimap_grid.height // 2)
                     x_origin = status.minimap_grid.x + (status.minimap_grid.width // 2)
-                    x_position = ((y_origin - y_position) / slope) + x_origin - self.width // 2
+                    x_position = (
+                        ((y_origin - y_position) / slope) + x_origin - self.width // 2
+                    )
                     if y_offset > 0:
                         y_position -= status.minimap_grid.height
                 elif y_offset < 0:
-                    x_position, y_position = status.minimap_grid.x + status.minimap_grid.width // 2 - self.width // 2, status.minimap_grid.y + status.minimap_grid.height - self.height // 2
+                    x_position, y_position = (
+                        status.minimap_grid.x
+                        + status.minimap_grid.width // 2
+                        - self.width // 2,
+                        status.minimap_grid.y
+                        + status.minimap_grid.height
+                        - self.height // 2,
+                    )
                 else:
-                    x_position, y_position = status.minimap_grid.x + status.minimap_grid.width // 2 - self.width // 2, status.minimap_grid.y - self.height // 2
-            else: # If x_offset == y_offset
+                    x_position, y_position = (
+                        status.minimap_grid.x
+                        + status.minimap_grid.width // 2
+                        - self.width // 2,
+                        status.minimap_grid.y - self.height // 2,
+                    )
+            else:  # If x_offset == y_offset
                 if y_offset > 0:
                     y_position = status.minimap_grid.y - self.height // 2
                 else:
-                    y_position = status.minimap_grid.y + status.minimap_grid.height - self.height // 2
+                    y_position = (
+                        status.minimap_grid.y
+                        + status.minimap_grid.height
+                        - self.height // 2
+                    )
                 if x_offset > 0:
                     x_position = status.minimap_grid.x - self.width // 2
                 else:
-                    x_position = status.minimap_grid.x + status.minimap_grid.width - self.width // 2
-            
+                    x_position = (
+                        status.minimap_grid.x
+                        + status.minimap_grid.width
+                        - self.width // 2
+                    )
+
             self.set_origin(x_position, y_position)
+
 
 class indicator_image(tooltip_free_image):
     """

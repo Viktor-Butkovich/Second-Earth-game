@@ -567,7 +567,9 @@ class mini_grid(grid):
                         if current_image.grid == self:
                             current_image.add_to_cell()
             if self == status.minimap_grid:
-                for directional_indicator_image in status.directional_indicator_image_list:
+                for (
+                    directional_indicator_image
+                ) in status.directional_indicator_image_list:
                     directional_indicator_image.calibrate()
 
     def get_main_grid_coordinates(self, mini_x, mini_y):
