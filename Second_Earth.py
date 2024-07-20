@@ -55,3 +55,4 @@ except Exception:  # displays error message and records error message in crash l
 # Work on tile knowledge system, pixellated view
 # Save poles, equator in save_dict and re-create on load
 # ^ Note - pole directional indicators will crash until this is completed
+# Add more variety to water/ice colors

@@ -295,21 +295,27 @@ class world_handler:
         """
         if self.get_tuning("mars_preset"):
             sand_color = (170, 107, 60)
-
-        elif random.randrange(1, 4) != 1:
-            sand_color = (
-                random.randrange(150, 240),
-                random.randrange(70, 196),
-                random.randrange(20, 161),
-            )
-
         else:
-            base_sand_color = random.randrange(50, 200)
-            sand_color = (
-                base_sand_color * random.randrange(80, 121) / 100,
-                base_sand_color * random.randrange(80, 121) / 100,
-                base_sand_color * random.randrange(80, 121) / 100,
-            )
+            sand_type = random.randrange(1, 7)
+            if sand_type >= 5:
+                sand_color = (
+                    random.randrange(150, 240),
+                    random.randrange(70, 196),
+                    random.randrange(20, 161),
+                )
+            elif sand_type >= 3:
+                base_sand_color = random.randrange(50, 200)
+                sand_color = (
+                    base_sand_color * random.randrange(80, 121) / 100,
+                    base_sand_color * random.randrange(80, 121) / 100,
+                    base_sand_color * random.randrange(80, 121) / 100,
+                )
+            else:
+                sand_color = (
+                    random.randrange(20, 236),
+                    random.randrange(20, 236),
+                    random.randrange(20, 236),
+                )
 
         rock_multiplier = random.randrange(80, 141) / 100
         rock_color = (
