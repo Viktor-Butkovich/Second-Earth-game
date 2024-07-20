@@ -820,7 +820,7 @@ class world_grid(grid):
 
             if (
                 self.cell_distance(status.south_pole, cell)
-                == self.coordinate_width // 4
+                == self.coordinate_width // 3
             ):
                 cell.terrain_handler.terrain_features["southern tropic"] = {
                     "feature_type": "southern tropic",
@@ -828,7 +828,7 @@ class world_grid(grid):
 
             if (
                 self.cell_distance(status.north_pole, cell)
-                == self.coordinate_width // 4
+                == self.coordinate_width // 3
             ):
                 cell.terrain_handler.terrain_features["northern tropic"] = {
                     "feature_type": "northern tropic",

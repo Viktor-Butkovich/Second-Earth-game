@@ -400,6 +400,8 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                 new_element = images.loading_image_template(input_dict)
             elif base == "mouse follower":
                 new_element = mouse_followers.mouse_follower_template(input_dict)
+            elif base == "directional indicator":
+                new_element = images.directional_indicator_image(input_dict)
 
         elif init_type.endswith("notification"):
             base = init_type.removesuffix("notification")

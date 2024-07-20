@@ -53,3 +53,5 @@ except Exception:  # displays error message and records error message in crash l
 # Add new minister positions with placehold color-coded squares
 # Add new minister appointing system - selecting an unappointed minister should highlight all available positions, and clicking on one appoint w/ a confirmation check
 # Work on tile knowledge system, pixellated view
+# Save poles, equator in save_dict and re-create on load
+# ^ Note - pole directional indicators will crash until this is completed

@@ -1100,6 +1100,140 @@ class tooltip_free_image(free_image):
                 )
 
 
+class directional_indicator_image(tooltip_free_image):
+    """
+    Image that moves around minimap to indicate direction or location of a particular cell from status, automatically calibrating with minimap
+    """
+
+    def __init__(self, input_dict):
+        """
+        Description:
+            Initializes this object
+        Input:
+            dictionary input_dict: Keys corresponding to the values needed to initialize this object
+                'image_id': string/string list value - List of image bundle component descriptions or string file path to the image used by this object
+                'coordinates' = (0, 0): int tuple value - Two values representing x and y coordinates for the pixel location of this image
+                'width': int value - Pixel width of this image
+                'height': int value - Pixel height of this image
+                'modes': string list value - Game modes during which this button can appear
+                'to_front' = False: boolean value - If True, allows this image to appear in front of most other objects instead of being behind them
+                'anchor_key': string value - String status key identifying cell to point to when minimap is calibrated
+        Output:
+            None
+        """
+        self.hosting_tile = None
+        self.anchor_key = input_dict["anchor_key"]
+        status.directional_indicator_image_list.append(self)
+        super().__init__(input_dict)
+
+    def update_tooltip(self):
+        """
+        Description:
+            Sets this image's tooltip to what it should be, depending on its subclass. By default, tooltip free images do not have any tooltip text
+        Input:
+            None
+        Output:
+            None
+        """
+        self.set_tooltip([f"Points towards the {self.anchor_key.replace('_', ' ')}"])
+
+    def can_show(self, skip_parent_collection=False):
+        """
+        Description:
+            Returns whether this image can be shown
+        Input:
+            None
+        Output:
+            boolean: Returns True if this image can currently appear, otherwise returns False
+        """
+        return super().can_show(skip_parent_collection=skip_parent_collection) and self.hosting_tile == None
+
+    def get_image_id_list(self):
+        """
+        Description:
+            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
+                orientation
+        Input:
+            None
+        Output:
+            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
+        """
+        image_id_list = super().get_image_id_list()
+        for index, current_image in enumerate(image_id_list):
+            if type(current_image) == str:
+                image_id_list[index] = {
+                    "image_id": current_image,
+                    "override_width": self.width,
+                    "override_height": self.height,
+                }
+            elif type(current_image) == dict:
+                current_image["override_width"] = self.width
+                current_image["override_height"] = self.height
+        return image_id_list
+
+    def calibrate(self):
+        """
+        Description:
+            Places this image on the anchor cell, if visible on minimap, or otherwise points towards it along the side of the minimap grid
+        Input:
+            None
+        Output:
+            None
+        """
+        anchor = getattr(status, self.anchor_key, None)
+        if not anchor: # Don't attempt to calibrate if anchor cell is not yet defined
+            return
+
+        status.scrolling_strategic_map_grid.find_cell(*status.scrolling_strategic_map_grid.get_mini_grid_coordinates(anchor.x, anchor.y)).tile.add_hosted_image(self)
+        if status.minimap_grid.is_on_mini_grid(anchor.x, anchor.y):
+            status.minimap_grid.find_cell(*status.minimap_grid.get_mini_grid_coordinates(anchor.x, anchor.y)).tile.add_hosted_image(self)
+        else:
+            if self.hosting_tile:
+                self.hosting_tile.remove_hosted_image(self)
+            anchor_scrolling_cell = status.scrolling_strategic_map_grid.find_cell(*status.scrolling_strategic_map_grid.get_mini_grid_coordinates(anchor.x, anchor.y))
+            anchor_scrolling_coordinates = anchor_scrolling_cell.x, anchor_scrolling_cell.y
+            x_offset = status.scrolling_strategic_map_grid.coordinate_width // 2 - anchor_scrolling_coordinates[0]
+            y_offset = status.scrolling_strategic_map_grid.coordinate_height // 2 - anchor_scrolling_coordinates[1]
+            if abs(x_offset) > abs(y_offset):
+                slope = y_offset / x_offset
+
+                if x_offset < 0:
+                    slope *= -1
+
+                x_position = status.minimap_grid.x + status.minimap_grid.width - self.width // 2
+                x_origin = status.minimap_grid.x + (status.minimap_grid.width // 2)
+                y_origin = status.minimap_grid.y + (status.minimap_grid.height // 2)
+                y_position = (y_origin - slope * (x_position - x_origin)) - self.height // 2
+
+                if x_offset > 0:
+                    x_position -= status.minimap_grid.width
+            elif abs(x_offset) < abs(y_offset):
+                if x_offset != 0:
+                    slope = y_offset / x_offset
+                    if y_offset < 0:
+                        slope *= -1
+                    y_position = status.minimap_grid.y + status.minimap_grid.height - self.height // 2
+                    y_origin = status.minimap_grid.y + (status.minimap_grid.height // 2)
+                    x_origin = status.minimap_grid.x + (status.minimap_grid.width // 2)
+                    x_position = ((y_origin - y_position) / slope) + x_origin - self.width // 2
+                    if y_offset > 0:
+                        y_position -= status.minimap_grid.height
+                elif y_offset < 0:
+                    x_position, y_position = status.minimap_grid.x + status.minimap_grid.width // 2 - self.width // 2, status.minimap_grid.y + status.minimap_grid.height - self.height // 2
+                else:
+                    x_position, y_position = status.minimap_grid.x + status.minimap_grid.width // 2 - self.width // 2, status.minimap_grid.y - self.height // 2
+            else: # If x_offset == y_offset
+                if y_offset > 0:
+                    y_position = status.minimap_grid.y - self.height // 2
+                else:
+                    y_position = status.minimap_grid.y + status.minimap_grid.height - self.height // 2
+                if x_offset > 0:
+                    x_position = status.minimap_grid.x - self.width // 2
+                else:
+                    x_position = status.minimap_grid.x + status.minimap_grid.width - self.width // 2
+            
+            self.set_origin(x_position, y_position)
+
 class indicator_image(tooltip_free_image):
     """
     Image that appears under certain conditions based on its type

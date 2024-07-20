@@ -6,7 +6,7 @@ from modules.constructs.ministers import minister
 from modules.constructs.worker_types import worker_type
 from modules.constructs.equipment_types import equipment_type
 from modules.constructs.terrain_feature_types import terrain_feature_type
-from modules.constructs.images import image, free_image
+from modules.constructs.images import image, free_image, directional_indicator_image
 from modules.interface_types.interface_elements import (
     interface_collection,
     tabbed_collection,
@@ -82,6 +82,7 @@ independent_interface_elements: List[Any] = []
 dice_list: List[die] = []
 draw_list: List[Any] = []
 same_tile_icon_list: List[same_tile_icon] = []
+directional_indicator_image_list: List[directional_indicator_image] = []
 
 loading_image: image = None
 safe_click_area: safe_click_panel = None

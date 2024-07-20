@@ -60,7 +60,7 @@
     "mars_water_multiplier": 5,
     "mars_color_filter": {"red": 1.1, "green": 0.95, "blue": 0.95},
 
-    "map_sizes": [9, 13, 17, 21, 25, 29],
+    "map_sizes": [11, 15, 19, 23, 25, 27],
     "large_map_sizes": [29, 35, 41, 47, 53, 59],
 
     "earth_preset": false,

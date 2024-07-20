@@ -241,6 +241,29 @@ def misc():
         }
     )
 
+    north_indicator_image = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "modes": ["strategic"],
+            "image_id": "misc/north_indicator.png",
+            "init_type": "directional indicator image",
+            "anchor_key": "north_pole",
+            "width": scaling.scale_width(25),
+            "height": scaling.scale_height(25),
+        }
+    )
+
+    south_indicator_image = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "modes": ["strategic"],
+            "image_id": "misc/south_indicator.png",
+            "init_type": "directional indicator image",
+            "anchor_key": "south_pole",
+            "width": scaling.scale_width(25),
+            "height": scaling.scale_height(25),
+        }
+    )
     # anchor = constants.actor_creation_manager.create_interface_element(
     #    {'width': 1, 'height': 1, 'init_type': 'interface element', 'parent_collection': status.info_displays_collection}
     # ) #rect at original location prevents collection from moving unintentionally when resizing
@@ -301,7 +324,7 @@ def terrain_feature_types_config():
     terrain_feature_types.terrain_feature_type(
         {
             "terrain_feature_type": "north pole",
-            "image_id": "North Pole",
+            "image_id": "misc/empty.png",
             "description": ["This is the north pole of the planet"],
         }
     )
@@ -309,7 +332,7 @@ def terrain_feature_types_config():
     terrain_feature_types.terrain_feature_type(
         {
             "terrain_feature_type": "south pole",
-            "image_id": "South Pole",
+            "image_id": "misc/empty.png",
             "description": ["This is the south pole of the planet"],
         }
     )

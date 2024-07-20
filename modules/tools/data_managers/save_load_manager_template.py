@@ -91,7 +91,7 @@ class save_load_manager_template:
                 terrain_parameter,
                 constants.terrain_manager.get_tuning(f"earth_tile_{terrain_parameter}"),
             )
-        status.minimap_grid.calibrate(0, 0)
+        status.minimap_grid.calibrate(round(0.75 * status.strategic_map_grid.coordinate_width), round(0.75 * status.strategic_map_grid.coordinate_height))
 
         for current_commodity in constants.commodity_types:
             if current_commodity != "consumer goods":
@@ -295,7 +295,7 @@ class save_load_manager_template:
         minister_utility.update_available_minister_display()
         status.commodity_prices_label.update_label()
 
-        status.minimap_grid.calibrate(0, 0)
+        status.minimap_grid.calibrate(round(0.75 * status.strategic_map_grid.coordinate_width), round(0.75 * status.strategic_map_grid.coordinate_height))
         game_transitions.set_game_mode("strategic")
 
         tutorial_utility.show_tutorial_notifications()

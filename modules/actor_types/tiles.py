@@ -269,6 +269,38 @@ class tile(actor):  # to do: make terrain tiles a subclass
             return_list.append(equivalent_cell.tile)
         return return_list
 
+    def remove_hosted_image(self, old_image):
+        """
+        Description:
+            Removes the inputted image from this tile's hosted images and updates this tile's image bundle
+        Input:
+            image old_image: Image to remove from this tile's hosted images
+        Output:
+            None
+        """
+        if old_image in self.hosted_images:
+            self.hosted_images.remove(old_image)
+            self.update_image_bundle()
+            if hasattr(old_image, "hosting_tile"):
+                old_image.hosting_tile = None
+
+    def add_hosted_image(self, new_image):
+        """
+        Description:
+            Adds the inputted image to this tile's hosted images and updates this tile's image bundle
+        Input:
+            image new_image: Image to add to this tile's hosted images
+        Output:
+            None
+        """
+        if hasattr(new_image, "hosting_tile"):
+            if new_image.hosting_tile:
+                new_image.hosting_tile.remove_hosted_image(new_image)
+            new_image.hosting_tile = self
+
+        self.hosted_images.append(new_image)
+        self.update_image_bundle()
+
     def get_image_id_list(self, force_visibility=False):
         """
         Description:
@@ -285,6 +317,8 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 equivalent_tiles = self.get_equivalent_tiles()
                 if equivalent_tiles and self.show_terrain:
                     image_id_list = equivalent_tiles[0].get_image_id_list()
+                for current_image in self.hosted_images:
+                    image_id_list += current_image.get_image_id_list()
             elif self.cell.grid == status.earth_grid:
                 image_id_list = []
             else:
@@ -376,6 +410,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 image_id_list.append("misc/map_modes/south_pole.png")
             else:
                 image_id_list.append("misc/map_modes/none.png")
+            for current_image in self.hosted_images:
+                if current_image.anchor_key in ["south_pole", "north_pole"]:
+                    image_id_list += current_image.get_image_id_list()
 
         return image_id_list
 
