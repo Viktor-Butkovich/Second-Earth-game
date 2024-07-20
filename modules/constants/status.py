@@ -119,9 +119,10 @@ transaction_history: Dict[str, float] = {}
 
 initial_tutorial_completed: bool = False
 
+# Status variables automatically updated when corresponding terrain features are created
 north_pole: cell = None
 south_pole: cell = None
-equator: List[cell] = None
+equator_list: List[cell] = []
 
 HAT_LEVEL: int = 6
 EYES_LEVEL: int = 2

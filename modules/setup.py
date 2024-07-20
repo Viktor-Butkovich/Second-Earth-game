@@ -326,6 +326,7 @@ def terrain_feature_types_config():
             "terrain_feature_type": "north pole",
             "image_id": "misc/empty.png",
             "description": ["This is the north pole of the planet"],
+            "tracking_type": constants.UNIQUE_FEATURE_TRACKING,
         }
     )
 
@@ -334,6 +335,7 @@ def terrain_feature_types_config():
             "terrain_feature_type": "south pole",
             "image_id": "misc/empty.png",
             "description": ["This is the south pole of the planet"],
+            "tracking_type": constants.UNIQUE_FEATURE_TRACKING,
         }
     )
 
@@ -342,6 +344,7 @@ def terrain_feature_types_config():
             "terrain_feature_type": "equator",
             "image_id": "misc/empty.png",
             "description": ["This lies along the equator of the planet"],
+            "tracking_type": constants.LIST_FEATURE_TRACKING,
         }
     )
     terrain_feature_types.terrain_feature_type(

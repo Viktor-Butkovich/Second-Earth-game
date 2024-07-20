@@ -235,6 +235,8 @@ def to_main_menu(override=False):
     if status.current_instructions_page:
         status.current_instructions_page.remove_complete()
         status.current_instructions_page = None
+    for key, terrain_feature_type in status.terrain_feature_types.items():
+        terrain_feature_type.clear_tracking()
     set_game_mode("main_menu")
 
 

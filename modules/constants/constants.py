@@ -685,3 +685,6 @@ TERRAIN_KNOWLEDGE: str = "terrain"
 TERRAIN_KNOWLEDGE_REQUIREMENT: int = (
     1 if effect_manager.effect_active("remove_fog_of_war") else 2
 )
+
+UNIQUE_FEATURE_TRACKING: str = "unique"
+LIST_FEATURE_TRACKING: str = "list"

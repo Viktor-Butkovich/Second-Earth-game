@@ -3,7 +3,7 @@
 import random
 import json
 import os
-from typing import List, Dict
+from typing import List, Dict, Any
 from ...util import utility, actor_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -438,7 +438,6 @@ class terrain_handler:
         """
         if not input_dict:
             input_dict = {}
-        self.terrain_features: Dict[str, bool] = input_dict.get("terrain_features", {})
         self.terrain_parameters: Dict[str, int] = input_dict.get(
             "terrain_parameters",
             {
@@ -464,6 +463,33 @@ class terrain_handler:
         self.default_cell = attached_cell
         self.attached_cells: list = []
         self.add_cell(attached_cell)
+        self.terrain_features: Dict[str, bool] = {}
+        for key, value in input_dict.get("terrain_features", {}).items():
+            self.add_terrain_feature(value)
+
+    def add_terrain_feature(self, terrain_feature_dict: Dict[str, Any]) -> None:
+        """
+        Description:
+            Adds a terrain feature with the inputted dictionary to this terrain handler
+        Input:
+            dictionary terrain_feature_dict: Dictionary containing information about the terrain feature to add
+                Requires feature type and anything unique about this particular instance, like name
+        Output:
+            None
+        """
+        self.terrain_features[
+            terrain_feature_dict["feature_type"]
+        ] = terrain_feature_dict
+        feature_type = status.terrain_feature_types[
+            terrain_feature_dict["feature_type"]
+        ]
+        feature_key = terrain_feature_dict["feature_type"].replace(" ", "_")
+
+        if feature_type.tracking_type == constants.UNIQUE_FEATURE_TRACKING:
+            setattr(status, feature_key, self.attached_cells[0])
+        elif feature_type.tracking_type == constants.LIST_FEATURE_TRACKING:
+            feature_key += "_list"
+            getattr(status, feature_key).append(self.attached_cells[0])
 
     def knowledge_available(self, information_type: str) -> bool:
         """

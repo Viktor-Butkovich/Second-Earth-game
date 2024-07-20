@@ -141,7 +141,10 @@ class world_grid(grid):
             ):  # Random but smooth initialization to represent weather patterns
                 pass
 
-        temperature_sources = [status.north_pole, status.south_pole] + status.equator
+        temperature_sources = [
+            status.north_pole,
+            status.south_pole,
+        ] + status.equator_list
         random.shuffle(
             temperature_sources
         )  # Avoids edge-case bias from poles or equator consistently being chosen first
@@ -758,22 +761,26 @@ class world_grid(grid):
         Output:
             None
         """
-        status.north_pole = self.find_cell(0, 0)
-        status.north_pole.terrain_handler.terrain_features["north pole"] = {
-            "feature_type": "north pole",
-        }
+        self.find_cell(0, 0).terrain_handler.add_terrain_feature(
+            {
+                "feature_type": "north pole",
+            }
+        )
+
         max_distance = 0
 
-        status.south_pole = None
+        south_pole = None
         for cell in self.get_flat_cell_list():
             if self.distance(cell, status.north_pole) > max_distance:
                 max_distance = self.distance(cell, status.north_pole)
-                status.south_pole = cell
-        status.south_pole.terrain_handler.terrain_features["south pole"] = {
-            "feature_type": "south pole",
-        }
+                south_pole = cell
+        south_pole.terrain_handler.add_terrain_feature(
+            {
+                "feature_type": "south pole",
+            }
+        )
 
-        status.equator = []
+        status.equator_list = []
         equatorial_distance = self.distance(status.north_pole, status.south_pole) / 2
         for (
             cell
@@ -814,25 +821,31 @@ class world_grid(grid):
                     and south_pole_distance > north_pole_distance
                 )
             ):
-                status.equator.append(
-                    cell
-                )  # Need to re-create equator on load if used for anything besides world generation
+                cell.terrain_handler.add_terrain_feature(
+                    {
+                        "feature_type": "equator",
+                    }
+                )
 
             if (
                 self.cell_distance(status.south_pole, cell)
                 == self.coordinate_width // 3
             ):
-                cell.terrain_handler.terrain_features["southern tropic"] = {
-                    "feature_type": "southern tropic",
-                }
+                cell.terrain_handler.add_terrain_feature(
+                    {
+                        "feature_type": "southern tropic",
+                    }
+                )
 
             if (
                 self.cell_distance(status.north_pole, cell)
                 == self.coordinate_width // 3
             ):
-                cell.terrain_handler.terrain_features["northern tropic"] = {
-                    "feature_type": "northern tropic",
-                }
+                cell.terrain_handler.add_terrain_feature(
+                    {
+                        "feature_type": "northern tropic",
+                    }
+                )
 
 
 def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -> grid:
