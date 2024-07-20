@@ -502,9 +502,10 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         f"This tile has {utility.generate_article(self.cell.terrain_handler.resource)} {self.cell.terrain_handler.resource} resource"
                     )
                 for terrain_feature in self.cell.terrain_handler.terrain_features:
-                    tooltip_message.append(
-                        f"This tile has {utility.generate_article(terrain_feature, add_space=True)}{terrain_feature}"
-                    )
+                    if status.terrain_feature_types[terrain_feature].visible:
+                        tooltip_message.append(
+                            f"This tile has {utility.generate_article(terrain_feature, add_space=True)}{terrain_feature}"
+                        )
             else:
                 tooltip_message.append("This tile has not been explored")
             self.set_tooltip(tooltip_message)

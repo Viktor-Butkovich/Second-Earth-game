@@ -24,6 +24,8 @@ class terrain_feature_type:
                 'price': float value - Purchase price of this equipment type
                 'requirements': string dictionary value - Optional series of restrictions on terrain feature placement, varying by feature type
                 "tracking_type": string value - Optional string equal to UNIQUE_FEATURE_TRACKING or LIST_FEATURE_TRACKING, indicating to track each instance of this feature in a status variable
+                "visible": boolean value - Optional boolean indicating whether to display this feature - True by default
+                    Hidden features like equator can still be placed but are only for internal calculations
         Output:
             None
         """
@@ -31,6 +33,7 @@ class terrain_feature_type:
         self.description: List[str] = input_dict.get("description", [])
         self.description: List[str] = input_dict.get("description", [])
         self.tracking_type: str = input_dict.get("tracking_type", None)
+        self.visible: bool = input_dict.get("visible", True)
         self.image_id = input_dict.get(
             "image_id",
             {

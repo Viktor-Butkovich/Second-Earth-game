@@ -780,7 +780,6 @@ class world_grid(grid):
             }
         )
 
-        status.equator_list = []
         equatorial_distance = self.distance(status.north_pole, status.south_pole) / 2
         for (
             cell

@@ -345,6 +345,7 @@ def terrain_feature_types_config():
             "image_id": "misc/empty.png",
             "description": ["This lies along the equator of the planet"],
             "tracking_type": constants.LIST_FEATURE_TRACKING,
+            "visible": False,
         }
     )
     terrain_feature_types.terrain_feature_type(
@@ -1663,9 +1664,12 @@ def tile_interface():
         }
         if current_actor_label_type == "terrain features":
             input_dict["init_type"] = "terrain feature label"
-            for terrain_feature_type in status.terrain_feature_types:
-                input_dict["terrain_feature_type"] = terrain_feature_type
-                constants.actor_creation_manager.create_interface_element(input_dict)
+            for key, terrain_feature_type in status.terrain_feature_types.items():
+                if terrain_feature_type.visible:
+                    input_dict["terrain_feature_type"] = key
+                    constants.actor_creation_manager.create_interface_element(
+                        input_dict
+                    )
         else:
             input_dict["init_type"] = "actor display label"
             constants.actor_creation_manager.create_interface_element(input_dict)
