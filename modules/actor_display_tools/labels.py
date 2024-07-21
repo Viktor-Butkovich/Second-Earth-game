@@ -446,6 +446,9 @@ class actor_display_label(label):
                 input_dict["image_id"] = "buttons/cycle_ministers_up_button.png"
                 self.add_attached_button(input_dict)
 
+        elif self.actor_label_type == "banner":
+            self.message_start = self.banner_text
+
         else:
             self.message_start = (
                 utility.capitalize(self.actor_label_type) + ": "
@@ -745,9 +748,12 @@ class actor_display_label(label):
                     tooltip_text.append(
                         "Represents the average temperature in this tile, on a scale from -5 to 12"
                     )
-                    tooltip_text.append(
-                        f"Approximately {utility.fahrenheit(self.actor.cell.get_parameter('temperature'))} degrees Fahrenheit"
-                    )
+                    if self.actor.cell.terrain_handler.knowledge_available(
+                        constants.TERRAIN_PARAMETER_KNOWLEDGE
+                    ):
+                        tooltip_text.append(
+                            f"Approximately {utility.fahrenheit(self.actor.cell.get_parameter('temperature'))} degrees Fahrenheit"
+                        )
             self.set_tooltip(tooltip_text)
 
         else:
@@ -773,7 +779,12 @@ class actor_display_label(label):
             elif self.actor_label_type == "terrain":
                 if new_actor.grid.is_abstract_grid:
                     self.set_label(utility.capitalize(new_actor.grid.name))
-                elif self.actor.cell.terrain_handler.visible:
+                elif (
+                    self.actor.cell.terrain_handler.visible
+                    and self.actor.cell.terrain_handler.knowledge_available(
+                        constants.TERRAIN_KNOWLEDGE
+                    )
+                ):
                     self.set_label(
                         f"{self.message_start}{new_actor.cell.terrain_handler.terrain.replace('_', ' ')}"
                     )
@@ -1029,13 +1040,23 @@ class actor_display_label(label):
                     self.set_label(f"{self.message_start} n/a")
 
             elif self.actor_label_type in constants.terrain_parameters:
-                value = new_actor.cell.get_parameter(self.actor_label_type)
-                self.set_label(
-                    f"{self.message_start}{constants.terrain_manager.terrain_parameter_keywords[self.actor_label_type][value]}: ({value}/{new_actor.cell.terrain_handler.maxima.get(self.actor_label_type, 6)})"
-                )
+                if (
+                    new_actor.cell.terrain_handler.knowledge_available(
+                        constants.TERRAIN_PARAMETER_KNOWLEDGE
+                    )
+                    or self.actor_label_type == "knowledge"
+                ):
+                    value = new_actor.cell.get_parameter(self.actor_label_type)
+                    self.set_label(
+                        f"{self.message_start}{constants.terrain_manager.terrain_parameter_keywords[self.actor_label_type][value]} ({value}/{new_actor.cell.terrain_handler.maxima.get(self.actor_label_type, 6)})"
+                    )
+                else:
+                    self.set_label(f"{self.message_start}unknown")
 
         elif self.actor_label_type == "tooltip":
             return  # do not set text for tooltip label
+        elif self.actor_label_type == "banner":
+            self.set_label(self.message_start)
         else:
             self.set_label(f"{self.message_start}n/a")
 
@@ -1112,8 +1133,69 @@ class actor_display_label(label):
                 ]
                 != "unknown"
             )
+        elif (
+            self.actor_label_type in constants.terrain_parameters
+            and self.actor_label_type != "knowledge"
+        ):
+            return self.actor.cell.terrain_handler.knowledge_available(
+                constants.TERRAIN_PARAMETER_KNOWLEDGE
+            )
         else:
             return result
+
+
+class banner(actor_display_label):
+    """
+    Banner with predefined text that is displayed under certain conditions
+    """
+
+    def __init__(self, input_dict):
+        """
+        Description:
+            Initializes this object
+        Input:
+            dictionary input_dict: Keys corresponding to the values needed to initialize this object
+                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
+                'height': int value - pixel height of this element
+                'modes': string list value - Game modes during which this element can appear
+                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
+                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
+                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
+                'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
+                'actor_label_type': string value - Type of actor information shown
+                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'tile'
+                'banner_type': Type of banner to display, like 'terrain details' - determines behavior
+                'banner_text': string value - Text to display on the banner
+        Output:
+            None
+        """
+        self.banner_type = input_dict["banner_type"]
+        self.banner_text = input_dict["banner_text"]
+        input_dict["actor_label_type"] = "banner"
+        super().__init__(input_dict)
+
+    def can_show(self, skip_parent_collection=False):
+        """
+        Description:
+            Returns whether this label should be drawn
+        Input:
+            None
+        Output:
+            boolean: Returns whether this label should be drawn
+        """
+        if self.banner_type == "terrain details":
+            return (
+                super().can_show(skip_parent_collection=skip_parent_collection)
+                and self.actor.cell.terrain_handler.knowledge_available(
+                    constants.TERRAIN_KNOWLEDGE
+                )
+                and not self.actor.cell.terrain_handler.knowledge_available(
+                    constants.TERRAIN_PARAMETER_KNOWLEDGE
+                )
+            )
+        else:
+            return super().can_show(skip_parent_collection=skip_parent_collection)
 
 
 class list_item_label(actor_display_label):

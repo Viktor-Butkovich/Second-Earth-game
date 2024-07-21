@@ -325,7 +325,7 @@ def terrain_feature_types_config():
         {
             "terrain_feature_type": "north pole",
             "image_id": "misc/empty.png",
-            "description": ["This is the north pole of the planet"],
+            "description": ["North pole of the planet"],
             "tracking_type": constants.UNIQUE_FEATURE_TRACKING,
         }
     )
@@ -334,7 +334,7 @@ def terrain_feature_types_config():
         {
             "terrain_feature_type": "south pole",
             "image_id": "misc/empty.png",
-            "description": ["This is the south pole of the planet"],
+            "description": ["South pole of the planet"],
             "tracking_type": constants.UNIQUE_FEATURE_TRACKING,
         }
     )
@@ -343,7 +343,7 @@ def terrain_feature_types_config():
         {
             "terrain_feature_type": "equator",
             "image_id": "misc/empty.png",
-            "description": ["This lies along the equator of the planet"],
+            "description": ["Lies along the equator of the planet"],
             "tracking_type": constants.LIST_FEATURE_TRACKING,
             "visible": False,
         }
@@ -352,18 +352,14 @@ def terrain_feature_types_config():
         {
             "terrain_feature_type": "northern tropic",
             "image_id": "Northern Tropic",
-            "description": [
-                "This tropic lies along the northern edge of the planet's equatorial zone"
-            ],
+            "description": ["Lies along the northern edge of the equatorial zone"],
         }
     )
     terrain_feature_types.terrain_feature_type(
         {
             "terrain_feature_type": "southern tropic",
             "image_id": "Southern Tropic",
-            "description": [
-                "This tropic lies along the southern edge of the planet's equatorial zone"
-            ],
+            "description": ["Lies along the southern edge of the equatorial zone"],
         }
     )
 
@@ -1635,6 +1631,7 @@ def tile_interface():
         "coordinates",
         "knowledge",
         "terrain",
+        "terrain details banner",
         "water",
         "temperature",
         "vegetation",
@@ -1647,7 +1644,8 @@ def tile_interface():
     for current_actor_label_type in tile_info_display_labels:
         if (
             current_actor_label_type
-            in ["terrain features", "terrain"] + constants.terrain_parameters
+            in ["terrain features", "terrain", "terrain details banner"]
+            + constants.terrain_parameters
             and current_actor_label_type != "knowledge"
         ):
             x_displacement = 25
@@ -1670,6 +1668,11 @@ def tile_interface():
                     constants.actor_creation_manager.create_interface_element(
                         input_dict
                     )
+        elif current_actor_label_type == "terrain details banner":
+            input_dict["init_type"] = "banner label"
+            input_dict["banner_type"] = "terrain details"
+            input_dict["banner_text"] = "Details unknown"
+            constants.actor_creation_manager.create_interface_element(input_dict)
         else:
             input_dict["init_type"] = "actor display label"
             constants.actor_creation_manager.create_interface_element(input_dict)

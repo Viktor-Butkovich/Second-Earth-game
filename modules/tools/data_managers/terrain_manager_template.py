@@ -3,7 +3,7 @@
 import random
 import json
 import os
-from typing import List, Dict, Any
+from typing import List, Dict, Tuple, Any
 from ...util import utility, actor_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -24,9 +24,16 @@ class terrain_manager_template:
         Output:
             None
         """
+        # Dictionary of terrain names to number of image variants possible
         self.terrain_variant_dict: Dict[str, int] = {}
+
+        # Dictionary of parameter value combinations to terrain names
         self.parameter_to_terrain: Dict[str, str] = {}
-        self.terrain_list: List[str] = []
+
+        # Dictionary of terrain names to terrain definitions - better for giving parameter ranges but worse for classification
+        self.terrain_range_dict: Dict[str, Dict[str, Any]] = {}
+
+        self.terrain_list: List[str] = []  # List of all terrain names
         self.terrain_parameter_keywords = {
             "knowledge": {
                 1: "orbital view",
@@ -126,12 +133,12 @@ class terrain_manager_template:
             None
         """
         with open(file_name) as active_file:
-            terrain_dict = json.load(
+            self.terrain_range_dict = json.load(
                 active_file
             )  # dictionary of terrain name keys and terrain dict values for each terrain
-        for terrain_name in terrain_dict:
+        for terrain_name in self.terrain_range_dict:
             self.terrain_list.append(terrain_name)
-            terrain = terrain_dict[terrain_name]
+            terrain = self.terrain_range_dict[terrain_name]
             for temperature in range(
                 terrain["min_temperature"], terrain["max_temperature"] + 1
             ):
@@ -456,6 +463,23 @@ class terrain_handler:
                 "water": 1,
             },
         )
+        # self.apparent_terrain_parameters: Dict[str, int] = input_dict.get(
+        #     "apparent_terrain_parameters",
+        #     {
+        #         "altitude_min": 1,
+        #         "altitude_max": 6,
+        #         "temperature_min": -5,
+        #         "temperature_max": 12,
+        #         "roughness_min": 1,
+        #         "roughness_max": 6,
+        #         "vegetation_min": 1,
+        #         "vegetation_max": 6,
+        #         "soil_min": 1,
+        #         "soil_max": 6,
+        #         "water_min": 1,
+        #         "water_max": 6,
+        #     },
+        # )
         self.terrain_variant: int = input_dict.get("terrain_variant", 0)
         self.pole_distance_multiplier: float = (
             1.0  # 0.1 for polar cells, 1.0 for equatorial cells
@@ -472,6 +496,10 @@ class terrain_handler:
         self.terrain_features: Dict[str, bool] = {}
         for key, value in input_dict.get("terrain_features", {}).items():
             self.add_terrain_feature(value)
+        # if not input_dict: # If not from save, set all parameters for proper initialization
+        #     print("initializing")
+        #     for terrain_parameter in self.terrain_parameters:
+        #         self.set_parameter(terrain_parameter, self.get_parameter(terrain_parameter))
 
     def add_terrain_feature(self, terrain_feature_dict: Dict[str, Any]) -> None:
         """
@@ -510,6 +538,11 @@ class terrain_handler:
             return (
                 self.get_parameter("knowledge")
                 >= constants.TERRAIN_KNOWLEDGE_REQUIREMENT
+            )
+        elif information_type == constants.TERRAIN_PARAMETER_KNOWLEDGE:
+            return (
+                self.get_parameter("knowledge")
+                >= constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
             )
         else:
             return True
@@ -575,6 +608,21 @@ class terrain_handler:
             for cell in self.attached_cells:
                 if cell.tile != "none":
                     cell.tile.set_terrain(self.terrain, update_image_bundle=True)
+
+        # if parameter_name != "knowledge":
+        #     lower_bound = constants.terrain_manager.terrain_range_dict[self.terrain].get(f"min_{parameter_name}", 1)
+        #     upper_bound = constants.terrain_manager.terrain_range_dict[self.terrain].get(f"max_{parameter_name}", 6)
+        #     while upper_bound - lower_bound > 3:
+        #         if upper_bound == self.get_parameter(parameter_name):
+        #             lower_bound += 1
+        #         elif lower_bound == self.get_parameter(parameter_name):
+        #             upper_bound -= 1
+        #         elif random.randrange(0, 2) == 1:
+        #             lower_bound += 1
+        #         else:
+        #             upper_bound -= 1
+        #     self.apparent_terrain_parameters[f"{parameter_name}_min"] = lower_bound
+        #     self.apparent_terrain_parameters[f"{parameter_name}_max"] = upper_bound
 
         if status.displayed_tile:
             for cell in self.attached_cells:
@@ -648,6 +696,7 @@ class terrain_handler:
         save_dict["terrain_variant"] = self.terrain_variant
         save_dict["terrain_features"] = self.terrain_features
         save_dict["terrain_parameters"] = self.terrain_parameters
+        # save_dict["apparent_terrain_parameters"] = self.apparent_terrain_parameters
         save_dict["terrain"] = self.terrain
         save_dict["resource"] = self.resource
         return save_dict
@@ -662,6 +711,20 @@ class terrain_handler:
             None
         """
         return self.terrain_parameters[parameter_name]
+
+    # def get_apparent_parameter_range(self, parameter_name: str) -> Tuple[int, int]:
+    #     """
+    #     Description:
+    #         Returns plausible parameter ranges for the inputted parameter based on this handler's terrain type
+    #     Input:
+    #         string parameter_name: Name of the parameter to get the range of
+    #     Output:
+    #         tuple: Tuple containing the apparent minimum and maximum values for the inputted parameter for this handler's terrain type
+    #     """
+
+    #     apparent_min = self.apparent_terrain_parameters[f"{parameter_name}_min"]
+    #     apparent_max = self.apparent_terrain_parameters[f"{parameter_name}_max"]
+    #     return (apparent_min, apparent_max)
 
     def set_terrain(self, new_terrain) -> None:
         """

@@ -409,6 +409,7 @@ class bundle_image:
             self.x_offset = image_id.get("x_offset", 0)
             self.y_offset = image_id.get("y_offset", 0)
             self.level = image_id.get("level", 0)
+            self.alpha = image_id.get("alpha", 255)
             if image_id.get("override_width", None):
                 self.override_width = image_id["override_width"]
             if image_id.get("override_height", None):
@@ -558,6 +559,8 @@ class bundle_image:
                 self.image = pygame.transform.scale(
                     self.image, (constants.PIXELLATED_SIZE, constants.PIXELLATED_SIZE)
                 )
+            if self.is_offset and self.alpha != 255:
+                self.image.set_alpha(self.alpha)
             status.rendered_images[key] = self.image
 
     def apply_per_pixel_mutations(self):

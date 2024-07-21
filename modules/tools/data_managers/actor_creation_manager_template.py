@@ -366,7 +366,8 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                     )
                 elif base == "terrain feature":
                     new_element = actor_display_labels.terrain_feature_label(input_dict)
-
+                elif base == "banner":
+                    new_element = actor_display_labels.banner(input_dict)
                 else:
                     new_element = actor_display_labels.actor_display_label(input_dict)
         elif init_type == "instructions page":

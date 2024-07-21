@@ -312,26 +312,42 @@ class tile(actor):  # to do: make terrain tiles a subclass
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
         image_id_list = []
-        if constants.current_map_mode == "terrain":
-            if self.cell.grid.is_mini_grid:
-                equivalent_tiles = self.get_equivalent_tiles()
-                if equivalent_tiles and self.show_terrain:
-                    image_id_list = equivalent_tiles[0].get_image_id_list()
-                for current_image in self.hosted_images:
-                    image_id_list += current_image.get_image_id_list()
-            elif self.cell.grid == status.earth_grid:
-                image_id_list = []
-            else:
-                if (
-                    self.cell.terrain_handler.visible or force_visibility
-                ):  # force visibility shows full tile even if tile is not yet visible
+        if self.cell.grid.is_mini_grid:
+            equivalent_tiles = self.get_equivalent_tiles()
+            if equivalent_tiles and self.show_terrain:
+                image_id_list = equivalent_tiles[0].get_image_id_list()
+            for current_image in self.hosted_images:
+                image_id_list += current_image.get_image_id_list()
+        elif self.cell.grid == status.earth_grid:
+            image_id_list = []
+        else:
+            if (
+                self.cell.terrain_handler.visible or force_visibility
+            ):  # force visibility shows full tile even if tile is not yet visible
+                image_id_list.append(
+                    {
+                        "image_id": self.image_dict["default"],
+                        "size": 1,
+                        "x_offset": 0,
+                        "y_offset": 0,
+                        "level": -9,
+                        "color_filter": self.cell.terrain_handler.get_color_filter(),
+                        "green_screen": self.cell.terrain_handler.get_green_screen(),
+                        "pixellated": not self.cell.terrain_handler.knowledge_available(
+                            constants.TERRAIN_KNOWLEDGE
+                        ),
+                    }
+                )
+                for (
+                    terrain_overlay_image
+                ) in self.cell.terrain_handler.get_overlay_images():
                     image_id_list.append(
                         {
-                            "image_id": self.image_dict["default"],
+                            "image_id": terrain_overlay_image,
                             "size": 1,
                             "x_offset": 0,
                             "y_offset": 0,
-                            "level": -9,
+                            "level": -8,
                             "color_filter": self.cell.terrain_handler.get_color_filter(),
                             "green_screen": self.cell.terrain_handler.get_green_screen(),
                             "pixellated": not self.cell.terrain_handler.knowledge_available(
@@ -339,80 +355,76 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             ),
                         }
                     )
-                    for (
-                        terrain_overlay_image
-                    ) in self.cell.terrain_handler.get_overlay_images():
-                        image_id_list.append(
-                            {
-                                "image_id": terrain_overlay_image,
-                                "size": 1,
-                                "x_offset": 0,
-                                "y_offset": 0,
-                                "level": -8,
-                                "color_filter": self.cell.terrain_handler.get_color_filter(),
-                                "green_screen": self.cell.terrain_handler.get_green_screen(),
-                                "pixellated": not self.cell.terrain_handler.knowledge_available(
-                                    constants.TERRAIN_KNOWLEDGE
-                                ),
-                            }
+                for terrain_feature in self.cell.terrain_handler.terrain_features:
+                    new_image_id = self.cell.terrain_handler.terrain_features[
+                        terrain_feature
+                    ].get(
+                        "image_id",
+                        status.terrain_feature_types[terrain_feature].image_id,
+                    )
+                    if type(new_image_id) == str and not new_image_id.endswith(".png"):
+                        new_image_id = actor_utility.generate_label_image_id(
+                            new_image_id, y_offset=-0.75
                         )
-                    for terrain_feature in self.cell.terrain_handler.terrain_features:
-                        new_image_id = self.cell.terrain_handler.terrain_features[
-                            terrain_feature
-                        ].get(
-                            "image_id",
-                            status.terrain_feature_types[terrain_feature].image_id,
-                        )
-                        if type(new_image_id) == str and not new_image_id.endswith(
-                            ".png"
-                        ):
-                            new_image_id = actor_utility.generate_label_image_id(
-                                new_image_id, y_offset=-0.75
-                            )
-                        image_id_list = utility.combine(image_id_list, new_image_id)
-                    if (
-                        self.cell.terrain_handler.resource != "none"
-                    ):  # If resource visible based on current knowledge
-                        resource_icon = actor_utility.generate_resource_icon(self)
-                        if type(resource_icon) == str:
-                            image_id_list.append(resource_icon)
-                        else:
-                            image_id_list += resource_icon
-                    for current_building_type in constants.building_types:
-                        current_building = self.cell.get_building(current_building_type)
-                        if current_building != "none":
-                            image_id_list += current_building.get_image_id_list()
-                elif self.show_terrain:
-                    image_id_list.append(self.image_dict["hidden"])
-                else:
-                    image_id_list.append(self.image_dict["default"])
-                for current_image in self.hosted_images:
-                    image_id_list += current_image.get_image_id_list()
-        elif constants.current_map_mode in constants.terrain_parameters:
-            if constants.current_map_mode in ["water", "temperature", "vegetation"]:
-                image_id_list.append(
-                    f"misc/map_modes/{constants.current_map_mode}/{self.cell.get_parameter(constants.current_map_mode)}.png"
-                )
+                    image_id_list = utility.combine(image_id_list, new_image_id)
+                if (
+                    self.cell.terrain_handler.resource != "none"
+                ):  # If resource visible based on current knowledge
+                    resource_icon = actor_utility.generate_resource_icon(self)
+                    if type(resource_icon) == str:
+                        image_id_list.append(resource_icon)
+                    else:
+                        image_id_list += resource_icon
+                for current_building_type in constants.building_types:
+                    current_building = self.cell.get_building(current_building_type)
+                    if current_building != "none":
+                        image_id_list += current_building.get_image_id_list()
+            elif self.show_terrain:
+                image_id_list.append(self.image_dict["hidden"])
             else:
-                image_id_list.append(
-                    f"misc/map_modes/{self.cell.get_parameter(constants.current_map_mode)}.png"
-                )
-        elif constants.current_map_mode == "magnetic":
-            if self.cell.terrain_handler.terrain_features.get(
-                "southern tropic", False
-            ) or self.cell.terrain_handler.terrain_features.get(
-                "northern tropic", False
-            ):
-                image_id_list.append("misc/map_modes/equator.png")
-            elif self.cell.terrain_handler.terrain_features.get("north pole", False):
-                image_id_list.append("misc/map_modes/north_pole.png")
-            elif self.cell.terrain_handler.terrain_features.get("south pole", False):
-                image_id_list.append("misc/map_modes/south_pole.png")
-            else:
-                image_id_list.append("misc/map_modes/none.png")
+                image_id_list.append(self.image_dict["default"])
             for current_image in self.hosted_images:
-                if current_image.anchor_key in ["south_pole", "north_pole"]:
+                if not current_image.anchor_key in ["south_pole", "north_pole"]:
                     image_id_list += current_image.get_image_id_list()
+
+        if constants.current_map_mode != "terrain":
+            map_mode_image = "misc/map_modes/none.png"
+            if constants.current_map_mode in constants.terrain_parameters:
+                if self.cell.terrain_handler.knowledge_available(
+                    constants.TERRAIN_PARAMETER_KNOWLEDGE
+                ):
+                    if constants.current_map_mode in [
+                        "water",
+                        "temperature",
+                        "vegetation",
+                    ]:
+                        map_mode_image = f"misc/map_modes/{constants.current_map_mode}/{self.cell.get_parameter(constants.current_map_mode)}.png"
+                    else:
+                        map_mode_image = f"misc/map_modes/{self.cell.get_parameter(constants.current_map_mode)}.png"
+            elif constants.current_map_mode == "magnetic":
+                if self.cell.terrain_handler.terrain_features.get(
+                    "southern tropic", False
+                ) or self.cell.terrain_handler.terrain_features.get(
+                    "northern tropic", False
+                ):
+                    map_mode_image = "misc/map_modes/equator.png"
+                elif self.cell.terrain_handler.terrain_features.get(
+                    "north pole", False
+                ):
+                    map_mode_image = "misc/map_modes/north_pole.png"
+                elif self.cell.terrain_handler.terrain_features.get(
+                    "south pole", False
+                ):
+                    map_mode_image = "misc/map_modes/south_pole.png"
+            image_id_list.append(
+                {
+                    "image_id": map_mode_image,
+                    "alpha": constants.MAP_MODE_ALPHA,
+                }
+            )
+        for current_image in self.hosted_images:
+            if current_image.anchor_key in ["south_pole", "north_pole"]:
+                image_id_list += current_image.get_image_id_list()
 
         return image_id_list
 
@@ -485,29 +497,59 @@ class tile(actor):  # to do: make terrain tiles a subclass
             tooltip_message = []
             coordinates = self.get_main_grid_coordinates()
             tooltip_message.append(f"Coordinates: ({coordinates[0]}, {coordinates[1]})")
-            if self.cell.terrain_handler.visible:
-                if self.cell.terrain_handler.terrain != "none":
+            if self.cell.terrain_handler.terrain != "none":
+                knowledge_value = self.cell.terrain_handler.get_parameter("knowledge")
+                knowledge_keyword = (
+                    constants.terrain_manager.terrain_parameter_keywords["knowledge"][
+                        knowledge_value
+                    ]
+                )
+                knowledge_maximum = maximum = self.cell.terrain_handler.maxima.get(
+                    "knowledge", 6
+                )
+                tooltip_message.append(
+                    f"Knowledge: {knowledge_keyword} ({knowledge_value}/{knowledge_maximum})"
+                )
+
+                if self.cell.terrain_handler.knowledge_available(
+                    constants.TERRAIN_KNOWLEDGE
+                ):
                     tooltip_message.append(
-                        f"This is {utility.generate_article(self.cell.terrain_handler.terrain.replace('_', ' '), add_space=True)}{self.cell.terrain_handler.terrain.replace('_', ' ')} tile"
+                        f"    Terrain: {self.cell.terrain_handler.terrain.replace('_', ' ')}"
                     )
-                    for terrain_parameter in constants.terrain_parameters:
-                        value = self.cell.get_parameter(terrain_parameter)
-                        tooltip_message.append(
-                            f"    {terrain_parameter}: {constants.terrain_manager.terrain_parameter_keywords[terrain_parameter][value]} ({value}/{self.cell.terrain_handler.maxima.get(terrain_parameter, 6)})"
-                        )
-                if (
-                    self.cell.terrain_handler.resource != "none"
-                ):  # if resource present, show resource
-                    tooltip_message.append(
-                        f"This tile has {utility.generate_article(self.cell.terrain_handler.resource)} {self.cell.terrain_handler.resource} resource"
-                    )
-                for terrain_feature in self.cell.terrain_handler.terrain_features:
-                    if status.terrain_feature_types[terrain_feature].visible:
-                        tooltip_message.append(
-                            f"This tile has {utility.generate_article(terrain_feature, add_space=True)}{terrain_feature}"
-                        )
-            else:
-                tooltip_message.append("This tile has not been explored")
+                    if self.cell.terrain_handler.knowledge_available(
+                        constants.TERRAIN_PARAMETER_KNOWLEDGE
+                    ):
+                        for terrain_parameter in constants.terrain_parameters:
+                            if terrain_parameter != "knowledge":
+                                maximum = self.cell.terrain_handler.maxima.get(
+                                    terrain_parameter, 6
+                                )
+                                value = self.cell.get_parameter(terrain_parameter)
+                                keyword = constants.terrain_manager.terrain_parameter_keywords[
+                                    terrain_parameter
+                                ][
+                                    value
+                                ]
+                                tooltip_message.append(
+                                    f"    {terrain_parameter.capitalize()}: {keyword} ({value}/{maximum})"
+                                )
+                    else:
+                        tooltip_message.append(f"    Details unknown")
+                else:
+                    tooltip_message.append(f"    Terrain unknown")
+
+            if (
+                self.cell.terrain_handler.resource != "none"
+            ):  # if resource present, show resource
+                tooltip_message.append(
+                    f"This tile has {utility.generate_article(self.cell.terrain_handler.resource)} {self.cell.terrain_handler.resource} resource"
+                )
+            for terrain_feature in self.cell.terrain_handler.terrain_features:
+                if status.terrain_feature_types[terrain_feature].visible:
+                    tooltip_message += status.terrain_feature_types[
+                        terrain_feature
+                    ].description
             self.set_tooltip(tooltip_message)
         else:
             self.set_tooltip([])
