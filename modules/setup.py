@@ -1114,8 +1114,8 @@ def trial_screen():
                 "init_type": "ordered collection",
                 "is_info_display": True,
                 "actor_type": "defense",
-                "allow_minimize": True,
-                "allow_move": True,
+                "allow_minimize": False,
+                "allow_move": False,
                 "description": "defense information panel",
             }
         )
@@ -1189,8 +1189,8 @@ def trial_screen():
                 "init_type": "ordered collection",
                 "is_info_display": True,
                 "actor_type": "prosecution",
-                "allow_minimize": True,
-                "allow_move": True,
+                "allow_minimize": False,
+                "allow_move": False,
                 "description": "prosecution information panel",
             }
         )
@@ -2386,8 +2386,8 @@ def minister_interface():
                 "init_type": "ordered collection",
                 "is_info_display": True,
                 "actor_type": "minister",
-                "allow_minimize": True,
-                "allow_move": True,
+                "allow_minimize": False,
+                "allow_move": False,
                 "description": "minister information panel",
                 "parent_collection": status.info_displays_collection,
             }

@@ -54,3 +54,5 @@ except Exception:  # displays error message and records error message in crash l
 # Add new minister appointing system - selecting an unappointed minister should highlight all available positions, and clicking on one appoint w/ a confirmation check
 # Add more variety to water/ice colors
 # Eventually add hydrogen fuel cells - process to convert hydrogen and oxygen into water, actually releases energy but requires facility and hydrogen/oxygen input
+# Include "advancement level" of building materials - 1 ~ stone/wood, etc. for basic shelters in atmosphere, 2 ~ for industrial steel/concrete for factories,
+#   basic planetary construction, 3 ~ for advanced modern-day materials, spaceships, ec., 4+ for more advanced

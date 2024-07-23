@@ -1524,6 +1524,7 @@ class button(interface_elements.interface_element):
         Output:
             boolean: Returns True if this button can appear during the current game mode, otherwise returns False
         """
+        # Currently, these buttons are not being used anywhere. For these to be functional, they will need to be changed to modify x_offset and y_offset rather than just origin, since all actor display collections are now in a parent collection
         if (
             self.button_type == "move interface collection"
             and self.parent_collection.move_with_mouse_config["moving"]
