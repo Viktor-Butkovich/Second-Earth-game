@@ -168,7 +168,7 @@ def transfer(item_type: str, amount, source_type: str) -> None:
                     return
 
                 if (
-                    displayed_mob.is_vehicle
+                    displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
                     and displayed_mob.vehicle_type == "train"
                     and not displayed_tile.cell.has_intact_building("train_station")
                 ):

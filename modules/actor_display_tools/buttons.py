@@ -70,8 +70,8 @@ class embark_all_passengers_button(button):
                     vehicle.set_sentry_mode(False)
                 for contained_mob in vehicle.images[0].current_cell.contained_mobs:
                     passenger = contained_mob
-                    if (
-                        passenger.is_pmob and not passenger.is_vehicle
+                    if passenger.is_pmob and not passenger.get_permission(
+                        constants.VEHICLE_PERMISSION
                     ):  # vehicles and enemies won't be picked up as passengers
                         passenger.embark_vehicle(vehicle)
                 constants.sound_manager.play_sound(
@@ -364,7 +364,7 @@ class enable_automatic_replacement_button(button):
             displayed_mob = status.displayed_mob
             if not displayed_mob.is_pmob:
                 return False
-            elif displayed_mob.is_vehicle:
+            elif displayed_mob.get_permission(constants.VEHICLE_PERMISSION):
                 return False
             elif displayed_mob.is_group and self.target_type == "unit":
                 return False
@@ -451,7 +451,7 @@ class disable_automatic_replacement_button(button):
             displayed_mob = status.displayed_mob
             if not displayed_mob.is_pmob:
                 return False
-            elif displayed_mob.is_vehicle:
+            elif displayed_mob.get_permission(constants.VEHICLE_PERMISSION):
                 return False
             elif displayed_mob.is_group and self.target_type == "unit":
                 return False
@@ -770,7 +770,9 @@ class embark_vehicle_button(button):
             displayed_mob = status.displayed_mob
             if not displayed_mob.is_pmob:
                 result = False
-            elif displayed_mob.in_vehicle or displayed_mob.is_vehicle:
+            elif displayed_mob.in_vehicle or displayed_mob.get_permission(
+                constants.VEHICLE_PERMISSION
+            ):
                 result = False
             elif (
                 not displayed_mob.actor_type == "minister"
@@ -940,7 +942,7 @@ class cycle_passengers_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.is_vehicle:
+            if not displayed_mob.get_permission(constants.VEHICLE_PERMISSION):
                 return False
             elif (
                 not len(displayed_mob.contained_mobs) > 3
@@ -1650,7 +1652,12 @@ class automatic_route_button(button):
             if (
                 attached_mob.inventory_capacity > 0
                 and (not (attached_mob.is_group and attached_mob.can_trade))
-                and (not (attached_mob.is_vehicle and attached_mob.crew == "none"))
+                and (
+                    not (
+                        attached_mob.get_permission(constants.VEHICLE_PERMISSION)
+                        and attached_mob.crew == "none"
+                    )
+                )
             ):
                 if self.button_type in [
                     "clear automatic route",
@@ -1681,7 +1688,7 @@ class automatic_route_button(button):
 
                 elif self.button_type == "draw automatic route":
                     if (
-                        attached_mob.is_vehicle
+                        attached_mob.get_permission(constants.VEHICLE_PERMISSION)
                         and attached_mob.vehicle_type == "train"
                         and not attached_mob.images[0].current_cell.has_intact_building(
                             "train_station"

@@ -44,7 +44,7 @@ class vehicle(pmob):
         self.travel_possible = False
         super().__init__(from_save, input_dict, original_constructor=False)
         self.image_dict = input_dict["image_dict"]  # should have default and uncrewed
-        self.is_vehicle = True
+        self.default_permissions[constants.VEHICLE_PERMISSION] = True
         if not from_save:
             self.crew = input_dict["crew"]
             if self.crew == "none":
@@ -580,7 +580,11 @@ class ship(vehicle):
         """
         num_ships = 0
         for current_mob in self.images[0].current_cell.contained_mobs:
-            if current_mob.is_pmob and current_mob.is_vehicle and current_mob.can_swim:
+            if (
+                current_mob.is_pmob
+                and current_mob.get_permission(constants.VEHICLE_PERMISSION)
+                and current_mob.can_swim
+            ):
                 num_ships += 1
         if (
             num_ships <= 1

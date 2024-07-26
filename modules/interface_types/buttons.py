@@ -196,7 +196,7 @@ class button(interface_elements.interface_element):
                     else:
                         message = ""
                         if (
-                            current_mob.is_vehicle
+                            current_mob.get_permission(constants.VEHICLE_PERMISSION)
                             and current_mob.vehicle_type == "train"
                         ):
                             if (
@@ -246,7 +246,7 @@ class button(interface_elements.interface_element):
                                     f"Moving into a {adjacent_cell.terrain_handler.terrain.replace('_', ' ')} tile costs {constants.terrain_movement_cost_dict[adjacent_cell.terrain_handler.terrain]} movement points"
                                 )
                     if (
-                        (not current_mob.is_vehicle)
+                        (not current_mob.get_permission(constants.VEHICLE_PERMISSION))
                         and current_mob.images[0].current_cell.terrain_handler.terrain
                         == "water"
                         and current_mob.images[0].current_cell.has_vehicle("ship")
@@ -1027,8 +1027,8 @@ class button(interface_elements.interface_element):
                                     current_mob.set_sentry_mode(False)
                                 current_mob.clear_automatic_route()
 
-                            elif (
-                                current_mob.is_vehicle
+                            elif current_mob.get_permission(
+                                constants.VEHICLE_PERMISSION
                             ):  # If moving into unreachable land, have each passenger attempt to move
                                 if current_mob.contained_mobs:
                                     passengers = current_mob.contained_mobs.copy()
@@ -1095,7 +1095,9 @@ class button(interface_elements.interface_element):
                     last_moved = None
                     for current_pmob in status.pmob_list:
                         if len(current_pmob.base_automatic_route) > 0:
-                            if current_pmob.is_vehicle:
+                            if current_pmob.get_permission(
+                                constants.VEHICLE_PERMISSION
+                            ):
                                 if current_pmob.vehicle_type == "train":
                                     unit_type = "train"
                                 elif current_pmob.can_swim:
@@ -1963,7 +1965,7 @@ class fire_unit_button(button):
             main_loop_utility.action_possible()
         ):  # when clicked, calibrate minimap to attached mob and move it to the front of each stack
             if not (
-                self.attached_mob.is_vehicle
+                self.attached_mob.get_permission(constants.VEHICLE_PERMISSION)
                 and self.attached_mob.vehicle_type == "ship"
                 and not self.attached_mob.can_leave()
             ):
@@ -2011,7 +2013,7 @@ class fire_unit_button(button):
                 tooltip_text.append(
                     "Once fired, this unit will cost no longer cost upkeep"
                 )
-            elif self.attached_mob.is_vehicle:
+            elif self.attached_mob.get_permission(constants.VEHICLE_PERMISSION):
                 tooltip_text.append(
                     "Firing this unit will also fire all of its passengers."
                 )
@@ -2868,13 +2870,15 @@ class reorganize_unit_button(button):
                     else:
                         procedure_type = "invalid"
 
-                if (
-                    procedure_type == "split" and procedure_actors["officer"].is_vehicle
+                if procedure_type == "split" and procedure_actors[
+                    "officer"
+                ].get_permission(
+                    constants.VEHICLE_PERMISSION
                 ):  # if the 'officer' unit is actually a vehicle, do the vehicle version of the procedure
                     procedure_type = "uncrew"
-                elif (
-                    procedure_type == "merge" and procedure_actors["officer"].is_vehicle
-                ):
+                elif procedure_type == "merge" and procedure_actors[
+                    "officer"
+                ].get_permission(constants.VEHICLE_PERMISSION):
                     procedure_type = "crew"
 
                 if procedure_type == "merge":

@@ -13,7 +13,7 @@ class group(pmob):
     pmob that is created by a combination of a worker and officer, has special capabilities depending on its officer, and separates its worker and officer upon being disbanded
     """
 
-    def __init__(self, from_save, input_dict):
+    def __init__(self, from_save, input_dict, original_constructor=True):
         """
         Description:
             Initializes this object
@@ -47,7 +47,7 @@ class group(pmob):
                 True, input_dict["officer"]
             )
         self.group_type = "none"
-        super().__init__(from_save, input_dict)
+        super().__init__(from_save, input_dict, original_constructor=False)
         self.worker.join_group()
         self.officer.join_group()
         self.is_group = True
@@ -135,6 +135,7 @@ class group(pmob):
         self.officer.y = self.y
         self.worker.x = self.x
         self.worker.y = self.y
+        self.on_move()
 
     def manage_health_attrition(self, current_cell="default"):
         """

@@ -86,7 +86,7 @@ class actor:
             if self.is_pmob:
                 if self.is_worker:
                     init_type = "workers"
-                elif self.is_vehicle:
+                elif self.get_permission(constants.VEHICLE_PERMISSION):
                     init_type = self.vehicle_type
                 elif self.is_officer:
                     init_type = self.officer_type
@@ -274,7 +274,7 @@ class actor:
                 or constants.effect_manager.effect_active("boost_attrition")
                 or (
                     self.actor_type == "mob"
-                    and (not self.is_vehicle)
+                    and (not self.get_permission(constants.VEHICLE_PERMISSION))
                     and random.randrange(1, 7) <= 1
                 )
             ):  # extra chance of failure when carried by porters/caravan

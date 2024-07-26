@@ -64,7 +64,7 @@ def start_player_turn(first_turn=False):
     text_utility.print_to_screen("Turn " + str(constants.turn + 1))
     if not first_turn:
         for current_pmob in status.pmob_list:
-            if current_pmob.is_vehicle:
+            if current_pmob.get_permission(constants.VEHICLE_PERMISSION):
                 current_pmob.reembark()
         for current_building in status.building_list:
             if current_building.building_type == "resource":
@@ -717,10 +717,13 @@ def end_turn_warnings():
             for current_mob in current_cell.contained_mobs:
                 if (
                     current_mob.end_turn_destination != "none"
-                    and current_mob.is_vehicle
+                    and current_mob.get_permission(constants.VEHICLE_PERMISSION)
                 ):
                     num_leaving += 1
-                elif current_mob.is_vehicle and current_mob.has_crew:
+                elif (
+                    current_mob.get_permission(constants.VEHICLE_PERMISSION)
+                    and current_mob.has_crew
+                ):
                     num_reserve += 1
             num_stranded = len(current_cell.contained_mobs) - (
                 num_leaving + num_reserve

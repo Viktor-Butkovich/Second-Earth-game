@@ -3,11 +3,12 @@
 import pygame, random
 from ..constructs import images
 from ..util import utility, actor_utility, main_loop_utility, text_utility
+from ..interface_types import cells
 from .actors import actor
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
-from typing import List, Dict
+from typing import List, Dict, Any
 
 
 class mob(actor):
@@ -34,13 +35,14 @@ class mob(actor):
         Output:
             None
         """
+        self.default_permissions: Dict[str, Any] = {}
+        self.override_permissions: Dict[str, Any] = {}
         self.is_dummy = False
         self.in_group = False
         self.in_vehicle = False
         self.in_building = False
         self.veteran = False
         self.disorganized = False
-        self.is_vehicle = False
         self.is_worker = False
         self.is_officer = False
         self.is_work_crew = False
@@ -61,7 +63,7 @@ class mob(actor):
         else:
             self.image_dict = {"default": input_dict["image"]["image_id"]}
         self.image_variants_setup(from_save, input_dict)
-        self.images = []
+        self.images: List[images.mob_image] = []
         self.status_icons = []
         for current_grid in self.grids:
             self.images.append(
@@ -98,6 +100,42 @@ class mob(actor):
             else:
                 self.creation_turn = constants.turn
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def get_cell(self) -> cells.cell:
+        """
+        Description:
+            Returns the cell this mob is currently in
+        Input:
+            None
+        Output:
+            cell: Returns the cell this mob is currently in
+        """
+        return self.images[0].current_cell
+
+    def on_move(self):
+        """
+        Description:
+            Automatically called when unit arrives in a tile for any reason
+        Input:
+            None
+        Output:
+            None
+        """
+        return
+
+    def get_permission(self, task: str) -> Any:
+        """
+        Description:
+            Returns the permission this mob has to perform the inputted task
+        Input:
+            string task: Task for which to check permission
+        Output:
+            Any: Returns the permission value for the inputted task
+        """
+        return self.override_permissions.get(
+            task,
+            self.default_permissions.get(task, constants.DEFAULT_PERMISSIONS[task]),
+        )
 
     def finish_init(
         self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
@@ -284,7 +322,9 @@ class mob(actor):
                     "negative_modifiers", []
                 ):
                     result -= 1
-        if self.is_officer or (self.is_vehicle and self.crew == "none"):
+        if self.is_officer or (
+            self.get_permission(constants.VEHICLE_PERMISSION) and self.crew == "none"
+        ):
             result = 0
         return result
 
@@ -379,11 +419,8 @@ class mob(actor):
             adjacent_cell = local_cell.adjacent_cells[direction]
 
         if adjacent_cell:
-            cost = (
-                cost
-                * constants.terrain_movement_cost_dict[
-                    adjacent_cell.terrain_handler.terrain
-                ]
+            cost *= constants.terrain_movement_cost_dict.get(
+                adjacent_cell.terrain_handler.terrain, 1
             )
             if self.is_pmob:
                 local_infrastructure = local_cell.get_intact_building("infrastructure")
@@ -504,7 +541,10 @@ class mob(actor):
             if (
                 self.is_pmob
                 and (not self.images[0].current_cell == "none")
-                and not (self.is_vehicle and self.crew == "none")
+                and not (
+                    self.get_permission(constants.VEHICLE_PERMISSION)
+                    and self.crew == "none"
+                )
             ):
                 self.add_to_turn_queue()
             if status.displayed_mob == self:
@@ -572,6 +612,7 @@ class mob(actor):
                 )
             )
             self.images[-1].add_to_cell()
+        self.on_move()
 
     def select(self):
         """
@@ -676,7 +717,7 @@ class mob(actor):
             if self.is_group:
                 tooltip_list.append("    Officer: " + self.officer.name.capitalize())
                 tooltip_list.append("    Workers: " + self.worker.name.capitalize())
-            elif self.is_vehicle:
+            elif self.get_permission(constants.VEHICLE_PERMISSION):
                 if self.has_crew:
                     tooltip_list.append("    Crew: " + self.crew.name.capitalize())
                 else:
@@ -695,12 +736,16 @@ class mob(actor):
                     tooltip_list.append("    Passengers: None")
 
             if (not self.has_infinite_movement) and not (
-                self.is_vehicle and not self.has_crew
+                self.get_permission(constants.VEHICLE_PERMISSION) and not self.has_crew
             ):
                 tooltip_list.append(
                     f"Movement points: {self.movement_points}/{self.max_movement_points}"
                 )
-            elif self.temp_movement_disabled or self.is_vehicle and not self.has_crew:
+            elif (
+                self.temp_movement_disabled
+                or self.get_permission(constants.VEHICLE_PERMISSION)
+                and not self.has_crew
+            ):
                 tooltip_list.append("No movement")
             else:
                 tooltip_list.append("Movement points: Infinite")
@@ -883,7 +928,9 @@ class mob(actor):
         """
         possible_sounds = []
         if self.is_pmob:
-            if self.is_vehicle:  # Overlaps with voices if crewed
+            if self.get_permission(
+                constants.VEHICLE_PERMISSION
+            ):  # Overlaps with voices if crewed
                 if self.has_crew:
                     if self.vehicle_type == "train":
                         constants.sound_manager.play_sound("effects/train_horn")
@@ -893,14 +940,21 @@ class mob(actor):
                 else:
                     return
 
-            if self.is_officer or self.is_group or self.is_vehicle:
+            if (
+                self.is_officer
+                or self.is_group
+                or self.get_permission(constants.VEHICLE_PERMISSION)
+            ):
                 if self.is_battalion or (
                     self.is_officer and self.officer_type in ["major"]
                 ):
                     constants.sound_manager.play_sound("effects/bolt_action_2")
 
                 possible_sounds = ["voices/sir 1", "voices/sir 2", "voices/sir 3"]
-                if self.is_vehicle and self.vehicle_type == "ship":
+                if (
+                    self.get_permission(constants.VEHICLE_PERMISSION)
+                    and self.vehicle_type == "ship"
+                ):
                     possible_sounds.append("voices/steady she goes")
         if possible_sounds:
             constants.sound_manager.play_sound(random.choice(possible_sounds))
@@ -916,7 +970,7 @@ class mob(actor):
         """
         possible_sounds = []
         if self.is_pmob or self.visible():
-            if self.is_vehicle:
+            if self.get_permission(constants.VEHICLE_PERMISSION):
                 if allow_fadeout and constants.sound_manager.busy():
                     constants.sound_manager.fadeout(400)
                 if self.vehicle_type == "train":
@@ -974,7 +1028,7 @@ class mob(actor):
         self.movement_sound()
 
         if self.images[0].current_cell.has_vehicle("ship", self.is_worker) and (
-            not self.is_vehicle
+            not self.get_permission(constants.VEHICLE_PERMISSION)
         ):  # test this logic
             previous_infrastructure = previous_cell.get_intact_building(
                 "infrastructure"
@@ -1035,13 +1089,14 @@ class mob(actor):
             if not (
                 self.images[0].current_cell == "none"
                 or self.images[0].current_cell.terrain_handler.terrain == "water"
-                or self.is_vehicle
+                or self.get_permission(constants.VEHICLE_PERMISSION)
             ):
                 constants.sound_manager.play_sound(
                     random.choice(["voices/forward march 1", "voices/forward march 2"])
                 )
 
         self.last_move_direction = (x_change, y_change)
+        self.on_move()
 
     def can_swim_at(self, current_cell):
         """

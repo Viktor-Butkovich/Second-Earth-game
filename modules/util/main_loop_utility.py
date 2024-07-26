@@ -386,7 +386,7 @@ def manage_rmb_down(clicked_button):
                 status.displayed_mob.base_automatic_route[-1][1],
             )
             if (
-                status.displayed_mob.is_vehicle
+                status.displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
                 and status.displayed_mob.vehicle_type == "train"
                 and not status.strategic_map_grid.find_cell(
                     destination_coordinates[0], destination_coordinates[1]
@@ -589,7 +589,9 @@ def manage_lmb_down(clicked_button):
                                     )
                                     return ()
                                 elif (
-                                    displayed_mob.is_vehicle
+                                    displayed_mob.get_permission(
+                                        constants.VEHICLE_PERMISSION
+                                    )
                                     and displayed_mob.vehicle_type == "train"
                                     and not target_cell.has_building("railroad")
                                 ):
@@ -601,7 +603,9 @@ def manage_lmb_down(clicked_button):
                                     target_cell.terrain_handler.terrain == "water"
                                     and not displayed_mob.can_swim
                                 ) and (
-                                    displayed_mob.is_vehicle
+                                    displayed_mob.get_permission(
+                                        constants.VEHICLE_PERMISSION
+                                    )
                                     and destination_infrastructure == "none"
                                 ):
                                     # non-train units can still move slowly through water, even w/o canoes or a bridge

@@ -678,7 +678,7 @@ class combat(action.action):
             turn_management_utility.start_player_turn()
         else:
             for current_pmob in status.pmob_list:
-                if current_pmob.is_vehicle:
+                if current_pmob.get_permission(constants.VEHICLE_PERMISSION):
                     current_pmob.reembark()
             for current_building in status.building_list:
                 if current_building.building_type == "resource":

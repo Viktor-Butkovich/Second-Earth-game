@@ -120,6 +120,25 @@ class pmob(mob):
                     status.mob_info_display, None, override_exempt=True
                 )
                 self.select()
+                self.on_move()
+
+    def on_move(self):
+        """
+        Description:
+            Automatically called when unit arrives in a tile for any reason
+        Input:
+            None
+        Output:
+            None
+        """
+        super().on_move()
+        for cell in [self.get_cell()] + self.get_cell().adjacent_list:
+            if not cell.terrain_handler.knowledge_available(
+                constants.TERRAIN_KNOWLEDGE
+            ):
+                cell.terrain_handler.set_parameter(
+                    "knowledge", constants.TERRAIN_KNOWLEDGE_REQUIREMENT
+                )
 
     def to_save_dict(self):
         """
@@ -255,7 +274,7 @@ class pmob(mob):
         next_step = self.in_progress_automatic_route[0]
         if next_step == "end":  # can drop off freely unless train without train station
             if not (
-                self.is_vehicle
+                self.get_permission(constants.VEHICLE_PERMISSION)
                 and self.vehicle_type == "train"
                 and not self.images[0].current_cell.has_intact_building("train_station")
             ):
@@ -280,7 +299,7 @@ class pmob(mob):
             ):  # only start round trip if there is something to deliver, either from tile or in inventory already
                 # If wait until full, instead wait until full load to transport or no warehouse space left
                 if not (
-                    self.is_vehicle
+                    self.get_permission(constants.VEHICLE_PERMISSION)
                     and self.vehicle_type == "train"
                     and not self.images[0].current_cell.has_intact_building(
                         "train_station"
@@ -316,7 +335,7 @@ class pmob(mob):
                     self.drop_inventory()
                 else:
                     if not (
-                        self.is_vehicle
+                        self.get_permission(constants.VEHICLE_PERMISSION)
                         and self.vehicle_type == "train"
                         and not self.images[0].current_cell.has_intact_building(
                             "train_station"
@@ -332,7 +351,7 @@ class pmob(mob):
                     y_change = next_step[1] - self.y
                     self.move(x_change, y_change)
                     if not (
-                        self.is_vehicle
+                        self.get_permission(constants.VEHICLE_PERMISSION)
                         and self.vehicle_type == "train"
                         and not self.images[0].current_cell.has_intact_building(
                             "train_station"
@@ -460,8 +479,15 @@ class pmob(mob):
             else:
                 if (
                     self.movement_points > 0
-                    and not (self.is_vehicle and self.crew == "none")
-                    and not (self.in_vehicle or self.in_group or self.in_building)
+                    and not (
+                        self.get_permission(constants.VEHICLE_PERMISSION)
+                        and self.crew == "none"
+                    )
+                    and not (
+                        self.get_permission(constants.VEHICLE_PERMISSION)
+                        or self.in_group
+                        or self.in_building
+                    )
                 ):
                     self.add_to_turn_queue()
             if self == status.displayed_mob:
@@ -878,6 +904,7 @@ class pmob(mob):
             )
             self.select()
             self.movement_sound()
+        self.on_move()
 
     def get_worker(self) -> "pmob":
         """

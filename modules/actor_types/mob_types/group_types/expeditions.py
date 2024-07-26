@@ -13,7 +13,7 @@ class expedition(group):
     A group with an explorer officer that is able to explore and move on water
     """
 
-    def __init__(self, from_save, input_dict):
+    def __init__(self, from_save, input_dict, original_constructor: bool = True):
         """
         Description:
             Initializes this object
@@ -36,10 +36,10 @@ class expedition(group):
         Output:
             None
         """
-        super().__init__(from_save, input_dict)
+        super().__init__(from_save, input_dict, original_constructor=False)
         self.can_explore = True
         self.set_group_type("expedition")
-        self.resolve_off_tile_exploration()
+        self.on_move()
 
     def move(self, x_change, y_change):
         """
@@ -85,28 +85,16 @@ class expedition(group):
         else:  # if moving to explored area, move normally
             super().move(x_change, y_change)
 
-    def calibrate_sub_mob_positions(self):
+    def on_move(self):
         """
         Description:
-            Updates the positions of this mob's submobs (mobs inside of a building or other mob that are not able to be independently viewed or selected) to match this mob
+            Automatically called when unit arrives in a tile for any reason
         Input:
             None
         Output:
             None
         """
-        super().calibrate_sub_mob_positions()
-        self.resolve_off_tile_exploration()
-
-    def disembark_vehicle(self, vehicle):
-        """
-        Description:
-            Shows this mob and disembarks it from the inputted vehicle after being a passenger. Also automatically explores nearby tiles when applicable, as if this expedition had moved
-        Input:
-            vehicle vehicle: vehicle that this mob disembarks from
-        Output:
-            None
-        """
-        super().disembark_vehicle(vehicle)
+        super().on_move()
         self.resolve_off_tile_exploration()
 
     def resolve_off_tile_exploration(self):

@@ -149,7 +149,7 @@ class npmob(mob):
             current_cell = self.images[0].current_cell
         status.minimap_grid.calibrate(self.x, self.y)
         for current_mob in current_cell.contained_mobs:
-            if current_mob.is_vehicle:
+            if current_mob.get_permission(constants.VEHICLE_PERMISSION):
                 current_mob.eject_passengers()
                 current_mob.eject_crew()
         if current_cell.has_intact_building("resource"):

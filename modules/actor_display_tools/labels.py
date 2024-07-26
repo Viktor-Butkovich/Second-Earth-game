@@ -817,11 +817,13 @@ class actor_display_label(label):
             elif self.actor_label_type == "movement":
                 if self.actor.is_pmob:
                     if (
-                        new_actor.is_vehicle
+                        new_actor.get_permission(constants.VEHICLE_PERMISSION)
                         and new_actor.has_crew
                         and (not new_actor.has_infinite_movement)
                         and not new_actor.temp_movement_disabled
-                    ) or not new_actor.is_vehicle:  # if train with crew or normal unit
+                    ) or not new_actor.get_permission(
+                        constants.VEHICLE_PERMISSION
+                    ):  # if train with crew or normal unit
                         self.set_label(
                             f"{self.message_start}{new_actor.movement_points}/{new_actor.max_movement_points}"
                         )
@@ -878,7 +880,7 @@ class actor_display_label(label):
                         self.attached_list = []
 
             elif self.actor_label_type == "crew":
-                if self.actor.is_vehicle:
+                if self.actor.get_permission(constants.VEHICLE_PERMISSION):
                     if self.actor.has_crew:
                         self.set_label(
                             self.message_start
@@ -888,7 +890,7 @@ class actor_display_label(label):
                         self.set_label(self.message_start + "none")
 
             elif self.actor_label_type == "passengers":
-                if self.actor.is_vehicle:
+                if self.actor.get_permission(constants.VEHICLE_PERMISSION):
                     if not self.actor.has_crew:
                         self.set_label("Requires a worker crew to function")
                     else:
@@ -898,7 +900,7 @@ class actor_display_label(label):
                             self.set_label(self.message_start)
 
             elif self.actor_label_type == "current passenger":
-                if self.actor.is_vehicle:
+                if self.actor.get_permission(constants.VEHICLE_PERMISSION):
                     if len(self.actor.contained_mobs) > 0:
                         self.attached_list = new_actor.contained_mobs
                         if len(self.attached_list) > self.list_index:
@@ -1085,9 +1087,11 @@ class actor_display_label(label):
             or (not self.actor.cell.has_building("resource"))
         ):
             return False
-        elif (
-            self.actor_label_type in ["crew", "passengers"]
-            and not self.actor.is_vehicle
+        elif self.actor_label_type in [
+            "crew",
+            "passengers",
+        ] and not self.actor.get_permission(
+            constants.VEHICLE_PERMISSION
         ):  # do not show passenger or crew labels for non-vehicle mobs
             return False
         elif (
@@ -1292,7 +1296,10 @@ class actor_tooltip_label(actor_display_label):
             None
         """
         if self.actor.is_dummy:
-            if self.actor.is_group or (self.actor.is_vehicle and self.actor.has_crew):
+            if self.actor.is_group or (
+                self.actor.get_permission(constants.VEHICLE_PERMISSION)
+                and self.actor.has_crew
+            ):
                 status.reorganize_unit_right_button.on_click()
                 if (
                     not self.actor.is_dummy

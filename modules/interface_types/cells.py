@@ -431,7 +431,7 @@ class cell:
         """
         for current_mob in self.contained_mobs:
             if (
-                current_mob.is_vehicle
+                current_mob.get_permission(constants.VEHICLE_PERMISSION)
                 and (current_mob.has_crew or is_worker)
                 and current_mob.vehicle_type == vehicle_type
             ):
@@ -449,7 +449,7 @@ class cell:
         """
         for current_mob in self.contained_mobs:
             if (
-                current_mob.is_vehicle
+                current_mob.get_permission(constants.VEHICLE_PERMISSION)
                 and (current_mob.has_crew or is_worker)
                 and current_mob.vehicle_type == vehicle_type
             ):
@@ -468,7 +468,7 @@ class cell:
         return_list = []
         for current_mob in self.contained_mobs:
             if (
-                current_mob.is_vehicle
+                current_mob.get_permission(constants.VEHICLE_PERMISSION)
                 and (current_mob.has_crew or is_worker)
                 and current_mob.vehicle_type == vehicle_type
             ):
@@ -486,7 +486,7 @@ class cell:
         """
         for current_mob in self.contained_mobs:
             if (
-                current_mob.is_vehicle
+                current_mob.get_permission(constants.VEHICLE_PERMISSION)
                 and (not current_mob.has_crew)
                 and current_mob.vehicle_type == vehicle_type
             ):
@@ -505,7 +505,7 @@ class cell:
         """
         for current_mob in self.contained_mobs:
             if (
-                current_mob.is_vehicle
+                current_mob.get_permission(constants.VEHICLE_PERMISSION)
                 and (not current_mob.has_crew)
                 and current_mob.vehicle_type == vehicle_type
             ):
@@ -548,7 +548,10 @@ class cell:
         for current_mob in self.contained_mobs:
             if current_mob.is_pmob and (
                 current_mob.is_officer
-                or (current_mob.is_vehicle and not current_mob.has_crew)
+                or (
+                    current_mob.get_permission(constants.VEHICLE_PERMISSION)
+                    and not current_mob.has_crew
+                )
             ):
                 num_found += 1
                 if num_found >= required_number:
@@ -609,7 +612,10 @@ class cell:
         for current_mob in iterated_list:
             if current_mob.is_pmob and (
                 current_mob.is_officer
-                or (current_mob.is_vehicle and not current_mob.has_crew)
+                or (
+                    current_mob.get_permission(constants.VEHICLE_PERMISSION)
+                    and not current_mob.has_crew
+                )
             ):
                 return current_mob
         return "none"

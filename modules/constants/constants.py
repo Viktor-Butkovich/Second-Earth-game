@@ -1,5 +1,5 @@
 import pygame
-from typing import Dict, List
+from typing import Dict, List, Any
 from modules.tools.data_managers.sound_manager_template import sound_manager_template
 from modules.tools.data_managers.save_load_manager_template import (
     save_load_manager_template,
@@ -694,3 +694,8 @@ UNIQUE_FEATURE_TRACKING: str = "unique"
 LIST_FEATURE_TRACKING: str = "list"
 
 MAP_MODE_ALPHA: int = 128
+
+VEHICLE_PERMISSION: str = "vehicle"
+DEFAULT_PERMISSIONS: Dict[str, Any] = {
+    VEHICLE_PERMISSION: False,
+}

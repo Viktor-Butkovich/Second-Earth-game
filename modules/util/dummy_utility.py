@@ -28,7 +28,8 @@ def generate_autofill_actors(search_start_index=0):
         required_dummy_attributes = [
             "name",
             "is_group",
-            "is_vehicle",
+            "default_permissions",
+            "override_permissions",
             "is_pmob",
             "is_npmob",
             "is_officer",
@@ -66,7 +67,10 @@ def generate_autofill_actors(search_start_index=0):
         if (
             displayed_mob.is_officer
             or displayed_mob.is_worker
-            or (displayed_mob.is_vehicle and not displayed_mob.has_crew)
+            or (
+                displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
+                and not displayed_mob.has_crew
+            )
         ):
             if displayed_mob.is_worker:
                 return_dict["worker"] = displayed_mob
@@ -88,7 +92,9 @@ def generate_autofill_actors(search_start_index=0):
                         dummy_input_dict,
                     )
                     return_dict["procedure"] = "merge"
-                elif return_dict["officer"].is_vehicle:
+                elif return_dict["officer"].get_permission(
+                    constants.VEHICLE_PERMISSION
+                ):
                     return_dict["group"] = simulate_crew(
                         return_dict["officer"],
                         return_dict["worker"],
@@ -98,7 +104,8 @@ def generate_autofill_actors(search_start_index=0):
                     return_dict["procedure"] = "crew"
 
         elif displayed_mob.is_group or (
-            displayed_mob.is_vehicle and displayed_mob.has_crew
+            displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
+            and displayed_mob.has_crew
         ):
             return_dict["group"] = displayed_mob
 
@@ -107,7 +114,7 @@ def generate_autofill_actors(search_start_index=0):
                     return_dict["group"], required_dummy_attributes, dummy_input_dict
                 )
                 return_dict["procedure"] = "split"
-            elif return_dict["group"].is_vehicle:
+            elif return_dict["group"].get_permission(constants.VEHICLE_PERMISSION):
                 return_dict["officer"], return_dict["worker"] = simulate_uncrew(
                     return_dict["group"], required_dummy_attributes, dummy_input_dict
                 )
