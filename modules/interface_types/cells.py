@@ -432,7 +432,9 @@ class cell:
         for current_mob in self.contained_mobs:
             if (
                 current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and (current_mob.has_crew or is_worker)
+                and (
+                    current_mob.get_permission(constants.ACTIVE_PERMISSION) or is_worker
+                )
                 and current_mob.vehicle_type == vehicle_type
             ):
                 return True
@@ -450,7 +452,9 @@ class cell:
         for current_mob in self.contained_mobs:
             if (
                 current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and (current_mob.has_crew or is_worker)
+                and (
+                    current_mob.get_permission(constants.ACTIVE_PERMISSION) or is_worker
+                )
                 and current_mob.vehicle_type == vehicle_type
             ):
                 return current_mob
@@ -469,7 +473,9 @@ class cell:
         for current_mob in self.contained_mobs:
             if (
                 current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and (current_mob.has_crew or is_worker)
+                and (
+                    current_mob.get_permission(constants.ACTIVE_PERMISSION) or is_worker
+                )
                 and current_mob.vehicle_type == vehicle_type
             ):
                 return_list.append(current_mob)
@@ -487,7 +493,7 @@ class cell:
         for current_mob in self.contained_mobs:
             if (
                 current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and (not current_mob.has_crew)
+                and (not current_mob.get_permission(constants.ACTIVE_PERMISSION))
                 and current_mob.vehicle_type == vehicle_type
             ):
                 return True
@@ -506,7 +512,7 @@ class cell:
         for current_mob in self.contained_mobs:
             if (
                 current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and (not current_mob.has_crew)
+                and (not current_mob.get_permission(constants.ACTIVE_PERMISSION))
                 and current_mob.vehicle_type == vehicle_type
             ):
                 return current_mob
@@ -546,12 +552,8 @@ class cell:
         """
         num_found = 0
         for current_mob in self.contained_mobs:
-            if current_mob.is_pmob and (
-                current_mob.get_permission(constants.OFFICER_PERMISSION)
-                or (
-                    current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                    and not current_mob.has_crew
-                )
+            if current_mob.any_permissions(
+                constants.OFFICER_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
             ):
                 num_found += 1
                 if num_found >= required_number:
@@ -610,12 +612,8 @@ class cell:
                 + self.contained_mobs[0:start_index]
             )
         for current_mob in iterated_list:
-            if current_mob.is_pmob and (
-                current_mob.get_permission(constants.OFFICER_PERMISSION)
-                or (
-                    current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                    and not current_mob.has_crew
-                )
+            if current_mob.any_permissions(
+                constants.OFFICER_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
             ):
                 return current_mob
         return "none"

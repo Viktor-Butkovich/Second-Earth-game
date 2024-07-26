@@ -94,15 +94,14 @@ class embark_all_passengers_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.has_crew:  # do not show if ship does not have crew
-                return False
-            if (not self.vehicle_type == displayed_mob.vehicle_type) and (
-                not displayed_mob.vehicle_type == "vehicle"
-            ):  # update vehicle type and image when shown if type has changed, like train to ship
-                self.vehicle_type = displayed_mob.vehicle_type
-                self.image.set_image(
-                    "buttons/embark_" + self.vehicle_type + "_button.png"
-                )
+            if displayed_mob.get_permission(constants.ACTIVE_PERMISSION):
+                if (not self.vehicle_type == displayed_mob.vehicle_type) and (
+                    not displayed_mob.vehicle_type == "vehicle"
+                ):  # update vehicle type and image when shown if type has changed, like train to ship
+                    self.vehicle_type = displayed_mob.vehicle_type
+                    self.image.set_image(
+                        "buttons/embark_" + self.vehicle_type + "_button.png"
+                    )
         return result
 
 
@@ -178,15 +177,16 @@ class disembark_all_passengers_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             vehicle = status.displayed_mob
-            if not vehicle.has_crew:  # do not show if ship does not have crew
-                return False
-            if (not self.vehicle_type == vehicle.vehicle_type) and (
-                not vehicle.vehicle_type == "vehicle"
-            ):  # update vehicle type and image when shown if type has changed, like train to ship
-                self.vehicle_type = vehicle.vehicle_type
-                self.image.set_image(
-                    "buttons/disembark_" + self.vehicle_type + "_button.png"
-                )
+            if vehicle.get_permission(
+                constants.ACTIVE_PERMISSION
+            ):  # do not show if ship does not have crew
+                if (not self.vehicle_type == vehicle.vehicle_type) and (
+                    not vehicle.vehicle_type == "vehicle"
+                ):  # update vehicle type and image when shown if type has changed, like train to ship
+                    self.vehicle_type = vehicle.vehicle_type
+                    self.image.set_image(
+                        "buttons/disembark_" + self.vehicle_type + "_button.png"
+                    )
         return result
 
 
@@ -1655,11 +1655,8 @@ class automatic_route_button(button):
             if (
                 attached_mob.inventory_capacity > 0
                 and (not (attached_mob.is_group and attached_mob.can_trade))
-                and (
-                    not (
-                        attached_mob.get_permission(constants.VEHICLE_PERMISSION)
-                        and attached_mob.crew == "none"
-                    )
+                and not attached_mob.get_permission(
+                    constants.INACTIVE_VEHICLE_PERMISSION
                 )
             ):
                 if self.button_type in [

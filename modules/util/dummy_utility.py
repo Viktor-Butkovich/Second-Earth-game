@@ -32,7 +32,6 @@ def generate_autofill_actors(search_start_index=0):
             "override_permissions",
             "is_pmob",
             "is_npmob",
-            "has_crew",
             "has_infinite_movement",
             "crew",
             "movement_points",
@@ -63,13 +62,8 @@ def generate_autofill_actors(search_start_index=0):
             ],
         }
 
-        if (
-            displayed_mob.get_permission(constants.OFFICER_PERMISSION)
-            or displayed_mob.is_worker
-            or (
-                displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and not displayed_mob.has_crew
-            )
+        if displayed_mob.is_worker or displayed_mob.any_permissions(
+            constants.OFFICER_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
         ):
             if displayed_mob.is_worker:
                 return_dict["worker"] = displayed_mob
@@ -102,9 +96,8 @@ def generate_autofill_actors(search_start_index=0):
                     )
                     return_dict["procedure"] = "crew"
 
-        elif displayed_mob.is_group or (
-            displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
-            and displayed_mob.has_crew
+        elif displayed_mob.is_group or displayed_mob.all_permissions(
+            constants.VEHICLE_PERMISSION, constants.ACTIVE_PERMISSION
         ):
             return_dict["group"] = displayed_mob
 
@@ -123,7 +116,7 @@ def generate_autofill_actors(search_start_index=0):
 
 
 def create_dummy_copy(
-    unit, dummy_input_dict, required_dummy_attributes, override_values={}
+    unit, dummy_input_dict, required_dummy_attributes, override_permissions={}
 ):
     """
     Description:
@@ -133,14 +126,20 @@ def create_dummy_copy(
         string list required_dummy_attributes: List of attributes required for dummies to have working tooltips/images to copy over from unit
         dictionary dummy_input_dict: Input dict for mock units with initial values - any values also contained in required attributes will be overridden by the unit
             values
-        dictionary override_values = {}: Overridden values for copy - any values contained will be used rather than those from the inputted unit
+        dictionary override_permissions = {}: Overridden values for copy - any permissions contained will be prioritize of unit's defaults
     Output:
         dummy: Returns dummy object copied from inputted unit
     """
-    dummy_input_dict["image_id_list"] = unit.get_image_id_list(override_values)
+    dummy_input_dict["image_id_list"] = unit.get_image_id_list(
+        override_values={"override_permissions": override_permissions}
+    )
     for attribute in required_dummy_attributes:
         if hasattr(unit, attribute):
-            dummy_input_dict[attribute] = getattr(unit, attribute)
+            if type(getattr(unit, attribute)) in [list, dict]:
+                dummy_input_dict[attribute] = getattr(unit, attribute).copy()
+            else:
+                dummy_input_dict[attribute] = getattr(unit, attribute)
+    dummy_input_dict["override_permissions"].update(override_permissions)
     return constants.actor_creation_manager.create_dummy(dummy_input_dict)
 
 
@@ -222,9 +221,13 @@ def simulate_crew(vehicle, worker, required_dummy_attributes, dummy_input_dict):
         dummy: Returns dummy object representing inputted vehicle once crewed by inputted worker
     """
     dummy_vehicle = create_dummy_copy(
-        vehicle, dummy_input_dict, required_dummy_attributes, {"has_crew": True}
+        vehicle,
+        dummy_input_dict,
+        required_dummy_attributes,
+        override_permissions={
+            constants.ACTIVE_PERMISSION: True,
+        },
     )
-    dummy_vehicle.has_crew = True
     dummy_vehicle.crew = worker
     return dummy_vehicle
 
@@ -269,7 +272,9 @@ def simulate_uncrew(unit, required_dummy_attributes, dummy_input_dict):
         unit.crew, dummy_input_dict.copy(), required_dummy_attributes
     )
     dummy_vehicle = create_dummy_copy(
-        unit, dummy_input_dict, required_dummy_attributes, {"has_crew": False}
+        unit,
+        dummy_input_dict,
+        required_dummy_attributes,
+        override_permissions={constants.ACTIVE_PERMISSION: False},
     )
-    dummy_vehicle.has_crew = False
     return (dummy_vehicle, dummy_worker)

@@ -150,7 +150,7 @@ class mob(actor):
                 return True
         return False
 
-    def get_permission(self, task: str) -> Any:
+    def get_permission(self, task: str, one_time_permissions: Dict = None) -> Any:
         """
         Description:
             Returns the permission this mob has to perform the inputted task
@@ -159,10 +159,21 @@ class mob(actor):
         Output:
             Any: Returns the permission value for the inputted task
         """
-        return self.override_permissions.get(
-            task,
-            self.default_permissions.get(task, constants.DEFAULT_PERMISSIONS[task]),
-        )
+        if one_time_permissions:
+            return one_time_permissions.get(
+                task,
+                self.override_permissions.get(
+                    task,
+                    self.default_permissions.get(
+                        task, constants.DEFAULT_PERMISSIONS[task]
+                    ),
+                ),
+            )
+        else:
+            return self.override_permissions.get(
+                task,
+                self.default_permissions.get(task, constants.DEFAULT_PERMISSIONS[task]),
+            )
 
     def finish_init(
         self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
@@ -745,14 +756,12 @@ class mob(actor):
                 tooltip_list.append("    Officer: " + self.officer.name.capitalize())
                 tooltip_list.append("    Workers: " + self.worker.name.capitalize())
             elif self.get_permission(constants.VEHICLE_PERMISSION):
-                if self.has_crew:
+                if self.get_permission(constants.ACTIVE_PERMISSION):
                     tooltip_list.append("    Crew: " + self.crew.name.capitalize())
                 else:
                     tooltip_list.append("    Crew: None")
                     tooltip_list.append(
-                        "    A "
-                        + self.name
-                        + " cannot move or take passengers or cargo without crew"
+                        f"    A {self.name} cannot move or take passengers or cargo without crew"
                     )
 
                 if len(self.contained_mobs) > 0:
@@ -762,16 +771,15 @@ class mob(actor):
                 else:
                     tooltip_list.append("    Passengers: None")
 
-            if (not self.has_infinite_movement) and not (
-                self.get_permission(constants.VEHICLE_PERMISSION) and not self.has_crew
+            if (
+                self.get_permission(constants.ACTIVE_PERMISSION)
+                and not self.has_infinite_movement
             ):
                 tooltip_list.append(
                     f"Movement points: {self.movement_points}/{self.max_movement_points}"
                 )
-            elif (
-                self.temp_movement_disabled
-                or self.get_permission(constants.VEHICLE_PERMISSION)
-                and not self.has_crew
+            elif self.temp_movement_disabled or not self.get_permission(
+                constants.ACTIVE_PERMISSION
             ):
                 tooltip_list.append("No movement")
             else:
@@ -958,7 +966,7 @@ class mob(actor):
             if self.get_permission(
                 constants.VEHICLE_PERMISSION
             ):  # Overlaps with voices if crewed
-                if self.has_crew:
+                if self.get_permission(constants.ACTIVE_PERMISSION):
                     if self.vehicle_type == "train":
                         constants.sound_manager.play_sound("effects/train_horn")
                         return
@@ -1068,7 +1076,9 @@ class mob(actor):
                     vehicle = self.images[0].current_cell.get_vehicle(
                         "ship", self.is_worker
                     )
-                    if self.is_worker and not vehicle.has_crew:
+                    if self.is_worker and not vehicle.get_permission(
+                        constants.ACTIVE_PERMISSION
+                    ):
                         self.crew_vehicle(vehicle)
                         self.set_movement_points(0)
                     else:

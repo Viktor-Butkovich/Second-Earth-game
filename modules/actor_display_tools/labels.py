@@ -505,8 +505,8 @@ class actor_display_label(label):
                 super().update_tooltip()
 
         elif self.actor_label_type == "passengers":
-            if not self.actor == "none":
-                if self.actor.has_crew:
+            if self.actor != "none":
+                if self.actor.get_permission(constants.ACTIVE_PERMISSION):
                     name_list = [self.message_start]
                     for current_passenger in self.actor.contained_mobs:
                         name_list.append(
@@ -519,7 +519,7 @@ class actor_display_label(label):
                     super().update_tooltip()
 
         elif self.actor_label_type == "crew":
-            if (not self.actor == "none") and self.actor.has_crew:
+            if self.actor != "none" and self.actor.crew != "none":
                 self.actor.crew.update_tooltip()
                 tooltip_text = self.actor.crew.tooltip_text
                 self.set_tooltip(tooltip_text)
@@ -816,30 +816,31 @@ class actor_display_label(label):
 
             elif self.actor_label_type == "movement":
                 if self.actor.is_pmob:
-                    if (
-                        new_actor.get_permission(constants.VEHICLE_PERMISSION)
-                        and new_actor.has_crew
-                        and (not new_actor.has_infinite_movement)
-                        and not new_actor.temp_movement_disabled
-                    ) or not new_actor.get_permission(
-                        constants.VEHICLE_PERMISSION
-                    ):  # if train with crew or normal unit
+                    if new_actor.get_permission(constants.ACTIVE_PERMISSION) and not (
+                        new_actor.has_infinite_movement
+                        or new_actor.temp_movement_disabled
+                    ):
+                        # If train with crew or normal unit
                         self.set_label(
                             f"{self.message_start}{new_actor.movement_points}/{new_actor.max_movement_points}"
                         )
-                    else:  # if ship or train without crew
+                    else:  # If ship or train without crew
                         if not new_actor.has_infinite_movement:
                             if (
                                 new_actor.movement_points == 0
                                 or new_actor.temp_movement_disabled
-                                or not new_actor.has_crew
+                                or not new_actor.get_permission(
+                                    constants.ACTIVE_PERMISSION
+                                )
                             ):
                                 self.set_label("No movement")
                         else:
                             if (
                                 new_actor.movement_points == 0
                                 or new_actor.temp_movement_disabled
-                                or not new_actor.has_crew
+                                or not new_actor.get_permission(
+                                    constants.ACTIVE_PERMISSION
+                                )
                             ):
                                 self.set_label("No movement")
                             else:
@@ -880,24 +881,23 @@ class actor_display_label(label):
                         self.attached_list = []
 
             elif self.actor_label_type == "crew":
-                if self.actor.get_permission(constants.VEHICLE_PERMISSION):
-                    if self.actor.has_crew:
-                        self.set_label(
-                            self.message_start
-                            + utility.capitalize(self.actor.crew.name)
-                        )
-                    else:
-                        self.set_label(self.message_start + "none")
+                if self.actor.all_permissions(
+                    constants.VEHICLE_PERMISSION, constants.ACTIVE_PERMISSION
+                ):
+                    self.set_label(
+                        self.message_start + utility.capitalize(self.actor.crew.name)
+                    )
+                else:
+                    self.set_label(self.message_start + "none")
 
             elif self.actor_label_type == "passengers":
-                if self.actor.get_permission(constants.VEHICLE_PERMISSION):
-                    if not self.actor.has_crew:
-                        self.set_label("Requires a worker crew to function")
+                if not self.actor.get_permission(constants.ACTIVE_PERMISSION):
+                    self.set_label("Requires a worker crew to function")
+                elif self.actor.get_permission(constants.VEHICLE_PERMISSION):
+                    if len(self.actor.contained_mobs) == 0:
+                        self.set_label(self.message_start + "none")
                     else:
-                        if len(self.actor.contained_mobs) == 0:
-                            self.set_label(self.message_start + "none")
-                        else:
-                            self.set_label(self.message_start)
+                        self.set_label(self.message_start)
 
             elif self.actor_label_type == "current passenger":
                 if self.actor.get_permission(constants.VEHICLE_PERMISSION):
@@ -1296,9 +1296,8 @@ class actor_tooltip_label(actor_display_label):
             None
         """
         if self.actor.is_dummy:
-            if self.actor.is_group or (
-                self.actor.get_permission(constants.VEHICLE_PERMISSION)
-                and self.actor.has_crew
+            if self.actor.is_group or self.actor.all_permissions(
+                constants.VEHICLE_PERMISSION, constants.ACTIVE_PERMISSION
             ):
                 status.reorganize_unit_right_button.on_click()
                 if (

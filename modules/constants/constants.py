@@ -698,8 +698,12 @@ LIST_FEATURE_TRACKING: str = "list"
 MAP_MODE_ALPHA: int = 128
 
 VEHICLE_PERMISSION: str = "vehicle"
+ACTIVE_PERMISSION: str = "active_permission"
+INACTIVE_VEHICLE_PERMISSION: str = "inactive_vehicle"
 OFFICER_PERMISSION: str = "officer"
 DEFAULT_PERMISSIONS: Dict[str, Any] = {
     VEHICLE_PERMISSION: False,
+    ACTIVE_PERMISSION: True,
+    INACTIVE_VEHICLE_PERMISSION: False,
     OFFICER_PERMISSION: False,
 }

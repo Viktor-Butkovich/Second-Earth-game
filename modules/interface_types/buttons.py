@@ -2940,27 +2940,6 @@ class reorganize_unit_button(button):
                     "This button executes split and uncrew procedures, which require a group or crewed vehicle to be selected"
                 )
 
-    def create_dummy_copy(
-        self, unit, dummy_input_dict, required_dummy_attributes, override_values={}
-    ):
-        """
-        Description:
-            Generates the mock output for the merge procedure based on the inputted information
-        Input:
-            mob unit: Mob being copied
-            string list required_dummy_attributes: List of attributes required for dummies to have working tooltips/images to copy over from unit
-            dictionary dummy_input_dict: Input dict for mock units with initial values - any values also contained in required attributes will be overridden by the unit
-                values
-            dictionary override_values = {}: Overridden values for copy - any values contained will be used rather than those from the inputted unit
-        Output:
-            dummy: Returns dummy object copied from inputted unit
-        """
-        dummy_input_dict["image_id_list"] = unit.get_image_id_list(override_values)
-        for attribute in required_dummy_attributes:
-            if hasattr(unit, attribute):
-                dummy_input_dict[attribute] = getattr(unit, attribute)
-        return constants.actor_creation_manager.create_dummy(dummy_input_dict)
-
 
 class cycle_autofill_button(button):
     """

@@ -44,15 +44,14 @@ class vehicle(pmob):
         self.travel_possible = False
         super().__init__(from_save, input_dict, original_constructor=False)
         self.image_dict = input_dict["image_dict"]  # should have default and uncrewed
-        self.default_permissions[constants.VEHICLE_PERMISSION] = True
+        self.default_permissions.update(
+            {
+                constants.VEHICLE_PERMISSION: True,
+                constants.ACTIVE_PERMISSION: False,
+            }
+        )
         if not from_save:
-            self.crew = input_dict["crew"]
-            if self.crew == "none":
-                self.has_crew = False
-            else:
-                self.has_crew = True
-            self.update_image_bundle()
-            self.selection_sound()
+            self.set_crew(input_dict["crew"])
         else:  # create crew and passengers through recruitment_manager and embark them
             if input_dict["crew"] == "none":
                 self.set_crew("none")
@@ -71,7 +70,7 @@ class vehicle(pmob):
         self.set_controlling_minister_type(
             constants.type_minister_dict["transportation"]
         )
-        if not self.has_crew:
+        if not self.get_permission(constants.ACTIVE_PERMISSION):
             self.remove_from_turn_queue()
         if ("select_on_creation" in input_dict) and input_dict["select_on_creation"]:
             actor_utility.calibrate_actor_info_display(
@@ -91,10 +90,15 @@ class vehicle(pmob):
         """
         self.crew = new_crew
         if new_crew == "none":
-            self.has_crew = False
+            if constants.ACTIVE_PERMISSION in self.override_permissions:
+                del self.override_permissions[constants.ACTIVE_PERMISSION]
+            self.override_permissions[constants.INACTIVE_VEHICLE_PERMISSION] = True
             self.set_inventory_capacity(0)
         else:
-            self.has_crew = True
+            self.override_permissions[constants.ACTIVE_PERMISSION] = True
+            if constants.INACTIVE_VEHICLE_PERMISSION in self.override_permissions:
+                del self.override_permissions[constants.INACTIVE_VEHICLE_PERMISSION]
+
             self.set_inventory_capacity(27)
         self.update_image_bundle()
         if status.displayed_mob == self:
@@ -110,12 +114,11 @@ class vehicle(pmob):
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        if "has_crew" in override_values:
-            has_crew = override_values["has_crew"]
-        else:
-            has_crew = self.has_crew
         image_id_list = super().get_image_id_list(override_values)
-        if not has_crew:
+        if not self.get_permission(
+            constants.ACTIVE_PERMISSION,
+            one_time_permissions=override_values.get("override_permissions", {}),
+        ):
             image_id_list.remove(self.image_dict["default"])
             image_id_list.append(self.image_dict["uncrewed"])
         return image_id_list
@@ -278,7 +281,7 @@ class vehicle(pmob):
         Output:
             None
         """
-        if self.has_crew:
+        if self.crew != "none":
             self.ejected_crew = self.crew
             self.crew.uncrew_vehicle(self)
 
@@ -368,13 +371,10 @@ class vehicle(pmob):
             save_dict["crew"] = "none"
         else:
             save_dict["crew"] = self.crew.to_save_dict()
-        save_dict[
-            "passenger_dicts"
-        ] = (
-            []
-        )  # list of dictionaries for each passenger, on load a vehicle creates all of its passengers and embarks them
-        for current_mob in self.contained_mobs:
-            save_dict["passenger_dicts"].append(current_mob.to_save_dict())
+        save_dict["passenger_dicts"] = [
+            current_mob.to_save_dict() for current_mob in self.contained_mobs
+        ]
+        # List of dictionaries for each passenger, on load a vehicle creates all of its passengers and embarks them
         return save_dict
 
     def can_move(self, x_change, y_change, can_print=True):
@@ -389,21 +389,17 @@ class vehicle(pmob):
         Output:
             boolean: Returns True if this mob can move to the proposed destination, otherwise returns False
         """
-        if self.has_crew:
+        if self.get_permission(constants.ACTIVE_PERMISSION):
             if not self.temp_movement_disabled:
                 return super().can_move(x_change, y_change, can_print)
-            else:
-                if can_print:
-                    text_utility.print_to_screen(
-                        "This "
-                        + self.name
-                        + " is still having its crew replaced and cannot move this turn."
-                    )
-        else:
-            if can_print:
-                text_utility.print_to_screen(
-                    "A " + self.vehicle_type + " cannot move without crew."
+            elif can_print:
+                print(
+                    f"This {self.vehicle_type} is still having its crew replaced and cannot move this turn."
                 )
+        elif can_print:
+            text_utility.print_to_screen(
+                f"A {self.vehicle_type} cannot move without crew."
+            )
         return False
 
     def go_to_grid(self, new_grid, new_coordinates):
@@ -611,11 +607,11 @@ class ship(vehicle):
         Output:
             boolean: Returs True if this ship has any crew, otherwise returns False
         """
-        if self.travel_possible:
-            if self.has_crew:
-                if not self.temp_movement_disabled:
-                    return True
-        return False
+        return (
+            self.travel_possible
+            and self.get_permission(constants.ACTIVE_PERMISSION)
+            and not self.temp_movement_disabled
+        )
 
     def get_vehicle_name(self) -> str:
         """

@@ -720,9 +720,8 @@ def end_turn_warnings():
                     and current_mob.get_permission(constants.VEHICLE_PERMISSION)
                 ):
                     num_leaving += 1
-                elif (
-                    current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                    and current_mob.has_crew
+                elif current_mob.all_permissions(
+                    constants.VEHICLE_PERMISSION, constants.ACTIVE_PERMISSION
                 ):
                     num_reserve += 1
             num_stranded = len(current_cell.contained_mobs) - (
