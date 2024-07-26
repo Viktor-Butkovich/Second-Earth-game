@@ -72,7 +72,7 @@ def generate_autofill_actors(search_start_index=0):
                 ].current_cell.get_officer(start_index=search_start_index)
             else:
                 return_dict["officer"] = displayed_mob
-                return_dict["worker"] = displayed_mob.images[0].current_cell.get_worker(
+                return_dict["worker"] = displayed_mob.get_cell().get_worker(
                     start_index=search_start_index
                 )
 

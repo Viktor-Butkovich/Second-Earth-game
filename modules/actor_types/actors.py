@@ -141,16 +141,14 @@ class actor:
             None
         """
         for current_commodity in self.get_held_commodities():
-            self.images[0].current_cell.tile.change_inventory(
+            self.get_cell().tile.change_inventory(
                 current_commodity, self.get_inventory(current_commodity)
             )
             self.set_inventory(current_commodity, 0)
         if self.actor_type == "mob" and self.is_pmob:
             for current_equipment in self.equipment.copy():
                 if self.equipment[current_equipment]:
-                    self.images[0].current_cell.tile.change_inventory(
-                        current_equipment, 1
-                    )
+                    self.get_cell().tile.change_inventory(current_equipment, 1)
                     status.equipment_types[current_equipment].unequip(self)
             self.equipment = {}
 
@@ -285,7 +283,7 @@ class actor:
                     current_cell = self.cell
                 elif self.actor_type == "mob":
                     if not (self.in_building or self.in_group or self.in_vehicle):
-                        current_cell = self.images[0].current_cell
+                        current_cell = self.get_cell()
                     else:
                         return ()  # only surface-level mobs can have inventories and need to roll for attrition
                 if (

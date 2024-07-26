@@ -154,7 +154,7 @@ class officer(pmob):
         self.x = group.x
         self.y = group.y
         self.show_images()
-        self.go_to_grid(self.images[0].current_cell.grid, (self.x, self.y))
+        self.go_to_grid(self.get_cell().grid, (self.x, self.y))
         self.select()
         if self.movement_points > 0:
             self.add_to_turn_queue()

@@ -132,13 +132,14 @@ class pmob(mob):
             None
         """
         super().on_move()
-        for cell in [self.get_cell()] + self.get_cell().adjacent_list:
-            if not cell.terrain_handler.knowledge_available(
-                constants.TERRAIN_KNOWLEDGE
-            ):
-                cell.terrain_handler.set_parameter(
-                    "knowledge", constants.TERRAIN_KNOWLEDGE_REQUIREMENT
-                )
+        if self.get_cell() != "none":
+            for cell in [self.get_cell()] + self.get_cell().adjacent_list:
+                if not cell.terrain_handler.knowledge_available(
+                    constants.TERRAIN_KNOWLEDGE
+                ):
+                    cell.terrain_handler.set_parameter(
+                        "knowledge", constants.TERRAIN_KNOWLEDGE_REQUIREMENT
+                    )
 
     def to_save_dict(self):
         """
@@ -276,7 +277,7 @@ class pmob(mob):
             if not (
                 self.get_permission(constants.VEHICLE_PERMISSION)
                 and self.vehicle_type == "train"
-                and not self.images[0].current_cell.has_intact_building("train_station")
+                and not self.get_cell().has_intact_building("train_station")
             ):
                 return True
             else:
@@ -286,14 +287,13 @@ class pmob(mob):
             if (
                 self.wait_until_full
                 and (
-                    self.images[0].current_cell.tile.get_inventory_used()
-                    >= self.inventory_capacity
-                    or self.images[0].current_cell.tile.get_inventory_remaining() <= 0
+                    self.get_cell().tile.get_inventory_used() >= self.inventory_capacity
+                    or self.get_cell().tile.get_inventory_remaining() <= 0
                 )
             ) or (
                 (not self.wait_until_full)
                 and (
-                    len(self.images[0].current_cell.tile.get_held_commodities(True)) > 0
+                    len(self.get_cell().tile.get_held_commodities(True)) > 0
                     or self.get_inventory_used() > 0
                 )
             ):  # only start round trip if there is something to deliver, either from tile or in inventory already
@@ -301,9 +301,7 @@ class pmob(mob):
                 if not (
                     self.get_permission(constants.VEHICLE_PERMISSION)
                     and self.vehicle_type == "train"
-                    and not self.images[0].current_cell.has_intact_building(
-                        "train_station"
-                    )
+                    and not self.get_cell().has_intact_building("train_station")
                 ):  # can pick up freely unless train without train station
                     return True
                 else:
@@ -337,9 +335,7 @@ class pmob(mob):
                     if not (
                         self.get_permission(constants.VEHICLE_PERMISSION)
                         and self.vehicle_type == "train"
-                        and not self.images[0].current_cell.has_intact_building(
-                            "train_station"
-                        )
+                        and not self.get_cell().has_intact_building("train_station")
                     ):
                         if (
                             self.get_next_automatic_stop() == "end"
@@ -353,9 +349,7 @@ class pmob(mob):
                     if not (
                         self.get_permission(constants.VEHICLE_PERMISSION)
                         and self.vehicle_type == "train"
-                        and not self.images[0].current_cell.has_intact_building(
-                            "train_station"
-                        )
+                        and not self.get_cell().has_intact_building("train_station")
                     ):
                         if (
                             self.get_next_automatic_stop() == "end"
@@ -391,7 +385,7 @@ class pmob(mob):
         Output:
             None
         """
-        tile = self.images[0].current_cell.tile
+        tile = self.get_cell().tile
         while (
             self.get_inventory_remaining() > 0
             and len(tile.get_held_commodities(ignore_consumer_goods)) > 0
@@ -557,7 +551,7 @@ class pmob(mob):
             None
         """
         if current_cell == "default":
-            current_cell = self.images[0].current_cell
+            current_cell = self.get_cell()
         if current_cell == "none":
             return ()
         if current_cell.local_attrition():
@@ -614,7 +608,7 @@ class pmob(mob):
                         + ", "
                         + str(self.y)
                         + ")",
-                        "zoom_destination": self.images[0].current_cell.tile,
+                        "zoom_destination": self.get_cell().tile,
                     }
                 )
 
@@ -646,10 +640,10 @@ class pmob(mob):
         Output:
             None
         """
-        if (not self.images[0].current_cell == "none") and (
-            not self.images[0].current_cell.tile == "none"
+        if (not self.get_cell() == "none") and (
+            not self.get_cell().tile == "none"
         ):  # drop inventory on death
-            current_tile = self.images[0].current_cell.tile
+            current_tile = self.get_cell().tile
             for current_commodity in constants.commodity_types:
                 current_tile.change_inventory(
                     current_commodity, self.get_inventory(current_commodity)
@@ -756,7 +750,7 @@ class pmob(mob):
                 self.end_turn_destination.grids[0],
                 (self.end_turn_destination.x, self.end_turn_destination.y),
             )
-            self.images[0].current_cell.tile.select(music_override=True)
+            self.get_cell().tile.select(music_override=True)
             self.manage_inventory_attrition()  # do an inventory check when crossing ocean, using the destination's terrain
             self.end_turn_destination = "none"
 
@@ -841,9 +835,7 @@ class pmob(mob):
                 if vehicle.get_inventory_remaining() > 0:
                     vehicle.change_inventory(current_commodity, 1)
                 else:
-                    self.images[0].current_cell.tile.change_inventory(
-                        current_commodity, 1
-                    )
+                    self.get_cell().tile.change_inventory(current_commodity, 1)
             self.inventory = {}
         self.hide_images()
         self.remove_from_turn_queue()
@@ -880,8 +872,8 @@ class pmob(mob):
             current_image.add_to_cell()
         if (
             vehicle.vehicle_type == "ship"
-            and self.images[0].current_cell.grid == status.strategic_map_grid
-            and self.images[0].current_cell.get_intact_building("port") == "none"
+            and self.get_cell().grid == status.strategic_map_grid
+            and self.get_cell().get_intact_building("port") == "none"
         ):
             self.set_disorganized(True)
         if self.can_trade and self.inventory_capacity > 0:  # if caravan

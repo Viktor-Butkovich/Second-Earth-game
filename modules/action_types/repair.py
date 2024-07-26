@@ -85,9 +85,7 @@ class repair(action.action):
         message = []
         unit = status.displayed_mob
         if unit != None:
-            self.current_building = unit.images[0].current_cell.get_building(
-                self.building_type
-            )
+            self.current_building = unit.get_cell().get_building(self.building_type)
             message.append(
                 f"Attempts to repair this tile's {self.current_building.name} for {str(self.get_price())} money"
             )
@@ -132,9 +130,7 @@ class repair(action.action):
         """
         building = self.current_building
         if building == "none":
-            building = status.displayed_mob.images[0].current_cell.get_building(
-                self.building_type
-            )
+            building = status.displayed_mob.get_cell().get_building(self.building_type)
         return building.get_repair_cost()
 
     def can_show(self):
@@ -147,7 +143,7 @@ class repair(action.action):
             boolean: Returns whether a button linked to this action should be drawn
         """
         unit = status.displayed_mob
-        building = unit.images[0].current_cell.get_building(self.building_type)
+        building = unit.get_cell().get_building(self.building_type)
         can_show = (
             super().can_show()
             and unit.is_group
@@ -179,9 +175,7 @@ class repair(action.action):
             none
         """
         super().pre_start(unit)
-        self.current_building = unit.images[0].current_cell.get_building(
-            self.building_type
-        )
+        self.current_building = unit.get_cell().get_building(self.building_type)
 
     def start(self, unit):
         """
@@ -223,6 +217,6 @@ class repair(action.action):
         if self.roll_result >= self.current_min_success:
             self.current_building.set_damaged(False)
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, self.current_unit.images[0].current_cell.tile
+                status.tile_info_display, self.current_unit.get_cell().tile
             )  # update tile display to show building repair
         super().complete()

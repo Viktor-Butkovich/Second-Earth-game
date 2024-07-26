@@ -152,7 +152,7 @@ class zoom_notification(notification):
                 mini_grid.calibrate(target.x, target.y)
         elif target.actor_type == "mob":
             if (
-                target.images[0].current_cell != "none"
+                target.get_cell() != "none"
             ):  # if non-hidden mob, move to front of tile and select
                 target.select()
             else:  # if hidden mob, move to location and select tile

@@ -143,7 +143,7 @@ def transfer(item_type: str, amount, source_type: str) -> None:
                 displayed_mob
                 and displayed_tile
                 and displayed_mob.is_pmob
-                and displayed_mob.images[0].current_cell.tile == displayed_tile
+                and displayed_mob.get_cell().tile == displayed_tile
             ):
                 if amount == "all":
                     if source_type == "tile_inventory":

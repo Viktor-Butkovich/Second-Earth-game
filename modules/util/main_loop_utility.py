@@ -44,7 +44,7 @@ def update_display():
 
         for current_mob in status.mob_list:
             if current_mob.can_show_tooltip():
-                for same_tile_mob in current_mob.images[0].current_cell.contained_mobs:
+                for same_tile_mob in current_mob.get_cell().contained_mobs:
                     if (
                         same_tile_mob.can_show_tooltip()
                         and not same_tile_mob in possible_tooltip_drawers
@@ -406,7 +406,7 @@ def manage_rmb_down(clicked_button):
             )
         status.minimap_grid.calibrate(status.displayed_mob.x, status.displayed_mob.y)
         actor_utility.calibrate_actor_info_display(
-            status.tile_info_display, status.displayed_mob.images[0].current_cell.tile
+            status.tile_info_display, status.displayed_mob.get_cell().tile
         )
     if not stopping:
         manage_lmb_down(clicked_button)

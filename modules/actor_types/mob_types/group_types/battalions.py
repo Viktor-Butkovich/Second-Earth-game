@@ -62,7 +62,7 @@ class battalion(group):
         """
         cost = self.movement_cost
         if not (self.is_npmob and not self.visible()):
-            local_cell = self.images[0].current_cell
+            local_cell = self.get_cell()
         else:
             local_cell = self.grids[0].find_cell(self.x, self.y)
 

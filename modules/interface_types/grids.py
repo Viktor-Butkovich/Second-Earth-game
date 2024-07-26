@@ -562,7 +562,7 @@ class mini_grid(grid):
                 attached_cell = self.attached_grid.find_cell(attached_x, attached_y)
                 current_cell.copy(attached_cell)
             for current_mob in status.mob_list:
-                if current_mob.images[0].current_cell != "none":
+                if current_mob.get_cell() != "none":
                     for current_image in current_mob.images:
                         if current_image.grid == self:
                             current_image.add_to_cell()

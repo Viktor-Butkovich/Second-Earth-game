@@ -57,10 +57,7 @@ class embark_all_passengers_button(button):
             vehicle = status.displayed_mob
             can_embark = True
             if self.vehicle_type == "train":
-                if (
-                    vehicle.images[0].current_cell.contained_buildings["train_station"]
-                    == "none"
-                ):
+                if vehicle.get_cell().contained_buildings["train_station"] == "none":
                     text_utility.print_to_screen(
                         "A train can only pick up passengers at a train station."
                     )
@@ -68,7 +65,7 @@ class embark_all_passengers_button(button):
             if can_embark:
                 if vehicle.sentry_mode:
                     vehicle.set_sentry_mode(False)
-                for contained_mob in vehicle.images[0].current_cell.contained_mobs:
+                for contained_mob in vehicle.get_cell().contained_mobs:
                     passenger = contained_mob
                     if passenger.is_pmob and not passenger.get_permission(
                         constants.VEHICLE_PERMISSION
@@ -146,10 +143,7 @@ class disembark_all_passengers_button(button):
             vehicle = status.displayed_mob
             can_disembark = True
             if self.vehicle_type == "train":
-                if (
-                    vehicle.images[0].current_cell.contained_buildings["train_station"]
-                    == "none"
-                ):
+                if vehicle.get_cell().contained_buildings["train_station"] == "none":
                     text_utility.print_to_screen(
                         "A train can only drop off passengers at a train station."
                     )
@@ -779,9 +773,7 @@ class embark_vehicle_button(button):
                 result = False
             elif (
                 not displayed_mob.actor_type == "minister"
-                and not displayed_mob.images[0].current_cell.has_vehicle(
-                    self.vehicle_type
-                )
+                and not displayed_mob.get_cell().has_vehicle(self.vehicle_type)
             ):
                 result = False
         if (
@@ -804,17 +796,13 @@ class embark_vehicle_button(button):
             None
         """
         if main_loop_utility.action_possible():
-            if status.displayed_mob.images[0].current_cell.has_vehicle(
-                self.vehicle_type
-            ):
+            if status.displayed_mob.get_cell().has_vehicle(self.vehicle_type):
                 rider = status.displayed_mob
-                vehicles = rider.images[0].current_cell.get_vehicles(self.vehicle_type)
+                vehicles = rider.get_cell().get_vehicles(self.vehicle_type)
                 can_embark = True
                 if vehicles[0].vehicle_type == "train":
                     if (
-                        vehicles[0]
-                        .images[0]
-                        .current_cell.contained_buildings["train_station"]
+                        vehicles[0].get_cell().contained_buildings["train_station"]
                         == "none"
                     ):
                         text_utility.print_to_screen(
@@ -1690,7 +1678,7 @@ class automatic_route_button(button):
                     if (
                         attached_mob.get_permission(constants.VEHICLE_PERMISSION)
                         and attached_mob.vehicle_type == "train"
-                        and not attached_mob.images[0].current_cell.has_intact_building(
+                        and not attached_mob.get_cell().has_intact_building(
                             "train_station"
                         )
                     ):

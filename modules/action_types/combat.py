@@ -196,7 +196,7 @@ class combat(action.action):
             elif self.opponent.disorganized:
                 text += f"The {self.opponent.name} {utility.conjugate('be', self.opponent.number)} disorganized and will receive a -1 after their roll. /n"
 
-            if self.current_unit.images[0].current_cell.has_intact_building("fort"):
+            if self.current_unit.get_cell().has_intact_building("fort"):
                 text += f"The fort in this tile grants your {self.current_unit.name} a +1 bonus after their roll. /n"
 
             if self.current_unit.veteran:
@@ -619,7 +619,7 @@ class combat(action.action):
         Output:
             None
         """
-        combat_cell = self.current_unit.images[0].current_cell
+        combat_cell = self.current_unit.get_cell()
         if self.total_roll_result <= -2:  # defeat
             if self.defending:
                 self.current_unit.die()

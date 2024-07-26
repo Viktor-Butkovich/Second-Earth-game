@@ -79,10 +79,7 @@ class npmob(mob):
         Output:
             boolean: Returns whether this unit is currently visible to the player
         """
-        return (
-            self.images[0].current_cell != "none"
-            and self.images[0].current_cell.terrain_handler.visible
-        )
+        return self.get_cell() != "none" and self.get_cell().terrain_handler.visible
 
     def find_closest_target(self):
         """
@@ -143,10 +140,10 @@ class npmob(mob):
         Output:
             None
         """
-        if self.images[0].current_cell == "none":
+        if self.get_cell() == "none":
             current_cell = self.grids[0].find_cell(self.x, self.y)
         else:
-            current_cell = self.images[0].current_cell
+            current_cell = self.get_cell()
         status.minimap_grid.calibrate(self.x, self.y)
         for current_mob in current_cell.contained_mobs:
             if current_mob.get_permission(constants.VEHICLE_PERMISSION):
@@ -178,10 +175,10 @@ class npmob(mob):
         Output:
             None
         """
-        if self.images[0].current_cell == "none":
+        if self.get_cell() == "none":
             current_cell = self.grids[0].find_cell(self.x, self.y)
         else:
-            current_cell = self.images[0].current_cell
+            current_cell = self.get_cell()
 
         noncombatants = current_cell.get_noncombatants("pmob")
         for current_noncombatant in noncombatants:
@@ -209,10 +206,10 @@ class npmob(mob):
         Output:
             None
         """
-        if self.images[0].current_cell == "none":
+        if self.get_cell() == "none":
             current_cell = self.grids[0].find_cell(self.x, self.y)
         else:
-            current_cell = self.images[0].current_cell
+            current_cell = self.get_cell()
 
         for current_building in current_cell.get_intact_buildings():
             if current_building.can_damage():
@@ -246,7 +243,7 @@ class npmob(mob):
             if not self.visible():
                 current_cell = self.grids[0].find_cell(self.x, self.y)
             else:
-                current_cell = self.images[0].current_cell
+                current_cell = self.get_cell()
             closest_target = random.choice(current_cell.adjacent_list)
             while (
                 closest_target.y == 0
@@ -323,7 +320,7 @@ class npmob(mob):
                 if not self.visible():
                     current_cell = self.grids[0].find_cell(self.x, self.y)
                 else:
-                    current_cell = self.images[0].current_cell
+                    current_cell = self.get_cell()
                 if current_cell.has_pmob() or (
                     self.can_damage_buildings
                     and current_cell.has_destructible_buildings()

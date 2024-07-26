@@ -222,9 +222,7 @@ class construction(action.action):
         )
         if can_show and not self.building_type in ["train"]:
             can_show = (self.building_type == "infrastructure") or (
-                not status.displayed_mob.images[0].current_cell.has_building(
-                    self.building_type
-                )
+                not status.displayed_mob.get_cell().has_building(self.building_type)
             )
         if can_show:
             self.update_info()
@@ -240,7 +238,7 @@ class construction(action.action):
             None
         """
         if self.building_type == "resource":
-            cell = status.displayed_mob.images[0].current_cell
+            cell = status.displayed_mob.get_cell()
             if cell.terrain_handler.resource != self.attached_resource:
                 if cell.terrain_handler.resource in constants.collectable_resources:
                     self.attached_resource = cell.terrain_handler.resource
@@ -275,7 +273,7 @@ class construction(action.action):
                 )
 
         elif self.building_type == "infrastructure":
-            cell = status.displayed_mob.images[0].current_cell
+            cell = status.displayed_mob.get_cell()
             if not cell.has_building("infrastructure"):
                 if cell.terrain_handler.terrain == "water" and cell.y > 0:
                     new_name = "ferry"
@@ -324,7 +322,7 @@ class construction(action.action):
         elif self.building_type == "port":
             if (
                 unit.adjacent_to_water()
-                and unit.images[0].current_cell.terrain_handler.terrain != "water"
+                and unit.get_cell().terrain_handler.terrain != "water"
             ):
                 return_value = True
             else:
@@ -332,7 +330,7 @@ class construction(action.action):
                     "This building can only be built in land tiles adjacent to water."
                 )
         elif self.building_type == "train_station":
-            if unit.images[0].current_cell.has_intact_building("railroad"):
+            if unit.get_cell().has_intact_building("railroad"):
                 return_value = True
             else:
                 text_utility.print_to_screen(
@@ -340,7 +338,7 @@ class construction(action.action):
                 )
         elif self.building_type == "infrastructure":
             if self.building_name in ["road bridge", "railroad bridge", "ferry"]:
-                current_cell = unit.images[0].current_cell
+                current_cell = unit.get_cell()
                 if current_cell.terrain_handler.terrain == "water":  # if in water
                     up_cell = current_cell.grid.find_cell(
                         current_cell.x, current_cell.y + 1
@@ -383,7 +381,7 @@ class construction(action.action):
             else:
                 return_value = True
         elif self.building_type == "train":
-            if unit.images[0].current_cell.has_intact_building("train_station"):
+            if unit.get_cell().has_intact_building("train_station"):
                 return_value = True
             else:
                 text_utility.print_to_screen(
@@ -403,7 +401,7 @@ class construction(action.action):
             None
         """
         if super().on_click(unit):
-            current_cell = unit.images[0].current_cell
+            current_cell = unit.get_cell()
             current_building = current_cell.get_building(self.building_type)
             if not (
                 current_building == "none"
@@ -485,10 +483,10 @@ class construction(action.action):
             }
 
             if not self.building_type in ["train"]:
-                if self.current_unit.images[0].current_cell.has_building(
+                if self.current_unit.get_cell().has_building(
                     self.building_type
                 ):  # if building of same type exists, remove it and replace with new one
-                    self.current_unit.images[0].current_cell.get_building(
+                    self.current_unit.get_cell().get_building(
                         self.building_type
                     ).remove_complete()
             if self.building_type == "resource":
@@ -523,9 +521,7 @@ class construction(action.action):
             new_building = constants.actor_creation_manager.create(False, input_dict)
 
             if self.building_type in ["port", "train_station", "resource"]:
-                warehouses = self.current_unit.images[0].current_cell.get_building(
-                    "warehouses"
-                )
+                warehouses = self.current_unit.get_cell().get_building("warehouses")
                 if warehouses != "none":
                     if warehouses.damaged:
                         warehouses.set_damaged(False)
@@ -537,7 +533,7 @@ class construction(action.action):
                     constants.actor_creation_manager.create(False, input_dict)
 
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, self.current_unit.images[0].current_cell.tile
+                status.tile_info_display, self.current_unit.get_cell().tile
             )  # update tile display to show new building
             if self.building_type in ["train"]:
                 new_building.select()

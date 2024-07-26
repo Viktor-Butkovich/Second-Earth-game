@@ -133,9 +133,9 @@ class vehicle(pmob):
             None
         """
         if current_cell == "default":
-            current_cell = self.images[0].current_cell
+            current_cell = self.get_cell()
         if current_cell == "none":
-            return ()
+            return
         if self.crew == "none":
             sub_mobs = []
         else:
@@ -492,7 +492,7 @@ class train(vehicle):
         result = super().can_move(x_change, y_change, can_print)
         if result:
             if not (
-                self.images[0].current_cell.has_intact_building("railroad")
+                self.get_cell().has_intact_building("railroad")
                 and self.grids[0]
                 .find_cell(self.x + x_change, self.y + y_change)
                 .has_intact_building("railroad")
@@ -575,7 +575,7 @@ class ship(vehicle):
             boolean: Returns False if this ship is in a water tile and there are any mobs in its tile that cannot move on water and are not in a ship, otherwise returns True
         """
         num_ships = 0
-        for current_mob in self.images[0].current_cell.contained_mobs:
+        for current_mob in self.get_cell().contained_mobs:
             if (
                 current_mob.is_pmob
                 and current_mob.get_permission(constants.VEHICLE_PERMISSION)
@@ -585,10 +585,10 @@ class ship(vehicle):
         if (
             num_ships <= 1
         ):  # can leave units behind if another steamship is present to pick them up
-            if self.images[0].current_cell.terrain_handler.terrain == "water":
-                for current_mob in self.images[0].current_cell.contained_mobs:
+            if self.get_cell().terrain_handler.terrain == "water":
+                for current_mob in self.get_cell().contained_mobs:
                     if current_mob.is_pmob and not current_mob.can_swim_at(
-                        self.images[0].current_cell
+                        self.get_cell()
                     ):
                         text_utility.print_to_screen(
                             "A "

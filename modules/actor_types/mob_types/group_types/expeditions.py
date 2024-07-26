@@ -114,9 +114,9 @@ class expedition(group):
             "left": "west",
         }
         if self.in_vehicle:
-            current_cell = self.vehicle.images[0].current_cell
+            current_cell = self.vehicle.get_cell()
         else:
-            current_cell = self.images[0].current_cell
+            current_cell = self.get_cell()
         promoted = self.veteran
         for current_direction in ["up", "down", "left", "right"]:
             target_cell = current_cell.adjacent_cells[current_direction]

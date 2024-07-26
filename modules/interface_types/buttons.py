@@ -170,7 +170,7 @@ class button(interface_elements.interface_element):
             current_mob = status.displayed_mob
             if current_mob:
                 movement_cost = current_mob.get_movement_cost(x_change, y_change)
-                local_cell = current_mob.images[0].current_cell
+                local_cell = current_mob.get_cell()
                 adjacent_cell = local_cell.adjacent_cells[non_cardinal_direction]
                 local_infrastructure = local_cell.get_intact_building("infrastructure")
                 if adjacent_cell.terrain_handler.visible:
@@ -247,9 +247,8 @@ class button(interface_elements.interface_element):
                                 )
                     if (
                         (not current_mob.get_permission(constants.VEHICLE_PERMISSION))
-                        and current_mob.images[0].current_cell.terrain_handler.terrain
-                        == "water"
-                        and current_mob.images[0].current_cell.has_vehicle("ship")
+                        and current_mob.get_cell().terrain_handler.terrain == "water"
+                        and current_mob.get_cell().has_vehicle("ship")
                     ):
                         if (
                             not current_mob.can_swim
@@ -3015,7 +3014,7 @@ class cycle_autofill_button(button):
         Output:
             None
         """
-        current_cell = status.displayed_mob.images[0].current_cell
+        current_cell = status.displayed_mob.get_cell()
         self.parent_collection.search_start_index = (
             current_cell.contained_mobs.index(
                 self.parent_collection.autofill_actors[self.autofill_target_type]

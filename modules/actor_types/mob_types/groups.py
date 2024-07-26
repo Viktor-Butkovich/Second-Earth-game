@@ -147,7 +147,7 @@ class group(pmob):
             None
         """
         if current_cell == "default":
-            current_cell = self.images[0].current_cell
+            current_cell = self.get_cell()
         if current_cell in ["none", None]:
             return ()
 

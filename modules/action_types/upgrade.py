@@ -80,7 +80,7 @@ class upgrade(action.action):
         message = []
         unit = status.displayed_mob
         if unit != None:
-            self.current_building = unit.images[0].current_cell.get_intact_building(
+            self.current_building = unit.get_cell().get_intact_building(
                 self.upgraded_building_type
             )
             actor_utility.update_descriptions(self.building_type)
@@ -146,7 +146,7 @@ class upgrade(action.action):
         """
         building = self.current_building
         if building == "none":
-            building = status.displayed_mob.images[0].current_cell.get_intact_building(
+            building = status.displayed_mob.get_cell().get_intact_building(
                 self.upgraded_building_type
             )
         return building.get_upgrade_cost()
@@ -161,9 +161,7 @@ class upgrade(action.action):
             boolean: Returns whether a button linked to this action should be drawn
         """
         unit = status.displayed_mob
-        building = unit.images[0].current_cell.get_intact_building(
-            self.upgraded_building_type
-        )
+        building = unit.get_cell().get_intact_building(self.upgraded_building_type)
         can_show = (
             super().can_show()
             and unit.is_group
@@ -195,7 +193,7 @@ class upgrade(action.action):
             none
         """
         super().pre_start(unit)
-        self.current_building = unit.images[0].current_cell.get_intact_building(
+        self.current_building = unit.get_cell().get_intact_building(
             self.upgraded_building_type
         )
 
@@ -239,7 +237,7 @@ class upgrade(action.action):
         if self.roll_result >= self.current_min_success:
             self.current_building.upgrade(self.building_type)
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, self.current_unit.images[0].current_cell.tile
+                status.tile_info_display, self.current_unit.get_cell().tile
             )  # update tile display to show building upgrade
             status.minimap_grid.calibrate(self.current_unit.x, self.current_unit.y)
         super().complete()

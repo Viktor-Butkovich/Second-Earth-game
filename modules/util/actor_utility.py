@@ -57,7 +57,7 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
         if constructor in ["none", None]:
             base_price = 5
         else:
-            base_price = constructor.images[0].current_cell.get_warehouses_cost()
+            base_price = constructor.get_cell().get_warehouses_cost()
     else:
         base_price = constants.building_prices[building_type]
 
@@ -70,7 +70,7 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
         cost_multiplier = 1
     else:
         cost_multiplier = constants.terrain_build_cost_multiplier_dict.get(
-            constructor.images[0].current_cell.terrain_handler.terrain, 1
+            constructor.get_cell().terrain_handler.terrain, 1
         )
 
     return base_price * cost_multiplier
@@ -339,7 +339,7 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
         if new_actor != status.displayed_mob:
             calibrate_actor_info_display(status.mob_inventory_info_display, None)
         status.displayed_mob = new_actor
-        if new_actor and new_actor.images[0].current_cell.tile == status.displayed_tile:
+        if new_actor and new_actor.get_cell().tile == status.displayed_tile:
             for current_same_tile_icon in status.same_tile_icon_list:
                 current_same_tile_icon.reset()
         if (
