@@ -285,7 +285,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == "merge":
             if (
                 status.displayed_mob
-                and status.displayed_mob.is_officer
+                and status.displayed_mob.get_permission(constants.OFFICER_PERMISSION)
                 and status.displayed_mob.officer_type == "evangelist"
             ):
                 self.set_tooltip(

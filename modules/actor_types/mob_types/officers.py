@@ -35,7 +35,7 @@ class officer(pmob):
             None
         """
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.is_officer = True
+        self.default_permissions[constants.OFFICER_PERMISSION] = True
         self.officer_type = input_dict.get("officer_type", type(self).__name__)
         self.set_controlling_minister_type(
             constants.officer_minister_dict[self.officer_type]

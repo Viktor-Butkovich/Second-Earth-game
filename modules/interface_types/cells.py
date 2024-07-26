@@ -547,7 +547,7 @@ class cell:
         num_found = 0
         for current_mob in self.contained_mobs:
             if current_mob.is_pmob and (
-                current_mob.is_officer
+                current_mob.get_permission(constants.OFFICER_PERMISSION)
                 or (
                     current_mob.get_permission(constants.VEHICLE_PERMISSION)
                     and not current_mob.has_crew
@@ -611,7 +611,7 @@ class cell:
             )
         for current_mob in iterated_list:
             if current_mob.is_pmob and (
-                current_mob.is_officer
+                current_mob.get_permission(constants.OFFICER_PERMISSION)
                 or (
                     current_mob.get_permission(constants.VEHICLE_PERMISSION)
                     and not current_mob.has_crew

@@ -97,7 +97,7 @@ class public_relations_campaign(action.campaign):
         """
         return (
             super().can_show()
-            and status.displayed_mob.is_officer
+            and status.displayed_mob.get_permission(constants.OFFICER_PERMISSION)
             and status.displayed_mob.officer_type == "evangelist"
         )
 

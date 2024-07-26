@@ -88,7 +88,7 @@ class actor:
                     init_type = "workers"
                 elif self.get_permission(constants.VEHICLE_PERMISSION):
                     init_type = self.vehicle_type
-                elif self.is_officer:
+                elif self.get_permission(constants.OFFICER_PERMISSION):
                     init_type = self.officer_type
                 elif self.is_group:
                     init_type = self.group_type

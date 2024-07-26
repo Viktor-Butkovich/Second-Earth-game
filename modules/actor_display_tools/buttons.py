@@ -249,7 +249,10 @@ class enable_sentry_mode_button(button):
             displayed_mob.set_sentry_mode(True)
             if (
                 constants.effect_manager.effect_active("promote_on_sentry")
-                and (displayed_mob.is_group or displayed_mob.is_officer)
+                and (
+                    displayed_mob.is_group
+                    or displayed_mob.get_permission(constants.OFFICER_PERMISSION)
+                )
                 and not displayed_mob.veteran
             ):  # purely for promotion testing, not normal functionality
                 displayed_mob.promote()

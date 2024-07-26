@@ -2,6 +2,7 @@
 
 from typing import List, Dict, Tuple
 from ...util import csv_utility, utility, actor_utility
+import modules.constants.constants as constants
 import modules.constants.status as status
 import json
 import random
@@ -183,7 +184,9 @@ class character_manager_template:
             List[Dict[str, any]]: Returns list of image id's for each portrait section
         """
         minister_face = []
-        if unit.is_pmob and (unit.is_officer or unit.is_worker):
+        if unit.is_pmob and (
+            unit.get_permission(constants.OFFICER_PERMISSION) or unit.is_worker
+        ):
             minister_face = self.generate_appearance(
                 unit, full_body=True, metadata=metadata
             )

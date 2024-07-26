@@ -44,7 +44,6 @@ class mob(actor):
         self.veteran = False
         self.disorganized = False
         self.is_worker = False
-        self.is_officer = False
         self.is_work_crew = False
         self.is_battalion = False
         self.is_group = False
@@ -122,6 +121,34 @@ class mob(actor):
             None
         """
         return
+
+    def all_permissions(self, *tasks: str) -> bool:
+        """
+        Description:
+            Checks if this mob has permission to perform all of the inputted tasks
+        Input:
+            *tasks: Variable number of string arguments representing tasks to check permission for
+        Output:
+            bool: True if this mob has permission to perform all of the inputted tasks, False otherwise
+        """
+        for task in tasks:
+            if not self.get_permission(task):
+                return False
+        return True
+
+    def any_permissions(self, *tasks: str) -> bool:
+        """
+        Description:
+            Checks if this mob has permission to perform any of the inputted tasks
+        Input:
+            *tasks: Variable number of string arguments representing tasks to check permission for
+        Output:
+            bool: True if this mob has permission to perform any of the inputted tasks, False otherwise
+        """
+        for task in tasks:
+            if self.get_permission(task):
+                return True
+        return False
 
     def get_permission(self, task: str) -> Any:
         """
@@ -281,7 +308,7 @@ class mob(actor):
                     modifier += 1
             else:
                 modifier -= 1
-                if self.is_officer:
+                if self.get_permission(constants.OFFICER_PERMISSION):
                     modifier -= 1
             if include_tile and self.images[0].current_cell.has_intact_building("fort"):
                 modifier += 1
@@ -322,7 +349,7 @@ class mob(actor):
                     "negative_modifiers", []
                 ):
                     result -= 1
-        if self.is_officer or (
+        if self.get_permission(constants.OFFICER_PERMISSION) or (
             self.get_permission(constants.VEHICLE_PERMISSION) and self.crew == "none"
         ):
             result = 0
@@ -941,12 +968,13 @@ class mob(actor):
                     return
 
             if (
-                self.is_officer
+                self.get_permission(constants.OFFICER_PERMISSION)
                 or self.is_group
                 or self.get_permission(constants.VEHICLE_PERMISSION)
             ):
                 if self.is_battalion or (
-                    self.is_officer and self.officer_type in ["major"]
+                    self.get_permission(constants.OFFICER_PERMISSION)
+                    and self.officer_type in ["major"]
                 ):
                     constants.sound_manager.play_sound("effects/bolt_action_2")
 

@@ -32,7 +32,6 @@ def generate_autofill_actors(search_start_index=0):
             "override_permissions",
             "is_pmob",
             "is_npmob",
-            "is_officer",
             "has_crew",
             "has_infinite_movement",
             "crew",
@@ -65,7 +64,7 @@ def generate_autofill_actors(search_start_index=0):
         }
 
         if (
-            displayed_mob.is_officer
+            displayed_mob.get_permission(constants.OFFICER_PERMISSION)
             or displayed_mob.is_worker
             or (
                 displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
@@ -84,7 +83,7 @@ def generate_autofill_actors(search_start_index=0):
                 )
 
             if return_dict["worker"] != "none" and return_dict["officer"] != "none":
-                if return_dict["officer"].is_officer:
+                if return_dict["officer"].get_permission(constants.OFFICER_PERMISSION):
                     return_dict["group"] = simulate_merge(
                         return_dict["officer"],
                         return_dict["worker"],
@@ -162,7 +161,10 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
     if officer != "none" and worker != "none":
         for attribute in required_dummy_attributes:
             if hasattr(officer, attribute):
-                dummy_input_dict[attribute] = getattr(officer, attribute)
+                if type(getattr(officer, attribute)) in [list, dict]:
+                    dummy_input_dict[attribute] = getattr(officer, attribute).copy()
+                else:
+                    dummy_input_dict[attribute] = getattr(officer, attribute)
         dummy_input_dict["officer"] = officer
         dummy_input_dict["worker"] = worker
         dummy_input_dict["group_type"] = constants.officer_group_type_dict[
@@ -187,7 +189,11 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
         ] = actor_utility.generate_group_movement_points(
             worker, officer, generate_max=True
         )
-        dummy_input_dict["is_officer"] = False
+        dummy_input_dict["default_permissions"].update(
+            {
+                constants.OFFICER_PERMISSION: False,
+            }
+        )
         dummy_input_dict["is_group"] = True
         image_id_list = []
         dummy_input_dict[

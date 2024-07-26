@@ -189,7 +189,9 @@ actor_creation_manager: actor_creation_manager_template = (
     actor_creation_manager_template()
 )
 terrain_manager: terrain_manager_template = terrain_manager_template()
-character_manager: character_manager_template = character_manager_template()
+character_manager: character_manager_template = (
+    None  # requires additional setup before initialization
+)
 achievement_manager: achievement_manager_template = (
     None  # requires additional setup before initialization
 )
@@ -696,6 +698,8 @@ LIST_FEATURE_TRACKING: str = "list"
 MAP_MODE_ALPHA: int = 128
 
 VEHICLE_PERMISSION: str = "vehicle"
+OFFICER_PERMISSION: str = "officer"
 DEFAULT_PERMISSIONS: Dict[str, Any] = {
     VEHICLE_PERMISSION: False,
+    OFFICER_PERMISSION: False,
 }

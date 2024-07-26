@@ -17,6 +17,7 @@ from modules.tools.data_managers import (
     notification_manager_template,
     value_tracker_template,
     achievement_manager_template,
+    character_manager_template,
 )
 from modules.action_types import (
     public_relations_campaign,
@@ -227,6 +228,10 @@ def misc():
 
     constants.achievement_manager = (
         achievement_manager_template.achievement_manager_template()
+    )
+
+    constants.character_manager = (
+        character_manager_template.character_manager_template()
     )
 
     status.grids_collection = constants.actor_creation_manager.create_interface_element(
