@@ -35,7 +35,6 @@ class officer(pmob):
             None
         """
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.default_permissions[constants.OFFICER_PERMISSION] = True
         self.officer_type = input_dict.get("officer_type", type(self).__name__)
         self.set_controlling_minister_type(
             constants.officer_minister_dict[self.officer_type]
@@ -48,6 +47,18 @@ class officer(pmob):
             if self.veteran:
                 self.load_veteran()
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def permissions_setup(self) -> None:
+        """
+        Description:
+            Sets up this mob's permissions
+        Input:
+            None
+        Output:
+            None
+        """
+        super().permissions_setup()
+        self.default_permissions[constants.OFFICER_PERMISSION] = True
 
     def replace(self, attached_group="none"):
         """

@@ -44,12 +44,6 @@ class vehicle(pmob):
         self.travel_possible = False
         super().__init__(from_save, input_dict, original_constructor=False)
         self.image_dict = input_dict["image_dict"]  # should have default and uncrewed
-        self.default_permissions.update(
-            {
-                constants.VEHICLE_PERMISSION: True,
-                constants.ACTIVE_PERMISSION: False,
-            }
-        )
         if not from_save:
             self.set_crew(input_dict["crew"])
         else:  # create crew and passengers through recruitment_manager and embark them
@@ -72,12 +66,20 @@ class vehicle(pmob):
         )
         if not self.get_permission(constants.ACTIVE_PERMISSION):
             self.remove_from_turn_queue()
-        if ("select_on_creation" in input_dict) and input_dict["select_on_creation"]:
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, None, override_exempt=True
-            )
-            self.select()
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def permissions_setup(self) -> None:
+        """
+        Description:
+            Sets up this mob's permissions
+        Input:
+            None
+        Output:
+            None
+        """
+        super().permissions_setup()
+        self.default_permissions[constants.VEHICLE_PERMISSION] = True
+        self.default_permissions[constants.ACTIVE_PERMISSION] = False
 
     def set_crew(self, new_crew):
         """
@@ -147,11 +149,6 @@ class vehicle(pmob):
         ]
         non_replaced_attrition = []
         for current_sub_mob in sub_mobs:
-            worker_type = "none"
-            if current_sub_mob.is_worker:
-                worker_type = current_sub_mob.worker_type
-            elif current_sub_mob.is_group:
-                worker_type = current_sub_mob.worker.worker_type
             if (
                 current_cell.local_attrition() and random.randrange(1, 7) >= 4
             ):  # vehicle removes 1/2 of attrition, slightly less than forts, ports, etc.
@@ -172,17 +169,7 @@ class vehicle(pmob):
                             current_sub_mob.attrition_death(attrition_unit_type)
 
                         else:  # if non-group passenger died of attrition
-                            text = (
-                                "The "
-                                + current_sub_mob.name
-                                + " aboard the "
-                                + self.name
-                                + " at ("
-                                + str(self.x)
-                                + ", "
-                                + str(self.y)
-                                + ") have died from attrition. /n /n"
-                            )
+                            text = f"The {current_sub_mob.name} aboard the {self.name} at ({self.x}, {self.y}) have died from attrition. /n /n"
                             if current_sub_mob.automatically_replace:
                                 text += (
                                     current_sub_mob.generate_attrition_replacement_text()

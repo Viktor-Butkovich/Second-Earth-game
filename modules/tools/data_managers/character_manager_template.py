@@ -184,8 +184,8 @@ class character_manager_template:
             List[Dict[str, any]]: Returns list of image id's for each portrait section
         """
         minister_face = []
-        if unit.is_pmob and (
-            unit.get_permission(constants.OFFICER_PERMISSION) or unit.is_worker
+        if unit.is_pmob and unit.any_permissions(
+            constants.OFFICER_PERMISSION, constants.WORKER_PERMISSION
         ):
             minister_face = self.generate_appearance(
                 unit, full_body=True, metadata=metadata
@@ -197,7 +197,7 @@ class character_manager_template:
                 part["y_offset"] = part.get("y_offset", 0) + 0.342
                 part["level"] = part.get("level", 1) - 5
 
-            if unit.is_worker:
+            if unit.get_permission(constants.WORKER_PERMISSION):
                 hidden_sections = ["eyes", "hat"]
             else:
                 hidden_sections = ["eyes", "hat"]

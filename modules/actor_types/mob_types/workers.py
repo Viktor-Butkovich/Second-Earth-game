@@ -39,7 +39,6 @@ class worker(pmob):
         """
         super().__init__(from_save, input_dict, original_constructor=False)
         self.number = 2  # Workers is plural
-        self.is_worker = True
         self.is_church_volunteers = False
         self.worker_type = input_dict["worker_type"]  # European, religious
         status.worker_types[self.worker_type].number += 1
@@ -51,6 +50,18 @@ class worker(pmob):
             self.second_image_variant = random.randrange(0, len(self.image_variants))
         constants.money_label.check_for_updates()
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def permissions_setup(self) -> None:
+        """
+        Description:
+            Sets up this mob's permissions
+        Input:
+            None
+        Output:
+            None
+        """
+        super().permissions_setup()
+        self.default_permissions[constants.WORKER_PERMISSION] = True
 
     def finish_init(
         self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
@@ -89,12 +100,6 @@ class worker(pmob):
                 if ("select_on_creation" in input_dict) and input_dict[
                     "select_on_creation"
                 ]:
-                    actor_utility.calibrate_actor_info_display(
-                        status.mob_info_display, None, override_exempt=True
-                    )
-                    actor_utility.calibrate_actor_info_display(
-                        status.mob_info_display, self
-                    )  # updates mob info display list to account for is_worker changing
                     self.selection_sound()
 
     def replace(self, attached_group="none"):

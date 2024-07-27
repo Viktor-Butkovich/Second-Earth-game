@@ -576,21 +576,15 @@ class pmob(mob):
         """
         constants.evil_tracker.change(1)
         if (
-            self.get_permission(constants.OFFICER_PERMISSION) or self.is_worker
-        ) and self.automatically_replace:
+            self.any_permissions(
+                constants.OFFICER_PERMISSION, constants.WORKER_PERMISSION
+            )
+            and self.automatically_replace
+        ):
             if show_notification:
-                text = (
-                    utility.capitalize(self.name)
-                    + " has died from attrition at ("
-                    + str(self.x)
-                    + ", "
-                    + str(self.y)
-                    + ") /n /n"
-                    + self.generate_attrition_replacement_text()
-                )
                 constants.notification_manager.display_notification(
                     {
-                        "message": text,
+                        "message": f"{utility.capitalize(self.name)} has died from attrition at ({self.x}, {self.y}) /n /n{self.generate_attrition_replacement_text()}",
                         "zoom_destination": self,
                     }
                 )
@@ -602,12 +596,7 @@ class pmob(mob):
             if show_notification:
                 constants.notification_manager.display_notification(
                     {
-                        "message": utility.capitalize(self.name)
-                        + " has died from attrition at ("
-                        + str(self.x)
-                        + ", "
-                        + str(self.y)
-                        + ")",
+                        "message": f"{utility.capitalize(self.name)} has died from attrition at ({self.x}, {self.y})",
                         "zoom_destination": self.get_cell().tile,
                     }
                 )

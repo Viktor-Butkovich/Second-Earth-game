@@ -62,10 +62,12 @@ def generate_autofill_actors(search_start_index=0):
             ],
         }
 
-        if displayed_mob.is_worker or displayed_mob.any_permissions(
-            constants.OFFICER_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
+        if displayed_mob.any_permissions(
+            constants.WORKER_PERMISSION,
+            constants.OFFICER_PERMISSION,
+            constants.INACTIVE_VEHICLE_PERMISSION,
         ):
-            if displayed_mob.is_worker:
+            if displayed_mob.get_permission(constants.WORKER_PERMISSION):
                 return_dict["worker"] = displayed_mob
                 return_dict["officer"] = displayed_mob.images[
                     0

@@ -2008,7 +2008,9 @@ class fire_unit_button(button):
             self.set_tooltip([])
         else:
             tooltip_text = ["Click to fire this unit"]
-            if self.attached_mob.is_group or self.attached_mob.is_worker:
+            if self.attached_mob.is_group or self.attached_mob.get_permission(
+                constants.WORKER_PERMISSION
+            ):
                 tooltip_text.append(
                     "Once fired, this unit will cost no longer cost upkeep"
                 )

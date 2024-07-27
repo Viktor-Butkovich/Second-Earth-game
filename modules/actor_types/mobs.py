@@ -37,13 +37,13 @@ class mob(actor):
         """
         self.default_permissions: Dict[str, Any] = {}
         self.override_permissions: Dict[str, Any] = {}
+        self.permissions_setup()
         self.is_dummy = False
         self.in_group = False
         self.in_vehicle = False
         self.in_building = False
         self.veteran = False
         self.disorganized = False
-        self.is_worker = False
         self.is_work_crew = False
         self.is_battalion = False
         self.is_group = False
@@ -99,6 +99,17 @@ class mob(actor):
             else:
                 self.creation_turn = constants.turn
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def permissions_setup(self) -> None:
+        """
+        Description:
+            Sets up this mob's permissions
+        Input:
+            None
+        Output:
+            None
+        """
+        return
 
     def get_cell(self) -> cells.cell:
         """
@@ -361,8 +372,8 @@ class mob(actor):
                     "negative_modifiers", []
                 ):
                     result -= 1
-        if self.get_permission(constants.OFFICER_PERMISSION) or (
-            self.get_permission(constants.VEHICLE_PERMISSION) and self.crew == "none"
+        if self.any_permissions(
+            constants.OFFICER_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
         ):
             result = 0
         return result
@@ -1064,9 +1075,11 @@ class mob(actor):
 
         self.movement_sound()
 
-        if self.get_cell().has_vehicle("ship", self.is_worker) and (
+        if self.get_cell().has_vehicle(
+            "ship", is_worker=self.get_permission(constants.WORKER_PERMISSION)
+        ) and (
             not self.get_permission(constants.VEHICLE_PERMISSION)
-        ):  # test this logic
+        ):  # If worker, allow moving to ship to embark or crew it. Elif non-vehicle, allow moving to ship to embark it.
             previous_infrastructure = previous_cell.get_intact_building(
                 "infrastructure"
             )
@@ -1074,10 +1087,13 @@ class mob(actor):
                 previous_infrastructure != "none" and previous_infrastructure.is_bridge
             ):
                 if not self.can_swim:  # board if moving to ship in water
-                    vehicle = self.get_cell().get_vehicle("ship", self.is_worker)
-                    if self.is_worker and not vehicle.get_permission(
-                        constants.ACTIVE_PERMISSION
-                    ):
+                    vehicle = self.get_cell().get_vehicle(
+                        "ship",
+                        is_worker=self.get_permission(constants.WORKER_PERMISSION),
+                    )
+                    if self.get_permission(
+                        constants.WORKER_PERMISSION
+                    ) and vehicle.get_permission(constants.INACTIVE_VEHICLE_PERMISSION):
                         self.crew_vehicle(vehicle)
                         self.set_movement_points(0)
                     else:

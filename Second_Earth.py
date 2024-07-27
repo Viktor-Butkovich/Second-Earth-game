@@ -72,6 +72,8 @@ except Exception:  # displays error message and records error message in crash l
 # Add a unit permissions system - any unit type has a dictionary of True/False permissions for each possible action, using defaults if none specified
 #   Use similar system to terrain knowledge privileges, using set of constants to identify each permission type
 #   Something like canoes or suits would modify a unit's default permissions
+#   Next add permissions for is_group, and actions
+#   Actions should have permission requirements by default, rather than requiring extra logic per action
 # Add new minister positions
 # Add preset portraits for purchase unit buttons
 # Add astronauts/cosmonauts group with corresponding officer

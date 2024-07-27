@@ -532,7 +532,7 @@ class cell:
         for current_mob in self.contained_mobs:
             if (
                 current_mob.is_pmob
-                and current_mob.is_worker
+                and current_mob.get_permission(constants.WORKER_PERMISSION)
                 and ((not possible_types) or current_mob.worker_type in possible_types)
             ):
                 num_found += 1
@@ -584,7 +584,7 @@ class cell:
         for current_mob in iterated_list:
             if (
                 current_mob.is_pmob
-                and current_mob.is_worker
+                and current_mob.get_permission(constants.WORKER_PERMISSION)
                 and ((not possible_types) or current_mob.worker_type in possible_types)
             ):
                 return current_mob
