@@ -67,7 +67,9 @@ class embark_all_passengers_button(button):
                     vehicle.set_sentry_mode(False)
                 for contained_mob in vehicle.get_cell().contained_mobs:
                     passenger = contained_mob
-                    if passenger.is_pmob and not passenger.get_permission(
+                    if passenger.get_permission(
+                        constants.PMOB_PERMISSION
+                    ) and not passenger.get_permission(
                         constants.VEHICLE_PERMISSION
                     ):  # vehicles and enemies won't be picked up as passengers
                         passenger.embark_vehicle(vehicle)
@@ -223,7 +225,7 @@ class enable_sentry_mode_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.is_pmob:
+            if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 return False
             elif displayed_mob.sentry_mode:
                 return False
@@ -292,7 +294,7 @@ class disable_sentry_mode_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.is_pmob:
+            if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 return False
             elif not displayed_mob.sentry_mode:
                 return False
@@ -358,7 +360,7 @@ class enable_automatic_replacement_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.is_pmob:
+            if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 return False
             elif displayed_mob.get_permission(constants.VEHICLE_PERMISSION):
                 return False
@@ -450,7 +452,7 @@ class disable_automatic_replacement_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.is_pmob:
+            if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 return False
             elif displayed_mob.get_permission(constants.VEHICLE_PERMISSION):
                 return False
@@ -540,7 +542,7 @@ class end_unit_turn_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.is_pmob:
+            if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 return False
             elif not displayed_mob in status.player_turn_queue:
                 return False
@@ -774,7 +776,7 @@ class embark_vehicle_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.is_pmob:
+            if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 result = False
             elif displayed_mob.in_vehicle or displayed_mob.get_permission(
                 constants.VEHICLE_PERMISSION
@@ -1259,7 +1261,7 @@ class switch_theatre_button(button):
         """
         return (
             super().can_show(skip_parent_collection=skip_parent_collection)
-            and status.displayed_mob.is_pmob
+            and status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
             and status.displayed_mob.can_travel()
         )
 
@@ -1796,7 +1798,7 @@ class toggle_button(button):
 
         if (
             not self.attached_label.actor in ["none", None]
-        ) and self.attached_label.actor.is_pmob:
+        ) and self.attached_label.actor.get_permission(constants.PMOB_PERMISSION):
             self.showing_outline = getattr(
                 self.attached_label.actor, self.toggle_variable
             )

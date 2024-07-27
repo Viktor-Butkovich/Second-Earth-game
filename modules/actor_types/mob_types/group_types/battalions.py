@@ -58,7 +58,7 @@ class battalion(group):
             double: How many movement points would be spent by moving by the inputted amount
         """
         cost = self.movement_cost
-        if not (self.is_npmob and not self.visible()):
+        if not (self.get_permission(constants.NPMOB_PERMISSION) and not self.visible()):
             local_cell = self.get_cell()
         else:
             local_cell = self.grids[0].find_cell(self.x, self.y)

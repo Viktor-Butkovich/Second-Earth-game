@@ -36,7 +36,6 @@ class npmob(mob):
         self.can_swim = True
         self.hostile = False
         self.can_damage_buildings = False
-        self.is_npmob = True
         self.npmob_type = "npmob"
         self.aggro_distance = 0
         self.selection_outline_color = "bright red"
@@ -46,6 +45,18 @@ class npmob(mob):
             self.last_move_direction = (0, -1)
         status.npmob_list.append(self)
         self.turn_done = True
+
+    def permissions_setup(self) -> None:
+        """
+        Description:
+            Sets up this mob's permissions
+        Input:
+            None
+        Output:
+            None
+        """
+        super().permissions_setup()
+        self.set_permission(constants.NPMOB_PERMISSION, True)
 
     def remove(self):
         """

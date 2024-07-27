@@ -565,8 +565,9 @@ class ship(vehicle):
         num_ships = 0
         for current_mob in self.get_cell().contained_mobs:
             if (
-                current_mob.is_pmob
-                and current_mob.get_permission(constants.VEHICLE_PERMISSION)
+                current_mob.all_permissions(
+                    constants.PMOB_PERMISSION, constants.VEHICLE_PERMISSION
+                )
                 and current_mob.can_swim
             ):
                 num_ships += 1
@@ -575,13 +576,11 @@ class ship(vehicle):
         ):  # can leave units behind if another steamship is present to pick them up
             if self.get_cell().terrain_handler.terrain == "water":
                 for current_mob in self.get_cell().contained_mobs:
-                    if current_mob.is_pmob and not current_mob.can_swim_at(
-                        self.get_cell()
-                    ):
+                    if current_mob.get_permission(
+                        constants.PMOB_PERMISSION
+                    ) and not current_mob.can_swim_at(self.get_cell()):
                         text_utility.print_to_screen(
-                            "A "
-                            + self.vehicle_type
-                            + " cannot leave without taking unaccompanied units as passengers."
+                            f"A {self.vehicle_type} cannot leave without taking unaccompanied units as passengers."
                         )
                         return False
         return True

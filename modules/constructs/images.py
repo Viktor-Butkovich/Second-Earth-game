@@ -1482,7 +1482,7 @@ class minister_type_image(tooltip_free_image):
         if (
             self.attached_label != "none"
             and self.attached_label.actor != "none"
-            and self.attached_label.actor.is_pmob
+            and self.attached_label.actor.get_permission(constants.PMOB_PERMISSION)
         ):
             current_minister_type = self.attached_label.actor.controlling_minister_type
         if current_minister_type != "none":

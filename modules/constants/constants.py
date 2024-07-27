@@ -706,6 +706,8 @@ LIST_FEATURE_TRACKING: str = "list"
 
 MAP_MODE_ALPHA: int = 128
 
+PMOB_PERMISSION: str = "pmob"
+NPMOB_PERMISSION: str = "npmob"
 VEHICLE_PERMISSION: str = "vehicle"
 ACTIVE_PERMISSION: str = "active_permission"
 INACTIVE_VEHICLE_PERMISSION: str = "inactive_vehicle"
@@ -716,6 +718,8 @@ INIT_COMPLETE_PERMISSION: str = "init_complete"
 DISORGANIZED_PERMISSION: str = "disorganized"
 VETERAN_PERMISSION: str = "veteran"
 DEFAULT_PERMISSIONS: Dict[str, Any] = {
+    PMOB_PERMISSION: False,
+    NPMOB_PERMISSION: False,
     VEHICLE_PERMISSION: False,
     ACTIVE_PERMISSION: True,
     INACTIVE_VEHICLE_PERMISSION: False,

@@ -375,7 +375,7 @@ def manage_rmb_down(clicked_button):
                             if status.minimap_grid in moved_mob.grids:
                                 status.minimap_grid.calibrate(moved_mob.x, moved_mob.y)
                             moved_mob.select()
-                            if moved_mob.is_pmob:
+                            if moved_mob.get_permission(constants.PMOB_PERMISSION):
                                 moved_mob.selection_sound()
     elif flags.drawing_automatic_route:
         stopping = True
@@ -453,7 +453,9 @@ def manage_lmb_down(clicked_button):
                                         override_exempt=True,
                                     )
                                     current_mob.select()
-                                    if current_mob.is_pmob:
+                                    if current_mob.get_permission(
+                                        constants.PMOB_PERMISSION
+                                    ):
                                         current_mob.selection_sound()
             if selected_mob:
                 unit = status.displayed_mob

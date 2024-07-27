@@ -142,7 +142,7 @@ def transfer(item_type: str, amount, source_type: str) -> None:
             if (
                 displayed_mob
                 and displayed_tile
-                and displayed_mob.is_pmob
+                and displayed_mob.get_permission(constants.PMOB_PERMISSION)
                 and displayed_mob.get_cell().tile == displayed_tile
             ):
                 if amount == "all":

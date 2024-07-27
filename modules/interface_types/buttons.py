@@ -1275,7 +1275,9 @@ class button(interface_elements.interface_element):
 
         elif self.button_type == "use equipment":
             if main_loop_utility.action_possible():
-                if status.displayed_mob and status.displayed_mob.is_pmob:
+                if status.displayed_mob and status.displayed_mob.get_permission(
+                    constants.PMOB_PERMISSION
+                ):
                     equipment = status.equipment_types[
                         self.attached_label.actor.current_item
                     ]
@@ -1540,7 +1542,9 @@ class button(interface_elements.interface_element):
 
         if super().can_show(skip_parent_collection=skip_parent_collection):
             if self.button_type in ["move left", "move right", "move down", "move up"]:
-                if status.displayed_mob == None or (not status.displayed_mob.is_pmob):
+                if status.displayed_mob == None or (
+                    not status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
+                ):
                     return False
             elif self.button_type in ["sell commodity", "sell all commodity"]:
                 return (
@@ -1606,7 +1610,7 @@ class remove_equipment_button(button):
         """
         return (
             super().can_show()
-            and self.attached_label.actor.is_pmob
+            and self.attached_label.actor.get_permission(constants.PMOB_PERMISSION)
             and self.attached_label.actor.equipment.get(self.equipment_type, False)
         )
 
@@ -1991,7 +1995,9 @@ class fire_unit_button(button):
         if super().can_show(skip_parent_collection=skip_parent_collection):
             if self.attached_mob != status.displayed_mob:
                 self.attached_mob = status.displayed_mob
-            if self.attached_mob and self.attached_mob.is_pmob:
+            if self.attached_mob and self.attached_mob.get_permission(
+                constants.PMOB_PERMISSION
+            ):
                 return True
         return False
 
@@ -2688,11 +2694,14 @@ class tab_button(button):
                     )
                 else:
                     return_value = status.displayed_mob.inventory_capacity > 0 or (
-                        status.displayed_mob.is_pmob and status.displayed_mob.equipment
+                        status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
+                        and status.displayed_mob.equipment
                     )
 
             elif self.identifier == "reorganization":
-                return_value = status.displayed_mob.is_pmob
+                return_value = status.displayed_mob.get_permission(
+                    constants.PMOB_PERMISSION
+                )
 
         if (
             self.linked_element

@@ -92,7 +92,9 @@ def start_player_turn(first_turn=False):
     if not first_turn:
         market_utility.adjust_prices()
 
-    if status.displayed_mob == None or status.displayed_mob.is_npmob:
+    if status.displayed_mob == None or status.displayed_mob.get_permission(
+        constants.NPMOB_PERMISSION
+    ):
         game_transitions.cycle_player_turn(True)
 
     if status.displayed_mob:

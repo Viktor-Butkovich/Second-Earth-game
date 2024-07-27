@@ -43,8 +43,6 @@ class mob(actor):
         self.in_building = False
         self.is_work_crew = False
         self.is_battalion = False
-        self.is_npmob = False
-        self.is_pmob = False
         self.can_explore = False  # if can attempt to explore unexplored areas
         self.can_construct = False  # if can construct buildings
         self.can_trade = False
@@ -344,7 +342,7 @@ class mob(actor):
             int: Returns the modifier added to this unit's combat rolls
         """
         modifier = 0
-        if self.is_pmob:
+        if self.get_permission(constants.PMOB_PERMISSION):
             if (
                 self.get_permission(constants.GROUP_PERMISSION)
                 and self.group_type == "battalion"
@@ -385,7 +383,7 @@ class mob(actor):
         result = base + 3
         if self.get_permission(constants.VETERAN_PERMISSION):
             result += 1
-        if self.is_pmob:
+        if self.get_permission(constants.PMOB_PERMISSION):
             for current_equipment in self.equipment:
                 if "combat" in status.equipment_types[current_equipment].effects.get(
                     "positive_modifiers", []
@@ -410,7 +408,7 @@ class mob(actor):
         Output:
             boolean: Returns whether this unit can start any combats in its current cell
         """
-        if self.is_npmob:
+        if self.get_permission(constants.NPMOB_PERMISSION):
             if self.hostile:
                 if self.get_cell() == "none":
                     if (
@@ -421,7 +419,7 @@ class mob(actor):
                     0
                 ].current_cell.has_pmob():  # if visible and in same tile as pmob
                     return True
-        elif self.is_pmob:
+        elif self.get_permission(constants.PMOB_PERMISSION):
             if self.get_cell().has_npmob():
                 return True
         return False
@@ -471,7 +469,7 @@ class mob(actor):
             double: How many movement points would be spent by moving by the inputted amount
         """
         cost = self.movement_cost
-        if not (self.is_npmob and not self.visible()):
+        if not (self.get_permission(constants.NPMOB_PERMISSION) and not self.visible()):
             local_cell = self.get_cell()
         else:
             local_cell = self.grids[0].find_cell(self.x, self.y)
@@ -495,7 +493,7 @@ class mob(actor):
             cost *= constants.terrain_movement_cost_dict.get(
                 adjacent_cell.terrain_handler.terrain, 1
             )
-            if self.is_pmob:
+            if self.get_permission(constants.PMOB_PERMISSION):
                 local_infrastructure = local_cell.get_intact_building("infrastructure")
                 adjacent_infrastructure = adjacent_cell.get_intact_building(
                     "infrastructure"
@@ -563,7 +561,10 @@ class mob(actor):
                 self.movement_points
             ):  # if whole number, don't show decimal
                 self.movement_points = round(self.movement_points)
-            if self.is_pmob and self.movement_points <= 0:
+            if (
+                self.get_permission(constants.PMOB_PERMISSION)
+                and self.movement_points <= 0
+            ):
                 self.remove_from_turn_queue()
             if (
                 status.displayed_mob == self
@@ -588,7 +589,7 @@ class mob(actor):
             self.movement_points
         ):  # if whole number, don't show decimal
             self.movement_points = round(self.movement_points)
-        if self.is_pmob and self.movement_points <= 0:
+        if self.get_permission(constants.PMOB_PERMISSION) and self.movement_points <= 0:
             self.remove_from_turn_queue()
         if status.displayed_mob == self:
             actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
@@ -612,7 +613,7 @@ class mob(actor):
             ):  # if whole number, don't show decimal
                 self.movement_points = round(self.movement_points)
             if (
-                self.is_pmob
+                self.get_permission(constants.PMOB_PERMISSION)
                 and (not self.get_cell() == "none")
                 and not (
                     self.get_permission(constants.VEHICLE_PERMISSION)
@@ -719,7 +720,7 @@ class mob(actor):
         if main_loop_utility.action_possible():
             if status.displayed_mob != self:
                 self.select()
-                if self.is_pmob:
+                if self.get_permission(constants.PMOB_PERMISSION):
                     self.selection_sound()
                 for (
                     current_image
@@ -786,7 +787,7 @@ class mob(actor):
             "Name: " + self.name[:1].capitalize() + self.name[1:]
         )  # capitalizes first letter while keeping rest the same
 
-        if self.is_pmob:
+        if self.get_permission(constants.PMOB_PERMISSION):
             if self.get_permission(constants.GROUP_PERMISSION):
                 tooltip_list.append("    Officer: " + self.officer.name.capitalize())
                 tooltip_list.append("    Workers: " + self.worker.name.capitalize())
@@ -839,16 +840,16 @@ class mob(actor):
                     f"This unit has been issued an order to travel to {self.end_turn_destination.cell.grid.grid_type[:-5].capitalize()} at the end of the turn"
                 )
 
-        if self.is_npmob:
+        if self.get_permission(constants.NPMOB_PERMISSION):
             if self.hostile:
                 tooltip_list.append("Attitude: Hostile")
             else:
                 tooltip_list.append("Attitude: Neutral")
             tooltip_list.append("You do not control this unit")
-        elif self.is_pmob and self.sentry_mode:
+        elif self.get_permission(constants.PMOB_PERMISSION) and self.sentry_mode:
             tooltip_list.append("This unit is in sentry mode")
 
-        if self.is_pmob:
+        if self.get_permission(constants.PMOB_PERMISSION):
             held_commodities = self.get_held_commodities()
             if held_commodities:
                 tooltip_list.append("Inventory:")
@@ -896,7 +897,7 @@ class mob(actor):
         Output:
             None
         """
-        if self.is_pmob:
+        if self.get_permission(constants.PMOB_PERMISSION):
             self.death_sound(death_type)
         self.drop_inventory()
         self.remove_complete()
@@ -955,7 +956,7 @@ class mob(actor):
                     if (
                         future_cell.terrain_handler.visible
                         or self.can_explore
-                        or self.is_npmob
+                        or self.get_permission(constants.NPMOB_PERMISSION)
                     ):
                         if (
                             self.movement_points
@@ -997,7 +998,7 @@ class mob(actor):
             None
         """
         possible_sounds = []
-        if self.is_pmob:
+        if self.get_permission(constants.PMOB_PERMISSION):
             if self.get_permission(
                 constants.VEHICLE_PERMISSION
             ):  # Overlaps with voices if crewed
@@ -1040,7 +1041,7 @@ class mob(actor):
             None
         """
         possible_sounds = []
-        if self.is_pmob or self.visible():
+        if self.get_permission(constants.PMOB_PERMISSION) or self.visible():
             if self.get_permission(constants.VEHICLE_PERMISSION):
                 if allow_fadeout and constants.sound_manager.busy():
                     constants.sound_manager.fadeout(400)
@@ -1082,11 +1083,11 @@ class mob(actor):
         Output:
             None
         """
-        if self.is_pmob and self.sentry_mode:
+        if self.get_permission(constants.PMOB_PERMISSION) and self.sentry_mode:
             self.set_sentry_mode(False)
         self.end_turn_destination = "none"  # cancels planned movements
         self.change_movement_points(-1 * self.get_movement_cost(x_change, y_change))
-        if self.is_pmob:
+        if self.get_permission(constants.PMOB_PERMISSION):
             previous_cell = self.get_cell()
         for current_image in self.images:
             current_image.remove_from_cell()
@@ -1131,8 +1132,8 @@ class mob(actor):
         ) and self == status.displayed_mob:  # if can build any type of building, update mob display to show new building possibilities in new tile
             actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
 
-        if (
-            self.is_pmob
+        if self.get_permission(
+            constants.PMOB_PERMISSION
         ):  # do an inventory attrition check when moving, using the destination's terrain
             self.manage_inventory_attrition()
             if (

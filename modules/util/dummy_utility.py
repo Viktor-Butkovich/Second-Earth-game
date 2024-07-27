@@ -23,14 +23,11 @@ def generate_autofill_actors(search_start_index=0):
         "procedure": "none",
     }
     displayed_mob = status.displayed_mob
-    if displayed_mob and displayed_mob.is_pmob:
-
+    if displayed_mob and displayed_mob.get_permission(constants.PMOB_PERMISSION):
         required_dummy_attributes = [
             "name",
             "default_permissions",
             "override_permissions",
-            "is_pmob",
-            "is_npmob",
             "has_infinite_movement",
             "crew",
             "movement_points",

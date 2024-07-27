@@ -530,11 +530,9 @@ class cell:
         """
         num_found = 0
         for current_mob in self.contained_mobs:
-            if (
-                current_mob.is_pmob
-                and current_mob.get_permission(constants.WORKER_PERMISSION)
-                and ((not possible_types) or current_mob.worker_type in possible_types)
-            ):
+            if current_mob.all_permissions(
+                constants.PMOB_PERMISSION, constants.WORKER_PERMISSION
+            ) and ((not possible_types) or current_mob.worker_type in possible_types):
                 num_found += 1
                 if num_found >= required_number:
                     return True
@@ -582,11 +580,9 @@ class cell:
                 + self.contained_mobs[0:start_index]
             )
         for current_mob in iterated_list:
-            if (
-                current_mob.is_pmob
-                and current_mob.get_permission(constants.WORKER_PERMISSION)
-                and ((not possible_types) or current_mob.worker_type in possible_types)
-            ):
+            if current_mob.all_permissions(
+                constants.PMOB_PERMISSION, constants.WORKER_PERMISSION
+            ) and ((not possible_types) or current_mob.worker_type in possible_types):
                 return current_mob
         return "none"
 
@@ -628,7 +624,7 @@ class cell:
             boolean: Returns whether this cell contains a pmob
         """
         for current_mob in self.contained_mobs:
-            if current_mob.is_pmob:
+            if current_mob.get_permission(constants.PMOB_PERMISSION):
                 return True
         if self.has_intact_building("resource"):
             if len(self.get_intact_building("resource").contained_work_crews) > 0:
@@ -645,7 +641,7 @@ class cell:
             string/pmob: Returns the first pmob in this cell, or 'none' if none are present
         """
         for current_mob in self.contained_mobs:
-            if current_mob.is_pmob:
+            if current_mob.get_permission(constants.PMOB_PERMISSION):
                 return current_mob
         return "none"
 
@@ -659,7 +655,7 @@ class cell:
             boolean: Returns whether this cell contains an npmob
         """
         for current_mob in self.contained_mobs:
-            if current_mob.is_npmob:
+            if current_mob.get_permission(constants.NPMOB_PERMISSION):
                 return True
         return False
 
@@ -679,7 +675,7 @@ class cell:
         best_combat_modifier = 0
         if mob_type == "npmob":
             for current_mob in self.contained_mobs:
-                if current_mob.is_npmob:
+                if current_mob.get_permission(constants.NPMOB_PERMISSION):
                     current_combat_modifier = current_mob.get_combat_modifier()
                     if (
                         best_combatants[0] == "none"
@@ -693,7 +689,7 @@ class cell:
                         best_combatants.append(current_mob)
         elif mob_type == "pmob":
             for current_mob in self.contained_mobs:
-                if current_mob.is_pmob:
+                if current_mob.get_permission(constants.PMOB_PERMISSION):
                     if (
                         current_mob.get_combat_strength() > 0
                     ):  # unit with 0 combat strength cannot fight
@@ -727,11 +723,17 @@ class cell:
         noncombatants = []
         if mob_type == "npmob":
             for current_mob in self.contained_mobs:
-                if current_mob.is_npmob and current_mob.get_combat_strength() == 0:
+                if (
+                    current_mob.get_permission(constants.NPMOB_PERMISSION)
+                    and current_mob.get_combat_strength() == 0
+                ):
                     noncombatants.append(current_mob)
         elif mob_type == "pmob":
             for current_mob in self.contained_mobs:
-                if current_mob.is_pmob and current_mob.get_combat_strength() == 0:
+                if (
+                    current_mob.get_permission(constants.PMOB_PERMISSION)
+                    and current_mob.get_combat_strength() == 0
+                ):
                     noncombatants.append(current_mob)
         return noncombatants
 

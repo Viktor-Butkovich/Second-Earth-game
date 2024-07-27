@@ -83,7 +83,7 @@ class actor:
         save_dict = {}
         init_type = ""
         if self.actor_type == "mob":
-            if self.is_pmob:
+            if self.get_permission(constants.PMOB_PERMISSION):
                 if self.get_permission(constants.WORKER_PERMISSION):
                     init_type = "workers"
                 elif self.get_permission(constants.VEHICLE_PERMISSION):
@@ -145,7 +145,7 @@ class actor:
                 current_commodity, self.get_inventory(current_commodity)
             )
             self.set_inventory(current_commodity, 0)
-        if self.actor_type == "mob" and self.is_pmob:
+        if self.actor_type == "mob" and self.get_permission(constants.PMOB_PERMISSION):
             for current_equipment in self.equipment.copy():
                 if self.equipment[current_equipment]:
                     self.get_cell().tile.change_inventory(current_equipment, 1)
@@ -302,8 +302,9 @@ class actor:
             # this part of function only reached if no inventory attrition was triggered
             if (
                 self.actor_type == "mob"
-                and self.is_pmob
-                and self.get_permission(constants.GROUP_PERMISSION)
+                and self.all_permissions(
+                    constants.PMOB_PERMISSION, constants.GROUP_PERMISSION
+                )
                 and self.group_type == "porters"
                 and (not self.get_permission(constants.VETERAN_PERMISSION))
                 and random.randrange(1, 7) == 6

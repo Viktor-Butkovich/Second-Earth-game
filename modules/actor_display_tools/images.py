@@ -74,7 +74,7 @@ class actor_display_free_image(free_image):
                                 "level": constants.FRONT_LEVEL,
                             }
                         )
-                    if new_actor.is_pmob:
+                    if new_actor.get_permission(constants.PMOB_PERMISSION):
                         image_id_list.append("misc/pmob_outline.png")
                     else:
                         image_id_list.append("misc/npmob_outline.png")
@@ -141,9 +141,15 @@ class mob_background_image(free_image):
         """
         if self.actor == "none":
             return False
-        if self.image_id == "misc/pmob_background.png" and not self.actor.is_pmob:
+        if (
+            self.image_id == "misc/pmob_background.png"
+            and not self.actor.get_permission(constants.PMOB_PERMISSION)
+        ):
             return False
-        if self.image_id == "misc/npmob_background.png" and not self.actor.is_npmob:
+        if (
+            self.image_id == "misc/npmob_background.png"
+            and not self.actor.get_permission(constants.NPMOB_PERMISSION)
+        ):
             return False
         else:
             return super().can_show(skip_parent_collection=skip_parent_collection)

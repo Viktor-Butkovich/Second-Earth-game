@@ -51,7 +51,6 @@ class pmob(mob):
         super().__init__(from_save, input_dict, original_constructor=False)
         self.selection_outline_color = "bright green"
         status.pmob_list.append(self)
-        self.is_pmob = True
         self.set_controlling_minister_type("none")
         self.equipment = {}
         for current_equipment in input_dict.get("equipment", {}):
@@ -126,6 +125,18 @@ class pmob(mob):
                 "select_on_creation"
             ]:
                 self.on_move()
+
+    def permissions_setup(self) -> None:
+        """
+        Description:
+            Sets up this mob's permissions
+        Input:
+            None
+        Output:
+            None
+        """
+        super().permissions_setup()
+        self.set_permission(constants.PMOB_PERMISSION, True)
 
     def on_move(self):
         """

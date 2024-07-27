@@ -815,7 +815,7 @@ class actor_display_label(label):
                     )
 
             elif self.actor_label_type == "movement":
-                if self.actor.is_pmob:
+                if self.actor.get_permission(constants.PMOB_PERMISSION):
                     if new_actor.get_permission(constants.ACTIVE_PERMISSION) and not (
                         new_actor.has_infinite_movement
                         or new_actor.temp_movement_disabled
@@ -849,7 +849,7 @@ class actor_display_label(label):
                     self.set_label(self.message_start + "???")
 
             elif self.actor_label_type == "attitude":
-                if not self.actor.is_pmob:
+                if not self.actor.get_permission(constants.PMOB_PERMISSION):
                     if self.actor.hostile:
                         self.set_label(self.message_start + "hostile")
                     else:
@@ -861,7 +861,7 @@ class actor_display_label(label):
                 )
 
             elif self.actor_label_type == "controllable":
-                if not self.actor.is_pmob:
+                if not self.actor.get_permission(constants.PMOB_PERMISSION):
                     self.set_label("You do not control this unit")
 
             elif self.actor_label_type == "current building work crew":
@@ -948,7 +948,10 @@ class actor_display_label(label):
                 self.set_label(text)
 
             elif self.actor_label_type == "minister":
-                if self.actor.is_pmob and self.actor.controlling_minister != "none":
+                if (
+                    self.actor.get_permission(constants.PMOB_PERMISSION)
+                    and self.actor.controlling_minister != "none"
+                ):
                     self.set_label(
                         self.message_start + self.actor.controlling_minister.name
                     )
@@ -1113,11 +1116,14 @@ class actor_display_label(label):
             return False
         elif self.actor_label_type == "settlement" and not self.actor.cell.settlement:
             return False
-        elif self.actor_label_type == "minister" and not self.actor.is_pmob:
-            return False
-        elif (
-            self.actor_label_type in ["attitude", "controllable"] and self.actor.is_pmob
+        elif self.actor_label_type == "minister" and not self.actor.get_permission(
+            constants.PMOB_PERMISSION
         ):
+            return False
+        elif self.actor_label_type in [
+            "attitude",
+            "controllable",
+        ] and self.actor.get_permission(constants.PMOB_PERMISSION):
             return False
         elif (
             self.actor_label_type == "loyalty"
