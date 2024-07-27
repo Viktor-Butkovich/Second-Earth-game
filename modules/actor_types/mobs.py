@@ -42,7 +42,6 @@ class mob(actor):
         self.in_vehicle = False
         self.in_building = False
         self.veteran = False
-        self.disorganized = False
         self.is_work_crew = False
         self.is_battalion = False
         self.is_group = False
@@ -88,8 +87,9 @@ class mob(actor):
             self.set_max_movement_points(input_dict["max_movement_points"])
             self.set_movement_points(input_dict["movement_points"])
             self.creation_turn = input_dict["creation_turn"]
-            if input_dict["disorganized"]:
-                self.set_disorganized(True)
+            self.set_permission(
+                constants.DISORGANIZED_PERMISSION, input_dict.get("disorganized", False)
+            )
         else:
             self.reset_movement_points()
             if flags.creating_new_game:
@@ -293,7 +293,9 @@ class mob(actor):
         if "right portrait" in self.image_dict:
             save_dict["right portrait"] = self.image_dict["right portrait"]
         save_dict["creation_turn"] = self.creation_turn
-        save_dict["disorganized"] = self.disorganized
+        save_dict["disorganized"] = self.get_permission(
+            constants.DISORGANIZED_PERMISSION
+        )
         if hasattr(self, "image_variant"):
             save_dict["image"] = self.image_variants[0]
             save_dict["image_variant"] = self.image_variant
@@ -322,32 +324,17 @@ class mob(actor):
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        if "disorganized" in override_values:
-            disorganized = override_values["disorganized"]
-        elif hasattr(self, "disorganized"):
-            disorganized = self.disorganized
-
         image_id_list = super().get_image_id_list(override_values)
 
         if self.image_dict.get("portrait", []) != []:
             image_id_list += self.image_dict["portrait"]
             if self.image_dict["default"] in image_id_list:
                 image_id_list.remove(self.image_dict["default"])
-        if disorganized:
+        if override_values.get(
+            "disorganized", self.get_permission(constants.DISORGANIZED_PERMISSION)
+        ):
             image_id_list.append("misc/disorganized_icon.png")
         return image_id_list
-
-    def set_disorganized(self, new_value):
-        """
-        Description:
-            Sets this unit to be disorganized or not. Setting it to be disorganized gives a temporary combat debuff and an icon that follows the unit, while removing the disorganized status removes the debuff and the icon
-        Input:
-            boolean new_value: Represents new disorganized status
-        Output:
-            None
-        """
-        self.disorganized = new_value
-        self.update_image_bundle()
 
     def get_combat_modifier(self, opponent=None, include_tile=False):
         """
@@ -370,7 +357,7 @@ class mob(actor):
                     modifier -= 1
             if include_tile and self.get_cell().has_intact_building("fort"):
                 modifier += 1
-        if self.disorganized:
+        if self.get_permission(constants.DISORGANIZED_PERMISSION):
             modifier -= 1
         return modifier
 
@@ -836,7 +823,7 @@ class mob(actor):
             tooltip_list.append("Movement points: ???")
 
         tooltip_list.append(f"Combat strength: {self.get_combat_strength()}")
-        if self.disorganized:
+        if self.get_permission(constants.DISORGANIZED_PERMISSION):
             tooltip_list.append(
                 "This unit is currently disorganized, giving a combat penalty until its next turn"
             )
@@ -1171,7 +1158,7 @@ class mob(actor):
                 and not self.can_swim
                 and not previous_cell.has_walking_connection(self.get_cell())
             ):  # if entering water w/o canoes, spend maximum movement and become disorganized
-                self.set_disorganized(True)
+                self.set_permission(constants.DISORGANIZED_PERMISSION, True)
             if not (
                 self.get_cell() == "none"
                 or self.get_cell().terrain_handler.terrain == "water"

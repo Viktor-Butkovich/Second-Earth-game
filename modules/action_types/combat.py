@@ -191,9 +191,9 @@ class combat(action.action):
             else:
                 text += f"As a non-military unit, your {self.current_unit.name} will receive a -1 penalty after their roll. /n"
 
-            if self.current_unit.disorganized:
+            if self.current_unit.get_permission(constants.DISORGANIZED_PERMISSION):
                 text += f"The {self.current_unit.name} {utility.conjugate('be', self.current_unit.number)} disorganized and will receive a -1 penalty after their roll. /n"
-            elif self.opponent.disorganized:
+            if self.opponent.get_permission(constants.DISORGANIZED_PERMISSION):
                 text += f"The {self.opponent.name} {utility.conjugate('be', self.opponent.number)} disorganized and will receive a -1 after their roll. /n"
 
             if self.current_unit.get_cell().has_intact_building("fort"):
@@ -631,7 +631,9 @@ class combat(action.action):
                 constants.public_opinion_tracker.change(self.public_opinion_change)
             else:
                 self.current_unit.retreat()
-                self.current_unit.set_disorganized(True)
+                self.current_unit.set_permission(
+                    constants.DISORGANIZED_PERMISSION, True
+                )
 
         elif self.total_roll_result <= 1:  # draw
             if self.defending:
@@ -642,7 +644,7 @@ class combat(action.action):
         else:  # victory
             if self.defending:
                 self.opponent.retreat()
-                self.opponent.set_disorganized(True)
+                self.opponent.set_permission(constants.DISORGANIZED_PERMISSION, True)
             else:
                 if (
                     len(combat_cell.contained_mobs) > 2
@@ -668,7 +670,9 @@ class combat(action.action):
                 and combat_cell.y > 0
                 and not self.current_unit.can_swim
             ):  # if attacked water and can't swim, become disorganized after combat
-                self.current_unit.set_disorganized(True)
+                self.current_unit.set_permission(
+                    constants.DISORGANIZED_PERMISSION, True
+                )
 
         super().complete()
 

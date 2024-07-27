@@ -869,7 +869,7 @@ class pmob(mob):
             and self.get_cell().grid == status.strategic_map_grid
             and self.get_cell().get_intact_building("port") == "none"
         ):
-            self.set_disorganized(True)
+            self.set_permission(constants.DISORGANIZED_PERMISSION, True)
         if self.can_trade and self.inventory_capacity > 0:  # if caravan
             consumer_goods_present = vehicle.get_inventory("consumer goods")
             if consumer_goods_present > 0:
@@ -881,12 +881,7 @@ class pmob(mob):
                 )
                 self.change_inventory("consumer goods", consumer_goods_transferred)
                 text_utility.print_to_screen(
-                    utility.capitalize(self.name)
-                    + " automatically took "
-                    + str(consumer_goods_transferred)
-                    + " consumer goods from "
-                    + vehicle.name
-                    + "'s cargo."
+                    f"{utility.capitalize(self.name)} automatically took {consumer_goods_transferred} consumer goods from {vehicle.name}'s cargo."
                 )
 
         self.add_to_turn_queue()

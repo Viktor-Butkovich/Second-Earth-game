@@ -43,7 +43,7 @@ class battalion(group):
             self.battalion_type = "colonial"
         self.set_group_type("battalion")
         if not from_save:
-            self.set_disorganized(True)
+            self.set_permission(constants.DISORGANIZED_PERMISSION, True)
 
     def get_movement_cost(self, x_change, y_change, post_attack=False):
         """
@@ -118,11 +118,13 @@ class battalion(group):
         ):  # if destination empty or attack already confirmed, move in
             initial_movement_points = self.movement_points
             if attack_confirmed:
-                original_disorganized = self.disorganized
+                original_disorganized = self.get_permission(
+                    constants.DISORGANIZED_PERMISSION
+                )
             super().move(x_change, y_change)
             if attack_confirmed:
-                self.set_disorganized(
-                    original_disorganized
+                self.set_permission(
+                    constants.DISORGANIZED_PERMISSION, original_disorganized
                 )  # cancel effect from moving into water until after combat
             if attack_confirmed:
                 self.set_movement_points(

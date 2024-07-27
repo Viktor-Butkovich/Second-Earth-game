@@ -171,7 +171,9 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
         dummy_input_dict["group_type"] = constants.officer_group_type_dict[
             officer.officer_type
         ]
-        dummy_input_dict["disorganized"] = worker.disorganized
+        dummy_input_dict["disorganized"] = worker.get_permission(
+            constants.DISORGANIZED_PERMISSION
+        )
         dummy_input_dict["veteran"] = officer.veteran
         if dummy_input_dict["group_type"] == "battalion":
             dummy_input_dict["disorganized"] = True
@@ -247,7 +249,10 @@ def simulate_split(unit, required_dummy_attributes, dummy_input_dict):
         dummy, dummy tuple: Returns tuple of dummy objects representing output officer and worker resulting from split
     """
     dummy_worker_dict = dummy_input_dict
-    unit.worker.disorganized = unit.disorganized
+    unit.worker.set_permission(
+        constants.DISORGANIZED_PERMISSION,
+        unit.get_permission(constants.DISORGANIZED_PERMISSION),
+    )
     dummy_officer_dict = dummy_input_dict.copy()
     dummy_worker = create_dummy_copy(
         unit.worker, dummy_worker_dict, required_dummy_attributes

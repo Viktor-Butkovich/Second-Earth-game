@@ -62,7 +62,10 @@ class group(pmob):
                 current_mob.set_inventory(current_commodity, 0)
         self.set_group_type("none")
         if not from_save:
-            self.set_disorganized(self.worker.disorganized)
+            self.set_permission(
+                constants.DISORGANIZED_PERMISSION,
+                self.worker.get_permission(constants.DISORGANIZED_PERMISSION),
+            )
         if self.officer.veteran:
             self.promote()
         if not from_save:

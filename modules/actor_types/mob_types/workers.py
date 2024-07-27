@@ -210,7 +210,7 @@ class worker(pmob):
         self.y = vehicle.y
         self.show_images()
         if self.get_cell().get_intact_building("port") == "none":
-            self.set_disorganized(True)
+            self.set_permission(constants.DISORGANIZED_PERMISSION, True)
         vehicle.set_crew("none")
         vehicle.end_turn_destination = "none"
         vehicle.hide_images()
@@ -249,7 +249,10 @@ class worker(pmob):
         self.x = group.x
         self.y = group.y
         self.show_images()
-        self.disorganized = group.disorganized
+        self.set_permission(
+            constants.DISORGANIZED_PERMISSION,
+            group.get_permission(constants.DISORGANIZED_PERMISSION),
+        )
         self.go_to_grid(self.get_cell().grid, (self.x, self.y))
         if self.movement_points > 0:
             self.add_to_turn_queue()
