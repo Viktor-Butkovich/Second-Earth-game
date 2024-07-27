@@ -78,8 +78,8 @@ class vehicle(pmob):
             None
         """
         super().permissions_setup()
-        self.default_permissions[constants.VEHICLE_PERMISSION] = True
-        self.default_permissions[constants.ACTIVE_PERMISSION] = False
+        self.set_permission(constants.VEHICLE_PERMISSION, True)
+        self.set_permission(constants.ACTIVE_PERMISSION, False)
 
     def set_crew(self, new_crew):
         """
@@ -92,19 +92,20 @@ class vehicle(pmob):
         """
         self.crew = new_crew
         if new_crew == "none":
-            if constants.ACTIVE_PERMISSION in self.override_permissions:
-                del self.override_permissions[constants.ACTIVE_PERMISSION]
-            self.override_permissions[constants.INACTIVE_VEHICLE_PERMISSION] = True
+            self.set_permission(constants.ACTIVE_PERMISSION, None, override=True)
+            self.set_permission(
+                constants.INACTIVE_VEHICLE_PERMISSION, True, override=True
+            )
             self.set_inventory_capacity(0)
         else:
-            self.override_permissions[constants.ACTIVE_PERMISSION] = True
-            if constants.INACTIVE_VEHICLE_PERMISSION in self.override_permissions:
-                del self.override_permissions[constants.INACTIVE_VEHICLE_PERMISSION]
-
+            self.set_permission(constants.ACTIVE_PERMISSION, True, override=True)
+            self.set_permission(
+                constants.INACTIVE_VEHICLE_PERMISSION, None, override=True
+            )
             self.set_inventory_capacity(27)
-        self.update_image_bundle()
-        if status.displayed_mob == self:
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
+        # self.update_image_bundle()
+        # if status.displayed_mob == self:
+        #    actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
 
     def get_image_id_list(self, override_values={}):
         """

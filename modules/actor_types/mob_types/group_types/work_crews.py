@@ -38,10 +38,6 @@ class work_crew(group):
         super().__init__(from_save, input_dict)
         self.is_work_crew = True
         self.set_group_type("work_crew")
-        if not from_save:
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, self
-            )  # updates mob info display list to account for new button available
 
     def work_building(self, building):
         """

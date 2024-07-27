@@ -37,7 +37,6 @@ class mob(actor):
         """
         self.default_permissions: Dict[str, Any] = {}
         self.override_permissions: Dict[str, Any] = {}
-        self.permissions_setup()
         self.is_dummy = False
         self.in_group = False
         self.in_vehicle = False
@@ -84,32 +83,20 @@ class mob(actor):
         self.has_infinite_movement = False
         self.temp_movement_disabled = False
         # self.default_interface_tab = 'reorganization'
+        self.permissions_setup()
         if from_save:
             self.set_max_movement_points(input_dict["max_movement_points"])
             self.set_movement_points(input_dict["movement_points"])
-            self.update_tooltip()
             self.creation_turn = input_dict["creation_turn"]
             if input_dict["disorganized"]:
                 self.set_disorganized(True)
         else:
             self.reset_movement_points()
-            self.update_tooltip()
             if flags.creating_new_game:
                 self.creation_turn = 0
             else:
                 self.creation_turn = constants.turn
         self.finish_init(original_constructor, from_save, input_dict)
-
-    def permissions_setup(self) -> None:
-        """
-        Description:
-            Sets up this mob's permissions
-        Input:
-            None
-        Output:
-            None
-        """
-        return
 
     def get_cell(self) -> cells.cell:
         """
@@ -132,6 +119,47 @@ class mob(actor):
             None
         """
         return
+
+    def permissions_setup(self) -> None:
+        """
+        Description:
+            Sets up this mob's permissions
+        Input:
+            None
+        Output:
+            None
+        """
+        return
+
+    def set_permission(self, task: str, value: Any, override: bool = False) -> None:
+        """
+        Description:
+            Sets the permission this mob has to perform the inputted task
+        Input:
+            string task: Task for which to set permission
+            Any value: Permission value to set for the inputted task, deleting the permission if None
+            boolean override: Whether to modify override permissions or default permissions
+        Output:
+            None
+        """
+        previous_effect = self.get_permission(task)
+        if override:
+            modified_permissions = self.override_permissions
+        else:
+            modified_permissions = self.default_permissions
+        if value == None:
+            if task in modified_permissions:
+                del modified_permissions[task]
+        else:
+            modified_permissions[task] = value
+
+        if previous_effect != self.get_permission(task) and self.get_permission(
+            constants.INIT_COMPLETE_PERMISSION
+        ):
+            self.update_image_bundle()
+            self.update_tooltip()
+            if self == status.displayed_mob:
+                self.select()
 
     def all_permissions(self, *tasks: str) -> bool:
         """
@@ -187,7 +215,11 @@ class mob(actor):
             )
 
     def finish_init(
-        self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
+        self,
+        original_constructor: bool,
+        from_save: bool,
+        input_dict: Dict[str, any],
+        create_portrait: bool = True,
     ):
         """
         Description:
@@ -198,15 +230,18 @@ class mob(actor):
             None
         """
         if original_constructor:
+            if create_portrait:
+                if not from_save:
+                    self.image_dict[
+                        "portrait"
+                    ] = constants.character_manager.generate_unit_portrait(
+                        self, metadata={"body_image": self.image_dict["default"]}
+                    )
+                else:
+                    self.image_dict["portrait"] = input_dict.get("portrait", [])
             if not from_save:
-                self.image_dict[
-                    "portrait"
-                ] = constants.character_manager.generate_unit_portrait(
-                    self, metadata={"body_image": self.image_dict["default"]}
-                )
-            else:
-                self.image_dict["portrait"] = input_dict.get("portrait", [])
-            super().finish_init(original_constructor, from_save, input_dict)
+                self.select()
+            self.set_permission(constants.INIT_COMPLETE_PERMISSION, True)
 
     def image_variants_setup(self, from_save, input_dict):
         """
@@ -289,7 +324,7 @@ class mob(actor):
         """
         if "disorganized" in override_values:
             disorganized = override_values["disorganized"]
-        else:
+        elif hasattr(self, "disorganized"):
             disorganized = self.disorganized
 
         image_id_list = super().get_image_id_list(override_values)

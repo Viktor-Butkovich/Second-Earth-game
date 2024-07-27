@@ -59,7 +59,7 @@ class pmob(mob):
                 status.equipment_types[current_equipment].equip(self)
         if from_save:
             if (
-                not input_dict["end_turn_destination"] == "none"
+                input_dict["end_turn_destination"] != "none"
             ):  # end turn destination is a tile and can't be pickled, need to find it again after loading
                 end_turn_destination_x, end_turn_destination_y = input_dict[
                     "end_turn_destination"
@@ -101,7 +101,11 @@ class pmob(mob):
         self.finish_init(original_constructor, from_save, input_dict)
 
     def finish_init(
-        self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
+        self,
+        original_constructor: bool,
+        from_save: bool,
+        input_dict: Dict[str, any],
+        create_portrait: bool = True,
     ):
         """
         Description:
@@ -112,14 +116,15 @@ class pmob(mob):
             None
         """
         if original_constructor:
-            super().finish_init(original_constructor, from_save, input_dict)
+            super().finish_init(
+                original_constructor,
+                from_save,
+                input_dict,
+                create_portrait=create_portrait,
+            )
             if ("select_on_creation" in input_dict) and input_dict[
                 "select_on_creation"
             ]:
-                actor_utility.calibrate_actor_info_display(
-                    status.mob_info_display, None, override_exempt=True
-                )
-                self.select()
                 self.on_move()
 
     def on_move(self):

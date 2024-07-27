@@ -38,7 +38,3 @@ class missionaries(group):
         self.number = 2  # missionaries is plural
         self.can_convert = True
         self.set_group_type("missionaries")
-        if not from_save:
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, self
-            )  # updates mob info display list to account for new missionary actions

@@ -61,13 +61,8 @@ class group(pmob):
                 )
                 current_mob.set_inventory(current_commodity, 0)
         self.set_group_type("none")
-        self.update_image_bundle()
         if not from_save:
             self.set_disorganized(self.worker.disorganized)
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, None, override_exempt=True
-            )
-            self.select()
         if self.officer.veteran:
             self.promote()
         if not from_save:
@@ -77,6 +72,7 @@ class group(pmob):
             self.set_movement_points(
                 actor_utility.generate_group_movement_points(self.worker, self.officer)
             )
+        self.finish_init(original_constructor, from_save, input_dict)
 
     def replace_worker(self, new_worker_type):
         """

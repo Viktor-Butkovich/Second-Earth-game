@@ -44,9 +44,6 @@ class battalion(group):
         self.set_group_type("battalion")
         if not from_save:
             self.set_disorganized(True)
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, self
-            )  # updates label to show new combat strength
 
     def get_movement_cost(self, x_change, y_change, post_attack=False):
         """

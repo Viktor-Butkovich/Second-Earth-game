@@ -61,7 +61,7 @@ class worker(pmob):
             None
         """
         super().permissions_setup()
-        self.default_permissions[constants.WORKER_PERMISSION] = True
+        self.set_permission(constants.WORKER_PERMISSION, True)
 
     def finish_init(
         self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
@@ -92,15 +92,9 @@ class worker(pmob):
             else:
                 self.image_dict["left portrait"] = input_dict.get("left portrait", [])
                 self.image_dict["right portrait"] = input_dict.get("right portrait", [])
-            super().finish_init(original_constructor, from_save, input_dict)
-            self.image_dict["portrait"] = []
-            self.update_image_bundle()
-
-            if not from_save:
-                if ("select_on_creation" in input_dict) and input_dict[
-                    "select_on_creation"
-                ]:
-                    self.selection_sound()
+            super().finish_init(
+                original_constructor, from_save, input_dict, create_portrait=False
+            )
 
     def replace(self, attached_group="none"):
         """

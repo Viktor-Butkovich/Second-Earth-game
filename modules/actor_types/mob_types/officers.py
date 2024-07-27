@@ -58,7 +58,7 @@ class officer(pmob):
             None
         """
         super().permissions_setup()
-        self.default_permissions[constants.OFFICER_PERMISSION] = True
+        self.set_permission(constants.OFFICER_PERMISSION, True)
 
     def replace(self, attached_group="none"):
         """
