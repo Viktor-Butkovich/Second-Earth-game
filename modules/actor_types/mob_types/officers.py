@@ -40,12 +40,10 @@ class officer(pmob):
             constants.officer_minister_dict[self.officer_type]
         )
         if not from_save:
-            self.veteran = False
             self.selection_sound()
         else:
-            self.veteran = input_dict["veteran"]
-            if self.veteran:
-                self.load_veteran()
+            if input_dict["veteran"]:
+                self.promote()
         self.finish_init(original_constructor, from_save, input_dict)
 
     def permissions_setup(self) -> None:
@@ -76,7 +74,7 @@ class officer(pmob):
         )
         if not attached_group == "none":
             attached_group.set_name(attached_group.default_name)
-            attached_group.veteran = False
+            attached_group.set_permission(constants.VETERAN_PERMISSION, False)
 
     def to_save_dict(self):
         """
@@ -92,7 +90,7 @@ class officer(pmob):
         """
         save_dict = super().to_save_dict()
         save_dict["officer_type"] = self.officer_type
-        save_dict["veteran"] = self.veteran
+        save_dict["veteran"] = self.get_permission(constants.VETERAN_PERMISSION)
         return save_dict
 
     def promote(self):
@@ -104,26 +102,9 @@ class officer(pmob):
         Output:
             None
         """
-        self.veteran = True
-        self.set_name("veteran " + self.name)
-        self.update_image_bundle()
-        if status.displayed_mob == self:
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, self
-            )  # updates actor info display with veteran icon
-
-    def load_veteran(self):
-        """
-        Description:
-            Promotes this officer to a veteran while loading, changing the name as needed to prevent the word veteran from being added multiple times
-        Input:
-            None
-        Output:
-            None
-        """
-        self.promote()
-        if status.displayed_mob == self:
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
+        if not self.get_permission(constants.VETERAN_PERMISSION):
+            self.set_name("veteran " + self.name)
+            self.set_permission(constants.VETERAN_PERMISSION, True)
 
     def can_show_tooltip(self):
         """

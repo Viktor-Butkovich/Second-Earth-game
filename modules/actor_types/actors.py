@@ -305,7 +305,7 @@ class actor:
                 and self.is_pmob
                 and self.is_group
                 and self.group_type == "porters"
-                and (not self.veteran)
+                and (not self.get_permission(constants.VETERAN_PERMISSION))
                 and random.randrange(1, 7) == 6
                 and random.randrange(1, 7) == 6
             ):  # 1/36 chance of porters promoting on successful inventory attrition roll

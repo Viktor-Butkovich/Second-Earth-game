@@ -117,7 +117,7 @@ class expedition(group):
             current_cell = self.vehicle.get_cell()
         else:
             current_cell = self.get_cell()
-        promoted = self.veteran
+        promoted = self.get_permission(constants.VETERAN_PERMISSION)
         for current_direction in ["up", "down", "left", "right"]:
             target_cell = current_cell.adjacent_cells[current_direction]
             if target_cell and not target_cell.terrain_handler.visible:

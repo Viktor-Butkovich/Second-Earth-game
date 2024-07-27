@@ -594,7 +594,7 @@ def generate_group_name(worker, officer, add_veteran=False):
             name = "imperial battalion"
         else:
             name = "colonial battalion"
-    if add_veteran and officer.veteran:
+    if add_veteran and officer.get_permission(constants.VETERAN_PERMISSION):
         name = "veteran " + name
     return name
 
@@ -612,7 +612,9 @@ def generate_group_movement_points(worker, officer, generate_max=False):
     """
     if generate_max:
         max_movement_points = officer.max_movement_points
-        if officer.officer_type == "driver" and officer.veteran:
+        if officer.officer_type == "driver" and officer.get_permission(
+            constants.VETERAN_PERMISSION
+        ):
             max_movement_points = 6
         return max_movement_points
     else:

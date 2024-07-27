@@ -172,7 +172,7 @@ class loan_search(action.campaign):
 
         self.process_payment()
 
-        if self.current_unit.veteran:
+        if self.current_unit.get_permission(constants.VETERAN_PERMISSION):
             num_dice = 2
         else:
             num_dice = 1
@@ -210,7 +210,9 @@ class loan_search(action.campaign):
         ) * 10  # 12 interest -> 20%
 
         if (
-            (not self.current_unit.veteran) and result == 6 and num_attempts == 1
+            (not self.current_unit.get_permission(constants.VETERAN_PERMISSION))
+            and result == 6
+            and num_attempts == 1
         ):  # promote if rolled 6 on first attempt and not yet veteran
             result = "critical_success"
             self.roll_result = 6

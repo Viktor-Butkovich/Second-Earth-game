@@ -178,7 +178,7 @@ def generate_risk_message(action, unit):
     risk_value = (
         -1 * action.current_roll_modifier
     )  # modifier of -1 means risk value of 1
-    if unit.veteran:  # reduce risk if veteran
+    if unit.get_permission(constants.VETERAN_PERMISSION):  # reduce risk if veteran
         risk_value -= 1
 
     if action.current_max_crit_fail <= 0:  # if action can never have risk

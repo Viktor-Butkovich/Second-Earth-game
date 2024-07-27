@@ -727,7 +727,7 @@ class actor_display_label(label):
                         "A unit with 0 combat strength will die automatically if forced to fight or if all other defenders are defeated"
                     )
                 else:
-                    if self.actor.veteran:
+                    if self.actor.get_permission(constants.VETERAN_PERMISSION):
                         tooltip_text.append(
                             f"In combat, this unit would roll 2 dice with a {sign}{modifier} modifier, taking the higher of the 2 results"
                         )
@@ -952,6 +952,8 @@ class actor_display_label(label):
                     self.set_label(
                         self.message_start + self.actor.controlling_minister.name
                     )
+                else:
+                    self.set_label(f"{self.message_start}n/a")
 
             elif self.actor_label_type == "evidence":
                 if new_actor.fabricated_evidence == 0:

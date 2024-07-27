@@ -162,13 +162,10 @@ class action:
             full_roll_message = (
                 f"{base_roll_message}{self.current_min_success}+ required"
             )
-            officer_name = self.current_unit.name
-            if self.actor_type == "mob" and self.current_unit.veteran:
-                text += (
-                    "The "
-                    + officer_name
-                    + " can roll twice and pick the higher result. /n /n"
-                )
+            if self.actor_type == "mob" and self.current_unit.get_permission(
+                constants.VETERAN_PERMISSION
+            ):
+                text += f"The {self.current_unit.default_name} is a veteran and can roll twice and pick the higher result. /n /n"
                 full_roll_message += "on at least 1 die to succeed."
             else:
                 full_roll_message += "to succeed."
@@ -242,7 +239,7 @@ class action:
         if subject == "roll_finished":
             if (
                 self.roll_result >= self.current_min_crit_success
-                and not self.current_unit.veteran
+                and not self.current_unit.get_permission(constants.VETERAN_PERMISSION)
             ):
                 audio.append("effects/trumpet")
         return audio
@@ -383,7 +380,9 @@ class action:
 
         price = self.process_payment()
 
-        if self.actor_type == "mob" and self.current_unit.veteran:
+        if self.actor_type == "mob" and self.current_unit.get_permission(
+            constants.VETERAN_PERMISSION
+        ):
             num_dice = 2
         else:
             num_dice = 1
@@ -479,7 +478,8 @@ class action:
             if self.roll_result <= self.current_max_crit_fail:
                 result = "critical_failure"
             elif (
-                self.actor_type == "mob" and not self.current_unit.veteran
+                self.actor_type == "mob"
+                and not self.current_unit.get_permission(constants.VETERAN_PERMISSION)
             ) and self.roll_result >= self.current_min_crit_success:
                 result = "critical_success"
             elif self.roll_result >= self.current_min_success:
@@ -511,10 +511,9 @@ class action:
         if (
             self.actor_type == "mob"
             and self.roll_result >= self.current_min_crit_success
-            and not self.current_unit.veteran
+            and not self.current_unit.get_permission(constants.VETERAN_PERMISSION)
         ):
             self.current_unit.promote()
-            status.displayed_mob.select()
 
 
 class campaign(action):

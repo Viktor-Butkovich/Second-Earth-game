@@ -447,9 +447,7 @@ class pmob(mob):
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
         image_id_list = super().get_image_id_list(override_values)
-        if (
-            self.get_permission(constants.OFFICER_PERMISSION) or self.is_group
-        ) and self.veteran:
+        if self.get_permission(constants.VETERAN_PERMISSION):
             image_id_list.append("misc/veteran_icon.png")
         if self.sentry_mode:
             image_id_list.append("misc/sentry_icon.png")
@@ -537,10 +535,8 @@ class pmob(mob):
             None
         """
         self.set_name(self.default_name)
-        if (
-            self.is_group or self.get_permission(constants.OFFICER_PERMISSION)
-        ) and self.veteran:
-            self.veteran = False
+        if self.get_permission(constants.VETERAN_PERMISSION):
+            self.set_permission(constants.VETERAN_PERMISSION, False)
             for current_image in self.images:
                 current_image.image.remove_member("veteran_icon")
 

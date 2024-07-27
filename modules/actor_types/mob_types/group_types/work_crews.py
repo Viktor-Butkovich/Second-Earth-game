@@ -100,7 +100,7 @@ class work_crew(group):
             if not building.resource_type in constants.attempted_commodities:
                 constants.attempted_commodities.append(building.resource_type)
             for current_attempt in range(building.efficiency):
-                if self.veteran:
+                if self.get_permission(constants.VETERAN_PERMISSION):
                     results = [
                         self.controlling_minister.no_corruption_roll(6),
                         self.controlling_minister.no_corruption_roll(6),
@@ -114,20 +114,13 @@ class work_crew(group):
                         building.cell.tile.change_inventory(building.resource_type, 1)
                         constants.commodities_produced[building.resource_type] += 1
 
-                        if (not self.veteran) and roll_result >= 6:
+                        if (
+                            not self.get_permission(constants.VETERAN_PERMISSION)
+                        ) and roll_result >= 6:
                             self.promote()
-                            message = (
-                                "The work crew working in the "
-                                + building.name
-                                + " at ("
-                                + str(building.cell.x)
-                                + ", "
-                                + str(building.cell.y)
-                            )
-                            message += ") has become a veteran and will be more successful in future production attempts. /n /n"
                             constants.notification_manager.display_notification(
                                 {
-                                    "message": message,
+                                    "message": f"The work crew working in the {building.name} at ({building.cell.x}, {building.cell.y}) has become a veteran and will be more successful in future production attempts. /n /n",
                                     "zoom_destination": building.cell.tile,
                                 }
                             )

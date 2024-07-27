@@ -66,7 +66,7 @@ class group(pmob):
                 constants.DISORGANIZED_PERMISSION,
                 self.worker.get_permission(constants.DISORGANIZED_PERMISSION),
             )
-        if self.officer.veteran:
+        if self.officer.get_permission(constants.VETERAN_PERMISSION):
             self.promote()
         if not from_save:
             self.status_icons = self.officer.status_icons
@@ -339,19 +339,12 @@ class group(pmob):
         Output:
             None
         """
-        if not self.veteran:
-            self.veteran = True
+        if not self.officer.get_permission(constants.VETERAN_PERMISSION):
+            self.officer.promote()
+        if not self.get_permission(constants.VETERAN_PERMISSION):
             self.set_name("veteran " + self.name)
-        if not self.officer.veteran:
-            self.officer.set_name("veteran " + self.officer.name)
-            self.officer.veteran = True
-        self.update_image_bundle()
-        self.officer.update_image_bundle()
-        if status.displayed_mob == self:
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, self
-            )  # Updates actor info display with veteran icon
-        elif self.in_vehicle and status.displayed_mob == self.vehicle:
+        self.set_permission(constants.VETERAN_PERMISSION, True)
+        if self.in_vehicle and status.displayed_mob == self.vehicle:
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, self.vehicle
             )
@@ -392,7 +385,6 @@ class group(pmob):
         self.officer.status_icons = self.status_icons
         for current_status_icon in self.status_icons:
             current_status_icon.actor = self.officer
-        self.officer.veteran = self.veteran
         self.officer.leave_group(self)
         self.officer.set_movement_points(
             math.floor(movement_ratio_remaining * self.officer.max_movement_points)

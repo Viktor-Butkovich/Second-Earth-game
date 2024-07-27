@@ -41,7 +41,6 @@ class mob(actor):
         self.in_group = False
         self.in_vehicle = False
         self.in_building = False
-        self.veteran = False
         self.is_work_crew = False
         self.is_battalion = False
         self.is_group = False
@@ -382,7 +381,7 @@ class mob(actor):
         # 6: veteran imperial battalion
         base = self.get_combat_modifier()
         result = base + 3
-        if self.veteran:
+        if self.get_permission(constants.VETERAN_PERMISSION):
             result += 1
         if self.is_pmob:
             for current_equipment in self.equipment:

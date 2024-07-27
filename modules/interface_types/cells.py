@@ -705,8 +705,10 @@ class cell:
                             best_combatants = [current_mob]
                             best_combat_modifier = current_combat_modifier
                         elif current_combat_modifier == best_combat_modifier:
-                            if (
-                                current_mob.veteran and not best_combatants[0].veteran
+                            if current_mob.get_permission(
+                                constants.VETERAN_PERMISSION
+                            ) and not best_combatants[0].get_permission(
+                                constants.VETERAN_PERMISSION
                             ):  # use veteran as tiebreaker
                                 best_combatants = [current_mob]
                             else:

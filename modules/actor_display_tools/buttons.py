@@ -247,7 +247,7 @@ class enable_sentry_mode_button(button):
                     displayed_mob.is_group
                     or displayed_mob.get_permission(constants.OFFICER_PERMISSION)
                 )
-                and not displayed_mob.veteran
+                and not displayed_mob.get_permission(constants.VETERAN_PERMISSION)
             ):  # purely for promotion testing, not normal functionality
                 displayed_mob.promote()
         else:

@@ -182,7 +182,7 @@ class combat(action.action):
         elif subject == "modifier_breakdown":
             text += f"The {self.current_unit.name} {utility.conjugate('attempt', self.current_unit.number)} to defeat the {self.opponent.name}. /n /n"
 
-            if self.current_unit.veteran:
+            if self.current_unit.get_permission(constants.VETERAN_PERMISSION):
                 text += f"The {self.current_unit.officer.name} can roll twice and pick the higher result. /n"
 
             if self.current_unit.is_battalion:
@@ -199,7 +199,7 @@ class combat(action.action):
             if self.current_unit.get_cell().has_intact_building("fort"):
                 text += f"The fort in this tile grants your {self.current_unit.name} a +1 bonus after their roll. /n"
 
-            if self.current_unit.veteran:
+            if self.current_unit.get_permission(constants.VETERAN_PERMISSION):
                 text += "The outcome will be based on the difference between your highest roll and the enemy's roll. /n /n"
             else:
                 text += "The outcome will be based on the difference between your roll and the enemy's roll. /n /n"
@@ -455,7 +455,7 @@ class combat(action.action):
             self.current_unit.move(self.x_change, self.y_change, True)
 
         self.roll_lists = []
-        if self.current_unit.veteran:
+        if self.current_unit.get_permission(constants.VETERAN_PERMISSION):
             num_dice = 2
         else:
             num_dice = 1
@@ -594,7 +594,7 @@ class combat(action.action):
         else:
             result = "success"
             if (
-                not self.current_unit.veteran
+                not self.current_unit.get_permission(constants.VETERAN_PERMISSION)
             ) and self.roll_result >= self.current_min_crit_success:
                 result = "critical_success"
 

@@ -200,7 +200,7 @@ def manage_production():
         if not current_resource_building.damaged:
             for current_work_crew in current_resource_building.contained_work_crews:
                 if current_work_crew.movement_points >= 1:
-                    if current_work_crew.veteran:
+                    if current_work_crew.get_permission(constants.VETERAN_PERMISSION):
                         expected_production[
                             current_resource_building.resource_type
                         ] += (0.75 * current_resource_building.efficiency)
