@@ -27,7 +27,6 @@ def generate_autofill_actors(search_start_index=0):
 
         required_dummy_attributes = [
             "name",
-            "is_group",
             "default_permissions",
             "override_permissions",
             "is_pmob",
@@ -41,8 +40,6 @@ def generate_autofill_actors(search_start_index=0):
             "equipment",
             "contained_mobs",
             "temp_movement_disabled",
-            "disorganized",
-            "veteran",
             "sentry_mode",
             "base_automatic_route",
             "end_turn_destination",
@@ -98,12 +95,14 @@ def generate_autofill_actors(search_start_index=0):
                     )
                     return_dict["procedure"] = "crew"
 
-        elif displayed_mob.is_group or displayed_mob.all_permissions(
+        elif displayed_mob.get_permission(
+            constants.GROUP_PERMISSION
+        ) or displayed_mob.all_permissions(
             constants.VEHICLE_PERMISSION, constants.ACTIVE_PERMISSION
         ):
             return_dict["group"] = displayed_mob
 
-            if return_dict["group"].is_group:
+            if return_dict["group"].get_permission(constants.GROUP_PERMISSION):
                 return_dict["officer"], return_dict["worker"] = simulate_split(
                     return_dict["group"], required_dummy_attributes, dummy_input_dict
                 )
@@ -197,9 +196,11 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
         dummy_input_dict["default_permissions"].update(
             {
                 constants.OFFICER_PERMISSION: False,
+                constants.GROUP_PERMISSION: True,
+                constants.DISORGANIZED_PERMISSION: dummy_input_dict["disorganized"],
+                constants.VETERAN_PERMISSION: dummy_input_dict["veteran"],
             }
         )
-        dummy_input_dict["is_group"] = True
         image_id_list = []
         dummy_input_dict[
             "image_id_list"

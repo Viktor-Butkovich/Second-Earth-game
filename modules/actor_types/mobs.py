@@ -43,7 +43,6 @@ class mob(actor):
         self.in_building = False
         self.is_work_crew = False
         self.is_battalion = False
-        self.is_group = False
         self.is_npmob = False
         self.is_pmob = False
         self.can_explore = False  # if can attempt to explore unexplored areas
@@ -346,7 +345,10 @@ class mob(actor):
         """
         modifier = 0
         if self.is_pmob:
-            if self.is_group and self.group_type == "battalion":
+            if (
+                self.get_permission(constants.GROUP_PERMISSION)
+                and self.group_type == "battalion"
+            ):
                 modifier += 1
                 if self.battalion_type == "imperial":
                     modifier += 1
@@ -785,7 +787,7 @@ class mob(actor):
         )  # capitalizes first letter while keeping rest the same
 
         if self.is_pmob:
-            if self.is_group:
+            if self.get_permission(constants.GROUP_PERMISSION):
                 tooltip_list.append("    Officer: " + self.officer.name.capitalize())
                 tooltip_list.append("    Workers: " + self.worker.name.capitalize())
             elif self.get_permission(constants.VEHICLE_PERMISSION):
@@ -1008,10 +1010,10 @@ class mob(actor):
                 else:
                     return
 
-            if (
-                self.get_permission(constants.OFFICER_PERMISSION)
-                or self.is_group
-                or self.get_permission(constants.VEHICLE_PERMISSION)
+            if self.any_permissions(
+                constants.OFFICER_PERMISSION,
+                constants.GROUP_PERMISSION,
+                constants.VEHICLE_PERMISSION,
             ):
                 if self.is_battalion or (
                     self.get_permission(constants.OFFICER_PERMISSION)

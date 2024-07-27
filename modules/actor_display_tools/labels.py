@@ -912,7 +912,7 @@ class actor_display_label(label):
                             )
 
             elif self.actor_label_type in ["workers", "officer"]:
-                if self.actor.is_group:
+                if self.actor.get_permission(constants.GROUP_PERMISSION):
                     if self.actor_label_type == "workers":
                         self.set_label(
                             f"{self.message_start}{str(utility.capitalize(self.actor.worker.name))}"
@@ -1096,9 +1096,10 @@ class actor_display_label(label):
             constants.VEHICLE_PERMISSION
         ):  # do not show passenger or crew labels for non-vehicle mobs
             return False
-        elif (
-            self.actor_label_type in ["workers", "officer"] and not self.actor.is_group
-        ):
+        elif self.actor_label_type in [
+            "workers",
+            "officer",
+        ] and not self.actor.get_permission(constants.GROUP_PERMISSION):
             return False
         elif self.actor.actor_type == "mob" and (
             self.actor.in_vehicle or self.actor.in_group or self.actor.in_building
@@ -1298,14 +1299,12 @@ class actor_tooltip_label(actor_display_label):
             None
         """
         if self.actor.is_dummy:
-            if self.actor.is_group or self.actor.all_permissions(
+            if self.actor.get_permission(
+                constants.GROUP_PERMISSION
+            ) or self.actor.all_permissions(
                 constants.VEHICLE_PERMISSION, constants.ACTIVE_PERMISSION
             ):
                 status.reorganize_unit_right_button.on_click()
-                if (
-                    not self.actor.is_dummy
-                ):  # Only select if dummy unit successfully became real
-                    self.actor.cycle_select()
             else:
                 status.reorganize_unit_left_button.on_click()
                 if (

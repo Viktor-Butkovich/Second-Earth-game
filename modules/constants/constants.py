@@ -682,6 +682,15 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
     },
 }
 
+HAT_LEVEL: int = 6
+EYES_LEVEL: int = 2
+GLASSES_LEVEL: int = 3
+HAIR_LEVEL: int = 4
+FACIAL_HAIR_LEVEL: int = 8
+PORTRAIT_LEVEL: int = 10
+LABEL_LEVEL: int = 11
+FRONT_LEVEL: int = 20
+
 PIXELLATED_SIZE: int = 2
 TERRAIN_KNOWLEDGE: str = "terrain"
 TERRAIN_KNOWLEDGE_REQUIREMENT: int = (
@@ -702,6 +711,7 @@ ACTIVE_PERMISSION: str = "active_permission"
 INACTIVE_VEHICLE_PERMISSION: str = "inactive_vehicle"
 OFFICER_PERMISSION: str = "officer"
 WORKER_PERMISSION: str = "worker"
+GROUP_PERMISSION: str = "group"
 INIT_COMPLETE_PERMISSION: str = "init_complete"
 DISORGANIZED_PERMISSION: str = "disorganized"
 VETERAN_PERMISSION: str = "veteran"
@@ -711,6 +721,7 @@ DEFAULT_PERMISSIONS: Dict[str, Any] = {
     INACTIVE_VEHICLE_PERMISSION: False,
     OFFICER_PERMISSION: False,
     WORKER_PERMISSION: False,
+    GROUP_PERMISSION: False,
     INIT_COMPLETE_PERMISSION: False,
     DISORGANIZED_PERMISSION: False,
     VETERAN_PERMISSION: False,

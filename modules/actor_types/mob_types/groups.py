@@ -50,7 +50,6 @@ class group(pmob):
         super().__init__(from_save, input_dict, original_constructor=False)
         self.worker.join_group()
         self.officer.join_group()
-        self.is_group = True
         for current_mob in [
             self.worker,
             self.officer,
@@ -76,6 +75,18 @@ class group(pmob):
                 actor_utility.generate_group_movement_points(self.worker, self.officer)
             )
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def permissions_setup(self) -> None:
+        """
+        Description:
+            Sets up this mob's permissions
+        Input:
+            None
+        Output:
+            None
+        """
+        super().permissions_setup()
+        self.set_permission(constants.GROUP_PERMISSION, True)
 
     def replace_worker(self, new_worker_type):
         """

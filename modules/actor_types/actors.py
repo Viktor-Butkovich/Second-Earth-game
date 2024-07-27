@@ -90,7 +90,7 @@ class actor:
                     init_type = self.vehicle_type
                 elif self.get_permission(constants.OFFICER_PERMISSION):
                     init_type = self.officer_type
-                elif self.is_group:
+                elif self.get_permission(constants.GROUP_PERMISSION):
                     init_type = self.group_type
             else:  # if npmob
                 init_type = self.npmob_type
@@ -303,7 +303,7 @@ class actor:
             if (
                 self.actor_type == "mob"
                 and self.is_pmob
-                and self.is_group
+                and self.get_permission(constants.GROUP_PERMISSION)
                 and self.group_type == "porters"
                 and (not self.get_permission(constants.VETERAN_PERMISSION))
                 and random.randrange(1, 7) == 6

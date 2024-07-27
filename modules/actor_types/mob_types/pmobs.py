@@ -428,9 +428,8 @@ class pmob(mob):
             actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
         elif (
             displayed_mob
-            and displayed_mob.is_pmob
-            and displayed_mob.is_group
-            and (displayed_mob.officer == self or displayed_mob.worker == self)
+            and displayed_mob.get_permission(constants.GROUP_PERMISSION)
+            and self in [displayed_mob.officer, displayed_mob.worker]
         ):
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, displayed_mob
@@ -463,7 +462,7 @@ class pmob(mob):
             None
         """
         old_value = self.sentry_mode
-        if self.is_group:
+        if self.get_permission(constants.GROUP_PERMISSION):
             self.officer.set_sentry_mode(new_value)
             self.worker.set_sentry_mode(new_value)
         if not old_value == new_value:

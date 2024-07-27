@@ -18,7 +18,11 @@ from modules.interface_types.world_grids import world_grid
 from modules.interface_types.cells import cell
 from modules.interface_types.panels import safe_click_panel
 from modules.interface_types.notifications import notification
-from modules.interface_types.buttons import button, same_tile_icon
+from modules.interface_types.buttons import (
+    button,
+    same_tile_icon,
+    reorganize_unit_button,
+)
 from modules.interface_types.inventory_interface import item_icon
 from modules.interface_types.instructions import instructions_page
 from modules.interface_types.dice import die
@@ -103,8 +107,8 @@ mob_inventory_collection: ordered_collection = None
 mob_reorganization_collection: ordered_collection = None
 tile_inventory_collection: ordered_collection = None
 commodity_prices_label: commodity_prices_label_template = None
-reorganize_unit_left_button: button = None
-reorganize_unit_right_button: button = None
+reorganize_unit_left_button: reorganize_unit_button = None
+reorganize_unit_right_button: reorganize_unit_button = None
 cursor_image: pygame.image = None
 next_boarded_vehicle: pmob = None
 text_box_destination: callable = None
@@ -123,11 +127,3 @@ initial_tutorial_completed: bool = False
 north_pole: cell = None
 south_pole: cell = None
 equator_list: List[cell] = []
-
-HAT_LEVEL: int = 6
-EYES_LEVEL: int = 2
-GLASSES_LEVEL: int = 3
-HAIR_LEVEL: int = 4
-FACIAL_HAIR_LEVEL: int = 8
-PORTRAIT_LEVEL: int = 10
-LABEL_LEVEL: int = 11

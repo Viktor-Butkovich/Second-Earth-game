@@ -163,8 +163,8 @@ class vehicle(pmob):
                                 self.eject_passengers()
                                 self.eject_crew()
                             self.crew_attrition_death(crew)
-                        elif (
-                            current_sub_mob.is_group
+                        elif current_sub_mob.get_permission(
+                            constants.GROUP_PERMISSION
                         ):  # if group passenger died of attrition
                             attrition_unit_type = random.choice(["officer", "worker"])
                             current_sub_mob.attrition_death(attrition_unit_type)
@@ -254,7 +254,7 @@ class vehicle(pmob):
         for current_passenger in self.contained_mobs:
             current_passenger.x = self.x
             current_passenger.y = self.y
-            if current_passenger.is_group:
+            if current_passenger.get_permission(constants.GROUP_PERMISSION):
                 current_passenger.calibrate_sub_mob_positions()
         if not self.crew == "none":
             self.crew.x = self.x

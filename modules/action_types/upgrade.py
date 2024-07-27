@@ -164,7 +164,7 @@ class upgrade(action.action):
         building = unit.get_cell().get_intact_building(self.upgraded_building_type)
         can_show = (
             super().can_show()
-            and unit.is_group
+            and unit.get_permission(constants.GROUP_PERMISSION)
             and getattr(unit, self.requirement)
             and building != "none"
             and building.can_upgrade(self.building_type)

@@ -243,9 +243,8 @@ class enable_sentry_mode_button(button):
             displayed_mob.set_sentry_mode(True)
             if (
                 constants.effect_manager.effect_active("promote_on_sentry")
-                and (
-                    displayed_mob.is_group
-                    or displayed_mob.get_permission(constants.OFFICER_PERMISSION)
+                and displayed_mob.any_permissions(
+                    constants.GROUP_PERMISSION, constants.OFFICER_PERMISSION
                 )
                 and not displayed_mob.get_permission(constants.VETERAN_PERMISSION)
             ):  # purely for promotion testing, not normal functionality
@@ -363,9 +362,14 @@ class enable_automatic_replacement_button(button):
                 return False
             elif displayed_mob.get_permission(constants.VEHICLE_PERMISSION):
                 return False
-            elif displayed_mob.is_group and self.target_type == "unit":
+            elif (
+                displayed_mob.get_permission(constants.GROUP_PERMISSION)
+                and self.target_type == "unit"
+            ):
                 return False
-            elif (not displayed_mob.is_group) and (not self.target_type == "unit"):
+            elif (
+                not displayed_mob.get_permission(constants.GROUP_PERMISSION)
+            ) and self.target_type != "unit":
                 return False
             elif (
                 (self.target_type == "unit" and displayed_mob.automatically_replace)
@@ -450,9 +454,14 @@ class disable_automatic_replacement_button(button):
                 return False
             elif displayed_mob.get_permission(constants.VEHICLE_PERMISSION):
                 return False
-            elif displayed_mob.is_group and self.target_type == "unit":
+            elif (
+                displayed_mob.get_permission(constants.GROUP_PERMISSION)
+                and self.target_type == "unit"
+            ):
                 return False
-            elif (not displayed_mob.is_group) and (not self.target_type == "unit"):
+            elif (
+                not displayed_mob.get_permission(constants.GROUP_PERMISSION)
+            ) and self.target_type != "unit":
                 return False
             elif (
                 (self.target_type == "unit" and not displayed_mob.automatically_replace)
@@ -1642,7 +1651,12 @@ class automatic_route_button(button):
             attached_mob = status.displayed_mob
             if (
                 attached_mob.inventory_capacity > 0
-                and (not (attached_mob.is_group and attached_mob.can_trade))
+                and (
+                    not (
+                        attached_mob.get_permission(constants.GROUP_PERMISSION)
+                        and attached_mob.can_trade
+                    )
+                )
                 and not attached_mob.get_permission(
                     constants.INACTIVE_VEHICLE_PERMISSION
                 )

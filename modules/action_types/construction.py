@@ -217,7 +217,7 @@ class construction(action.action):
         """
         can_show = (
             super().can_show()
-            and status.displayed_mob.is_group
+            and status.displayed_mob.get_permission(constants.GROUP_PERMISSION)
             and getattr(status.displayed_mob, self.requirement)
         )
         if can_show and not self.building_type in ["train"]:

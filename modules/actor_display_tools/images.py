@@ -68,7 +68,12 @@ class actor_display_free_image(free_image):
                         action_utility.generate_background_image_input_dict()
                     )
                     if new_actor.is_dummy:
-                        image_id_list.append("misc/dark_shader.png")
+                        image_id_list.append(
+                            {
+                                "image_id": "misc/dark_shader.png",
+                                "level": constants.FRONT_LEVEL,
+                            }
+                        )
                     if new_actor.is_pmob:
                         image_id_list.append("misc/pmob_outline.png")
                     else:
@@ -83,7 +88,9 @@ class actor_display_free_image(free_image):
                     image_id_list.append(self.default_image_id)
                 else:
                     image_id_list += self.default_image_id
-                image_id_list.append("misc/dark_shader.png")
+                image_id_list.append(
+                    {"image_id": "misc/dark_shader.png", "level": constants.FRONT_LEVEL}
+                )
             image_id_list.append("misc/pmob_outline.png")
             self.set_image(image_id_list)
 
