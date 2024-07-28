@@ -29,13 +29,15 @@
       "map_modes",
       "allow_planet_mask",
       "large_map",
-      "god_mode"
+      "god_mode",
+      "allow_toggle_fog_of_war"
    ],
    "active_effects": [
       "fullscreen",
       "skip_intro",
       "allow_planet_mask",
       "map_modes",
-      "god_mode"
+      "god_mode",
+      "allow_toggle_fog_of_war"
    ]
 }

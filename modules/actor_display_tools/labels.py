@@ -1304,7 +1304,12 @@ class actor_tooltip_label(actor_display_label):
         Output:
             None
         """
-        if self.actor.is_dummy:
+        if self.actor_type == "tile":
+            actor_utility.calibrate_actor_info_display(
+                status.tile_info_display, self.actor
+            )
+            actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
+        elif self.actor.is_dummy:
             if self.actor.get_permission(
                 constants.GROUP_PERMISSION
             ) or self.actor.all_permissions(

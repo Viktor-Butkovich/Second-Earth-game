@@ -829,6 +829,18 @@ def buttons():
             constants.actor_creation_manager.create_interface_element(input_dict)
         )
 
+    if constants.effect_manager.effect_active("allow_toggle_fog_of_war"):
+        input_dict["init_type"] = "toggle button"
+        input_dict["toggle_variable"] = "remove_fog_of_war"
+        input_dict["attached_to_actor"] = False
+        input_dict["modes"] = ["strategic"]
+        input_dict["image_id"] = actor_utility.generate_frame(
+            "buttons/toggle_fog_of_war_button.png"
+        )
+        rhs_menu_collection.add_member(
+            constants.actor_creation_manager.create_interface_element(input_dict)
+        )
+
     input_dict["coordinates"] = scaling.scale_coordinates(
         110, constants.default_display_height - 50
     )
@@ -1611,7 +1623,7 @@ def tile_interface():
                 "image_id": "misc/empty.png",
                 "actor_label_type": "tooltip",
                 "actor_type": "tile",
-                "init_type": "actor display label",
+                "init_type": "actor tooltip label",
                 "parent_collection": status.tile_info_display,
                 "member_config": {"order_overlap": True},
             }

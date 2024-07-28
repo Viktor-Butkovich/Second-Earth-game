@@ -680,6 +680,11 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
         "True": "Currently expanded",
         "False": "Currently default size",
     },
+    "remove_fog_of_war": {
+        "default": "Disables fog of war",
+        "True": "Fog of war disabled - no knowledge required to view tiles",
+        "False": "Fog of war active - knowledge required to view tiles",
+    },
 }
 
 HAT_LEVEL: int = 6
@@ -692,14 +697,24 @@ LABEL_LEVEL: int = 11
 FRONT_LEVEL: int = 20
 
 PIXELLATED_SIZE: int = 2
+
 TERRAIN_KNOWLEDGE: str = "terrain"
-TERRAIN_KNOWLEDGE_REQUIREMENT: int = (
-    1 if effect_manager.effect_active("remove_fog_of_war") else 2
-)
+TERRAIN_KNOWLEDGE_REQUIREMENT: int = 0
 TERRAIN_PARAMETER_KNOWLEDGE: str = "terrain_parameter"
-TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT: int = (
-    1 if effect_manager.effect_active("remove_fog_of_war") else 3
-)
+TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT: int = 0
+
+
+def update_terrain_knowledge_requirements():
+    global TERRAIN_KNOWLEDGE_REQUIREMENT, TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
+    TERRAIN_KNOWLEDGE_REQUIREMENT = (
+        1 if effect_manager.effect_active("remove_fog_of_war") else 2
+    )
+    TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT = (
+        1 if effect_manager.effect_active("remove_fog_of_war") else 3
+    )
+
+
+update_terrain_knowledge_requirements()
 
 UNIQUE_FEATURE_TRACKING: str = "unique"
 LIST_FEATURE_TRACKING: str = "list"

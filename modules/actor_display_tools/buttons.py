@@ -1763,6 +1763,24 @@ class toggle_button(button):
 
         super().__init__(input_dict)
 
+    def get_value(self):
+        """
+        Description:
+            Returns the value of the variable this button toggles
+        Input:
+            None
+        Output:
+            boolean: Returns the value of the variable this button toggles
+        """
+        if self.attached_to_actor:
+            if not self.attached_label.actor in [None, "none"]:
+                return getattr(self.attached_label.actor, self.toggle_variable)
+            return False
+        elif constants.effect_manager.effect_exists(self.toggle_variable):
+            return constants.effect_manager.effect_active(self.toggle_variable)
+        else:
+            return getattr(flags, self.toggle_variable)
+
     def on_click(self):
         """
         Description:
@@ -1776,12 +1794,27 @@ class toggle_button(button):
             setattr(
                 self.attached_label.actor,
                 self.toggle_variable,
-                not getattr(self.attached_label.actor, self.toggle_variable),
+                not self.get_value(),
             )
+        elif constants.effect_manager.effect_exists(self.toggle_variable):
+            constants.effect_manager.set_effect(
+                self.toggle_variable, not self.get_value()
+            )
+            if self.toggle_variable == "remove_fog_of_war":
+                constants.update_terrain_knowledge_requirements()
+                status.minimap_grid.calibrate(
+                    status.minimap_grid.center_x, status.minimap_grid.center_y
+                )
+                if status.displayed_mob:
+                    actor_utility.calibrate_actor_info_display(
+                        status.mob_info_display, status.displayed_mob
+                    )
+                if status.displayed_tile:
+                    actor_utility.calibrate_actor_info_display(
+                        status.tile_info_display, status.displayed_tile
+                    )
         else:
-            setattr(
-                flags, self.toggle_variable, not getattr(flags, self.toggle_variable)
-            )
+            setattr(flags, self.toggle_variable, not self.get_value())
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -1793,15 +1826,13 @@ class toggle_button(button):
             boolean: Returns whether this button should be drawn
         """
         if not self.attached_to_actor:
-            self.showing_outline = getattr(flags, self.toggle_variable)
+            self.showing_outline = self.get_value()
             return super().can_show()
 
         if (
             not self.attached_label.actor in ["none", None]
         ) and self.attached_label.actor.get_permission(constants.PMOB_PERMISSION):
-            self.showing_outline = getattr(
-                self.attached_label.actor, self.toggle_variable
-            )
+            self.showing_outline = self.get_value()
             if super().can_show(skip_parent_collection=skip_parent_collection):
                 if self.toggle_variable == "wait_until_full":
                     return bool(status.displayed_mob.base_automatic_route)
@@ -1818,29 +1849,14 @@ class toggle_button(button):
         Output:
             None
         """
-        if self.attached_to_actor:
-            if not self.attached_label.actor in [None, "none"]:
-                self.set_tooltip(
-                    [
-                        constants.toggle_button_tooltips[self.toggle_variable][
-                            "default"
-                        ],
-                        constants.toggle_button_tooltips[self.toggle_variable][
-                            str(
-                                getattr(self.attached_label.actor, self.toggle_variable)
-                            )
-                        ],
-                    ]
-                )
-        else:
-            self.set_tooltip(
-                [
-                    constants.toggle_button_tooltips[self.toggle_variable]["default"],
-                    constants.toggle_button_tooltips[self.toggle_variable][
-                        str(getattr(flags, self.toggle_variable))
-                    ],
-                ]
-            )
+        self.set_tooltip(
+            [
+                constants.toggle_button_tooltips[self.toggle_variable]["default"],
+                constants.toggle_button_tooltips[self.toggle_variable][
+                    str(self.get_value())
+                ],
+            ]
+        )
 
 
 class change_parameter_button(button):
