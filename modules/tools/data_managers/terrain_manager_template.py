@@ -175,10 +175,13 @@ class terrain_manager_template:
         Output:
             string: Returns the terrain type that the inputted parameters classify as
         """
-        # return random.choice(["mesa", "mountains", "desert"])
-        return self.parameter_to_terrain[
-            f"{max(min(terrain_parameters['temperature'], 6), 1)}{terrain_parameters['roughness']}{terrain_parameters['vegetation']}{terrain_parameters['soil']}{terrain_parameters['water']}"
-        ]
+        unbounded_temperature = f"{terrain_parameters['temperature']}{terrain_parameters['roughness']}{terrain_parameters['vegetation']}{terrain_parameters['soil']}{terrain_parameters['water']}"
+        default = f"{max(min(terrain_parameters['temperature'], 6), 1)}{terrain_parameters['roughness']}{terrain_parameters['vegetation']}{terrain_parameters['soil']}{terrain_parameters['water']}"
+        # Check -5 to 12 for temperature but use 1-6 if not defined
+        # Terrain hypercube is fully defined within 1-6, but temperature terrains can exist outside of this range
+        return self.parameter_to_terrain.get(
+            unbounded_temperature, self.parameter_to_terrain[default]
+        )
 
 
 class world_handler:
@@ -580,22 +583,6 @@ class terrain_handler:
             min(new_value, self.maxima.get(parameter_name, 6)),
         )
 
-        if parameter_name == "water" and self.terrain_parameters[
-            "temperature"
-        ] >= constants.terrain_manager.get_tuning("water_boiling_point"):
-            while self.terrain_parameters["water"] > 1:
-                self.terrain_parameters["water"] -= 1
-                status.strategic_map_grid.place_water(
-                    frozen_bound=constants.terrain_manager.get_tuning(
-                        "water_boiling_point"
-                    )
-                    - 1
-                )
-        elif parameter_name == "temperature" and self.terrain_parameters[
-            "temperature"
-        ] >= constants.terrain_manager.get_tuning("water_boiling_point"):
-            self.set_parameter("water", 1)
-
         new_terrain = constants.terrain_manager.classify(self.terrain_parameters)
 
         if (
@@ -649,16 +636,16 @@ class terrain_handler:
     def boiling(self) -> bool:
         """
         Description:
-            Returns whether this terrain would have snow based on its temperature and water levels
+            Returns whether this terrain would have visible steam based on its temperature and water levels
         Input:
             None
         Output:
-            boolean: True if this terrain would have snow, False if not
+            boolean: True if this terrain would have visible steam, False if not
         """
         return (
             self.get_parameter("temperature")
             >= constants.terrain_manager.get_tuning("water_boiling_point") - 4
-            and self.get_parameter("water") >= 3
+            and self.get_parameter("water") >= 2
         )
 
     def get_overlay_images(self) -> List[str]:
@@ -673,8 +660,19 @@ class terrain_handler:
         return_list = []
         if self.has_snow():
             return_list.append(f"terrains/snow_{self.terrain_variant % 4}.png")
-        elif self.boiling():
+        elif self.boiling():  # If 4 below boiling, add steam
             return_list.append(f"terrains/boiling_{self.terrain_variant % 4}.png")
+            if self.get_parameter("water") >= 3 and self.get_parameter(
+                "temperature"
+            ) >= constants.terrain_manager.get_tuning("water_boiling_point"):
+                # If boiling, add more steam as water increases
+                return_list.append(
+                    f"terrains/boiling_{(self.terrain_variant + 1) % 4}.png"
+                )
+                if self.get_parameter("water") >= 5:
+                    return_list.append(
+                        f"terrains/boiling_{(self.terrain_variant + 2) % 4}.png"
+                    )
         return return_list
 
     def to_save_dict(self) -> Dict[str, any]:

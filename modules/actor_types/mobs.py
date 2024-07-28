@@ -614,11 +614,8 @@ class mob(actor):
                 self.movement_points = round(self.movement_points)
             if (
                 self.get_permission(constants.PMOB_PERMISSION)
-                and (not self.get_cell() == "none")
-                and not (
-                    self.get_permission(constants.VEHICLE_PERMISSION)
-                    and self.crew == "none"
-                )
+                and self.get_cell() != "none"
+                and not self.get_permission(constants.INACTIVE_VEHICLE_PERMISSION)
             ):
                 self.add_to_turn_queue()
             if status.displayed_mob == self:

@@ -310,9 +310,7 @@ class world_grid(grid):
                         "temperature"
                     ) < best_frozen.get_parameter("temperature"):
                         best_frozen = candidate
-                elif candidate.get_parameter("temperature") < self.get_tuning(
-                    "water_boiling_point"
-                ):  # Water can go to lowest liquid location
+                else:
                     if best_liquid == None or candidate.get_parameter(
                         "altitude"
                     ) < best_liquid.get_parameter("altitude"):
@@ -338,22 +336,9 @@ class world_grid(grid):
 
         if best_frozen:
             best_frozen.change_parameter("water", 1)
-            if frozen_bound != self.get_tuning(
-                "water_freezing_point"
-            ):  # If placing liquid water after boiling
-                best_frozen.terrain_handler.flow()
         elif best_liquid:
             best_liquid.change_parameter("water", 1)
             best_liquid.terrain_handler.flow()
-        else:
-            if frozen_bound != self.get_tuning(
-                "water_freezing_point"
-            ):  # Avoid infinite recursion if there are no non-boiling water locations left
-                return
-            else:
-                self.place_water(
-                    frozen_bound=self.get_tuning("water_boiling_point") - 1
-                )
 
     def generate_soil(self) -> None:
         """

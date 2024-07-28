@@ -337,8 +337,8 @@
         "min_water": 1,
         "max_water": 2
     },
-    "boiling_ocean": {
-        "name": "boiling_ocean",
+    "scorching_ocean": {
+        "name": "scorching_ocean",
         "min_temperature": 6,
         "max_temperature": 6,
         "min_roughness": 1,
@@ -350,8 +350,8 @@
         "min_water": 6,
         "max_water": 6
     },
-    "boiling_shallow_ocean": {
-        "name": "boiling_shallow_ocean",
+    "scorching_shallow_ocean": {
+        "name": "scorching_shallow_ocean",
         "min_temperature": 6,
         "max_temperature": 6,
         "min_roughness": 1,
@@ -362,6 +362,84 @@
         "max_soil": 6,
         "min_water": 5,
         "max_water": 5
+    },
+    "boiling_desert": {
+        "name": "boiling_desert",
+        "min_temperature": 10,
+        "max_temperature": 12,
+        "min_roughness": 1,
+        "max_roughness": 2,
+        "min_vegetation": 1,
+        "max_vegetation": 6,
+        "min_soil": 1,
+        "max_soil": 2,
+        "min_water": 3,
+        "max_water": 6
+    },
+    "boiling_dunes": {
+        "name": "boiling_dunes",
+        "min_temperature": 10,
+        "max_temperature": 12,
+        "min_roughness": 3,
+        "max_roughness": 4,
+        "min_vegetation": 1,
+        "max_vegetation": 6,
+        "min_soil": 1,
+        "max_soil": 2,
+        "min_water": 3,
+        "max_water": 6
+    },
+    "boiling_mesa": {
+        "name": "boiling_mesa",
+        "min_temperature": 10,
+        "max_temperature": 12,
+        "min_roughness": 5,
+        "max_roughness": 6,
+        "min_vegetation": 1,
+        "max_vegetation": 6,
+        "min_soil": 1,
+        "max_soil": 2,
+        "min_water": 3,
+        "max_water": 6
+    },
+    "boiling_barrens": {
+        "name": "boiling_barrens",
+        "min_temperature": 10,
+        "max_temperature": 12,
+        "min_roughness": 1,
+        "max_roughness": 2,
+        "min_vegetation": 1,
+        "max_vegetation": 6,
+        "min_soil": 3,
+        "max_soil": 6,
+        "min_water": 3,
+        "max_water": 6
+    },
+    "boiling_chaos": {
+        "name": "boiling_chaos",
+        "min_temperature": 10,
+        "max_temperature": 12,
+        "min_roughness": 3,
+        "max_roughness": 4,
+        "min_vegetation": 1,
+        "max_vegetation": 6,
+        "min_soil": 3,
+        "max_soil": 6,
+        "min_water": 3,
+        "max_water": 6
+    },
+    "boiling_mountains": {
+        "name": "boiling_mountains",
+        "min_temperature": 10,
+        "max_temperature": 12,
+        "min_roughness": 5,
+        "max_roughness": 6,
+        "min_vegetation": 1,
+        "max_vegetation": 6,
+        "min_soil": 3,
+        "max_soil": 6,
+        "min_water": 3,
+        "max_water": 6
     },
     "glacier": {
         "name": "glacier",
