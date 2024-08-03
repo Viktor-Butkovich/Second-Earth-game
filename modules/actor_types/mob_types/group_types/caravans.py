@@ -1,9 +1,6 @@
 # Contains functionality for caravans
 
-import random
-import math
 from ..groups import group
-from ....util import utility, actor_utility, dice_utility, market_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -38,6 +35,6 @@ class caravan(group):
             None
         """
         super().__init__(from_save, input_dict)
-        self.can_trade = True
+        self.set_permission(constants.CARAVAN_PERMISSION, True)
         self.set_inventory_capacity(9)
         self.set_group_type("caravan")

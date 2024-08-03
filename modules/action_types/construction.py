@@ -29,10 +29,11 @@ class construction(action.action):
         if self.building_type == "infrastructure":
             self.building_name = "road"  # deal with infrastructure exceptions later
         constants.transaction_descriptions["construction"] = "construction"
+        self.requirements.append(constants.GROUP_PERMISSION)
         if self.building_type == "fort":
-            self.requirement = "is_battalion"
+            self.requirements.append(constants.BATTALION_PERMISSION)
         else:
-            self.requirement = "can_construct"
+            self.requirements.append(constants.CONSTRUCTION_PERMISSION)
         if self.building_type == "resource":
             self.attached_resource = "none"
             self.building_name = "resource production facility"
@@ -215,11 +216,7 @@ class construction(action.action):
         Output:
             boolean: Returns whether a button linked to this action should be drawn
         """
-        can_show = (
-            super().can_show()
-            and status.displayed_mob.get_permission(constants.GROUP_PERMISSION)
-            and getattr(status.displayed_mob, self.requirement)
-        )
+        can_show = super().can_show()
         if can_show and not self.building_type in ["train"]:
             can_show = (self.building_type == "infrastructure") or (
                 not status.displayed_mob.get_cell().has_building(self.building_type)

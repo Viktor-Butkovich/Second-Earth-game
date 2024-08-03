@@ -30,6 +30,7 @@ class action:
         """
         self.action_type = self.generate_action_type()  # class name
         self.button = None
+        self.requirements = []
         self.initial_setup(**kwargs)
 
     def generate_action_type(self):
@@ -92,7 +93,7 @@ class action:
         Output:
             boolean: Returns whether a button linked to this action should be drawn
         """
-        return True
+        return status.displayed_mob.all_permissions(*self.requirements)
 
     def on_click(self, unit):
         """

@@ -74,6 +74,8 @@ except Exception:  # displays error message and records error message in crash l
 #   Something like canoes or suits would modify a unit's default permissions
 #   Next add permissions for actions, sentry mode, etc.
 #   Actions should have permission requirements by default, rather than requiring extra logic per action
+#   Add permissions for ministers as well as mobs
+#   Replace worker_type logic with permissions handling
 # Add new minister positions
 # Add preset portraits for purchase unit buttons
 # Add astronauts/cosmonauts group with corresponding officer

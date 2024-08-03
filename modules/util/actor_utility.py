@@ -582,7 +582,7 @@ def generate_group_name(worker, officer, add_veteran=False):
     Output:
         list: Returns image id list of dictionaries for each part of the group image
     """
-    if not officer.officer_type == "major":
+    if not officer.get_permission(constants.MAJOR_PERMISSION):
         name = ""
         for character in constants.officer_group_type_dict[officer.officer_type]:
             if not character == "_":
@@ -612,8 +612,8 @@ def generate_group_movement_points(worker, officer, generate_max=False):
     """
     if generate_max:
         max_movement_points = officer.max_movement_points
-        if officer.officer_type == "driver" and officer.get_permission(
-            constants.VETERAN_PERMISSION
+        if officer.all_permissions(
+            constants.DRIVER_PERMISSION, constants.VETERAN_PERMISSION
         ):
             max_movement_points = 6
         return max_movement_points

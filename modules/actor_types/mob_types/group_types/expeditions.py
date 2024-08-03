@@ -37,7 +37,7 @@ class expedition(group):
             None
         """
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.can_explore = True
+        self.set_permission(constants.EXPEDITION_PERMISSION, True)
         self.set_group_type("expedition")
         self.on_move()
 

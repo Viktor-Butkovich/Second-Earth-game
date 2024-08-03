@@ -26,7 +26,10 @@ class upgrade(action.action):
         del status.actions[self.action_type]
         status.actions[self.building_type] = self
         self.building_name = self.building_type.replace("_", " ")
-        self.requirement = "can_construct"
+        self.requirements += [
+            constants.GROUP_PERMISSION,
+            constants.CONSTRUCTION_PERMISSION,
+        ]
         self.current_building = "none"
         self.upgraded_building_type = {
             "scale": "resource",
@@ -160,12 +163,11 @@ class upgrade(action.action):
         Output:
             boolean: Returns whether a button linked to this action should be drawn
         """
-        unit = status.displayed_mob
-        building = unit.get_cell().get_intact_building(self.upgraded_building_type)
+        building = status.displayed_mob.get_cell().get_intact_building(
+            self.upgraded_building_type
+        )
         can_show = (
             super().can_show()
-            and unit.get_permission(constants.GROUP_PERMISSION)
-            and getattr(unit, self.requirement)
             and building != "none"
             and building.can_upgrade(self.building_type)
         )

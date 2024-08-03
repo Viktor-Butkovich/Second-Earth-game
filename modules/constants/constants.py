@@ -732,16 +732,23 @@ GROUP_PERMISSION: str = "group"
 INIT_COMPLETE_PERMISSION: str = "init_complete"
 DISORGANIZED_PERMISSION: str = "disorganized"
 VETERAN_PERMISSION: str = "veteran"
+DUMMY_PERMISSION: str = "dummy"
+
+EXPEDITION_PERMISSION: str = "expedition"
+CONSTRUCTION_PERMISSION: str = "construction"
+WORK_CREW_PERMISSION: str = "work_crew"
+CARAVAN_PERMISSION: str = "caravan"
+MISSIONARIES_PERMISSION: str = "missionaries"
+BATTALION_PERMISSION: str = "battalion"
+
+EXPLORER_PERMISSION: str = "explorer"
+ENGINEER_PERMISSION: str = "engineer"
+DRIVER_PERMISSION: str = "driver"
+FOREMAN_PERMISSION: str = "foreman"
+MERCHANT_PERMISSION: str = "merchant"
+EVANGELIST_PERMISSION: str = "evangelist"
+MAJOR_PERMISSION: str = "major"
+
 DEFAULT_PERMISSIONS: Dict[str, Any] = {
-    PMOB_PERMISSION: False,
-    NPMOB_PERMISSION: False,
-    VEHICLE_PERMISSION: False,
     ACTIVE_PERMISSION: True,
-    INACTIVE_VEHICLE_PERMISSION: False,
-    OFFICER_PERMISSION: False,
-    WORKER_PERMISSION: False,
-    GROUP_PERMISSION: False,
-    INIT_COMPLETE_PERMISSION: False,
-    DISORGANIZED_PERMISSION: False,
-    VETERAN_PERMISSION: False,
 }

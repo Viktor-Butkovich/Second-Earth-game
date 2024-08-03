@@ -67,7 +67,7 @@ class actor_display_free_image(free_image):
                     image_id_list.append(
                         action_utility.generate_background_image_input_dict()
                     )
-                    if new_actor.is_dummy:
+                    if new_actor.get_permission(constants.DUMMY_PERMISSION):
                         image_id_list.append(
                             {
                                 "image_id": "misc/dark_shader.png",

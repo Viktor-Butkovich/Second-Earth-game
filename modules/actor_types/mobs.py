@@ -37,16 +37,9 @@ class mob(actor):
         """
         self.default_permissions: Dict[str, Any] = {}
         self.override_permissions: Dict[str, Any] = {}
-        self.is_dummy = False
         self.in_group = False
         self.in_vehicle = False
         self.in_building = False
-        self.is_work_crew = False
-        self.is_battalion = False
-        self.can_explore = False  # if can attempt to explore unexplored areas
-        self.can_construct = False  # if can construct buildings
-        self.can_trade = False
-        self.can_convert = False
         self.number = 1  # how many entities are in a unit, used for verb conjugation
         self.actor_type = "mob"
         self.end_turn_destination = "none"
@@ -149,8 +142,10 @@ class mob(actor):
         else:
             modified_permissions[task] = value
 
-        if previous_effect != self.get_permission(task) and self.get_permission(
-            constants.INIT_COMPLETE_PERMISSION
+        if (
+            previous_effect != self.get_permission(task)
+            and self.get_permission(constants.INIT_COMPLETE_PERMISSION)
+            and not self.get_permission(constants.DUMMY_PERMISSION)
         ):
             self.update_image_bundle()
             self.update_tooltip()
@@ -200,14 +195,16 @@ class mob(actor):
                 self.override_permissions.get(
                     task,
                     self.default_permissions.get(
-                        task, constants.DEFAULT_PERMISSIONS[task]
+                        task, constants.DEFAULT_PERMISSIONS.get(task, False)
                     ),
                 ),
             )
         else:
             return self.override_permissions.get(
                 task,
-                self.default_permissions.get(task, constants.DEFAULT_PERMISSIONS[task]),
+                self.default_permissions.get(
+                    task, constants.DEFAULT_PERMISSIONS.get(task, False)
+                ),
             )
 
     def finish_init(
@@ -514,7 +511,9 @@ class mob(actor):
                     self.can_walk and not self.can_swim
                 ):  # elif water without boats
                     cost = self.max_movement_points
-                if (not adjacent_cell.terrain_handler.visible) and self.can_explore:
+                if (not adjacent_cell.terrain_handler.visible) and self.get_permission(
+                    constants.EXPEDITION_PERMISSION
+                ):
                     cost = self.movement_cost
         return cost
 
@@ -950,10 +949,8 @@ class mob(actor):
             if self.can_leave():
                 if not self.grid.is_abstract_grid:
                     future_cell = self.grid.find_cell(future_x, future_y)
-                    if (
-                        future_cell.terrain_handler.visible
-                        or self.can_explore
-                        or self.get_permission(constants.NPMOB_PERMISSION)
+                    if future_cell.terrain_handler.visible or self.any_permissions(
+                        constants.EXPEDITION_PERMISSION, constants.NPMOB_PERMISSION
                     ):
                         if (
                             self.movement_points
@@ -1013,9 +1010,8 @@ class mob(actor):
                 constants.GROUP_PERMISSION,
                 constants.VEHICLE_PERMISSION,
             ):
-                if self.is_battalion or (
-                    self.get_permission(constants.OFFICER_PERMISSION)
-                    and self.officer_type in ["major"]
+                if self.any_permissions(
+                    constants.BATTALION_PERMISSION, constants.MAJOR_PERMISSION
                 ):
                     constants.sound_manager.play_sound("effects/bolt_action_2")
 
@@ -1121,13 +1117,8 @@ class mob(actor):
                         self.embark_vehicle(vehicle)
                         self.set_movement_points(0)
                     vehicle.select()
-        if (
-            self.can_construct
-            or self.can_trade
-            or self.can_convert
-            or self.is_battalion
-        ) and self == status.displayed_mob:  # if can build any type of building, update mob display to show new building possibilities in new tile
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
+
+        actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
 
         if self.get_permission(
             constants.PMOB_PERMISSION

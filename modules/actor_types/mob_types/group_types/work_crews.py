@@ -36,7 +36,7 @@ class work_crew(group):
             None
         """
         super().__init__(from_save, input_dict)
-        self.is_work_crew = True
+        self.set_permission(constants.WORK_CREW_PERMISSION, True)
         self.set_group_type("work_crew")
 
     def work_building(self, building):

@@ -876,7 +876,10 @@ class pmob(mob):
             and self.get_cell().get_intact_building("port") == "none"
         ):
             self.set_permission(constants.DISORGANIZED_PERMISSION, True)
-        if self.can_trade and self.inventory_capacity > 0:  # if caravan
+        if (
+            self.get_permission(constants.CARAVAN_PERMISSION)
+            and self.inventory_capacity > 0
+        ):
             consumer_goods_present = vehicle.get_inventory("consumer goods")
             if consumer_goods_present > 0:
                 consumer_goods_transferred = consumer_goods_present

@@ -1100,7 +1100,9 @@ class work_crew_to_building_button(button):
             None
         """
         self.attached_work_crew = status.displayed_mob
-        if self.attached_work_crew and self.attached_work_crew.is_work_crew:
+        if self.attached_work_crew and self.attached_work_crew.get_permission(
+            constants.WORK_CREW_PERMISSION
+        ):
             self.attached_building = self.attached_work_crew.images[
                 0
             ].current_cell.get_intact_building(self.building_type)
@@ -1122,7 +1124,7 @@ class work_crew_to_building_button(button):
         return (
             super().can_show(skip_parent_collection=skip_parent_collection)
             and self.attached_work_crew
-            and self.attached_work_crew.is_work_crew
+            and self.attached_work_crew.get_permission(constants.WORK_CREW_PERMISSION)
         )
 
     def update_tooltip(self):
@@ -1653,14 +1655,8 @@ class automatic_route_button(button):
             attached_mob = status.displayed_mob
             if (
                 attached_mob.inventory_capacity > 0
-                and (
-                    not (
-                        attached_mob.get_permission(constants.GROUP_PERMISSION)
-                        and attached_mob.can_trade
-                    )
-                )
-                and not attached_mob.get_permission(
-                    constants.INACTIVE_VEHICLE_PERMISSION
+                and not attached_mob.any_permissions(
+                    constants.CARAVAN_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
                 )
             ):
                 if self.button_type in [

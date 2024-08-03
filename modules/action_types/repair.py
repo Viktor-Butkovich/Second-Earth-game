@@ -22,7 +22,7 @@ class repair(action.action):
         """
         super().initial_setup(**kwargs)
         self.building_type = kwargs.get("building_type", "none")
-        self.requirement = status.actions[self.building_type].requirement
+        self.requirements = status.actions[self.building_type].requirements
         del status.actions[self.action_type]
         status.actions["repair_" + self.building_type] = self
         self.current_building = "none"
@@ -142,15 +142,8 @@ class repair(action.action):
         Output:
             boolean: Returns whether a button linked to this action should be drawn
         """
-        unit = status.displayed_mob
-        building = unit.get_cell().get_building(self.building_type)
-        can_show = (
-            super().can_show()
-            and unit.get_permission(constants.GROUP_PERMISSION)
-            and getattr(unit, self.requirement)
-            and building != "none"
-            and building.damaged
-        )
+        building = status.displayed_mob.get_cell().get_building(self.building_type)
+        can_show = super().can_show() and building != "none" and building.damaged
         return can_show
 
     def on_click(self, unit):

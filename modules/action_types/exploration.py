@@ -23,6 +23,10 @@ class exploration(action.action):
         """
         super().initial_setup()
         constants.transaction_descriptions[self.action_type] = "exploration"
+        self.requirements += [
+            constants.OFFICER_PERMISSION,
+            constants.EXPEDITION_PERMISSION,
+        ]
         self.name = "exploration"
         self.x_change = None
         self.y_change = None
@@ -64,7 +68,7 @@ class exploration(action.action):
             None
         """
         message = []
-        if status.displayed_mob.can_explore:
+        if status.displayed_mob.get_permission(constants.EXPEDITION_PERMISSION):
             message.append(
                 "Press to attempt to explore in the " + tooltip_info_dict["direction"]
             )

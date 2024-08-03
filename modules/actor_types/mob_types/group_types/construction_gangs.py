@@ -35,9 +35,5 @@ class construction_gang(group):
             None
         """
         super().__init__(from_save, input_dict)
-        self.can_construct = True
+        self.set_permission(constants.CONSTRUCTION_PERMISSION, True)
         self.set_group_type("construction_gang")
-        if not from_save:
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, self
-            )  # updates mob info display list to account for can_construct changing

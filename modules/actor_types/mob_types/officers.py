@@ -34,8 +34,8 @@ class officer(pmob):
         Output:
             None
         """
-        super().__init__(from_save, input_dict, original_constructor=False)
         self.officer_type = input_dict.get("officer_type", type(self).__name__)
+        super().__init__(from_save, input_dict, original_constructor=False)
         self.set_controlling_minister_type(
             constants.officer_minister_dict[self.officer_type]
         )
@@ -57,6 +57,9 @@ class officer(pmob):
         """
         super().permissions_setup()
         self.set_permission(constants.OFFICER_PERMISSION, True)
+        self.set_permission(
+            getattr(constants, self.officer_type.upper() + "_PERMISSION"), True
+        )
 
     def replace(self, attached_group="none"):
         """

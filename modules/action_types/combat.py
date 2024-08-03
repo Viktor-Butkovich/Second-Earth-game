@@ -185,7 +185,7 @@ class combat(action.action):
             if self.current_unit.get_permission(constants.VETERAN_PERMISSION):
                 text += f"The {self.current_unit.officer.name} can roll twice and pick the higher result. /n"
 
-            if self.current_unit.is_battalion:
+            if self.current_unit.get_permission(constants.BATTALION_PERMISSION):
                 if self.current_unit.battalion_type == "imperial":
                     text += "Your professional imperial soldiers will receive a +2 bonus after their roll. /n"
             else:
@@ -310,7 +310,7 @@ class combat(action.action):
                 self.x_change + unit.x, self.y_change + unit.y
             )
             opponent = "none"
-            if unit.is_battalion:
+            if unit.get_permission(constants.BATTALION_PERMISSION):
                 opponent = future_cell.get_best_combatant("npmob")
                 self.action_type = "combat"
             if opponent == "none":
@@ -353,7 +353,7 @@ class combat(action.action):
         self.current_max_crit_fail = 0
         self.current_min_success = 0
         self.current_max_crit_fail = 0
-        if unit.is_battalion:
+        if unit.get_permission(constants.BATTALION_PERMISSION):
             self.current_min_crit_success = 6
         else:
             self.current_min_crit_success = 7
@@ -416,10 +416,10 @@ class combat(action.action):
         """
         audio = super().generate_audio(subject)
         if subject == "initial":
-            if self.current_unit.is_battalion:
+            if self.current_unit.get_permission(constants.BATTALION_PERMISSION):
                 audio.append("effects/bolt_action_1")
         elif subject == "roll_started":
-            if self.current_unit.is_battalion:
+            if self.current_unit.get_permission(constants.BATTALION_PERMISSION):
                 audio.append("effects/gunfire")
         return audio
 
@@ -480,7 +480,7 @@ class combat(action.action):
                 num_dice,
             )
             results = minister_rolls
-        elif self.current_unit.is_battalion:
+        elif self.current_unit.get_permission(constants.BATTALION_PERMISSION):
             # 'combat' modifiers don't apply on defense because no roll type is specified in no_corruption_roll, while unit modifiers do apply on defense
             #   Defense is a more spontaneous action that should only rely on what is immediately on-site, but this could be modified in the future
             results = [self.opponent.combat_roll()] + [

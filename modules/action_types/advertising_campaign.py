@@ -33,6 +33,10 @@ class advertising_campaign(action.campaign):
         constants.transaction_descriptions[self.action_type] = "advertising"
         self.name = "advertising campaign"
         self.target_commodity = "none"
+        self.requirements += [
+            constants.OFFICER_PERMISSION,
+            constants.MERCHANT_PERMISSION,
+        ]
 
     def pre_start(self, unit):
         """
@@ -214,21 +218,6 @@ class advertising_campaign(action.campaign):
             if self.roll_result >= self.current_min_success:
                 audio += self.success_audio
         return audio
-
-    def can_show(self):
-        """
-        Description:
-            Returns whether a button linked to this action should be drawn
-        Input:
-            None
-        Output:
-            boolean: Returns whether a button linked to this action should be drawn
-        """
-        return (
-            super().can_show()
-            and status.displayed_mob.get_permission(constants.OFFICER_PERMISSION)
-            and status.displayed_mob.officer_type == "merchant"
-        )
 
     def on_click(self, unit):
         """

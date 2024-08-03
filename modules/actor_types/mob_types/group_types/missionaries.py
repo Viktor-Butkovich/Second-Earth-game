@@ -36,5 +36,5 @@ class missionaries(group):
         """
         super().__init__(from_save, input_dict)
         self.number = 2  # missionaries is plural
-        self.can_convert = True
+        self.set_permission(constants.MISSIONARIES_PERMISSION, True)
         self.set_group_type("missionaries")

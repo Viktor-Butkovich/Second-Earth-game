@@ -26,6 +26,10 @@ class loan_search(action.campaign):
         self.name = "loan search"
         self.target_commodity = "none"
         self.current_proposed_loan = {}
+        self.requirements += [
+            constants.OFFICER_PERMISSION,
+            constants.MERCHANT_PERMISSION,
+        ]
 
     def button_setup(self, initial_input_dict):
         """
@@ -96,21 +100,6 @@ class loan_search(action.campaign):
                 )
             )
         return return_list
-
-    def can_show(self):
-        """
-        Description:
-            Returns whether a button linked to this action should be drawn
-        Input:
-            None
-        Output:
-            boolean: Returns whether a button linked to this action should be drawn
-        """
-        return (
-            super().can_show()
-            and status.displayed_mob.get_permission(constants.OFFICER_PERMISSION)
-            and status.displayed_mob.officer_type == "merchant"
-        )
 
     def on_click(self, unit):
         """

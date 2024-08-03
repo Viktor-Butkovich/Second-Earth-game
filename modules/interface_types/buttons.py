@@ -180,8 +180,8 @@ class button(interface_elements.interface_element):
                     )
                     connecting_roads = False
                     if (
-                        current_mob.is_battalion
-                        and not adjacent_cell.get_best_combatant("npmob") == "none"
+                        current_mob.get_permission(constants.BATTALION_PERMISSION)
+                        and adjacent_cell.get_best_combatant("npmob") != "none"
                     ):
                         tooltip_text += status.actions["combat"].update_tooltip(
                             tooltip_info_dict={
@@ -282,10 +282,8 @@ class button(interface_elements.interface_element):
             )
 
         elif self.button_type == "merge":
-            if (
-                status.displayed_mob
-                and status.displayed_mob.get_permission(constants.OFFICER_PERMISSION)
-                and status.displayed_mob.officer_type == "evangelist"
+            if status.displayed_mob and status.displayed_mob.all_permissions(
+                constants.OFFICER_PERMISSION, constants.EVANGELIST_PERMISSION
             ):
                 self.set_tooltip(
                     [
@@ -2870,10 +2868,9 @@ class reorganize_unit_button(button):
 
                 for autofill_target_type in dummy_autofill_target_to_procedure_dict:
                     if procedure_actors[autofill_target_type] != "none":
-                        if (
-                            procedure_type != "invalid"
-                            and procedure_actors[autofill_target_type].is_dummy
-                        ):
+                        if procedure_type != "invalid" and procedure_actors[
+                            autofill_target_type
+                        ].get_permission(constants.DUMMY_PERMISSION):
                             procedure_type = dummy_autofill_target_to_procedure_dict[
                                 autofill_target_type
                             ]
@@ -2892,15 +2889,20 @@ class reorganize_unit_button(button):
                     procedure_type = "crew"
 
                 if procedure_type == "merge":
-                    if (
-                        procedure_actors["worker"].worker_type == "religious"
-                        and procedure_actors["officer"].officer_type != "evangelist"
+                    if procedure_actors[
+                        "worker"
+                    ].worker_type == "religious" and not procedure_actors[
+                        "officer"
+                    ].get_permission(
+                        constants.EVANGELIST_PERMISSION
                     ):
                         text_utility.print_to_screen(
                             "Church volunteers can only be combined with evangelists."
                         )
                     elif (
-                        procedure_actors["officer"].officer_type == "evangelist"
+                        procedure_actors["officer"].get_permission(
+                            constants.EVANGELIST_PERMISSION
+                        )
                         and procedure_actors["worker"].worker_type != "religious"
                     ):
                         text_utility.print_to_screen(
@@ -3002,7 +3004,7 @@ class cycle_autofill_button(button):
                 ):
                     if not self.parent_collection.autofill_actors[
                         self.autofill_target_type
-                    ].is_dummy:
+                    ].get_permission(constants.DUMMY_PERMISSION):
                         if self.autofill_target_type == "worker":
                             return status.displayed_mob.images[
                                 0

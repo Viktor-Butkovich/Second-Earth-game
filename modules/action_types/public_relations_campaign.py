@@ -27,6 +27,10 @@ class public_relations_campaign(action.campaign):
             self.action_type
         ] = "public relations campaigning"
         self.name = "public relations campaign"
+        self.requirements += [
+            constants.OFFICER_PERMISSION,
+            constants.EVANGELIST_PERMISSION,
+        ]
 
     def button_setup(self, initial_input_dict):
         """
@@ -85,21 +89,6 @@ class public_relations_campaign(action.campaign):
             text += self.generate_notification_text("success")
             text += "With fiery word and true belief in his cause, the evangelist becomes a veteran and will be more successful in future ventures. /n /n"
         return text
-
-    def can_show(self):
-        """
-        Description:
-            Returns whether a button linked to this action should be drawn
-        Input:
-            None
-        Output:
-            boolean: Returns whether a button linked to this action should be drawn
-        """
-        return (
-            super().can_show()
-            and status.displayed_mob.get_permission(constants.OFFICER_PERMISSION)
-            and status.displayed_mob.officer_type == "evangelist"
-        )
 
     def on_click(self, unit):
         """

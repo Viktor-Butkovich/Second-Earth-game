@@ -36,7 +36,7 @@ class battalion(group):
             None
         """
         super().__init__(from_save, input_dict)
-        self.is_battalion = True
+        self.set_permission(constants.BATTALION_PERMISSION, True)
         if self.worker.worker_type == "European":
             self.battalion_type = "imperial"
         else:
@@ -83,8 +83,8 @@ class battalion(group):
         if adjacent_cell:
             if (
                 (not post_attack)
-                and self.is_battalion
-                and not adjacent_cell.get_best_combatant("npmob") == "none"
+                and self.get_permission(constants.BATTALION_PERMISSION)
+                and adjacent_cell.get_best_combatant("npmob") != "none"
             ):  # if battalion attacking
                 cost = 1
             else:
