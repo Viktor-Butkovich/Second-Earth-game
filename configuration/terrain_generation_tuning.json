@@ -7,7 +7,7 @@
     "altitude_bounds": [1, 1, 1, 1, 1, 2, 2, 3],
     "smooth_altitude": true,
 
-    "base_temperature_lower_bound": -5,
+    "base_temperature_lower_bound": -4,
     "base_temperature_upper_bound": 11,
     "initial_temperature_variation": 1,
     "weighted_temperature_bounds": true,

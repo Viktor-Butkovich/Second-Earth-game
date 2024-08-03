@@ -559,6 +559,11 @@ class bundle_image:
                 self.image = pygame.transform.scale(
                     self.image, (constants.PIXELLATED_SIZE, constants.PIXELLATED_SIZE)
                 )
+                hashed_key = hash(key) # Randomly flip pixellated image in the same way every time
+                if hashed_key % 2 == 0:
+                    self.image = pygame.transform.flip(self.image, True, False)
+                if hashed_key % 4 >= 2:
+                    self.image = pygame.transform.flip(self.image, False, True)
             if self.is_offset and self.alpha != 255:
                 self.image.set_alpha(self.alpha)
             status.rendered_images[key] = self.image
