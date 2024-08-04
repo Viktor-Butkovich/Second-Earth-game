@@ -477,11 +477,11 @@ def manage_ministers():
                 current_position = current_minister.current_position
             if evidence_lost == current_minister.corruption_evidence:
                 current_minister.display_message(
-                    f"All of the {current_minister.corruption_evidence} evidence of {current_position} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against him. /n /n"
+                    f"All of the {current_minister.corruption_evidence} evidence of {current_position} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against them. /n /n"
                 )
             else:
                 current_minister.display_message(
-                    f"{evidence_lost} of the {current_minister.corruption_evidence} evidence of {current_position} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against him. /n /n"
+                    f"{evidence_lost} of the {current_minister.corruption_evidence} evidence of {current_position} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against them. /n /n"
                 )
             current_minister.corruption_evidence -= evidence_lost
         if removing_current_minister:
@@ -653,12 +653,7 @@ def end_turn_warnings():
             current_minister.just_removed
             and current_minister.current_position == "none"
         ):
-            text = (
-                "Warning: if you do not reappoint "
-                + current_minister.name
-                + " by the end of the turn, he will be considered fired, leaving the candidate pool and incurring a large public opinion penalty. /n /n"
-            )
-            current_minister.display_message(text)
+            current_minister.display_message(f"Warning: if you do not reappoint {current_minister.name} by the end of the turn, they will be considered fired, leaving the candidate pool and incurring a large public opinion penalty. /n /n")
 
     for (
         current_cell
@@ -670,17 +665,9 @@ def end_turn_warnings():
             and current_cell.tile.get_inventory_used()
             > current_cell.tile.inventory_capacity
         ):
-            text = (
-                "Warning: the warehouses at ("
-                + str(current_cell.x)
-                + ", "
-                + str(current_cell.y)
-                + ") are not sufficient to hold the commodities stored there. /n /n"
-            )
-            text += "Any commodities exceeding the tile's storage capacity will be lost at the end of the turn. /n /n"
             constants.notification_manager.display_notification(
                 {
-                    "message": text,
+                    "message": f"Warning: the warehouses at {current_cell.x}, {current_cell.y} are not sufficient to hold the commodities stored there. /n /nAny commodities exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
                     "zoom_destination": current_cell.tile,
                 }
             )
@@ -692,15 +679,9 @@ def end_turn_warnings():
                 > current_cell.tile.inventory_capacity
                 and not current_cell.tile.infinite_inventory_capacity
             ):
-                text = (
-                    "Warning: the warehouses in "
-                    + current_grid.cell_list[0][0].tile.name
-                    + " are not sufficient to hold the commodities stored there. /n /n"
-                )
-                text += "Any commodities exceeding the tile's storage capacity will be lost at the end of the turn. /n /n"
                 constants.notification_manager.display_notification(
                     {
-                        "message": text,
+                        "message": f"Warning: the warehouses in {current_grid.cell_list[0][0].tile.name} are not sufficient to hold the commodities stored there. /n /nAny commodities exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
                         "zoom_destination": current_cell.tile,
                     }
                 )

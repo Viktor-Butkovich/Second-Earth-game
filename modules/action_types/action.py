@@ -93,7 +93,7 @@ class action:
         Output:
             boolean: Returns whether a button linked to this action should be drawn
         """
-        return status.displayed_mob.all_permissions(*self.requirements)
+        return status.displayed_mob and status.displayed_mob.all_permissions(*self.requirements)
 
     def on_click(self, unit):
         """

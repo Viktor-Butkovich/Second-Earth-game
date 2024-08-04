@@ -1393,19 +1393,19 @@ class remove_minister_button(button):
         if main_loop_utility.action_possible():
             appointed_minister = status.displayed_minister
             public_opinion_penalty = appointed_minister.status_number
-            text = f"Are you sure you want to remove {appointed_minister.name} from office? If removed, he will return to the pool of available ministers and be available to reappoint until the end of the turn. /n /n"
-            text += f"Removing {appointed_minister.name} from office would incur a small public opinion penalty of {public_opinion_penalty}, even if he were reappointed. /n /n"
+            text = f"Are you sure you want to remove {appointed_minister.name} from office? If removed, they will return to the pool of available ministers and be available to reappoint until the end of the turn. /n /n"
+            text += f"Removing {appointed_minister.name} from office would incur a small public opinion penalty of {public_opinion_penalty}, even if they were reappointed. /n /n"
             text += (
                 appointed_minister.name
-                + " expects to be reappointed to a different position by the end of the turn. If not reappointed, he will be fired permanently and incur a much larger public opinion penalty. /n /n"
+                + " expects to be reappointed to a different position by the end of the turn. If not reappointed, they will be fired permanently and incur a much larger public opinion penalty. /n /n"
             )
             if appointed_minister.status_number >= 3:
                 if appointed_minister.status_number == 4:
-                    text += f"{appointed_minister.name} is of extremely high social status, so firing him would cause a national outrage. /n /n"
+                    text += f"{appointed_minister.name} is of extremely high social status, so firing them would cause a national outrage. /n /n"
                 else:
-                    text += f"{appointed_minister.name} is of high social status, so firing him would reflect particularly poorly on your company. /n /n"
+                    text += f"{appointed_minister.name} is of high social status, so firing them would reflect particularly poorly on your company. /n /n"
             elif appointed_minister.status_number == 1:
-                text += f"{appointed_minister.name} is of low social status, so firing him would have a relatively minimal impact on your company's reputation. /n /n"
+                text += f"{appointed_minister.name} is of low social status, so firing them would have a relatively minimal impact on your company's reputation. /n /n"
             constants.notification_manager.display_notification(
                 {"message": text, "choices": ["confirm remove minister", "none"]}
             )

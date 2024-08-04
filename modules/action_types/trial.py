@@ -38,6 +38,17 @@ class trial(action.campaign):
         self.allow_critical_failures = False
         self.placement_type = "free"
 
+    def can_show(self):
+        """
+        Description:
+            Returns whether a button linked to this action should be drawn
+        Input:
+            None
+        Output:
+            boolean: Returns whether a button linked to this action should be drawn
+        """
+        return True
+
     def button_setup(self, initial_input_dict):
         """
         Description:
@@ -82,7 +93,7 @@ class trial(action.campaign):
             None
         """
         return [
-            f"Tries the defending minister in an attempt to remove him from office and imprison him for corruption",
+            f"Tries the defending minister in an attempt to remove them from office and imprison them for corruption",
             f"Costs {self.get_price()} money",
             f"Each trial attempted doubles the cost of other trials in the same turn",
         ]
@@ -373,7 +384,7 @@ class trial(action.campaign):
         defense = status.displayed_defense
         if self.roll_result >= self.current_min_success:
             confiscated_money = defense.stolen_money / 2.0
-            text = f"You have won the trial, removing {defense.name} as {defense.current_position} and putting him in prison. /n /n"
+            text = f"You have won the trial, removing {defense.name} as {defense.current_position} and putting them in prison. /n /n"
             if confiscated_money > 0:
                 text += f"While most of {defense.name}'s money was spent on the trial or unaccounted for, authorities managed to confiscate {str(confiscated_money)} money, which has been given to your company as compensation. /n /n"
                 text += " /n /n"

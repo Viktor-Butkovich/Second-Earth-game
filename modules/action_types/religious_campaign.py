@@ -72,7 +72,7 @@ class religious_campaign(action.campaign):
         if subject == "confirmation":
             text += f"Are you sure you want to start a religious campaign? /n /nIf successful, a religious campaign will convince church volunteers to join you, allowing the formation of groups of missionaries. /n /nThe campaign will cost {self.get_price()} money. /n /n"
         elif subject == "initial":
-            text += f"The evangelist campaigns for the support of church volunteers to join him. /n /n"
+            text += f"The evangelist campaigns for the support of church volunteers to join them. /n /n"
         elif subject == "success":
             text += f"Inspired by the evangelist's message to save the heathens from their own ignorance, a group of church volunteers joins you. /n /n"
         elif subject == "failure":
@@ -94,6 +94,7 @@ class religious_campaign(action.campaign):
         Output:
             dictionary list: Returns list of input dicts for inputted subject
         """
+        return super().generate_attached_interface_elements(subject)
         return_list = super().generate_attached_interface_elements(subject)
         if subject in ["success", "critical_success"]:
             return_list.append(

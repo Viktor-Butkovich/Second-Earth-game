@@ -9,6 +9,7 @@ from ..util import (
     utility,
     actor_utility,
     minister_utility,
+    dummy_utility,
 )
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -51,32 +52,45 @@ class recruitment_button(button):
             else:
                 self.recruitment_name += " "
         status.recruitment_button_list.append(self)
-        if self.recruitment_name.endswith(" workers"):
-            image_id_list = ["buttons/default_button_alt.png"]
-            left_worker_dict = {
-                "image_id": self.mob_image_id,
-                "size": 0.8,
-                "x_offset": -0.2,
-                "y_offset": 0,
-                "level": 1,
-            }
-            image_id_list.append(left_worker_dict)
+        dummy_recruited_unit = constants.actor_creation_manager.create_dummy({})
+        dummy_recruited_unit.set_permission(constants.PMOB_PERMISSION, True)
 
-            right_worker_dict = left_worker_dict.copy()
-            right_worker_dict["x_offset"] *= -1
-            image_id_list.append(right_worker_dict)
+        if self.recruitment_name.endswith(" workers"):
+            dummy_recruited_unit.set_permission(constants.WORKER_PERMISSION, True)
+        elif self.recruitment_name == "steamship":
+            dummy_recruited_unit.set_permission(constants.VEHICLE_PERMISSION, True)
+            dummy_recruited_unit.set_permission(constants.ACTIVE_PERMISSION, True)
         else:
-            image_id_list = [
-                "buttons/default_button_alt.png",
-                {
-                    "image_id": self.mob_image_id,
-                    "size": 0.95,
-                    "x_offset": 0,
-                    "y_offset": 0,
-                    "level": 1,
-                },
-            ]
-        input_dict["image_id"] = image_id_list
+            dummy_recruited_unit.set_permission(constants.OFFICER_PERMISSION, True)
+
+        if self.recruitment_name.endswith(" workers"):
+            image_id = utility.combine(actor_utility.generate_unit_component_portrait(
+                constants.character_manager.generate_unit_portrait(
+                dummy_recruited_unit, metadata={"body_image": self.mob_image_id}
+            ), "left"
+            ),
+            actor_utility.generate_unit_component_portrait(
+                constants.character_manager.generate_unit_portrait(
+                dummy_recruited_unit, metadata={"body_image": self.mob_image_id}
+            ), "right"
+            ))
+            for image in image_id:
+                if type(image) == dict and image.get("metadata", {}).get("portrait_section", "") != "full_body":
+                    image["y_offset"] = image.get("y_offset", 0) - 0.02
+
+        elif self.recruitment_name == "steamship":
+            image_id = self.mob_image_id
+        else:
+            image_id = constants.character_manager.generate_unit_portrait(
+                dummy_recruited_unit, metadata={"body_image": self.mob_image_id}
+            )
+            for image in image_id:
+                if type(image) == dict and image.get("metadata", {}).get("portrait_section", "") != "full_body":
+                    image["x_offset"] = image.get("x_offset", 0) - 0.01
+                    image["y_offset"] = image.get("y_offset", 0) - 0.01
+
+        image_id = actor_utility.generate_frame(image_id, frame="buttons/default_button_alt.png", size=0.9, y_offset = 0.02)            
+        input_dict["image_id"] = image_id
         input_dict["button_type"] = "recruitment"
         super().__init__(input_dict)
 
@@ -120,29 +134,9 @@ class recruitment_button(button):
         actor_utility.update_descriptions(self.recruitment_type)
         cost = constants.recruitment_costs[self.recruitment_type]
         if self.recruitment_type.endswith(" workers"):
-            self.set_tooltip(
-                [
-                    "Recruits a unit of "
-                    + self.recruitment_name
-                    + " for "
-                    + str(cost)
-                    + " money."
-                ]
-                + constants.list_descriptions[self.recruitment_type]
-            )
+            self.set_tooltip([f"Recruits a unit of {self.recruitment_name} for {cost} money."] + constants.list_descriptions[self.recruitment_type])
         else:
-            self.set_tooltip(
-                [
-                    "Recruits "
-                    + utility.generate_article(self.recruitment_type)
-                    + " "
-                    + self.recruitment_name
-                    + " for "
-                    + str(cost)
-                    + " money."
-                ]
-                + constants.list_descriptions[self.recruitment_type]
-            )
+            self.set_tooltip([f"Recruits an {self.recruitment_name} for {cost} money."] + constants.list_descriptions[self.recruitment_type])
 
     def remove(self):
         """

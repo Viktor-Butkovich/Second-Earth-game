@@ -69,6 +69,7 @@ except Exception:  # displays error message and records error message in crash l
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
+# Add consistent but random generation for recruitment buttons
 # Add a unit permissions system - any unit type has a dictionary of True/False permissions for each possible action, using defaults if none specified
 #   Use similar system to terrain knowledge privileges, using set of constants to identify each permission type
 #   Something like canoes or suits would modify a unit's default permissions
@@ -84,3 +85,4 @@ except Exception:  # displays error message and records error message in crash l
 # Add spaceships
 # Allow large items to be stored in inventory, with supporting interface
 # Add radio distortion versions of voice lines, either as separate files or runtime filter
+# Update actor_utility.generate_frame

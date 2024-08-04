@@ -125,7 +125,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
 
         return new_actor
 
-    def create_dummy(self, input_dict):
+    def create_dummy(self, input_dict=None):
         """
         Description:
             Creates a special fake version of a unit to display as a hypothetical, with the same images and tooltips as a real unit
@@ -135,6 +135,8 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         Output:
             actor: Returns the unit that was created
         """
+        if not input_dict:
+            input_dict = {}
         new_actor = dummy.dummy(input_dict)
         return new_actor
 

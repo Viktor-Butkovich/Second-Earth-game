@@ -605,27 +605,11 @@ class button(interface_elements.interface_element):
                 self.set_tooltip(["placeholder"])
 
         elif self.button_type == "bribe judge":
-            self.set_tooltip(
-                [
-                    "Bribes the judge of the next trial this turn for "
-                    + str(self.get_cost())
-                    + " money",
-                    "While having unpredictable results, bribing the judge may swing the trial in your favor or blunt the defense's efforts to do the same",
-                ]
-            )
+            self.set_tooltip([f"Bribes the judge of the next trial this turn for {self.get_cost()} money", "While having unpredictable results, bribing the judge may swing the trial in your favor or blunt the defense's efforts to do the same"])
 
         elif self.button_type == "recruit workers":
             actor_utility.update_descriptions(self.worker_type + " workers")
-            self.set_tooltip(
-                [
-                    "Recruits a unit of "
-                    + self.worker_type
-                    + " workers for "
-                    + str(status.worker_types[self.worker_type].recruitment_cost)
-                    + " money"
-                ]
-                + constants.list_descriptions[self.worker_type + " workers"]
-            )
+            self.set_tooltip([f"Recruits a unit of {self.worker_type} workers for {status.worker_types[self.worker_type].recruitment_cost} money"])
 
         elif self.button_type == "rename settlement":
             self.set_tooltip(["Displays a typing prompt to rename this settlement"])

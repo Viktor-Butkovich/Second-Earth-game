@@ -518,6 +518,7 @@ def generate_unit_component_portrait(
             "y_offset": section.get("y_offset", 0) - 0.1,
             "level": section.get("level", 0) - 1,
             "green_screen": section.get("green_screen", []),
+            "metadata": section.get("metadata", {}),
         }
         if component.endswith("left"):
             edited_section["x_offset"] -= 0.245
@@ -708,7 +709,7 @@ def callback(target, function, *args):
     getattr(getattr(status, target), function)(*args)
 
 
-def generate_frame(image_id: any, frame="buttons/default_button.png"):
+def generate_frame(image_id: any, frame: str="buttons/default_button.png", size: float = 0.75, y_offset: float = -0.02, x_offset: float = 0.02):
     """
     Description:
         Generates and returns a version of the inputted image ID with a frame added
@@ -718,17 +719,25 @@ def generate_frame(image_id: any, frame="buttons/default_button.png"):
     Output:
         None
     """
+    frame = {
+        "image_id": frame,
+        "level": constants.BACKGROUND_LEVEL,
+    }
+
     if type(image_id) == str:
-        return [
-            frame,
-            {
-                "image_id": image_id,
-                "size": 0.75,
-                "x_offset": 0.02,
-                "y_offset": -0.02,
-            },
-        ]
-    elif type(image_id) == dict:
-        return  # Implement as needed
+        return(utility.combine(frame, {
+            "image_id": image_id,
+            "x_size": size,
+            "y_size": size,
+            "x_offset": x_offset,
+            "y_offset": y_offset,
+            "level": constants.BACKGROUND_LEVEL + 1
+        }))
+
     elif type(image_id) == list:
-        return  # Implement as needed
+        for image in image_id:
+            image["x_size"] = image.get("x_size", 1) * size
+            image["y_size"] = image.get("y_size", 1) * size
+            image["x_offset"] = image.get("x_offset", 0) + x_offset
+            image["y_offset"] = image.get("y_offset", 0) + y_offset
+        return(utility.combine(frame, image_id))

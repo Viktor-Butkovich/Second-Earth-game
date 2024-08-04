@@ -201,7 +201,7 @@ class minister:
                 "This minister was just removed from office and expects to be reappointed to an office by the end of the turn."
             )
             self.tooltip_text.append(
-                "If not reappointed by the end of the turn, he will be permanently fired, incurring a large public opinion penalty."
+                "If not reappointed by the end of the turn, they will be permanently fired, incurring a large public opinion penalty."
             )
 
     def generate_icon_input_dicts(self, alignment="left"):
@@ -325,7 +325,7 @@ class minister:
                     self.corruption_evidence += 1
                     evidence_message = ""
                     evidence_message += f"Prosecutor {prosecutor.name} suspects that {self.current_position} {self.name} just engaged in corrupt activity relating to "
-                    evidence_message += f"{constants.transaction_descriptions[theft_type]} and has filed a piece of evidence against him. /n /n"
+                    evidence_message += f"{constants.transaction_descriptions[theft_type]} and has filed a piece of evidence against them. /n /n"
                     evidence_message += f"There are now {self.corruption_evidence} piece{utility.generate_plural(self.corruption_evidence)} of evidence against {self.name}. /n /n"
                     evidence_message += "Each piece of evidence can help in a trial to remove a corrupt minister from office. /n /n"
                     prosecutor.display_message(
