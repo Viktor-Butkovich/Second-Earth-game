@@ -709,7 +709,13 @@ def callback(target, function, *args):
     getattr(getattr(status, target), function)(*args)
 
 
-def generate_frame(image_id: any, frame: str="buttons/default_button.png", size: float = 0.75, y_offset: float = -0.02, x_offset: float = 0.02):
+def generate_frame(
+    image_id: any,
+    frame: str = "buttons/default_button.png",
+    size: float = 0.75,
+    y_offset: float = -0.02,
+    x_offset: float = 0.02,
+):
     """
     Description:
         Generates and returns a version of the inputted image ID with a frame added
@@ -725,14 +731,17 @@ def generate_frame(image_id: any, frame: str="buttons/default_button.png", size:
     }
 
     if type(image_id) == str:
-        return(utility.combine(frame, {
-            "image_id": image_id,
-            "x_size": size,
-            "y_size": size,
-            "x_offset": x_offset,
-            "y_offset": y_offset,
-            "level": constants.BACKGROUND_LEVEL + 1
-        }))
+        return utility.combine(
+            frame,
+            {
+                "image_id": image_id,
+                "x_size": size,
+                "y_size": size,
+                "x_offset": x_offset,
+                "y_offset": y_offset,
+                "level": constants.BACKGROUND_LEVEL + 1,
+            },
+        )
 
     elif type(image_id) == list:
         for image in image_id:
@@ -740,4 +749,4 @@ def generate_frame(image_id: any, frame: str="buttons/default_button.png", size:
             image["y_size"] = image.get("y_size", 1) * size
             image["x_offset"] = image.get("x_offset", 0) + x_offset
             image["y_offset"] = image.get("y_offset", 0) + y_offset
-        return(utility.combine(frame, image_id))
+        return utility.combine(frame, image_id)

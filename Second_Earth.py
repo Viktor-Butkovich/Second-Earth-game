@@ -56,7 +56,6 @@ except Exception:  # displays error message and records error message in crash l
 # Eventually add hydrogen fuel cells - process to convert hydrogen and oxygen into water, actually releases energy but requires facility and hydrogen/oxygen input
 # Include "advancement level" of building materials - 1 ~ stone/wood, etc. for basic shelters in atmosphere, 2 ~ for industrial steel/concrete for factories,
 #   basic planetary construction, 3 ~ for titanium, carbon fiber, advanced modern-day materials, spaceships, etc., 4+ for more advanced
-# Add new minister positions next!
 # Also document a list of officers for each minister position
 # Minister types:
 #   Exploration -> Science (research, exploration, surveying)
@@ -69,20 +68,16 @@ except Exception:  # displays error message and records error message in crash l
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
-# Add consistent but random generation for recruitment buttons
 # Add a unit permissions system - any unit type has a dictionary of True/False permissions for each possible action, using defaults if none specified
 #   Use similar system to terrain knowledge privileges, using set of constants to identify each permission type
 #   Something like canoes or suits would modify a unit's default permissions
-#   Next add permissions for actions, sentry mode, etc.
-#   Actions should have permission requirements by default, rather than requiring extra logic per action
+#   Next add permissions for temporary states, sentry mode, etc.
 #   Add permissions for ministers as well as mobs
 #   Replace worker_type logic with permissions handling
 # Add new minister positions
-# Add preset portraits for purchase unit buttons
 # Add astronauts/cosmonauts group with corresponding officer
 # Add support for vehicles being crewed by groups, combining in new interface with any group attaching/detaching, like to mines/factories
 #   This allows embarking/disembarking to be part of the reorganization interface
 # Add spaceships
 # Allow large items to be stored in inventory, with supporting interface
 # Add radio distortion versions of voice lines, either as separate files or runtime filter
-# Update actor_utility.generate_frame

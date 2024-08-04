@@ -653,7 +653,9 @@ def end_turn_warnings():
             current_minister.just_removed
             and current_minister.current_position == "none"
         ):
-            current_minister.display_message(f"Warning: if you do not reappoint {current_minister.name} by the end of the turn, they will be considered fired, leaving the candidate pool and incurring a large public opinion penalty. /n /n")
+            current_minister.display_message(
+                f"Warning: if you do not reappoint {current_minister.name} by the end of the turn, they will be considered fired, leaving the candidate pool and incurring a large public opinion penalty. /n /n"
+            )
 
     for (
         current_cell

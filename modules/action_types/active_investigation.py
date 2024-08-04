@@ -95,7 +95,10 @@ class active_investigation(action.campaign):
         Output:
             boolean: Returns whether a button linked to this action should be drawn
         """
-        return status.displayed_minister and status.displayed_minister.current_position != "Prosecutor"
+        return (
+            status.displayed_minister
+            and status.displayed_minister.current_position != "Prosecutor"
+        )
 
     def on_click(self, unit):
         """
