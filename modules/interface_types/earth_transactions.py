@@ -233,19 +233,11 @@ class buy_item_button(button):
                     constants.money_tracker.change(-1 * cost, "items")
                     if self.item_type.endswith("s"):
                         text_utility.print_to_screen(
-                            "You spent "
-                            + str(cost)
-                            + " money to buy 1 unit of "
-                            + self.item_type
-                            + "."
+                            f"You spent {cost} money to buy 1 unit of {self.item_type}."
                         )
                     else:
                         text_utility.print_to_screen(
-                            "You spent "
-                            + str(cost)
-                            + " money to buy 1 "
-                            + self.item_type
-                            + "."
+                            f"You spent {cost} money to buy 1 {self.item_type}."
                         )
                     if (
                         random.randrange(1, 7) == 1
@@ -253,13 +245,7 @@ class buy_item_button(button):
                     ):  # 1/6 chance
                         market_utility.change_price(self.item_type, 1)
                         text_utility.print_to_screen(
-                            "The price of "
-                            + self.item_type
-                            + " has increased from "
-                            + str(cost)
-                            + " to "
-                            + str(cost + 1)
-                            + "."
+                            f"The price of {self.item_type} has increased from {cost} to {cost + 1}."
                         )
                     actor_utility.calibrate_actor_info_display(
                         status.tile_inventory_info_display,
@@ -286,19 +272,11 @@ class buy_item_button(button):
         new_tooltip = []
         if self.item_type.endswith("s"):
             new_tooltip.append(
-                "Purchases 1 unit of "
-                + self.item_type
-                + " for "
-                + str(constants.item_prices[self.item_type])
-                + " money."
+                f"Purchases 1 unit of {self.item_type} for {constants.item_prices[self.item_type]} money."
             )
         else:
             new_tooltip.append(
-                "Purchases 1 "
-                + self.item_type
-                + " for "
-                + str(constants.item_prices[self.item_type])
-                + " money."
+                f"Purchases 1 {self.item_type} for {constants.item_prices[self.item_type]} money."
             )
         if self.item_type in status.equipment_types:
             new_tooltip += status.equipment_types[self.item_type].description

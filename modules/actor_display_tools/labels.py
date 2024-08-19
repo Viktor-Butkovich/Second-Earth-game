@@ -239,6 +239,10 @@ class actor_display_label(label):
             self.message_start = "Inventory: "
             input_dict["width"], input_dict["height"] = (m_size, m_size)
             if self.actor_label_type == "tile inventory capacity":
+                input_dict["init_type"] = "use each equipment button"
+                input_dict["image_id"] = "buttons/use_equipment_button.png"
+                self.add_attached_button(input_dict)
+
                 input_dict["init_type"] = "pick up each commodity button"
                 input_dict["image_id"] = "buttons/commodity_pick_up_each_button.png"
                 self.add_attached_button(input_dict)

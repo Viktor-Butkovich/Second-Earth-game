@@ -186,6 +186,7 @@ class sound_manager_template:
             None
         """
         self.previous_song = "none"
+        original_state = self.previous_state
         if not (self.previous_state == current_state):
             state_changed = True
         else:
@@ -203,9 +204,12 @@ class sound_manager_template:
                     chosen_song = random.choice(possible_songs)
         else:
             chosen_song = "none"
-        if (not state_changed) and (chosen_song != "none"):
+        if (
+            (not state_changed) and (chosen_song != "none")
+        ) or original_state == "none":  # Start music immediately on startup or if last song finished
+            # Should result in music starting immediately when main menu starts up, while waiting until after loading/creating new game
             self.play_music(chosen_song)
-        else:
+        else:  # Otherwise, fade out current music and fade in new music
             self.music_transition(chosen_song, time_interval=0.75)
         self.previous_song = chosen_song
 

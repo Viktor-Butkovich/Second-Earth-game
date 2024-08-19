@@ -68,6 +68,7 @@ except Exception:  # displays error message and records error message in crash l
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
+# Incorporate A Strange New World, Flying in my Spaceship, Going Underground, Out of Time, Space Song 3
 # Add a unit permissions system - any unit type has a dictionary of True/False permissions for each possible action, using defaults if none specified
 #   Use similar system to terrain knowledge privileges, using set of constants to identify each permission type
 #   Something like canoes or suits would modify a unit's default permissions
@@ -81,3 +82,28 @@ except Exception:  # displays error message and records error message in crash l
 # Add spaceships
 # Allow large items to be stored in inventory, with supporting interface
 # Add radio distortion versions of voice lines, either as separate files or runtime filter
+# Add terrain details tile interface panel, such that terrain details aren't always showing
+# For tiles with knowledge 1, possibly change every turn to a cloud or normal pixellated version, depending on atmosphere conditions
+#
+# Fix this crash
+# ERROR:root:<class 'Exception'>
+# Traceback (most recent call last):
+#   File "c:\Users\vikto\Documents\Projects\Second Earth\Second_Earth.py", line 30, in <module>
+#     main_loop.main_loop()
+#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\main_loop.py", line 56, in main_loop
+#     current_button.on_click()
+#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\buttons.py", line 1350, in on_click
+#     constants.save_load_manager.new_game()
+#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\tools\data_managers\save_load_manager_template.py", line 87, in new_game
+#     game_transitions.create_strategic_map(from_save=False)
+#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\util\game_transitions.py", line 191, in create_strategic_map
+#    current_grid.create_world(from_save)
+#  File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\world_grids.py", line 62, in create_world
+#     self.generate_terrain_parameters()
+#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\world_grids.py", line 430, in generate_terrain_parameters
+#     self.generate_temperature()
+#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\world_grids.py", line 210, in generate_temperature
+#     self.make_random_terrain_parameter_worm(
+#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\world_grids.py", line 537, in make_random_terrain_parameter_worm
+#     original_value = self.find_cell(current_x, current_y).get_parameter(parameter)
+#  AttributeError: 'NoneType' object has no attribute 'get_parameter'

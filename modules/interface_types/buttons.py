@@ -415,21 +415,9 @@ class button(interface_elements.interface_element):
                 if self.button_type == "sell commodity":
                     self.set_tooltip(
                         [
-                            "Orders your "
-                            + constants.type_minister_dict["trade"]
-                            + " to sell 1 unit of "
-                            + self.attached_label.actor.current_item
-                            + " for about "
-                            + str(
-                                constants.item_prices[
-                                    self.attached_label.actor.current_item
-                                ]
-                            )
-                            + " money at the end of the turn",
+                            f"Orders your {constants.type_minister_dict['trade']} to sell 1 unit of {self.attached_label.actor.current_item} for about {constants.item_prices[self.attached_label.actor.current_item]} money at the end of the turn",
                             "The amount each commodity was sold for is reported at the beginning of your next turn",
-                            "Each unit of "
-                            + self.attached_label.actor.current_item
-                            + " sold has a chance of reducing its sale price",
+                            f"Each unit of {self.attached_label.actor.current_item} sold has a chance of reducing its sale price",
                         ]
                     )
                 elif self.button_type == "sell all commodity":
@@ -438,38 +426,16 @@ class button(interface_elements.interface_element):
                     )
                     self.set_tooltip(
                         [
-                            "Orders your "
-                            + constants.type_minister_dict["trade"]
-                            + " to sell your entire stockpile of "
-                            + self.attached_label.actor.current_item
-                            + " for about "
-                            + str(
-                                constants.item_prices[
-                                    self.attached_label.actor.current_item
-                                ]
-                            )
-                            + " money each at the end of the turn, "
-                            + "for a total of about "
-                            + str(
-                                constants.item_prices[
-                                    self.attached_label.actor.current_item
-                                ]
-                                * num_present
-                            )
-                            + " money",
+                            f"Orders your {constants.type_minister_dict['trade']} to sell your entire stockpile of {self.attached_label.actor.current_item} for about {constants.item_prices[self.attached_label.actor.current_item]} money each at the end of the turn, for a total of about {constants.item_prices[self.attached_label.actor.current_item] * num_present} money",
                             "The amount each commodity was sold for is reported at the beginning of your next turn",
-                            "Each unit of "
-                            + self.attached_label.actor.current_item
-                            + " sold has a chance of reducing its sale price",
+                            f"Each unit of {self.attached_label.actor.current_item} sold has a chance of reducing its sale price",
                         ]
                     )
                 else:
                     self.set_tooltip(
                         [
-                            "Orders your "
-                            + constants.type_minister_dict["trade"]
-                            + " to sell all commodities at the end of the turn, "
-                            + "The amount each commodity was sold for is reported at the beginning of your next turn",
+                            f"Orders your {constants.type_minister_dict['trade']} to sell all commodities at the end of the turn, "
+                            f"The amount each commodity was sold for is reported at the beginning of your next turn",
                             "Each commodity sold has a chance of reducing its sale price",
                         ]
                     )
@@ -497,6 +463,9 @@ class button(interface_elements.interface_element):
                     ["Click to unequip " + self.equipment_type]
                     + status.equipment_types[self.equipment_type].description
                 )
+
+        elif self.button_type == "use each equipment":
+            self.set_tooltip(["Orders the selected unit to equip all eligible items"])
 
         elif self.button_type == "switch theatre":
             self.set_tooltip(
@@ -1264,6 +1233,45 @@ class button(interface_elements.interface_element):
                         status.tile_inventory_info_display, None
                     )
 
+        elif self.button_type == "use each equipment":
+            if main_loop_utility.action_possible():
+                if status.displayed_mob and status.displayed_mob.get_permission(
+                    constants.PMOB_PERMISSION
+                ):
+                    for equipment_name, equipment in status.equipment_types.items():
+                        if status.displayed_tile.get_inventory(equipment_name) > 0:
+                            if equipment.check_requirement(status.displayed_mob):
+                                if not status.displayed_mob.equipment.get(
+                                    equipment.equipment_type, False
+                                ):
+                                    # If equpiment in tile, equippable by this unit, and not already equipped, equip it
+                                    equipment.equip(status.displayed_mob)
+                                    status.displayed_tile.change_inventory(
+                                        equipment.equipment_type, -1
+                                    )
+                                    actor_utility.calibrate_actor_info_display(
+                                        status.tile_info_display, status.displayed_tile
+                                    )
+                                    actor_utility.calibrate_actor_info_display(
+                                        status.mob_info_display, status.displayed_mob
+                                    )
+                                    actor_utility.select_interface_tab(
+                                        status.mob_tabbed_collection,
+                                        status.mob_inventory_collection,
+                                    )
+                                    if (
+                                        status.displayed_tile_inventory
+                                        and status.displayed_tile_inventory.current_item
+                                    ):
+                                        actor_utility.calibrate_actor_info_display(
+                                            status.tile_inventory_info_display,
+                                            status.displayed_tile_inventory,
+                                        )
+                                    else:
+                                        actor_utility.calibrate_actor_info_display(
+                                            status.tile_inventory_info_display, None
+                                        )
+
         elif self.button_type == "use equipment":
             if main_loop_utility.action_possible():
                 if status.displayed_mob and status.displayed_mob.get_permission(
@@ -1557,6 +1565,12 @@ class button(interface_elements.interface_element):
                 return self.attached_label.actor.get_inventory_used() > 0
             elif self.button_type == "use equipment":
                 return self.attached_label.actor.current_item in status.equipment_types
+            elif self.button_type == "use each equipment":
+                for equipment_name, equipment in status.equipment_types.items():
+                    if status.displayed_tile.get_inventory(equipment_name) > 0:
+                        if equipment.check_requirement(status.displayed_mob):
+                            return True
+                return False
             return True
         return False
 

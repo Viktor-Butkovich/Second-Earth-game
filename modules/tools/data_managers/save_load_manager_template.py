@@ -83,7 +83,6 @@ class save_load_manager_template:
 
         for grid_type in constants.grid_types_list:
             world_grids.create(from_save=False, grid_type=grid_type)
-
         game_transitions.set_game_mode("strategic")
         game_transitions.create_strategic_map(from_save=False)
         for terrain_parameter in constants.terrain_parameters:
