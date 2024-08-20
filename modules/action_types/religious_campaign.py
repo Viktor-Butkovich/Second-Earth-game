@@ -172,17 +172,18 @@ class religious_campaign(action.campaign):
             None
         """
         if self.roll_result >= self.current_min_success:
-            church_volunteers = constants.actor_creation_manager.create(
-                False,
+            input_dict = status.worker_types[
+                constants.CHURCH_VOLUNTEERS
+            ].generate_input_dict()
+            input_dict.update(
                 {
                     "coordinates": (0, 0),
                     "grids": [status.earth_grid],
-                    "image": "mobs/church volunteers/default.png",
-                    "name": "church volunteers",
                     "modes": ["strategic", "earth"],
-                    "init_type": "church_volunteers",
-                    "worker_type": "religious",  # not european - doesn't count as a European worker for upkeep
-                },
+                }
+            )
+            church_volunteers = constants.actor_creation_manager.create(
+                False, input_dict
             )
 
             self.current_unit = constants.actor_creation_manager.create_group(

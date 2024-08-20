@@ -591,7 +591,7 @@ def generate_group_name(worker, officer, add_veteran=False):
             else:
                 name += " "
     else:  # battalions have special naming convention based on worker type
-        if worker.worker_type == "European":
+        if worker.get_permission(constants.EUROPEAN_WORKERS_PERMISSION):
             name = "imperial battalion"
         else:
             name = "colonial battalion"

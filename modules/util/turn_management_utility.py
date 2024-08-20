@@ -354,27 +354,27 @@ def manage_worker_price_changes():
     Output:
         None
     """
-    for worker_type in status.worker_types:
-        if status.worker_types[worker_type].upkeep_variance:
+    for key, worker_type in status.worker_types.items():
+        if worker_type.upkeep_variance:
             worker_roll = random.randrange(1, 7)
             if worker_roll >= 5:
-                current_price = status.worker_types[worker_type].upkeep
+                current_price = worker_type.upkeep
                 changed_price = round(
                     current_price - constants.worker_upkeep_increment, 2
                 )
-                if changed_price >= status.worker_types[worker_type].min_upkeep:
-                    status.worker_types[worker_type].upkeep = changed_price
+                if changed_price >= worker_type.min_upkeep:
+                    worker_type.upkeep = changed_price
                     text_utility.print_to_screen(
-                        f"An influx of {worker_type} workers has decreased their upkeep from {current_price} to {changed_price}."
+                        f"An influx of {worker_type.name} has decreased their upkeep from {current_price} to {changed_price}."
                     )
             elif worker_roll == 1:
-                current_price = status.worker_types[worker_type].upkeep
+                current_price = worker_type.upkeep
                 changed_price = round(
                     current_price + constants.worker_upkeep_increment, 2
                 )
-                status.worker_types[worker_type].upkeep = changed_price
+                worker_type.upkeep = changed_price
                 text_utility.print_to_screen(
-                    f"A shortage of {worker_type} workers has increased their upkeep from {current_price} to {changed_price}."
+                    f"A shortage of {worker_type.name} has increased their upkeep from {current_price} to {changed_price}."
                 )
 
 

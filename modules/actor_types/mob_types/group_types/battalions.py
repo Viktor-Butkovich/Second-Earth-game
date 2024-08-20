@@ -37,7 +37,7 @@ class battalion(group):
         """
         super().__init__(from_save, input_dict)
         self.set_permission(constants.BATTALION_PERMISSION, True)
-        if self.worker.worker_type == "European":
+        if self.worker.get_permission(constants.EUROPEAN_WORKERS_PERMISSION):
             self.battalion_type = "imperial"
         else:
             self.battalion_type = "colonial"

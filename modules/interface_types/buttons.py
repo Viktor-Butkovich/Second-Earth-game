@@ -582,10 +582,10 @@ class button(interface_elements.interface_element):
             )
 
         elif self.button_type == "recruit workers":
-            actor_utility.update_descriptions(self.worker_type + " workers")
+            actor_utility.update_descriptions(self.worker_type.name)
             self.set_tooltip(
                 [
-                    f"Recruits a unit of {self.worker_type} workers for {status.worker_types[self.worker_type].recruitment_cost} money"
+                    f"Recruits a unit of {self.worker_type.name} for {self.worker_type.recruitment_cost} money"
                 ]
             )
 
@@ -1980,7 +1980,7 @@ class fire_unit_button(button):
                 message = "Are you sure you want to fire this unit? Firing this unit would remove it, any units attached to it, and any associated upkeep from the game. /n /n"
                 worker = self.attached_mob.get_worker()
                 if worker:
-                    message += status.worker_types[worker.worker_type].fired_description
+                    message += worker.worker_type.fired_description
                 constants.notification_manager.display_notification(
                     {"message": message, "choices": ["fire", "cancel"]}
                 )
@@ -2896,21 +2896,18 @@ class reorganize_unit_button(button):
                     procedure_type = "crew"
 
                 if procedure_type == "merge":
-                    if procedure_actors[
-                        "worker"
-                    ].worker_type == "religious" and not procedure_actors[
-                        "officer"
-                    ].get_permission(
+                    if procedure_actors["worker"].get_permission(
+                        constants.CHURCH_VOLUNTEERS_PERMISSION
+                    ) and not procedure_actors["officer"].get_permission(
                         constants.EVANGELIST_PERMISSION
                     ):
                         text_utility.print_to_screen(
                             "Church volunteers can only be combined with evangelists."
                         )
-                    elif (
-                        procedure_actors["officer"].get_permission(
-                            constants.EVANGELIST_PERMISSION
-                        )
-                        and procedure_actors["worker"].worker_type != "religious"
+                    elif procedure_actors["officer"].get_permission(
+                        constants.EVANGELIST_PERMISSION
+                    ) and not procedure_actors["worker"].get_permission(
+                        constants.CHURCH_VOLUNTEERS_PERMISSION
                     ):
                         text_utility.print_to_screen(
                             "Evangelists can only be combined with church volunteers."
@@ -2923,16 +2920,14 @@ class reorganize_unit_button(button):
                 elif procedure_type == "crew":
                     if (
                         procedure_actors["officer"].get_vehicle_name()
-                        in status.worker_types[
-                            procedure_actors["worker"].worker_type
-                        ].can_crew
+                        in procedure_actors["worker"].worker_type.can_crew
                     ):
                         procedure_actors["worker"].crew_vehicle(
                             procedure_actors["officer"]
                         )
                     else:
                         text_utility.print_to_screen(
-                            f"{status.worker_types[procedure_actors['worker'].worker_type].name.capitalize()} cannot crew {procedure_actors['officer'].get_vehicle_name()}s."
+                            f"{procedure_actors['worker'].worker_type.name.capitalize()} cannot crew {procedure_actors['officer'].get_vehicle_name()}s."
                         )
 
                 elif procedure_type == "split":

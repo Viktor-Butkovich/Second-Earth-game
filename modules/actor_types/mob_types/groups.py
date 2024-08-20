@@ -93,7 +93,7 @@ class group(pmob):
         Description:
             Fires this group's current worker and replaces it with a worker of the inputted type, affecting worker upkeep prices and public opinion as usual
         Input:
-            string new_worker_type: New type of worker to create
+            worker_type new_worker_type: New type of worker to create
         Output:
             None
         """
@@ -103,9 +103,9 @@ class group(pmob):
             "modes": self.modes,
         }
 
-        input_dict.update(status.worker_types[new_worker_type].generate_input_dict())
+        input_dict.update(new_worker_type.generate_input_dict())
         constants.money_tracker.change(
-            -1 * status.worker_types[new_worker_type].recruitment_cost,
+            -1 * new_worker_type.recruitment_cost,
             "unit_recruitment",
         )
         previous_selected = status.displayed_mob
@@ -174,7 +174,6 @@ class group(pmob):
             if transportation_minister.no_corruption_roll(
                 6, "health_attrition"
             ) == 1 or constants.effect_manager.effect_active("boost_attrition"):
-                worker_type = self.worker.worker_type
                 if random.randrange(1, 7) == 1:
                     self.attrition_death("worker")
 

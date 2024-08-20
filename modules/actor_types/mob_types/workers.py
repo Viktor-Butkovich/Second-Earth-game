@@ -33,17 +33,18 @@ class worker(pmob):
                 'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
-                'worker_type': string value - Type of worker this is, like 'European'. Each type of worker has a separate upkeep, labor pool, and abilities
+                'worker_type': worker_type value - Type of worker this is, like 'European'. Each type of worker has a separate upkeep, labor pool, and abilities
         Output:
             None
         """
+        self.worker_type = input_dict.get(
+            "worker_type", status.worker_types.get(input_dict.get("init_type"))
+        )  # European, religious etc. worker_type object
         super().__init__(from_save, input_dict, original_constructor=False)
         self.number = 2  # Workers is plural
-        self.is_church_volunteers = False
-        self.worker_type = input_dict["worker_type"]  # European, religious
-        status.worker_types[self.worker_type].number += 1
+        self.worker_type.number += 1
         if not from_save:
-            status.worker_types[self.worker_type].on_recruit()
+            self.worker_type.on_recruit()
         self.set_controlling_minister_type(constants.type_minister_dict["production"])
 
         if not from_save:
@@ -61,7 +62,8 @@ class worker(pmob):
             None
         """
         super().permissions_setup()
-        self.set_permission(constants.WORKER_PERMISSION, True)
+        for permission in self.worker_type.permissions:
+            self.set_permission(permission, True)
 
     def finish_init(
         self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
@@ -113,31 +115,15 @@ class worker(pmob):
         destination_message = (
             f" for the {destination.name} at ({destination.x}, {destination.y})"
         )
-        status.worker_types[self.worker_type].on_recruit(purchased=True)
-        if not self.worker_type in ["religious"]:
+        self.worker_type.on_recruit(purchased=True)
+        if not self.get_permission(constants.CHURCH_VOLUNTEERS_PERMISSION):
             text_utility.print_to_screen(
-                f"Replacement {self.worker_type} workers have been automatically hired{destination_message}."
+                f"Replacement {self.worker_type.adjective} workers have been automatically hired{destination_message}."
             )
-
-        elif self.worker_type == "religious":
+        else:
             text_utility.print_to_screen(
                 "Replacement church volunteers have been automatically found among nearby colonists."
             )
-
-    def to_save_dict(self):
-        """
-        Description:
-            Uses this object's values to create a dictionary that can be saved and used as input to recreate it on loading
-        Input:
-            None
-        Output:
-            dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
-                Along with superclass outputs, also saves the following values:
-                'worker_type': string value - Type of worker this is, like 'European'. Each type of worker has a separate upkeep, labor pool, and abilities
-        """
-        save_dict = super().to_save_dict()
-        save_dict["worker_type"] = self.worker_type
-        return save_dict
 
     def fire(self, wander=True):
         """
@@ -150,7 +136,7 @@ class worker(pmob):
             None
         """
         super().fire()
-        status.worker_types[self.worker_type].on_fire(wander=wander)
+        self.worker_type.on_fire(wander=wander)
 
     def can_show_tooltip(self):
         """
@@ -268,7 +254,7 @@ class worker(pmob):
             None
         """
         super().remove()
-        status.worker_types[self.worker_type].number -= 1
+        self.worker_type.number -= 1
         constants.money_label.check_for_updates()
 
     def image_variants_setup(self, from_save, input_dict):
@@ -281,7 +267,7 @@ class worker(pmob):
         Output:
             None
         """
-        if not input_dict["worker_type"] == "religious":
+        if not self.get_permission(constants.CHURCH_VOLUNTEERS_PERMISSION):
             for variant_type in [
                 "soldier",
                 "porter",
@@ -351,6 +337,6 @@ class church_volunteers(worker):
         Output:
             None
         """
-        input_dict["worker_type"] = "religious"
+        input_dict["worker_type"] = status.worker_types[constants.CHURCH_VOLUNTEERS]
         super().__init__(from_save, input_dict)
         self.set_controlling_minister_type(constants.type_minister_dict["religion"])

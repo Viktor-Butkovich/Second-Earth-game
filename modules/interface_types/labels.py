@@ -243,25 +243,22 @@ class money_label_template(value_label):
         total_upkeep = 0.0
         total_number = 0
         worker_type_info_dicts = {}
-        for worker_type in status.worker_types:
+        for key, worker_type in status.worker_types.items():
             current_dict = {}
-            current_dict["upkeep"] = status.worker_types[worker_type].upkeep
-            current_dict["total_upkeep"] = status.worker_types[
-                worker_type
-            ].get_total_upkeep()
-            current_dict["number"] = status.worker_types[worker_type].number
-            current_dict["name"] = status.worker_types[worker_type].name
+            current_dict["upkeep"] = worker_type.upkeep
+            current_dict["total_upkeep"] = worker_type.get_total_upkeep()
+            current_dict["number"] = worker_type.number
+            current_dict["name"] = worker_type.name
             total_upkeep += current_dict["total_upkeep"]
             total_number += current_dict["number"]
-            worker_type_info_dicts[worker_type] = current_dict
+            worker_type_info_dicts[key] = current_dict
         total_upkeep = round(total_upkeep, 2)
 
         tooltip_text.append("")
         tooltip_text.append(
             f"At the end of the turn, your {total_number} worker{utility.generate_plural(total_number)} will cost a total of {total_upkeep} money in upkeep."
         )
-        for worker_type in worker_type_info_dicts:
-            current_dict = worker_type_info_dicts[worker_type]
+        for key, current_dict in worker_type_info_dicts.items():
             if current_dict["upkeep"] > 0:
                 if current_dict["number"] > 0:
                     tooltip_text.append(

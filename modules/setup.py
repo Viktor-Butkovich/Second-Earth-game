@@ -286,7 +286,12 @@ def worker_types_config():
     worker_types.worker_type(
         False,
         {
+            "key": constants.EUROPEAN_WORKERS,
             "adjective": "European",
+            "permissions": [
+                constants.WORKER_PERMISSION,
+                constants.EUROPEAN_WORKERS_PERMISSION,
+            ],
             "upkeep": 6.0,
             "can_crew": ["steamship", "train"],
             "upkeep_variance": True,
@@ -296,7 +301,12 @@ def worker_types_config():
     worker_types.worker_type(
         False,
         {
+            "key": constants.CHURCH_VOLUNTEERS,
             "adjective": "religious",
+            "permissions": [
+                constants.WORKER_PERMISSION,
+                constants.CHURCH_VOLUNTEERS_PERMISSION,
+            ],
             "name": "church volunteers",
             "upkeep": 0.0,
             "fired_description": "Fired church volunteers will never settle in slums and will instead return to Europe. /n /n"

@@ -85,7 +85,7 @@ class actor:
         if self.actor_type == "mob":
             if self.get_permission(constants.PMOB_PERMISSION):
                 if self.get_permission(constants.WORKER_PERMISSION):
-                    init_type = "workers"
+                    init_type = self.worker_type.key
                 elif self.get_permission(constants.VEHICLE_PERMISSION):
                     init_type = self.vehicle_type
                 elif self.get_permission(constants.OFFICER_PERMISSION):

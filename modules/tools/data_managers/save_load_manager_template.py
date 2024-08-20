@@ -117,8 +117,8 @@ class save_load_manager_template:
 
         constants.available_minister_left_index = -2
 
-        for worker_type_name in status.worker_types:
-            status.worker_types[worker_type_name].reset()
+        for key, worker_type in status.worker_types.items():
+            worker_type.reset()
         actor_utility.reset_action_prices()
         for current_commodity in constants.commodity_types:
             constants.sold_commodities[current_commodity] = 0
@@ -178,8 +178,8 @@ class save_load_manager_template:
                 saved_grid_dicts.append(current_grid.to_save_dict())
 
         saved_worker_types = [
-            status.worker_types[worker_type_name].to_save_dict()
-            for worker_type_name in status.worker_types
+            worker_type.to_save_dict()
+            for key, worker_type in status.worker_types.items()
         ]
 
         saved_actor_dicts = []

@@ -152,9 +152,14 @@ class recruitment_button(button):
         """
         actor_utility.update_descriptions(self.recruitment_type)
         cost = constants.recruitment_costs[self.recruitment_type]
-        if self.recruitment_type.endswith(" workers"):
+        if self.recruitment_type in [
+            constants.CHURCH_VOLUNTEERS,
+            constants.EUROPEAN_WORKERS,
+        ]:
             self.set_tooltip(
-                [f"Recruits a unit of {self.recruitment_name} for {cost} money."]
+                [
+                    f"Recruits a unit of {status.worker_types[self.recruitment_type].name} for {cost} money."
+                ]
                 + constants.list_descriptions[self.recruitment_type]
             )
         else:

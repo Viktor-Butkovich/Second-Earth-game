@@ -175,7 +175,7 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
         )
         if dummy_input_dict["group_type"] == "battalion":
             dummy_input_dict["disorganized"] = True
-            if worker.worker_type == "European":
+            if worker.get_permission(constants.EUROPEAN_WORKERS_PERMISSION):
                 dummy_input_dict["battalion_type"] = "imperial"
             else:
                 dummy_input_dict["battalion_type"] = "colonial"

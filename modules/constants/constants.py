@@ -645,12 +645,6 @@ group_minister_dict: Dict[str, str] = {
     "missionaries": type_minister_dict["religion"],
     "battalion": type_minister_dict["military"],
 }
-recruitment_types: List[str] = officer_types + ["European workers", "steamship"]
-recruitment_costs: Dict[str, int] = {
-    "European workers": 0,
-    "steamship": 10,
-    "officer": 5,
-}
 
 worker_upkeep_increment: float = 0.25
 base_upgrade_price: float = 20.0  # 20 for 1st upgrade, 40 for 2nd, 80 for 3rd, etc.
@@ -722,6 +716,16 @@ LIST_FEATURE_TRACKING: str = "list"
 
 MAP_MODE_ALPHA: int = 170
 
+EUROPEAN_WORKERS: str = "european_workers"
+CHURCH_VOLUNTEERS: str = "church_volunteers"
+
+recruitment_types: List[str] = officer_types + [EUROPEAN_WORKERS, "steamship"]
+recruitment_costs: Dict[str, int] = {
+    EUROPEAN_WORKERS: 0,
+    "steamship": 10,
+    "officer": 5,
+}
+
 PMOB_PERMISSION: str = "pmob"
 NPMOB_PERMISSION: str = "npmob"
 VEHICLE_PERMISSION: str = "vehicle"
@@ -729,6 +733,8 @@ ACTIVE_PERMISSION: str = "active_permission"
 INACTIVE_VEHICLE_PERMISSION: str = "inactive_vehicle"
 OFFICER_PERMISSION: str = "officer"
 WORKER_PERMISSION: str = "worker"
+CHURCH_VOLUNTEERS_PERMISSION: str = "church_volunteers"
+EUROPEAN_WORKERS_PERMISSION: str = "european_workers"
 GROUP_PERMISSION: str = "group"
 INIT_COMPLETE_PERMISSION: str = "init_complete"
 DISORGANIZED_PERMISSION: str = "disorganized"

@@ -66,9 +66,9 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         # mobs
         if init_type == "mob":
             new_actor = mobs.mob(from_save, input_dict)
-        elif init_type == "workers":
+        elif init_type == constants.EUROPEAN_WORKERS:
             new_actor = workers.worker(from_save, input_dict)
-        elif init_type == "church_volunteers":
+        elif init_type == constants.CHURCH_VOLUNTEERS:
             new_actor = workers.church_volunteers(from_save, input_dict)
         elif init_type == "train":
             new_actor = vehicles.train(from_save, input_dict)

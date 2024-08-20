@@ -21,6 +21,7 @@ class worker_type:
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
+                'key': string value - Constant uniquely identifying this type of worker across the program
                 'adjective': string value - Adjective describing this unit and its corresponding worker types entry
                 'name': string value - Name of the corresponding unit, adjective + ' workers' by default
                 'upkeep': float value - Cost of this unit each turn, default of 0.0
@@ -35,14 +36,16 @@ class worker_type:
         if (
             from_save
         ):  # If from save, rather than creating full worker type template, just edit existing one
-            copy_to: worker_type = status.worker_types[input_dict["adjective"]]
+            copy_to: worker_type = status.worker_types[input_dict["key"]]
             copy_to.upkeep = input_dict["upkeep"]
             copy_to.set_recruitment_cost(input_dict["recruitment_cost"])
         else:
+            self.permissions: List[str] = input_dict.get("permissions", [])
+            self.key: str = input_dict["key"]
             self.adjective: str = input_dict["adjective"]
             self.name: str = input_dict.get("name", self.adjective + " workers")
             self.number: int = 0
-            status.worker_types[self.adjective] = self
+            status.worker_types[input_dict["key"]] = self
 
             self.upkeep: float = input_dict.get("upkeep", 0.0)
             self.initial_upkeep: float = self.upkeep
@@ -59,8 +62,6 @@ class worker_type:
 
             self.upkeep_variance: bool = input_dict.get("upkeep_variance", False)
 
-            self.init_type: str = input_dict.get("init_type", "workers")
-
     def to_save_dict(self) -> Dict:
         """
         Description:
@@ -69,17 +70,16 @@ class worker_type:
             None
         Output:
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
-                'adjective': string value - Adjective describing this unit and its corresponding worker types entry
+                'key': string value - Constant uniquely identifying this type of worker across the program
                 'upkeep': float value - Cost of this unit each turn
                 'recruitment_cost': float value - Cost of recruiting this unit
                 'fired_description': string value - Description text to confirm firing of this unit
                 'init_type': string value - Actor creation init type to use for this unit
         """
         return {
-            "adjective": self.adjective,
+            "key": self.key,
             "upkeep": self.upkeep,
             "recruitment_cost": self.recruitment_cost,
-            "init_type": self.init_type,
         }
 
     def set_recruitment_cost(self, new_number: float) -> None:
@@ -128,10 +128,10 @@ class worker_type:
             dictionary: Returns dictionary with standard entries for this worker type
         """
         input_dict = {
-            "image": "mobs/" + self.name + "/default.png",
+            "image": f"mobs/{self.key}/default.png",
             "name": self.name,
-            "init_type": self.init_type,
-            "worker_type": self.adjective,
+            "init_type": self.key,
+            "worker_type": self,
         }
         return input_dict
 
@@ -144,8 +144,8 @@ class worker_type:
         Output:
             None
         """
-        if not self.adjective in ["religious"]:
-            market_utility.attempt_worker_upkeep_change("increase", self.adjective)
+        if self.key != constants.CHURCH_VOLUNTEERS:
+            market_utility.attempt_worker_upkeep_change("increase", self)
 
     def on_fire(self, wander=False):
         """
@@ -156,8 +156,8 @@ class worker_type:
         Output:
             None
         """
-        if not self.adjective in ["religious"]:
-            market_utility.attempt_worker_upkeep_change("decrease", self.adjective)
+        if self.key != constants.CHURCH_VOLUNTEERS:
+            market_utility.attempt_worker_upkeep_change("decrease", self)
 
         if self.adjective in ["European", "religious"]:
             current_public_opinion = constants.public_opinion
@@ -165,11 +165,5 @@ class worker_type:
             resulting_public_opinion = constants.public_opinion
             if not current_public_opinion == resulting_public_opinion:
                 text_utility.print_to_screen(
-                    "Firing "
-                    + self.name
-                    + " reflected poorly on your company and reduced your public opinion from "
-                    + str(current_public_opinion)
-                    + " to "
-                    + str(resulting_public_opinion)
-                    + "."
+                    f"Firing {self.name} reflected poorly on your company and reduced your public opinion from {current_public_opinion} to {resulting_public_opinion}."
                 )

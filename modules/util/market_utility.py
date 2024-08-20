@@ -113,24 +113,24 @@ def attempt_worker_upkeep_change(change_type, worker_type):
         Controls the chance to increase worker upkeep when a worker leaves the labor pool or decrease worker upkeep when a worker joins the labor pool
     Input:
         string change_type: 'increase' or 'decrease' depending on whether a worker is being added to or removed from the labor pool, decides whether worker price increases or decreases
-        string worker_type: Like 'European', decides which type of worker has a price change
+        worker_type worker_type: Like 'European', decides which type of worker has a price change
     Output:
         None
     """
     if random.randrange(1, 7) >= 4:  # half chance of change
-        current_price = status.worker_types[worker_type].upkeep
+        current_price = worker_type.upkeep
         if change_type == "increase":
             changed_price = round(current_price + constants.worker_upkeep_increment, 2)
-            status.worker_types[worker_type].upkeep = changed_price
+            worker_type.upkeep = changed_price
             text_utility.print_to_screen(
-                f"Hiring {utility.generate_article(worker_type)} {worker_type} worker increased {worker_type} worker upkeep from {current_price} to {changed_price}."
+                f"Hiring {utility.generate_article(worker_type.name)} increased {worker_type.name} upkeep from {current_price} to {changed_price}."
             )
         elif change_type == "decrease":
             changed_price = round(current_price - constants.worker_upkeep_increment, 2)
-            if changed_price >= status.worker_types[worker_type].min_upkeep:
-                status.worker_types[worker_type].upkeep = changed_price
+            if changed_price >= worker_type.min_upkeep:
+                worker_type.upkeep = changed_price
                 text_utility.print_to_screen(
-                    f"Adding {utility.generate_article(worker_type)} {worker_type} worker to the labor pool decreased {worker_type} worker upkeep from {current_price} to {changed_price}."
+                    f"Adding {utility.generate_article(worker_type.name)} {worker_type.name} to the labor pool decreased {worker_type.name} upkeep from {current_price} to {changed_price}."
                 )
         constants.money_label.check_for_updates()
 
@@ -173,8 +173,8 @@ def calculate_total_worker_upkeep():
         double: Returns the total upkeep of the company's workers
     """
     total_upkeep = 0.0
-    for current_worker_type in status.worker_types:
-        total_upkeep += status.worker_types[current_worker_type].get_total_upkeep()
+    for key, current_worker_type in status.worker_types.items():
+        total_upkeep += current_worker_type.get_total_upkeep()
     return round(total_upkeep, 2)
 
 

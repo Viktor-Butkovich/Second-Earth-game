@@ -269,12 +269,13 @@ class recruitment_choice_button(choice_button):
             input_dict["init_type"] = self.recruitment_type
             input_dict["officer_type"] = self.recruitment_type
 
-        elif self.recruitment_type.endswith(" workers"):
+        elif self.recruitment_type in [
+            constants.EUROPEAN_WORKERS,
+            constants.CHURCH_VOLUNTEERS,
+        ]:
             input_dict.update(
-                status.worker_types[
-                    self.recruitment_type.replace(" workers", "")
-                ].generate_input_dict()
-            )  # Like European workers
+                status.worker_types[self.recruitment_type].generate_input_dict()
+            )
 
         elif self.recruitment_type == "steamship":
             image_dict = {
