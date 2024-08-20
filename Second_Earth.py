@@ -68,13 +68,11 @@ except Exception:  # displays error message and records error message in crash l
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
-# Incorporate A Strange New World, Flying in my Spaceship, Going Underground, Out of Time, Space Song 3
 # Add a unit permissions system - any unit type has a dictionary of True/False permissions for each possible action, using defaults if none specified
 #   Use similar system to terrain knowledge privileges, using set of constants to identify each permission type
 #   Something like canoes or suits would modify a unit's default permissions
 #   Next add permissions for temporary states, sentry mode, etc.
 #   Add permissions for ministers as well as mobs
-#   Replace worker_type logic with permissions handling
 # Add new minister positions
 # Add astronauts/cosmonauts group with corresponding officer
 # Add support for vehicles being crewed by groups, combining in new interface with any group attaching/detaching, like to mines/factories
@@ -85,7 +83,7 @@ except Exception:  # displays error message and records error message in crash l
 # Add terrain details tile interface panel, such that terrain details aren't always showing
 # For tiles with knowledge 1, possibly change every turn to a cloud or normal pixellated version, depending on atmosphere conditions
 #
-# Fix this crash
+# Fix this rare crash
 # ERROR:root:<class 'Exception'>
 # Traceback (most recent call last):
 #   File "c:\Users\vikto\Documents\Projects\Second Earth\Second_Earth.py", line 30, in <module>
