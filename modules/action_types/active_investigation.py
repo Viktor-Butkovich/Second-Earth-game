@@ -73,15 +73,15 @@ class active_investigation(action.campaign):
         text = super().generate_notification_text(subject)
         if subject == "confirmation":
             text += f"Are you sure you want to conduct an active investigation against {status.displayed_minister.name}"
-            if status.displayed_minister.current_position != "none":
-                text += f", your {status.displayed_minister.current_position}"
+            if status.displayed_minister.current_position:
+                text += f", your {status.displayed_minister.current_position.name}"
             text += "? /n /n"
             text += f"This may uncover information regarding {status.displayed_minister.name}'s loyalty, skills, or past crimes. /n /n"
             text += f"The investigation will cost {str(self.get_price())} money. /n /n "
         elif subject == "initial":
-            text += f"Prosecutor {status.current_ministers['Prosecutor'].name} launches an investigation against "
-            if status.displayed_minister.current_position != "none":
-                text += f"{status.displayed_minister.current_position} {status.displayed_minister.name}. /n /n"
+            text += f"Prosecutor {minister_utility.get_minister(constants.PROSECUTION_MINISTER).name} launches an investigation against "
+            if status.displayed_minister.current_position:
+                text += f"{status.displayed_minister.current_position.name} {status.displayed_minister.name}. /n /n"
             else:
                 text += f"{status.displayed_minister.name}. /n /n"
         return text
@@ -97,7 +97,9 @@ class active_investigation(action.campaign):
         """
         return (
             status.displayed_minister
-            and status.displayed_minister.current_position != "Prosecutor"
+            and status.displayed_minister.current_position
+            and status.displayed_minister.current_position.key
+            != constants.PROSECUTION_MINISTER
         )
 
     def on_click(self, unit):
@@ -110,7 +112,7 @@ class active_investigation(action.campaign):
             None
         """
         if super().on_click(unit):
-            if status.current_ministers["Prosecutor"] == None:
+            if not minister_utility.get_minister(constants.PROSECUTION_MINISTER):
                 text_utility.print_to_screen(
                     "An active investigation requires a prosecutor to be appointed."
                 )
@@ -157,8 +159,12 @@ class active_investigation(action.campaign):
         new_values: Dict = {}
         corruption_event: Tuple[float, str] = None
         if self.roll_result >= self.current_min_success:
-            for category in constants.minister_types + ["loyalty", "evidence"]:
-                if category == target.current_position:
+            categories = [
+                minister_type.skill_type
+                for key, minister_type in status.minister_types.items()
+            ] + ["loyalty", "evidence"]
+            for category in categories:
+                if category == target.current_position.skill_type:
                     difficulty = 4
                 elif category in ["loyalty", "evidence"]:
                     difficulty = 5
@@ -229,11 +235,7 @@ class active_investigation(action.campaign):
         if new_values or corruption_event:
             message = "The investigation resulted in the following discoveries: /n /n"
             for category in new_values:
-                if category == "loyalty":
-                    category_name = category
-                else:
-                    category_name = constants.minister_type_dict[category]
-                message += f"    {category_name.capitalize()}: {new_values[category]}"
+                message += f"    {category.capitalize()}: {new_values[category]}"
                 if previous_values[category] == "unknown":  # if unknown
                     message += " /n"
                 else:

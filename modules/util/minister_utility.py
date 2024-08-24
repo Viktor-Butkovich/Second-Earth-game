@@ -6,6 +6,31 @@ import modules.constants.flags as flags
 import modules.util.game_transitions as game_transitions
 
 
+def get_minister(minister_type):
+    """
+    Description:
+        Returns the minister in the inputted office
+    Input:
+        string minister_type: Minister office to get the minister of, like Minister of Trade
+    Output:
+        minister: Returns the minister in the inputted office
+    """
+    return status.current_ministers.get(minister_type, None)
+
+
+def set_minister(minister_type, new_minister):
+    """
+    Description:
+        Sets the minister in the inputted office to the inputted minister
+    Input:
+        string minister_type: Minister office to set the minister of, like Minister of Trade
+        minister new_minister: Minister to set the office to
+    Output:
+        None
+    """
+    status.current_ministers[minister_type] = new_minister
+
+
 def check_corruption(minister_type):
     """
     Description:
@@ -15,7 +40,7 @@ def check_corruption(minister_type):
     Description:
         boolean: Returns whether the minister in the inputted office would lie about the result of a given roll
     """
-    return status.current_ministers[minister_type].check_corruption
+    return get_minister(minister_type).check_corruption
 
 
 def get_skill_modifier(minister_type):
@@ -27,7 +52,7 @@ def get_skill_modifier(minister_type):
     Output:
         int: Returns the skill-based dice roll modifier of the minister in the inputted office, between -1 and 1
     """
-    return status.current_ministers[minister_type].get_skill_modifier
+    return get_minister(minister_type).get_skill_modifier
 
 
 def calibrate_minister_info_display(new_minister):
@@ -136,8 +161,8 @@ def positions_filled():
         boolean: Returns whether all minister positions are currently filled
     """
     completed = True
-    for current_position in constants.minister_types:
-        if status.current_ministers[current_position] == None:
+    for key, current_position in status.minister_types.items():
+        if not get_minister(current_position.key):
             completed = False
     if not completed:
         game_transitions.force_minister_appointment()

@@ -384,7 +384,7 @@ class trial(action.campaign):
         defense = status.displayed_defense
         if self.roll_result >= self.current_min_success:
             confiscated_money = defense.stolen_money / 2.0
-            text = f"You have won the trial, removing {defense.name} as {defense.current_position} and putting them in prison. /n /n"
+            text = f"You have won the trial, removing {defense.name} as {defense.current_position.name} and putting them in prison. /n /n"
             if confiscated_money > 0:
                 text += f"While most of {defense.name}'s money was spent on the trial or unaccounted for, authorities managed to confiscate {str(confiscated_money)} money, which has been given to your company as compensation. /n /n"
                 text += " /n /n"
@@ -398,7 +398,7 @@ class trial(action.campaign):
                     "audio": "voices/guilty",
                 }
             )
-            defense.appoint("none")
+            defense.appoint(None)
             minister_utility.calibrate_minister_info_display(None)
             defense.respond("prison")
             defense.remove_complete()
@@ -414,13 +414,7 @@ class trial(action.campaign):
             constants.achievement_manager.achieve("Guilty")
 
         else:
-            text = (
-                "You have lost the trial and "
-                + defense.name
-                + " goes unpunished, remaining your "
-                + defense.current_position
-                + ". /n /n"
-            )
+            text += f"You have lost the trial and {defense.name} goes unpunished, remaining your {defense.current_position.name}. /n /n"
             fabricated_evidence = defense.fabricated_evidence
             real_evidence = defense.corruption_evidence - defense.fabricated_evidence
 
@@ -434,10 +428,7 @@ class trial(action.campaign):
 
             if fabricated_evidence > 0:
                 text += f"Fabricated evidence is temporary, so the {fabricated_evidence} piece{utility.generate_plural(fabricated_evidence)} of fabricated evidence used in this trial "
-                text += (
-                    utility.conjugate("be", fabricated_evidence)
-                    + " now irrelevant to future trials. /n /n"
-                )
+                text += f"{utility.conjugate('be', fabricated_evidence)} now irrelevant to future trials. /n /n"
 
             if real_evidence > 0:
                 if lost_evidence == 0:  # if no evidence lost

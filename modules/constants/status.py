@@ -5,6 +5,7 @@ from modules.actor_types.mobs import mob
 from modules.constructs.ministers import minister
 from modules.constructs.worker_types import worker_type
 from modules.constructs.equipment_types import equipment_type
+from modules.constructs.minister_types import minister_type
 from modules.constructs.terrain_feature_types import terrain_feature_type
 from modules.constructs.images import image, free_image, directional_indicator_image
 from modules.interface_types.interface_elements import (
@@ -62,6 +63,7 @@ minister_list: List[minister] = []
 available_minister_list: List[minister] = []
 worker_types: Dict[str, worker_type] = {}
 equipment_types: Dict[str, equipment_type] = {}
+minister_types: Dict[str, minister_type] = {}
 terrain_feature_types: Dict[str, terrain_feature_type] = {}
 flag_icon_list: List[button] = []
 grid_list: List[grid] = []

@@ -286,7 +286,9 @@ class action:
             none
         """
         if self.actor_type == "prosecutor":
-            self.current_unit = status.current_ministers["Prosecutor"]
+            self.current_unit = minister_utility.get_minister(
+                constants.PROSECUTION_MINISTER
+            )
         else:
             self.current_unit = unit
         self.current_roll_modifier = self.generate_current_roll_modifier()

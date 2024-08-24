@@ -2,11 +2,8 @@
 
 import random, os
 from typing import List, Tuple, Dict
-from ..util import (
-    utility,
-    minister_utility,
-    scaling,
-)
+from ..util import utility, minister_utility, scaling
+from ..constructs import minister_types
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -26,7 +23,7 @@ class minister:
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 'first_name': string value - Required if from save, this minister's first name
                 'last_name': string value - Required if from save, this minister's last name
-                'current_position': string value - Office that this minister is currently occupying, or 'none' if no office occupied
+                'current_position': minister_type value value - Office that this minister is currently occupying, or None if no office occupied
                 'background': string value - Career background of minister, determines social status and skills
                 'personal savings': double value - How much non-stolen money this minister has based on their social status
                 'general_skill': int value - Value from 1 to 3 that changes what is added to or subtracted from dice rolls
@@ -56,7 +53,9 @@ class minister:
             self.name: str = self.first_name + " " + self.last_name
             self.ethnicity: str = input_dict["ethnicity"]
             self.masculine: bool = input_dict["masculine"]
-            self.current_position: str = input_dict["current_position"]
+            self.current_position: minister_types.minister_type = (
+                status.minister_types.get(input_dict["current_position_key"], None)
+            )
             self.background: str = input_dict["background"]
             self.status_number: int = constants.background_status_dict[self.background]
             self.status: str = status_number_dict[self.status_number]
@@ -85,7 +84,7 @@ class minister:
             self.just_removed: bool = input_dict["just_removed"]
             self.voice_set = input_dict["voice_set"]
             self.voice_setup(from_save)
-            if self.current_position != "none":
+            if self.current_position:
                 self.appoint(self.current_position)
             else:
                 status.available_minister_list.append(self)
@@ -109,7 +108,7 @@ class minister:
             ) + random.randrange(
                 0, 6
             )  # 1-6 for lowborn, 5-10 for middle, 25-30 for high, 125-130 for very high
-            self.current_position: str = "none"
+            self.current_position: minister_types.minister_type = None
             self.skill_setup()
             self.voice_setup()
             self.interests_setup()
@@ -149,9 +148,9 @@ class minister:
             None
         """
         self.tooltip_text = []
-        if not self.current_position == "none":
+        if self.current_position:
             self.tooltip_text.append(
-                f"This is {self.name}, your {self.current_position}."
+                f"This is {self.name}, your {self.current_position.name}."
             )
         else:
             self.tooltip_text.append(
@@ -167,20 +166,17 @@ class minister:
         if self.apparent_corruption_description != "unknown":
             self.tooltip_text.append(f"Loyalty: {self.apparent_corruption_description}")
 
-        if self.current_position == "none":
-            displayed_skill = self.get_max_apparent_skill()
+        if self.current_position:
+            displayed_skill = self.current_position.skill_type
         else:
-            displayed_skill = self.current_position
+            displayed_skill = self.get_max_apparent_skill()
 
         if displayed_skill != "unknown":
-            displayed_skill_name = constants.minister_type_dict[
-                displayed_skill
-            ]  # like General to military]
             if self.apparent_skill_descriptions[displayed_skill] != "unknown":
-                if self.current_position == "none":
-                    message = f"Highest ability: {self.apparent_skill_descriptions[displayed_skill]} ({displayed_skill_name})"
+                if self.current_position:
+                    message = f"{displayed_skill.capitalize()} ability: {self.apparent_skill_descriptions[displayed_skill]}"
                 else:
-                    message = f"{displayed_skill_name.capitalize()} ability: {self.apparent_skill_descriptions[displayed_skill]}"
+                    message = f"Highest ability: {self.apparent_skill_descriptions[displayed_skill]} ({displayed_skill})"
                 self.tooltip_text.append(message)
 
         rank = 0
@@ -188,15 +184,12 @@ class minister:
             for skill_type in self.apparent_skills:
                 if self.apparent_skills[skill_type] == skill_value:
                     rank += 1
-                    skill_name = constants.minister_type_dict[
-                        skill_type
-                    ]  # like General to military
                     self.tooltip_text.append(
-                        f"    {rank}. {skill_name.capitalize()}: {self.apparent_skill_descriptions[skill_type]}"
+                        f"    {rank}. {skill_type.capitalize()}: {self.apparent_skill_descriptions[skill_type]}"
                     )
 
         self.tooltip_text.append("Evidence: " + str(self.corruption_evidence))
-        if self.just_removed and self.current_position == "none":
+        if self.just_removed and not self.current_position:
             self.tooltip_text.append(
                 "This minister was just removed from office and expects to be reappointed to an office by the end of the turn."
             )
@@ -298,33 +291,33 @@ class minister:
         Output:
             bool: Returns whether the prosecutor detected the theft
         """
-        prosecutor = status.current_ministers["Prosecutor"]
-        if prosecutor != "none":
+        prosecutor = minister_utility.get_minister(constants.PROSECUTION_MINISTER)
+        if prosecutor:
             if constants.effect_manager.effect_active("show_minister_stealing"):
                 print(
-                    f"{self.current_position} {self.name} stole {value} money from {constants.transaction_descriptions[theft_type]}."
+                    f"{self.current_position.name} {self.name} stole {value} money from {constants.transaction_descriptions[theft_type]}."
                 )
             difficulty = self.no_corruption_roll(6, "minister_stealing")
             result = prosecutor.no_corruption_roll(6, "minister_stealing_detection")
             if (
                 prosecutor != self and result >= difficulty
-            ):  # caught by prosecutor if prosecutor succeeds skill contest roll
+            ):  # Caught by prosecutor if prosecutor succeeds skill contest roll
                 required_bribe_amount = max(value / 2, 5)
                 if prosecutor.check_corruption() and self.can_pay(
                     required_bribe_amount
-                ):  # if prosecutor takes bribe, split money
+                ):  # If prosecutor takes bribe, split money
                     self.pay(prosecutor, required_bribe_amount)
                     if constants.effect_manager.effect_active("show_minister_stealing"):
                         print(
                             "The theft was caught by the prosecutor, who accepted a bribe to not create evidence."
                         )
                         print(
-                            f"{prosecutor.current_position} {prosecutor.name} has now stolen a total of {prosecutor.stolen_money} money."
+                            f"{prosecutor.current_position.name} {prosecutor.name} has now stolen a total of {prosecutor.stolen_money} money."
                         )
-                else:  # if prosecutor refuses bribe, still keep money but create evidence
+                else:  # If prosecutor refuses bribe, still keep money but create evidence
                     self.corruption_evidence += 1
                     evidence_message = ""
-                    evidence_message += f"Prosecutor {prosecutor.name} suspects that {self.current_position} {self.name} just engaged in corrupt activity relating to "
+                    evidence_message += f"Prosecutor {prosecutor.name} suspects that {self.current_position.name} {self.name} just engaged in corrupt activity relating to "
                     evidence_message += f"{constants.transaction_descriptions[theft_type]} and has filed a piece of evidence against them. /n /n"
                     evidence_message += f"There are now {self.corruption_evidence} piece{utility.generate_plural(self.corruption_evidence)} of evidence against {self.name}. /n /n"
                     evidence_message += "Each piece of evidence can help in a trial to remove a corrupt minister from office. /n /n"
@@ -368,7 +361,7 @@ class minister:
 
         if constants.effect_manager.effect_active("show_minister_stealing"):
             print(
-                f"{self.current_position} {self.name} has now stolen a total of {self.stolen_money} money."
+                f"{self.current_position.name} {self.name} has now stolen a total of {self.stolen_money} money."
             )
 
         if value > 0:
@@ -384,7 +377,7 @@ class minister:
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
                 'first_name': string value - This minister's first name
                 'last_name': string value - This minister's last name
-                'current_position': string value - Office that this minister is currently occupying, or 'none' if no office occupied
+                'current_position_key': string value - Constant key corresponding to office that that this minister is currently occupying, or None if no office occupied
                 'background': string value - Career background of minister, determines social status and skills
                 'personal savings': double value - How much non-stolen money this minister has based on their social status
                 'general_skill': int value - Value from 1 to 3 that changes what is added to or subtracted from dice rolls
@@ -406,7 +399,10 @@ class minister:
         save_dict = {}
         save_dict["first_name"] = self.first_name
         save_dict["last_name"] = self.last_name
-        save_dict["current_position"] = self.current_position
+        if self.current_position:
+            save_dict["current_position_key"] = self.current_position.key
+        else:
+            save_dict["current_position_key"] = None
         save_dict["general_skill"] = self.general_skill
         save_dict["specific_skills"] = self.specific_skills
         save_dict["apparent_skills"] = self.apparent_skills
@@ -608,13 +604,14 @@ class minister:
             None
         """
         old_position = self.current_position
-        if self.current_position != "none":  # if removing, set old position to none
-            status.current_ministers[self.current_position] = None
+        if self.current_position:
+            self.current_position.on_remove(self)
+        if new_position:
+            new_position.on_appoint(self)
         self.current_position = new_position
-        status.current_ministers[new_position] = self
         for current_pmob in status.pmob_list:
             current_pmob.update_controlling_minister()
-        if new_position != "none":  # if appointing
+        if new_position:  # if appointing
             status.available_minister_list = utility.remove_from_list(
                 status.available_minister_list, self
             )
@@ -638,12 +635,9 @@ class minister:
                 elif current_minister_type_image.minister_type == old_position:
                     current_minister_type_image.calibrate("none")
 
-        if status.displayed_minister == self:
-            minister_utility.calibrate_minister_info_display(
-                self
-            )  # update minister label
-
         minister_utility.update_available_minister_display()
+
+        minister_utility.calibrate_minister_info_display(self)  # update minister label
 
     def skill_setup(self):
         """
@@ -665,22 +659,28 @@ class minister:
         )
         if background_skill == "random":
             background_skill = random.choice(constants.skill_types)
-        for current_minister_type in constants.minister_types:
-            self.specific_skills[current_minister_type] = random.randrange(0, 4)  # 0-3
+        for key, current_minister_type in status.minister_types.items():
+            self.specific_skills[current_minister_type.skill_type] = random.randrange(
+                0, 4
+            )  # 0-3
             if (
-                constants.minister_type_dict[current_minister_type] == background_skill
-                and (self.specific_skills[current_minister_type] + self.general_skill)
+                current_minister_type.skill_type == background_skill
+                and (
+                    self.specific_skills[current_minister_type.skill_type]
+                    + self.general_skill
+                )
                 < 6
             ):
-                self.specific_skills[current_minister_type] += 1
+                self.specific_skills[current_minister_type.skill_type] += 1
             if constants.effect_manager.effect_active("transparent_ministers"):
                 self.set_apparent_skill(
-                    current_minister_type,
-                    self.specific_skills[current_minister_type] + self.general_skill,
+                    current_minister_type.skill_type,
+                    self.specific_skills[current_minister_type.skill_type]
+                    + self.general_skill,
                     setup=True,
                 )
             else:
-                self.set_apparent_skill(current_minister_type, 0, setup=True)
+                self.set_apparent_skill(current_minister_type.skill_type, 0, setup=True)
 
     def set_apparent_skill(self, skill_type, new_value, setup: bool = False):
         """
@@ -739,23 +739,16 @@ class minister:
         Output:
             None
         """
-        type_minister_dict = constants.type_minister_dict
         highest_skills = []
         highest_skill_number = 0
         for current_skill in constants.skill_types:
             if (
                 len(highest_skills) == 0
-                or self.specific_skills[type_minister_dict[current_skill]]
-                > highest_skill_number
+                or self.specific_skills[current_skill] > highest_skill_number
             ):
                 highest_skills = [current_skill]
-                highest_skill_number = self.specific_skills[
-                    type_minister_dict[current_skill]
-                ]
-            elif (
-                self.specific_skills[type_minister_dict[current_skill]]
-                == highest_skill_number
-            ):
+                highest_skill_number = self.specific_skills[current_skill]
+            elif self.specific_skills[current_skill] == highest_skill_number:
                 highest_skills.append(current_skill)
         first_interest = random.choice(highest_skills)
         second_interest = first_interest
@@ -816,10 +809,10 @@ class minister:
         """
         num_data_points = 0
         total_apparent_skill = 0
-        for skill_type in constants.minister_types:
-            if self.apparent_skills[skill_type] != "unknown":
+        for key, minister_type in status.minister_types.items():
+            if self.apparent_skills[minister_type.skill_type] != "unknown":
                 num_data_points += 1
-                total_apparent_skill += self.apparent_skills[skill_type]
+                total_apparent_skill += self.apparent_skills[minister_type.skill_type]
         if num_data_points == 0:
             return "unknown"
         else:
@@ -836,13 +829,13 @@ class minister:
         """
         max_skills = ["unknown"]
         max_skill_value = 0
-        for skill_type in constants.minister_types:
-            if self.apparent_skills[skill_type] != "unknown":
-                if self.apparent_skills[skill_type] > max_skill_value:
-                    max_skills = [skill_type]
-                    max_skill_value = self.apparent_skills[skill_type]
-                elif self.apparent_skills[skill_type] == max_skill_value:
-                    max_skills.append(skill_type)
+        for key, minister_type in status.minister_types.items():
+            if self.apparent_skills[minister_type.skill_type] != "unknown":
+                if self.apparent_skills[minister_type.skill_type] > max_skill_value:
+                    max_skills = [minister_type.skill_type]
+                    max_skill_value = self.apparent_skills[minister_type.skill_type]
+                elif self.apparent_skills[minister_type.skill_type] == max_skill_value:
+                    max_skills.append(minister_type.skill_type)
         return max_skills[0]
 
     def attempt_rumor(self, rumor_type, prosecutor):
@@ -897,25 +890,15 @@ class minister:
         if prosecutor == "none":
             if not flags.creating_new_game:
                 message = "A rumor has been found that " + self.name + ","
-                if self.current_position == "none":
-                    message += " a potential minister candidate, "
+                if self.current_position:
+                    message += f" your {self.current_position.name}, "
                 else:
-                    message += " your " + self.current_position + ", "
+                    message += " a potential minister candidate, "
                 message += "has "
                 if rumor_type == "loyalty":
                     message += self.apparent_corruption_description + " loyalty"
                 else:
-                    skill_name = constants.minister_type_dict[rumor_type]
-                    message += (
-                        utility.generate_article(
-                            self.apparent_skill_descriptions[rumor_type]
-                        )
-                        + " "
-                        + self.apparent_skill_descriptions[rumor_type]
-                        + " "
-                        + skill_name
-                        + " ability"
-                    )
+                    message += f"{utility.generate_article(self.apparent_skill_descriptions[rumor_type])}  {self.apparent_skill_descriptions[rumor_type]} {rumor_type} ability"
                 message += ". /n /n"
                 self.display_message(message)
 
@@ -931,13 +914,14 @@ class minister:
         if constants.effect_manager.effect_active("band_of_thieves") or (
             (
                 constants.effect_manager.effect_active("lawbearer")
-                and self != status.current_ministers["Prosecutor"]
+                and self
+                != minister_utility.get_minister(constants.PROSECUTION_MINISTER)
             )
         ):
             return_value = True
         elif constants.effect_manager.effect_active("ministry_of_magic") or (
             constants.effect_manager.effect_active("lawbearer")
-            and self == status.current_ministers["Prosecutor"]
+            and self == minister_utility.get_minister(constants.PROSECUTION_MINISTER)
         ):
             return_value = False
         elif random.randrange(1, 7) >= self.corruption_threshold:
@@ -962,9 +946,11 @@ class minister:
         Output:
             None
         """
-        if not self.current_position == "none":
-            if self.specific_skills[self.current_position] < 3:
-                self.specific_skills[self.current_position] += 1
+        if (
+            self.current_position
+            and self.specific_skills[self.current_position.skill_type] < 3
+        ):
+            self.specific_skills[self.current_position] += 1
 
     def estimate_expected(self, base, allow_decimals=True):
         """
@@ -995,8 +981,11 @@ class minister:
         Output:
             int: Returns the dice roll modifier for this minister's current office
         """
-        if not self.current_position == "none":
-            skill = self.general_skill + self.specific_skills[self.current_position]
+        if self.current_position:
+            skill = (
+                self.general_skill
+                + self.specific_skills[self.current_position.skill_type]
+            )
         else:
             skill = self.general_skill
         if skill <= 2:  # 1-2
@@ -1018,7 +1007,7 @@ class minister:
         modifier = 0
         if constants.effect_manager.effect_active("ministry_of_magic") or (
             constants.effect_manager.effect_active("lawbearer")
-            and self == status.current_ministers["Prosecutor"]
+            and self == minister_utility.get_minister(constants.PROSECUTION_MINISTER)
         ):
             return 5
         elif constants.effect_manager.effect_active("nine_mortal_men"):
@@ -1069,12 +1058,9 @@ class minister:
         Output:
             None
         """
-        if self.current_position != "none":
-            status.current_ministers[self.current_position] = None
-            for current_minister_image in status.minister_image_list:
-                if current_minister_image.minister_type == self.current_position:
-                    current_minister_image.calibrate("none")
-            self.current_position = "none"
+        if self.current_position:
+            self.current_position.on_remove(self)
+            self.current_position = None
         status.minister_list = utility.remove_from_list(status.minister_list, self)
         status.available_minister_list = utility.remove_from_list(
             status.available_minister_list, self
@@ -1260,11 +1246,8 @@ class minister:
             audio = self.get_voice_line("fired")
 
         elif event == "retirement":
-            if self.current_position == "none":
-                text = (
-                    self.name
-                    + " no longer desires to be appointed as a minister and has left the pool of available minister appointees. /n /n"
-                )
+            if not self.current_position:
+                text = f"{self.name} no longer desires to be appointed as a minister and has left the pool of available minister appointees. /n /n"
             else:
                 if random.randrange(0, 100) < constants.evil:
                     tone = "guilty"
@@ -1307,12 +1290,8 @@ class minister:
                     ]
                 elif tone == "confession":
                     intro_options = [
-                        "You fool! I took "
-                        + str(self.stolen_money)
-                        + " money from behind your back, and you just looked the other way. ",
-                        "I'll have an amazing retirement with the "
-                        + str(self.stolen_money)
-                        + " money you let me steal. ",
+                        f"You fool! I took {self.stolen_money} money from behind your back, and you just looked the other way. ",
+                        f"I'll have an amazing retirement with the {self.stolen_money} money you let me steal. ",
                         "I could tell you just how much money I stole from you over the years, but I'll spare you the tears. ",
                     ]
                     middle_options = [
@@ -1325,18 +1304,8 @@ class minister:
                         "You'll never see me again, of course, but I wish I could see the look on your face. ",
                         "If I had the chance, I'd do it all again. ",
                     ]
-                text += (
-                    random.choice(intro_options)
-                    + random.choice(middle_options)
-                    + random.choice(conclusion_options)
-                )
-                text += (
-                    " /n /n /n"
-                    + self.current_position
-                    + " "
-                    + self.name
-                    + " has chosen to step down and retire. /n /n"
-                )
+                text += f"{random.choice(intro_options)}{random.choice(middle_options)}{random.choice(conclusion_options)} /n /n /n"
+                text += f"{self.current_position.name} {self.name} has chosen to step down and retire. /n /n"
                 text += "Their position will need to be filled by a replacement as soon as possible for your company to continue operations. /n /n"
         constants.public_opinion_tracker.change(public_opinion_change)
         if text != "":

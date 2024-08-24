@@ -142,10 +142,9 @@ class save_load_manager_template:
             tutorial_utility.show_tutorial_notifications()
         else:
             status.initial_tutorial_completed = True
-            for current_minister_position_index in range(len(constants.minister_types)):
-                status.minister_list[current_minister_position_index].appoint(
-                    constants.minister_types[current_minister_position_index]
-                )
+            for index, minister_type_tuple in enumerate(status.minister_types.items()):
+                key, minister_type = minister_type_tuple
+                status.minister_list[index].appoint(minister_type)
             game_transitions.set_game_mode("strategic")
         flags.creating_new_game = False
 
@@ -208,7 +207,7 @@ class save_load_manager_template:
             saved_minister_dicts.append(current_minister.to_save_dict())
             if constants.effect_manager.effect_active("show_corruption_on_save"):
                 print(
-                    f"{current_minister.name}, {current_minister.current_position}, skill modifier: {current_minister.get_skill_modifier()}, corruption threshold: {current_minister.corruption_threshold}, stolen money: {current_minister.stolen_money}, personal savings: {current_minister.personal_savings}"
+                    f"{current_minister.name}, {current_minister.current_position.name}, skill modifier: {current_minister.get_skill_modifier()}, corruption threshold: {current_minister.corruption_threshold}, stolen money: {current_minister.stolen_money}, personal savings: {current_minister.personal_savings}"
                 )
 
         with open(file_path, "wb") as handle:  # write wb, read rb

@@ -3,7 +3,7 @@
 import random
 import math
 from .pmobs import pmob
-from ...util import actor_utility
+from ...util import actor_utility, minister_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 
@@ -161,9 +161,9 @@ class group(pmob):
         if current_cell in ["none", None]:
             return ()
 
-        transportation_minister = status.current_ministers[
-            constants.type_minister_dict["transportation"]
-        ]
+        transportation_minister = minister_utility.get_minister(
+            constants.TRANSPORTATION_MINISTER
+        )
 
         if current_cell.local_attrition():
             if transportation_minister.no_corruption_roll(
@@ -314,12 +314,12 @@ class group(pmob):
             None
         """
         self.group_type = new_type
-        if not new_type == "none":
+        if new_type:
             self.set_controlling_minister_type(
-                constants.group_minister_dict[self.group_type]
+                status.minister_types[constants.group_minister_dict[self.group_type]]
             )
         else:
-            self.set_controlling_minister_type("none")
+            self.set_controlling_minister_type(None)
         self.update_image_bundle()
 
     def to_save_dict(self):

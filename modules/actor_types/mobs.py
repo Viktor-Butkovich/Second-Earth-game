@@ -2,7 +2,13 @@
 
 import pygame, random
 from ..constructs import images
-from ..util import utility, actor_utility, main_loop_utility, text_utility
+from ..util import (
+    utility,
+    actor_utility,
+    main_loop_utility,
+    text_utility,
+    minister_utility,
+)
 from ..interface_types import cells
 from .actors import actor
 import modules.constants.constants as constants
@@ -941,11 +947,7 @@ class mob(actor):
         """
         future_x = (self.x + x_change) % self.grid.coordinate_width
         future_y = (self.y + y_change) % self.grid.coordinate_height
-
-        transportation_minister = status.current_ministers[
-            constants.type_minister_dict["transportation"]
-        ]
-        if not transportation_minister == "none":
+        if minister_utility.get_minister(constants.TRANSPORTATION_MINISTER):
             if self.can_leave():
                 if not self.grid.is_abstract_grid:
                     future_cell = self.grid.find_cell(future_x, future_y)
@@ -964,11 +966,7 @@ class mob(actor):
                                 "You do not have enough movement points to move."
                             )
                             text_utility.print_to_screen(
-                                "You have "
-                                + str(self.movement_points)
-                                + " movement points while "
-                                + str(self.get_movement_cost(x_change, y_change))
-                                + " are required."
+                                f"You have {self.movement_points} movement points, while {self.get_movement_cost(x_change, y_change)} are required."
                             )
                     elif can_print:
                         text_utility.print_to_screen(

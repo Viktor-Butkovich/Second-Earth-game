@@ -11,6 +11,7 @@ from ..util import (
     text_utility,
     game_transitions,
 )
+from ..constructs import minister_types
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -1285,18 +1286,14 @@ class appoint_minister_button(button):
                 'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
                 'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'appoint_type': string value - Office appointed to by this button, like 'Minister of Trade'
+                'appoint_type': minister_type value - Office appointed to by this button, like the "Minister of Trade" minister_type object
         Output:
             None
         """
-        self.appoint_type = input_dict["appoint_type"]
+        self.appoint_type: minister_types.minister_type = input_dict["appoint_type"]
         input_dict["button_type"] = "appoint minister"
         input_dict["modes"] = ["ministers"]
-        input_dict["image_id"] = (
-            "ministers/icons/"
-            + constants.minister_type_dict[self.appoint_type]
-            + ".png"
-        )
+        input_dict["image_id"] = f"ministers/icons/{self.appoint_type.skill_type}.png"
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -1308,16 +1305,12 @@ class appoint_minister_button(button):
         Output:
             boolean: Returns same as superclass if the minister office that this button is attached to is open, otherwise returns False
         """
-        if super().can_show(skip_parent_collection=skip_parent_collection):
-            displayed_minister = status.displayed_minister
-            if (
-                displayed_minister and displayed_minister.current_position == "none"
-            ):  # if there is an available minister displayed
-                if not status.current_ministers[
-                    self.appoint_type
-                ]:  # if the position that this button appoints is available
-                    return True
-        return False
+        return (
+            super().can_show(skip_parent_collection=skip_parent_collection)
+            and status.displayed_minister
+            and status.displayed_minister.current_position == None
+            and not minister_utility.get_minister(self.appoint_type.key)
+        )
 
     def on_click(self):
         """
@@ -1333,7 +1326,6 @@ class appoint_minister_button(button):
             if not appointed_minister.just_removed:
                 appointed_minister.respond("first hired")
             appointed_minister.appoint(self.appoint_type)
-            minister_utility.calibrate_minister_info_display(appointed_minister)
         else:
             text_utility.print_to_screen("You are busy and cannot appoint a minister.")
 
@@ -1372,13 +1364,11 @@ class remove_minister_button(button):
         Output:
             boolean: Returns same as superclass if the selected minister is currently in an office, otherwise returns False
         """
-        if super().can_show(skip_parent_collection=skip_parent_collection):
-            displayed_minister = status.displayed_minister
-            if (
-                displayed_minister and displayed_minister.current_position != "none"
-            ):  # if there is an available minister displayed
-                return True
-        return False
+        return (
+            super().can_show(skip_parent_collection=skip_parent_collection)
+            and status.displayed_minister
+            and status.displayed_minister.current_position
+        )
 
     def on_click(self):
         """
@@ -1447,13 +1437,14 @@ class to_trial_button(button):
         Output:
             boolean: Returns same as superclass if a non-prosecutor minister with an office to be removed from is selected
         """
-        if super().can_show(skip_parent_collection=skip_parent_collection):
-            displayed_minister = status.displayed_minister
-            if displayed_minister and (
-                not displayed_minister.current_position in ["none", "Prosecutor"]
-            ):  # if there is an available non-prosecutor minister displayed
-                return True
-        return False
+        if (
+            super().can_show(skip_parent_collection=skip_parent_collection)
+            and status.displayed_minister
+            and status.displayed_minister.current_position
+            and status.displayed_minister.current_position.key
+            != constants.PROSECUTION_MINISTER
+        ):
+            return True
 
     def on_click(self):
         """
@@ -1470,7 +1461,9 @@ class to_trial_button(button):
                 if minister_utility.positions_filled():
                     if len(status.minister_list) > 8:  # if any available appointees
                         defense = status.displayed_minister
-                        prosecution = status.current_ministers["Prosecutor"]
+                        prosecution = minister_utility.get_minister(
+                            constants.PROSECUTION_MINISTER
+                        )
                         game_transitions.set_game_mode("trial")
                         minister_utility.trial_setup(
                             defense, prosecution
@@ -1539,7 +1532,7 @@ class fabricate_evidence_button(button):
                 defense = status.displayed_defense
                 prosecutor = status.displayed_prosecution
                 prosecutor.display_message(
-                    f"{prosecutor.current_position} {prosecutor.name} reports that evidence has been successfully fabricated for {str(self.get_cost())} money. /n /nEach new fabricated evidence will cost twice as much as the last, and fabricated evidence becomes useless at the end of the turn or after it is used in a trial. /n /n"
+                    f"{prosecutor.current_position.name} {prosecutor.name} reports that evidence has been successfully fabricated for {str(self.get_cost())} money. /n /nEach new fabricated evidence will cost twice as much as the last, and fabricated evidence becomes useless at the end of the turn or after it is used in a trial. /n /n"
                 )
                 defense.fabricated_evidence += 1
                 defense.corruption_evidence += 1
@@ -1622,7 +1615,7 @@ class bribe_judge_button(button):
                     flags.prosecution_bribed_judge = True
                     prosecutor = status.displayed_prosecution
                     prosecutor.display_message(
-                        f"{prosecutor.current_position} {prosecutor.name} reports that the judge has been successfully bribed for {self.get_cost()} money. /n /nThis may provide a bonus in the next trial this turn. /n /n"
+                        f"{prosecutor.current_position.name} {prosecutor.name} reports that the judge has been successfully bribed for {self.get_cost()} money. /n /nThis may provide a bonus in the next trial this turn. /n /n"
                     )
                 else:
                     text_utility.print_to_screen(

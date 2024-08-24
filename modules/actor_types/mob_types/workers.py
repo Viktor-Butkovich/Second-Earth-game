@@ -45,7 +45,9 @@ class worker(pmob):
         self.worker_type.number += 1
         if not from_save:
             self.worker_type.on_recruit()
-        self.set_controlling_minister_type(constants.type_minister_dict["production"])
+        self.set_controlling_minister_type(
+            status.minister_types[constants.PRODUCTION_MINISTER]
+        )
 
         if not from_save:
             self.second_image_variant = random.randrange(0, len(self.image_variants))
@@ -339,4 +341,6 @@ class church_volunteers(worker):
         """
         input_dict["worker_type"] = status.worker_types[constants.CHURCH_VOLUNTEERS]
         super().__init__(from_save, input_dict)
-        self.set_controlling_minister_type(constants.type_minister_dict["religion"])
+        self.set_controlling_minister_type(
+            status.minister_types[constants.RELIGION_MINISTER]
+        )

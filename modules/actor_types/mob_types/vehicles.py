@@ -3,7 +3,7 @@
 import random
 
 from .pmobs import pmob
-from ...util import text_utility, actor_utility
+from ...util import text_utility, actor_utility, minister_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -62,7 +62,7 @@ class vehicle(pmob):
                     self
                 )  # create passengers and merge as passengers
         self.set_controlling_minister_type(
-            constants.type_minister_dict["transportation"]
+            status.minister_types[constants.TRANSPORTATION_MINISTER]
         )
         if not self.get_permission(constants.ACTIVE_PERMISSION):
             self.remove_from_turn_queue()
@@ -145,9 +145,9 @@ class vehicle(pmob):
             sub_mobs = [self.crew]
         sub_mobs += self.contained_mobs
 
-        transportation_minister = status.current_ministers[
-            constants.type_minister_dict["transportation"]
-        ]
+        transportation_minister = minister_utility.get_minister(
+            constants.TRANSPORTATION_MINISTER
+        )
         non_replaced_attrition = []
         for current_sub_mob in sub_mobs:
             if (

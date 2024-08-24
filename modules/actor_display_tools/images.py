@@ -186,16 +186,14 @@ class minister_background_image(mob_background_image):
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
         image_id_list = []
-        if not self.actor == "none":
-            if self.actor.current_position == "none":
+        if not self.actor in ["none", None]:
+            if not self.actor.current_position:
                 image_id_list.append("misc/mob_background.png")
             else:
                 image_id_list.append(
-                    "ministers/icons/"
-                    + constants.minister_type_dict[self.actor.current_position]
-                    + ".png"
+                    f"ministers/icons/{self.actor.current_position.skill_type}.png"
                 )
-            if self.actor.just_removed and self.actor.current_position == "none":
+            if self.actor.just_removed and not self.actor.current_position:
                 image_id_list.append(
                     {"image_id": "misc/warning_icon.png", "x_offset": 0.75}
                 )

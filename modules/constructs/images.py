@@ -1,7 +1,7 @@
 # Contains functionality for images
 
 import pygame
-from ..util import utility, drawing_utility, text_utility, scaling
+from ..util import utility, drawing_utility, text_utility, scaling, minister_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -1397,14 +1397,10 @@ class dice_roll_minister_image(tooltip_free_image):
         if self.minister_image_type == "portrait":
             input_dict["image_id"] = self.attached_minister.image_id
         elif self.minister_image_type == "position":
-            if self.attached_minister.current_position != "none":
-                input_dict["image_id"] = (
-                    "ministers/icons/"
-                    + constants.minister_type_dict[
-                        self.attached_minister.current_position
-                    ]
-                    + ".png"
-                )
+            if self.attached_minister.current_position:
+                input_dict[
+                    "image_id"
+                ] = f"ministers/icons/{self.attached_minister.current_position.skill_type}.png"
             else:
                 input_dict["image_id"] = "misc/mob_background.png"
         self.minister_message_image = input_dict.get("minister_message_image", False)
@@ -1456,9 +1452,7 @@ class minister_type_image(tooltip_free_image):
         self.attached_label = input_dict["attached_label"]
         self.minister_type = input_dict["minister_type"]  # position, like General
         if self.minister_type != "none":
-            self.calibrate(
-                status.current_ministers[self.minister_type]
-            )  # calibrate to current minister or none if no current minister
+            self.calibrate(minister_utility.get_minister(self.minister_type))
         status.minister_image_list.append(self)
         self.to_front = True
 
@@ -1482,9 +1476,7 @@ class minister_type_image(tooltip_free_image):
 
         self.current_minister = new_minister
         if new_minister != "none":
-            self.minister_type = (
-                new_minister.current_position
-            )  # new_minister.current_position
+            self.minister_type = new_minister.current_position
         current_minister_type = self.minister_type
         if (
             self.attached_label != "none"
@@ -1492,70 +1484,11 @@ class minister_type_image(tooltip_free_image):
             and self.attached_label.actor.get_permission(constants.PMOB_PERMISSION)
         ):
             current_minister_type = self.attached_label.actor.controlling_minister_type
-        if current_minister_type != "none":
-            keyword = constants.minister_type_dict[
-                current_minister_type
-            ]  # type, like military
-            self.tooltip_text = []
-            if keyword == "prosecution":
-                self.tooltip_text.append(
-                    "Rather than controlling units, a prosecutor controls the process of investigating and removing ministers suspected to be corrupt."
-                )
-            else:
-                self.tooltip_text.append(
-                    "Whenever you command a "
-                    + keyword
-                    + "-oriented unit to do an action, the "
-                    + current_minister_type
-                    + " is responsible for executing the action."
-                )  # new_minister.tooltip_text
-                if keyword == "military":
-                    self.tooltip_text.append(
-                        "Military-oriented units include majors and battalions."
-                    )
-                elif keyword == "religion":
-                    self.tooltip_text.append(
-                        "Religion-oriented units include evangelists, church volunteers, and missionaries."
-                    )
-                elif keyword == "trade":
-                    self.tooltip_text.append(
-                        "Trade-oriented units include merchants and caravans."
-                    )
-                    self.tooltip_text.append(
-                        "The "
-                        + current_minister_type
-                        + " also controls the purchase and sale of goods on Earth."
-                    )
-                elif keyword == "exploration":
-                    self.tooltip_text.append(
-                        "Exploration-oriented units include explorers and expeditions."
-                    )
-                elif keyword == "construction":
-                    self.tooltip_text.append(
-                        "Construction-oriented units include engineers and construction gangs."
-                    )
-                elif keyword == "production":
-                    self.tooltip_text.append(
-                        "Production-oriented units include work crews, foremen, and workers not attached to other units."
-                    )
-                elif keyword == "transportation":
-                    self.tooltip_text.append(
-                        "Transportation-oriented units include ships, trains, drivers, and porters."
-                    )
-                    self.tooltip_text.append(
-                        "The "
-                        + current_minister_type
-                        + " also ensures that goods are not lost in transport or storage."
-                    )
-            if new_minister == "none":
-                self.tooltip_text.append(
-                    "There is currently no "
-                    + current_minister_type
-                    + " appointed, so "
-                    + keyword
-                    + "-oriented actions are not possible."
-                )
-            image_id_list = ["ministers/icons/" + keyword + ".png"]
+        if current_minister_type:
+            self.tooltip_text = current_minister_type.get_description()
+            image_id_list = [
+                "ministers/icons/" + current_minister_type.skill_type + ".png"
+            ]
             self.set_image(image_id_list)
         self.update_image_bundle()
 

@@ -3,11 +3,7 @@
 import pygame
 import random
 from ..mobs import mob
-from ...util import (
-    text_utility,
-    utility,
-    actor_utility,
-)
+from ...util import text_utility, utility, actor_utility, minister_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -51,7 +47,7 @@ class pmob(mob):
         super().__init__(from_save, input_dict, original_constructor=False)
         self.selection_outline_color = "bright green"
         status.pmob_list.append(self)
-        self.set_controlling_minister_type("none")
+        self.set_controlling_minister_type(None)
         self.equipment = {}
         for current_equipment in input_dict.get("equipment", {}):
             if input_dict.get("equipment", {}).get(current_equipment, False):
@@ -566,12 +562,13 @@ class pmob(mob):
         if current_cell == "none":
             return ()
         if current_cell.local_attrition():
-            transportation_minister = status.current_ministers[
-                constants.type_minister_dict["transportation"]
-            ]
-            if transportation_minister.no_corruption_roll(
+            if minister_utility.get_minister(
+                constants.TRANSPORTATION_MINISTER
+            ).no_corruption_roll(
                 6, "health_attrition"
-            ) == 1 or constants.effect_manager.effect_active("boost_attrition"):
+            ) == 1 or constants.effect_manager.effect_active(
+                "boost_attrition"
+            ):
                 if random.randrange(1, 7) <= 2:
                     self.attrition_death()
 
@@ -721,20 +718,15 @@ class pmob(mob):
         Output:
             None
         """
-        if self.controlling_minister_type == "none":
-            self.controlling_minister = "none"
-        else:
-            self.controlling_minister = status.current_ministers[
-                self.controlling_minister_type
-            ]
-            if self.controlling_minister == None:
-                self.controlling_minister = "none"
-            for current_minister_type_image in status.minister_image_list:
-                if (
-                    current_minister_type_image.minister_type
-                    == self.controlling_minister_type
-                ):
-                    current_minister_type_image.calibrate(self.controlling_minister)
+        self.controlling_minister = minister_utility.get_minister(
+            self.controlling_minister_type.key
+        )
+        for current_minister_type_image in status.minister_image_list:
+            if (
+                current_minister_type_image.minister_type
+                == self.controlling_minister_type
+            ):
+                current_minister_type_image.calibrate(self.controlling_minister)
 
     def end_turn_move(self):
         """

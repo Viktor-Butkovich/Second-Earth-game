@@ -11,6 +11,7 @@ import modules.util.actor_utility as actor_utility
 import modules.util.game_transitions as game_transitions
 import modules.constructs.fonts as fonts
 import modules.constructs.worker_types as worker_types
+import modules.constructs.minister_types as minister_types
 import modules.constructs.equipment_types as equipment_types
 import modules.constructs.terrain_feature_types as terrain_feature_types
 from modules.tools.data_managers import (
@@ -448,8 +449,87 @@ def def_ministers():
     Output:
         None
     """
-    for current_minister_type in constants.minister_types:
-        status.current_ministers[current_minister_type] = None
+    minister_types.minister_type(
+        {
+            "key": constants.MILITARY_MINISTER,
+            "name": "General",
+            "skill_type": "military",
+            "description": ["Military-oriented units include majors and battalions."],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.RELIGION_MINISTER,
+            "name": "Bishop",
+            "skill_type": "religion",
+            "description": [
+                "Religion-oriented units include evangelists, church volunteers, and missionaries."
+            ],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.TRADE_MINISTER,
+            "name": "Minister of Trade",
+            "skill_type": "trade",
+            "description": [
+                "Trade-oriented units include merchants and caravans.",
+                "The Minister of Trade also controls the purchase and sale of goods on Earth",
+            ],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.EXPLORATION_MINISTER,
+            "name": "Minister of Geography",
+            "skill_type": "exploration",
+            "description": [
+                "Exploration-oriented units include explorers and expeditions."
+            ],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.CONSTRUCTION_MINISTER,
+            "name": "Minister of Construction",
+            "skill_type": "construction",
+            "description": [
+                "Construction-oriented units include engineers and construction gangs."
+            ],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.PRODUCTION_MINISTER,
+            "name": "Minister of Production",
+            "skill_type": "production",
+            "description": [
+                "Production-oriented units include work crews and foremen."
+            ],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.TRANSPORTATION_MINISTER,
+            "name": "Minister of Transportation",
+            "skill_type": "transportation",
+            "description": [
+                "Transportation-oriented units include ships, trains, drivers, and porters.",
+                "The Minister of Transportation also ensures that goods are not lost in transport or storage",
+            ],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.PROSECUTION_MINISTER,
+            "name": "Prosecutor",
+            "skill_type": "prosecution",
+            "controls_units": False,
+            "description": [
+                "Rather than controlling units, a prosecutor controls the process of investigating and removing ministers suspected to be corrupt."
+            ],
+        }
+    )
 
 
 def transactions():
@@ -1003,10 +1083,9 @@ def ministers_screen():
         "color": "gray",
         "init_type": "minister portrait image",
     }
-    for current_index in range(
-        0, 8
-    ):  # creates an office icon and a portrait at a section of the table for each minister
-        input_dict["minister_type"] = constants.minister_types[current_index]
+    for current_index, minister_type_tuple in enumerate(status.minister_types.items()):
+        # Creates an office icon and a portrait at a section of the table for each minister
+        key, minister_type = minister_type_tuple
         if current_index <= 3:  # left side
             constants.actor_creation_manager.create_interface_element(
                 {
@@ -1019,7 +1098,7 @@ def ministers_screen():
                     "width": scaling.scale_width(position_icon_width),
                     "height": scaling.scale_height(position_icon_width),
                     "modes": ["ministers"],
-                    "minister_type": constants.minister_types[current_index],
+                    "minister_type": minister_type,
                     "attached_label": "none",
                     "init_type": "minister type image",
                 }
@@ -1032,6 +1111,7 @@ def ministers_screen():
                 - 10,
                 current_index * 180 + 95,
             )
+            input_dict["minister_type"] = minister_type
             constants.actor_creation_manager.create_interface_element(input_dict)
 
         else:
@@ -1049,7 +1129,7 @@ def ministers_screen():
                     "width": scaling.scale_width(position_icon_width),
                     "height": scaling.scale_height(position_icon_width),
                     "modes": ["ministers"],
-                    "minister_type": constants.minister_types[current_index],
+                    "minister_type": minister_type,
                     "attached_label": "none",
                     "init_type": "minister type image",
                 }
@@ -1059,6 +1139,7 @@ def ministers_screen():
                 (constants.default_display_width / 2) + (table_width / 2) + 10,
                 (current_index - 4) * 180 + 95,
             )
+            input_dict["minister_type"] = minister_type
             constants.actor_creation_manager.create_interface_element(input_dict)
 
     available_minister_display_x = constants.default_display_width - 205
@@ -1154,7 +1235,7 @@ def trial_screen():
             "width": scaling.scale_width(button_separation * 2 - 5),
             "height": scaling.scale_height(button_separation * 2 - 5),
             "modes": ["trial"],
-            "minister_type": "none",
+            "minister_type": None,
             "attached_label": "none",
             "init_type": "minister type image",
             "parent_collection": status.defense_info_display,
@@ -1229,7 +1310,7 @@ def trial_screen():
             "width": scaling.scale_width(button_separation * 2 - 5),
             "height": scaling.scale_height(button_separation * 2 - 5),
             "modes": ["trial"],
-            "minister_type": "none",
+            "minister_type": None,
             "attached_label": "none",
             "init_type": "minister type image",
             "parent_collection": status.prosecution_info_display,

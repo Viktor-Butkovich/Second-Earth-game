@@ -549,46 +549,7 @@ background_skills_dict: Dict[str, List[str]] = {
     "business magnate": ["construction", "production", "transportation"],
     "royal heir": ["none", "random"],
 }
-skill_types: List[str] = [
-    "military",
-    "religion",
-    "trade",
-    "exploration",
-    "construction",
-    "production",
-    "transportation",
-    "prosecution",
-]
-minister_types: List[str] = [
-    "General",
-    "Bishop",
-    "Minister of Trade",
-    "Minister of Geography",
-    "Minister of Engineering",
-    "Minister of Production",
-    "Minister of Transportation",
-    "Prosecutor",
-]
-type_minister_dict: Dict[str, str] = {
-    "military": "General",
-    "religion": "Bishop",
-    "trade": "Minister of Trade",
-    "exploration": "Minister of Geography",
-    "construction": "Minister of Engineering",
-    "production": "Minister of Production",
-    "transportation": "Minister of Transportation",
-    "prosecution": "Prosecutor",
-}
-minister_type_dict: Dict[str, str] = {
-    "General": "military",
-    "Bishop": "religion",
-    "Minister of Trade": "trade",
-    "Minister of Geography": "exploration",
-    "Minister of Engineering": "construction",
-    "Minister of Production": "production",
-    "Minister of Transportation": "transportation",
-    "Prosecutor": "prosecution",
-}
+skill_types: List[str] = []
 minister_skill_to_description_dict: List[List[str]] = [
     ["unknown"],
     ["brainless", "moronic", "stupid", "idiotic"],
@@ -608,43 +569,6 @@ minister_corruption_to_description_dict: List[List[str]] = [
     ["corrupt", "crooked", "rotten", "treacherous"],
 ]  # not literally a dict, but index of corruption number can be used like a dictionary
 minister_limit: int = 15
-
-officer_types: List[str] = [
-    "explorer",
-    "engineer",
-    "driver",
-    "foreman",
-    "merchant",
-    "evangelist",
-    "major",
-]
-officer_group_type_dict: Dict[str, str] = {
-    "explorer": "expedition",
-    "engineer": "construction_gang",
-    "driver": "porters",
-    "foreman": "work_crew",
-    "merchant": "caravan",
-    "evangelist": "missionaries",
-    "major": "battalion",
-}
-officer_minister_dict: Dict[str, str] = {
-    "explorer": type_minister_dict["exploration"],
-    "engineer": type_minister_dict["construction"],
-    "driver": type_minister_dict["transportation"],
-    "foreman": type_minister_dict["production"],
-    "merchant": type_minister_dict["trade"],
-    "evangelist": type_minister_dict["religion"],
-    "major": type_minister_dict["military"],
-}
-group_minister_dict: Dict[str, str] = {
-    "expedition": type_minister_dict["exploration"],
-    "construction_gang": type_minister_dict["construction"],
-    "porters": type_minister_dict["transportation"],
-    "work_crew": type_minister_dict["production"],
-    "caravan": type_minister_dict["trade"],
-    "missionaries": type_minister_dict["religion"],
-    "battalion": type_minister_dict["military"],
-}
 
 worker_upkeep_increment: float = 0.25
 base_upgrade_price: float = 20.0  # 20 for 1st upgrade, 40 for 2nd, 80 for 3rd, etc.
@@ -715,6 +639,52 @@ UNIQUE_FEATURE_TRACKING: str = "unique"
 LIST_FEATURE_TRACKING: str = "list"
 
 MAP_MODE_ALPHA: int = 170
+
+MILITARY_MINISTER: str = "military"
+RELIGION_MINISTER: str = "religion"
+TRADE_MINISTER: str = "trade"
+EXPLORATION_MINISTER: str = "exploration"
+CONSTRUCTION_MINISTER: str = "construction"
+PRODUCTION_MINISTER: str = "production"
+TRANSPORTATION_MINISTER: str = "transportation"
+PROSECUTION_MINISTER: str = "prosecution"
+
+officer_types: List[str] = [
+    "explorer",
+    "engineer",
+    "driver",
+    "foreman",
+    "merchant",
+    "evangelist",
+    "major",
+]
+officer_group_type_dict: Dict[str, str] = {
+    "explorer": "expedition",
+    "engineer": "construction_gang",
+    "driver": "porters",
+    "foreman": "work_crew",
+    "merchant": "caravan",
+    "evangelist": "missionaries",
+    "major": "battalion",
+}
+officer_minister_dict: Dict[str, str] = {
+    "explorer": EXPLORATION_MINISTER,
+    "engineer": CONSTRUCTION_MINISTER,
+    "driver": TRANSPORTATION_MINISTER,
+    "foreman": PRODUCTION_MINISTER,
+    "merchant": TRADE_MINISTER,
+    "evangelist": RELIGION_MINISTER,
+    "major": MILITARY_MINISTER,
+}
+group_minister_dict: Dict[str, str] = {
+    "expedition": EXPLORATION_MINISTER,
+    "construction_gang": CONSTRUCTION_MINISTER,
+    "porters": TRANSPORTATION_MINISTER,
+    "work_crew": PRODUCTION_MINISTER,
+    "caravan": TRADE_MINISTER,
+    "missionaries": RELIGION_MINISTER,
+    "battalion": MILITARY_MINISTER,
+}
 
 EUROPEAN_WORKERS: str = "european_workers"
 CHURCH_VOLUNTEERS: str = "church_volunteers"

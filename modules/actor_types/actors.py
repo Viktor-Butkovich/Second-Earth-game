@@ -2,7 +2,14 @@
 
 import pygame
 import random
-from ..util import text_utility, utility, actor_utility, scaling, market_utility
+from ..util import (
+    text_utility,
+    utility,
+    actor_utility,
+    scaling,
+    market_utility,
+    minister_utility,
+)
 from ..interface_types.grids import grid
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -276,9 +283,9 @@ class actor:
                     and random.randrange(1, 7) <= 1
                 )
             ):  # extra chance of failure when carried by porters/caravan
-                transportation_minister = status.current_ministers[
-                    constants.type_minister_dict["transportation"]
-                ]
+                transportation_minister = minister_utility.get_minister(
+                    constants.TRANSPORTATION_MINISTER
+                )
                 if self.actor_type == "tile":
                     current_cell = self.cell
                 elif self.actor_type == "mob":

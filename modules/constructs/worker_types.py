@@ -1,12 +1,10 @@
 # Contains functionality for worker type templates, such as European, religious workers
 
-import random
 from typing import Dict, List
 import modules.constants.status as status
 import modules.constants.constants as constants
 import modules.util.market_utility as market_utility
 import modules.util.text_utility as text_utility
-import modules.util.actor_utility as actor_utility
 
 
 class worker_type:

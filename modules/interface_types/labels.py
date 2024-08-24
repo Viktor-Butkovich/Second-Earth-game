@@ -294,7 +294,7 @@ class money_label_template(value_label):
         if total_sale_revenue > 0:
             tooltip_text.append("")
             tooltip_text.append(
-                f"Your {constants.type_minister_dict['trade']} has been ordered to sell commodities at the end of the turn for an estimated total of {total_sale_revenue} money"
+                f"Your {status.minister_types[constants.TRADE_MINISTER].name} has been ordered to sell commodities at the end of the turn for an estimated total of {total_sale_revenue} money"
             )
 
         tooltip_text.append("")

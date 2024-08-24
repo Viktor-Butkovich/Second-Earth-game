@@ -415,7 +415,7 @@ class button(interface_elements.interface_element):
                 if self.button_type == "sell commodity":
                     self.set_tooltip(
                         [
-                            f"Orders your {constants.type_minister_dict['trade']} to sell 1 unit of {self.attached_label.actor.current_item} for about {constants.item_prices[self.attached_label.actor.current_item]} money at the end of the turn",
+                            f"Orders your {status.minister_types[constants.TRADE_MINISTER].name} to sell 1 unit of {self.attached_label.actor.current_item} for about {constants.item_prices[self.attached_label.actor.current_item]} money at the end of the turn",
                             "The amount each commodity was sold for is reported at the beginning of your next turn",
                             f"Each unit of {self.attached_label.actor.current_item} sold has a chance of reducing its sale price",
                         ]
@@ -426,7 +426,7 @@ class button(interface_elements.interface_element):
                     )
                     self.set_tooltip(
                         [
-                            f"Orders your {constants.type_minister_dict['trade']} to sell your entire stockpile of {self.attached_label.actor.current_item} for about {constants.item_prices[self.attached_label.actor.current_item]} money each at the end of the turn, for a total of about {constants.item_prices[self.attached_label.actor.current_item] * num_present} money",
+                            f"Orders your {status.minister_types[constants.TRADE_MINISTER].name} to sell your entire stockpile of {self.attached_label.actor.current_item} for about {constants.item_prices[self.attached_label.actor.current_item]} money each at the end of the turn, for a total of about {constants.item_prices[self.attached_label.actor.current_item] * num_present} money",
                             "The amount each commodity was sold for is reported at the beginning of your next turn",
                             f"Each unit of {self.attached_label.actor.current_item} sold has a chance of reducing its sale price",
                         ]
@@ -434,7 +434,7 @@ class button(interface_elements.interface_element):
                 else:
                     self.set_tooltip(
                         [
-                            f"Orders your {constants.type_minister_dict['trade']} to sell all commodities at the end of the turn, "
+                            f"Orders your {status.minister_types[constants.TRADE_MINISTER].name} to sell all commodities at the end of the turn, "
                             f"The amount each commodity was sold for is reported at the beginning of your next turn",
                             "Each commodity sold has a chance of reducing its sale price",
                         ]
@@ -542,7 +542,7 @@ class button(interface_elements.interface_element):
             )
 
         elif self.button_type == "appoint minister":
-            self.set_tooltip(["Appoints this candidate as " + self.appoint_type])
+            self.set_tooltip(["Appoints this candidate as " + self.appoint_type.name])
 
         elif self.button_type == "remove minister":
             self.set_tooltip(["Removes this minister from their current office"])
@@ -552,9 +552,7 @@ class button(interface_elements.interface_element):
                 [
                     "Opens the trial planning screen to attempt to imprison this minister for corruption",
                     "A trial has a higher success chance as more evidence of that minister's corruption is found",
-                    "While entering this screen is free, a trial costs "
-                    + str(constants.action_prices["trial"])
-                    + " money once started",
+                    f"While entering this screen is free, a trial costs {constants.action_prices['trial']} money once started",
                     "Each trial attempted doubles the cost of other trials in the same turn",
                 ]
             )
@@ -563,9 +561,7 @@ class button(interface_elements.interface_element):
             if constants.current_game_mode == "trial":
                 self.set_tooltip(
                     [
-                        "Creates a unit of fake evidence against this minister to improve the trial's success chance for "
-                        + str(self.get_cost())
-                        + " money",
+                        f"Creates a unit of fake evidence against this minister to improve the trial's success chance for {self.get_cost()} money",
                         "Each piece of evidence fabricated in a trial becomes increasingly expensive.",
                         "Unlike real evidence, fabricated evidence disappears at the end of the turn and is never preserved after a failed trial",
                     ]
@@ -627,15 +623,9 @@ class button(interface_elements.interface_element):
                 target = "unit's " + self.target_type  # worker or officer
             self.set_tooltip(
                 [
-                    utility.capitalize(verb)
-                    + "s automatic replacement for this "
-                    + target,
+                    f"{utility.capitalize(verb)}s automatic replacement for this {target}",
                     "A unit with automatic replacement will be automatically replaced if it dies from attrition",
-                    "This "
-                    + target
-                    + " is currently set to "
-                    + operator
-                    + "be automatically replaced",
+                    f"This {target} is currently set to {operator}be automatically replaced",
                 ]
             )
 
@@ -695,9 +685,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == "reset interface collection":
             self.set_tooltip(
                 [
-                    "Resets the "
-                    + self.parent_collection.description
-                    + " to its original location"
+                    f"Resets the {self.parent_collection.description} to its original location"
                 ]
             )
 
@@ -1089,47 +1077,20 @@ class button(interface_elements.interface_element):
                             num_progressed = moved_units[current_unit_type]
                             if num_attempted == num_progressed:
                                 if num_attempted == 1:
-                                    text += (
-                                        "The "
-                                        + singular
-                                        + " made progress on its designated movement route. /n /n"
-                                    )
+                                    text += f"The {singular} made progress on its designated movement route. /n /n"
                                 else:
-                                    text += (
-                                        "All "
-                                        + str(num_attempted)
-                                        + " of the "
-                                        + plural
-                                        + " made progress on their designated movement routes. /n /n"
-                                    )
+                                    text += f"All {num_attempted} of the {plural} made progress on their designated movement routes. /n /n"
                             else:
                                 if num_progressed == 0:
                                     if num_attempted == 1:
-                                        text += (
-                                            "The "
-                                            + singular
-                                            + " made no progress on its designated movement route. /n /n"
-                                        )
+                                        text += f"The {singular} made no progress on its designated movement route. /n /n"
                                     else:
-                                        text += (
-                                            "None of the "
-                                            + plural
-                                            + " made progress on their designated movement routes. /n /n"
-                                        )
+                                        text += f"None of the {plural} made progress on their designated movement routes. /n /n"
                                 else:
-                                    text += (
-                                        "Only "
-                                        + str(num_progressed)
-                                        + " of the "
-                                        + str(num_attempted)
-                                        + " "
-                                        + plural
-                                        + " made progress on their designated movement routes. /n /n"
-                                    )
-
-                    transportation_minister = status.current_ministers[
-                        constants.type_minister_dict["transportation"]
-                    ]
+                                    text += f"Only {num_progressed} of the {num_attempted} {plural} made progress on their designated movement routes. /n /n"
+                    transportation_minister = minister_utility.get_minister(
+                        constants.TRANSPORTATION_MINISTER
+                    )
                     if types_moved > 0:
                         transportation_minister.display_message(text)
                     else:
@@ -1159,13 +1120,7 @@ class button(interface_elements.interface_element):
 
         elif self.button_type == "start end turn":
             if main_loop_utility.action_possible():
-                stopping = False
-                for current_position in constants.minister_types:
-                    if status.current_ministers[current_position] == None:
-                        stopping = True
-                if stopping:
-                    game_transitions.force_minister_appointment()
-                else:
+                if minister_utility.positions_filled():
                     if not constants.current_game_mode == "strategic":
                         game_transitions.set_game_mode("strategic")
                     turn_management_utility.end_turn_warnings()
@@ -1399,7 +1354,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == "confirm remove minister":
             removed_minister = status.displayed_minister
             removed_minister.just_removed = True
-            removed_minister.appoint("none")
+            removed_minister.appoint(None)
             public_opinion_penalty = removed_minister.status_number
             constants.public_opinion_tracker.change(-1 * public_opinion_penalty)
 
@@ -2153,7 +2108,6 @@ class minister_portrait_image(button):
                 status.available_minister_portrait_list.append(self)
             warning_x_offset = scaling.scale_width(-100)
         else:
-            self.type_keyword = constants.minister_type_dict[self.minister_type]
             warning_x_offset = 0
         status.minister_image_list.append(self)
 
@@ -2178,15 +2132,16 @@ class minister_portrait_image(button):
         Output:
             Returns whether this image should display its warning image
         """
-        if not self.current_minister == "none":
+        if not self.current_minister in ["none", None]:
             if (
                 self.current_minister.just_removed
-                and self.current_minister.current_position == "none"
+                and not self.current_minister.current_position
             ):
                 return True
-        elif (
-            self.minister_type != "none"
-        ):  # If portrait in minister table and no minister assigned for office
+        elif not self.minister_type in [
+            "none",
+            None,
+        ]:  # If portrait in minister table and no minister assigned for office
             return True
         return False
 
@@ -2299,12 +2254,8 @@ class minister_portrait_image(button):
                 self.tooltip_text = ["There is no available candidate in this slot."]
             else:  # If appointed minister portrait
                 self.tooltip_text = [
-                    "No " + self.minister_type + " is currently appointed.",
-                    "Without a "
-                    + self.minister_type
-                    + ", "
-                    + self.type_keyword
-                    + "-oriented actions are not possible",
+                    f"No {self.minister_type.name} is currently appointed.",
+                    f"Without a {self.minister_type.name}, {self.minister_type.skill_type}-oriented actions are not possible",
                 ]
             self.image.set_image(self.default_image_id)
         else:  # If minister icon on strategic mode, no need to show empty minister

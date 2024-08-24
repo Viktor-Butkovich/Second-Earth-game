@@ -8,6 +8,7 @@ from . import (
     market_utility,
     utility,
     game_transitions,
+    minister_utility,
 )
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -228,13 +229,11 @@ def manage_production_report(expected_production):
     """
     attempted_commodities = constants.attempted_commodities
     displayed_commodities = []
-    production_minister = status.current_ministers[
-        constants.type_minister_dict["production"]
-    ]
+    production_minister = minister_utility.get_minister(constants.PRODUCTION_MINISTER)
     if (
         not len(constants.attempted_commodities) == 0
     ):  # if any attempted, do production report
-        text = f"{production_minister.current_position} {production_minister.name} reports the following commodity production: /n /n"
+        text = f"{production_minister.current_position.name} {production_minister.name} reports the following commodity production: /n /n"
         while len(displayed_commodities) < len(attempted_commodities):
             max_produced = 0
             max_commodity = "none"
@@ -246,9 +245,13 @@ def manage_production_report(expected_production):
                     ):
                         max_commodity = current_commodity
                         max_produced = constants.commodities_produced[current_commodity]
-                        expected_production[max_commodity] = status.current_ministers[
-                            "Prosecutor"
-                        ].estimate_expected(expected_production[max_commodity])
+                        expected_production[
+                            max_commodity
+                        ] = minister_utility.get_minister(
+                            constants.PROSECUTION_MINISTER
+                        ).estimate_expected(
+                            expected_production[max_commodity]
+                        )
             displayed_commodities.append(max_commodity)
             text += f"{max_commodity.capitalize()}: {max_produced} (expected {expected_production[max_commodity]}) /n /n"
         status.previous_production_report = text
@@ -421,17 +424,15 @@ def manage_ministers():
     removed_ministers = []
     for current_minister in status.minister_list:
         removing_current_minister = False
-        if (
-            current_minister.just_removed
-            and current_minister.current_position == "none"
-        ):
+        if current_minister.just_removed and not current_minister.current_position:
             current_minister.respond("fired")
             removing_current_minister = True
         elif (
-            current_minister.current_position == "none"
+            current_minister.current_position == None
             and random.randrange(1, 7) == 1
             and random.randrange(1, 7) <= 2
-        ):  # 1/18 chance of switching out available ministers
+        ):
+            # 1/18 chance of switching out available ministers
             removed_ministers.append(current_minister)
         elif (
             random.randrange(1, 7) == 1
@@ -442,7 +443,7 @@ def manage_ministers():
             )
         ) or constants.effect_manager.effect_active("farm_upstate"):
             removed_ministers.append(current_minister)
-        else:  # if not retired/fired
+        else:  # If not retired/fired
             if (
                 random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1
             ):  # 1/36 chance to increase relevant specific skill
@@ -450,10 +451,9 @@ def manage_ministers():
         current_minister.just_removed = False
 
         if current_minister.fabricated_evidence > 0:
-            prosecutor = status.current_ministers["Prosecutor"]
-            if (
-                prosecutor.check_corruption()
-            ):  # corruption is normally resolved during a trial, but prosecutor can still steal money from unused fabricated evidence if no trial occurs
+            prosecutor = minister_utility.get_minister(constants.PROSECUTION_MINISTER)
+            if prosecutor.check_corruption():
+                # Corruption is normally resolved during a trial, but prosecutor can still steal money from unused fabricated evidence if no trial occurs
                 prosecutor.steal_money(
                     trial_utility.get_fabricated_evidence_cost(
                         current_minister.fabricated_evidence, True
@@ -471,17 +471,17 @@ def manage_ministers():
             if random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1:
                 evidence_lost += 1
         if evidence_lost > 0:
-            if current_minister.current_position == "none":
+            if not current_minister.current_position:
                 current_position = ""
             else:
                 current_position = current_minister.current_position
             if evidence_lost == current_minister.corruption_evidence:
                 current_minister.display_message(
-                    f"All of the {current_minister.corruption_evidence} evidence of {current_position} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against them. /n /n"
+                    f"All of the {current_minister.corruption_evidence} evidence of {current_position.name} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against them. /n /n"
                 )
             else:
                 current_minister.display_message(
-                    f"{evidence_lost} of the {current_minister.corruption_evidence} evidence of {current_position} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against them. /n /n"
+                    f"{evidence_lost} of the {current_minister.corruption_evidence} evidence of {current_position.name} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against them. /n /n"
                 )
             current_minister.corruption_evidence -= evidence_lost
         if removing_current_minister:
@@ -496,8 +496,8 @@ def manage_ministers():
         current_minister = removed_ministers.pop(0)
         current_minister.respond("retirement")
 
-        if current_minister.current_position != "none":
-            current_minister.appoint("none")
+        if current_minister.current_position:
+            current_minister.appoint(None)
         current_minister.remove_complete()
 
     if (
@@ -532,16 +532,20 @@ def manage_minister_rumors():
     for current_minister in status.minister_list:
         if random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1:
             current_minister.attempt_rumor("loyalty", "none")
-        for skill_type in constants.minister_types:
-            if skill_type == current_minister.current_position:
+        for key, minister_type in status.minister_types.items():
+            if (
+                current_minister.current_position
+                and minister_type.skill_type
+                == current_minister.current_position.skill_type
+            ):
                 if random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1:
-                    current_minister.attempt_rumor(skill_type, "none")
+                    current_minister.attempt_rumor(minister_type.skill_type, "none")
             elif (
                 random.randrange(1, 7) == 1
                 and random.randrange(1, 7) == 1
                 and random.randrange(1, 7) == 1
             ):
-                current_minister.attempt_rumor(skill_type, "none")
+                current_minister.attempt_rumor(minister_type.skill_type, "none")
         # 1/36 of getting loyalty report
         # if currently employed, 1/36 of getting report on working skill
         # if currently employed, 1/216 of getting report on each non-working skill
@@ -579,25 +583,19 @@ def manage_commodity_sales():
         None
     """
     sold_commodities = constants.sold_commodities
-    trade_minister = status.current_ministers[constants.type_minister_dict["trade"]]
-    stealing = False
+    trade_minister = minister_utility.get_minister(constants.TRADE_MINISTER)
     money_stolen = 0
     reported_revenue = 0
-    text = (
-        trade_minister.current_position
-        + " "
-        + trade_minister.name
-        + " reports the following commodity sales: /n /n"
-    )
+    text = f"{trade_minister.current_position.name} {trade_minister.name} reports the following commodity sales: /n /n"
     any_sold = False
     for current_commodity in constants.commodity_types:
         if sold_commodities[current_commodity] > 0:
             any_sold = True
             sell_price = constants.item_prices[current_commodity]
             expected_revenue = sold_commodities[current_commodity] * sell_price
-            expected_revenue = status.current_ministers["Prosecutor"].estimate_expected(
-                expected_revenue, False
-            )
+            expected_revenue = minister_utility.get_minister(
+                constants.PROSECUTION_MINISTER
+            ).estimate_expected(expected_revenue, False)
             actual_revenue = 0
 
             for i in range(sold_commodities[current_commodity]):
@@ -615,17 +613,7 @@ def manage_commodity_sales():
                 actual_revenue += individual_sell_price
                 if random.randrange(1, 7) <= 1:  # 1/6 chance
                     market_utility.change_price(current_commodity, -1)
-
-            text += (
-                str(sold_commodities[current_commodity])
-                + " "
-                + current_commodity
-                + " sold for "
-                + str(actual_revenue)
-                + " money (expected "
-                + str(expected_revenue)
-                + ") /n /n"
-            )
+            text += f"{sold_commodities[current_commodity]} {current_commodity} sold for {actual_revenue} money (expected {expected_revenue}) /n /n"
 
     constants.money_tracker.change(reported_revenue, "sold_commodities")
 
@@ -649,10 +637,7 @@ def end_turn_warnings():
         None
     """
     for current_minister in status.minister_list:  # Warn for firing minister
-        if (
-            current_minister.just_removed
-            and current_minister.current_position == "none"
-        ):
+        if current_minister.just_removed and not current_minister.current_position:
             current_minister.display_message(
                 f"Warning: if you do not reappoint {current_minister.name} by the end of the turn, they will be considered fired, leaving the candidate pool and incurring a large public opinion penalty. /n /n"
             )
@@ -718,18 +703,14 @@ def end_turn_warnings():
             if (
                 num_leaving > 0 and num_stranded > 0 and num_reserve == 0
             ):  # If at least 1 vehicle leaving grid and at least 1 unit left behind, give warning
-                text = (
-                    "Warning: at least 1 unit is being left behind in "
-                    + grid_name
-                    + " and will not be able to leave without another ship. /n /n"
-                )
+                text += f"Warning: at least 1 unit is being left behind in {grid_name} and will not be able to leave without another ship. /n /n"
                 constants.notification_manager.display_notification(
                     {"message": text, "zoom_destination": current_cell.tile}
                 )
 
     for minister in status.minister_list:
         if minister.fabricated_evidence > 0:
-            text = f"WARNING: Your {minister.fabricated_evidence} piece{utility.generate_plural(minister.fabricated_evidence)} of fabricated evidence against {minister.current_position} {minister.name} will disappear at the end of the turn if left unused. /n /n"
+            text = f"WARNING: Your {minister.fabricated_evidence} piece{utility.generate_plural(minister.fabricated_evidence)} of fabricated evidence against {minister.current_position.name} {minister.name} will disappear at the end of the turn if left unused. /n /n"
             constants.notification_manager.display_notification(
                 {
                     "message": text,

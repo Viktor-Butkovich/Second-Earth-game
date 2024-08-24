@@ -281,7 +281,7 @@ class actor_display_label(label):
                         "width": self.height + m_increment,
                         "height": self.height + m_increment,
                         "modes": self.modes,
-                        "minister_type": "none",
+                        "minister_type": None,
                         "attached_label": self,
                         "init_type": "minister type image",
                         "minister_image_type": "portrait",
@@ -332,7 +332,7 @@ class actor_display_label(label):
             self.add_attached_button(input_dict)
             input_dict["init_type"] = "appoint minister button"
             input_dict["width"], input_dict["height"] = (s_size, s_size)
-            for current_position in constants.minister_types:
+            for key, current_position in status.minister_types.items():
                 input_dict["appoint_type"] = current_position
                 self.add_attached_button(input_dict)
 
@@ -578,12 +578,12 @@ class actor_display_label(label):
             tooltip_text = []
             if not self.actor == "none":
                 self.actor.update_tooltip()
-                if not self.actor.controlling_minister == "none":
+                if self.actor.controlling_minister:
                     tooltip_text = self.actor.controlling_minister.tooltip_text
                 else:
                     tooltip_text = [
-                        f"The {self.actor.controlling_minister_type} is responsible for controlling this unit",
-                        f"As there is currently no {self.actor.controlling_minister_type}, this unit will not be able to complete most actions until one is appointed",
+                        f"The {self.actor.controlling_minister_type.name} is responsible for controlling this unit",
+                        f"As there is currently no {self.actor.controlling_minister_type.name}, this unit will not be able to complete most actions until one is appointed",
                     ]
             self.set_tooltip(tooltip_text)
 
@@ -651,11 +651,8 @@ class actor_display_label(label):
                     for skill_type in self.actor.apparent_skills:
                         if self.actor.apparent_skills[skill_type] == skill_value:
                             rank += 1
-                            skill_name = constants.minister_type_dict[
-                                skill_type
-                            ]  # like General to military
                             tooltip_text.append(
-                                f"    {rank}. {skill_name.capitalize()}: {self.actor.apparent_skill_descriptions[skill_type]}"
+                                f"    {rank}. {skill_type.capitalize()}: {self.actor.apparent_skill_descriptions[skill_type]}"
                             )
             self.set_tooltip(tooltip_text)
 
@@ -985,17 +982,14 @@ class actor_display_label(label):
 
             elif self.actor_label_type == "ability":
                 message = ""
-                if new_actor.current_position == "none":
+                if not new_actor.current_position:
                     displayed_skill = new_actor.get_max_apparent_skill()
                     message += "Highest ability: "
                 else:
-                    displayed_skill = new_actor.current_position
+                    displayed_skill = new_actor.current_position.skill_type
                     message += "Current ability: "
                 if displayed_skill != "unknown":
-                    displayed_skill_name = constants.minister_type_dict[
-                        displayed_skill
-                    ]  # like General to military
-                    message += f"{new_actor.apparent_skill_descriptions[displayed_skill]} ({displayed_skill_name})"
+                    message += f"{new_actor.apparent_skill_descriptions[displayed_skill]} ({displayed_skill})"
                 else:
                     message += displayed_skill
                 self.set_label(message)
@@ -1007,18 +1001,17 @@ class actor_display_label(label):
 
             elif self.actor_label_type in constants.skill_types:
                 self.set_label(
-                    self.actor_label_type.capitalize()
-                    + ": "
-                    + self.actor.apparent_skill_descriptions[
-                        constants.type_minister_dict[self.actor_label_type]
-                    ]
+                    f"{self.actor_label_type.capitalize()}: {self.actor.apparent_skill_descriptions[self.actor_label_type]}"
                 )
 
             elif self.actor_label_type == "minister_name":
                 self.set_label(self.message_start + new_actor.name)
 
             elif self.actor_label_type == "minister_office":
-                self.set_label(self.message_start + new_actor.current_position)
+                if new_actor.current_position:
+                    self.set_label(self.message_start + new_actor.current_position.name)
+                else:
+                    self.set_label(self.message_start + "none")
 
             elif self.actor_label_type == "slums":
                 if self.actor.cell.has_building("slums"):
@@ -1145,9 +1138,7 @@ class actor_display_label(label):
                 return result
         elif self.actor_label_type in constants.skill_types:
             return (
-                self.actor.apparent_skill_descriptions[
-                    constants.type_minister_dict[self.actor_label_type]
-                ]
+                self.actor.apparent_skill_descriptions[self.actor_label_type]
                 != "unknown"
             )
         elif (

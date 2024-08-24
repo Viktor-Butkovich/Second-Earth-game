@@ -3,7 +3,7 @@
 import pygame
 import random
 from .actors import actor
-from ..util import utility, scaling, actor_utility, text_utility
+from ..util import utility, scaling, actor_utility, text_utility, minister_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 
@@ -886,9 +886,9 @@ class resource_building(building):
         """
         if current_cell == "default":
             current_cell = self.cell
-        transportation_minister = status.current_ministers[
-            constants.type_minister_dict["transportation"]
-        ]
+        transportation_minister = minister_utility.get_minister(
+            constants.TRANSPORTATION_MINISTER
+        )
         worker_attrition_list = []
         officer_attrition_list = []
         for current_work_crew in self.contained_work_crews:
