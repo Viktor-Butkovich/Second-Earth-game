@@ -298,7 +298,7 @@ class actor_display_label(label):
                     "width": self.height + m_increment,
                     "height": self.height + m_increment,
                     "init_type": "minister portrait image",
-                    "minister_type": "none",
+                    "minister_type": None,
                     "parent_collection": attached_minister_position_image.parent_collection,
                     "member_config": {
                         "x_offset": -1 * (self.height + m_increment),
@@ -951,7 +951,7 @@ class actor_display_label(label):
             elif self.actor_label_type == "minister":
                 if (
                     self.actor.get_permission(constants.PMOB_PERMISSION)
-                    and self.actor.controlling_minister != "none"
+                    and self.actor.controlling_minister
                 ):
                     self.set_label(
                         self.message_start + self.actor.controlling_minister.name

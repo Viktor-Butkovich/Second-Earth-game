@@ -45,7 +45,9 @@ class minister_type:
         """
         tooltip_text = []
         if self.controls_units:
-            tooltip_text.append(f"Whenever you command a {self.skill_type}-oriented unit to do an action, the {self.name} is responsible for executing the action.")
+            tooltip_text.append(
+                f"Whenever you command a {self.skill_type}-oriented unit to do an action, the {self.name} is responsible for executing the action."
+            )
         tooltip_text += self.description
         if not minister_utility.get_minister(self.key):
             tooltip_text.append(

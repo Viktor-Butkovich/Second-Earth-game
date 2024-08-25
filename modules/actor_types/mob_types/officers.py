@@ -37,7 +37,7 @@ class officer(pmob):
         self.officer_type = input_dict.get("officer_type", type(self).__name__)
         super().__init__(from_save, input_dict, original_constructor=False)
         self.set_controlling_minister_type(
-            constants.officer_minister_dict[self.officer_type]
+            status.minister_types[constants.officer_minister_dict[self.officer_type]]
         )
         if not from_save:
             self.selection_sound()

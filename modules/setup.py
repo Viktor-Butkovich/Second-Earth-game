@@ -1174,7 +1174,7 @@ def ministers_screen():
                 "modes": ["ministers"],
                 "init_type": "minister portrait image",
                 "color": "gray",
-                "minister_type": "none",
+                "minister_type": None,
             }
         )
 
@@ -1249,7 +1249,7 @@ def trial_screen():
             "width": scaling.scale_width(button_separation * 2 - 5),
             "height": scaling.scale_height(button_separation * 2 - 5),
             "init_type": "minister portrait image",
-            "minister_type": "none",
+            "minister_type": None,
             "color": "gray",
             "parent_collection": status.defense_info_display,
         }
@@ -1324,7 +1324,7 @@ def trial_screen():
                 "width": scaling.scale_width(button_separation * 2 - 5),
                 "height": scaling.scale_height(button_separation * 2 - 5),
                 "init_type": "minister portrait image",
-                "minister_type": "none",
+                "minister_type": None,
                 "color": "gray",
                 "parent_collection": status.prosecution_info_display,
             }

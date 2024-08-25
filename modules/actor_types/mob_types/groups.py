@@ -59,7 +59,7 @@ class group(pmob):
                     current_commodity, current_mob.get_inventory(current_commodity)
                 )
                 current_mob.set_inventory(current_commodity, 0)
-        self.set_group_type("none")
+        self.set_group_type(None)
         if not from_save:
             self.set_permission(
                 constants.DISORGANIZED_PERMISSION,

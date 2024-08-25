@@ -1465,17 +1465,16 @@ class minister_type_image(tooltip_free_image):
         Output:
             None
         """
-        if new_minister == None:
-            new_minister = "none"
-        if new_minister != "none":
-            if new_minister.actor_type != "minister":
-                if hasattr(new_minister, "controlling_minister"):
-                    new_minister = new_minister.controlling_minister
-                else:
-                    new_minister = "none"
+        if new_minister == "none":
+            new_minister = None
+        if new_minister and new_minister.actor_type != "minister":
+            if hasattr(new_minister, "controlling_minister"):
+                new_minister = new_minister.controlling_minister
+            else:
+                new_minister = None
 
         self.current_minister = new_minister
-        if new_minister != "none":
+        if new_minister:
             self.minister_type = new_minister.current_position
         current_minister_type = self.minister_type
         if (

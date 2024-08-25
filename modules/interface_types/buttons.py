@@ -2097,13 +2097,13 @@ class minister_portrait_image(button):
             None
         """
         self.default_image_id = "ministers/empty_portrait.png"
-        self.current_minister = "none"
+        self.current_minister = None
         input_dict["image_id"] = self.default_image_id
         input_dict["button_type"] = "minister portrait"
         super().__init__(input_dict)
         self.insert_collection_above()
         self.minister_type = input_dict["minister_type"]  # Position, like General
-        if self.minister_type == "none":  # If available minister portrait
+        if not self.minister_type:  # If available minister portrait
             if "ministers" in self.modes:
                 status.available_minister_portrait_list.append(self)
             warning_x_offset = scaling.scale_width(-100)
@@ -2121,7 +2121,7 @@ class minister_portrait_image(button):
         )
         self.parent_collection.can_show_override = self  # Parent collection is considered showing when this label can show, allowing ordered collection to work correctly
 
-        self.calibrate("none")
+        self.calibrate(None)
 
     def can_show_warning(self):
         """
@@ -2132,16 +2132,15 @@ class minister_portrait_image(button):
         Output:
             Returns whether this image should display its warning image
         """
-        if not self.current_minister in ["none", None]:
+        if self.current_minister:
             if (
                 self.current_minister.just_removed
                 and not self.current_minister.current_position
             ):
                 return True
-        elif not self.minister_type in [
-            "none",
-            None,
-        ]:  # If portrait in minister table and no minister assigned for office
+        elif (
+            self.minister_type
+        ):  # If portrait in minister table and no minister assigned for office
             return True
         return False
 
@@ -2159,7 +2158,7 @@ class minister_portrait_image(button):
             self.showing and constants.current_game_mode == "ministers"
         ):  # Draw outline around portrait if minister selected
             showing = True
-            if self.current_minister != "none":
+            if self.current_minister:
                 pygame.draw.rect(
                     constants.game_display, constants.color_dict["white"], self.Rect
                 )  # draw white background
@@ -2188,12 +2187,8 @@ class minister_portrait_image(button):
             None
         """
         if main_loop_utility.action_possible():
-            if (
-                constants.current_game_mode == "ministers"
-                and self.current_minister != "none"
-            ):
-                if self.current_minister != "none":
-                    self.current_minister.play_voice_line("acknowledgement")
+            if constants.current_game_mode == "ministers" and self.current_minister:
+                self.current_minister.play_voice_line("acknowledgement")
                 if (
                     self in status.available_minister_portrait_list
                 ):  # if available minister portrait
@@ -2212,7 +2207,7 @@ class minister_portrait_image(button):
                 old_minister = self.current_minister
                 game_transitions.set_game_mode("ministers")
                 self.current_minister = old_minister
-                if self.current_minister != "none":
+                if self.current_minister:
                     self.on_click()
         else:
             text_utility.print_to_screen(
@@ -2228,18 +2223,17 @@ class minister_portrait_image(button):
         Output:
             None
         """
-        if new_minister == None:
-            new_minister = "none"
+        if new_minister == "none":
+            new_minister = None
         if (
-            new_minister != "none"
+            new_minister and new_minister.actor_type != "minister"
         ):  # If calibrated to non-minister, attempt to calibrate to that unit's controlling minister
-            if new_minister.actor_type != "minister":
-                if hasattr(new_minister, "controlling_minister"):
-                    new_minister = new_minister.controlling_minister
-                else:
-                    new_minister = "none"
+            if hasattr(new_minister, "controlling_minister"):
+                new_minister = new_minister.controlling_minister
+            else:
+                new_minister = None
 
-        if new_minister != "none":
+        if new_minister:
             new_minister.update_tooltip()
             self.tooltip_text = new_minister.tooltip_text
             if "ministers" in self.modes:
@@ -2250,7 +2244,7 @@ class minister_portrait_image(button):
             else:
                 self.image.set_image(new_minister.image_id)
         elif "ministers" in self.modes:  # Show empty minister if minister screen icon
-            if self.minister_type == "none":  # If available minister portrait
+            if not self.minister_type:  # If available minister portrait
                 self.tooltip_text = ["There is no available candidate in this slot."]
             else:  # If appointed minister portrait
                 self.tooltip_text = [
@@ -2271,7 +2265,7 @@ class minister_portrait_image(button):
         Output:
             None
         """
-        if not self.current_minister == "none":
+        if self.current_minister:
             self.current_minister.update_tooltip()
             self.tooltip_text = self.current_minister.tooltip_text
         self.set_tooltip(self.tooltip_text)

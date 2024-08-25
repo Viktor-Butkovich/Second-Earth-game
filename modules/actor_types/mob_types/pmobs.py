@@ -3,6 +3,7 @@
 import pygame
 import random
 from ..mobs import mob
+from ...constructs import ministers
 from ...util import text_utility, utility, actor_utility, minister_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -47,6 +48,7 @@ class pmob(mob):
         super().__init__(from_save, input_dict, original_constructor=False)
         self.selection_outline_color = "bright green"
         status.pmob_list.append(self)
+        self.controlling_minister: ministers.minister = None
         self.set_controlling_minister_type(None)
         self.equipment = {}
         for current_equipment in input_dict.get("equipment", {}):
@@ -718,9 +720,10 @@ class pmob(mob):
         Output:
             None
         """
-        self.controlling_minister = minister_utility.get_minister(
-            self.controlling_minister_type.key
-        )
+        if self.controlling_minister_type:
+            self.controlling_minister = minister_utility.get_minister(
+                self.controlling_minister_type.key
+            )
         for current_minister_type_image in status.minister_image_list:
             if (
                 current_minister_type_image.minister_type
