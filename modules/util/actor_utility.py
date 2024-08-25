@@ -43,7 +43,7 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
     Description:
         Returns the cost of the inputted unit attempting to construct the inputted building
     Input:
-        pmob/string constructor: Unit attempting to construct the building, or 'none' if no location/unit type is needed
+        pmob/string constructor: Unit attempting to construct the building, or None if no location/unit type is needed
         string building_type: Type of building to build, like 'infrastructure'
         string building_name = 'n/a': Name of building being built, used to differentiate roads from railroads
     Output:
@@ -54,19 +54,16 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
             " ", "_"
         )  # road, railroad, road_bridge, or railroad_bridge
     if building_type == "warehouses":
-        if constructor in ["none", None]:
-            base_price = 5
-        else:
+        if constructor:
             base_price = constructor.get_cell().get_warehouses_cost()
+        else:
+            base_price = 5
     else:
         base_price = constants.building_prices[building_type]
 
     if building_type in ["train"]:
         cost_multiplier = 1
-    elif (
-        constructor in ["none", None]
-        or not status.strategic_map_grid in constructor.grids
-    ):
+    elif (not constructor) or not status.strategic_map_grid in constructor.grids:
         cost_multiplier = 1
     else:
         cost_multiplier = constants.terrain_build_cost_multiplier_dict.get(
@@ -172,14 +169,12 @@ def update_descriptions(target="all"):
         elif current_target == "resource":
             if current_target in status.actions:
                 building_name = status.actions[current_target].building_name
-                if building_name == "none":
+                if not building_name:
                     building_name = "resource production facility"
             else:
                 building_name = "resource production facility"
             text_list.append(
-                "A "
-                + building_name
-                + " expands the tile's warehouse capacity, and each work crew attached to it attempts to produce resources each turn."
+                f"A {building_name} expands the tile's warehouse capacity, and each work crew attached to it attempts to produce resources each turn."
             )
             text_list.append(
                 "Upgrades to the facility can increase the maximum number of attached work crews and the number of production attempts each work crew can make. "
@@ -320,8 +315,6 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
     Output:
         None
     """
-    if new_actor == "none":
-        print(0 / 0)
     if info_display == status.tile_info_display:
         for current_same_tile_icon in status.same_tile_icon_list:
             current_same_tile_icon.reset()
@@ -347,7 +340,7 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
         ):  # Don't change tabs while choosing destination
             select_default_tab(status.mob_tabbed_collection, status.displayed_mob)
 
-    target = "none"
+    target = None
     if new_actor:
         target = new_actor
     info_display.calibrate(target, override_exempt)

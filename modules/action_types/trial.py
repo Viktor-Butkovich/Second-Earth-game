@@ -77,7 +77,7 @@ class trial(action.campaign):
         Input:
             pmob unit: Unit selected when the linked button is clicked
         Output:
-            none
+            None
         """
         super().pre_start(unit)
         self.current_min_success = 5  # alternative to subtracting a roll modifier, which would change the max crit fail

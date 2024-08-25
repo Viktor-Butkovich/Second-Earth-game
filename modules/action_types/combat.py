@@ -77,11 +77,11 @@ class combat(action.action):
         ):
             local_infrastructure = tooltip_info_dict["local_infrastructure"]
             adjacent_infrastructure = tooltip_info_dict["adjacent_infrastructure"]
-            if local_infrastructure != "none" and adjacent_infrastructure != "none":
+            if local_infrastructure and adjacent_infrastructure:
                 text += "and connecting roads"
-            elif local_infrastructure == "none" and adjacent_infrastructure != "none":
+            elif local_infrastructure == None and adjacent_infrastructure:
                 text += "and no connecting roads"
-            elif local_infrastructure != "none":
+            elif local_infrastructure:
                 text += "and no connecting roads"
             else:
                 text += "and no connecting roads"
@@ -309,11 +309,11 @@ class combat(action.action):
             future_cell = unit.grid.find_cell(
                 self.x_change + unit.x, self.y_change + unit.y
             )
-            opponent = "none"
+            opponent = None
             if unit.get_permission(constants.BATTALION_PERMISSION):
                 opponent = future_cell.get_best_combatant("npmob")
                 self.action_type = "combat"
-            if opponent == "none":
+            if not opponent:
                 return False
             elif super().on_click(unit):
                 self.current_unit = unit
@@ -326,10 +326,10 @@ class combat(action.action):
                 elif self.y_change < 0:
                     self.direction = "south"
                 else:
-                    self.direction = "none"
+                    self.direction = None
                 if (
-                    not on_click_info_dict["attack_confirmed"]
-                ) and opponent != "none":  # if enemy in destination tile and attack not confirmed yet
+                    opponent and not on_click_info_dict["attack_confirmed"]
+                ):  # if enemy in destination tile and attack not confirmed yet
                     self.opponent = opponent
                     self.defending = False
                     self.start(unit)
@@ -347,7 +347,7 @@ class combat(action.action):
         Input:
             pmob unit: Unit selected when the linked button is clicked
         Output:
-            none
+            None
         """
         super().pre_start(unit)
         self.current_max_crit_fail = 0
@@ -620,13 +620,13 @@ class combat(action.action):
             None
         """
         combat_cell = self.current_unit.get_cell()
-        if self.total_roll_result <= -2:  # defeat
+        if self.total_roll_result <= -2:  # Defeat
             if self.defending:
                 self.current_unit.die()
-                if combat_cell.get_best_combatant("pmob") == "none":
+                if not combat_cell.get_best_combatant("pmob"):
                     self.opponent.kill_noncombatants()
                     self.opponent.damage_buildings()
-                else:  # return to original tile if non-defenseless enemies still in other tile, can't be in tile with enemy units or have more than 1 offensive combat per turn
+                else:  # Return to original tile if non-defenseless enemies still in other tile, can't be in tile with enemy units or have more than 1 offensive combat per turn
                     self.opponent.retreat()
                 constants.public_opinion_tracker.change(self.public_opinion_change)
             else:
@@ -635,13 +635,13 @@ class combat(action.action):
                     constants.DISORGANIZED_PERMISSION, True
                 )
 
-        elif self.total_roll_result <= 1:  # draw
+        elif self.total_roll_result <= 1:  # Draw
             if self.defending:
                 self.opponent.retreat()
             else:
                 self.current_unit.retreat()
 
-        else:  # victory
+        else:  # Victory
             if self.defending:
                 self.opponent.retreat()
                 self.opponent.set_permission(constants.DISORGANIZED_PERMISSION, True)
@@ -649,11 +649,11 @@ class combat(action.action):
                 if (
                     len(combat_cell.contained_mobs) > 2
                 ):  # len == 2 if only attacker and defender in tile
-                    self.current_unit.retreat()  # attacker retreats in draw or if more defenders remaining
+                    self.current_unit.retreat()  # Attacker retreats in draw or if more defenders remaining
                 elif (
                     self.current_unit.movement_points
                     < self.current_unit.get_movement_cost(0, 0, True)
-                ):  # if can't afford movement points to stay in attacked tile
+                ):  # If can't afford movement points to stay in attacked tile
                     constants.notification_manager.display_notification(
                         {
                             "message": f"While the attack was successful, this unit did not have the {self.current_unit.get_movement_cost(0, 0, True)} movement points required to fully move into the attacked tile and was forced to withdraw. /n /n",

@@ -21,11 +21,11 @@ class repair(action.action):
             None
         """
         super().initial_setup(**kwargs)
-        self.building_type = kwargs.get("building_type", "none")
+        self.building_type = kwargs.get("building_type", None)
         self.requirements = status.actions[self.building_type].requirements
         del status.actions[self.action_type]
         status.actions["repair_" + self.building_type] = self
-        self.current_building = "none"
+        self.current_building = None
 
         constants.transaction_descriptions[self.action_type] = "repairs"
         self.name = "repair"
@@ -129,7 +129,7 @@ class repair(action.action):
             float: Returns price of this action
         """
         building = self.current_building
-        if building == "none":
+        if not building:
             building = status.displayed_mob.get_cell().get_building(self.building_type)
         return building.get_repair_cost()
 
@@ -143,7 +143,7 @@ class repair(action.action):
             boolean: Returns whether a button linked to this action should be drawn
         """
         building = status.displayed_mob.get_cell().get_building(self.building_type)
-        can_show = super().can_show() and building != "none" and building.damaged
+        can_show = super().can_show() and building and building.damaged
         return can_show
 
     def on_click(self, unit):
@@ -165,7 +165,7 @@ class repair(action.action):
         Input:
             pmob unit: Unit selected when the linked button is clicked
         Output:
-            none
+            None
         """
         super().pre_start(unit)
         self.current_building = unit.get_cell().get_building(self.building_type)

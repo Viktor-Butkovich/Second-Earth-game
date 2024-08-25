@@ -29,8 +29,8 @@ class worker(pmob):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'worker_type': worker_type value - Type of worker this is, like 'European'. Each type of worker has a separate upkeep, labor pool, and abilities
@@ -100,7 +100,7 @@ class worker(pmob):
                 original_constructor, from_save, input_dict, create_portrait=False
             )
 
-    def replace(self, attached_group="none"):
+    def replace(self, attached_group=None):
         """
         Description:
             Replaces this unit for a new version of itself when it dies from attrition, removing all experience and name modifications
@@ -110,10 +110,10 @@ class worker(pmob):
             None
         """
         super().replace()
-        if attached_group == "none":
-            destination = self
-        else:
+        if attached_group:
             destination = attached_group
+        else:
+            destination = self
         destination_message = (
             f" for the {destination.name} at ({destination.x}, {destination.y})"
         )
@@ -168,7 +168,7 @@ class worker(pmob):
         vehicle.set_crew(self)
         moved_mob = vehicle
         for current_image in moved_mob.images:  # moves vehicle to front
-            if not current_image.current_cell == "none":
+            if current_image.current_cell:
                 while not moved_mob == current_image.current_cell.contained_mobs[0]:
                     current_image.current_cell.contained_mobs.append(
                         current_image.current_cell.contained_mobs.pop(0)
@@ -197,10 +197,10 @@ class worker(pmob):
         self.x = vehicle.x
         self.y = vehicle.y
         self.show_images()
-        if self.get_cell().get_intact_building("port") == "none":
+        if not self.get_cell().get_intact_building("port"):
             self.set_permission(constants.DISORGANIZED_PERMISSION, True)
-        vehicle.set_crew("none")
-        vehicle.end_turn_destination = "none"
+        vehicle.set_crew(None)
+        vehicle.end_turn_destination = None
         vehicle.hide_images()
         vehicle.show_images()  # bring vehicle to front of tile
         vehicle.remove_from_turn_queue()
@@ -333,8 +333,8 @@ class church_volunteers(worker):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
         Output:
             None

@@ -18,7 +18,7 @@ class value_tracker_template:
             None
         """
         setattr(constants, value_key, initial_value)
-        self.value_label = "none"
+        self.value_label = None
         self.value_key = value_key
         self.min_value = min_value
         self.max_value = max_value
@@ -44,7 +44,7 @@ class value_tracker_template:
             None
         """
         self.set(self.get() + value_change)
-        if not self.value_label == "none":
+        if self.value_label:
             self.value_label.update_label(self.get())
 
     def set(self, new_value):
@@ -57,13 +57,13 @@ class value_tracker_template:
             None
         """
         setattr(constants, self.value_key, new_value)
-        if not self.min_value == "none":
+        if self.min_value != None:
             if self.get() < self.min_value:
                 setattr(constants, self.value_key, self.min_value)
-        if not self.max_value == "none":
+        if self.max_value != None:
             if self.get() > self.max_value:
                 setattr(constants, self.value_key, self.max_value)
-        if not self.value_label == "none":
+        if self.value_label:
             self.value_label.update_label(self.get())
 
 
@@ -105,7 +105,12 @@ class money_tracker_template(value_tracker_template):
         """
         self.transaction_history = {}
         self.reset_transaction_history()
-        super().__init__("money", initial_value, "none", "none")
+        super().__init__(
+            value_key="money",
+            initial_value=initial_value,
+            min_value=None,
+            max_value=None,
+        )
 
     def reset_transaction_history(self):
         """
@@ -167,13 +172,7 @@ class money_tracker_template(value_tracker_template):
         total_revenue = 0
         for transaction_type in constants.transaction_types:
             if self.transaction_history[transaction_type] > 0:
-                notification_text += (
-                    "  "
-                    + constants.transaction_descriptions[transaction_type].capitalize()
-                    + ": "
-                    + str(self.transaction_history[transaction_type])
-                    + " /n"
-                )
+                notification_text += f" {constants.transaction_descriptions[transaction_type].capitalize()}: {str(self.transaction_history[transaction_type])} /n"
                 total_revenue += self.transaction_history[transaction_type]
         if total_revenue == 0:
             notification_text += "  None /n"
@@ -188,20 +187,14 @@ class money_tracker_template(value_tracker_template):
         total_expenses = 0
         for transaction_type in constants.transaction_types:
             if self.transaction_history[transaction_type] < 0:
-                notification_text += (
-                    "  "
-                    + constants.transaction_descriptions[transaction_type].capitalize()
-                    + ": "
-                    + str(self.transaction_history[transaction_type])
-                    + " /n"
-                )
+                notification_text += f" {constants.transaction_descriptions[transaction_type].capitalize()}: {str(self.transaction_history[transaction_type])} /n"
                 total_expenses += self.transaction_history[transaction_type]
         if total_expenses == 0:
             notification_text += "  None /n"
         notification_text += " /n"
-        notification_text += "Total revenue: " + str(round(total_revenue, 2)) + " /n"
-        notification_text += "Total expenses: " + str(round(total_expenses, 2)) + " /n"
+        notification_text += f"Total revenue: {round(total_revenue, 2)} /n"
+        notification_text += f"Total expenses: {round(total_expenses, 2)} /n"
         notification_text += (
-            "Total profit: " + str(round(total_revenue + total_expenses, 2)) + " /n"
+            f"Total profit: {round(total_revenue + total_expenses, 2)} /n"
         )
         return notification_text

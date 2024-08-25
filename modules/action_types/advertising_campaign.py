@@ -32,7 +32,7 @@ class advertising_campaign(action.campaign):
         super().initial_setup()
         constants.transaction_descriptions[self.action_type] = "advertising"
         self.name = "advertising campaign"
-        self.target_commodity = "none"
+        self.target_commodity = None
         self.requirements += [
             constants.OFFICER_PERMISSION,
             constants.MERCHANT_PERMISSION,
@@ -45,7 +45,7 @@ class advertising_campaign(action.campaign):
         Input:
             pmob unit: Unit selected when the linked button is clicked
         Output:
-            none
+            None
         """
         super().pre_start(unit)
         self.current_min_success = 5  # alternative to subtracting a roll modifier, which would change the max crit fail

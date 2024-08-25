@@ -54,7 +54,7 @@ class action:
             None
         """
         status.actions[self.action_type] = self
-        self.current_unit = "none"
+        self.current_unit = None
         self.actor_type = "mob"
         self.placement_type = "label"
         if not self.action_type in constants.action_types:
@@ -283,7 +283,7 @@ class action:
         Input:
             pmob unit: Unit selected when the linked button is clicked
         Output:
-            none
+            None
         """
         if self.actor_type == "prosecutor":
             self.current_unit = minister_utility.get_minister(

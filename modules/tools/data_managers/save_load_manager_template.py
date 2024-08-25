@@ -145,6 +145,7 @@ class save_load_manager_template:
             for index, minister_type_tuple in enumerate(status.minister_types.items()):
                 key, minister_type = minister_type_tuple
                 status.minister_list[index].appoint(minister_type)
+            minister_utility.calibrate_minister_info_display(None)
             game_transitions.set_game_mode("strategic")
         flags.creating_new_game = False
 

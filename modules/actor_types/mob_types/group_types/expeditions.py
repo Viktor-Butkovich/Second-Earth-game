@@ -27,8 +27,8 @@ class expedition(group):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this group's name
                 'modes': string list value - Game modes during which this group's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'worker': worker or dictionary value - If creating a new group, equals a worker that is part of this group. If loading, equals a dictionary of the saved information necessary to recreate the worker
@@ -69,7 +69,7 @@ class expedition(group):
         elif y_change < 0:
             direction = "south"
         else:
-            direction = "none"
+            direction = None
         future_cell = self.grid.find_cell(future_x, future_y)
         if (
             future_cell.terrain_handler.visible == False
@@ -130,7 +130,7 @@ class expedition(group):
                         text = "The expedition has discovered a "
                     public_opinion_increase = random.randrange(0, 3)
                     money_increase = 0
-                    if target_cell.terrain_handler.resource != "none":
+                    if target_cell.terrain_handler.resource:
                         text += f"{target_cell.terrain.upper()} tile with a {target_cell.terrain_handler.resource.upper()} resource (currently worth {constants.item_prices[target_cell.terrain_handler.resource]} money each) to the {cardinal_directions[current_direction]}. /n /n"
                         public_opinion_increase += 3
                     else:

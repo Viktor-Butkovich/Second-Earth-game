@@ -98,7 +98,7 @@ class notification_manager_template:
         Description:
             Creates the next queued notification, if any, whenever a notification is removed
         Input:
-            none
+            None
         Output:
             None
         """
@@ -106,7 +106,7 @@ class notification_manager_template:
         if status.displayed_notification == None:
             if self.notification_queue:
                 if transferred_interface_elements and (
-                    self.notification_queue[0].get("notification_type", "none")
+                    self.notification_queue[0].get("notification_type", None)
                     in ["action", "roll"]
                     or "choices" in self.notification_queue[0]
                 ):
@@ -194,7 +194,7 @@ class notification_manager_template:
 
         if (
             "attached_interface_elements" in notification_dict
-            and notification_dict["attached_interface_elements"] != "none"
+            and notification_dict["attached_interface_elements"]
         ):
             attached_interface_elements = notification_dict[
                 "attached_interface_elements"
@@ -210,7 +210,7 @@ class notification_manager_template:
 
         if (
             "extra_parameters" in notification_dict
-            and notification_dict["extra_parameters"] != "none"
+            and notification_dict["extra_parameters"]
         ):
             extra_parameters = notification_dict["extra_parameters"]
         else:
@@ -256,10 +256,7 @@ class notification_manager_template:
             for current_die in status.dice_list:
                 current_die.start_rolling()
 
-        if "audio" in notification_dict and not notification_dict["audio"] in [
-            "none",
-            None,
-        ]:
+        if "audio" in notification_dict and notification_dict["audio"]:
             if type(notification_dict["audio"]) == list:
                 sound_list = notification_dict["audio"]
             else:

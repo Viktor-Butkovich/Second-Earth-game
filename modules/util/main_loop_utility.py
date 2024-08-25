@@ -358,10 +358,10 @@ def manage_rmb_down(clicked_button):
                         if len(current_cell.contained_mobs) > 1:
                             moved_mob = current_cell.contained_mobs[1]
                             for current_image in moved_mob.images:
-                                if not current_image.current_cell == "none":
+                                if current_image.current_cell:
                                     while (
-                                        not moved_mob
-                                        == current_image.current_cell.contained_mobs[0]
+                                        moved_mob
+                                        != current_image.current_cell.contained_mobs[0]
                                     ):
                                         current_image.current_cell.contained_mobs.append(
                                             current_image.current_cell.contained_mobs.pop(
@@ -435,12 +435,10 @@ def manage_lmb_down(clicked_button):
                 or flags.choosing_advertised_commodity
                 or flags.drawing_automatic_route
             )
-        ):  # do not do selecting operations if user was trying to click a button #and action_possible()
+        ):  # Do not do selecting operations if user was trying to click a button #and action_possible()
             selected_mob = False
             for current_grid in status.grid_list:
-                if (
-                    current_grid.showing
-                ):  # if constants.current_game_mode in current_grid.modes:
+                if current_grid.showing:
                     for current_cell in current_grid.get_flat_cell_list():
                         if current_cell.touching_mouse():
                             if current_cell.terrain_handler.visible:
@@ -483,7 +481,7 @@ def manage_lmb_down(clicked_button):
                     for current_cell in current_grid.get_flat_cell_list():
                         if current_cell.touching_mouse():
                             click_move_minimap()
-                            target_cell = "none"
+                            target_cell = None
                             if current_cell.grid.is_abstract_grid:
                                 target_cell = current_cell
                             else:
@@ -495,7 +493,7 @@ def manage_lmb_down(clicked_button):
                                 stopping = False
                                 if (
                                     not current_grid.is_abstract_grid
-                                ):  # if grid has more than 1 cell, check if correct part of grid
+                                ):  # If grid has more than 1 cell, check if correct part of grid
                                     (
                                         destination_x,
                                         destination_y,
@@ -608,10 +606,10 @@ def manage_lmb_down(clicked_button):
                                     displayed_mob.get_permission(
                                         constants.VEHICLE_PERMISSION
                                     )
-                                    and destination_infrastructure == "none"
+                                    and destination_infrastructure == None
                                 ):
-                                    # non-train units can still move slowly through water, even w/o canoes or a bridge
-                                    # railroad bridge allows anything to move through
+                                    # Non-train units can still move slowly through water, even w/o canoes or a bridge
+                                    # Railroad bridge allows anything to move through
                                     text_utility.print_to_screen(
                                         "This unit cannot create movement routes through water."
                                     )
@@ -654,23 +652,23 @@ def click_move_minimap():
     """
     for (
         current_grid
-    ) in status.grid_list:  # if grid clicked, move minimap to location clicked
+    ) in status.grid_list:  # If grid clicked, move minimap to location clicked
         if current_grid.showing:
             for current_cell in current_grid.get_flat_cell_list():
                 if current_cell.touching_mouse():
                     if (
                         current_grid in status.strategic_map_grid.mini_grids
-                    ):  # if minimap clicked, calibrate to corresponding place on main map and all mini maps
+                    ):  # If minimap clicked, calibrate to corresponding place on main map and all mini maps
                         if (
-                            current_cell.terrain_handler.terrain != "none"
-                        ):  # if off map, do not move minimap there
+                            current_cell.terrain_handler.terrain
+                        ):  # If off map, do not move minimap there
                             main_x, main_y = current_grid.get_main_grid_coordinates(
                                 current_cell.x, current_cell.y
                             )
                             current_grid.calibrate(main_x, main_y)
                     elif current_grid == status.strategic_map_grid:
                         status.minimap_grid.calibrate(current_cell.x, current_cell.y)
-                    else:  # if abstract grid, show the inventory of the tile clicked without calibrating minimap
+                    else:  # If abstract grid, show the inventory of the tile clicked without calibrating minimap
                         actor_utility.calibrate_actor_info_display(
                             status.tile_info_display, current_grid.cell_list[0][0].tile
                         )

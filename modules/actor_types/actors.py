@@ -495,7 +495,7 @@ class actor:
                 pygame.mouse.get_pos()
             ):  # if mouse is in image
                 return True
-        return False  # return false if none touch mouse
+        return False  # return false if None touch mouse
 
     def can_show_tooltip(self):
         """

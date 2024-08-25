@@ -30,8 +30,8 @@ class pmob(mob):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'sentry_mode': boolean value - Required if from save, whether this unit is in sentry mode, preventing it from being in the turn order
@@ -55,9 +55,9 @@ class pmob(mob):
             if input_dict.get("equipment", {}).get(current_equipment, False):
                 status.equipment_types[current_equipment].equip(self)
         if from_save:
-            if (
-                input_dict["end_turn_destination"] != "none"
-            ):  # end turn destination is a tile and can't be pickled, need to find it again after loading
+            if input_dict[
+                "end_turn_destination"
+            ]:  # end turn destination is a tile and can't be pickled, need to find it again after loading
                 end_turn_destination_x, end_turn_destination_y = input_dict[
                     "end_turn_destination"
                 ]
@@ -71,10 +71,7 @@ class pmob(mob):
             self.set_name(self.default_name)
             self.set_sentry_mode(input_dict["sentry_mode"])
             self.set_automatically_replace(input_dict["automatically_replace"])
-            if (
-                input_dict["in_turn_queue"]
-                and input_dict["end_turn_destination"] == "none"
-            ):
+            if input_dict["in_turn_queue"] and not input_dict["end_turn_destination"]:
                 self.add_to_turn_queue()
             else:
                 self.remove_from_turn_queue()
@@ -146,7 +143,7 @@ class pmob(mob):
             None
         """
         super().on_move()
-        if self.get_cell() != "none":
+        if self.get_cell():
             for cell in [self.get_cell()] + self.get_cell().adjacent_list:
                 if not cell.terrain_handler.knowledge_available(
                     constants.TERRAIN_KNOWLEDGE
@@ -165,8 +162,8 @@ class pmob(mob):
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
                 Along with superclass outputs, also saves the following values:
                 'default_name': string value - This actor's name without modifications like veteran
-                'end_turn_destination': string or int tuple value- 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'sentry_mode': boolean value - Whether this unit is in sentry mode, preventing it from being in the turn order
                 'in_turn_queue': boolean value - Whether this unit is in the turn order, allowing end unit turn commands, etc. to persist after saving/loading
                 'base_automatic_route': int tuple list value - List of the coordinates in this unit's automatic movement route, with the first coordinates being the start and the last being the end. List empty if
@@ -176,8 +173,8 @@ class pmob(mob):
                 'equipment': dictionary value - This actor's items equipped, with a boolean value corresponding to whether each type of equipment is equipped
         """
         save_dict = super().to_save_dict()
-        if self.end_turn_destination == "none":
-            save_dict["end_turn_destination"] = "none"
+        if not self.end_turn_destination:
+            save_dict["end_turn_destination"] = None
         else:  # end turn destination is a tile and can't be pickled, need to save its location to find it again after loading
             for grid_type in constants.grid_types_list:
                 if self.end_turn_destination.grid == getattr(status, grid_type):
@@ -379,16 +376,16 @@ class pmob(mob):
     def get_next_automatic_stop(self):
         """
         Description:
-            Returns the next stop for this unit's in-progress automatic route, or 'none' if there are stops
+            Returns the next stop for this unit's in-progress automatic route, or None if there are stops
         Input:
             None
         Output:
-            string: Returns the next stop for this unit's in-progress automatic route, or 'none' if there are stops
+            string: Returns the next stop for this unit's in-progress automatic route, or None if there are stops
         """
         for current_stop in self.in_progress_automatic_route:
             if current_stop in ["start", "end"]:
                 return current_stop
-        return "none"
+        return None
 
     def pick_up_all_commodities(self, ignore_consumer_goods=False):
         """
@@ -488,7 +485,7 @@ class pmob(mob):
                     self.movement_points > 0
                     and not (
                         self.get_permission(constants.VEHICLE_PERMISSION)
-                        and self.crew == "none"
+                        and self.crew == None
                     )
                     and not (
                         self.get_permission(constants.VEHICLE_PERMISSION)
@@ -514,7 +511,7 @@ class pmob(mob):
         if (
             (not self.sentry_mode)
             and self.movement_points > 0
-            and self.end_turn_destination == "none"
+            and self.end_turn_destination == None
             and not self in status.player_turn_queue
         ):
             if not self in status.player_turn_queue:
@@ -561,8 +558,8 @@ class pmob(mob):
         """
         if current_cell == "default":
             current_cell = self.get_cell()
-        if current_cell == "none":
-            return ()
+        elif current_cell == None:
+            return
         if current_cell.local_attrition():
             if minister_utility.get_minister(
                 constants.TRANSPORTATION_MINISTER
@@ -639,9 +636,7 @@ class pmob(mob):
         Output:
             None
         """
-        if (not self.get_cell() == "none") and (
-            not self.get_cell().tile == "none"
-        ):  # drop inventory on death
+        if self.get_cell() and self.get_cell().tile:  # Drop inventory on death
             current_tile = self.get_cell().tile
             for current_commodity in constants.commodity_types:
                 current_tile.change_inventory(
@@ -663,7 +658,7 @@ class pmob(mob):
         if flags.show_selection_outlines:
             for current_image in self.images:
                 if (
-                    current_image.current_cell != "none"
+                    current_image.current_cell
                     and self == current_image.current_cell.contained_mobs[0]
                     and current_image.current_cell.grid.showing
                 ):  # only draw outline if on top of stack
@@ -694,7 +689,7 @@ class pmob(mob):
                             current_tile.draw_destination_outline(color)
                             for equivalent_tile in current_tile.get_equivalent_tiles():
                                 equivalent_tile.draw_destination_outline(color)
-            if self.end_turn_destination != "none":
+            if self.end_turn_destination:
                 self.end_turn_destination.draw_destination_outline()
                 for equivalent_tile in self.end_turn_destination.get_equivalent_tiles():
                     equivalent_tile.draw_destination_outline()
@@ -740,14 +735,14 @@ class pmob(mob):
         Output:
             None
         """
-        if self.end_turn_destination != "none" and self.can_travel():
+        if self.end_turn_destination and self.can_travel():
             self.go_to_grid(
                 self.end_turn_destination.grids[0],
                 (self.end_turn_destination.x, self.end_turn_destination.y),
             )
             self.get_cell().tile.select(music_override=True)
             self.manage_inventory_attrition()  # do an inventory check when crossing ocean, using the destination's terrain
-            self.end_turn_destination = "none"
+            self.end_turn_destination = None
 
     def can_travel(self):  # if can move between Earth, the planet, etc.
         """
@@ -859,7 +854,7 @@ class pmob(mob):
             None
         """
         vehicle.contained_mobs = utility.remove_from_list(vehicle.contained_mobs, self)
-        self.vehicle = "none"
+        self.vehicle = None
         self.in_vehicle = False
         self.x = vehicle.x
         self.y = vehicle.y
@@ -868,7 +863,7 @@ class pmob(mob):
         if (
             vehicle.vehicle_type == "ship"
             and self.get_cell().grid == status.strategic_map_grid
-            and self.get_cell().get_intact_building("port") == "none"
+            and not self.get_cell().get_intact_building("port")
         ):
             self.set_permission(constants.DISORGANIZED_PERMISSION, True)
         if (

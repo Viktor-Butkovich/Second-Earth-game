@@ -30,9 +30,9 @@ class recruitment_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -198,10 +198,10 @@ class buy_item_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
                 'button_type': string value - Determines the function of this button, like 'end turn'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'commodity_type': string value - Type of commodity that this button buys, like 'consumer goods'
         Output:
             None

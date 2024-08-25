@@ -23,13 +23,13 @@ class actor_display_free_image(free_image):
                 'modes': string list value - Game modes during which this button can appear
                 'to_front' = False: boolean value - If True, allows this image to appear in front of most other objects instead of being behind them
                 'actor_image_type': string value - subtype of actor image, like 'minister_default' or 'possible_artifact_location'
-                'default_image_id' = 'none': string value - Image to use if not calibrated to any actor, such as for reorganization placeholder images
+                'default_image_id' = None: string value - Image to use if not calibrated to any actor, such as for reorganization placeholder images
         Output:
             None
         """
         self.actor_image_type = input_dict["actor_image_type"]
-        self.actor = "none"
-        self.default_image_id = input_dict.get("default_image_id", "none")
+        self.actor = None
+        self.default_image_id = input_dict.get("default_image_id", None)
         input_dict["image_id"] = "misc/empty.png"
         super().__init__(input_dict)
 
@@ -38,12 +38,12 @@ class actor_display_free_image(free_image):
         Description:
             Sets this image to match the inputted object's appearance to show in the actor info display
         Input:
-            string/actor new_actor: If this equals 'none', hides this image. Otherwise, causes this image will match this input's appearance
+            string/actor new_actor: If this equals None, hides this image. Otherwise, causes this image will match this input's appearance
         Output:
             None
         """
         self.actor = new_actor
-        if new_actor != "none":
+        if new_actor:
             if self.actor_image_type in ["minister_default"]:
                 self.set_image(new_actor.image_id)
             elif self.actor_image_type in ["inventory_default"]:
@@ -83,7 +83,7 @@ class actor_display_free_image(free_image):
                 self.set_image(image_id_list)
         else:
             image_id_list = ["misc/mob_background.png"]
-            if self.default_image_id != "none":
+            if self.default_image_id:
                 if type(self.default_image_id) == str:
                     image_id_list.append(self.default_image_id)
                 else:
@@ -116,14 +116,14 @@ class mob_background_image(free_image):
             None
         """
         super().__init__(input_dict)
-        self.actor = "none"
+        self.actor = None
 
     def calibrate(self, new_actor):
         """
         Description:
             Updates which actor is in front of this image
         Input:
-            string/actor new_actor: The displayed actor that goes in front of this image. If this equals 'none', there is no actor in front of it
+            string/actor new_actor: The displayed actor that goes in front of this image. If this equals None, there is no actor in front of it
         Output:
             None
         """
@@ -139,7 +139,7 @@ class mob_background_image(free_image):
         Output:
             boolean: False if there is no actor in the info display, otherwise returns same value as superclass
         """
-        if self.actor == "none":
+        if not self.actor:
             return False
         if (
             self.image_id == "misc/pmob_background.png"
@@ -163,7 +163,7 @@ class mob_background_image(free_image):
         Output:
             None
         """
-        if not self.actor == "none":
+        if self.actor:
             tooltip_text = self.actor.tooltip_text
             self.set_tooltip(tooltip_text)
         else:
@@ -186,7 +186,7 @@ class minister_background_image(mob_background_image):
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
         image_id_list = []
-        if not self.actor in ["none", None]:
+        if self.actor:
             if not self.actor.current_position:
                 image_id_list.append("misc/mob_background.png")
             else:

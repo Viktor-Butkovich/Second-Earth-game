@@ -491,7 +491,7 @@ class terrain_handler:
         self.minima = {"temperature": -5}
         self.maxima = {"temperature": 12}
         self.terrain: str = constants.terrain_manager.classify(self.terrain_parameters)
-        self.resource: str = input_dict.get("resource", "none")
+        self.resource: str = input_dict.get("resource", None)
         self.visible: bool = input_dict.get("visible", True)
         self.default_cell = attached_cell
         self.attached_cells: list = []
@@ -593,23 +593,8 @@ class terrain_handler:
         ):
             self.set_terrain(new_terrain)
             for cell in self.attached_cells:
-                if cell.tile != "none":
+                if cell.tile:
                     cell.tile.set_terrain(self.terrain, update_image_bundle=True)
-
-        # if parameter_name != "knowledge":
-        #     lower_bound = constants.terrain_manager.terrain_range_dict[self.terrain].get(f"min_{parameter_name}", 1)
-        #     upper_bound = constants.terrain_manager.terrain_range_dict[self.terrain].get(f"max_{parameter_name}", 6)
-        #     while upper_bound - lower_bound > 3:
-        #         if upper_bound == self.get_parameter(parameter_name):
-        #             lower_bound += 1
-        #         elif lower_bound == self.get_parameter(parameter_name):
-        #             upper_bound -= 1
-        #         elif random.randrange(0, 2) == 1:
-        #             lower_bound += 1
-        #         else:
-        #             upper_bound -= 1
-        #     self.apparent_terrain_parameters[f"{parameter_name}_min"] = lower_bound
-        #     self.apparent_terrain_parameters[f"{parameter_name}_max"] = upper_bound
 
         if status.displayed_tile:
             for cell in self.attached_cells:
@@ -710,20 +695,6 @@ class terrain_handler:
         """
         return self.terrain_parameters[parameter_name]
 
-    # def get_apparent_parameter_range(self, parameter_name: str) -> Tuple[int, int]:
-    #     """
-    #     Description:
-    #         Returns plausible parameter ranges for the inputted parameter based on this handler's terrain type
-    #     Input:
-    #         string parameter_name: Name of the parameter to get the range of
-    #     Output:
-    #         tuple: Tuple containing the apparent minimum and maximum values for the inputted parameter for this handler's terrain type
-    #     """
-
-    #     apparent_min = self.apparent_terrain_parameters[f"{parameter_name}_min"]
-    #     apparent_max = self.apparent_terrain_parameters[f"{parameter_name}_max"]
-    #     return (apparent_min, apparent_max)
-
     def set_terrain(self, new_terrain) -> None:
         """
         Description:
@@ -754,7 +725,7 @@ class terrain_handler:
             )
         self.terrain = new_terrain
         for cell in self.attached_cells:
-            if cell.tile != "none":
+            if cell.tile:
                 cell.tile.set_terrain(self.terrain, update_image_bundle=False)
 
     def set_resource(self, new_resource) -> None:
@@ -768,7 +739,7 @@ class terrain_handler:
         """
         self.resource = new_resource
         for cell in self.attached_cells:
-            if cell.tile != "none":
+            if cell.tile:
                 cell.tile.set_resource(self.resource, update_image_bundle=False)
 
     def set_visibility(self, new_visibility, update_image_bundle=False) -> None:
@@ -784,7 +755,7 @@ class terrain_handler:
         self.visible = new_visibility
         if update_image_bundle:
             for cell in self.attached_cells:
-                if cell.tile != "none":
+                if cell.tile:
                     cell.tile.update_image_bundle()
 
     def add_cell(self, cell) -> None:
@@ -801,7 +772,7 @@ class terrain_handler:
         self.attached_cells.append(cell)
         cell.terrain_handler = self
 
-        if cell.tile != "none":
+        if cell.tile:
             cell.tile.set_terrain(self.terrain, update_image_bundle=False)
             cell.tile.set_resource(self.resource, update_image_bundle=False)
             cell.tile.update_image_bundle()

@@ -22,7 +22,7 @@ class construction(action.action):
             None
         """
         super().initial_setup(**kwargs)
-        self.building_type = kwargs.get("building_type", "none")
+        self.building_type = kwargs.get("building_type", None)
         del status.actions[self.action_type]
         status.actions[self.building_type] = self
         self.building_name = self.building_type.replace("_", " ")
@@ -35,7 +35,7 @@ class construction(action.action):
         else:
             self.requirements.append(constants.CONSTRUCTION_PERMISSION)
         if self.building_type == "resource":
-            self.attached_resource = "none"
+            self.attached_resource = None
             self.building_name = "resource production facility"
         self.name = "construction"
         self.allow_critical_failures = False
@@ -53,7 +53,7 @@ class construction(action.action):
         initial_input_dict = super().button_setup(initial_input_dict)
         if self.building_type == "resource":
             displayed_resource = self.attached_resource
-            if displayed_resource == "none":
+            if not displayed_resource:
                 displayed_resource = "consumer goods"
             initial_input_dict["image_id"] = [
                 "buttons/default_button_alt2.png",
@@ -89,7 +89,7 @@ class construction(action.action):
             "train_station": pygame.K_t,
             "fort": pygame.K_v,
             "train": pygame.K_y,
-        }.get(self.building_type, "none")
+        }.get(self.building_type, None)
         return initial_input_dict
 
     def update_tooltip(self):
@@ -251,10 +251,10 @@ class construction(action.action):
                     elif self.attached_resource == "ivory":
                         self.building_name = "ivory camp"
                 else:
-                    self.attached_resource = "none"
+                    self.attached_resource = None
                     self.building_name = "resource production facility"
                 displayed_resource = self.attached_resource
-                if displayed_resource == "none":
+                if not displayed_resource:
                     displayed_resource = "consumer goods"
                 self.button.image.set_image(
                     [
@@ -280,7 +280,7 @@ class construction(action.action):
                     new_image = "buildings/buttons/road.png"
             else:
                 if cell.terrain_handler.terrain == "water" and cell.y > 0:
-                    if cell.get_building("infrastructure") == "none":
+                    if not cell.get_building("infrastructure"):
                         new_name = "ferry"
                         new_image = "buildings/buttons/ferry.png"
                     elif (
@@ -310,7 +310,7 @@ class construction(action.action):
         """
         return_value = False
         if self.building_type == "resource":
-            if self.attached_resource != "none":
+            if self.attached_resource:
                 return_value = True
             else:
                 text_utility.print_to_screen(
@@ -401,7 +401,7 @@ class construction(action.action):
             current_cell = unit.get_cell()
             current_building = current_cell.get_building(self.building_type)
             if not (
-                current_building == "none"
+                current_building == None
                 or (
                     self.building_name in ["railroad", "railroad bridge"]
                     and current_building.is_road
@@ -417,9 +417,7 @@ class construction(action.action):
                     )
                 else:
                     text_utility.print_to_screen(
-                        "This tile already contains a "
-                        + self.building_type
-                        + " building."
+                        f"This tile already contains a {self.building_type} building."
                     )
             elif not status.strategic_map_grid in unit.grids:
                 text_utility.print_to_screen(
@@ -490,7 +488,7 @@ class construction(action.action):
                 input_dict["image"] = "buildings/resource_building.png"
                 input_dict["resource_type"] = self.attached_resource
             elif self.building_type == "infrastructure":
-                building_image_id = "none"
+                building_image_id = None
                 if self.building_name == "road":
                     building_image_id = "buildings/infrastructure/road.png"
                 elif self.building_name == "railroad":
@@ -512,14 +510,14 @@ class construction(action.action):
                     "uncrewed": "mobs/train/uncrewed.png",
                 }
                 input_dict["image_dict"] = image_dict
-                input_dict["crew"] = "none"
+                input_dict["crew"] = None
             else:
                 input_dict["image"] = "buildings/" + self.building_type + ".png"
             new_building = constants.actor_creation_manager.create(False, input_dict)
 
             if self.building_type in ["port", "train_station", "resource"]:
                 warehouses = self.current_unit.get_cell().get_building("warehouses")
-                if warehouses != "none":
+                if warehouses:
                     if warehouses.damaged:
                         warehouses.set_damaged(False)
                     warehouses.upgrade()

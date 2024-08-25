@@ -171,7 +171,7 @@ def conjugate(infinitive, amount, tense="present"):
             return infinitive + "s"
         else:
             return infinitive
-    return "none"
+    return None
 
 
 def capitalize(string):

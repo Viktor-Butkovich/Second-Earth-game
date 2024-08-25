@@ -230,7 +230,7 @@ class minister:
         minister_portrait_icon_dict["minister_image_type"] = "portrait"
         return [minister_position_icon_dict, minister_portrait_icon_dict]
 
-    def display_message(self, text, audio="none", transfer=False):
+    def display_message(self, text, audio=None, transfer=False):
         """
         Description:
             Displays a notification message from this minister with an attached portrait
@@ -281,13 +281,13 @@ class minister:
             self.stolen_money = 0
         target.stolen_money += value
 
-    def attempt_prosecutor_detection(self, value=0, theft_type="none"):
+    def attempt_prosecutor_detection(self, value=0, theft_type=None):
         """
         Description:
             Resolves the outcome of the prosecutor attempting to detect a corrupt action, regardless of if money was immediately stolen
         Input:
             double value = 0: Amount of money stolen
-            string theft_type = 'none': Type of theft, used in prosecutor report description
+            string theft_type = None: Type of theft, used in prosecutor report description
         Output:
             bool: Returns whether the prosecutor detected the theft
         """
@@ -339,13 +339,13 @@ class minister:
                     print("The theft was not caught by the prosecutor.")
         return False
 
-    def steal_money(self, value, theft_type="none", allow_prosecutor_detection=True):
+    def steal_money(self, value, theft_type=None, allow_prosecutor_detection=True):
         """
         Description:
             Steals money from a company action, giving this minister money but causing a chance of prosecutor detection
         Input:
             double value: Amount of money stolen
-            string theft_type = 'none': Type of theft, used in prosecutor report description
+            string theft_type = None: Type of theft, used in prosecutor report description
         Output:
             None
         """
@@ -484,13 +484,13 @@ class minister:
             result = num_sides
         return result
 
-    def no_corruption_roll(self, num_sides: int = 6, roll_type: str = "none"):
+    def no_corruption_roll(self, num_sides: int = 6, roll_type: str = None):
         """
         Description:
             Rolls and returns the result of a die with the inputted number of sides, modifying the result based on skill with the assumption that corruption has already failed to occur or otherwise does not allow for corruption
         Input:
             int num_sides: Number of sides on the die rolled
-            string roll_type = 'none': Type of roll being done, used to apply action-specific modifiers
+            string roll_type = None: Type of roll being done, used to apply action-specific modifiers
         Output:
             int: Returns the roll's modified result
         """
@@ -527,17 +527,17 @@ class minister:
             ):  # num_sides, min_success, max_crit_fail, value, roll_type, predetermined_corruption = False
                 if (
                     i == corrupt_index
-                ):  # if rolling multiple dice, choose one of the dice randomly and make it the corrupt result, making it a non-critical failure
+                ):  # If rolling multiple dice, choose one of the dice randomly and make it the corrupt result, making it a non-critical failure
                     results.append(
                         self.roll(
-                            num_sides, min_success, max_crit_fail, value, "none", True
+                            num_sides, min_success, max_crit_fail, value, None, True
                         )
-                    )  # use roll_type none because roll is fake, does not apply modifiers
-                else:  # for dice that are not chosen, can be critical or non-critical failure because higher will be chosen in case of critical failure, no successes allowed
+                    )  # Use roll_type None because roll is fake, does not apply modifiers
+                else:  # For dice that are not chosen, can be critical or non-critical failure because higher will be chosen in case of critical failure, no successes allowed
                     results.append(
-                        self.roll(num_sides, min_success, 0, value, "none", True)
+                        self.roll(num_sides, min_success, 0, value, None, True)
                     )  # 0 for max_crit_fail allows critical failure numbers to be chosen
-        else:  # if not corrupt, just roll with minister modifier
+        else:  # If not corrupt, just roll with minister modifier
             for i in range(num_dice):
                 results.append(self.no_corruption_roll(num_sides, roll_type))
         self.stolen_already = False
@@ -597,9 +597,9 @@ class minister:
     def appoint(self, new_position):
         """
         Description:
-            Appoints this minister to a new office, putting it in control of relevant units. If the new position is 'none', removes the minister from their current office
+            Appoints this minister to a new office, putting it in control of relevant units. If the new position is None, removes the minister from their current office
         Input:
-            string new_position: Office to appoint this minister to, like 'Minister of Trade'. If this equals 'none', fires this minister
+            string new_position: Office to appoint this minister to, like 'Minister of Trade'. If this equals None, fires this minister
         Output:
             None
         """
@@ -611,7 +611,7 @@ class minister:
         self.current_position = new_position
         for current_pmob in status.pmob_list:
             current_pmob.update_controlling_minister()
-        if new_position:  # if appointing
+        if new_position:  # If appointing
             status.available_minister_list = utility.remove_from_list(
                 status.available_minister_list, self
             )
@@ -621,23 +621,23 @@ class minister:
             ):
                 constants.available_minister_left_index = (
                     len(status.available_minister_list) - 3
-                )  # move available minister display up because available minister was removed
+                )  # Move available minister display up because available minister was removed
         else:
             status.available_minister_list.append(self)
             constants.available_minister_left_index = (
                 len(status.available_minister_list) - 3
-            )  # move available minister display to newly fired minister
+            )  # Move available minister display to newly fired minister
 
         for current_minister_type_image in status.minister_image_list:
-            if current_minister_type_image.get_actor_type() == None:
+            if not current_minister_type_image.get_actor_type():
                 if current_minister_type_image.minister_type == new_position:
                     current_minister_type_image.calibrate(self)
                 elif current_minister_type_image.minister_type == old_position:
-                    current_minister_type_image.calibrate("none")
+                    current_minister_type_image.calibrate(None)
 
         minister_utility.update_available_minister_display()
 
-        minister_utility.calibrate_minister_info_display(self)  # update minister label
+        minister_utility.calibrate_minister_info_display(self)  # Update minister label
 
     def skill_setup(self):
         """
@@ -845,11 +845,11 @@ class minister:
                 low loyalty could result in a bribe to report a high loyalty
         Input:
             string rumor_type: Type of field to uncover, like 'loyalty' or some skill type
-            minister/string prosecutor: Prosecutor finding the rumor, or 'none' for passive rumors
+            minister/string prosecutor: Prosecutor finding the rumor, or None for passive rumors
         Output:
             None
         """
-        if prosecutor == "none":
+        if not prosecutor:
             roll_result = random.randrange(1, 7) - random.randrange(
                 0, 2
             )  # as if done by a prosecutor with a negative skill modifier
@@ -869,7 +869,7 @@ class minister:
         apparent_value = min(apparent_value, 6)
 
         if rumor_type == "loyalty":
-            if apparent_value >= 4 and prosecutor != "none":
+            if apparent_value >= 4 and prosecutor:
                 if (self.check_corruption() or self.check_corruption()) and (
                     prosecutor.check_corruption() or prosecutor.check_corruption()
                 ):  # conspiracy check with advantage
@@ -887,20 +887,19 @@ class minister:
         else:
             self.set_apparent_skill(rumor_type, apparent_value)
 
-        if prosecutor == "none":
-            if not flags.creating_new_game:
-                message = "A rumor has been found that " + self.name + ","
-                if self.current_position:
-                    message += f" your {self.current_position.name}, "
-                else:
-                    message += " a potential minister candidate, "
-                message += "has "
-                if rumor_type == "loyalty":
-                    message += self.apparent_corruption_description + " loyalty"
-                else:
-                    message += f"{utility.generate_article(self.apparent_skill_descriptions[rumor_type])}  {self.apparent_skill_descriptions[rumor_type]} {rumor_type} ability"
-                message += ". /n /n"
-                self.display_message(message)
+        if (not prosecutor) and (not flags.creating_new_game):
+            message = f"A rumor has been found that {self.name},"
+            if self.current_position:
+                message += f" your {self.current_position.name}, "
+            else:
+                message += " a potential minister candidate, "
+            message += "has "
+            if rumor_type == "loyalty":
+                message += f"{self.apparent_corruption_description} loyalty"
+            else:
+                message += f"{utility.generate_article(self.apparent_skill_descriptions[rumor_type])}  {self.apparent_skill_descriptions[rumor_type]} {rumor_type} ability"
+            message += ". /n /n"
+            self.display_message(message)
 
     def check_corruption(self):  # returns true if stealing for this roll
         """
@@ -950,7 +949,7 @@ class minister:
             self.current_position
             and self.specific_skills[self.current_position.skill_type] < 3
         ):
-            self.specific_skills[self.current_position] += 1
+            self.specific_skills[self.current_position.skill_type] += 1
 
     def estimate_expected(self, base, allow_decimals=True):
         """
@@ -995,12 +994,12 @@ class minister:
         else:  # 5-6
             return 1
 
-    def get_roll_modifier(self, roll_type="none"):
+    def get_roll_modifier(self, roll_type=None):
         """
         Description:
             Returns the modifier this minister will apply to a given roll. As skill has only a half chance of applying to a given roll, the returned value may vary
         Input:
-            string roll_type = 'none': Type of roll being done, used to apply action-specific modifiers
+            string roll_type = None: Type of roll being done, used to apply action-specific modifiers
         Output:
             int: Returns the modifier this minister will apply to a given roll. As skill has only a half chance of applying to a given roll, the returned value may vary
         """
@@ -1077,7 +1076,7 @@ class minister:
             None
         """
         text = ""
-        audio = "none"
+        audio = None
         public_opinion_change = 0
 
         if self.status_number >= 3:

@@ -64,10 +64,8 @@ def calibrate_minister_info_display(new_minister):
     Output:
         None
     """
-    if new_minister == "none":
-        print(0 / 0)
     status.displayed_minister = new_minister
-    target = "none"
+    target = None
     if status.displayed_minister:
         target = new_minister
     status.minister_info_display.calibrate(target)
@@ -82,15 +80,13 @@ def calibrate_trial_info_display(info_display, new_minister):
     Input:
         button/actor list info_display: Interface collection that is calibrated to the inputted minister
             the trial
-        minister/string new_minister: The new minister that is displayed, or 'none'
+        minister/string new_minister: The new minister that is displayed, or None
     Output:
         None
     """
-    if new_minister == "none":
-        print(0 / 0)
     if type(info_display) == list:
         return
-    target = "none"
+    target = None
     if new_minister:
         target = new_minister
     info_display.calibrate(target)
@@ -110,12 +106,12 @@ def trial_setup(defense, prosecution):
     Output:
         None
     """
-    target = "none"
+    target = None
     if defense:
         target = defense
     calibrate_trial_info_display(status.defense_info_display, target)
 
-    target = "none"
+    target = None
     if prosecution:
         target = prosecution
     calibrate_trial_info_display(status.prosecution_info_display, target)
@@ -140,7 +136,7 @@ def update_available_minister_display():
                 available_minister_list[minister_index]
             )
         else:
-            available_minister_portrait_list[current_index].calibrate("none")
+            available_minister_portrait_list[current_index].calibrate(None)
     if (
         constants.current_game_mode == "ministers"
         and len(available_minister_list) > 0

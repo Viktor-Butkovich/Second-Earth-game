@@ -170,18 +170,18 @@ def main_loop():
                 main_loop_utility.manage_rmb_down(clicked_button)
 
         if flags.old_lmb_down != flags.lmb_down:  # if lmb changes
-            if not flags.lmb_down:  # if user just released lmb
-                clicked_button = False  # if any button, including a panel, is clicked, do not deselect units
-                allow_on_click = True  # certain buttons, like panels, allow clicking on another button at the same time
+            if not flags.lmb_down:  # If user just released lmb
+                clicked_button = False  # If any button, including a panel, is clicked, do not deselect units
+                allow_on_click = True  # Certain buttons, like panels, allow clicking on another button at the same time
                 stopping = False
                 if status.current_instructions_page == None:
-                    for current_button in status.button_list:  # here
+                    for current_button in status.button_list:
                         if (
                             current_button.touching_mouse()
                             and current_button.showing
                             and (current_button.in_notification)
                             and not stopping
-                        ):  # if notification, click before other buttons
+                        ):  # If notification, click before other buttons
                             current_button.on_click()
                             current_button.on_release()
                             clicked_button = True
@@ -200,24 +200,23 @@ def main_loop():
                         break
 
                 if not stopping:
-                    for current_button in status.button_list:
+                    for current_button in reversed(status.button_list):
                         if (
                             current_button.touching_mouse()
                             and current_button.showing
                             and allow_on_click
-                        ):  # only click 1 button at a time
+                        ):  # Only click 1 button at a time
                             if (
                                 current_button.on_click()
-                            ):  # if on_click has return value, nothing happened - allow other buttons to click but do not deselect units
+                            ):  # If on_click has return value, nothing happened - allow other buttons to click but do not deselect units
                                 allow_on_click = True
                             else:
                                 allow_on_click = False
                             current_button.on_release()
                             clicked_button = True
-                            # break
                 main_loop_utility.manage_lmb_down(
                     clicked_button
-                )  # whether button was clicked or not determines whether characters are deselected
+                )  # Whether button was clicked or not determines whether characters are deselected
 
         if flags.lmb_down or flags.rmb_down:
             for current_button in status.button_list:
@@ -320,19 +319,19 @@ def main_loop():
                     and current_enemy.visible()
                 ):  # if unit visible and not selected, start its turn
                     if (
-                        current_enemy.find_closest_target() == "none"
-                        and not current_enemy.despawning
-                    ):  # if enemies have no target, they stand still and no movement is shown
+                        not current_enemy.find_closest_target()
+                    ) and not current_enemy.despawning:
+                        # If enemies have no target, they stand still and no movement is shown
                         did_nothing = True
                         current_enemy.turn_done = True
                     elif (
                         current_enemy.visible()
-                    ):  # if unit will do an action, move the camera to it and select it
+                    ):  # If unit will do an action, move the camera to it and select it
                         current_enemy.select()
 
                 elif (
                     current_enemy.creation_turn == constants.turn and not spawning
-                ):  # if enemy visible but just spawned, end turn
+                ):  # If enemy visible but just spawned, end turn
                     did_nothing = True
                     current_enemy.turn_done = True
 

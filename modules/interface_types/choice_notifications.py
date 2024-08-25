@@ -20,7 +20,7 @@ class choice_notification(action_notifications.action_notification):
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -28,7 +28,7 @@ class choice_notification(action_notifications.action_notification):
                 'ideal_width': int value - Pixel width that this label will try to retain. Each time a word is added to the label, if the word extends past the ideal width, the next line
                     will be started
                 'minimum_height': int value - Minimum pixel height of this label. Its height will increase if the contained text would extend past the bottom of the label
-                'button_types': string list value - List of string corresponding to the button types of this notification's choice buttons, like ['end turn', 'none']
+                'button_types': string list value - List of string corresponding to the button types of this notification's choice buttons, like ['end turn', None
                     - Each button type could also be a dictionary value, in which case the created button will be an anonymous button with
                         functionality decided by the dictionary's contents
                 'choice_info_dict': dictionary value - Dictionary containing any case-specific information for choice buttons to function as intended
@@ -123,10 +123,10 @@ class choice_button(buttons.button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
                 'button_type': string value - Determines the function of this button, like 'end turn'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -159,7 +159,7 @@ class choice_button(buttons.button):
         elif input_dict["button_type"] == "quit":
             self.message = "Exit game"
 
-        elif input_dict["button_type"] == "none":
+        elif input_dict["button_type"] == None:
             self.message = "Cancel"
 
         else:
@@ -224,7 +224,7 @@ class choice_button(buttons.button):
         elif self.button_type == "quit":
             self.set_tooltip(["Exits the game without saving"])
 
-        elif self.button_type == "none":
+        elif self.button_type == None:
             self.set_tooltip(["Cancel"])
 
         else:
@@ -284,7 +284,7 @@ class recruitment_choice_button(choice_button):
             }
             input_dict["image_dict"] = image_dict
             input_dict["name"] = "steamship"
-            input_dict["crew"] = "none"
+            input_dict["crew"] = None
             input_dict["init_type"] = "ship"
         constants.actor_creation_manager.create(False, input_dict)
         super().on_click()

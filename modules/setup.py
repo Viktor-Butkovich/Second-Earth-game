@@ -387,7 +387,7 @@ def actions():
     Input:
         None
     Output:
-        none
+        None
     """
     for building_type in constants.building_types + ["train"]:
         if not building_type in [
@@ -580,7 +580,7 @@ def value_trackers():
     )
 
     constants.turn_tracker = value_tracker_template.value_tracker_template(
-        "turn", 0, "none", "none"
+        value_key="turn", initial_value=0, min_value=None, max_value=None
     )
     constants.actor_creation_manager.create_interface_element(
         {
@@ -615,7 +615,7 @@ def value_trackers():
 
     constants.public_opinion_tracker = (
         value_tracker_template.public_opinion_tracker_template(
-            "public_opinion", 0, 0, 100
+            value_key="public_opinion", initial_value=0, min_value=0, max_value=100
         )
     )
     constants.actor_creation_manager.create_interface_element(
@@ -632,7 +632,7 @@ def value_trackers():
 
     if constants.effect_manager.effect_active("track_fps"):
         constants.fps_tracker = value_tracker_template.value_tracker_template(
-            "fps", 0, 0, "none"
+            value_key="fps", initial_value=0, min_value=0, max_value=None
         )
         constants.actor_creation_manager.create_interface_element(
             {
@@ -715,7 +715,7 @@ def buttons():
     input_dict["coordinates"] = scaling.scale_coordinates(
         constants.default_display_width / 2 - 75, constants.default_display_height - 160
     )
-    input_dict["parent_collection"] = "none"
+    input_dict["parent_collection"] = None
     ministers_flag_icon = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
@@ -1099,7 +1099,7 @@ def ministers_screen():
                     "height": scaling.scale_height(position_icon_width),
                     "modes": ["ministers"],
                     "minister_type": minister_type,
-                    "attached_label": "none",
+                    "attached_label": None,
                     "init_type": "minister type image",
                 }
             )
@@ -1130,7 +1130,7 @@ def ministers_screen():
                     "height": scaling.scale_height(position_icon_width),
                     "modes": ["ministers"],
                     "minister_type": minister_type,
-                    "attached_label": "none",
+                    "attached_label": None,
                     "init_type": "minister type image",
                 }
             )
@@ -1236,7 +1236,7 @@ def trial_screen():
             "height": scaling.scale_height(button_separation * 2 - 5),
             "modes": ["trial"],
             "minister_type": None,
-            "attached_label": "none",
+            "attached_label": None,
             "init_type": "minister type image",
             "parent_collection": status.defense_info_display,
         }
@@ -1311,7 +1311,7 @@ def trial_screen():
             "height": scaling.scale_height(button_separation * 2 - 5),
             "modes": ["trial"],
             "minister_type": None,
-            "attached_label": "none",
+            "attached_label": None,
             "init_type": "minister type image",
             "parent_collection": status.prosecution_info_display,
         }

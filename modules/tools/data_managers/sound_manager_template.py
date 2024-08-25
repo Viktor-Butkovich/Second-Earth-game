@@ -27,8 +27,8 @@ class sound_manager_template:
             ],  # remove file extensions
             "main menu": ["main theme"],
         }
-        self.previous_state = "none"
-        self.previous_song = "none"
+        self.previous_state = None
+        self.previous_song = None
 
     def busy(self):
         """
@@ -113,7 +113,7 @@ class sound_manager_template:
         Description:
             Fades out the current song and plays a new song at the previous volume
         Input:
-            string file_name: Name of .wav file to play music of, or 'none' if music should fade out but not restart
+            string file_name: Name of .wav file to play music of, or None if music should fade out but not restart
             double time_interval = 0.75: Time to wait between each volume change event
         Output:
             None
@@ -132,7 +132,7 @@ class sound_manager_template:
                     time_passed,
                 )
 
-        if not file_name == "none":
+        if file_name:
             time_passed += time_interval
             constants.event_manager.add_event(
                 self.play_music, [file_name, 0], time_passed
@@ -175,7 +175,7 @@ class sound_manager_template:
                     time_passed,
                 )
 
-    def play_random_music(self, current_state, previous_song="none"):
+    def play_random_music(self, current_state, previous_song=None):
         """
         Description:
             Plays random music depending on the current state of the game, like 'main menu' or 'earth'
@@ -185,7 +185,7 @@ class sound_manager_template:
         Output:
             None
         """
-        self.previous_song = "none"
+        self.previous_song = None
         original_state = self.previous_state
         if not (self.previous_state == current_state):
             state_changed = True
@@ -197,16 +197,13 @@ class sound_manager_template:
             chosen_song = random.choice(possible_songs)
         elif len(possible_songs) > 0:
             chosen_song = random.choice(possible_songs)
-            if (
-                previous_song != "none"
-            ):  # plays different song if multiple choices available
+            if previous_song:  # Plays different song if multiple choices available
                 while chosen_song == previous_song:
                     chosen_song = random.choice(possible_songs)
         else:
-            chosen_song = "none"
-        if (
-            (not state_changed) and (chosen_song != "none")
-        ) or original_state == "none":  # Start music immediately on startup or if last song finished
+            chosen_song = None
+        if (chosen_song and not state_changed) or (not original_state):
+            # Start music immediately on startup or if last song finished
             # Should result in music starting immediately when main menu starts up, while waiting until after loading/creating new game
             self.play_music(chosen_song)
         else:  # Otherwise, fade out current music and fade in new music

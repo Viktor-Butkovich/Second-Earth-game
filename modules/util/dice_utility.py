@@ -6,8 +6,8 @@ import modules.constants.constants as constants
 
 
 def roll(
-    num_sides, roll_type, requirement, min_crit_success, max_crit_fail, result="none"
-):  # optional predetermined result
+    num_sides, roll_type, requirement, min_crit_success, max_crit_fail, result=None
+):  # Optional predetermined result
     """
     Description:
         Conducts a dice roll and prints a description of the outcome to the text box. Does not actually create a die object, instead providing information that can be used to show the result through a die object
@@ -17,11 +17,11 @@ def roll(
         int requirement: Minimum value required for the roll to succeed
         int min_crit_success: Minimum value required for the roll to critically succed
         max_crit_fail: Maximum value required for the roll to critically fail
-        string/int result = 'none': If value passed, the die will roll to a predetermined result
+        string/int result = None: If value passed, the die will roll to a predetermined result
     Output:
         int: Returns the random value rolled
     """
-    if result == "none":
+    if result == None:
         result = random.randrange(1, num_sides + 1)
     text_utility.print_to_screen(
         roll_type + ": " + str(requirement) + "+ required to succeed"
@@ -44,7 +44,7 @@ def roll(
 
 
 def roll_to_list(
-    num_sides, roll_type, requirement, min_crit_success, max_crit_fail, result="none"
+    num_sides, roll_type, requirement, min_crit_success, max_crit_fail, result=None
 ):
     """
     Description:
@@ -55,11 +55,11 @@ def roll_to_list(
         int requirement: Minimum value required for the roll to succeed
         int min_crit_success: Minimum value required for the roll to critically succed
         max_crit_fail: Maximum value required for the roll to critically fail
-        string/int result = 'none': If value passed, the die will roll to a predetermined result
+        string/int result = None: If value passed, the die will roll to a predetermined result
     Output:
         int/string list: List representing the roll's outcome, with the first item being the roll's int result and the second item being a string description of the roll
     """
-    if result == "none":
+    if result == None:
         result = random.randrange(1, num_sides + 1)
     text = ""
 
@@ -86,10 +86,10 @@ def combat_roll_to_list(num_sides, roll_type, result, modifier):
     Input:
         int num_sides: Number of sides of the simulated die
         string roll_type: Represents the purpose of the roll, affecting the roll's description
-        string/int result = 'none': If value passed, the die will roll to a predetermined result
+        string/int result = None: If value passed, the die will roll to a predetermined result
         int modifier: Value added to the dice roll and shown in the description of the calculation
     """
-    if result == "none":
+    if result == None:
         result = random.randrange(1, num_sides + 1)
     text = ""
     if roll_type == "second":

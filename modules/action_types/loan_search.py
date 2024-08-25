@@ -24,7 +24,6 @@ class loan_search(action.campaign):
         super().initial_setup()
         constants.transaction_descriptions[self.action_type] = "loan searches"
         self.name = "loan search"
-        self.target_commodity = "none"
         self.current_proposed_loan = {}
         self.requirements += [
             constants.OFFICER_PERMISSION,

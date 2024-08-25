@@ -40,7 +40,7 @@ class instructions_page(label):
             Initializes this object
         Input:
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'message': string value - Default text for this label
         Output:
             None

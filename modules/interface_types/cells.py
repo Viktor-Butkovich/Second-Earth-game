@@ -25,7 +25,7 @@ class cell:
             int height: Pixel height of this button
             grid grid: The grid that this cell is attached to
             string color: Color in the color_dict dictionary for this cell when nothing is covering it
-            string or dictionary save_dict: Equals 'none' if creating new grid, equals dictionary of saved information necessary to recreate this cell if loading grid
+            string or dictionary save_dict: Equals None if creating new grid, equals dictionary of saved information necessary to recreate this cell if loading grid
         Output:
             None
         """
@@ -40,7 +40,7 @@ class cell:
             self.pixel_x, self.pixel_y - self.height, self.width, self.height
         )  # (left, top, width, height)
         self.grid.cell_list[x][y] = self
-        self.tile = "none"
+        self.tile = None
         self.settlement = None
         self.terrain_handler: terrain_handler = None
         self.contained_mobs: list = []
@@ -51,12 +51,12 @@ class cell:
             "right": None,
             "left": None,
         }
-        if save_dict != "none":  # if from save
+        if save_dict:  # If from save
             self.save_dict: dict = save_dict
             if constants.effect_manager.effect_active("remove_fog_of_war"):
                 save_dict["visible"] = True
             self.terrain_handler = terrain_handler(self, save_dict)
-        else:  # if creating new map
+        else:  # If creating new map
             self.terrain_handler = terrain_handler(self)
 
     def get_parameter(self, parameter_name: str) -> int:
@@ -133,7 +133,7 @@ class cell:
         if (
             self.terrain_handler.terrain == "water"
             and adjacent_cell.terrain_handler.terrain == "water"
-        ):  # if both are water, no walking connection exists
+        ):  # If both are water, no walking connection exists
             return False
 
         if self.terrain_handler.terrain == "water":
@@ -145,13 +145,13 @@ class cell:
 
         water_infrastructure = water_cell.get_intact_building("infrastructure")
         if (
-            water_infrastructure == "none"
-        ):  # if no bridge in water tile, no walking connection exists
+            not water_infrastructure
+        ):  # If no bridge in water tile, no walking connection exists
             return False
         if water_infrastructure.is_bridge:
             if (
                 land_cell in water_infrastructure.connected_cells
-            ):  # if bridge in water tile connects to the land tile, walking connection exists
+            ):  # If bridge in water tile connects to the land tile, walking connection exists
                 return True
         return False
 
@@ -209,7 +209,7 @@ class cell:
             boolean: Returns whether this cell has a building of the inputted type
         """
         if building_type in ["road", "railroad"]:
-            if self.contained_buildings["infrastructure"] == "none":
+            if not self.contained_buildings["infrastructure"]:
                 return False
             elif (
                 building_type == "road"
@@ -228,7 +228,7 @@ class cell:
         ):  # if checking for something that is not actually a building, like 'train'
             return False
         else:
-            if self.contained_buildings[building_type] == "none":
+            if not self.contained_buildings[building_type]:
                 return False
             else:
                 return True
@@ -243,7 +243,7 @@ class cell:
             boolean: Returns whether this cell has an undamaged building of the inputted type
         """
         if building_type in ["road", "railroad"]:
-            if self.contained_buildings["infrastructure"] == "none":
+            if not self.contained_buildings["infrastructure"]:
                 return False
             elif (
                 building_type == "road"
@@ -264,7 +264,7 @@ class cell:
             return False
 
         else:
-            if self.contained_buildings[building_type] == "none":
+            if not self.contained_buildings[building_type]:
                 return False
             else:
                 returned_building = self.contained_buildings[building_type]
@@ -277,11 +277,11 @@ class cell:
     def get_building(self, building_type):
         """
         Description:
-            Returns this cell's building of the inputted type, or 'none' if that building is not present
+            Returns this cell's building of the inputted type, or None if that building is not present
         Input:
             string building_type: Type of building to search for
         Output:
-            building/string: Returns whether this cell's building of the inputted type, or 'none' if that building is not present
+            building/string: Returns whether this cell's building of the inputted type, or None if that building is not present
         """
         if self.has_building(building_type):
             if building_type in ["road", "railroad"]:
@@ -289,16 +289,16 @@ class cell:
             else:
                 return self.contained_buildings[building_type]
         else:
-            return "none"
+            return None
 
     def get_intact_building(self, building_type):
         """
         Description:
-            Returns this cell's undamaged building of the inputted type, or 'none' if that building is damaged or not present
+            Returns this cell's undamaged building of the inputted type, or None if that building is damaged or not present
         Input:
             string building_type: Type of building to search for
         Output:
-            building/string: Returns this cell's undamaged building of the inputted type, or 'none' if that building is damaged or not present
+            building/string: Returns this cell's undamaged building of the inputted type, or None if that building is damaged or not present
         """
         if self.has_intact_building(building_type):
             if building_type in ["road", "railroad"]:
@@ -308,12 +308,12 @@ class cell:
                 return self.contained_buildings[building_type]
 
         else:
-            return "none"
+            return None
 
     def reset_buildings(self):
         """
         Description:
-            Resets the values of this cell's dictionary of contained buildings to 'none', initializing the dictionary or removing existing buildings
+            Resets the values of this cell's dictionary of contained buildings to None, initializing the dictionary or removing existing buildings
         Input:
             None
         Output:
@@ -321,7 +321,7 @@ class cell:
         """
         self.contained_buildings = {}
         for current_building_type in constants.building_types:
-            self.contained_buildings[current_building_type] = "none"
+            self.contained_buildings[current_building_type] = None
 
     def get_buildings(self):
         """
@@ -381,10 +381,10 @@ class cell:
             int: Returns the cost of the next warehouses upgrade in this tile, based on the number of past warehouse upgrades
         """
         warehouses = self.get_building("warehouses")
-        if warehouses == "none":
-            warehouses_built = 0
-        else:
+        if warehouses:
             warehouses_built = warehouses.warehouse_level
+        else:
+            warehouses_built = 0
         if self.has_building("port"):
             warehouses_built -= 1
         if self.has_building("train_station"):
@@ -443,11 +443,11 @@ class cell:
     def get_vehicle(self, vehicle_type, is_worker=False):
         """
         Description:
-            Returns the first crewed vehicle of the inputted type in this cell, or 'none' if none are present
+            Returns the first crewed vehicle of the inputted type in this cell, or None if none are present
         Input:
             string vehicle_type: 'train' or 'ship', determines what kind of vehicle is searched for
         Output:
-            string/vehicle: Returns the first crewed vehicle of the inputted type in this cell, or 'none' if none are present
+            string/vehicle: Returns the first crewed vehicle of the inputted type in this cell, or None if none are present
         """
         for current_mob in self.contained_mobs:
             if (
@@ -458,16 +458,16 @@ class cell:
                 and current_mob.vehicle_type == vehicle_type
             ):
                 return current_mob
-        return "none"
+        return None
 
     def get_vehicles(self, vehicle_type, is_worker=False):
         """
         Description:
-            Returns each crewed vehicle of the inputted type in this cell, or 'none' if none are present
+            Returns each crewed vehicle of the inputted type in this cell, or None if none are present
         Input:
             string vehicle_type: 'train' or 'ship', determines what kind of vehicle is searched for
         Output:
-            string/vehicle: Returns the first crewed vehicle of the inputted type in this cell, or 'none' if none are present
+            string/vehicle: Returns the first crewed vehicle of the inputted type in this cell, or None if none are present
         """
         return_list = []
         for current_mob in self.contained_mobs:
@@ -502,12 +502,12 @@ class cell:
     def get_uncrewed_vehicle(self, vehicle_type, worker_type="default"):
         """
         Description:
-            Returns the first uncrewed vehicle of the inputted type in this cell, or 'none' if none are present
+            Returns the first uncrewed vehicle of the inputted type in this cell, or None if none are present
         Input:
             string vehicle_type: 'train' or 'ship', determines what kind of vehicle is searched for
             string worker_type = 'default': If a worker type is inputted, only vehicles that the inputted worker type oculd crew are returned
         Output:
-            string/vehicle: Returns the first uncrewed vehicle of the inputted type in this cell, or 'none' if none are present
+            string/vehicle: Returns the first uncrewed vehicle of the inputted type in this cell, or None if none are present
         """
         for current_mob in self.contained_mobs:
             if (
@@ -516,7 +516,7 @@ class cell:
                 and current_mob.vehicle_type == vehicle_type
             ):
                 return current_mob
-        return "none"
+        return None
 
     def has_worker(self, possible_types=None, required_number=1):
         """
@@ -561,12 +561,12 @@ class cell:
     def get_worker(self, possible_types=None, start_index=0):
         """
         Description:
-            Finds and returns the first worker in this cell of the inputted types, or 'none' if none are present
+            Finds and returns the first worker in this cell of the inputted types, or None if none are present
         Input:
             string list possible_types: Type of worker that can be returned, includes all workers by default
             int start_index=0: Index of contained_mobs to start search from - if starting in middle, wraps around iteration to ensure all items are still checked
         Output:
-            string/worker: Returns the first worker in this cell of the inputted types, or 'none' if none are present
+            string/worker: Returns the first worker in this cell of the inputted types, or None if none are present
         """
         if start_index >= len(self.contained_mobs):
             start_index = 0
@@ -584,17 +584,17 @@ class cell:
                 constants.PMOB_PERMISSION, constants.WORKER_PERMISSION
             ) and ((not possible_types) or current_mob.worker_type in possible_types):
                 return current_mob
-        return "none"
+        return None
 
     def get_officer(self, allow_vehicles=True, start_index=0):
         """
         Description:
-            Finds and returns the first officer or, optionally, uncrewed vehicle, in this cell, or 'none' if none are present
+            Finds and returns the first officer or, optionally, uncrewed vehicle, in this cell, or None if none are present
         Input:
             boolean allow_vehicles=True: Whether uncrewed vehicles can be returned or just officers
             int start_index=0: Index of contained_mobs to start search from - if starting in middle, wraps around iteration to ensure all items are still checked
         Output:
-            string/actor: Returns the first officer, or, optionally, uncrewed vehicle in this cell, or 'none' if none are present
+            string/actor: Returns the first officer, or, optionally, uncrewed vehicle in this cell, or None if none are present
         """
         if start_index >= len(self.contained_mobs):
             start_index = 0
@@ -612,7 +612,7 @@ class cell:
                 constants.OFFICER_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
             ):
                 return current_mob
-        return "none"
+        return None
 
     def has_pmob(self):
         """
@@ -634,16 +634,16 @@ class cell:
     def get_pmob(self):
         """
         Description:
-            Returns the first pmob in this cell, or 'none' if none are present
+            Returns the first pmob in this cell, or None if none are present
         Input:
             None
         Output:
-            string/pmob: Returns the first pmob in this cell, or 'none' if none are present
+            string/pmob: Returns the first pmob in this cell, or None if none are present
         """
         for current_mob in self.contained_mobs:
             if current_mob.get_permission(constants.PMOB_PERMISSION):
                 return current_mob
-        return "none"
+        return None
 
     def has_npmob(self):
         """
@@ -671,14 +671,14 @@ class cell:
         Output;
             mob: Returns the best combatant of the inputted type in this cell
         """
-        best_combatants = ["none"]
+        best_combatants = [None]
         best_combat_modifier = 0
         if mob_type == "npmob":
             for current_mob in self.contained_mobs:
                 if current_mob.get_permission(constants.NPMOB_PERMISSION):
                     current_combat_modifier = current_mob.get_combat_modifier()
                     if (
-                        best_combatants[0] == "none"
+                        best_combatants[0] == None
                         or current_combat_modifier > best_combat_modifier
                     ):  # if first mob or better than previous mobs, set as only best
                         best_combatants = [current_mob]
@@ -695,7 +695,7 @@ class cell:
                     ):  # unit with 0 combat strength cannot fight
                         current_combat_modifier = current_mob.get_combat_modifier()
                         if (
-                            best_combatants[0] == "none"
+                            best_combatants[0] == None
                             or current_combat_modifier > best_combat_modifier
                         ):
                             best_combatants = [current_mob]
@@ -756,7 +756,7 @@ class cell:
         Description:
             Draws this cell as a rectangle with a certain color on its grid, depending on this cell's color value, along with actors this cell contains
         Input:
-            none
+            None
         Output:
             None
         """
@@ -767,7 +767,7 @@ class cell:
         if not self.terrain_handler.visible:
             red, green, blue = constants.color_dict["blonde"]
         pygame.draw.rect(constants.game_display, (red, green, blue), self.Rect)
-        if self.tile != "none":
+        if self.tile:
             for current_image in self.tile.images:
                 current_image.draw()
             if self.terrain_handler.visible and self.contained_mobs:

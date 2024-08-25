@@ -25,8 +25,8 @@ class die(button):
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
                 'num_sides': Number of sides for this die
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'result_outcome_dict': string/int dictionary value - Dictionary of string result type keys and int die result values determining which die results are successes/failures or
                     critical successes/failures
                 'outcome_color_dict': string/int dictionary value - Dictionary of string color name keys and int die result values determining colors shown for certain die results
@@ -109,7 +109,7 @@ class die(button):
             for current_member in current_parent_collection.members:
                 if hasattr(current_member, "notification_type"):
                     return current_member
-            if current_parent_collection.parent_collection != "none":
+            if current_parent_collection.parent_collection:
                 current_parent_collection = current_parent_collection.parent_collection
             else:
                 return None

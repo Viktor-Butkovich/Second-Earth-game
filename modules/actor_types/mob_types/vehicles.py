@@ -26,11 +26,11 @@ class vehicle(pmob):
                 'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_ship.png'
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
-                'crew': worker, string, or dictionary value - If no crew, equals 'none'. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
+                'crew': worker, string, or dictionary value - If no crew, equals None. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
                     recreate the worker to serve as crew
                 'passenger_dicts': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each of this vehicle's passengers
         Output:
@@ -39,7 +39,7 @@ class vehicle(pmob):
         self.vehicle_type = "vehicle"
         input_dict["image"] = input_dict["image_dict"]["default"]
         self.contained_mobs = []
-        self.ejected_crew = "none"
+        self.ejected_crew = None
         self.ejected_passengers = []
         self.travel_possible = False
         super().__init__(from_save, input_dict, original_constructor=False)
@@ -47,8 +47,8 @@ class vehicle(pmob):
         if not from_save:
             self.set_crew(input_dict["crew"])
         else:  # create crew and passengers through recruitment_manager and embark them
-            if input_dict["crew"] == "none":
-                self.set_crew("none")
+            if not input_dict["crew"]:
+                self.set_crew(None)
             else:
                 constants.actor_creation_manager.create(
                     True, input_dict["crew"]
@@ -91,21 +91,18 @@ class vehicle(pmob):
             None
         """
         self.crew = new_crew
-        if new_crew == "none":
-            self.set_permission(constants.ACTIVE_PERMISSION, None, override=True)
-            self.set_permission(
-                constants.INACTIVE_VEHICLE_PERMISSION, True, override=True
-            )
-            self.set_inventory_capacity(0)
-        else:
+        if new_crew:
             self.set_permission(constants.ACTIVE_PERMISSION, True, override=True)
             self.set_permission(
                 constants.INACTIVE_VEHICLE_PERMISSION, None, override=True
             )
             self.set_inventory_capacity(27)
-        # self.update_image_bundle()
-        # if status.displayed_mob == self:
-        #    actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
+        else:
+            self.set_permission(constants.ACTIVE_PERMISSION, None, override=True)
+            self.set_permission(
+                constants.INACTIVE_VEHICLE_PERMISSION, True, override=True
+            )
+            self.set_inventory_capacity(0)
 
     def get_image_id_list(self, override_values={}):
         """
@@ -137,9 +134,9 @@ class vehicle(pmob):
         """
         if current_cell == "default":
             current_cell = self.get_cell()
-        if current_cell == "none":
+        elif not current_cell:
             return
-        if self.crew == "none":
+        if not self.crew:
             sub_mobs = []
         else:
             sub_mobs = [self.crew]
@@ -256,7 +253,7 @@ class vehicle(pmob):
             current_passenger.y = self.y
             if current_passenger.get_permission(constants.GROUP_PERMISSION):
                 current_passenger.calibrate_sub_mob_positions()
-        if not self.crew == "none":
+        if self.crew:
             self.crew.x = self.x
             self.crew.y = self.y
 
@@ -269,7 +266,7 @@ class vehicle(pmob):
         Output:
             None
         """
-        if self.crew != "none":
+        if self.crew:
             self.ejected_crew = self.crew
             self.crew.uncrew_vehicle(self)
 
@@ -297,13 +294,13 @@ class vehicle(pmob):
         Output:
             None
         """
-        if self.ejected_crew != "none":
+        if self.ejected_crew:
             if self.ejected_crew in status.pmob_list:
                 self.ejected_crew.crew_vehicle(self)
                 for current_passenger in self.ejected_passengers:
                     if current_passenger in status.pmob_list:
                         current_passenger.embark_vehicle(self)
-            self.ejected_crew = "none"
+            self.ejected_crew = None
             self.ejected_passengers = []
 
     def die(self, death_type="violent"):
@@ -319,9 +316,9 @@ class vehicle(pmob):
         for current_passenger in self.contained_mobs:
             current_passenger.die()
         self.contained_mobs = []
-        if not self.crew == "none":
+        if self.crew:
             self.crew.die()
-            self.crew = "none"
+            self.crew = None
 
     def fire(self):
         """
@@ -335,9 +332,9 @@ class vehicle(pmob):
         for current_passenger in self.contained_mobs:
             current_passenger.fire()
         self.contained_mobs = []
-        if self.crew != "none":
+        if self.crew:
             self.crew.fire()
-            self.set_crew("none")
+            self.set_crew(None)
         super().fire()
 
     def to_save_dict(self):
@@ -350,15 +347,16 @@ class vehicle(pmob):
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
                 Along with superclass outputs, also saves the following values:
                 'image_dict': string value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_ship.png'
-                'crew': string or dictionary value - If no crew, equals 'none'. Otherwise, equals a dictionary of the saved information necessary to recreate the worker to serve as crew
+                'crew': string or dictionary value - If no crew, equals None. Otherwise, equals a dictionary of the saved information necessary to recreate the worker to serve as crew
                 'passenger_dicts': dictionary list value - List of dictionaries of saved information necessary to recreate each of this vehicle's passengers
         """
         save_dict = super().to_save_dict()
         save_dict["image_dict"] = self.image_dict
-        if self.crew == "none":
-            save_dict["crew"] = "none"
-        else:
+        if self.crew:
             save_dict["crew"] = self.crew.to_save_dict()
+        else:
+            save_dict["crew"] = None
+
         save_dict["passenger_dicts"] = [
             current_mob.to_save_dict() for current_mob in self.contained_mobs
         ]
@@ -424,10 +422,10 @@ class vehicle(pmob):
         Output:
             worker: Returns the worker associated with this unit, if any
         """
-        if self.crew == "none":
-            return super().get_worker()
-        else:
+        if self.crew:
             return self.crew
+        else:
+            return super().get_worker()
 
 
 class train(vehicle):
@@ -447,10 +445,10 @@ class train(vehicle):
                 'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_ship.png'
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
-                'crew': worker, string, or dictionary value - If no crew, equals 'none'. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
+                'crew': worker, string, or dictionary value - If no crew, equals None. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
                     recreate the worker to serve as crew
                 'passenger_dicts': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each of this vehicle's passengers
         Output:
@@ -533,10 +531,10 @@ class ship(vehicle):
                 'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_ship.png'
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
-                'crew': worker, string, or dictionary value - If no crew, equals 'none'. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
+                'crew': worker, string, or dictionary value - If no crew, equals None. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
                     recreate the worker to serve as crew
                 'passenger_dicts': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each of this vehicle's passengers
         Output:

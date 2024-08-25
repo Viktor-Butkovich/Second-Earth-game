@@ -13,14 +13,14 @@ def generate_autofill_actors(search_start_index=0):
     Input:
         None
     Output:
-        dict: Generates and returns dictionary with 'worker', 'officer', 'group', and 'procedure' entries corresponding to 'none' or a dummy/actual unit of that type that
+        dict: Generates and returns dictionary with 'worker', 'officer', 'group', and 'procedure' entries corresponding to None or a dummy/actual unit of that type that
         would be involved in the determined merge/split procedure
     """
     return_dict = {
-        "worker": "none",
-        "officer": "none",
-        "group": "none",
-        "procedure": "none",
+        "worker": None,
+        "officer": None,
+        "group": None,
+        "procedure": None,
     }
     displayed_mob = status.displayed_mob
     if displayed_mob and displayed_mob.get_permission(constants.PMOB_PERMISSION):
@@ -72,7 +72,7 @@ def generate_autofill_actors(search_start_index=0):
                     start_index=search_start_index
                 )
 
-            if return_dict["worker"] != "none" and return_dict["officer"] != "none":
+            if return_dict["worker"] and return_dict["officer"]:
                 if return_dict["officer"].get_permission(constants.OFFICER_PERMISSION):
                     return_dict["group"] = simulate_merge(
                         return_dict["officer"],
@@ -154,8 +154,8 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
     Output:
         dummy: Returns dummy object representing group that would be created from merging inputted officer and worker
     """
-    return_value = "none"
-    if officer != "none" and worker != "none":
+    return_value = None
+    if officer and worker:
         for attribute in required_dummy_attributes:
             if hasattr(officer, attribute):
                 if type(getattr(officer, attribute)) in [list, dict]:

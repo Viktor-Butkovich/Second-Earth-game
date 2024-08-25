@@ -26,7 +26,7 @@ class image:
         self.text = False
         self.width = width
         self.height = height
-        self.Rect = "none"
+        self.Rect = None
 
     def complete_draw(self):
         """
@@ -51,12 +51,8 @@ class image:
         Output:
             boolean: Returns True if this image is colliding with the mouse, otherwise returns False
         """
-        if self.Rect != "none" and self.Rect.collidepoint(
-            pygame.mouse.get_pos()
-        ):  # if mouse is in button
-            return True
-        else:
-            return False
+        return self.Rect and self.Rect.collidepoint(pygame.mouse.get_pos())
+        # If mouse is in button
 
     def remove_complete(self):
         """
@@ -156,7 +152,7 @@ class image_bundle(image):
             None
         """
         self.image_type = "bundle"
-        self.combined_surface = "none"
+        self.combined_surface = None
         super().__init__(parent_image.width, parent_image.height)
         self.parent_image = parent_image
         self.members = []
@@ -390,7 +386,7 @@ class bundle_image:
             None
         """
         self.bundle = bundle
-        self.image = "none"
+        self.image = None
         self.member_type = member_type
         self.is_offset = is_offset
 
@@ -734,7 +730,7 @@ class free_image(image):
                 'width': int value - Pixel width of this image
                 'height': int value - Pixel height of this image
                 'modes': string list value - Game modes during which this button can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'member_config' = {}: Dictionary of extra configuration values for how to add elements to collections
                 'to_front' = False: boolean value - If True, allows this image to appear in front of most other objects instead of being behind them
         Output:
@@ -744,9 +740,9 @@ class free_image(image):
         self.showing = False
         self.has_parent_collection = False
         super().__init__(input_dict["width"], input_dict["height"])
-        self.parent_collection = input_dict.get("parent_collection", "none")
+        self.parent_collection = input_dict.get("parent_collection", None)
         self.color_key = input_dict.get("color_key", None)
-        self.has_parent_collection = self.parent_collection != "none"
+        self.has_parent_collection = self.parent_collection
         if not self.has_parent_collection:
             status.independent_interface_elements.append(self)
 
@@ -762,7 +758,7 @@ class free_image(image):
 
         if "modes" in input_dict:
             self.set_modes(input_dict["modes"])
-        elif "parent_collection" != "none":
+        elif self.parent_collection:
             self.set_modes(self.parent_collection.modes)
         self.set_image(input_dict["image_id"])
 
@@ -784,7 +780,7 @@ class free_image(image):
         """
         self.x = new_x
         self.y = constants.display_height - new_y
-        if hasattr(self, "Rect") and self.Rect != "none":
+        if hasattr(self, "Rect") and self.Rect:
             self.Rect.x = self.x
             self.Rect.y = constants.display_height - (new_y + self.height)
         if self.has_parent_collection:
@@ -1439,19 +1435,19 @@ class minister_type_image(tooltip_free_image):
                 'width': int value - Pixel width of this image
                 'height': int value - Pixel height of this image
                 'modes': string list value - Game modes during which this button can appear
-                'minister_type': string value - Minister office whose icon is always represented by this image, or 'none' if the icon can change
-                'attached_label': actor_display_label/string value - Actor display label that this image appears next to, or 'none' if not attached to a label
+                'minister_type': string value - Minister office whose icon is always represented by this image, or None if the icon can change
+                'attached_label': actor_display_label/string value - Actor display label that this image appears next to, or None if not attached to a label
                 'minister_image_type': string value = 'position': Type of minister image to show - either only position or full portrait
         Output:
             None
         """
-        self.current_minister = "none"
+        self.current_minister = None
         input_dict["image_id"] = "misc/empty.png"
         self.minister_image_type = input_dict.get("minister_image_type", "position")
         super().__init__(input_dict)
         self.attached_label = input_dict["attached_label"]
         self.minister_type = input_dict["minister_type"]  # position, like General
-        if self.minister_type != "none":
+        if self.minister_type:
             self.calibrate(minister_utility.get_minister(self.minister_type))
         status.minister_image_list.append(self)
         self.to_front = True
@@ -1461,12 +1457,10 @@ class minister_type_image(tooltip_free_image):
         Description:
             Attaches this image to the inputted minister and updates this image's appearance to the minister's office icon
         Input:
-            string/minister new_minister: The displayed minister whose information is matched by this label. If this equals 'none', the label is detached from any minister and is hidden
+            string/minister new_minister: The displayed minister whose information is matched by this label. If this equals None, the label is detached from any minister and is hidden
         Output:
             None
         """
-        if new_minister == "none":
-            new_minister = None
         if new_minister and new_minister.actor_type != "minister":
             if hasattr(new_minister, "controlling_minister"):
                 new_minister = new_minister.controlling_minister
@@ -1478,8 +1472,8 @@ class minister_type_image(tooltip_free_image):
             self.minister_type = new_minister.current_position
         current_minister_type = self.minister_type
         if (
-            self.attached_label != "none"
-            and self.attached_label.actor != "none"
+            self.attached_label
+            and self.attached_label.actor
             and self.attached_label.actor.get_permission(constants.PMOB_PERMISSION)
         ):
             current_minister_type = self.attached_label.actor.controlling_minister_type
@@ -1511,7 +1505,7 @@ class minister_type_image(tooltip_free_image):
         Output:
             boolean: Returns True if this image can currently appear, otherwise returns False
         """
-        if self.attached_label != "none":
+        if self.attached_label:
             return self.attached_label.showing
         else:
             return super().can_show(skip_parent_collection=skip_parent_collection)
@@ -1815,7 +1809,7 @@ class mob_image(actor_image):
             None
         """
         super().__init__(actor, width, height, grid, image_description)
-        self.current_cell = "none"
+        self.current_cell = None
         self.image_type = "mob"
         self.add_to_cell()
 
@@ -1828,11 +1822,11 @@ class mob_image(actor_image):
         Output:
             None
         """
-        if not self.current_cell in ["none", None]:
+        if self.current_cell:
             self.current_cell.contained_mobs = utility.remove_from_list(
                 self.current_cell.contained_mobs, self.actor
             )
-        self.current_cell = "none"
+        self.current_cell = None
 
     def add_to_cell(self):
         """

@@ -24,20 +24,20 @@ class interface_element:
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear, optional for elements with parent collections
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'member_config' = {}: Dictionary of extra configuration values for how to add elements to collections
         Output:
             None
         """
-        self.can_show_override = "none"
+        self.can_show_override = None
         self.width = input_dict["width"]
         self.height = input_dict["height"]
         self.Rect = pygame.Rect(
             0, constants.display_height - (self.height), self.width, self.height
         )
         self.showing = False
-        self.parent_collection = input_dict.get("parent_collection", "none")
-        self.has_parent_collection = self.parent_collection != "none"
+        self.parent_collection = input_dict.get("parent_collection", None)
+        self.has_parent_collection = self.parent_collection != None
         if not self.has_parent_collection:
             status.independent_interface_elements.append(self)
 
@@ -57,7 +57,7 @@ class interface_element:
 
         if "modes" in input_dict:
             self.set_modes(input_dict["modes"])
-        elif "parent_collection" != "none":
+        elif self.has_parent_collection:
             self.set_modes(self.parent_collection.modes)
 
         if "image_id" in input_dict:
@@ -143,7 +143,7 @@ class interface_element:
         Output:
             boolean: Returns True if this button can appear during the current game mode, otherwise returns False
         """
-        if self.can_show_override == "none":
+        if not self.can_show_override:
             if (not self.has_parent_collection) or skip_parent_collection:
                 if (
                     skip_parent_collection
@@ -196,7 +196,7 @@ class interface_element:
         Description:
             Allows subclasses to attach to the inputted actor and updates information based on the inputted actor
         Input:
-            string/actor new_actor: The displayed actor whose information is matched by this label. If this equals 'none', the label does not match any actors.
+            string/actor new_actor: The displayed actor whose information is matched by this label. If this equals None, the label does not match any actors.
         Output:
             None
         """
@@ -225,7 +225,7 @@ class interface_element:
             for attribute in override_input_dict:
                 input_dict[attribute] = override_input_dict[attribute]
 
-        if self.parent_collection != "none":
+        if self.parent_collection:
             input_dict["member_config"]["index"] = self.parent_collection.members.index(
                 self
             )
@@ -302,7 +302,7 @@ class interface_collection(interface_element):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'initial_members' = None: members initially created with this collection
         Output:
             None
@@ -408,7 +408,7 @@ class interface_collection(interface_element):
         Description:
             Atttaches this collection and its members to inputted actor and updates their information based on the inputted actor
         Input:
-            string/actor new_actor: The displayed actor whose information is matched by this label. If this equals 'none', the label does not match any actors.
+            string/actor new_actor: The displayed actor whose information is matched by this label. If this equals None, the label does not match any actors.
         Output:
             None
         """
@@ -420,8 +420,6 @@ class interface_collection(interface_element):
                 else:
                     member.calibrate(new_actor)
         if self.is_info_display:
-            if new_actor == "none":
-                new_actor = None
             setattr(status, "displayed_" + self.actor_type, new_actor)
 
     def add_member(self, new_member, member_config=None):
@@ -452,7 +450,7 @@ class interface_collection(interface_element):
             self.members.append(new_member)
         else:
             self.members.insert(member_config["index"], new_member)
-        if self.resize_with_contents and new_member.Rect != "none":
+        if self.resize_with_contents and new_member.Rect:
             self.member_rects.append(new_member.Rect)
         new_member.set_origin(
             self.x + member_config["x_offset"], self.y + member_config["y_offset"]
@@ -474,7 +472,7 @@ class interface_collection(interface_element):
             removed_member.x_offset = None
         if hasattr(removed_member, "y_offset"):
             removed_member.y_offset = None
-        removed_member.parent_collection = "none"
+        removed_member.parent_collection = None
         removed_member.has_parent_collection = False
         status.independent_interface_elements.append(removed_member)
         self.members.remove(removed_member)
@@ -603,7 +601,7 @@ class autofill_collection(interface_collection):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'autofill target': dict value - Dictionary with lists of the elements to calibrate to each autofill target type, like {'officer': [...], 'group': [...]}
         Output:
             None
@@ -611,8 +609,8 @@ class autofill_collection(interface_collection):
         self.autofill_targets = input_dict["autofill_targets"]
         self.autofill_actors = {}
         for autofill_target_type in self.autofill_targets:
-            self.autofill_actors[autofill_target_type] = "none"
-        self.autofill_actors["procedure"] = "none"
+            self.autofill_actors[autofill_target_type] = None
+        self.autofill_actors["procedure"] = None
         self.search_start_index = 0
         super().__init__(input_dict)
 
@@ -621,7 +619,7 @@ class autofill_collection(interface_collection):
         Description:
             Atttaches this collection and its members to inputted actor and updates their information based on the inputted actor
         Input:
-            string/actor new_actor: The displayed actor whose information is matched by this label. If this equals 'none', the label does not match any actors.
+            string/actor new_actor: The displayed actor whose information is matched by this label. If this equals None, the label does not match any actors.
         Output:
             None
         """
@@ -653,7 +651,7 @@ class tabbed_collection(interface_collection):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
         Output:
             None
         """
@@ -740,7 +738,7 @@ class ordered_collection(interface_collection):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'separation' = scaling.scale_height(5): int value - Distance to set between ordered members
                 'direction' = 'vertical': string value - Direction to order members in
                 'reversed' = False: boolean value - Whether to reverse the order of members in the specified direction (top to bottom or bottom to top)

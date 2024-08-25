@@ -120,7 +120,7 @@ class building(actor):
         Output:
             None
         """
-        self.cell.contained_buildings[self.building_type] = "none"
+        self.cell.contained_buildings[self.building_type] = None
         super().remove()
         status.building_list = utility.remove_from_list(status.building_list, self)
 
@@ -562,7 +562,7 @@ class infrastructure_building(building):
                     adjacent_cell_infrastructure = adjacent_cell.get_intact_building(
                         "infrastructure"
                     )
-                    if adjacent_cell_infrastructure != "none":
+                    if adjacent_cell_infrastructure:
                         if (
                             adjacent_cell_infrastructure.is_railroad
                             and own_tile_infrastructure.is_railroad

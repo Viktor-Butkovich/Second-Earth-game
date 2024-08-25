@@ -22,7 +22,7 @@ class upgrade(action.action):
             None
         """
         super().initial_setup(**kwargs)
-        self.building_type = kwargs.get("building_type", "none")
+        self.building_type = kwargs.get("building_type", None)
         del status.actions[self.action_type]
         status.actions[self.building_type] = self
         self.building_name = self.building_type.replace("_", " ")
@@ -30,7 +30,7 @@ class upgrade(action.action):
             constants.GROUP_PERMISSION,
             constants.CONSTRUCTION_PERMISSION,
         ]
-        self.current_building = "none"
+        self.current_building = None
         self.upgraded_building_type = {
             "scale": "resource",
             "efficiency": "resource",
@@ -65,10 +65,10 @@ class upgrade(action.action):
             "buttons/actions/upgrade_" + self.building_type + "_button.png"
         )
         initial_input_dict["keybind_id"] = {
-            "scale": "none",
-            "efficiency": "none",
+            "scale": None,
+            "efficiency": None,
             "warehouse_level": pygame.K_k,
-        }.get(self.building_type, "none")
+        }.get(self.building_type, None)
         return initial_input_dict
 
     def update_tooltip(self):
@@ -148,7 +148,7 @@ class upgrade(action.action):
             float: Returns price of this action
         """
         building = self.current_building
-        if building == "none":
+        if not building:
             building = status.displayed_mob.get_cell().get_intact_building(
                 self.upgraded_building_type
             )
@@ -166,12 +166,9 @@ class upgrade(action.action):
         building = status.displayed_mob.get_cell().get_intact_building(
             self.upgraded_building_type
         )
-        can_show = (
-            super().can_show()
-            and building != "none"
-            and building.can_upgrade(self.building_type)
+        return (
+            super().can_show() and building and building.can_upgrade(self.building_type)
         )
-        return can_show
 
     def on_click(self, unit):
         """
@@ -192,7 +189,7 @@ class upgrade(action.action):
         Input:
             pmob unit: Unit selected when the linked button is clicked
         Output:
-            none
+            None
         """
         super().pre_start(unit)
         self.current_building = unit.get_cell().get_intact_building(

@@ -65,7 +65,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
 
         elif self.grid.grid_type in constants.abstract_grid_type_list:
             self.cell.tile = self
-            self.terrain = "none"
+            self.terrain = None
             if self.cell.grid.from_save:
                 self.inventory = self.cell.save_dict["inventory"]
             if (
@@ -76,7 +76,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     for current_commodity in constants.commodity_types:
                         self.inventory[current_commodity] = 10
         else:
-            self.terrain = "none"
+            self.terrain = None
         self.finish_init(original_constructor, from_save, input_dict)
         if (
             self.name == "default"
@@ -261,7 +261,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             for mini_grid in self.grid.mini_grids:
                 mini_x, mini_y = mini_grid.get_mini_grid_coordinates(self.x, self.y)
                 equivalent_cell = mini_grid.find_cell(mini_x, mini_y)
-                if equivalent_cell and equivalent_cell.tile != "none":
+                if equivalent_cell and equivalent_cell.tile:
                     return_list.append(equivalent_cell.tile)
         elif self.grid.is_mini_grid:
             main_x, main_y = self.grid.get_main_grid_coordinates(self.x, self.y)
@@ -368,7 +368,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         )
                     image_id_list = utility.combine(image_id_list, new_image_id)
                 if (
-                    self.cell.terrain_handler.resource != "none"
+                    self.cell.terrain_handler.resource
                 ):  # If resource visible based on current knowledge
                     resource_icon = actor_utility.generate_resource_icon(self)
                     if type(resource_icon) == str:
@@ -377,7 +377,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         image_id_list += resource_icon
                 for current_building_type in constants.building_types:
                     current_building = self.cell.get_building(current_building_type)
-                    if current_building != "none":
+                    if current_building:
                         image_id_list += current_building.get_image_id_list()
             elif self.show_terrain:
                 image_id_list.append(self.image_dict["hidden"])
@@ -476,7 +476,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             self.image_dict[
                 "default"
             ] = f"terrains/{new_terrain}_{self.cell.terrain_handler.terrain_variant}.png"
-        elif new_terrain == "none":
+        elif not new_terrain:
             self.image_dict["default"] = "terrains/hidden.png"
         if update_image_bundle:
             self.update_image_bundle()
@@ -497,7 +497,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             tooltip_message = []
             coordinates = self.get_main_grid_coordinates()
             tooltip_message.append(f"Coordinates: ({coordinates[0]}, {coordinates[1]})")
-            if self.cell.terrain_handler.terrain != "none":
+            if self.cell.terrain_handler.terrain:
                 knowledge_value = self.cell.terrain_handler.get_parameter("knowledge")
                 knowledge_keyword = (
                     constants.terrain_manager.terrain_parameter_keywords["knowledge"][
@@ -539,9 +539,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 else:
                     tooltip_message.append(f"    Terrain unknown")
 
-            if (
-                self.cell.terrain_handler.resource != "none"
-            ):  # if resource present, show resource
+            if self.cell.terrain_handler.resource:  # If resource present, show resource
                 tooltip_message.append(
                     f"This tile has {utility.generate_article(self.cell.terrain_handler.resource)} {self.cell.terrain_handler.resource} resource"
                 )
@@ -576,18 +574,12 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
-        if self.show_terrain:
-            if (
-                self.touching_mouse() and constants.current_game_mode in self.modes
-            ):  # and not targeting_ability
-                if self.cell.terrain_handler.terrain == "none":
-                    return False
-                else:
-                    return True
-            else:
-                return False
-        else:
-            return False
+        return (
+            self.show_terrain
+            and self.touching_mouse()
+            and (constants.current_game_mode in self.modes)
+            and self.cell.terrain_handler.terrain
+        )
 
     def select(self, music_override: bool = False):
         """

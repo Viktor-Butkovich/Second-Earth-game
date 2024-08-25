@@ -34,7 +34,6 @@ except Exception:  # displays error message and records error message in crash l
 
 # tasks:
 #   general (game-agnostic):
-# replace usages of 'none' with None
 # Add type hints on sight - gradual process
 # add minister speech bubbles
 # Add random events
@@ -42,9 +41,7 @@ except Exception:  # displays error message and records error message in crash l
 # Add autosave and multiple save slots
 # Add ambient sounds
 # Continue adding new songs
-#
-# Possible issues:
-# Look into special character glitch for Queiros Portuguese name, possibly font issue not having correct special character in the settlement font (but does in minister screen font)
+
 #
 #   new SE features:
 # Continue adding hairstyles
@@ -68,7 +65,7 @@ except Exception:  # displays error message and records error message in crash l
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
-# Continue stress-testing minister changes
+# Convert button/init types to constant keys
 # Add a unit permissions system - any unit type has a dictionary of True/False permissions for each possible action, using defaults if none specified
 #   Use similar system to terrain knowledge privileges, using set of constants to identify each permission type
 #   Something like canoes or suits would modify a unit's default permissions

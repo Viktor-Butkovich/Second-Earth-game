@@ -48,7 +48,7 @@ class mob(actor):
         self.in_building = False
         self.number = 1  # how many entities are in a unit, used for verb conjugation
         self.actor_type = "mob"
-        self.end_turn_destination = "none"
+        self.end_turn_destination = None
         super().__init__(from_save, input_dict, original_constructor=False)
         if isinstance(input_dict["image"], str):
             self.image_dict = {"default": input_dict["image"]}
@@ -413,7 +413,7 @@ class mob(actor):
         """
         if self.get_permission(constants.NPMOB_PERMISSION):
             if self.hostile:
-                if self.get_cell() == "none":
+                if not self.get_cell():
                     if (
                         self.grids[0].find_cell(self.x, self.y).has_pmob()
                     ):  # if hidden and in same tile as pmob
@@ -438,7 +438,7 @@ class mob(actor):
         """
         if not (self.in_vehicle or self.in_group or self.in_building):
             if (
-                self.get_cell() != "none"
+                self.get_cell()
                 and self.get_cell().contained_mobs[0] == self
                 and constants.current_game_mode in self.modes
             ):
@@ -455,11 +455,11 @@ class mob(actor):
         Output:
             None
         """
-        if super().can_show_tooltip():
-            if self.get_cell() != "none":
-                if self.get_cell().terrain_handler.visible:
-                    return True
-        return False
+        return (
+            super().can_show_tooltip()
+            and self.get_cell()
+            and self.get_cell().terrain_handler.visible
+        )
 
     def get_movement_cost(self, x_change, y_change):
         """
@@ -477,7 +477,7 @@ class mob(actor):
         else:
             local_cell = self.grids[0].find_cell(self.x, self.y)
 
-        direction = "none"
+        direction = None
         if x_change < 0:
             direction = "left"
         elif x_change > 0:
@@ -487,7 +487,7 @@ class mob(actor):
         elif y_change < 0:
             direction = "down"
 
-        if direction == "none":
+        if not direction:
             adjacent_cell = local_cell
         else:
             adjacent_cell = local_cell.adjacent_cells[direction]
@@ -502,14 +502,12 @@ class mob(actor):
                     "infrastructure"
                 )
                 if local_cell.has_walking_connection(adjacent_cell):
-                    if not (
-                        local_infrastructure == "none"
-                        or adjacent_infrastructure == "none"
-                    ):  # if both have infrastructure and connected by land or bridge, use discount
+                    if local_infrastructure and adjacent_infrastructure:
+                        # If both have infrastructure and connected by land or bridge, use discount
                         cost = cost / 2
-                    # otherwise, use default cost but not full cost (no canoe penantly)
+                    # Otherwise, use default cost but not full cost (no canoe penantly)
                     if (
-                        adjacent_infrastructure != "none"
+                        adjacent_infrastructure
                         and adjacent_infrastructure.infrastructure_type == "ferry"
                     ):
                         cost = 2
@@ -619,7 +617,7 @@ class mob(actor):
                 self.movement_points = round(self.movement_points)
             if (
                 self.get_permission(constants.PMOB_PERMISSION)
-                and self.get_cell() != "none"
+                and self.get_cell()
                 and not self.get_permission(constants.INACTIVE_VEHICLE_PERMISSION)
             ):
                 self.add_to_turn_queue()
@@ -727,7 +725,7 @@ class mob(actor):
                 for (
                     current_image
                 ) in self.images:  # move mob to front of each stack it is in
-                    if current_image.current_cell != "none":
+                    if current_image.current_cell:
                         while not self == current_image.current_cell.contained_mobs[0]:
                             current_image.current_cell.contained_mobs.append(
                                 current_image.current_cell.contained_mobs.pop(0)
@@ -763,7 +761,7 @@ class mob(actor):
         if flags.show_selection_outlines:
             for current_image in self.images:
                 if (
-                    current_image.current_cell != "none"
+                    current_image.current_cell
                     and self == current_image.current_cell.contained_mobs[0]
                     and current_image.current_cell.grid.showing
                 ):  # only draw outline if on top of stack
@@ -832,7 +830,7 @@ class mob(actor):
                 "This unit is currently disorganized, giving a combat penalty until its next turn"
             )
 
-        if self.end_turn_destination != "none":
+        if self.end_turn_destination:
             if self.end_turn_destination.cell.grid == status.strategic_map_grid:
                 tooltip_list.append(
                     f"This unit has been issued an order to travel to ({self.end_turn_destination.cell.x}, {self.end_turn_destination.cell.y}) in Africa at the end of the turn"
@@ -1041,15 +1039,12 @@ class mob(actor):
                 else:
                     constants.sound_manager.play_sound("effects/ocean_splashing")
                     possible_sounds.append("effects/ship_propeller")
-            elif (
-                self.get_cell() != "none"
-                and self.get_cell().terrain_handler.terrain == "water"
-            ):
+            elif self.get_cell() and self.get_cell().terrain_handler.terrain == "water":
                 local_infrastructure = self.get_cell().get_intact_building(
                     "infrastructure"
                 )
                 if (
-                    local_infrastructure != "none"
+                    local_infrastructure
                     and local_infrastructure.is_bridge
                     and (
                         local_infrastructure.is_road or local_infrastructure.is_railroad
@@ -1076,7 +1071,7 @@ class mob(actor):
         """
         if self.get_permission(constants.PMOB_PERMISSION) and self.sentry_mode:
             self.set_sentry_mode(False)
-        self.end_turn_destination = "none"  # cancels planned movements
+        self.end_turn_destination = None  # Cancels planned movements
         self.change_movement_points(-1 * self.get_movement_cost(x_change, y_change))
         if self.get_permission(constants.PMOB_PERMISSION):
             previous_cell = self.get_cell()
@@ -1099,7 +1094,7 @@ class mob(actor):
                 "infrastructure"
             )
             if self.get_cell().terrain_handler.terrain == "water" and not (
-                previous_infrastructure != "none" and previous_infrastructure.is_bridge
+                previous_infrastructure and previous_infrastructure.is_bridge
             ):
                 if not self.can_swim:  # board if moving to ship in water
                     vehicle = self.get_cell().get_vehicle(
@@ -1120,7 +1115,7 @@ class mob(actor):
 
         if self.get_permission(
             constants.PMOB_PERMISSION
-        ):  # do an inventory attrition check when moving, using the destination's terrain
+        ):  # Do an inventory attrition check when moving, using the destination's terrain
             self.manage_inventory_attrition()
             if (
                 previous_cell.terrain_handler.terrain == "water" and not self.can_swim
@@ -1129,26 +1124,25 @@ class mob(actor):
                     "infrastructure"
                 )
                 if not (
-                    previous_infrastructure != "none"
-                    and previous_infrastructure.is_bridge
-                ):  # if from bridge, act as if moving from land
+                    previous_infrastructure and previous_infrastructure.is_bridge
+                ):  # If from bridge, act as if moving from land
                     if previous_cell.y == 0 and not (
                         self.can_swim and self.can_swim_ocean
-                    ):  # if came from ship in ocean
+                    ):  # If came from ship in ocean
                         self.set_movement_points(0)
                     elif previous_cell.y > 0 and not (
                         self.can_swim
-                    ):  # if came from boat in water
+                    ):  # If came from boat in water
                         self.set_movement_points(0)
             if (
                 self.can_show()
                 and self.get_cell().terrain_handler.terrain == "water"
                 and not self.can_swim
                 and not previous_cell.has_walking_connection(self.get_cell())
-            ):  # if entering water w/o canoes, spend maximum movement and become disorganized
+            ):  # If entering water w/o canoes, spend maximum movement and become disorganized
                 self.set_permission(constants.DISORGANIZED_PERMISSION, True)
             if not (
-                self.get_cell() == "none"
+                self.get_cell() == None
                 or self.get_cell().terrain_handler.terrain == "water"
                 or self.get_permission(constants.VEHICLE_PERMISSION)
             ):

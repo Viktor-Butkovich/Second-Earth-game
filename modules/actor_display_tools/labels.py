@@ -22,7 +22,7 @@ class actor_display_label(label):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -34,13 +34,13 @@ class actor_display_label(label):
         """
         self.attached_buttons = []
         self.has_label_collection = False
-        self.actor = "none"
+        self.actor = None
         self.actor_label_type = input_dict[
             "actor_label_type"
         ]  # name, terrain, resource, etc
         self.actor_type = input_dict[
             "actor_type"
-        ]  # mob or tile, none if does not scale with shown labels, like tooltip labels
+        ]  # mob or tile, None if does not scale with shown labels, like tooltip labels
         self.image_y_displacement = 0
         input_dict["message"] = ""
         super().__init__(input_dict)
@@ -193,7 +193,7 @@ class actor_display_label(label):
 
         elif self.actor_label_type == "current building work crew":
             self.message_start = ""
-            self.attached_building = "none"
+            self.attached_building = None
             input_dict["init_type"] = "remove work crew button"
             input_dict["image_id"] = "buttons/remove_work_crew_button.png"
             input_dict["building_type"] = "resource"
@@ -218,7 +218,7 @@ class actor_display_label(label):
 
         elif self.actor_label_type == "current passenger":
             self.message_start = ""
-            input_dict["keybind_id"] = "none"
+            input_dict["keybind_id"] = None
             if self.list_index == 0:
                 input_dict["keybind_id"] = pygame.K_F1
             elif self.list_index == 1:
@@ -457,7 +457,7 @@ class actor_display_label(label):
             self.message_start = (
                 utility.capitalize(self.actor_label_type) + ": "
             )  #'worker' -> 'Worker: '
-        self.calibrate("none")
+        self.calibrate(None)
 
     def add_attached_button(self, input_dict, member_config=None):
         """
@@ -509,7 +509,7 @@ class actor_display_label(label):
                 super().update_tooltip()
 
         elif self.actor_label_type == "passengers":
-            if self.actor != "none":
+            if self.actor:
                 if self.actor.get_permission(constants.ACTIVE_PERMISSION):
                     name_list = [self.message_start]
                     for current_passenger in self.actor.contained_mobs:
@@ -523,7 +523,7 @@ class actor_display_label(label):
                     super().update_tooltip()
 
         elif self.actor_label_type == "crew":
-            if self.actor != "none" and self.actor.crew != "none":
+            if self.actor and self.actor.crew:
                 self.actor.crew.update_tooltip()
                 tooltip_text = self.actor.crew.tooltip_text
                 self.set_tooltip(tooltip_text)
@@ -531,7 +531,7 @@ class actor_display_label(label):
                 super().update_tooltip()
 
         elif self.actor_label_type == "tooltip":
-            if not self.actor == "none":
+            if self.actor:
                 self.actor.update_tooltip()
                 tooltip_text = self.actor.tooltip_text
                 if (
@@ -549,7 +549,7 @@ class actor_display_label(label):
         ]:
             tooltip_text = [self.message]
             if self.actor_label_type == "mob inventory capacity":
-                if not self.actor == "none":
+                if self.actor:
                     tooltip_text.append(
                         f"This unit is currently holding {self.actor.get_inventory_used()} commodities"
                     )
@@ -557,7 +557,7 @@ class actor_display_label(label):
                         f"This unit can hold a maximum of {self.actor.inventory_capacity} commodities"
                     )
             elif self.actor_label_type == "tile inventory capacity":
-                if not self.actor == "none":
+                if self.actor:
                     if not self.actor.cell.terrain_handler.visible:
                         tooltip_text.append("This tile has not been explored")
                     elif self.actor.infinite_inventory_capacity:
@@ -576,7 +576,7 @@ class actor_display_label(label):
 
         elif self.actor_label_type == "minister":
             tooltip_text = []
-            if not self.actor == "none":
+            if self.actor:
                 self.actor.update_tooltip()
                 if self.actor.controlling_minister:
                     tooltip_text = self.actor.controlling_minister.tooltip_text
@@ -589,7 +589,7 @@ class actor_display_label(label):
 
         elif self.actor_label_type == "evidence":
             tooltip_text = []
-            if not self.actor == "none":
+            if self.actor:
                 if constants.current_game_mode == "trial":
                     real_evidence = (
                         self.actor.corruption_evidence - self.actor.fabricated_evidence
@@ -646,7 +646,7 @@ class actor_display_label(label):
         elif self.actor_label_type == "ability":
             tooltip_text = [self.message]
             rank = 0
-            if not self.actor == "none":
+            if self.actor:
                 for skill_value in range(6, 0, -1):  # iterates backwards from 6 to 1
                     for skill_type in self.actor.apparent_skills:
                         if self.actor.apparent_skills[skill_type] == skill_value:
@@ -665,7 +665,7 @@ class actor_display_label(label):
             tooltip_text.append(
                 "Increase work crew capacity by upgrading the building's scale with a construction gang"
             )
-            if not self.attached_building == "none":
+            if self.attached_building:
                 tooltip_text.append(
                     f"Work crews: {len(self.attached_building.contained_work_crews)}/{self.attached_building.scale}"
                 )
@@ -701,7 +701,7 @@ class actor_display_label(label):
             self.actor_label_type in constants.building_types + ["resource building"]
             and self.actor_label_type != "resource"
         ):
-            if self.actor != "none":
+            if self.actor:
                 label_type = self.actor_label_type
                 if label_type == "resource building":
                     label_type = "resource"
@@ -717,7 +717,7 @@ class actor_display_label(label):
             tooltip_text.append(
                 "When attacked, the defending side will automatically choose its strongest unit to fight"
             )
-            if self.actor != "none":
+            if self.actor:
                 modifier = self.actor.get_combat_modifier()
                 if modifier >= 0:
                     sign = "+"
@@ -740,7 +740,7 @@ class actor_display_label(label):
 
         elif self.actor_label_type in constants.terrain_parameters:
             tooltip_text = [self.message]
-            if self.actor != "none":
+            if self.actor:
                 if self.actor_label_type == "water":
                     tooltip_text.append(
                         "Represents the amount of water in this tile, including both standing water and average precipitation"
@@ -765,12 +765,12 @@ class actor_display_label(label):
         Description:
             Attaches this label to the inputted actor and updates this label's information based on the inputted actor
         Input:
-            string/actor new_actor: The displayed actor whose information is matched by this label. If this equals 'none', the label does not match any actors.
+            string/actor new_actor: The displayed actor whose information is matched by this label. If this equals None, the label does not match any actors.
         Output:
             None
         """
         self.actor = new_actor
-        if new_actor != "none":
+        if new_actor:
             if self.actor_label_type == "name":
                 self.set_label(self.message_start + utility.capitalize(new_actor.name))
 
@@ -797,7 +797,7 @@ class actor_display_label(label):
                     self.set_label(self.message_start + "n/a")
                 elif new_actor.cell.terrain_handler.visible:
                     self.set_label(
-                        self.message_start + new_actor.cell.terrain_handler.resource
+                        f"{self.message_start}{new_actor.cell.terrain_handler.resource}"
                     )
                 else:
                     self.set_label(self.message_start + "unknown")
@@ -878,7 +878,7 @@ class actor_display_label(label):
                                 )
                             )
                     else:
-                        self.attached_building = "none"
+                        self.attached_building = None
                         self.attached_list = []
 
             elif self.actor_label_type == "crew":
@@ -1076,10 +1076,10 @@ class actor_display_label(label):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if not result:
             return False
-        elif self.actor == "none":
+        elif not self.actor:
             return False
         elif self.actor_label_type == "resource" and (
-            self.actor.cell.terrain_handler.resource == "none"
+            self.actor.cell.terrain_handler.resource == None
             or (not self.actor.cell.terrain_handler.visible)
             or self.actor.grid.is_abstract_grid
         ):
@@ -1166,7 +1166,7 @@ class banner(actor_display_label):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -1220,7 +1220,7 @@ class list_item_label(actor_display_label):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -1243,7 +1243,7 @@ class list_item_label(actor_display_label):
         Description:
             Attaches this label to the inputted actor and updates this label's information based on one of the inputted actor's lists
         Input:
-            string/actor new_actor: The displayed actor that whose information is matched by this label. If this equals 'none', the label does not match any actors
+            string/actor new_actor: The displayed actor that whose information is matched by this label. If this equals None, the label does not match any actors
         Output:
             None
         """
@@ -1278,7 +1278,7 @@ class actor_tooltip_label(actor_display_label):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -1335,7 +1335,7 @@ class building_work_crews_label(actor_display_label):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -1345,9 +1345,9 @@ class building_work_crews_label(actor_display_label):
         Output:
             None
         """
-        self.remove_work_crew_button = "none"
+        self.remove_work_crew_button = None
         self.show_label = False
-        self.attached_building = "none"
+        self.attached_building = None
         input_dict["actor_label_type"] = "building work crews"
         super().__init__(input_dict)
         self.building_type = input_dict["building_type"]
@@ -1357,15 +1357,15 @@ class building_work_crews_label(actor_display_label):
         Description:
             Attaches this label to the inputted actor and updates this label's information based on the inputted actor
         Input:
-            string/actor new_actor: The displayed actor that whose information is matched by this label. If this equals 'none', the label does not match any actors.
+            string/actor new_actor: The displayed actor that whose information is matched by this label. If this equals None, the label does not match any actors.
         Output:
             None
         """
         self.actor = new_actor
         self.show_label = False
-        if new_actor != "none":
+        if new_actor != None:
             self.attached_building = new_actor.cell.get_building(self.building_type)
-            if not self.attached_building == "none":
+            if self.attached_building:
                 self.set_label(
                     f"{self.message_start}{len(self.attached_building.contained_work_crews)}/{self.attached_building.scale}"
                 )
@@ -1400,7 +1400,7 @@ class building_efficiency_label(actor_display_label):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -1410,27 +1410,27 @@ class building_efficiency_label(actor_display_label):
         Output:
             None
         """
-        self.remove_work_crew_button = "none"
+        self.remove_work_crew_button = None
         self.show_label = False
         input_dict["actor_label_type"] = "building efficiency"
         super().__init__(input_dict)
         self.building_type = input_dict["building_type"]
-        self.attached_building = "none"
+        self.attached_building = None
 
     def calibrate(self, new_actor):
         """
         Description:
             Attaches this label to the inputted actor and updates this label's information based on the inputted actor
         Input:
-            string/actor new_actor: The displayed actor that whose information is matched by this label. If this equals 'none', the label does not match any actors.
+            string/actor new_actor: The displayed actor that whose information is matched by this label. If this equals None, the label does not match any actors.
         Output:
             None
         """
         self.actor = new_actor
         self.show_label = False
-        if new_actor != "none":
+        if new_actor:
             self.attached_building = new_actor.cell.get_building(self.building_type)
-            if not self.attached_building == "none":
+            if self.attached_building:
                 self.set_label(f"Efficiency: {self.attached_building.efficiency}")
                 self.show_label = True
 
@@ -1463,7 +1463,7 @@ class terrain_feature_label(actor_display_label):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size

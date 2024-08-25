@@ -236,7 +236,7 @@ def manage_production_report(expected_production):
         text = f"{production_minister.current_position.name} {production_minister.name} reports the following commodity production: /n /n"
         while len(displayed_commodities) < len(attempted_commodities):
             max_produced = 0
-            max_commodity = "none"
+            max_commodity = None
             for current_commodity in attempted_commodities:
                 if not current_commodity in displayed_commodities:
                     if (
@@ -531,7 +531,7 @@ def manage_minister_rumors():
     """
     for current_minister in status.minister_list:
         if random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1:
-            current_minister.attempt_rumor("loyalty", "none")
+            current_minister.attempt_rumor("loyalty", None)
         for key, minister_type in status.minister_types.items():
             if (
                 current_minister.current_position
@@ -539,17 +539,17 @@ def manage_minister_rumors():
                 == current_minister.current_position.skill_type
             ):
                 if random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1:
-                    current_minister.attempt_rumor(minister_type.skill_type, "none")
+                    current_minister.attempt_rumor(minister_type.skill_type, None)
             elif (
                 random.randrange(1, 7) == 1
                 and random.randrange(1, 7) == 1
                 and random.randrange(1, 7) == 1
             ):
-                current_minister.attempt_rumor(minister_type.skill_type, "none")
+                current_minister.attempt_rumor(minister_type.skill_type, None)
         # 1/36 of getting loyalty report
-        # if currently employed, 1/36 of getting report on working skill
-        # if currently employed, 1/216 of getting report on each non-working skill
-        # if not employed, 1/216 of getting report on each skill
+        # If currently employed, 1/36 of getting report on working skill
+        # If currently employed, 1/216 of getting report on each non-working skill
+        # If not employed, 1/216 of getting report on each skill
 
 
 def game_end_check():
@@ -685,9 +685,8 @@ def end_turn_warnings():
                 0,
             )  # Vehicles leaving, and vehicles staying behind, respectively
             for current_mob in current_cell.contained_mobs:
-                if (
-                    current_mob.end_turn_destination != "none"
-                    and current_mob.get_permission(constants.VEHICLE_PERMISSION)
+                if current_mob.end_turn_destination and current_mob.get_permission(
+                    constants.VEHICLE_PERMISSION
                 ):
                     num_leaving += 1
                 elif current_mob.all_permissions(

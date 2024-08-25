@@ -20,7 +20,7 @@ class effect:
 
         self.effect_id = effect_id
         self.effect_type = effect_type
-        # eventually add int/string duration: Duration of effect in turns, or 'none' if infinite/conditional
+        # eventually add int/string duration: Duration of effect in turns, or None if infinite/conditional
 
     def __str__(self):
         """

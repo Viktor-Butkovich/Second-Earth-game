@@ -52,7 +52,7 @@ class exploration(action.action):
         Input:
             pmob unit: Unit selected when the linked button is clicked
         Output:
-            none
+            None
         """
         super().pre_start(unit)
         self.public_relations_change = 0
@@ -103,7 +103,7 @@ class exploration(action.action):
         elif subject == "success":
             text += "/n"
             self.public_relations_change = random.randrange(0, 3)
-            if self.future_cell.terrain_handler.resource != "none":
+            if self.future_cell.terrain_handler.resource:
                 text += f"The expedition has discovered a {self.future_cell.terrain_handler.terrain.replace('_', ' ').upper()} tile with a {self.future_cell.terrain_handler.resource.upper()} resource (currently worth {constants.item_prices[self.future_cell.terrain_handler.resource]} money each). /n /n"
                 self.public_relations_change += 3
             else:

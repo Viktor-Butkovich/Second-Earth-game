@@ -84,7 +84,7 @@ def set_game_mode(new_game_mode):
         ) and new_game_mode in [
             "main_menu",
             "new_game_setup",
-        ]:  # game starts in 'none' mode so this would work on startup
+        ]:  # game starts in None mode so this would work on startup
             constants.event_manager.clear()
             constants.sound_manager.play_random_music("main menu")
 
@@ -127,7 +127,7 @@ def set_game_mode(new_game_mode):
             centered_cell = status.strategic_map_grid.find_cell(
                 status.minimap_grid.center_x, status.minimap_grid.center_y
             )
-            if centered_cell.tile != "none":
+            if centered_cell.tile:
                 actor_utility.calibrate_actor_info_display(
                     status.tile_info_display, centered_cell.tile
                 )

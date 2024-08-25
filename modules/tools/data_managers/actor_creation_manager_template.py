@@ -473,7 +473,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         constants.notification_manager.display_notification(
             {
                 "message": message,
-                "choices": ["recruitment", "none"],
+                "choices": ["recruitment", None],
                 "extra_parameters": choice_info_dict,
             }
         )

@@ -326,7 +326,6 @@ transaction_descriptions: Dict[str, str] = {
     "attrition_replacements": "attrition replacements",
     "misc_revenue": "misc",
     "misc_expenses": "misc",
-    "none": "miscellaneous company activities",
 }
 transaction_types: List[str] = [current_key for current_key in transaction_descriptions]
 
@@ -380,46 +379,6 @@ terrain_parameters: List[str] = [
     "altitude",
 ]
 
-terrain_colors: Dict[str, tuple[int, int, int]] = {
-    "savannah": (150, 200, 104),
-    "hills": (50, 205, 50),
-    "jungle": (0, 100, 0),
-    "water": (0, 0, 200),
-    "mountains": (100, 100, 100),
-    "swamp": (100, 100, 50),
-    "desert": (255, 248, 104),
-    "none": (0, 0, 0),
-}
-terrain_animal_dict: Dict[str, tuple[str, str, str]] = {
-    "savannah": ["lion", "bull elephant", "Cape buffalo"],
-    "hills": ["gorilla", "Cape buffalo", "hippopotamus"],
-    "jungle": ["gorilla", "crocodile", "leopard"],
-    "water": ["crocodile", "hippopotamus", "leopard"],
-    "mountains": ["lion", "gorilla", "leopard"],
-    "swamp": ["bull elephant", "crocodile", "hippopotamus"],
-    "desert": ["lion", "bull elephant", "Cape buffalo"],
-}
-animal_terrain_dict: Dict[str, tuple[str, str, str]] = {
-    "lion": ["savannah", "desert", "mountains"],
-    "bull elephant": ["savannah", "swamp", "desert"],
-    "Cape buffalo": ["savannah", "hills", "desert"],
-    "crocodile": ["water", "swamp", "jungle"],
-    "hippopotamus": ["water", "swamp", "hills"],
-    "gorilla": ["mountains", "jungle", "hills"],
-    "leopard": ["jungle", "mountains", "water"],
-}
-animal_adjectives: List[str] = [
-    "man-eating",
-    "bloodthirsty",
-    "rampaging",
-    "giant",
-    "ravenous",
-    "ferocious",
-    "king",
-    "lurking",
-    "spectral",
-    "infernal",
-]
 terrain_movement_cost_dict: Dict[str, int] = {
     "savannah": 1,
     "hills": 2,
@@ -533,7 +492,7 @@ background_status_dict: Dict[str, int] = {
     "royal heir": 4,
 }
 background_skills_dict: Dict[str, List[str]] = {
-    "lowborn": ["none"],
+    "lowborn": [None],
     "banker": ["trade"],
     "merchant": ["trade"],
     "lawyer": ["prosecution"],
@@ -544,10 +503,10 @@ background_skills_dict: Dict[str, List[str]] = {
     "natural scientist": ["exploration"],
     "doctor": ["random"],
     "industrialist": ["construction", "production", "transportation"],
-    "aristocrat": ["none", "random"],
-    "politician": ["none", "random"],
+    "aristocrat": [None, "random"],
+    "politician": [None, "random"],
     "business magnate": ["construction", "production", "transportation"],
-    "royal heir": ["none", "random"],
+    "royal heir": [None, "random"],
 }
 skill_types: List[str] = []
 minister_skill_to_description_dict: List[List[str]] = [
