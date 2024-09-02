@@ -213,7 +213,7 @@ class minister:
             "modes": ["strategic", "ministers", "earth", "trial"],
             "attached_minister": self,
             "minister_image_type": "position",
-            "init_type": "dice roll minister image",
+            "init_type": constants.DICE_ROLL_MINISTER_IMAGE,
             "minister_message_image": True,
             "member_config": {
                 "order_overlap": True,
@@ -244,7 +244,7 @@ class minister:
         constants.notification_manager.display_notification(
             {
                 "message": text + "Click to remove this notification. /n /n",
-                "notification_type": "action",
+                "notification_type": constants.ACTION_NOTIFICATION,
                 "audio": audio,
                 "attached_minister": self,
                 "attached_interface_elements": self.generate_icon_input_dicts(

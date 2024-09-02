@@ -68,7 +68,7 @@ def start_player_turn(first_turn=False):
             if current_pmob.get_permission(constants.VEHICLE_PERMISSION):
                 current_pmob.reembark()
         for current_building in status.building_list:
-            if current_building.building_type == "resource":
+            if current_building.building_type == constants.RESOURCE:
                 current_building.reattach_work_crews()
         manage_attrition()  # have attrition before or after enemy turn? Before upkeep?
         manage_production()
@@ -149,7 +149,7 @@ def manage_attrition():
         ):  # vehicles, groups, and buildings handle attrition for their submobs
             current_pmob.manage_health_attrition()
     for current_building in status.building_list:
-        if current_building.building_type == "resource":
+        if current_building.building_type == constants.RESOURCE:
             current_building.manage_health_attrition()
 
     for current_pmob in status.pmob_list:
@@ -568,7 +568,10 @@ def game_end_check():
         constants.notification_manager.display_notification(
             {
                 "message": text,
-                "choices": ["confirm main menu", "quit"],
+                "choices": [
+                    constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON,
+                    constants.CHOIEC_QUIT_BUTTON,
+                ],
             }
         )
 

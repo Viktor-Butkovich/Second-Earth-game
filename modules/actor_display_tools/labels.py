@@ -35,9 +35,9 @@ class actor_display_label(label):
         self.attached_buttons = []
         self.has_label_collection = False
         self.actor = None
-        self.actor_label_type = input_dict[
-            "actor_label_type"
-        ]  # name, terrain, resource, etc
+        self.actor_label_type = input_dict.get(
+            "actor_label_type", input_dict["init_type"]
+        )
         self.actor_type = input_dict[
             "actor_type"
         ]  # mob or tile, None if does not scale with shown labels, like tooltip labels
@@ -59,28 +59,28 @@ class actor_display_label(label):
             "modes": self.modes,
             "attached_label": self,
         }
-        if self.actor_label_type == "name":
+        if self.actor_label_type == constants.NAME_LABEL:
             self.message_start = "Name: "
 
-            input_dict["init_type"] = "embark vehicle button"
+            input_dict["init_type"] = constants.EMBARK_VEHICLE_BUTTON
             input_dict["image_id"] = "buttons/embark_ship_button.png"
             input_dict["keybind_id"] = pygame.K_b
-            input_dict["vehicle_type"] = "ship"
+            input_dict["vehicle_type"] = constants.SHIP
             self.add_attached_button(input_dict)
 
-            input_dict["init_type"] = "embark vehicle button"
+            input_dict["init_type"] = constants.EMBARK_VEHICLE_BUTTON
             input_dict["image_id"] = "buttons/embark_train_button.png"
             input_dict["keybind_id"] = pygame.K_b
-            input_dict["vehicle_type"] = "train"
+            input_dict["vehicle_type"] = constants.TRAIN
             self.add_attached_button(input_dict)
 
-            input_dict["init_type"] = "work crew to building button"
+            input_dict["init_type"] = constants.WORK_CREW_TO_BUILDING_BUTTON
             input_dict["image_id"] = "buttons/work_crew_to_building_button.png"
             input_dict["keybind_id"] = pygame.K_g
-            input_dict["building_type"] = "resource"
+            input_dict["building_type"] = constants.RESOURCE
             self.add_attached_button(input_dict)
 
-            input_dict["init_type"] = "switch theatre button"
+            input_dict["init_type"] = constants.SWITCH_THEATRE_BUTTON
             input_dict["image_id"] = "buttons/switch_theatre_button.png"
             input_dict["keybind_id"] = pygame.K_g
             input_dict["width"], input_dict["height"] = (m_size, m_size)
@@ -92,7 +92,7 @@ class actor_display_label(label):
                 {"image_id": "misc/green_circle.png", "size": 0.75},
                 {"image_id": "items/consumer goods.png", "size": 0.75},
             ]
-            input_dict["init_type"] = "toggle button"
+            input_dict["init_type"] = constants.TOGGLE_BUTTON
             input_dict["toggle_variable"] = "wait_until_full"
             self.add_attached_button(input_dict)
 
@@ -103,17 +103,16 @@ class actor_display_label(label):
                 "modes": self.modes,
                 "attached_label": self,
             }
-            input_dict["init_type"] = "automatic route button"
+            input_dict["init_type"] = constants.CLEAR_AUTOMATIC_ROUTE_BUTTON
             input_dict["image_id"] = "buttons/clear_automatic_route_button.png"
-            input_dict["button_type"] = "clear automatic route"
             self.add_attached_button(input_dict)
 
             input_dict["image_id"] = "buttons/draw_automatic_route_button.png"
-            input_dict["button_type"] = "draw automatic route"
+            input_dict["init_type"] = constants.DRAW_AUTOMATIC_ROUTE_BUTTON
             self.add_attached_button(input_dict)
 
             input_dict["image_id"] = "buttons/execute_single_movement_route_button.png"
-            input_dict["button_type"] = "execute automatic route"
+            input_dict["init_type"] = constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON
             self.add_attached_button(input_dict)
 
             for action_type in status.actions:
@@ -127,43 +126,43 @@ class actor_display_label(label):
                     if button_input_dict:
                         self.add_attached_button(button_input_dict)
 
-        elif self.actor_label_type == "movement":
+        elif self.actor_label_type == constants.MOVEMENT_LABEL:
             self.message_start = "Movement points: "
 
-            input_dict["init_type"] = "enable automatic replacement button"
+            input_dict["init_type"] = constants.ENABLE_AUTOMATIC_REPLACEMENT_BUTTON
             input_dict["target_type"] = "unit"
             input_dict[
                 "image_id"
             ] = "buttons/enable_automatic_replacement_officer_button.png"
             self.add_attached_button(input_dict)
 
-            input_dict["init_type"] = "disable automatic replacement button"
+            input_dict["init_type"] = constants.DISABLE_AUTOMATIC_REPLACEMENT_BUTTON
             input_dict[
                 "image_id"
             ] = "buttons/disable_automatic_replacement_officer_button.png"
             self.add_attached_button(input_dict)
 
-            input_dict["init_type"] = "enable automatic replacement button"
+            input_dict["init_type"] = constants.ENABLE_AUTOMATIC_REPLACEMENT_BUTTON
             input_dict[
                 "image_id"
             ] = "buttons/enable_automatic_replacement_worker_button.png"
             input_dict["target_type"] = "worker"
             self.add_attached_button(input_dict)
 
-            input_dict["init_type"] = "disable automatic replacement button"
+            input_dict["init_type"] = constants.DISABLE_AUTOMATIC_REPLACEMENT_BUTTON
             input_dict[
                 "image_id"
             ] = "buttons/disable_automatic_replacement_worker_button.png"
             self.add_attached_button(input_dict)
 
-            input_dict["init_type"] = "enable automatic replacement button"
+            input_dict["init_type"] = constants.ENABLE_AUTOMATIC_REPLACEMENT_BUTTON
             input_dict[
                 "image_id"
             ] = "buttons/enable_automatic_replacement_officer_button.png"
             input_dict["target_type"] = "officer"
             self.add_attached_button(input_dict)
 
-            input_dict["init_type"] = "disable automatic replacement button"
+            input_dict["init_type"] = constants.DISABLE_AUTOMATIC_REPLACEMENT_BUTTON
             input_dict[
                 "image_id"
             ] = "buttons/disable_automatic_replacement_officer_button.png"
@@ -171,52 +170,52 @@ class actor_display_label(label):
 
             del input_dict["target_type"]
 
-            input_dict["init_type"] = "enable sentry mode button"
+            input_dict["init_type"] = constants.ENABLE_SENTRY_MODE_BUTTON
             input_dict["image_id"] = "buttons/enable_sentry_mode_button.png"
             self.add_attached_button(input_dict)
 
-            input_dict["init_type"] = "disable sentry mode button"
+            input_dict["init_type"] = constants.DISABLE_SENTRY_MODE_BUTTON
             input_dict["image_id"] = "buttons/disable_sentry_mode_button.png"
             self.add_attached_button(input_dict)
 
-            input_dict["init_type"] = "end unit turn button"
+            input_dict["init_type"] = constants.END_UNIT_TURN_BUTTON
             input_dict["image_id"] = "buttons/end_unit_turn_button.png"
             input_dict["keybind_id"] = pygame.K_f
             self.add_attached_button(input_dict)
             del input_dict["keybind_id"]
 
-        elif self.actor_label_type == "building work crews":
+        elif self.actor_label_type == constants.BUILDING_WORK_CREWS_LABEL:
             self.message_start = "Work crews: "
-            input_dict["init_type"] = "cycle work crews button"
+            input_dict["init_type"] = constants.CYCLE_WORK_CREWS_BUTTON
             input_dict["image_id"] = "buttons/cycle_passengers_down_button.png"
             self.add_attached_button(input_dict)
 
-        elif self.actor_label_type == "current building work crew":
+        elif self.actor_label_type == constants.CURRENT_BUILDING_WORK_CREW_LABEL:
             self.message_start = ""
             self.attached_building = None
-            input_dict["init_type"] = "remove work crew button"
+            input_dict["init_type"] = constants.REMOVE_WORK_CREW_BUTTON
             input_dict["image_id"] = "buttons/remove_work_crew_button.png"
-            input_dict["building_type"] = "resource"
+            input_dict["building_type"] = constants.RESOURCE
             self.add_attached_button(input_dict)
 
-        elif self.actor_label_type == "passengers":
+        elif self.actor_label_type == constants.PASSENGERS_LABEL:
             self.message_start = "Passengers: "
-            input_dict["init_type"] = "cycle passengers button"
+            input_dict["init_type"] = constants.CYCLE_PASSENGERS_BUTTON
             input_dict["image_id"] = "buttons/cycle_passengers_down_button.png"
             input_dict["keybind_id"] = pygame.K_4
             self.add_attached_button(input_dict)
 
-            input_dict["init_type"] = "embark all passengers button"
+            input_dict["init_type"] = constants.EMBARK_ALL_PASSENGERS_BUTTON
             input_dict["image_id"] = "buttons/embark_ship_button.png"
             input_dict["keybind_id"] = pygame.K_z
             self.add_attached_button(input_dict)
 
-            input_dict["init_type"] = "disembark all passengers button"
+            input_dict["init_type"] = constants.DISEMBARK_ALL_PASSENGERS_BUTTON
             input_dict["image_id"] = "buttons/disembark_ship_button.png"
             input_dict["keybind_id"] = pygame.K_x
             self.add_attached_button(input_dict)
 
-        elif self.actor_label_type == "current passenger":
+        elif self.actor_label_type == constants.CURRENT_PASSENGER_LABEL:
             self.message_start = ""
             input_dict["keybind_id"] = None
             if self.list_index == 0:
@@ -225,52 +224,52 @@ class actor_display_label(label):
                 input_dict["keybind_id"] = pygame.K_F2
             elif self.list_index == 2:
                 input_dict["keybind_id"] = pygame.K_F3
-            input_dict["init_type"] = "disembark vehicle button"
+            input_dict["init_type"] = constants.DISEMBARK_VEHICLE_BUTTON
             input_dict["image_id"] = "buttons/disembark_ship_button.png"
             self.add_attached_button(input_dict)
 
-        elif self.actor_label_type == "tooltip":
+        elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
             self.message_start = ""
 
         elif self.actor_label_type in [
-            "mob inventory capacity",
-            "tile inventory capacity",
+            constants.MOB_INVENTORY_CAPACITY_LABEL,
+            constants.TILE_INVENTORY_CAPACITY_LABEL,
         ]:
             self.message_start = "Inventory: "
             input_dict["width"], input_dict["height"] = (m_size, m_size)
             if self.actor_label_type == "tile inventory capacity":
-                input_dict["init_type"] = "use each equipment button"
+                input_dict["init_type"] = constants.USE_EACH_EQUIPMENT_BUTTON
                 input_dict["image_id"] = "buttons/use_equipment_button.png"
                 self.add_attached_button(input_dict)
 
-                input_dict["init_type"] = "pick up each commodity button"
+                input_dict["init_type"] = constants.PICK_UP_EACH_COMMODITY_BUTTON
                 input_dict["image_id"] = "buttons/commodity_pick_up_each_button.png"
                 self.add_attached_button(input_dict)
 
-                input_dict["init_type"] = "sell each commodity button"
+                input_dict["init_type"] = constants.SELL_EACH_COMMODITY_BUTTON
                 input_dict["image_id"] = "buttons/commodity_sell_each_button.png"
                 self.add_attached_button(input_dict)
 
             else:
-                input_dict["init_type"] = "drop each commodity button"
+                input_dict["init_type"] = constants.DROP_EACH_COMMODITY_BUTTON
                 input_dict["image_id"] = "buttons/commodity_drop_each_button.png"
                 self.add_attached_button(input_dict)
 
             if self.actor_label_type == "mob inventory capacity":
-                input_dict["init_type"] = "remove equipment button"
+                input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
                 for equipment_type in status.equipment_types:
                     input_dict["equipment_type"] = equipment_type
                     input_dict["image_id"] = [
                         "buttons/default_button.png",
                         "misc/green_circle.png",
-                        "items/" + equipment_type + ".png",
+                        f"items/{equipment_type}.png",
                     ]
                     self.add_attached_button(input_dict)
 
-        elif self.actor_label_type == "terrain":
+        elif self.actor_label_type == constants.TERRAIN_LABEL:
             self.message_start = "Terrain: "
 
-        elif self.actor_label_type == "minister":
+        elif self.actor_label_type == constants.MINISTER_LABEL:
             self.message_start = "Minister: "
             input_dict["width"], input_dict["height"] = (m_size, m_size)
 
@@ -283,7 +282,7 @@ class actor_display_label(label):
                         "modes": self.modes,
                         "minister_type": None,
                         "attached_label": self,
-                        "init_type": "minister type image",
+                        "init_type": constants.MINISTER_PORTRAIT_IMAGE,
                         "minister_image_type": "portrait",
                         "parent_collection": self.insert_collection_above(),
                         "member_config": {
@@ -297,7 +296,7 @@ class actor_display_label(label):
                 {
                     "width": self.height + m_increment,
                     "height": self.height + m_increment,
-                    "init_type": "minister portrait image",
+                    "init_type": constants.MINISTER_PORTRAIT_IMAGE,
                     "minister_type": None,
                     "parent_collection": attached_minister_position_image.parent_collection,
                     "member_config": {
@@ -310,68 +309,63 @@ class actor_display_label(label):
             self.parent_collection.can_show_override = self  # parent collection is considered showing when this label can show, allowing ordered collection to work correctly
             self.image_y_displacement = 5
 
-        elif self.actor_label_type in ["minister_name"]:
+        elif self.actor_label_type == constants.MINISTER_NAME_LABEL:
             self.message_start = "Name: "
-            if self.actor_label_type == "minister_name":
-                input_dict["width"], input_dict["height"] = (s_size, s_size)
-                for action_type in status.actions:
-                    if (
-                        status.actions[action_type].actor_type
-                        in ["minister", "prosecutor"]
-                        and status.actions[action_type].placement_type == "label"
-                    ):
-                        button_input_dict = status.actions[action_type].button_setup(
-                            input_dict.copy()
-                        )
-                        if button_input_dict:
-                            self.add_attached_button(button_input_dict)
+            input_dict["width"], input_dict["height"] = (s_size, s_size)
+            for action_type in status.actions:
+                if (
+                    status.actions[action_type].actor_type in ["minister", "prosecutor"]
+                    and status.actions[action_type].placement_type == "label"
+                ):
+                    button_input_dict = status.actions[action_type].button_setup(
+                        input_dict.copy()
+                    )
+                    if button_input_dict:
+                        self.add_attached_button(button_input_dict)
 
-        elif self.actor_label_type == "minister_office":
+        elif self.actor_label_type == constants.MINISTER_OFFICE_LABEL:
             self.message_start = "Office: "
-            input_dict["init_type"] = "remove minister button"
+            input_dict["init_type"] = constants.REMOVE_MINISTER_BUTTON
             self.add_attached_button(input_dict)
-            input_dict["init_type"] = "appoint minister button"
+            input_dict["init_type"] = constants.APPOINT_MINISTER_BUTTON
             input_dict["width"], input_dict["height"] = (s_size, s_size)
             for key, current_position in status.minister_types.items():
                 input_dict["appoint_type"] = current_position
                 self.add_attached_button(input_dict)
 
-        elif self.actor_label_type == "evidence":
+        elif self.actor_label_type == constants.EVIDENCE_LABEL:
             self.message_start = "Evidence: "
             if "ministers" in self.modes:
-                input_dict["init_type"] = "to trial button"
+                input_dict["init_type"] = constants.TO_TRIAL_BUTTON
                 input_dict["width"], input_dict["height"] = (m_size, m_size)
                 self.add_attached_button(input_dict)
             if "trial" in self.modes:
-                input_dict["init_type"] = "fabricate evidence button"
+                input_dict["init_type"] = constants.FABRICATE_EVIDENCE_BUTTON
                 input_dict["width"], input_dict["height"] = (m_size, m_size)
                 self.add_attached_button(input_dict)
 
-                input_dict["init_type"] = "bribe judge button"
+                input_dict["init_type"] = constants.BRIBE_JUDGE_BUTTON
                 self.add_attached_button(input_dict)
 
-        elif self.actor_label_type == "slums":
+        elif self.actor_label_type == constants.SLUMS:
             self.message_start = "Slums population: "
 
-        elif (
-            self.actor_label_type in constants.building_types
-            and self.actor_label_type != "resource"
-        ):
+        elif self.actor_label_type in constants.building_types:
             self.message_start = ""
 
-        elif self.actor_label_type == "combat_strength":
+        elif self.actor_label_type == constants.COMBAT_STRENGTH_LABEL:
             self.message_start = "Combat strength: "
 
-        elif self.actor_label_type == "building work crews":
+        elif self.actor_label_type == constants.BUILDING_WORK_CREWS_LABEL:
             self.message_start = "Work crews: "
 
-        elif self.actor_label_type == "inventory_name":
+        elif self.actor_label_type == constants.INVENTORY_NAME_LABEL:
             self.message_start = ""
 
-        elif self.actor_label_type == "inventory_quantity":
+        elif self.actor_label_type == constants.INVENTORY_QUANTITY_LABEL:
             self.message_start = "Quantity: "
             if self.actor_type == "mob":
-                input_dict["init_type"] = "anonymous button"
+                input_dict["init_type"] = constants.ANONYMOUS_BUTTON
                 input_dict["image_id"] = "buttons/commodity_drop_button.png"
                 input_dict["button_type"] = {
                     "on_click": (
@@ -394,7 +388,7 @@ class actor_display_label(label):
 
             elif self.actor_type == "tile":
                 original_input_dict = input_dict.copy()
-                input_dict["init_type"] = "anonymous button"
+                input_dict["init_type"] = constants.ANONYMOUS_BUTTON
                 input_dict["image_id"] = "buttons/commodity_pick_up_button.png"
                 input_dict["button_type"] = {
                     "on_click": (
@@ -418,28 +412,35 @@ class actor_display_label(label):
                 # Add pick up each button to inventory capacity label - if has at least 1 inventory capacity, show button that drops/picks up each type of item at once
 
                 input_dict = original_input_dict
-                input_dict["init_type"] = "sell commodity button"
+                input_dict["init_type"] = constants.SELL_COMMODITY_BUTTON
                 input_dict["image_id"] = "buttons/commodity_sell_button.png"
                 self.add_attached_button(input_dict)
 
-                input_dict["init_type"] = "sell all commodity button"
+                input_dict["init_type"] = constants.SELL_ALL_COMMODITY_BUTTON
                 input_dict["image_id"] = "buttons/commodity_sell_all_button.png"
                 self.add_attached_button(input_dict)
 
-                input_dict["init_type"] = "use equipment button"
+                input_dict["init_type"] = constants.USE_EQUIPMENT_BUTTON
                 input_dict["image_id"] = "buttons/use_equipment_button.png"
                 self.add_attached_button(input_dict)
 
-        elif self.actor_label_type == "settlement":
+        elif self.actor_label_type == constants.SETTLEMENT:
             self.message_start = "Settlement: "
-            input_dict["init_type"] = "rename settlement button"
+            input_dict["init_type"] = constants.RENAME_SETTLEMENT_BUTTON
             input_dict["image_id"] = "buttons/rename.png"
             self.add_attached_button(input_dict)
 
-        elif self.actor_label_type in constants.terrain_parameters:
-            self.message_start = utility.capitalize(self.actor_label_type) + ": "
+        elif (
+            self.actor_label_type.removesuffix("_label") in constants.terrain_parameters
+        ):
+            self.message_start = (
+                utility.capitalize(
+                    self.actor_label_type.removesuffix("_label").replace("_", "")
+                )
+                + ": "
+            )
             if constants.effect_manager.effect_active("god_mode"):
-                input_dict["init_type"] = "change parameter button"
+                input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
                 input_dict["width"], input_dict["height"] = (s_size, s_size)
 
                 input_dict["change"] = -1
@@ -450,12 +451,15 @@ class actor_display_label(label):
                 input_dict["image_id"] = "buttons/cycle_ministers_up_button.png"
                 self.add_attached_button(input_dict)
 
-        elif self.actor_label_type == "banner":
+        elif self.actor_label_type == constants.BANNER_LABEL:
             self.message_start = self.banner_text
 
         else:
             self.message_start = (
-                utility.capitalize(self.actor_label_type) + ": "
+                utility.capitalize(
+                    self.actor_label_type.removesuffix("_label").replace("_", "")
+                )
+                + ": "
             )  #'worker' -> 'Worker: '
         self.calibrate(None)
 
@@ -473,7 +477,7 @@ class actor_display_label(label):
             self.has_label_collection = True
             self.insert_collection_above(
                 override_input_dict={
-                    "init_type": "ordered collection",
+                    "init_type": constants.ORDERED_COLLECTION,
                     "direction": "horizontal",
                 }
             )
@@ -500,7 +504,10 @@ class actor_display_label(label):
         Output:
             None
         """
-        if self.actor_label_type in ["current building work crew", "current passenger"]:
+        if self.actor_label_type in [
+            constants.CURRENT_BUILDING_WORK_CREW_LABEL,
+            constants.CURRENT_PASSENGER_LABEL,
+        ]:
             if len(self.attached_list) > self.list_index:
                 self.attached_list[self.list_index].update_tooltip()
                 tooltip_text = self.attached_list[self.list_index].tooltip_text
@@ -508,7 +515,7 @@ class actor_display_label(label):
             else:
                 super().update_tooltip()
 
-        elif self.actor_label_type == "passengers":
+        elif self.actor_label_type == constants.PASSENGERS_LABEL:
             if self.actor:
                 if self.actor.get_permission(constants.ACTIVE_PERMISSION):
                     name_list = [self.message_start]
@@ -522,7 +529,7 @@ class actor_display_label(label):
                 else:
                     super().update_tooltip()
 
-        elif self.actor_label_type == "crew":
+        elif self.actor_label_type == constants.CREW_LABEL:
             if self.actor and self.actor.crew:
                 self.actor.crew.update_tooltip()
                 tooltip_text = self.actor.crew.tooltip_text
@@ -530,7 +537,7 @@ class actor_display_label(label):
             else:
                 super().update_tooltip()
 
-        elif self.actor_label_type == "tooltip":
+        elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
             if self.actor:
                 self.actor.update_tooltip()
                 tooltip_text = self.actor.tooltip_text
@@ -544,11 +551,11 @@ class actor_display_label(label):
                 self.set_tooltip(tooltip_text)
 
         elif self.actor_label_type in [
-            "mob inventory capacity",
-            "tile inventory capacity",
+            constants.MOB_INVENTORY_CAPACITY_LABEL,
+            constants.TILE_INVENTORY_CAPACITY_LABEL,
         ]:
             tooltip_text = [self.message]
-            if self.actor_label_type == "mob inventory capacity":
+            if self.actor_label_type == constants.MOB_INVENTORY_CAPACITY_LABEL:
                 if self.actor:
                     tooltip_text.append(
                         f"This unit is currently holding {self.actor.get_inventory_used()} commodities"
@@ -556,7 +563,7 @@ class actor_display_label(label):
                     tooltip_text.append(
                         f"This unit can hold a maximum of {self.actor.inventory_capacity} commodities"
                     )
-            elif self.actor_label_type == "tile inventory capacity":
+            elif self.actor_label_type == constants.TILE_INVENTORY_CAPACITY_LABEL:
                 if self.actor:
                     if not self.actor.cell.terrain_handler.visible:
                         tooltip_text.append("This tile has not been explored")
@@ -574,7 +581,7 @@ class actor_display_label(label):
                         )
             self.set_tooltip(tooltip_text)
 
-        elif self.actor_label_type == "minister":
+        elif self.actor_label_type == constants.MINISTER_LABEL:
             tooltip_text = []
             if self.actor:
                 self.actor.update_tooltip()
@@ -587,7 +594,7 @@ class actor_display_label(label):
                     ]
             self.set_tooltip(tooltip_text)
 
-        elif self.actor_label_type == "evidence":
+        elif self.actor_label_type == constants.EVIDENCE_LABEL:
             tooltip_text = []
             if self.actor:
                 if constants.current_game_mode == "trial":
@@ -619,14 +626,14 @@ class actor_display_label(label):
                     )
             self.set_tooltip(tooltip_text)
 
-        elif self.actor_label_type == "background":
+        elif self.actor_label_type == constants.MINISTER_BACKGROUND_LABEL:
             tooltip_text = [self.message]
             tooltip_text.append(
                 "A minister's personal background determines their social status and may give them additional expertise in certain areas"
             )
             self.set_tooltip(tooltip_text)
 
-        elif self.actor_label_type == "social status":
+        elif self.actor_label_type == constants.MINISTER_SOCIAL_STATUS_LABEL:
             tooltip_text = [self.message]
             tooltip_text.append(
                 "A minister's social status determines their power independent of your company."
@@ -636,14 +643,14 @@ class actor_display_label(label):
             )
             self.set_tooltip(tooltip_text)
 
-        elif self.actor_label_type == "interests":
+        elif self.actor_label_type == constants.MINISTER_INTERESTS_LABEL:
             tooltip_text = [self.message]
             tooltip_text.append(
                 "While some interests are derived from a minister's legitimate talent or experience in a particular field, others are mere fancies"
             )
             self.set_tooltip(tooltip_text)
 
-        elif self.actor_label_type == "ability":
+        elif self.actor_label_type == constants.MINISTER_ABILITY_LABEL:
             tooltip_text = [self.message]
             rank = 0
             if self.actor:
@@ -656,11 +663,11 @@ class actor_display_label(label):
                             )
             self.set_tooltip(tooltip_text)
 
-        elif self.actor_label_type == "loyalty":
+        elif self.actor_label_type == constants.MINISTER_LOYALTY_LABEL:
             tooltip_text = [self.message]
             self.set_tooltip(tooltip_text)
 
-        elif self.actor_label_type == "building work crews":
+        elif self.actor_label_type == constants.BUILDING_WORK_CREWS_LABEL:
             tooltip_text = []
             tooltip_text.append(
                 "Increase work crew capacity by upgrading the building's scale with a construction gang"
@@ -671,11 +678,11 @@ class actor_display_label(label):
                 )
                 for current_work_crew in self.attached_building.contained_work_crews:
                     tooltip_text.append(
-                        "    " + utility.capitalize(current_work_crew.name)
+                        f"    {utility.capitalize(current_work_crew.name)}"
                     )
             self.set_tooltip(tooltip_text)
 
-        elif self.actor_label_type == "building efficiency":
+        elif self.actor_label_type == constants.BUILDING_EFFICIENCY_LABEL:
             tooltip_text = [self.message]
             tooltip_text.append(
                 "Each work crew attached to this building can produce up to the building efficiency in commodities each turn"
@@ -685,31 +692,25 @@ class actor_display_label(label):
             )
             self.set_tooltip(tooltip_text)
 
-        elif self.actor_label_type == "terrain feature":
+        elif self.actor_label_type == constants.TERRAIN_FEATURE_LABEL:
             self.set_tooltip(
                 status.terrain_feature_types[self.terrain_feature_type].description
             )
 
-        elif self.actor_label_type == "slums":
+        elif self.actor_label_type == constants.SLUMS:
             tooltip_text = [self.message]
             tooltip_text.append(
                 "Slums can form around ports, train stations, and resource production facilities"
             )
             self.set_tooltip(tooltip_text)
 
-        elif (
-            self.actor_label_type in constants.building_types + ["resource building"]
-            and self.actor_label_type != "resource"
-        ):
+        elif self.actor_label_type in constants.building_types:
             if self.actor:
-                label_type = self.actor_label_type
-                if label_type == "resource building":
-                    label_type = "resource"
-                current_building = self.actor.cell.get_building(label_type)
+                current_building = self.actor.cell.get_building(self.actor_label_type)
                 current_building.update_tooltip()
                 self.set_tooltip(current_building.tooltip_text)
 
-        elif self.actor_label_type == "combat_strength":
+        elif self.actor_label_type == constants.COMBAT_STRENGTH_LABEL:
             tooltip_text = [self.message]
             tooltip_text.append(
                 "Combat strength is an estimation of a unit's likelihood to win combat based on its experience and unit type"
@@ -738,14 +739,16 @@ class actor_display_label(label):
                         )
             self.set_tooltip(tooltip_text)
 
-        elif self.actor_label_type in constants.terrain_parameters:
+        elif (
+            self.actor_label_type.removesuffix("_label") in constants.terrain_parameters
+        ):
             tooltip_text = [self.message]
             if self.actor:
-                if self.actor_label_type == "water":
+                if self.actor_label_type == constants.WATER_LABEL:
                     tooltip_text.append(
                         "Represents the amount of water in this tile, including both standing water and average precipitation"
                     )
-                elif self.actor_label_type == "temperature":
+                elif self.actor_label_type == constants.TEMPERATURE_LABEL:
                     tooltip_text.append(
                         "Represents the average temperature in this tile, on a scale from -5 to 12"
                     )
@@ -771,13 +774,13 @@ class actor_display_label(label):
         """
         self.actor = new_actor
         if new_actor:
-            if self.actor_label_type == "name":
+            if self.actor_label_type == constants.NAME_LABEL:
                 self.set_label(self.message_start + utility.capitalize(new_actor.name))
 
-            elif self.actor_label_type == "coordinates":
+            elif self.actor_label_type == constants.COORDINATES_LABEL:
                 self.set_label(f"{self.message_start}({new_actor.x}, {new_actor.y})")
 
-            elif self.actor_label_type == "terrain":
+            elif self.actor_label_type == constants.TERRAIN_LABEL:
                 if new_actor.grid.is_abstract_grid:
                     self.set_label(utility.capitalize(new_actor.grid.name))
                 elif (
@@ -792,7 +795,7 @@ class actor_display_label(label):
                 else:
                     self.set_label(self.message_start + "unknown")
 
-            elif self.actor_label_type == "resource":
+            elif self.actor_label_type == constants.RESOURCE_LABEL:
                 if new_actor.grid.is_abstract_grid:
                     self.set_label(self.message_start + "n/a")
                 elif new_actor.cell.terrain_handler.visible:
@@ -802,20 +805,24 @@ class actor_display_label(label):
                 else:
                     self.set_label(self.message_start + "unknown")
 
-            elif self.actor_label_type == "terrain feature":
+            elif self.actor_label_type == constants.TERRAIN_FEATURE_LABEL:
                 self.set_label(self.terrain_feature_type.capitalize())
 
-            elif self.actor_label_type == "resource building":
+            elif (
+                self.actor_label_type == constants.RESOURCE
+            ):  # Resource building, distinct from terrain resource label
                 if (
                     (not new_actor.grid.is_abstract_grid)
                     and new_actor.cell.terrain_handler.visible
-                    and new_actor.cell.has_building("resource")
+                    and new_actor.cell.has_building(constants.RESOURCE)
                 ):
                     self.set_label(
-                        new_actor.cell.get_building("resource").name.capitalize()
+                        new_actor.cell.get_building(
+                            constants.RESOURCE
+                        ).name.capitalize()
                     )
 
-            elif self.actor_label_type == "movement":
+            elif self.actor_label_type == constants.MOVEMENT_LABEL:
                 if self.actor.get_permission(constants.PMOB_PERMISSION):
                     if new_actor.get_permission(constants.ACTIVE_PERMISSION) and not (
                         new_actor.has_infinite_movement
@@ -849,26 +856,28 @@ class actor_display_label(label):
                 else:
                     self.set_label(self.message_start + "???")
 
-            elif self.actor_label_type == "attitude":
+            elif self.actor_label_type == constants.ATTITUDE_LABEL:
                 if not self.actor.get_permission(constants.PMOB_PERMISSION):
                     if self.actor.hostile:
                         self.set_label(self.message_start + "hostile")
                     else:
                         self.set_label(self.message_start + "neutral")
 
-            elif self.actor_label_type == "combat_strength":
+            elif self.actor_label_type == constants.COMBAT_STRENGTH_LABEL:
                 self.set_label(
                     f"{self.message_start}{str(self.actor.get_combat_strength())}"
                 )
 
-            elif self.actor_label_type == "controllable":
+            elif self.actor_label_type == constants.CONTROLLABLE_LABEL:
                 if not self.actor.get_permission(constants.PMOB_PERMISSION):
                     self.set_label("You do not control this unit")
 
-            elif self.actor_label_type == "current building work crew":
-                if self.list_type == "resource building":
-                    if new_actor.cell.has_building("resource"):
-                        self.attached_building = new_actor.cell.get_building("resource")
+            elif self.actor_label_type == constants.CURRENT_BUILDING_WORK_CREW_LABEL:
+                if self.list_type == constants.RESOURCE:
+                    if new_actor.cell.has_building(constants.RESOURCE):
+                        self.attached_building = new_actor.cell.get_building(
+                            constants.RESOURCE
+                        )
                         self.attached_list = self.attached_building.contained_work_crews
                         if len(self.attached_list) > self.list_index:
                             self.set_label(
@@ -881,7 +890,7 @@ class actor_display_label(label):
                         self.attached_building = None
                         self.attached_list = []
 
-            elif self.actor_label_type == "crew":
+            elif self.actor_label_type == constants.CREW_LABEL:
                 if self.actor.all_permissions(
                     constants.VEHICLE_PERMISSION, constants.ACTIVE_PERMISSION
                 ):
@@ -891,7 +900,7 @@ class actor_display_label(label):
                 else:
                     self.set_label(self.message_start + "none")
 
-            elif self.actor_label_type == "passengers":
+            elif self.actor_label_type == constants.PASSENGERS_LABEL:
                 if not self.actor.get_permission(constants.ACTIVE_PERMISSION):
                     self.set_label("Requires a worker crew to function")
                 elif self.actor.get_permission(constants.VEHICLE_PERMISSION):
@@ -900,7 +909,7 @@ class actor_display_label(label):
                     else:
                         self.set_label(self.message_start)
 
-            elif self.actor_label_type == "current passenger":
+            elif self.actor_label_type == constants.CURRENT_PASSENGER_LABEL:
                 if self.actor.get_permission(constants.VEHICLE_PERMISSION):
                     if len(self.actor.contained_mobs) > 0:
                         self.attached_list = new_actor.contained_mobs
@@ -912,9 +921,12 @@ class actor_display_label(label):
                                 )
                             )
 
-            elif self.actor_label_type in ["workers", "officer"]:
+            elif self.actor_label_type in [
+                constants.WORKERS_LABEL,
+                constants.OFFICER_LABEL,
+            ]:
                 if self.actor.get_permission(constants.GROUP_PERMISSION):
-                    if self.actor_label_type == "workers":
+                    if self.actor_label_type == constants.WORKERS_LABEL:
                         self.set_label(
                             f"{self.message_start}{str(utility.capitalize(self.actor.worker.name))}"
                         )
@@ -924,12 +936,12 @@ class actor_display_label(label):
                         )
 
             elif self.actor_label_type in [
-                "mob inventory capacity",
-                "tile inventory capacity",
+                constants.MOB_INVENTORY_CAPACITY_LABEL,
+                constants.TILE_INVENTORY_CAPACITY_LABEL,
             ]:
                 inventory_used = self.actor.get_inventory_used()
                 if (
-                    self.actor_label_type == "tile inventory capacity"
+                    self.actor_label_type == constants.TILE_INVENTORY_CAPACITY_LABEL
                     and not self.actor.cell.terrain_handler.visible
                 ):
                     text = self.message_start + "n/a"
@@ -948,7 +960,7 @@ class actor_display_label(label):
                         text += f" ({minimum}-{maximum})"
                 self.set_label(text)
 
-            elif self.actor_label_type == "minister":
+            elif self.actor_label_type == constants.MINISTER_LABEL:
                 if (
                     self.actor.get_permission(constants.PMOB_PERMISSION)
                     and self.actor.controlling_minister
@@ -959,7 +971,7 @@ class actor_display_label(label):
                 else:
                     self.set_label(f"{self.message_start}n/a")
 
-            elif self.actor_label_type == "evidence":
+            elif self.actor_label_type == constants.EVIDENCE_LABEL:
                 if new_actor.fabricated_evidence == 0:
                     self.set_label(
                         f"{self.message_start}{str(new_actor.corruption_evidence)}"
@@ -969,18 +981,18 @@ class actor_display_label(label):
                         f"{self.message_start}{new_actor.corruption_evidence} ({new_actor.fabricated_evidence})"
                     )
 
-            elif self.actor_label_type == "background":
+            elif self.actor_label_type == constants.MINISTER_BACKGROUND_LABEL:
                 self.set_label(self.message_start + new_actor.background)
 
-            elif self.actor_label_type == "social status":
+            elif self.actor_label_type == constants.MINISTER_SOCIAL_STATUS_LABEL:
                 self.set_label(self.message_start + new_actor.status)
 
-            elif self.actor_label_type == "interests":
+            elif self.actor_label_type == constants.MINISTER_INTERESTS_LABEL:
                 self.set_label(
                     f"{self.message_start} {new_actor.interests[0]} and {new_actor.interests[1]}"
                 )
 
-            elif self.actor_label_type == "ability":
+            elif self.actor_label_type == constants.MINISTER_ABILITY_LABEL:
                 message = ""
                 if not new_actor.current_position:
                     displayed_skill = new_actor.get_max_apparent_skill()
@@ -994,29 +1006,29 @@ class actor_display_label(label):
                     message += displayed_skill
                 self.set_label(message)
 
-            elif self.actor_label_type == "loyalty":
+            elif self.actor_label_type == constants.MINISTER_LOYALTY_LABEL:
                 self.set_label(
                     self.message_start + new_actor.apparent_corruption_description
                 )
 
-            elif self.actor_label_type in constants.skill_types:
+            elif self.actor_label_type.removesuffix("_label") in constants.skill_types:
                 self.set_label(
-                    f"{self.actor_label_type.capitalize()}: {self.actor.apparent_skill_descriptions[self.actor_label_type]}"
+                    f"{self.actor_label_type.capitalize()}: {self.actor.apparent_skill_descriptions[self.actor_label_type.removesuffix('_label')]}"
                 )
 
-            elif self.actor_label_type == "minister_name":
+            elif self.actor_label_type == constants.MINISTER_NAME_LABEL:
                 self.set_label(self.message_start + new_actor.name)
 
-            elif self.actor_label_type == "minister_office":
+            elif self.actor_label_type == constants.MINISTER_OFFICE_LABEL:
                 if new_actor.current_position:
                     self.set_label(self.message_start + new_actor.current_position.name)
                 else:
                     self.set_label(self.message_start + "none")
 
-            elif self.actor_label_type == "slums":
-                if self.actor.cell.has_building("slums"):
+            elif self.actor_label_type == constants.SLUMS:
+                if self.actor.cell.has_building(constants.SLUMS):
                     self.set_label(
-                        f"{self.message_start}{str(self.actor.cell.get_building('slums').available_workers)}"
+                        f"{self.message_start}{str(self.actor.cell.get_building(constants.SLUMS).available_workers)}"
                     )
 
             elif self.actor_label_type in constants.building_types:
@@ -1025,17 +1037,17 @@ class actor_display_label(label):
                         f"{self.message_start}{self.actor.cell.get_building(self.actor_label_type).name.capitalize()}"
                     )
 
-            elif self.actor_label_type == "inventory_name":
+            elif self.actor_label_type == constants.INVENTORY_NAME_LABEL:
                 self.set_label(
                     f"{self.message_start}{utility.capitalize(new_actor.current_item)}"
                 )
 
-            elif self.actor_label_type == "inventory_quantity":
+            elif self.actor_label_type == constants.INVENTORY_QUANTITY_LABEL:
                 self.set_label(
                     f"{self.message_start}{str(new_actor.actor.get_inventory(new_actor.current_item))}"
                 )
 
-            elif self.actor_label_type == "settlement":
+            elif self.actor_label_type == constants.SETTLEMENT:
                 if new_actor.cell.settlement:
                     self.set_label(
                         f"{self.message_start}{str(new_actor.cell.settlement.name)}"
@@ -1043,23 +1055,27 @@ class actor_display_label(label):
                 else:
                     self.set_label(f"{self.message_start} n/a")
 
-            elif self.actor_label_type in constants.terrain_parameters:
+            elif (
+                self.actor_label_type.removesuffix("_label")
+                in constants.terrain_parameters
+            ):
                 if (
                     new_actor.cell.terrain_handler.knowledge_available(
                         constants.TERRAIN_PARAMETER_KNOWLEDGE
                     )
-                    or self.actor_label_type == "knowledge"
+                    or self.actor_label_type == constants.KNOWLEDGE_LABEL
                 ):
-                    value = new_actor.cell.get_parameter(self.actor_label_type)
+                    parameter = self.actor_label_type.removesuffix("_label")
+                    value = new_actor.cell.get_parameter(parameter)
                     self.set_label(
-                        f"{self.message_start}{constants.terrain_manager.terrain_parameter_keywords[self.actor_label_type][value]} ({value}/{new_actor.cell.terrain_handler.maxima.get(self.actor_label_type, 6)})"
+                        f"{self.message_start}{constants.terrain_manager.terrain_parameter_keywords[parameter][value]} ({value}/{new_actor.cell.terrain_handler.maxima.get(parameter, 6)})"
                     )
                 else:
                     self.set_label(f"{self.message_start}unknown")
 
-        elif self.actor_label_type == "tooltip":
+        elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
             return  # do not set text for tooltip label
-        elif self.actor_label_type == "banner":
+        elif self.actor_label_type == constants.BANNER_LABEL:
             self.set_label(self.message_start)
         else:
             self.set_label(f"{self.message_start}n/a")
@@ -1078,27 +1094,27 @@ class actor_display_label(label):
             return False
         elif not self.actor:
             return False
-        elif self.actor_label_type == "resource" and (
+        elif self.actor_label_type == constants.RESOURCE_LABEL and (
             self.actor.cell.terrain_handler.resource == None
             or (not self.actor.cell.terrain_handler.visible)
             or self.actor.grid.is_abstract_grid
         ):
             return False
-        elif self.actor_label_type == "resource building" and (
+        elif self.actor_label_type == constants.RESOURCE and (
             (not self.actor.cell.terrain_handler.visible)
-            or (not self.actor.cell.has_building("resource"))
+            or (not self.actor.cell.has_building(constants.RESOURCE))
         ):
             return False
         elif self.actor_label_type in [
-            "crew",
-            "passengers",
+            constants.CREW_LABEL,
+            constants.PASSENGERS_LABEL,
         ] and not self.actor.get_permission(
             constants.VEHICLE_PERMISSION
         ):  # do not show passenger or crew labels for non-vehicle mobs
             return False
         elif self.actor_label_type in [
-            "workers",
-            "officer",
+            constants.WORKERS_LABEL,
+            constants.OFFICER_LABEL,
         ] and not self.actor.get_permission(constants.GROUP_PERMISSION):
             return False
         elif self.actor.actor_type == "mob" and (
@@ -1107,27 +1123,30 @@ class actor_display_label(label):
             return False
         elif (
             self.actor_label_type in constants.building_types
-            and self.actor_label_type != "resource"
             and not self.actor.cell.has_building(self.actor_label_type)
         ):
             return False
-        elif self.actor_label_type == "settlement" and not self.actor.cell.settlement:
+        elif (
+            self.actor_label_type == constants.SETTLEMENT
+            and not self.actor.cell.settlement
+        ):
             return False
-        elif self.actor_label_type == "minister" and not self.actor.get_permission(
-            constants.PMOB_PERMISSION
+        elif (
+            self.actor_label_type == constants.MINISTER_LABEL
+            and not self.actor.get_permission(constants.PMOB_PERMISSION)
         ):
             return False
         elif self.actor_label_type in [
-            "attitude",
-            "controllable",
+            constants.ATTITUDE_LABEL,
+            constants.CONTROLLABLE_LABEL,
         ] and self.actor.get_permission(constants.PMOB_PERMISSION):
             return False
         elif (
-            self.actor_label_type == "loyalty"
+            self.actor_label_type == constants.MINISTER_LOYALTY_LABEL
             and self.actor.apparent_corruption_description == "unknown"
         ):
             return False
-        elif self.actor_label_type == "ability":
+        elif self.actor_label_type == constants.MINISTER_ABILITY_LABEL:
             empty = True
             for skill_type in self.actor.apparent_skills:
                 if self.actor.apparent_skill_descriptions[skill_type] != "unknown":
@@ -1136,14 +1155,14 @@ class actor_display_label(label):
                 return False
             else:
                 return result
-        elif self.actor_label_type in constants.skill_types:
+        elif self.actor_label_type.removesuffix("_label") in constants.skill_types:
             return (
                 self.actor.apparent_skill_descriptions[self.actor_label_type]
                 != "unknown"
             )
         elif (
-            self.actor_label_type in constants.terrain_parameters
-            and self.actor_label_type != "knowledge"
+            self.actor_label_type.removesuffix("_label") in constants.terrain_parameters
+            and self.actor_label_type != constants.KNOWLEDGE_LABEL
         ):
             return self.actor.cell.terrain_handler.knowledge_available(
                 constants.TERRAIN_PARAMETER_KNOWLEDGE
@@ -1180,7 +1199,6 @@ class banner(actor_display_label):
         """
         self.banner_type = input_dict["banner_type"]
         self.banner_text = input_dict["banner_text"]
-        input_dict["actor_label_type"] = "banner"
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -1228,7 +1246,7 @@ class list_item_label(actor_display_label):
                 'actor_label_type': string value - Type of actor information shown
                 'actor_type': string value - Type of actor to display the information of, like 'mob' or 'tile'
                 'list_index': int value - Index to determine item of list reflected
-                'list_type': string value - Type of list associated with, like 'resource building' along with label type of 'current building work crew' to show work crews attached to a resource
+                'list_type': string value - Type of list associated with, like constants.RESOURCE along with label type of 'current building work crew' to show work crews attached to a resource
                     building
         Output:
             None
@@ -1268,27 +1286,6 @@ class actor_tooltip_label(actor_display_label):
     """
     Label used for actor tooltips that can calibrate to actors and select them when clicked
     """
-
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'height': int value - pixel height of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
-                'actor_type': string value - Type of actor to display the information of, like 'mob', 'tile', or 'minister'
-        Output:
-            None
-        """
-        input_dict["actor_label_type"] = "tooltip"
-        super().__init__(input_dict)
 
     def on_click(self):
         """
@@ -1341,14 +1338,13 @@ class building_work_crews_label(actor_display_label):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
                 'actor_type': string value - Type of actor to display the information of, like 'mob' or 'tile'
-                'building_type': string value - Type of building associated with, like 'resource building'
+                'building_type': string value - Type of building associated with, like constants.RESOURCE
         Output:
             None
         """
         self.remove_work_crew_button = None
         self.show_label = False
         self.attached_building = None
-        input_dict["actor_label_type"] = "building work crews"
         super().__init__(input_dict)
         self.building_type = input_dict["building_type"]
 
@@ -1406,13 +1402,12 @@ class building_efficiency_label(actor_display_label):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
                 'actor_type': string value - Type of actor to display the information of, like 'mob' or 'tile'
-                'building_type': string value - Type of building associated with, like 'resource building'
+                'building_type': string value - Type of building associated with, like constants.RESOURCE
         Output:
             None
         """
         self.remove_work_crew_button = None
         self.show_label = False
-        input_dict["actor_label_type"] = "building efficiency"
         super().__init__(input_dict)
         self.building_type = input_dict["building_type"]
         self.attached_building = None
@@ -1474,7 +1469,6 @@ class terrain_feature_label(actor_display_label):
             None
         """
         self.terrain_feature_type = input_dict["terrain_feature_type"]
-        input_dict["actor_label_type"] = "terrain feature"
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):

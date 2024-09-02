@@ -160,8 +160,8 @@ class npmob(mob):
             if current_mob.get_permission(constants.VEHICLE_PERMISSION):
                 current_mob.eject_passengers()
                 current_mob.eject_crew()
-        if current_cell.has_intact_building("resource"):
-            current_cell.get_intact_building("resource").eject_work_crews()
+        if current_cell.has_intact_building(constants.RESOURCE):
+            current_cell.get_intact_building(constants.RESOURCE).eject_work_crews()
         defender = current_cell.get_best_combatant("pmob", self.npmob_type)
         if defender:
             status.actions["combat"].middle(

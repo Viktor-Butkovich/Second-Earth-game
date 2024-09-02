@@ -32,9 +32,9 @@ class upgrade(action.action):
         ]
         self.current_building = None
         self.upgraded_building_type = {
-            "scale": "resource",
-            "efficiency": "resource",
-            "warehouse_level": "warehouses",
+            constants.RESOURCE_SCALE: constants.RESOURCE,
+            constants.RESOURCE_EFFICIENCY: constants.RESOURCE,
+            constants.WAREHOUSES_LEVEL: constants.WAREHOUSES,
         }[self.building_type]
         self.name = "upgrade"
         self.allow_critical_failures = False
@@ -61,13 +61,13 @@ class upgrade(action.action):
             None
         """
         initial_input_dict = super().button_setup(initial_input_dict)
-        initial_input_dict["image_id"] = (
-            "buttons/actions/upgrade_" + self.building_type + "_button.png"
-        )
+        initial_input_dict[
+            "image_id"
+        ] = f"buttons/actions/upgrade_{self.building_type}_button.png"
         initial_input_dict["keybind_id"] = {
-            "scale": None,
-            "efficiency": None,
-            "warehouse_level": pygame.K_k,
+            constants.RESOURCE_SCALE: None,
+            constants.RESOURCE_EFFICIENCY: None,
+            constants.WAREHOUSES_LEVEL: pygame.K_k,
         }.get(self.building_type, None)
         return initial_input_dict
 
@@ -87,9 +87,12 @@ class upgrade(action.action):
                 self.upgraded_building_type
             )
             actor_utility.update_descriptions(self.building_type)
-            if self.building_type == "warehouse_level":
+            if self.building_type == constants.WAREHOUSES_LEVEL:
                 noun = "tile"
-            elif self.building_type in ["efficiency", "scale"]:
+            elif self.building_type in [
+                constants.RESOURCE_EFFICIENCY,
+                constants.RESOURCE_SCALE,
+            ]:
                 noun = self.current_building.name
             value = getattr(self.current_building, self.building_type)
             message.append(
@@ -116,9 +119,12 @@ class upgrade(action.action):
         """
         text = super().generate_notification_text(subject)
 
-        if self.building_type == "warehouse_level":
+        if self.building_type == constants.WAREHOUSES_LEVEL:
             noun = "tile"
-        elif self.building_type in ["efficiency", "scale"]:
+        elif self.building_type in [
+            constants.RESOURCE_EFFICIENCY,
+            constants.RESOURCE_SCALE,
+        ]:
             noun = self.current_building.name
 
         if subject == "confirmation":

@@ -196,7 +196,7 @@ class combat(action.action):
             if self.opponent.get_permission(constants.DISORGANIZED_PERMISSION):
                 text += f"The {self.opponent.name} {utility.conjugate('be', self.opponent.number)} disorganized and will receive a -1 after their roll. /n"
 
-            if self.current_unit.get_cell().has_intact_building("fort"):
+            if self.current_unit.get_cell().has_intact_building(constants.FORT):
                 text += f"The fort in this tile grants your {self.current_unit.name} a +1 bonus after their roll. /n"
 
             if self.current_unit.get_permission(constants.VETERAN_PERMISSION):
@@ -525,7 +525,7 @@ class combat(action.action):
         constants.notification_manager.display_notification(
             {
                 "message": self.generate_notification_text("initial"),
-                "notification_type": "action",
+                "notification_type": constants.ACTION_NOTIFICATION,
                 "audio": self.generate_audio("initial"),
                 "attached_interface_elements": attached_interface_elements,
                 "transfer_interface_elements": True,
@@ -539,7 +539,7 @@ class combat(action.action):
         constants.notification_manager.display_notification(
             {
                 "message": text + roll_message,
-                "notification_type": "action",
+                "notification_type": constants.ACTION_NOTIFICATION,
                 "transfer_interface_elements": True,
             },
             insert_index=insert_index + 1,
@@ -548,7 +548,7 @@ class combat(action.action):
         constants.notification_manager.display_notification(
             {
                 "message": text + "Rolling... ",
-                "notification_type": "roll",
+                "notification_type": constants.DICE_ROLLING_NOTIFICATION,
                 "transfer_interface_elements": True,
                 "audio": self.generate_audio("roll_started"),
             },
@@ -580,7 +580,7 @@ class combat(action.action):
         constants.notification_manager.display_notification(
             {
                 "message": text + "Click to remove this notification. /n /n",
-                "notification_type": "action",
+                "notification_type": constants.ACTION_NOTIFICATION,
                 "transfer_interface_elements": True,
                 "on_remove": self.complete,
                 "audio": self.generate_audio("roll_finished"),
@@ -603,7 +603,7 @@ class combat(action.action):
         constants.notification_manager.display_notification(
             {
                 "message": text + "Click to remove this notification. /n /n",
-                "notification_type": "action",
+                "notification_type": constants.ACTION_NOTIFICATION,
                 "attached_interface_elements": self.generate_attached_interface_elements(
                     result
                 ),
@@ -685,5 +685,5 @@ class combat(action.action):
                 if current_pmob.get_permission(constants.VEHICLE_PERMISSION):
                     current_pmob.reembark()
             for current_building in status.building_list:
-                if current_building.building_type == "resource":
+                if current_building.building_type == constants.RESOURCE:
                     current_building.reattach_work_crews()

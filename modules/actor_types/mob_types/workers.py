@@ -197,7 +197,7 @@ class worker(pmob):
         self.x = vehicle.x
         self.y = vehicle.y
         self.show_images()
-        if not self.get_cell().get_intact_building("port"):
+        if not self.get_cell().get_intact_building(constants.PORT):
             self.set_permission(constants.DISORGANIZED_PERMISSION, True)
         vehicle.set_crew(None)
         vehicle.end_turn_destination = None

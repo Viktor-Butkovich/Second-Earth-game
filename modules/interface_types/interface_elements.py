@@ -218,7 +218,7 @@ class interface_element:
             "height": self.height,
             "modes": self.modes,
             "parent_collection": self.parent_collection,
-            "init_type": "interface collection",
+            "init_type": constants.INTERFACE_COLLECTION,
             "member_config": {},
         }
         if override_input_dict:
@@ -347,7 +347,7 @@ class interface_collection(interface_element):
                         "height": customize_button_height,
                         "parent_collection": self.parent_collection,
                         "attached_collection": self,
-                        "init_type": "minimize interface collection button",
+                        "init_type": constants.MINIMIZE_INTERFACE_COLLECTION_BUTTON,
                         "image_id": "buttons/minimize_button.png",
                         "member_config": {"order_exempt": True},
                     }
@@ -363,7 +363,7 @@ class interface_collection(interface_element):
                         "width": customize_button_width,
                         "height": customize_button_height,
                         "parent_collection": self.parent_collection,
-                        "init_type": "move interface collection button",
+                        "init_type": constants.MOVE_INTERFACE_COLLECTION_BUTTON,
                         "image_id": "buttons/reposition_button.png",
                         "member_config": {"order_exempt": True},
                     }
@@ -378,7 +378,7 @@ class interface_collection(interface_element):
                         "width": customize_button_width,
                         "height": customize_button_height,
                         "parent_collection": self.parent_collection,
-                        "init_type": "reset interface collection button",
+                        "init_type": constants.RESET_INTERFACE_COLLECTION_BUTTON,
                         "image_id": "buttons/reset_button.png",
                         "member_config": {"order_exempt": True},
                     }
@@ -664,7 +664,7 @@ class tabbed_collection(interface_collection):
                     "coordinates": scaling.scale_coordinates(0, 5),
                     "width": scaling.scale_width(10),
                     "height": scaling.scale_height(30),
-                    "init_type": "ordered collection",
+                    "init_type": constants.ORDERED_COLLECTION,
                     "parent_collection": self,
                     "direction": "horizontal",
                 }
@@ -707,7 +707,7 @@ class tabbed_collection(interface_collection):
                 {
                     "width": scaling.scale_width(36),
                     "height": scaling.scale_height(36),
-                    "init_type": "tab button",
+                    "init_type": constants.TAB_BUTTON,
                     "parent_collection": self.tabs_collection,
                     "image_id": member_config["button_image_id"],
                     "identifier": member_config.get("identifier", None),

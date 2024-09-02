@@ -57,7 +57,7 @@ class recruitment_button(button):
 
         if self.recruitment_name.endswith(" workers"):
             dummy_recruited_unit.set_permission(constants.WORKER_PERMISSION, True)
-        elif self.recruitment_name == "steamship":
+        elif self.recruitment_name == constants.SHIP:
             dummy_recruited_unit.set_permission(constants.VEHICLE_PERMISSION, True)
             dummy_recruited_unit.set_permission(constants.ACTIVE_PERMISSION, True)
         else:
@@ -90,7 +90,7 @@ class recruitment_button(button):
                 ):
                     image["y_offset"] = image.get("y_offset", 0) - 0.02
 
-        elif self.recruitment_name == "steamship":
+        elif self.recruitment_name == constants.SHIP:
             image_id = self.mob_image_id
         else:
             image_id = constants.character_manager.generate_unit_portrait(

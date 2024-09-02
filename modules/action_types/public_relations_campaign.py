@@ -125,9 +125,7 @@ class public_relations_campaign(action.campaign):
                         {
                             "on_click": (self.middle, []),
                             "tooltip": [
-                                "Starts a "
-                                + self.name
-                                + ", possibly improving your company's public opinion"
+                                f"Starts a {self.name}, possibly improving your company's public opinion"
                             ],
                             "message": "Start campaign",
                         },

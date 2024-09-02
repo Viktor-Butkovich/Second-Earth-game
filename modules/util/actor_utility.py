@@ -49,11 +49,11 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
     Output:
         int: Returns the cost of the inputted unit attempting to construct the inputted building
     """
-    if building_type == "infrastructure":
+    if building_type == constants.INFRASTRUCTURE:
         building_type = building_name.replace(
             " ", "_"
         )  # road, railroad, road_bridge, or railroad_bridge
-    if building_type == "warehouses":
+    if building_type == constants.WAREHOUSES:
         if constructor:
             base_price = constructor.get_cell().get_warehouses_cost()
         else:
@@ -61,7 +61,7 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
     else:
         base_price = constants.building_prices[building_type]
 
-    if building_type in ["train"]:
+    if building_type in [constants.TRAIN]:
         cost_multiplier = 1
     elif (not constructor) or not status.strategic_map_grid in constructor.grids:
         cost_multiplier = 1
@@ -85,11 +85,11 @@ def update_descriptions(target="all"):
     """
     if target == "all":
         targets_to_update = constants.building_types + [
-            "road",
-            "railroad",
-            "ferry",
-            "road_bridge",
-            "railroad_bridge",
+            constants.ROAD,
+            constants.RAILROAD,
+            constants.FERRY,
+            constants.ROAD_BRIDGE,
+            constants.RAILROAD_BRIDGE,
         ]
         targets_to_update += constants.upgrade_types
     else:
@@ -101,59 +101,62 @@ def update_descriptions(target="all"):
         text_list = []
         if current_target in constants.officer_types:
             first_line = f"{utility.capitalize(current_target)}s are controlled by the {constants.officer_minister_dict[current_target]}"
-            if current_target == "explorer":
+            if current_target == constants.EXPLORER:
                 first_line += "."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with workers, an explorer becomes an expedition unit that can explore new tiles."
                 )
 
-            elif current_target == "engineer":
+            elif current_target == constants.ENGINEER:
                 first_line += "."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with workers, an engineer becomes a construction gang unit that can build buildings, roads, railroads, and trains."
                 )
 
-            elif current_target == "driver":
+            elif current_target == constants.DRIVER:
                 first_line += "."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with workers, a driver becomes a porters unit that can move quickly and transport commodities."
                 )
 
-            elif current_target == "foreman":
+            elif current_target == constants.FOREMAN:
                 first_line += "."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with workers, a foreman becomes a work crew unit that can produce commodities when attached to a production facility."
                 )
 
-            elif current_target == "merchant":
+            elif current_target == constants.MERCHANT:
                 first_line += " and can personally search for loans and conduct advertising campaigns on Earth."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with workers, a merchant becomes a caravan that can build trading posts and trade."
                 )
 
-            elif current_target == "evangelist":
+            elif current_target == constants.EVANGELIST:
                 first_line += " and can personally conduct religious campaigns and public relations campaigns on Earth."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with religious volunteers, an evangelist becomes a missionaries unit that can build missions."
                 )
 
-            elif current_target == "major":
+            elif current_target == constants.MAJOR:
                 first_line += "."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with workers, a major becomes a battalion unit that has a very high combat strength, and can build forts and attack enemies."
                 )
 
-        elif current_target.endswith(" workers"):
+        elif current_target in [
+            constants.EUROPEAN_WORKERS,
+            constants.CHURCH_VOLUNTEERS,
+        ]:
             text_list.append(current_target.capitalize() + " placeholder description.")
 
-        elif current_target == "steamship":
+        elif current_target == constants.SHIP:
             text_list.append(
                 "While useless by itself, a steamship crewed by workers can quickly transport units and cargo through coastal waters and between theatres."
             )
@@ -161,12 +164,12 @@ def update_descriptions(target="all"):
                 "Crewing a steamship requires an advanced level of technological training, which is generally only available to European workers in this time period."
             )
 
-        elif current_target == "train":
+        elif current_target == constants.TRAIN:
             text_list.append(
                 "While useless by itself, a train crewed by workers can quickly transport units and cargo through railroads between train stations."
             )
 
-        elif current_target == "resource":
+        elif current_target == constants.RESOURCE:
             if current_target in status.actions:
                 building_name = status.actions[current_target].building_name
                 if not building_name:
@@ -180,12 +183,12 @@ def update_descriptions(target="all"):
                 "Upgrades to the facility can increase the maximum number of attached work crews and the number of production attempts each work crew can make. "
             )
 
-        elif current_target == "road":
+        elif current_target == constants.ROAD:
             text_list.append(
                 "A road halves movement cost when moving to another tile that has a road or railroad and can later be upgraded to a railroad."
             )
 
-        elif current_target == "railroad":
+        elif current_target == constants.RAILROAD:
             text_list.append(
                 "A railroad, like a road, halves movement cost when moving to another tile that has a road or railroad."
             )
@@ -193,7 +196,7 @@ def update_descriptions(target="all"):
                 "It is also required for trains to move and for a train station to be built."
             )
 
-        elif current_target == "ferry":
+        elif current_target == constants.FERRY:
             text_list.append(
                 "A ferry built on a water tile between 2 land tiles allows movement across the water."
             )
@@ -201,7 +204,7 @@ def update_descriptions(target="all"):
                 "A ferry allows moving to the ferry tile for 2 movement points, and can later be upgraded to a road bridge."
             )
 
-        elif current_target == "road_bridge":
+        elif current_target == constants.ROAD_BRIDGE:
             text_list.append(
                 "A bridge built on a water tile between 2 land tiles allows movement across the water."
             )
@@ -209,7 +212,7 @@ def update_descriptions(target="all"):
                 "A road bridge acts as a road between the tiles it connects and can later be upgraded to a railroad bridge."
             )
 
-        elif current_target == "railroad_bridge":
+        elif current_target == constants.RAILROAD_BRIDGE:
             text_list.append(
                 "A bridge built on a water tile between 2 land tiles allows movement across the water."
             )
@@ -217,33 +220,33 @@ def update_descriptions(target="all"):
                 "A railroad bridge acts as a railroad between the tiles it connects."
             )
 
-        elif current_target == "port":
+        elif current_target == constants.PORT:
             text_list.append(
                 "A port allows steamships to enter the tile and expands the tile's warehouse capacity."
             )
             text_list.append("A port adjacent to the water allows entry by steamships.")
 
-        elif current_target == "train_station":
+        elif current_target == constants.TRAIN_STATION:
             text_list.append(
                 "A train station is required for a train to exchange cargo and passengers, expands the tile's warehouse capacity, and allows assembly of trains."
             )
 
-        elif current_target == "fort":
+        elif current_target == constants.FORT:
             text_list.append(
                 "A fort increases the combat effectiveness of your units standing in this tile."
             )
 
-        elif current_target == "scale":
+        elif current_target == constants.RESOURCE_SCALE:
             text_list.append(
                 "A resource production facility can have a number of attached work crews equal to its scale"
             )
 
-        elif current_target == "efficiency":
+        elif current_target == constants.RESOURCE_EFFICIENCY:
             text_list.append(
                 "A resource production facility's attached work crews each make a number of production attempts per turn equal to its efficiency."
             )
 
-        elif current_target == "warehouse_level":
+        elif current_target == constants.WAREHOUSES_LEVEL:
             text_list.append(
                 "Each of a tile's warehouse levels corresponds to 9 inventory capacity."
             )
@@ -286,7 +289,7 @@ def update_roads():
         None
     """
     for current_building in status.building_list:
-        if current_building.building_type == "infrastructure":
+        if current_building.building_type == constants.INFRASTRUCTURE:
             current_building.cell.tile.update_image_bundle()
 
 

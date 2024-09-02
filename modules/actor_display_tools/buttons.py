@@ -42,7 +42,6 @@ class embark_all_passengers_button(button):
             None
         """
         self.vehicle_type = None
-        input_dict["button_type"] = "embark all"
         super().__init__(input_dict)
 
     def on_click(self):
@@ -57,8 +56,11 @@ class embark_all_passengers_button(button):
         if main_loop_utility.action_possible():
             vehicle = status.displayed_mob
             can_embark = True
-            if self.vehicle_type == "train":
-                if vehicle.get_cell().contained_buildings["train_station"] == None:
+            if self.vehicle_type == constants.TRAIN:
+                if (
+                    vehicle.get_cell().contained_buildings[constants.TRAIN_STATION]
+                    == None
+                ):
                     text_utility.print_to_screen(
                         "A train can only pick up passengers at a train station."
                     )
@@ -130,7 +132,6 @@ class disembark_all_passengers_button(button):
             None
         """
         self.vehicle_type = None
-        input_dict["button_type"] = "disembark all"
         super().__init__(input_dict)
 
     def on_click(self):
@@ -145,8 +146,8 @@ class disembark_all_passengers_button(button):
         if main_loop_utility.action_possible():
             vehicle = status.displayed_mob
             can_disembark = True
-            if self.vehicle_type == "train":
-                if not vehicle.get_cell().contained_buildings["train_station"]:
+            if self.vehicle_type == constants.TRAIN:
+                if not vehicle.get_cell().contained_buildings[constants.TRAIN_STATION]:
                     text_utility.print_to_screen(
                         "A train can only drop off passengers at a train station."
                     )
@@ -182,7 +183,7 @@ class disembark_all_passengers_button(button):
                 ):  # update vehicle type and image when shown if type has changed, like train to ship
                     self.vehicle_type = vehicle.vehicle_type
                     self.image.set_image(
-                        "buttons/disembark_" + self.vehicle_type + "_button.png"
+                        f"buttons/disembark_{self.vehicle_type}_button.png"
                     )
         return result
 
@@ -191,28 +192,6 @@ class enable_sentry_mode_button(button):
     """
     Button that enables sentry mode for a unit, causing it to not be added to the turn cycle queue
     """
-
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'width': int value - pixel width of this element
-                'height': int value - pixel height of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-        Output:
-            None
-        """
-        input_dict["button_type"] = "enable sentry mode"
-        super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -260,28 +239,6 @@ class disable_sentry_mode_button(button):
     """
     Button that disables sentry mode for a unit, causing it to not be added to the turn cycle queue
     """
-
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'width': int value - pixel width of this element
-                'height': int value - pixel height of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-        Output:
-            None
-        """
-        input_dict["button_type"] = "disable sentry mode"
-        super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -346,7 +303,6 @@ class enable_automatic_replacement_button(button):
             None
         """
         self.target_type = input_dict["target_type"]
-        input_dict["button_type"] = "enable automatic replacement"
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -589,12 +545,11 @@ class remove_work_crew_button(button):
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'attached_label': label value - Label that this button is attached to
-                'building_type': Type of building to remove workers from, like 'resource building'
+                'building_type': Type of building to remove workers from, like constants.RESOURCE
         Output:
             None
         """
         self.building_type = input_dict["building_type"]
-        input_dict["button_type"] = "remove worker"
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -661,7 +616,6 @@ class disembark_vehicle_button(button):
             None
         """
         self.vehicle_type = None
-        input_dict["button_type"] = "disembark"
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -685,7 +639,7 @@ class disembark_vehicle_button(button):
                 not self.vehicle_type == old_vehicle_type and self.vehicle_type
             ):  # if changed
                 self.image.set_image(
-                    "buttons/disembark_" + self.vehicle_type + "_button.png"
+                    f"buttons/disembark_{self.vehicle_type}_button.png"
                 )
         return result
 
@@ -701,10 +655,10 @@ class disembark_vehicle_button(button):
         if main_loop_utility.action_possible():
             if len(self.attached_label.actor.contained_mobs) > 0:
                 can_disembark = True
-                if self.vehicle_type == "train":
+                if self.vehicle_type == constants.TRAIN:
                     if not self.attached_label.actor.images[
                         0
-                    ].current_cell.contained_buildings["train_station"]:
+                    ].current_cell.contained_buildings[constants.TRAIN_STATION]:
                         text_utility.print_to_screen(
                             "A train can only drop off passengers at a train station."
                         )
@@ -725,7 +679,7 @@ class disembark_vehicle_button(button):
                 )
         else:
             text_utility.print_to_screen(
-                "You are busy and cannot disembark from a " + self.vehicle_type + "."
+                f"You are busy and cannot disembark from a {self.vehicle_type}."
             )
 
 
@@ -756,7 +710,6 @@ class embark_vehicle_button(button):
         """
         self.vehicle_type = input_dict["vehicle_type"]
         self.was_showing = False
-        input_dict["button_type"] = "embark"
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -806,8 +759,12 @@ class embark_vehicle_button(button):
                 rider = status.displayed_mob
                 vehicles = rider.get_cell().get_vehicles(self.vehicle_type)
                 can_embark = True
-                if vehicles[0].vehicle_type == "train":
-                    if not vehicles[0].get_cell().contained_buildings["train_station"]:
+                if vehicles[0].vehicle_type == constants.TRAIN:
+                    if (
+                        not vehicles[0]
+                        .get_cell()
+                        .contained_buildings[constants.TRAIN_STATION]
+                    ):
                         text_utility.print_to_screen(
                             "A train can only pick up passengers at a train station."
                         )
@@ -921,7 +878,6 @@ class cycle_passengers_button(button):
             None
         """
         self.vehicle_type = None
-        input_dict["button_type"] = "cycle passengers"
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -991,7 +947,6 @@ class cycle_work_crews_button(button):
             None
         """
         self.previous_showing_result = False
-        input_dict["button_type"] = "cycle work crews"
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -1006,13 +961,13 @@ class cycle_work_crews_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_tile = status.displayed_tile
-            if not displayed_tile.cell.contained_buildings["resource"]:
+            if not displayed_tile.cell.contained_buildings[constants.RESOURCE]:
                 self.previous_showing_result = False
                 return False
             elif (
                 not len(
                     displayed_tile.cell.contained_buildings[
-                        "resource"
+                        constants.RESOURCE
                     ].contained_work_crews
                 )
                 > 3
@@ -1039,10 +994,10 @@ class cycle_work_crews_button(button):
         if main_loop_utility.action_possible():
             displayed_tile = status.displayed_tile
             moved_mob = displayed_tile.cell.contained_buildings[
-                "resource"
+                constants.RESOURCE
             ].contained_work_crews.pop(0)
             displayed_tile.cell.contained_buildings[
-                "resource"
+                constants.RESOURCE
             ].contained_work_crews.append(moved_mob)
             actor_utility.calibrate_actor_info_display(
                 status.tile_info_display, displayed_tile
@@ -1072,14 +1027,13 @@ class work_crew_to_building_button(button):
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'building_type': string value - Type of buliding this button attaches workers to, like 'resource building'
+                'building_type': string value - Type of buliding this button attaches workers to, like constants.RESOURCE
         Output:
             None
         """
         self.building_type = input_dict["building_type"]
         self.attached_work_crew = None
         self.attached_building = None
-        input_dict["button_type"] = "worker to resource"
         super().__init__(input_dict)
 
     def update_info(self):
@@ -1127,20 +1081,16 @@ class work_crew_to_building_button(button):
             None
         """
         if self.attached_work_crew and self.attached_building:
-            if self.building_type == "resource":
+            if self.building_type == constants.RESOURCE:
                 self.set_tooltip(
                     [
-                        "Assigns the selected work crew to the "
-                        + self.attached_building.name
-                        + ", producing "
-                        + self.attached_building.resource_type
-                        + " over time."
+                        f"Assigns the selected work crew to the {self.attached_building.name}, producing {self.attached_building.resource_type} over time."
                     ]
                 )
             else:
                 self.set_tooltip(["placeholder"])
         elif self.attached_work_crew:
-            if self.building_type == "resource":
+            if self.building_type == constants.RESOURCE:
                 self.set_tooltip(
                     [
                         "Assigns the selected work crew to a resource building, producing commodities over time."
@@ -1187,28 +1137,6 @@ class switch_theatre_button(button):
     """
     Button starts choosing a destination for a ship to travel between theatres, like between Earth and the planet. A destination is chosen when the player clicks a tile in another theatre.
     """
-
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'width': int value - pixel width of this element
-                'height': int value - pixel height of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-        Output:
-            None
-        """
-        input_dict["button_type"] = "switch theatre"
-        super().__init__(input_dict)
 
     def on_click(self):
         """
@@ -1280,7 +1208,6 @@ class appoint_minister_button(button):
             None
         """
         self.appoint_type: minister_types.minister_type = input_dict["appoint_type"]
-        input_dict["button_type"] = "appoint minister"
         input_dict["modes"] = ["ministers"]
         input_dict["image_id"] = f"ministers/icons/{self.appoint_type.skill_type}.png"
         super().__init__(input_dict)
@@ -1339,7 +1266,6 @@ class remove_minister_button(button):
         Output:
             None
         """
-        input_dict["button_type"] = "remove minister"
         input_dict["modes"] = ["ministers"]
         input_dict["image_id"] = "buttons/remove_minister_button.png"
         super().__init__(input_dict)
@@ -1386,7 +1312,10 @@ class remove_minister_button(button):
             elif appointed_minister.status_number == 1:
                 text += f"{appointed_minister.name} is of low social status, so firing them would have a relatively minimal impact on your company's reputation. /n /n"
             constants.notification_manager.display_notification(
-                {"message": text, "choices": ["confirm remove minister", None]}
+                {
+                    "message": text,
+                    "choices": [constants.CHOICE_CONFIRM_REMOVE_MINISTER, None],
+                }
             )
         else:
             text_utility.print_to_screen("You are busy and cannot remove a minister.")
@@ -1412,7 +1341,6 @@ class to_trial_button(button):
         Output:
             None
         """
-        input_dict["button_type"] = "to trial"
         input_dict["modes"] = input_dict["attached_label"].modes
         input_dict["image_id"] = "buttons/to_trial_button.png"
         super().__init__(input_dict)
@@ -1489,7 +1417,6 @@ class fabricate_evidence_button(button):
         Output:
             None
         """
-        input_dict["button_type"] = "fabricate evidence"
         input_dict["modes"] = ["trial", "ministers"]
         input_dict["image_id"] = "buttons/fabricate_evidence_button.png"
         super().__init__(input_dict)
@@ -1556,7 +1483,6 @@ class bribe_judge_button(button):
         Output:
             None
         """
-        input_dict["button_type"] = "bribe judge"
         input_dict["modes"] = ["trial"]
         input_dict["image_id"] = "buttons/bribe_judge_button.png"
         super().__init__(input_dict)
@@ -1642,8 +1568,8 @@ class automatic_route_button(button):
                 )
             ):
                 if self.button_type in [
-                    "clear automatic route",
-                    "execute automatic route",
+                    constants.CLEAR_AUTOMATIC_ROUTE_BUTTON,
+                    constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON,
                 ]:
                     if len(attached_mob.base_automatic_route) > 0:
                         return True
@@ -1665,15 +1591,15 @@ class automatic_route_button(button):
         attached_mob = status.displayed_mob
         if main_loop_utility.action_possible():
             if status.strategic_map_grid in attached_mob.grids:
-                if self.button_type == "clear automatic route":
+                if self.button_type == constants.CLEAR_AUTOMATIC_ROUTE_BUTTON:
                     attached_mob.clear_automatic_route()
 
-                elif self.button_type == "draw automatic route":
+                elif self.button_type == constants.DRAW_AUTOMATIC_ROUTE_BUTTON:
                     if (
                         attached_mob.get_permission(constants.VEHICLE_PERMISSION)
-                        and attached_mob.vehicle_type == "train"
+                        and attached_mob.vehicle_type == constants.TRAIN
                         and not attached_mob.get_cell().has_intact_building(
-                            "train_station"
+                            constants.TRAIN_STATION
                         )
                     ):
                         text_utility.print_to_screen(
@@ -1686,7 +1612,7 @@ class automatic_route_button(button):
                     )
                     flags.drawing_automatic_route = True
 
-                elif self.button_type == "execute automatic route":
+                elif self.button_type == constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON:
                     if attached_mob.can_follow_automatic_route():
                         attached_mob.follow_automatic_route()
                         attached_mob.remove_from_turn_queue()
@@ -1702,7 +1628,7 @@ class automatic_route_button(button):
                     "You can only create movement routes in Africa."
                 )
         else:
-            if self.button_type == "execute automatic route":
+            if self.button_type == constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON:
                 text_utility.print_to_screen("You are busy and cannot move this unit.")
             else:
                 text_utility.print_to_screen(
@@ -1738,7 +1664,6 @@ class toggle_button(button):
         """
         self.toggle_variable: str = input_dict["toggle_variable"]
         self.attached_to_actor: bool = input_dict.get("attached_to_actor", True)
-
         super().__init__(input_dict)
 
     def get_value(self):
@@ -1851,7 +1776,6 @@ class change_parameter_button(button):
         Output:
             None
         """
-        input_dict["button_type"] = "change parameter"
         self.change = input_dict["change"]
         super().__init__(input_dict)
 
@@ -1866,7 +1790,7 @@ class change_parameter_button(button):
         """
         if main_loop_utility.action_possible():
             self.attached_label.actor.cell.terrain_handler.change_parameter(
-                self.attached_label.actor_label_type, self.change
+                self.attached_label.actor_label_type.removesuffix("_label"), self.change
             )
         else:
             text_utility.print_to_screen(

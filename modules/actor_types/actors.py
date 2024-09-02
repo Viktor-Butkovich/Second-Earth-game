@@ -312,7 +312,7 @@ class actor:
                 and self.all_permissions(
                     constants.PMOB_PERMISSION, constants.GROUP_PERMISSION
                 )
-                and self.group_type == "porters"
+                and self.group_type == constants.PORTERS
                 and (not self.get_permission(constants.VETERAN_PERMISSION))
                 and random.randrange(1, 7) == 6
                 and random.randrange(1, 7) == 6

@@ -143,7 +143,7 @@ class cell:
             water_cell = adjacent_cell
             land_cell = self
 
-        water_infrastructure = water_cell.get_intact_building("infrastructure")
+        water_infrastructure = water_cell.get_intact_building(constants.INFRASTRUCTURE)
         if (
             not water_infrastructure
         ):  # If no bridge in water tile, no walking connection exists
@@ -184,14 +184,16 @@ class cell:
                 return False
 
             if (
-                self.has_building("train_station")
-                or self.has_building("port")
-                or self.has_building("resource")
-                or self.has_building("fort")
+                self.has_building(constants.TRAIN_STATION)
+                or self.has_building(constants.PORT)
+                or self.has_building(constants.RESOURCE)
+                or self.has_building(constants.FORT)
             ):
                 if random.randrange(1, 7) >= 3:  # removes 2/3 of attrition
                     return False
-            elif self.has_building("road") or self.has_building("railroad"):
+            elif self.has_building(constants.ROAD) or self.has_building(
+                constants.RAILROAD
+            ):
                 if random.randrange(1, 7) >= 5:  # removes 1/3 of attrition
                     return False
 
@@ -208,17 +210,17 @@ class cell:
         Output:
             boolean: Returns whether this cell has a building of the inputted type
         """
-        if building_type in ["road", "railroad"]:
-            if not self.contained_buildings["infrastructure"]:
+        if building_type in [constants.ROAD, constants.RAILROAD]:
+            if not self.contained_buildings[constants.INFRASTRUCTURE]:
                 return False
             elif (
-                building_type == "road"
-                and self.contained_buildings["infrastructure"].is_road
+                building_type == constants.ROAD
+                and self.contained_buildings[constants.INFRASTRUCTURE].is_road
             ):
                 return True
             elif (
-                building_type == "railroad"
-                and self.contained_buildings["infrastructure"].is_railroad
+                building_type == constants.RAILROAD
+                and self.contained_buildings[constants.INFRASTRUCTURE].is_railroad
             ):
                 return True
             else:
@@ -242,19 +244,19 @@ class cell:
         Output:
             boolean: Returns whether this cell has an undamaged building of the inputted type
         """
-        if building_type in ["road", "railroad"]:
-            if not self.contained_buildings["infrastructure"]:
+        if building_type in [constants.ROAD, constants.RAILROAD]:
+            if not self.contained_buildings[constants.INFRASTRUCTURE]:
                 return False
             elif (
-                building_type == "road"
-                and self.contained_buildings["infrastructure"].is_road
+                building_type == constants.ROAD
+                and self.contained_buildings[constants.INFRASTRUCTURE].is_road
             ):
-                returned_building = self.contained_buildings["infrastructure"]
+                returned_building = self.contained_buildings[constants.INFRASTRUCTURE]
             elif (
-                building_type == "railroad"
-                and self.contained_buildings["infrastructure"].is_railroad
+                building_type == constants.RAILROAD
+                and self.contained_buildings[constants.INFRASTRUCTURE].is_railroad
             ):
-                returned_building = self.contained_buildings["infrastructure"]
+                returned_building = self.contained_buildings[constants.INFRASTRUCTURE]
             else:
                 return False
 
@@ -284,8 +286,8 @@ class cell:
             building/string: Returns whether this cell's building of the inputted type, or None if that building is not present
         """
         if self.has_building(building_type):
-            if building_type in ["road", "railroad"]:
-                return self.contained_buildings["infrastructure"]
+            if building_type in [constants.ROAD, constants.RAILROAD]:
+                return self.contained_buildings[constants.INFRASTRUCTURE]
             else:
                 return self.contained_buildings[building_type]
         else:
@@ -301,8 +303,8 @@ class cell:
             building/string: Returns this cell's undamaged building of the inputted type, or None if that building is damaged or not present
         """
         if self.has_intact_building(building_type):
-            if building_type in ["road", "railroad"]:
-                return self.contained_buildings["infrastructure"]
+            if building_type in [constants.ROAD, constants.RAILROAD]:
+                return self.contained_buildings[constants.INFRASTRUCTURE]
 
             else:
                 return self.contained_buildings[building_type]
@@ -380,19 +382,19 @@ class cell:
         Output:
             int: Returns the cost of the next warehouses upgrade in this tile, based on the number of past warehouse upgrades
         """
-        warehouses = self.get_building("warehouses")
+        warehouses = self.get_building(constants.WAREHOUSES)
         if warehouses:
-            warehouses_built = warehouses.warehouse_level
+            warehouses_built = warehouses.warehouses_level
         else:
             warehouses_built = 0
-        if self.has_building("port"):
+        if self.has_building(constants.PORT):
             warehouses_built -= 1
-        if self.has_building("train_station"):
+        if self.has_building(constants.TRAIN_STATION):
             warehouses_built -= 1
-        if self.has_building("resource"):
+        if self.has_building(constants.RESOURCE):
             warehouses_built -= 1
 
-        return constants.building_prices["warehouses"] * (
+        return constants.building_prices[constants.WAREHOUSES] * (
             2**warehouses_built
         )  # 5 * 2^0 = 5 if none built, 5 * 2^1 = 10 if 1 built, 20, 40...
 
@@ -412,7 +414,7 @@ class cell:
                 "grids": [self.cell.grid] + self.cell.grid.mini_grids,
                 "name": "slums",
                 "modes": self.grid.modes,
-                "init_type": "slums",
+                "init_type": constants.SLUMS,
             },
         )
         if self.tile == status.displayed_tile:
@@ -626,8 +628,11 @@ class cell:
         for current_mob in self.contained_mobs:
             if current_mob.get_permission(constants.PMOB_PERMISSION):
                 return True
-        if self.has_intact_building("resource"):
-            if len(self.get_intact_building("resource").contained_work_crews) > 0:
+        if self.has_intact_building(constants.RESOURCE):
+            if (
+                len(self.get_intact_building(constants.RESOURCE).contained_work_crews)
+                > 0
+            ):
                 return True
         return False
 

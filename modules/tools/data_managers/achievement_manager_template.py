@@ -43,7 +43,7 @@ class achievement_manager_template:
                 "main_menu",
                 "new_game_setup",
             ],
-            "init_type": "ordered collection",
+            "init_type": constants.ORDERED_COLLECTION,
             "direction": "vertical",
             "reversed": True,
         }
@@ -94,7 +94,10 @@ class achievement_manager_template:
                                 "attached_interface_elements": [
                                     attached_interface_elements
                                 ],
-                                "choices": ["continue", "confirm main menu"],
+                                "choices": [
+                                    "continue",
+                                    constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON,
+                                ],
                             }
                         )
                     else:
@@ -104,7 +107,10 @@ class achievement_manager_template:
                                 "attached_interface_elements": [
                                     attached_interface_elements
                                 ],
-                                "choices": ["continue", "confirm main menu"],
+                                "choices": [
+                                    "continue",
+                                    constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON,
+                                ],
                             }
                         )
                 else:
@@ -114,7 +120,7 @@ class achievement_manager_template:
                             "attached_interface_elements": [
                                 attached_interface_elements
                             ],
-                            "notification_type": "action",
+                            "notification_type": constants.ACTION_NOTIFICATION,
                         }
                     )
 
@@ -126,14 +132,12 @@ class achievement_manager_template:
                         "width": scaling.scale_width(40),
                         "height": scaling.scale_height(40),
                         "image_id": f"achievements/{achievement_type}.png",
-                        "init_type": "tooltip free image",
+                        "init_type": constants.TOOLTIP_FREE_IMAGE,
                         "parent_collection": self.achievement_displays[
                             len(self.achievements) // 16
                         ],
                         "tooltip_text": [
-                            achievement_type
-                            + ": "
-                            + self.get_description(achievement_type),
+                            f"{achievement_type}: {self.get_description(achievement_type)}",
                             self.get_quote(achievement_type),
                         ],
                     }

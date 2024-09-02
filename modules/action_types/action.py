@@ -77,11 +77,11 @@ class action:
         Output:
             None
         """
-        initial_input_dict["init_type"] = "action button"
+        initial_input_dict["init_type"] = constants.ACTION_BUTTON
         initial_input_dict["corresponding_action"] = self
-        initial_input_dict["image_id"] = (
-            "buttons/actions/" + self.action_type + "_button.png"
-        )
+        initial_input_dict[
+            "image_id"
+        ] = f"buttons/actions/{self.action_type}_button.png"
         return initial_input_dict
 
     def can_show(self):
@@ -427,7 +427,7 @@ class action:
         constants.notification_manager.display_notification(
             {
                 "message": text + roll_message,
-                "notification_type": "action",
+                "notification_type": constants.ACTION_NOTIFICATION,
                 "attached_interface_elements": self.generate_attached_interface_elements(
                     "dice"
                 ),
@@ -440,7 +440,7 @@ class action:
         constants.notification_manager.display_notification(
             {
                 "message": text + "Rolling... ",
-                "notification_type": "roll",
+                "notification_type": constants.DICE_ROLLING_NOTIFICATION,
                 "transfer_interface_elements": True,
                 "audio": self.generate_audio("roll_started"),
             },
@@ -472,7 +472,7 @@ class action:
         constants.notification_manager.display_notification(
             {
                 "message": text + "Click to remove this notification. /n /n",
-                "notification_type": "action",
+                "notification_type": constants.ACTION_NOTIFICATION,
                 "transfer_interface_elements": True,
                 "on_remove": self.complete,
                 "audio": self.generate_audio("roll_finished"),
@@ -497,7 +497,7 @@ class action:
             constants.notification_manager.display_notification(
                 {
                     "message": text + "Click to remove this notification. /n /n",
-                    "notification_type": "action",
+                    "notification_type": constants.ACTION_NOTIFICATION,
                     "attached_interface_elements": self.generate_attached_interface_elements(
                         result
                     ),

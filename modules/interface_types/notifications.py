@@ -41,7 +41,9 @@ class notification(multi_line_label):
             0  # by default, do not show any dice when notification shown
         )
         constants.sound_manager.play_sound("effects/opening_letter")
-        self.notification_type = input_dict["notification_type"]
+        self.notification_type = input_dict.get(
+            "notification_type", input_dict["init_type"]
+        )
         if input_dict.get("on_reveal", None):
             if (
                 type(input_dict["on_reveal"]) == tuple

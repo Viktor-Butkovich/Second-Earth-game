@@ -34,7 +34,7 @@ class officer(pmob):
         Output:
             None
         """
-        self.officer_type = input_dict.get("officer_type", type(self).__name__)
+        self.officer_type = input_dict["init_type"]
         super().__init__(from_save, input_dict, original_constructor=False)
         self.set_controlling_minister_type(
             status.minister_types[constants.officer_minister_dict[self.officer_type]]

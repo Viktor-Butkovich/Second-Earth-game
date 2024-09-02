@@ -248,6 +248,10 @@ class active_investigation(action.campaign):
             message = "The investigation failed to make any significant discoveries. /n"
         message += " /n"
         constants.notification_manager.display_notification(
-            {"message": message, "notification_type": "action", "audio": audio}
+            {
+                "message": message,
+                "notification_type": constants.ACTION_NOTIFICATION,
+                "audio": audio,
+            }
         )
         super().complete()

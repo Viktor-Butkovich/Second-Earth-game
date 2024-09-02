@@ -169,8 +169,10 @@ def transfer(item_type: str, amount, source_type: str) -> None:
 
                 if (
                     displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
-                    and displayed_mob.vehicle_type == "train"
-                    and not displayed_tile.cell.has_intact_building("train_station")
+                    and displayed_mob.vehicle_type == constants.TRAIN
+                    and not displayed_tile.cell.has_intact_building(
+                        constants.TRAIN_STATION
+                    )
                 ):
                     text_utility.print_to_screen(
                         "A train can only transfer cargo at a train station."

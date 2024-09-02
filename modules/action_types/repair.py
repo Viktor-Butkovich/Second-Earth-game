@@ -89,7 +89,11 @@ class repair(action.action):
             message.append(
                 f"Attempts to repair this tile's {self.current_building.name} for {str(self.get_price())} money"
             )
-            if self.building_type in ["port", "train_station", "resource"]:
+            if self.building_type in [
+                constants.PORT,
+                constants.TRAIN_STATION,
+                constants.RESOURCE,
+            ]:
                 message.append("If successful, also repairs this tile's warehouses")
             message.append("Costs all remaining movement points, at least 1")
         return message

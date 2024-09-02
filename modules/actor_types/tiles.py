@@ -113,7 +113,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             for building_type in constants.building_types:
                 if (
                     self.cell.has_building(building_type)
-                    and building_type != "infrastructure"
+                    and building_type != constants.INFRASTRUCTURE
                 ):  # if any building present, shift name up to not cover them
                     has_building = True
                     break
@@ -129,7 +129,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         new_name, y_offset=y_offset
                     ),
                     "modes": self.cell.grid.modes,
-                    "init_type": "name icon",
+                    "init_type": constants.NAME_ICON,
                     "tile": self,
                 },
             )

@@ -42,11 +42,11 @@ class choice_notification(action_notifications.action_notification):
         button_types = input_dict["button_types"]
         for current_button_type_index in range(len(button_types)):
             if type(button_types[current_button_type_index]) == dict:
-                init_type = "anonymous button"
+                init_type = constants.ANONYMOUS_BUTTON
             elif button_types[current_button_type_index] == "recruitment":
-                init_type = "recruitment choice button"
+                init_type = constants.RECRUITMENT_CHOICE_BUTTON
             else:
-                init_type = "choice button"
+                init_type = constants.CHOICE_BUTTON
             self.choice_buttons.append(
                 constants.actor_creation_manager.create_interface_element(
                     {
@@ -135,11 +135,11 @@ class choice_button(buttons.button):
             None
         """
         self.notification = input_dict["notification"]
-        if input_dict["button_type"] == "recruitment":
+        if input_dict["button_type"] == constants.RECRUITMENT_CHOICE_BUTTON:
             self.recruitment_type = self.notification.choice_info_dict[
                 "recruitment_type"
             ]
-            if self.recruitment_type in ["steamship"]:
+            if self.recruitment_type in [constants.SHIP]:
                 self.message = "Purchase"
                 self.verb = "purchase"
             else:
@@ -150,13 +150,13 @@ class choice_button(buttons.button):
                 "mob_image_id"
             )  # Image ID provided for most units, but generated on creation for workers
 
-        elif input_dict["button_type"] == "confirm main menu":
+        elif input_dict["button_type"] == constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON:
             self.message = "Main menu"
 
-        elif input_dict["button_type"] == "confirm remove minister":
+        elif input_dict["button_type"] == constants.CHOICE_CONFIRM_REMOVE_MINISTER:
             self.message = "Confirm"
 
-        elif input_dict["button_type"] == "quit":
+        elif input_dict["button_type"] == constants.CHOICE_QUIT_BUTTON:
             self.message = "Exit game"
 
         elif input_dict["button_type"] == None:
@@ -208,20 +208,20 @@ class choice_button(buttons.button):
         Output:
             None
         """
-        if self.button_type == "recruitment":
+        if self.button_type == constants.RECRUITMENT_CHOICE_BUTTON:
             self.set_tooltip(
                 [
                     f"{utility.capitalize(self.verb)} a {self.recruitment_type} for {str(self.cost)} money"
                 ]
             )
 
-        elif self.button_type == "end turn":
+        elif self.button_type == constants.CHOICE_END_TURN_BUTTON:
             self.set_tooltip(["End the current turn"])
 
-        elif self.button_type == "confirm main menu":
+        elif self.button_type == constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON:
             self.set_tooltip(["Exits to the main menu without saving"])
 
-        elif self.button_type == "quit":
+        elif self.button_type == constants.CHOICE_QUIT_BUTTON:
             self.set_tooltip(["Exits the game without saving"])
 
         elif self.button_type == None:
@@ -277,14 +277,14 @@ class recruitment_choice_button(choice_button):
                 status.worker_types[self.recruitment_type].generate_input_dict()
             )
 
-        elif self.recruitment_type == "steamship":
+        elif self.recruitment_type == constants.SHIP:
             image_dict = {
                 "default": self.mob_image_id,
-                "uncrewed": "mobs/steamship/uncrewed.png",
+                "uncrewed": "mobs/ship/uncrewed.png",
             }
             input_dict["image_dict"] = image_dict
-            input_dict["name"] = "steamship"
+            input_dict["name"] = "ship"
             input_dict["crew"] = None
-            input_dict["init_type"] = "ship"
+            input_dict["init_type"] = constants.SHIP
         constants.actor_creation_manager.create(False, input_dict)
         super().on_click()

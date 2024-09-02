@@ -387,10 +387,10 @@ def manage_rmb_down(clicked_button):
             )
             if (
                 status.displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and status.displayed_mob.vehicle_type == "train"
+                and status.displayed_mob.vehicle_type == constants.TRAIN
                 and not status.strategic_map_grid.find_cell(
                     destination_coordinates[0], destination_coordinates[1]
-                ).has_intact_building("train_station")
+                ).has_intact_building(constants.TRAIN_STATION)
             ):
                 status.displayed_mob.clear_automatic_route()
                 text_utility.print_to_screen(
@@ -505,7 +505,7 @@ def manage_lmb_down(clicked_button):
                                                 or (
                                                     destination_y == 1
                                                     and target_cell.has_intact_building(
-                                                        "port"
+                                                        constants.PORT
                                                     )
                                                 )
                                             )
@@ -581,7 +581,7 @@ def manage_lmb_down(clicked_button):
                                 == 1
                             ):
                                 destination_infrastructure = target_cell.get_building(
-                                    "infrastructure"
+                                    constants.INFRASTRUCTURE
                                 )
                                 if not target_cell.terrain_handler.visible:
                                     text_utility.print_to_screen(
@@ -592,8 +592,8 @@ def manage_lmb_down(clicked_button):
                                     displayed_mob.get_permission(
                                         constants.VEHICLE_PERMISSION
                                     )
-                                    and displayed_mob.vehicle_type == "train"
-                                    and not target_cell.has_building("railroad")
+                                    and displayed_mob.vehicle_type == constants.TRAIN
+                                    and not target_cell.has_building(constants.RAILROAD)
                                 ):
                                     text_utility.print_to_screen(
                                         "Trains can only create movement routes along railroads."
@@ -617,7 +617,9 @@ def manage_lmb_down(clicked_button):
                                 elif (
                                     (not target_cell.terrain_handler.terrain == "water")
                                     and (not displayed_mob.can_walk)
-                                    and not target_cell.has_intact_building("port")
+                                    and not target_cell.has_intact_building(
+                                        constants.PORT
+                                    )
                                 ):
                                     text_utility.print_to_screen(
                                         "This unit cannot create movement routes on land, except through ports."

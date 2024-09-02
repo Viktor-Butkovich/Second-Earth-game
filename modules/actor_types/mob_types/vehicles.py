@@ -407,7 +407,7 @@ class vehicle(pmob):
             current_mob.hide_images()
         if new_grid == status.earth_grid or self.images[
             0
-        ].current_cell.has_intact_building("port"):
+        ].current_cell.has_intact_building(constants.PORT):
             self.eject_passengers()
             self.drop_inventory()
         elif new_grid.grid_type in constants.abstract_grid_type_list:
@@ -457,7 +457,7 @@ class train(vehicle):
         super().__init__(from_save, input_dict)
         self.set_max_movement_points(16)
         self.has_infinite_movement = False
-        self.vehicle_type = "train"
+        self.vehicle_type = constants.TRAIN
         self.can_swim = False
         self.can_walk = True
         if not from_save:
@@ -478,10 +478,10 @@ class train(vehicle):
         result = super().can_move(x_change, y_change, can_print)
         if result:
             if not (
-                self.get_cell().has_intact_building("railroad")
+                self.get_cell().has_intact_building(constants.RAILROAD)
                 and self.grids[0]
                 .find_cell(self.x + x_change, self.y + y_change)
-                .has_intact_building("railroad")
+                .has_intact_building(constants.RAILROAD)
             ):
                 if can_print:
                     text_utility.print_to_screen(
@@ -511,7 +511,7 @@ class train(vehicle):
         Output:
             Returns the name of this type of vehicle
         """
-        return "train"
+        return constants.TRAIN
 
 
 class ship(vehicle):
@@ -543,7 +543,7 @@ class ship(vehicle):
         super().__init__(from_save, input_dict)
         self.set_max_movement_points(10)
         self.has_infinite_movement = True
-        self.vehicle_type = "ship"
+        self.vehicle_type = constants.SHIP
         self.can_swim = True
         self.can_walk = False
         self.travel_possible = True  # if this mob would ever be able to travel
@@ -607,4 +607,4 @@ class ship(vehicle):
         Output:
             Returns the name of this type of vehicle
         """
-        return "steamship"
+        return constants.SHIP

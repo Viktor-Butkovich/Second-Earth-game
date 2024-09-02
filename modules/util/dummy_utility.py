@@ -80,7 +80,7 @@ def generate_autofill_actors(search_start_index=0):
                         required_dummy_attributes,
                         dummy_input_dict,
                     )
-                    return_dict["procedure"] = "merge"
+                    return_dict["procedure"] = constants.MERGE_PROCEDURE
                 elif return_dict["officer"].get_permission(
                     constants.VEHICLE_PERMISSION
                 ):
@@ -90,7 +90,7 @@ def generate_autofill_actors(search_start_index=0):
                         required_dummy_attributes,
                         dummy_input_dict,
                     )
-                    return_dict["procedure"] = "crew"
+                    return_dict["procedure"] = constants.CREW_PROCEDURE
 
         elif displayed_mob.get_permission(
             constants.GROUP_PERMISSION
@@ -103,12 +103,12 @@ def generate_autofill_actors(search_start_index=0):
                 return_dict["officer"], return_dict["worker"] = simulate_split(
                     return_dict["group"], required_dummy_attributes, dummy_input_dict
                 )
-                return_dict["procedure"] = "split"
+                return_dict["procedure"] = constants.CREW_PROCEDURE
             elif return_dict["group"].get_permission(constants.VEHICLE_PERMISSION):
                 return_dict["officer"], return_dict["worker"] = simulate_uncrew(
                     return_dict["group"], required_dummy_attributes, dummy_input_dict
                 )
-                return_dict["procedure"] = "uncrew"
+                return_dict["procedure"] = constants.UNCREW_PROCEDURE
 
     return return_dict
 

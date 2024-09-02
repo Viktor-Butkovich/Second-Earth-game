@@ -254,6 +254,6 @@ def force_minister_appointment():
     constants.notification_manager.display_notification(
         {
             "message": "You cannot do that until all minister positions have been appointed. /n /n",
-            "notification_type": "default",
+            "notification_type": constants.NOTIFICATION,
         }
     )

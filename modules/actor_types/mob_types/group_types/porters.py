@@ -37,7 +37,7 @@ class porters(group):
         super().__init__(from_save, input_dict)
         self.number = 2  # porters is plural
         self.set_inventory_capacity(9)
-        self.set_group_type("porters")
+        self.set_group_type(constants.PORTERS)
 
     def promote(self):
         """

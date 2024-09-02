@@ -65,7 +65,9 @@ except Exception:  # displays error message and records error message in crash l
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
-# Convert button/init types to constant keys
+# Convert mode types to constant keys
+# More constant key stress testing - figure out minister background tooltip error, fix minister label message_starts, recruitment buttons/descriptions,
+#   flash between action notification steps
 # Add a unit permissions system - any unit type has a dictionary of True/False permissions for each possible action, using defaults if none specified
 #   Use similar system to terrain knowledge privileges, using set of constants to identify each permission type
 #   Something like canoes or suits would modify a unit's default permissions

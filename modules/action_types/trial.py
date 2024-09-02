@@ -294,7 +294,7 @@ class trial(action.campaign):
         constants.notification_manager.display_notification(
             {
                 "message": text,
-                "notification_type": "action",
+                "notification_type": constants.ACTION_NOTIFICATION,
                 "audio": self.generate_audio("initial"),
             }
         )
@@ -318,7 +318,7 @@ class trial(action.campaign):
                 constants.notification_manager.display_notification(
                     {
                         "message": f"{remaining_rolls_message}{text}{self.generate_notification_text('roll_message')}",
-                        "notification_type": "action",
+                        "notification_type": constants.ACTION_NOTIFICATION,
                         "attached_interface_elements": self.generate_attached_interface_elements(
                             "die"
                         ),
@@ -328,7 +328,7 @@ class trial(action.campaign):
                 constants.notification_manager.display_notification(
                     {
                         "message": remaining_rolls_message + text + "Rolling... ",
-                        "notification_type": "roll",
+                        "notification_type": constants.DICE_ROLLING_NOTIFICATION,
                         "transfer_interface_elements": True,
                         "audio": self.generate_audio("roll_started"),
                     }
@@ -337,7 +337,7 @@ class trial(action.campaign):
                 constants.notification_manager.display_notification(
                     {
                         "message": f"{remaining_rolls_message}{text}{current_roll_list[1]}",
-                        "notification_type": "action",
+                        "notification_type": constants.ACTION_NOTIFICATION,
                     }
                 )
                 if i == roll_result_index:
@@ -345,7 +345,7 @@ class trial(action.campaign):
             constants.notification_manager.display_notification(
                 {
                     "message": text + "Click to remove this notification. /n /n",
-                    "notification_type": "action",
+                    "notification_type": constants.ACTION_NOTIFICATION,
                     "transfer_interface_elements": True,
                     "on_remove": self.complete,
                     "audio": self.generate_audio("roll_finished"),
@@ -355,7 +355,7 @@ class trial(action.campaign):
             constants.notification_manager.display_notification(
                 {
                     "message": "As you have no evidence rolls remaining, you automatically lose the trial. /n /n",
-                    "notification_type": "action",
+                    "notification_type": constants.ACTION_NOTIFICATION,
                     "on_remove": self.complete,
                 }
             )
@@ -394,7 +394,7 @@ class trial(action.campaign):
             constants.notification_manager.display_notification(
                 {
                     "message": text,
-                    "notification_type": "action",
+                    "notification_type": constants.ACTION_NOTIFICATION,
                     "audio": "voices/guilty",
                 }
             )
@@ -407,7 +407,7 @@ class trial(action.campaign):
             constants.notification_manager.display_notification(
                 {
                     "message": text,
-                    "notification_type": "action",
+                    "notification_type": constants.ACTION_NOTIFICATION,
                     "on_remove": self.leave_trial_screen,
                 }
             )
@@ -446,7 +446,7 @@ class trial(action.campaign):
             constants.notification_manager.display_notification(
                 {
                     "message": text,
-                    "notification_type": "action",
+                    "notification_type": constants.ACTION_NOTIFICATION,
                     "audio": "voices/not guilty",
                     "on_remove": self.leave_trial_screen,
                 }

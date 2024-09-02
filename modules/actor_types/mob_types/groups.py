@@ -190,49 +190,18 @@ class group(pmob):
         self.temp_disable_movement()
         if self.in_vehicle:
             zoom_destination = self.vehicle
-            destination_message = (
-                " from the "
-                + self.name
-                + " aboard the "
-                + zoom_destination.name
-                + " at ("
-                + str(self.x)
-                + ", "
-                + str(self.y)
-                + ") "
-            )
+            destination_message = f" from the {self.name} aboard the {zoom_destination.name} at ({self.x}, {self.y}) "
         elif self.in_building:
-            zoom_destination = self.building.cell.get_intact_building("resource")
-            destination_message = (
-                " from the "
-                + self.name
-                + " working in the "
-                + zoom_destination.name
-                + " at ("
-                + str(self.x)
-                + ", "
-                + str(self.y)
-                + ") "
+            zoom_destination = self.building.cell.get_intact_building(
+                constants.RESOURCE
             )
+            destination_message = f" from the {self.name} in the {zoom_destination.name} at ({self.x}, {self.y}) "
         else:
             zoom_destination = self
-            destination_message = (
-                " from the "
-                + self.name
-                + " at ("
-                + str(self.x)
-                + ", "
-                + str(self.y)
-                + ") "
-            )
+            destination_message = f" from the {self.name} at ({self.x}, {self.y}) "
 
         if target == "officer":
-            text = (
-                "The "
-                + self.officer.name
-                + destination_message
-                + "has died from attrition. /n /n "
-            )
+            text = f"The {self.officer.name}{destination_message}has died from attrition. /n /n "
             if self.officer.automatically_replace:
                 text += (
                     self.officer.generate_attrition_replacement_text()
@@ -259,12 +228,7 @@ class group(pmob):
             )
 
         elif target == "worker":
-            text = (
-                "The "
-                + self.worker.name
-                + destination_message
-                + "have died from attrition. /n /n "
-            )
+            text = f"The {self.worker.name}{destination_message}have died from attrition. /n /n "
             if self.worker.automatically_replace:
                 text += (
                     self.worker.generate_attrition_replacement_text()

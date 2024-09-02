@@ -33,7 +33,7 @@ class building(actor):
             None
         """
         self.actor_type = "building"
-        self.building_type = input_dict["building_type"]
+        self.building_type = input_dict.get("building_type", input_dict["init_type"])
         self.damaged = False
         super().__init__(from_save, input_dict)
         self.default_inventory_capacity = 0
@@ -59,12 +59,20 @@ class building(actor):
         if (
             (not from_save)
             and input_dict["building_type"]
-            in ["resource", "port", "train_station", "fort"]
+            in [
+                constants.RESOURCE,
+                constants.PORT,
+                constants.TRAIN_STATION,
+                constants.FORT,
+            ]
             and not self.cell.settlement
         ):
             constants.actor_creation_manager.create(
                 False,
-                {"init_type": "settlement", "coordinates": (self.cell.x, self.cell.y)},
+                {
+                    "init_type": constants.SETTLEMENT,
+                    "coordinates": (self.cell.x, self.cell.y),
+                },
             )
         self.cell.tile.set_name(self.cell.tile.name)
 
@@ -88,7 +96,6 @@ class building(actor):
                 'damaged': boolean value - whether this building is currently damaged
         """
         save_dict = super().to_save_dict()
-        save_dict["building_type"] = self.building_type
         save_dict[
             "contained_work_crews"
         ] = (
@@ -134,7 +141,7 @@ class building(actor):
             None
         """
         tooltip_text = [text_utility.remove_underscores(self.name.capitalize())]
-        if self.building_type == "resource":
+        if self.building_type == constants.RESOURCE:
             tooltip_text.append(
                 f"Work crews: {len(self.contained_work_crews)}/{self.scale}"
             )
@@ -143,10 +150,10 @@ class building(actor):
             tooltip_text.append(
                 f"Lets {self.scale} attached work crews each attempt to produce {self.efficiency} units of {self.resource_type} each turn"
             )
-        elif self.building_type == "port":
+        elif self.building_type == constants.PORT:
             tooltip_text.append("Allows ships to enter this tile")
             tooltip_text.append("Steamships can move between ports")
-        elif self.building_type == "infrastructure":
+        elif self.building_type == constants.INFRASTRUCTURE:
             if self.is_bridge:
                 tooltip_text.append("Allows movement across the bridge")
                 if self.is_railroad:
@@ -177,24 +184,24 @@ class building(actor):
                     tooltip_text.append(
                         "Can be upgraded to a railroad to allow trains to move through this tile"
                     )
-        elif self.building_type == "train_station":
+        elif self.building_type == constants.TRAIN_STATION:
             tooltip_text.append(
                 "Allows construction gangs to build trains on this tile"
             )
             tooltip_text.append(
                 "Allows trains to drop off or pick up cargo or passengers in this tile"
             )
-        elif self.building_type == "slums":
+        elif self.building_type == constants.SLUMS:
             tooltip_text.append(
                 f"Contains {self.available_workers} workers in search of employment"
             )
-        elif self.building_type == "fort":
+        elif self.building_type == constants.FORT:
             tooltip_text.append(
                 "Grants a +1 combat modifier to your units fighting in this tile"
             )
-        elif self.building_type == "warehouses":
+        elif self.building_type == constants.WAREHOUSES:
             tooltip_text.append(
-                f"Level {self.warehouse_level} warehouses allow an inventory capacity of {9 * self.warehouse_level}"
+                f"Level {self.warehouses_level} warehouses allow an inventory capacity of {9 * self.warehouses_level}"
             )
 
         if self.damaged:
@@ -242,18 +249,18 @@ class building(actor):
             None
         """
         self.damaged = new_value
-        if self.building_type == "infrastructure":
+        if self.building_type == constants.INFRASTRUCTURE:
             actor_utility.update_roads()
         if self.damaged:
             self.set_building_inventory_capacity(0)
         else:
             self.set_building_inventory_capacity(self.default_inventory_capacity)
         if (not mid_setup) and self.building_type in [
-            "resource",
-            "port",
-            "train_station",
+            constants.RESOURCE,
+            constants.PORT,
+            constants.TRAIN_STATION,
         ]:
-            self.cell.get_building("warehouses").set_damaged(new_value)
+            self.cell.get_building(constants.WAREHOUSES).set_damaged(new_value)
         self.cell.tile.update_image_bundle()
 
     def set_default_inventory_capacity(self, new_value):
@@ -346,9 +353,9 @@ class building(actor):
         """
         image_id = {"image_id": self.image_dict["default"]}
         relative_coordinates = {
-            "fort": (-1, 1),
-            "train_station": (0, -1),
-            "port": (1, -1),
+            constants.FORT: (-1, 1),
+            constants.TRAIN_STATION: (0, -1),
+            constants.PORT: (1, -1),
         }.get(self.building_type, (0, 0))
         if relative_coordinates == (0, 0):
             modifiers = {}
@@ -360,7 +367,7 @@ class building(actor):
             }
         image_id.update(modifiers)
         return_list = [image_id]
-        if self.building_type == "resource":
+        if self.building_type == constants.RESOURCE:
             return_list[0]["green_screen"] = constants.quality_colors[
                 self.efficiency
             ]  # Set box to quality color based on efficiency
@@ -397,11 +404,11 @@ class building(actor):
                     }
                 )
 
-        if self.building_type == "train_station":
+        if self.building_type == constants.TRAIN_STATION:
             return_list.append(
                 {"image_id": "buildings/infrastructure/down_railroad.png"}
             )
-        if self.damaged and self.building_type != "warehouses":
+        if self.damaged and self.building_type != constants.WAREHOUSES:
             damaged_id = {"image_id": "buildings/damaged.png", "level": 3}
             damaged_id.update(modifiers)
             return_list.append(damaged_id)
@@ -433,45 +440,48 @@ class infrastructure_building(building):
             None
         """
         self.infrastructure_type = input_dict["infrastructure_type"]
-        if self.infrastructure_type == "railroad":
+        if self.infrastructure_type == constants.RAILROAD:
             self.is_railroad = True
             self.is_road = False
             self.is_bridge = False
-        elif self.infrastructure_type == "road":
+        elif self.infrastructure_type == constants.ROAD:
             self.is_railroad = False
             self.is_road = True
             self.is_bridge = False
-        elif self.infrastructure_type == "railroad_bridge":
+        elif self.infrastructure_type == constants.RAILROAD_BRIDGE:
             self.is_railroad = True
             self.is_road = False
             self.is_bridge = True
-        elif self.infrastructure_type == "road_bridge":
+        elif self.infrastructure_type == constants.ROAD_BRIDGE:
             self.is_railroad = False
             self.is_road = True
             self.is_bridge = True
-        elif self.infrastructure_type == "ferry":
+        elif self.infrastructure_type == constants.FERRY:
             self.is_railroad = False
             self.is_road = False
             self.is_bridge = True
 
-        input_dict["building_type"] = "infrastructure"
         self.connection_image_dict = {}
-        for infrastructure_type in ["road", "bridge"]:
-            if infrastructure_type == "road":
-                building_types = ["road", "railroad"]
+        for infrastructure_type in [constants.ROAD, constants.RAILROAD]:
+            if infrastructure_type == constants.ROAD:
+                building_types = [constants.ROAD, constants.RAILROAD]
                 directions = ["up", "down", "left", "right"]
-            elif infrastructure_type == "bridge":
-                building_types = ["road_bridge", "railroad_bridge", "ferry"]
+            elif infrastructure_type in [
+                constants.ROAD_BRIDGE,
+                constants.RAILROAD_BRIDGE,
+                constants.FERRY,
+            ]:
+                building_types = [
+                    constants.ROAD_BRIDGE,
+                    constants.RAILROAD_BRIDGE,
+                    constants.FERRY,
+                ]
                 directions = ["vertical", "horizontal"]
             for direction in directions:
                 for building_type in building_types:
-                    self.connection_image_dict[direction + "_" + building_type] = (
-                        "buildings/infrastructure/"
-                        + direction
-                        + "_"
-                        + building_type
-                        + ".png"
-                    )
+                    self.connection_image_dict[
+                        f"{direction}_{building_type}"
+                    ] = f"buildings/infrastructure/{direction}_{building_type}.png"
 
         super().__init__(from_save, input_dict)
         if self.is_bridge:
@@ -557,10 +567,10 @@ class infrastructure_building(building):
                 adjacent_cell = self.cell.adjacent_cells[direction]
                 if adjacent_cell:
                     own_tile_infrastructure = self.cell.get_intact_building(
-                        "infrastructure"
+                        constants.INFRASTRUCTURE
                     )
                     adjacent_cell_infrastructure = adjacent_cell.get_intact_building(
-                        "infrastructure"
+                        constants.INFRASTRUCTURE
                     )
                     if adjacent_cell_infrastructure:
                         if (
@@ -590,60 +600,6 @@ class infrastructure_building(building):
         return image_id_list
 
 
-class fort(building):
-    """
-    Building that grants a +1 combat modifier to your units fighting in its tile
-    """
-
-    def __init__(self, from_save, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
-                'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'name': string value - Required if from save, this building's name
-                'modes': string list value - Game modes during which this building's images can appear
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
-        Output:
-            None
-        """
-        input_dict["building_type"] = "fort"
-        super().__init__(from_save, input_dict)
-
-
-class train_station(building):
-    """
-    Building along a railroad that allows the construction of train, allows trains to pick up and drop off cargo/passengers, and increases the tile's inventory capacity
-    """
-
-    def __init__(self, from_save, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
-                'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'name': string value - Required if from save, this building's name
-                'modes': string list value - Game modes during which this building's images can appear
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
-        Output:
-            None
-        """
-        input_dict["building_type"] = "train_station"
-        super().__init__(from_save, input_dict)
-
-
 class port(building):
     """
     Building adjacent to water that allows steamships to enter the tile, allows ships to travel to this tile if it is along the ocean, and increases the tile's inventory capacity
@@ -667,7 +623,6 @@ class port(building):
         Output:
             None
         """
-        input_dict["building_type"] = "port"
         super().__init__(from_save, input_dict)
         if not from_save:
             constants.sound_manager.play_random_music("earth")
@@ -693,16 +648,15 @@ class warehouses(building):
                 'name': string value - Required if from save, this building's name
                 'modes': string list value - Game modes during which this building's images can appear
                 'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
-                'warehouse_level': int value - Required if from save, size of warehouse (9 inventory capacity per level)
+                'warehouses_level': int value - Required if from save, size of warehouse (9 inventory capacity per level)
         Output:
             None
         """
-        input_dict["building_type"] = "warehouses"
-        self.warehouse_level = 1
+        self.warehouses_level = 1
         super().__init__(from_save, input_dict)
         self.set_default_inventory_capacity(9)
         if from_save:
-            while self.warehouse_level < input_dict["warehouse_level"]:
+            while self.warehouses_level < input_dict["warehouses_level"]:
                 self.upgrade()
 
         if constants.effect_manager.effect_active("damaged_buildings"):
@@ -718,18 +672,18 @@ class warehouses(building):
         Output:
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
                 Along with superclass outputs, also saves the following values:
-                'warehouse_level': int value - Size of warehouse (9 inventory capacity per level)
+                'warehouses_level': int value - Size of warehouse (9 inventory capacity per level)
         """
         save_dict = super().to_save_dict()
-        save_dict["warehouse_level"] = self.warehouse_level
+        save_dict["warehouses_level"] = self.warehouses_level
         return save_dict
 
-    def can_upgrade(self, upgrade_type="warehouse_level"):
+    def can_upgrade(self, upgrade_type="warehouses_level"):
         """
         Description:
             Returns whether this building can be upgraded in the inputted field. Warehouses can be upgraded infinitely
         Input:
-            string upgrade_type = 'warehouse_level': Represents type of upgrade, like 'scale' or 'efficiency'
+            string upgrade_type = 'warehouses_level': Represents type of upgrade, like 'scale' or 'efficiency'
         Output:
             boolean: Returns True if this building can be upgraded in the inputted field, otherwise returns False
         """
@@ -747,8 +701,8 @@ class warehouses(building):
         """
         return self.cell.get_warehouses_cost()
 
-    def upgrade(self, upgrade_type="warehouse_level"):
-        self.warehouse_level += 1
+    def upgrade(self, upgrade_type="warehouses_level"):
+        self.warehouses_level += 1
         self.set_default_inventory_capacity(self.default_inventory_capacity + 9)
 
     def get_image_id_list(self, override_values={}):
@@ -791,7 +745,6 @@ class resource_building(building):
             None
         """
         self.resource_type = input_dict["resource_type"]
-        input_dict["building_type"] = "resource"
         self.scale = input_dict.get("scale", 1)
         self.efficiency = input_dict.get("efficiency", 1)
         self.num_upgrades = self.scale + self.efficiency - 2
@@ -917,10 +870,10 @@ class resource_building(building):
         Output:
             boolean: Returns True if this building can be upgraded in the inputted field, otherwise returns False
         """
-        if upgrade_type == "scale":
+        if upgrade_type == constants.RESOURCE_SCALE:
             if self.scale < 6:
                 return True
-        elif upgrade_type == "efficiency":
+        elif upgrade_type == constants.RESOURCE_EFFICIENCY:
             if self.efficiency < 6:
                 return True
         return False
@@ -934,9 +887,9 @@ class resource_building(building):
         Output:
             None
         """
-        if upgrade_type == "scale":
+        if upgrade_type == constants.RESOURCE_SCALE:
             self.scale += 1
-        elif upgrade_type == "efficiency":
+        elif upgrade_type == constants.RESOURCE_EFFICIENCY:
             self.efficiency += 1
         if self.scale >= 6 and self.efficiency >= 6:
             constants.achievement_manager.achieve("Industrialist")
@@ -1014,7 +967,6 @@ class slums(building):
             None
         """
         status.slums_list.append(self)
-        input_dict["building_type"] = "slums"
         self.available_workers = 0
         if from_save:
             self.available_workers = input_dict["available_workers"]

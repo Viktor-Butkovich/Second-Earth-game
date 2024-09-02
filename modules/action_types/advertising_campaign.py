@@ -272,14 +272,11 @@ class advertising_campaign(action.campaign):
                         {
                             "on_click": (self.middle, []),
                             "tooltip": [
-                                "Starts an "
-                                + self.name
-                                + " for "
-                                + self.target_commodity
+                                f"Starts an {self.name} for {self.target_commodity}"
                             ],
                             "message": "Start campaign",
                         },
-                        {"tooltip": ["Stop " + self.name], "message": "Stop campaign"},
+                        {"tooltip": [f"Stop {self.name}"], "message": "Stop campaign"},
                     ],
                 }
             )

@@ -357,7 +357,7 @@ class mob(actor):
                 modifier -= 1
                 if self.get_permission(constants.OFFICER_PERMISSION):
                     modifier -= 1
-            if include_tile and self.get_cell().has_intact_building("fort"):
+            if include_tile and self.get_cell().has_intact_building(constants.FORT):
                 modifier += 1
         if self.get_permission(constants.DISORGANIZED_PERMISSION):
             modifier -= 1
@@ -497,9 +497,11 @@ class mob(actor):
                 adjacent_cell.terrain_handler.terrain, 1
             )
             if self.get_permission(constants.PMOB_PERMISSION):
-                local_infrastructure = local_cell.get_intact_building("infrastructure")
+                local_infrastructure = local_cell.get_intact_building(
+                    constants.INFRASTRUCTURE
+                )
                 adjacent_infrastructure = adjacent_cell.get_intact_building(
-                    "infrastructure"
+                    constants.INFRASTRUCTURE
                 )
                 if local_cell.has_walking_connection(adjacent_cell):
                     if local_infrastructure and adjacent_infrastructure:
@@ -508,7 +510,8 @@ class mob(actor):
                     # Otherwise, use default cost but not full cost (no canoe penantly)
                     if (
                         adjacent_infrastructure
-                        and adjacent_infrastructure.infrastructure_type == "ferry"
+                        and adjacent_infrastructure.infrastructure_type
+                        == constants.FERRY
                     ):
                         cost = 2
                 elif adjacent_cell.terrain_handler.terrain == "water" and (
@@ -993,7 +996,7 @@ class mob(actor):
                 constants.VEHICLE_PERMISSION
             ):  # Overlaps with voices if crewed
                 if self.get_permission(constants.ACTIVE_PERMISSION):
-                    if self.vehicle_type == "train":
+                    if self.vehicle_type == constants.TRAIN:
                         constants.sound_manager.play_sound("effects/train_horn")
                         return
                     else:
@@ -1014,7 +1017,7 @@ class mob(actor):
                 possible_sounds = ["voices/sir 1", "voices/sir 2", "voices/sir 3"]
                 if (
                     self.get_permission(constants.VEHICLE_PERMISSION)
-                    and self.vehicle_type == "ship"
+                    and self.vehicle_type == constants.SHIP
                 ):
                     possible_sounds.append("voices/steady she goes")
         if possible_sounds:
@@ -1034,14 +1037,14 @@ class mob(actor):
             if self.get_permission(constants.VEHICLE_PERMISSION):
                 if allow_fadeout and constants.sound_manager.busy():
                     constants.sound_manager.fadeout(400)
-                if self.vehicle_type == "train":
+                if self.vehicle_type == constants.TRAIN:
                     possible_sounds.append("effects/train_moving")
                 else:
                     constants.sound_manager.play_sound("effects/ocean_splashing")
                     possible_sounds.append("effects/ship_propeller")
             elif self.get_cell() and self.get_cell().terrain_handler.terrain == "water":
                 local_infrastructure = self.get_cell().get_intact_building(
-                    "infrastructure"
+                    constants.INFRASTRUCTURE
                 )
                 if (
                     local_infrastructure
@@ -1086,19 +1089,19 @@ class mob(actor):
         self.movement_sound()
 
         if self.get_cell().has_vehicle(
-            "ship", is_worker=self.get_permission(constants.WORKER_PERMISSION)
+            constants.SHIP, is_worker=self.get_permission(constants.WORKER_PERMISSION)
         ) and (
             not self.get_permission(constants.VEHICLE_PERMISSION)
         ):  # If worker, allow moving to ship to embark or crew it. Elif non-vehicle, allow moving to ship to embark it.
             previous_infrastructure = previous_cell.get_intact_building(
-                "infrastructure"
+                constants.INFRASTRUCTURE
             )
             if self.get_cell().terrain_handler.terrain == "water" and not (
                 previous_infrastructure and previous_infrastructure.is_bridge
             ):
                 if not self.can_swim:  # board if moving to ship in water
                     vehicle = self.get_cell().get_vehicle(
-                        "ship",
+                        constants.SHIP,
                         is_worker=self.get_permission(constants.WORKER_PERMISSION),
                     )
                     if self.get_permission(
@@ -1121,7 +1124,7 @@ class mob(actor):
                 previous_cell.terrain_handler.terrain == "water" and not self.can_swim
             ):  # If moving in water without canoes, use all of movement points
                 previous_infrastructure = previous_cell.get_intact_building(
-                    "infrastructure"
+                    constants.INFRASTRUCTURE
                 )
                 if not (
                     previous_infrastructure and previous_infrastructure.is_bridge

@@ -151,7 +151,7 @@ class expedition(group):
                     constants.notification_manager.display_notification(
                         {
                             "message": f"{text}Click to remove this notification. /n /n",
-                            "notification_type": "off_tile_exploration",
+                            "notification_type": constants.OFF_TILE_EXPLORATION_NOTIFICATION,
                             "on_reveal": on_reveal,
                             "audio": audio,
                             "extra_parameters": {

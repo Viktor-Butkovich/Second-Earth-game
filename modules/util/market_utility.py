@@ -246,7 +246,7 @@ class loan:
                 'remaining_duration': int value - Number of remaining turns/interest payments
         """
         save_dict = {}
-        save_dict["init_type"] = "loan"
+        save_dict["init_type"] = constants.LOAN
         save_dict["principal"] = self.principal
         save_dict["interest"] = self.interest
         save_dict["remaining_duration"] = self.remaining_duration

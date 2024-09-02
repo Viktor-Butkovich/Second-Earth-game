@@ -107,7 +107,10 @@ class notification_manager_template:
             if self.notification_queue:
                 if transferred_interface_elements and (
                     self.notification_queue[0].get("notification_type", None)
-                    in ["action", "roll"]
+                    in [
+                        constants.ACTION_NOTIFICATION,
+                        constants.DICE_ROLLING_NOTIFICATION,
+                    ]
                     or "choices" in self.notification_queue[0]
                 ):
                     valid_transfer = True
@@ -181,11 +184,11 @@ class notification_manager_template:
         if "notification_type" in notification_dict:
             notification_type = notification_dict["notification_type"]
         elif "choices" in notification_dict:
-            notification_type = "choice"
+            notification_type = constants.CHOICE_NOTIFICATION
         elif "zoom_destination" in notification_dict:
-            notification_type = "zoom"
+            notification_type = constants.ZOOM_NOTIFICATION
         else:
-            notification_type = "default"
+            notification_type = constants.NOTIFICATION
 
         if "num_dice" in notification_dict:
             notification_dice = notification_dict["num_dice"]
@@ -226,8 +229,7 @@ class notification_manager_template:
             "image_id": "misc/default_notification.png",
             "message": message,
             "notification_dice": notification_dice,
-            "init_type": notification_type + " notification",
-            "notification_type": notification_type,
+            "init_type": notification_type,
             "attached_interface_elements": attached_interface_elements,
             "transfer_interface_elements": transfer_interface_elements,
             "extra_parameters": extra_parameters,
@@ -236,23 +238,17 @@ class notification_manager_template:
         input_dict["on_reveal"] = notification_dict.get("on_reveal", None)
         input_dict["on_remove"] = notification_dict.get("on_remove", None)
 
-        if notification_type == "roll":
-            input_dict["init_type"] = "dice rolling notification"
-        elif notification_type == "off_tile_exploration":
-            input_dict["init_type"] = "off tile exploration notification"
-        elif notification_type == "choice":
+        if notification_type == constants.CHOICE_NOTIFICATION:
             del input_dict["notification_dice"]
-            input_dict["init_type"] = "choice notification"
             input_dict["button_types"] = notification_dict["choices"]
             input_dict["choice_info_dict"] = input_dict["extra_parameters"]
-        elif notification_type == "zoom":
+        elif notification_type == constants.ZOOM_NOTIFICATION:
             del input_dict["notification_dice"]
-            input_dict["init_type"] = "zoom notification"
             input_dict["target"] = notification_dict["zoom_destination"]
         new_notification = constants.actor_creation_manager.create_interface_element(
             input_dict
         )
-        if notification_type == "roll":
+        if notification_type == constants.DICE_ROLLING_NOTIFICATION:
             for current_die in status.dice_list:
                 current_die.start_rolling()
 
