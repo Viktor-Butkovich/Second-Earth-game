@@ -78,13 +78,13 @@ class combat(action.action):
             local_infrastructure = tooltip_info_dict["local_infrastructure"]
             adjacent_infrastructure = tooltip_info_dict["adjacent_infrastructure"]
             if local_infrastructure and adjacent_infrastructure:
-                text += "and connecting roads"
+                text += " and connecting roads"
             elif local_infrastructure == None and adjacent_infrastructure:
-                text += "and no connecting roads"
+                text += " and no connecting roads"
             elif local_infrastructure:
-                text += "and no connecting roads"
+                text += " and no connecting roads"
             else:
-                text += "and no connecting roads"
+                text += " and no connecting roads"
         message.append(text)
         return message
 

@@ -224,18 +224,18 @@ class button(interface_elements.interface_element):
                                     local_infrastructure and adjacent_infrastructure
                                 ):  # if both have infrastructure
                                     connecting_roads = True
-                                    message += "and connecting roads"
+                                    message += " and connecting roads"
                                 elif (
                                     local_infrastructure == None
                                     and adjacent_infrastructure
                                 ):  # if local has no infrastructure but adjacent does
-                                    message += "and no connecting roads"
+                                    message += " and no connecting roads"
                                 elif (
                                     local_infrastructure
                                 ):  # if local has infrastructure but not adjacent
-                                    message += "and no connecting roads"  # + local_infrastructure.infrastructure_type
+                                    message += " and no connecting roads"  # + local_infrastructure.infrastructure_type
                                 else:
-                                    message += "and no connecting roads"
+                                    message += " and no connecting roads"
 
                             tooltip_text.append(message)
                             if (
@@ -248,7 +248,7 @@ class button(interface_elements.interface_element):
                                 )
                             else:
                                 tooltip_text.append(
-                                    f"Moving into a {adjacent_cell.terrain_handler.terrain.replace('_', ' ')} tile costs {constants.terrain_movement_cost_dict[adjacent_cell.terrain_handler.terrain]} movement points"
+                                    f"Moving into a {adjacent_cell.terrain_handler.terrain.replace('_', ' ')} tile costs {constants.terrain_movement_cost_dict.get(adjacent_cell.terrain_handler.terrain, 1)} movement points"
                                 )
                     if (
                         (not current_mob.get_permission(constants.VEHICLE_PERMISSION))

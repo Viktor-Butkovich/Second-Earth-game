@@ -1557,6 +1557,7 @@ def mob_interface():
             "height": scaling.scale_height(40),
             "modes": ["strategic", "earth"],
             "keybind_id": pygame.K_d,
+            "image_id": "buttons/right_button.png",
             "init_type": constants.MOVE_RIGHT_BUTTON,
             "parent_collection": status.mob_info_display,
             "member_config": {"order_exempt": True},
