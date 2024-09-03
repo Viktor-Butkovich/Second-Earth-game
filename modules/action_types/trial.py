@@ -66,7 +66,7 @@ class trial(action.campaign):
         )
         initial_input_dict["width"] = scaling.scale_width(button_width)
         initial_input_dict["height"] = scaling.scale_height(button_width)
-        initial_input_dict["modes"] = ["trial"]
+        initial_input_dict["modes"] = [constants.TRIAL_MODE]
         initial_input_dict["image_id"] = "buttons/to_trial_button.png"
         return super().button_setup(initial_input_dict)
 
@@ -369,7 +369,7 @@ class trial(action.campaign):
         Output:
             None
         """
-        game_transitions.set_game_mode("ministers")
+        game_transitions.set_game_mode(constants.MINISTERS_MODE)
 
     def complete(self):
         """

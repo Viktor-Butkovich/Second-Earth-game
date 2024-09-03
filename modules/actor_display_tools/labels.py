@@ -335,11 +335,11 @@ class actor_display_label(label):
 
         elif self.actor_label_type == constants.EVIDENCE_LABEL:
             self.message_start = "Evidence: "
-            if "ministers" in self.modes:
+            if constants.MINISTERS_MODE in self.modes:
                 input_dict["init_type"] = constants.TO_TRIAL_BUTTON
                 input_dict["width"], input_dict["height"] = (m_size, m_size)
                 self.add_attached_button(input_dict)
-            if "trial" in self.modes:
+            if constants.TRIAL_MODE in self.modes:
                 input_dict["init_type"] = constants.FABRICATE_EVIDENCE_BUTTON
                 input_dict["width"], input_dict["height"] = (m_size, m_size)
                 self.add_attached_button(input_dict)
@@ -621,7 +621,7 @@ class actor_display_label(label):
         elif self.actor_label_type == constants.EVIDENCE_LABEL:
             tooltip_text = []
             if self.actor:
-                if constants.current_game_mode == "trial":
+                if constants.current_game_mode == constants.TRIAL_MODE:
                     real_evidence = (
                         self.actor.corruption_evidence - self.actor.fabricated_evidence
                     )

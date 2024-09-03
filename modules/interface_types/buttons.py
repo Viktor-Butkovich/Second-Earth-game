@@ -531,7 +531,7 @@ class button(interface_elements.interface_element):
             )
 
         elif self.button_type == constants.FABRICATE_EVIDENCE_BUTTON:
-            if constants.current_game_mode == "trial":
+            if constants.current_game_mode == constants.TRIAL_MODE:
                 self.set_tooltip(
                     [
                         f"Creates a unit of fake evidence against this minister to improve the trial's success chance for {self.get_cost()} money",
@@ -923,7 +923,7 @@ class button(interface_elements.interface_element):
                 if minister_utility.positions_filled():
                     current_mob = status.displayed_mob
                     if current_mob:
-                        if constants.current_game_mode == "strategic":
+                        if constants.current_game_mode == constants.STRATEGIC_MODE:
                             if current_mob.can_move(
                                 x_change, y_change, can_print=False
                             ):
@@ -992,8 +992,8 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.EXECUTE_MOVEMENT_ROUTES_BUTTON:
             if main_loop_utility.action_possible():
                 if minister_utility.positions_filled():
-                    if not constants.current_game_mode == "strategic":
-                        game_transitions.set_game_mode("strategic")
+                    if not constants.current_game_mode == constants.STRATEGIC_MODE:
+                        game_transitions.set_game_mode(constants.STRATEGIC_MODE)
 
                     unit_types = [constants.PORTERS, constants.SHIP, constants.TRAIN]
                     moved_units = {}
@@ -1079,8 +1079,8 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.END_TURN_BUTTON:
             if main_loop_utility.action_possible():
                 if minister_utility.positions_filled():
-                    if not constants.current_game_mode == "strategic":
-                        game_transitions.set_game_mode("strategic")
+                    if not constants.current_game_mode == constants.STRATEGIC_MODE:
+                        game_transitions.set_game_mode(constants.STRATEGIC_MODE)
                     turn_management_utility.end_turn_warnings()
 
                     choice_info_dict = {"type": "end turn"}
@@ -1266,10 +1266,10 @@ class button(interface_elements.interface_element):
                 )
 
         elif self.button_type == constants.NEW_GAME_BUTTON:
-            if constants.current_game_mode == "new_game_setup":
+            if constants.current_game_mode == constants.NEW_GAME_SETUP_MODE:
                 constants.save_load_manager.new_game()
             else:
-                game_transitions.set_game_mode("new_game_setup")
+                game_transitions.set_game_mode(constants.NEW_GAME_SETUP_MODE)
 
         elif self.button_type == constants.SAVE_GAME_BUTTON:
             if main_loop_utility.action_possible():
@@ -1961,13 +1961,17 @@ class switch_game_mode_button(button):
         """
         self.to_mode = input_dict["to_mode"]
         self.to_mode_tooltip_dict = {}
-        self.to_mode_tooltip_dict["main_menu"] = [
+        self.to_mode_tooltip_dict[constants.MAIN_MENU_MODE] = [
             "Exits to the main menu",
             "Does not automatically save the game",
         ]
-        self.to_mode_tooltip_dict["strategic"] = ["Enters the strategic map screen"]
-        self.to_mode_tooltip_dict["earth"] = ["Enters the Earth headquarters screen"]
-        self.to_mode_tooltip_dict["ministers"] = [
+        self.to_mode_tooltip_dict[constants.STRATEGIC_MODE] = [
+            "Enters the strategic map screen"
+        ]
+        self.to_mode_tooltip_dict[constants.EARTH_MODE] = [
+            "Enters the Earth headquarters screen"
+        ]
+        self.to_mode_tooltip_dict[constants.MINISTERS_MODE] = [
             "Enters the minister conference room screen"
         ]
         super().__init__(input_dict)
@@ -1982,14 +1986,14 @@ class switch_game_mode_button(button):
             None
         """
         if main_loop_utility.action_possible():
-            if self.to_mode == "main_menu":
+            if self.to_mode == constants.MAIN_MENU_MODE:
                 constants.notification_manager.display_notification(
                     {
                         "message": "Are you sure you want to exit to the main menu without saving? /n /n",
                         "choices": [constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON, None],
                     }
                 )
-            if self.to_mode != "main_menu":
+            if self.to_mode != constants.MAIN_MENU_MODE:
                 game_transitions.set_game_mode(self.to_mode)
         else:
             text_utility.print_to_screen("You are busy and cannot switch screens.")
@@ -2014,7 +2018,7 @@ class switch_game_mode_button(button):
         Output:
             boolean: Returns whether this button should be drawn
         """
-        if self.to_mode != "main_menu":
+        if self.to_mode != constants.MAIN_MENU_MODE:
             self.showing_outline = constants.current_game_mode == self.to_mode
         return super().can_show(skip_parent_collection=skip_parent_collection)
 
@@ -2049,7 +2053,7 @@ class minister_portrait_image(button):
         self.insert_collection_above()
         self.minister_type = input_dict["minister_type"]  # Position, like General
         if not self.minister_type:  # If available minister portrait
-            if "ministers" in self.modes:
+            if constants.MINISTERS_MODE in self.modes:
                 status.available_minister_portrait_list.append(self)
             warning_x_offset = scaling.scale_width(-100)
         else:
@@ -2100,7 +2104,7 @@ class minister_portrait_image(button):
         """
         showing = False
         if (
-            self.showing and constants.current_game_mode == "ministers"
+            self.showing and constants.current_game_mode == constants.MINISTERS_MODE
         ):  # Draw outline around portrait if minister selected
             showing = True
             if self.current_minister:
@@ -2117,7 +2121,7 @@ class minister_portrait_image(button):
                         self.outline,
                     )
         super().draw(
-            allow_show_outline=(constants.current_game_mode == "ministers")
+            allow_show_outline=(constants.current_game_mode == constants.MINISTERS_MODE)
         )  # Show outline for selection icons on ministers mode but not the overlapping ones on strategic mode
         if showing and self.warning_image.showing:
             self.warning_image.draw()
@@ -2132,7 +2136,10 @@ class minister_portrait_image(button):
             None
         """
         if main_loop_utility.action_possible():
-            if constants.current_game_mode == "ministers" and self.current_minister:
+            if (
+                constants.current_game_mode == constants.MINISTERS_MODE
+                and self.current_minister
+            ):
                 self.current_minister.play_voice_line("acknowledgement")
                 if (
                     self in status.available_minister_portrait_list
@@ -2147,10 +2154,10 @@ class minister_portrait_image(button):
                         self.current_minister
                     )
             elif (
-                constants.current_game_mode != "ministers"
+                constants.current_game_mode != constants.MINISTERS_MODE
             ):  # If clicked while not on ministers screen, go to ministers screen and select that minister
                 old_minister = self.current_minister
-                game_transitions.set_game_mode("ministers")
+                game_transitions.set_game_mode(constants.MINISTERS_MODE)
                 self.current_minister = old_minister
                 if self.current_minister:
                     self.on_click()
@@ -2179,14 +2186,16 @@ class minister_portrait_image(button):
         if new_minister:
             new_minister.update_tooltip()
             self.tooltip_text = new_minister.tooltip_text
-            if "ministers" in self.modes:
+            if constants.MINISTERS_MODE in self.modes:
                 self.image.set_image(
                     new_minister.image_id
                     + actor_utility.generate_label_image_id(new_minister.get_f_lname())
                 )
             else:
                 self.image.set_image(new_minister.image_id)
-        elif "ministers" in self.modes:  # Show empty minister if minister screen icon
+        elif (
+            constants.MINISTERS_MODE in self.modes
+        ):  # Show empty minister if minister screen icon
             if not self.minister_type:  # If available minister portrait
                 self.tooltip_text = ["There is no available candidate in this slot."]
             else:  # If appointed minister portrait
@@ -2979,7 +2988,7 @@ class action_button(button):
         elif self.corresponding_action.actor_type == "tile":
             return status.displayed_tile
         elif self.corresponding_action.actor_type in ["minister", "prosecutor"]:
-            if constants.current_game_mode == "trial":
+            if constants.current_game_mode == constants.TRIAL_MODE:
                 return status.displayed_prosecution
             else:
                 return status.displayed_minister

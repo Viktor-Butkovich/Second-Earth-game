@@ -230,8 +230,8 @@ class advertising_campaign(action.campaign):
         """
         if super().on_click(unit):
             if status.earth_grid in unit.grids:
-                if not constants.current_game_mode == "earth":
-                    game_transitions.set_game_mode("earth")
+                if constants.current_game_mode != constants.EARTH_MODE:
+                    game_transitions.set_game_mode(constants.EARTH_MODE)
                     unit.select()
                 text_utility.print_to_screen(
                     "Select a commodity to advertise, or click elsewhere to cancel: "

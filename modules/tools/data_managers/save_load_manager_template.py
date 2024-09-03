@@ -83,7 +83,7 @@ class save_load_manager_template:
 
         for grid_type in constants.grid_types_list:
             world_grids.create(from_save=False, grid_type=grid_type)
-        game_transitions.set_game_mode("strategic")
+        game_transitions.set_game_mode(constants.STRATEGIC_MODE)
         game_transitions.create_strategic_map(from_save=False)
         for terrain_parameter in constants.terrain_parameters:
             status.earth_grid.cell_list[0][0].set_parameter(
@@ -138,7 +138,7 @@ class save_load_manager_template:
         turn_management_utility.start_player_turn(True)
         if not constants.effect_manager.effect_active("skip_intro"):
             status.initial_tutorial_completed = False
-            game_transitions.set_game_mode("ministers")
+            game_transitions.set_game_mode(constants.MINISTERS_MODE)
             tutorial_utility.show_tutorial_notifications()
         else:
             status.initial_tutorial_completed = True
@@ -146,7 +146,7 @@ class save_load_manager_template:
                 key, minister_type = minister_type_tuple
                 status.minister_list[index].appoint(minister_type)
             minister_utility.calibrate_minister_info_display(None)
-            game_transitions.set_game_mode("strategic")
+            game_transitions.set_game_mode(constants.STRATEGIC_MODE)
         flags.creating_new_game = False
 
     def save_game(self, file_path):
@@ -280,7 +280,7 @@ class save_load_manager_template:
         world_grids.create(from_save=False, grid_type="scrolling_strategic_map_grid")
         world_grids.create(from_save=False, grid_type="minimap_grid")
 
-        game_transitions.set_game_mode("strategic")
+        game_transitions.set_game_mode(constants.STRATEGIC_MODE)
         game_transitions.create_strategic_map(from_save=True)
 
         for current_worker_type in saved_worker_types:
@@ -301,7 +301,7 @@ class save_load_manager_template:
             round(0.75 * status.strategic_map_grid.coordinate_width),
             round(0.75 * status.strategic_map_grid.coordinate_height),
         )
-        game_transitions.set_game_mode("strategic")
+        game_transitions.set_game_mode(constants.STRATEGIC_MODE)
 
         tutorial_utility.show_tutorial_notifications()
 

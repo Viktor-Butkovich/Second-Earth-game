@@ -217,20 +217,6 @@ fps_tracker: value_tracker_template = None
 frames_this_second: int = 0
 last_fps_update: float = 0.0
 
-current_game_mode: str = None
-game_modes: List[str] = ["strategic", "earth", "ministers", "trial", "new_game_setup"]
-current_map_mode: str = "terrain"
-map_modes: List[str] = [
-    "terrain",
-    "altitude",
-    "temperature",
-    "roughness",
-    "vegetation",
-    "soil",
-    "water",
-    "magnetic",
-]
-
 loading_start_time: float = 0.0
 previous_turn_time: float = 0.0
 current_time: float = 0.0
@@ -539,6 +525,34 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
         "False": "Fog of war active - knowledge required to view tiles",
     },
 }
+
+current_game_mode: str = None
+STRATEGIC_MODE: str = "strategic"
+EARTH_MODE: str = "earth"
+MINISTERS_MODE: str = "ministers"
+TRIAL_MODE: str = "trial"
+MAIN_MENU_MODE: str = "main_menu"
+NEW_GAME_SETUP_MODE: str = "new_game_setup"
+game_modes: List[str] = [
+    STRATEGIC_MODE,
+    EARTH_MODE,
+    MINISTERS_MODE,
+    TRIAL_MODE,
+    MAIN_MENU_MODE,
+    NEW_GAME_SETUP_MODE,
+]
+
+current_map_mode: str = "terrain"
+map_modes: List[str] = [
+    "terrain",
+    "altitude",
+    "temperature",
+    "roughness",
+    "vegetation",
+    "soil",
+    "water",
+    "magnetic",
+]
 
 HAT_LEVEL: int = 6
 EYES_LEVEL: int = 2

@@ -841,7 +841,7 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
 
     input_dict.update(
         {
-            "modes": ["strategic"],
+            "modes": [constants.STRATEGIC_MODE],
             "parent_collection": status.grids_collection,
             "grid_type": grid_type,
         }
@@ -911,7 +911,7 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
             }
         )
         if grid_type == "earth_grid":
-            input_dict["modes"].append("earth")
+            input_dict["modes"].append(constants.EARTH_MODE)
 
         input_dict["name"] = (
             grid_type[:-5].replace("_", " ").capitalize()

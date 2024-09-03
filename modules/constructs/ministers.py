@@ -210,7 +210,12 @@ class minister:
             "coordinates": (0, 0),
             "width": scaling.scale_width(100),
             "height": scaling.scale_height(100),
-            "modes": ["strategic", "ministers", "earth", "trial"],
+            "modes": [
+                constants.STRATEGIC_MODE,
+                constants.MINISTERS_MODE,
+                constants.EARTH_MODE,
+                constants.TRIAL_MODE,
+            ],
             "attached_minister": self,
             "minister_image_type": "position",
             "init_type": constants.DICE_ROLL_MINISTER_IMAGE,

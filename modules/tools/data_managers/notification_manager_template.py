@@ -23,12 +23,12 @@ class notification_manager_template:
         self.default_notification_height = 300
         self.update_notification_layout()
         self.notification_modes = [
-            "strategic",
-            "earth",
-            "ministers",
-            "trial",
-            "main_menu",
-            "new_game_setup",
+            constants.STRATEGIC_MODE,
+            constants.EARTH_MODE,
+            constants.MINISTERS_MODE,
+            constants.TRIAL_MODE,
+            constants.MAIN_MENU_MODE,
+            constants.NEW_GAME_SETUP_MODE,
         ]
         self.font = constants.fonts["default_notification"]
 

@@ -52,7 +52,7 @@ class instructions_page(label):
         input_dict["coordinates"] = scaling.scale_coordinates(60, 60)
         input_dict["minimum_width"] = self.ideal_width
         input_dict["height"] = self.minimum_height
-        input_dict["modes"] = ["strategic", "earth"]
+        input_dict["modes"] = [constants.STRATEGIC_MODE, constants.EARTH_MODE]
         input_dict["image_id"] = "misc/default_instructions.png"
         super().__init__(input_dict)
 

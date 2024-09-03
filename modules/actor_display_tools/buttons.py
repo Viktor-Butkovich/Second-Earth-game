@@ -1156,8 +1156,8 @@ class switch_theatre_button(button):
                 ):  # not current_mob.grids[0] in self.destination_grids and
                     if current_mob.sentry_mode:
                         current_mob.set_sentry_mode(False)
-                    if not constants.current_game_mode == "strategic":
-                        game_transitions.set_game_mode("strategic")
+                    if not constants.current_game_mode == constants.STRATEGIC_MODE:
+                        game_transitions.set_game_mode(constants.STRATEGIC_MODE)
                         current_mob.select()
                     current_mob.clear_automatic_route()
                     current_mob.end_turn_destination = None
@@ -1208,7 +1208,7 @@ class appoint_minister_button(button):
             None
         """
         self.appoint_type: minister_types.minister_type = input_dict["appoint_type"]
-        input_dict["modes"] = ["ministers"]
+        input_dict["modes"] = [constants.MINISTERS_MODE]
         input_dict["image_id"] = f"ministers/icons/{self.appoint_type.skill_type}.png"
         super().__init__(input_dict)
 
@@ -1266,7 +1266,7 @@ class remove_minister_button(button):
         Output:
             None
         """
-        input_dict["modes"] = ["ministers"]
+        input_dict["modes"] = [constants.MINISTERS_MODE]
         input_dict["image_id"] = "buttons/remove_minister_button.png"
         super().__init__(input_dict)
 
@@ -1381,7 +1381,7 @@ class to_trial_button(button):
                         prosecution = minister_utility.get_minister(
                             constants.PROSECUTION_MINISTER
                         )
-                        game_transitions.set_game_mode("trial")
+                        game_transitions.set_game_mode(constants.TRIAL_MODE)
                         minister_utility.trial_setup(
                             defense, prosecution
                         )  # sets up defense and prosecution displays
@@ -1417,7 +1417,7 @@ class fabricate_evidence_button(button):
         Output:
             None
         """
-        input_dict["modes"] = ["trial", "ministers"]
+        input_dict["modes"] = [constants.TRIAL_MODE, constants.MINISTERS_MODE]
         input_dict["image_id"] = "buttons/fabricate_evidence_button.png"
         super().__init__(input_dict)
 
@@ -1483,7 +1483,7 @@ class bribe_judge_button(button):
         Output:
             None
         """
-        input_dict["modes"] = ["trial"]
+        input_dict["modes"] = [constants.TRIAL_MODE]
         input_dict["image_id"] = "buttons/bribe_judge_button.png"
         super().__init__(input_dict)
 

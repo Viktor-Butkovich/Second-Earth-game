@@ -40,7 +40,7 @@ class active_investigation(action.campaign):
         Output:
             None
         """
-        initial_input_dict["modes"] = ["ministers"]
+        initial_input_dict["modes"] = [constants.MINISTERS_MODE]
         return super().button_setup(initial_input_dict)
 
     def update_tooltip(self):

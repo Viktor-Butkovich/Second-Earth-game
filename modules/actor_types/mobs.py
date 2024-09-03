@@ -665,9 +665,9 @@ class mob(actor):
             None
         """
         if new_grid == status.earth_grid:
-            self.modes.append("earth")
+            self.modes.append(constants.EARTH_MODE)
         else:  # if mob was spawned on Earth, make it so that it does not appear in the Earth screen after leaving
-            self.modes = utility.remove_from_list(self.modes, "earth")
+            self.modes = utility.remove_from_list(self.modes, constants.EARTH_MODE)
         self.x, self.y = new_coordinates
         old_image_id = self.images[0].image_id
         for current_image in self.images:

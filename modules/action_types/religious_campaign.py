@@ -179,7 +179,7 @@ class religious_campaign(action.campaign):
                 {
                     "coordinates": (0, 0),
                     "grids": [status.earth_grid],
-                    "modes": ["strategic", "earth"],
+                    "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
                 }
             )
             church_volunteers = constants.actor_creation_manager.create(

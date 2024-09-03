@@ -138,7 +138,7 @@ def update_available_minister_display():
         else:
             available_minister_portrait_list[current_index].calibrate(None)
     if (
-        constants.current_game_mode == "ministers"
+        constants.current_game_mode == constants.MINISTERS_MODE
         and len(available_minister_list) > 0
         and not available_minister_left_index + 2 >= len(available_minister_list)
     ):

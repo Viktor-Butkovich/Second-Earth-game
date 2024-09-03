@@ -460,9 +460,9 @@ def manage_lmb_down(clicked_button):
                 if unit and unit.grids[0] == status.minimap_grid.attached_grid:
                     status.minimap_grid.calibrate(unit.x, unit.y)
             else:
-                if constants.current_game_mode == "ministers":
+                if constants.current_game_mode == constants.MINISTERS_MODE:
                     minister_utility.calibrate_minister_info_display(None)
-                elif constants.current_game_mode == "new_game_setup":
+                elif constants.current_game_mode == constants.NEW_GAME_SETUP_MODE:
                     nothing = 0
                 else:
                     actor_utility.calibrate_actor_info_display(
