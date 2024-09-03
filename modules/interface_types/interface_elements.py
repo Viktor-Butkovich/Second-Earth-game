@@ -703,16 +703,18 @@ class tabbed_collection(interface_collection):
         super().add_member(new_member, member_config)
 
         if member_config["tabbed"]:
-            constants.actor_creation_manager.create_interface_element(
-                {
-                    "width": scaling.scale_width(36),
-                    "height": scaling.scale_height(36),
-                    "init_type": constants.TAB_BUTTON,
-                    "parent_collection": self.tabs_collection,
-                    "image_id": member_config["button_image_id"],
-                    "identifier": member_config.get("identifier", None),
-                    "linked_element": new_member,
-                }
+            new_member.tab_button = (
+                constants.actor_creation_manager.create_interface_element(
+                    {
+                        "width": scaling.scale_width(36),
+                        "height": scaling.scale_height(36),
+                        "init_type": constants.TAB_BUTTON,
+                        "parent_collection": self.tabs_collection,
+                        "image_id": member_config["button_image_id"],
+                        "identifier": member_config.get("identifier", None),
+                        "linked_element": new_member,
+                    }
+                )
             )
             self.tabbed_members.append(new_member)
             if len(self.tabbed_members) == 1:
@@ -929,3 +931,18 @@ class ordered_collection(interface_collection):
                             current_x += (
                                 self.separation + member.width * self.reverse_multiplier
                             )
+
+    def calibrate(self, new_actor, override_exempt=False):
+        """
+        Description:
+            Atttaches this collection and its members to inputted actor and updates their information based on the inputted actor
+        Input:
+            string/actor new_actor: The displayed actor whose information is matched by this label. If this equals None, the label does not match any actors.
+        Output:
+            None
+        """
+        super().calibrate(new_actor, override_exempt)
+        if self == status.terrain_collection and new_actor:
+            self.tab_button.image.set_image(
+                new_actor.get_image_id_list(terrain_only=True)
+            )

@@ -1948,22 +1948,22 @@ class button_image(actor_image):
             None
         """
         self.image_id = new_image_id
-        if isinstance(self.image_id, str):  # if set to string image path
+        if isinstance(self.image_id, str):  # If set to string image path
             self.contains_bundle = False
-            full_image_id = "graphics/" + self.image_id
+            full_image_id = f"graphics/{self.image_id}"
             if full_image_id in status.rendered_images:
                 self.image = status.rendered_images[full_image_id]
             else:
-                try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
+                try:  # Use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
                     self.image = pygame.image.load(full_image_id)
                 except:
                     print(full_image_id)
                     self.image = pygame.image.load(full_image_id)
                 status.rendered_images[full_image_id] = self.image
             self.image = pygame.transform.scale(self.image, (self.width, self.height))
-        else:  # if set to image path list
+        else:  # If set to image path list
             self.contains_bundle = True
-            self.image = image_bundle(self, self.image_id)  # self.image_id
+            self.image = image_bundle(self, self.image_id)
 
     def draw(self):
         """

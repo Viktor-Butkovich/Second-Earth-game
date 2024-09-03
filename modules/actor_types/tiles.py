@@ -301,12 +301,13 @@ class tile(actor):  # to do: make terrain tiles a subclass
         self.hosted_images.append(new_image)
         self.update_image_bundle()
 
-    def get_image_id_list(self, force_visibility=False):
+    def get_image_id_list(self, terrain_only=False, force_visibility=False):
         """
         Description:
             Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
                 orientation
         Input:
+            boolean terrain_only = False: Whether to just show tile's terrain or all contents as well
             boolean force_visibility = False: Shows a fully visible version of this tile, even if it hasn't been explored yet
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
@@ -375,19 +376,23 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         image_id_list.append(resource_icon)
                     else:
                         image_id_list += resource_icon
-                for current_building_type in constants.building_types:
-                    current_building = self.cell.get_building(current_building_type)
-                    if current_building:
-                        image_id_list += current_building.get_image_id_list()
+                if not terrain_only:
+                    for current_building_type in constants.building_types:
+                        current_building = self.cell.get_building(current_building_type)
+                        if current_building:
+                            image_id_list += current_building.get_image_id_list()
             elif self.show_terrain:
                 image_id_list.append(self.image_dict["hidden"])
             else:
                 image_id_list.append(self.image_dict["default"])
             for current_image in self.hosted_images:
-                if not current_image.anchor_key in ["south_pole", "north_pole"]:
+                if (
+                    not current_image.anchor_key in ["south_pole", "north_pole"]
+                    and not terrain_only
+                ):
                     image_id_list += current_image.get_image_id_list()
 
-        if constants.current_map_mode != "terrain":
+        if constants.current_map_mode != "terrain" and not terrain_only:
             map_mode_image = "misc/map_modes/none.png"
             if constants.current_map_mode in constants.terrain_parameters:
                 if self.cell.terrain_handler.knowledge_available(
@@ -423,7 +428,10 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 }
             )
         for current_image in self.hosted_images:
-            if current_image.anchor_key in ["south_pole", "north_pole"]:
+            if (
+                current_image.anchor_key in ["south_pole", "north_pole"]
+                and not terrain_only
+            ):
                 image_id_list += current_image.get_image_id_list()
 
         return image_id_list
@@ -648,5 +656,5 @@ class abstract_tile(tile):
         else:
             return False
 
-    def get_image_id_list(self):
+    def get_image_id_list(self, **kwargs):
         return self.grid_image_id

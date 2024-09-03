@@ -366,6 +366,8 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
                 target_tab = status.tile_inventory_collection
             elif status.displayed_tile.cell.settlement:
                 target_tab = status.settlement_collection
+            else:
+                target_tab = status.terrain_collection
         elif tabbed_collection == status.mob_tabbed_collection:
             if status.displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 if status.displayed_mob.inventory or status.displayed_mob.equipment:

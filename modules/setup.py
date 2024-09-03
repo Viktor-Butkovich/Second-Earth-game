@@ -1273,12 +1273,11 @@ def trial_screen():
 
     input_dict["actor_type"] = "minister"
     del input_dict["message"]
-    defense_info_display_labels = [
+    for current_actor_label_type in [
         constants.MINISTER_NAME_LABEL,
         constants.MINISTER_OFFICE_LABEL,
         constants.EVIDENCE_LABEL,
-    ]
-    for current_actor_label_type in defense_info_display_labels:
+    ]:
         defense_current_y -= 35
         input_dict["coordinates"] = scaling.scale_coordinates(0, defense_current_y)
         input_dict["init_type"] = current_actor_label_type
@@ -1352,11 +1351,10 @@ def trial_screen():
     input_dict["actor_type"] = "minister"
     del input_dict["message"]
     input_dict["parent_collection"] = status.prosecution_info_display
-    prosecution_info_display_labels = [
+    for current_actor_label_type in [
         constants.MINISTER_NAME_LABEL,
         constants.MINISTER_OFFICE_LABEL,
-    ]
-    for current_actor_label_type in prosecution_info_display_labels:
+    ]:
         prosecution_current_y -= 35
         input_dict["coordinates"] = scaling.scale_coordinates(0, prosecution_current_y)
         input_dict["init_type"] = current_actor_label_type
@@ -1739,34 +1737,13 @@ def tile_interface():
     )
 
     # tile info labels setup
-    tile_info_display_labels = [
+    for current_actor_label_type in [
         constants.COORDINATES_LABEL,
-        constants.KNOWLEDGE_LABEL,
         constants.TERRAIN_LABEL,
-        constants.BANNER_LABEL,
-        constants.WATER_LABEL,
-        constants.TEMPERATURE_LABEL,
-        constants.VEGETATION_LABEL,
-        constants.ROUGHNESS_LABEL,
-        constants.SOIL_LABEL,
-        constants.ALTITUDE_LABEL,
         constants.RESOURCE_LABEL,
         constants.TERRAIN_FEATURE_LABEL,
-    ]
-    for current_actor_label_type in tile_info_display_labels:
-        if (
-            current_actor_label_type
-            in [
-                constants.TERRAIN_FEATURE_LABEL,
-                constants.TERRAIN_LABEL,
-                constants.BANNER_LABEL,
-            ]
-            + constants.terrain_parameters
-            and current_actor_label_type != constants.KNOWLEDGE_LABEL
-        ):
-            x_displacement = 25
-        else:
-            x_displacement = 0
+    ]:
+        x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
@@ -1968,11 +1945,10 @@ def inventory_interface():
         }
     )
 
-    mob_info_display_labels = [
+    for current_actor_label_type in [
         constants.INVENTORY_NAME_LABEL,
         constants.INVENTORY_QUANTITY_LABEL,
-    ]
-    for current_actor_label_type in mob_info_display_labels:
+    ]:
         x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
@@ -2127,11 +2103,10 @@ def inventory_interface():
         }
     )
 
-    tile_info_display_labels = [
+    for current_actor_label_type in [
         constants.INVENTORY_NAME_LABEL,
         constants.INVENTORY_QUANTITY_LABEL,
-    ]
-    for current_actor_label_type in tile_info_display_labels:
+    ]:
         x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
@@ -2171,7 +2146,7 @@ def settlement_interface():
             }
         )
     )
-    settlement_info_display_labels = [
+    for current_actor_label_type in [
         constants.SETTLEMENT,
         constants.PORT,
         constants.TRAIN_STATION,
@@ -2182,8 +2157,7 @@ def settlement_interface():
         constants.FORT,
         constants.SLUMS,
         constants.INFRASTRUCTURE,
-    ]
-    for current_actor_label_type in settlement_info_display_labels:
+    ]:
         if current_actor_label_type in [
             constants.SETTLEMENT,
             constants.INFRASTRUCTURE,
@@ -2202,7 +2176,6 @@ def settlement_interface():
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
             "image_id": "misc/default_label.png",
-            "actor_label_type": current_actor_label_type,
             "actor_type": "tile",
             "parent_collection": status.settlement_collection,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
@@ -2223,8 +2196,61 @@ def settlement_interface():
                 input_dict["list_index"] = i
                 constants.actor_creation_manager.create_interface_element(input_dict)
         else:
-            input_dict["init_type"] = constants.ACTOR_DISPLAY_LABEL
+            input_dict["init_type"] = current_actor_label_type
             constants.actor_creation_manager.create_interface_element(input_dict)
+
+
+def terrain_interface():
+    """
+    Description:
+        Initializes the terrain interface as part of the tile tabbed collection
+    Input:
+        None
+    Output:
+        None
+    """
+    status.terrain_collection = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "width": scaling.scale_width(10),
+                "height": scaling.scale_height(30),
+                "init_type": constants.ORDERED_COLLECTION,
+                "parent_collection": status.tile_tabbed_collection,
+                "member_config": {
+                    "tabbed": True,
+                    "button_image_id": "buttons/crew_train_button.png",
+                    "identifier": constants.TERRAIN_PANEL,
+                },
+                "description": "terrain details panel",
+            }
+        )
+    )
+
+    for current_actor_label_type in [
+        constants.KNOWLEDGE_LABEL,
+        constants.BANNER_LABEL,
+        constants.WATER_LABEL,
+        constants.TEMPERATURE_LABEL,
+        constants.VEGETATION_LABEL,
+        constants.ROUGHNESS_LABEL,
+        constants.SOIL_LABEL,
+        constants.ALTITUDE_LABEL,
+    ]:
+        x_displacement = 0
+        input_dict = {
+            "minimum_width": scaling.scale_width(10),
+            "height": scaling.scale_height(30),
+            "image_id": "misc/default_label.png",
+            "init_type": current_actor_label_type,
+            "actor_type": "tile",
+            "parent_collection": status.terrain_collection,
+            "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
+        }
+        if current_actor_label_type == constants.BANNER_LABEL:
+            input_dict["banner_type"] = "terrain details"
+            input_dict["banner_text"] = "Details unknown"
+        constants.actor_creation_manager.create_interface_element(input_dict)
 
 
 def unit_organization_interface():

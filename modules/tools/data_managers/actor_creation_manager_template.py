@@ -206,6 +206,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.TILE_INVENTORY_CAPACITY_LABEL: actor_display_labels.actor_display_label,
             constants.INVENTORY_NAME_LABEL: actor_display_labels.actor_display_label,
             constants.INVENTORY_QUANTITY_LABEL: actor_display_labels.actor_display_label,
+            constants.SETTLEMENT: actor_display_labels.actor_display_label,
             constants.SLUMS: actor_display_labels.actor_display_label,
             constants.RESOURCE: actor_display_labels.actor_display_label,
             constants.PORT: actor_display_labels.actor_display_label,

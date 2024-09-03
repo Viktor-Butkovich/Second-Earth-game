@@ -679,7 +679,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.CHANGE_PARAMETER_BUTTON:
             self.set_tooltip(
                 [
-                    f"Changes this tile's {self.attached_label.actor_label_type} by {self.change}"
+                    f"Changes this tile's {self.attached_label.actor_label_type.removesuffix('_label')} by {self.change}"
                 ]
             )
         else:

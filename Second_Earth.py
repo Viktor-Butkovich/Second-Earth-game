@@ -24,6 +24,7 @@ try:
         tile_interface,
         unit_organization_interface,
         settlement_interface,
+        terrain_interface,
         inventory_interface,
         minister_interface,
     )
@@ -80,6 +81,7 @@ except Exception:  # displays error message and records error message in crash l
 # Add radio distortion versions of voice lines, either as separate files or runtime filter
 # Add terrain details tile interface panel, such that terrain details aren't always showing
 # For tiles with knowledge 1, possibly change every turn to a cloud or normal pixellated version, depending on atmosphere conditions
+# Load in all minister portraits on minister creation, not when first viewed
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>

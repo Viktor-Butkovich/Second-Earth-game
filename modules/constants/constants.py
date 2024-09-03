@@ -576,6 +576,7 @@ LIST_FEATURE_TRACKING: str = "list"
 MAP_MODE_ALPHA: int = 170
 
 SETTLEMENT_PANEL: str = "settlement_panel"
+TERRAIN_PANEL: str = "terrain_panel"
 INVENTORY_PANEL: str = "inventory_panel"
 REORGANIZATION_PANEL: str = "reorganization_panel"
 
