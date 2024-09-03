@@ -186,7 +186,7 @@ save_load_manager: save_load_manager_template = save_load_manager_template()
 flavor_text_manager: flavor_text_manager_template = flavor_text_manager_template()
 input_manager: input_manager_template = input_manager_template()
 actor_creation_manager: actor_creation_manager_template = (
-    actor_creation_manager_template()
+    None  # requires additional setup before initialization
 )
 terrain_manager: terrain_manager_template = terrain_manager_template()
 character_manager: character_manager_template = (

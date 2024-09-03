@@ -127,12 +127,13 @@ class recruitment_button(button):
             if constants.money_tracker.get() >= cost:
                 choice_info_dict = {
                     "recruitment_type": self.recruitment_type,
+                    "recruitment_name": self.recruitment_name,
                     "cost": cost,
                     "mob_image_id": self.mob_image_id,
                     "type": "recruitment",
                 }
                 constants.actor_creation_manager.display_recruitment_choice_notification(
-                    choice_info_dict, self.recruitment_name
+                    choice_info_dict
                 )
             else:
                 text_utility.print_to_screen(

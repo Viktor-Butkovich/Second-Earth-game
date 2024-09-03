@@ -103,7 +103,7 @@ class notification_manager_template:
             None
         """
         valid_transfer = False
-        if status.displayed_notification == None:
+        if status.displayed_notification == None or True == True:
             if self.notification_queue:
                 if transferred_interface_elements and (
                     self.notification_queue[0].get("notification_type", None)

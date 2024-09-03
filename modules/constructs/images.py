@@ -1443,7 +1443,6 @@ class minister_type_image(tooltip_free_image):
         """
         self.current_minister = None
         input_dict["image_id"] = "misc/empty.png"
-        self.minister_image_type = input_dict.get("minister_image_type", "position")
         super().__init__(input_dict)
         self.attached_label = input_dict["attached_label"]
         self.minister_type = input_dict["minister_type"]  # position, like General

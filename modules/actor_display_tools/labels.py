@@ -282,8 +282,7 @@ class actor_display_label(label):
                         "modes": self.modes,
                         "minister_type": None,
                         "attached_label": self,
-                        "init_type": constants.MINISTER_PORTRAIT_IMAGE,
-                        "minister_image_type": "portrait",
+                        "init_type": constants.MINISTER_TYPE_IMAGE,
                         "parent_collection": self.insert_collection_above(),
                         "member_config": {
                             "x_offset": -1 * (self.height + m_increment),
@@ -298,6 +297,7 @@ class actor_display_label(label):
                     "height": self.height + m_increment,
                     "init_type": constants.MINISTER_PORTRAIT_IMAGE,
                     "minister_type": None,
+                    "attached_label": self,
                     "parent_collection": attached_minister_position_image.parent_collection,
                     "member_config": {
                         "x_offset": -1 * (self.height + m_increment),
@@ -454,6 +454,30 @@ class actor_display_label(label):
         elif self.actor_label_type == constants.BANNER_LABEL:
             self.message_start = self.banner_text
 
+        elif self.actor_label_type in [
+            constants.MINISTER_NAME_LABEL,
+            constants.MINISTER_BACKGROUND_LABEL,
+            constants.MINISTER_SOCIAL_STATUS_LABEL,
+            constants.MINISTER_OFFICE_LABEL,
+            constants.MINISTER_INTERESTS_LABEL,
+            constants.MINISTER_LOYALTY_LABEL,
+            constants.MINISTER_ABILITY_LABEL,
+        ]:
+            self.message_start = (
+                utility.capitalize(
+                    self.actor_label_type.removesuffix("_label")
+                    .removeprefix("minister_")
+                    .replace("_", "")
+                )
+                + ": "
+            )
+        elif self.actor_label_type.endswith("_skill_label"):
+            self.message_start = (
+                utility.capitalize(
+                    self.actor_label_type.removesuffix("_skill_label").replace("_", "")
+                )
+                + ": "
+            )
         else:
             self.message_start = (
                 utility.capitalize(
@@ -989,7 +1013,7 @@ class actor_display_label(label):
 
             elif self.actor_label_type == constants.MINISTER_INTERESTS_LABEL:
                 self.set_label(
-                    f"{self.message_start} {new_actor.interests[0]} and {new_actor.interests[1]}"
+                    f"{self.message_start}{new_actor.interests[0]} and {new_actor.interests[1]}"
                 )
 
             elif self.actor_label_type == constants.MINISTER_ABILITY_LABEL:
@@ -1011,9 +1035,12 @@ class actor_display_label(label):
                     self.message_start + new_actor.apparent_corruption_description
                 )
 
-            elif self.actor_label_type.removesuffix("_label") in constants.skill_types:
+            elif (
+                self.actor_label_type.removesuffix("_skill_label")
+                in constants.skill_types
+            ):
                 self.set_label(
-                    f"{self.actor_label_type.capitalize()}: {self.actor.apparent_skill_descriptions[self.actor_label_type.removesuffix('_label')]}"
+                    f"{self.message_start}{self.actor.apparent_skill_descriptions[self.actor_label_type.removesuffix('_skill_label')]}"
                 )
 
             elif self.actor_label_type == constants.MINISTER_NAME_LABEL:
@@ -1155,9 +1182,13 @@ class actor_display_label(label):
                 return False
             else:
                 return result
-        elif self.actor_label_type.removesuffix("_label") in constants.skill_types:
+        elif (
+            self.actor_label_type.removesuffix("_skill_label") in constants.skill_types
+        ):
             return (
-                self.actor.apparent_skill_descriptions[self.actor_label_type]
+                self.actor.apparent_skill_descriptions[
+                    self.actor_label_type.removesuffix("_skill_label")
+                ]
                 != "unknown"
             )
         elif (
@@ -1296,6 +1327,8 @@ class actor_tooltip_label(actor_display_label):
         Output:
             None
         """
+        if self.actor_type == "minister":
+            return
         if self.actor_type == "tile":
             actor_utility.calibrate_actor_info_display(
                 status.tile_info_display, self.actor

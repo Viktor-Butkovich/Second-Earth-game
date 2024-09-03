@@ -2691,7 +2691,7 @@ class reorganize_unit_button(button):
                 )
             elif (
                 self.parent_collection.autofill_actors["procedure"]
-                == constants.CREW_PROCEDURE
+                == constants.SPLIT_PROCEDURE
             ):
                 self.tooltip_text.append(
                     f"Press to separate the {self.parent_collection.autofill_actors['group'].name} into a {self.parent_collection.autofill_actors['officer'].name} and {self.parent_collection.autofill_actors['worker'].name}"
@@ -2736,8 +2736,8 @@ class reorganize_unit_button(button):
             if procedure_actors["procedure"] in self.allowed_procedures:
                 procedure_type = None
                 dummy_autofill_target_to_procedure_dict = {
-                    "officer": constants.CREW_PROCEDURE,
-                    "worker": constants.CREW_PROCEDURE,
+                    "officer": constants.SPLIT_PROCEDURE,
+                    "worker": constants.SPLIT_PROCEDURE,
                     "group": constants.MERGE_PROCEDURE,
                 }
                 # type of procedure to do if dummy version of corresponding unit found - if a dummy officer is found, the procedure must be a split
@@ -2756,7 +2756,7 @@ class reorganize_unit_button(button):
                     else:
                         procedure_type = constants.INVALID_PROCEDURE
 
-                if procedure_type == constants.CREW_PROCEDURE and procedure_actors[
+                if procedure_type == constants.SPLIT_PROCEDURE and procedure_actors[
                     "officer"
                 ].get_permission(
                     constants.VEHICLE_PERMISSION
@@ -2802,7 +2802,7 @@ class reorganize_unit_button(button):
                             f"{procedure_actors['worker'].worker_type.name.capitalize()} cannot crew {procedure_actors['officer'].get_vehicle_name()}s."
                         )
 
-                elif procedure_type == constants.CREW_PROCEDURE:
+                elif procedure_type == constants.SPLIT_PROCEDURE:
                     procedure_actors["group"].disband()
 
                 elif procedure_type == constants.UNCREW_PROCEDURE:

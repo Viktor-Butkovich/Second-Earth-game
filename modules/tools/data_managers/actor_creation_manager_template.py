@@ -40,24 +40,21 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
     Object that creates new mobs and buildings based on inputted values
     """
 
-    def create(self, from_save, input_dict):
+    def __init__(self):
         """
         Description:
-            Initializes a mob, building, cell icon, or loan based on inputted values
+            Initializes this object
         Input:
-            boolean from_save: True if the object is being recreated from a save file, False if it is being newly created
-            dictionary input_dict: Keys corresponding to the values needed to initialize the object, with contents varying based on the type of object
-                'init_type': string value - Always required, determines type of object created
+            None
         Output:
-            actor: Returns the mob or building that was created
+            None
         """
-        constructor = {
+        self.actor_constructors = {
             constants.MOB: mobs.mob,
             constants.EUROPEAN_WORKERS: workers.worker,
             constants.CHURCH_VOLUNTEERS: workers.church_volunteers,
             constants.TRAIN: vehicles.train,
             constants.SHIP: vehicles.ship,
-            constants.BOAT: vehicles.boat,
             constants.EXPLORER: officers.officer,
             constants.ENGINEER: officers.officer,
             constants.DRIVER: officers.officer,
@@ -83,35 +80,8 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.CELL_ICON: cell_icons.cell_icon,
             constants.NAME_ICON: cell_icons.name_icon,
             constants.LOAN: market_utility.loan,
-        }[input_dict["init_type"]]
-        return constructor(from_save, input_dict)
-
-    def create_dummy(self, input_dict=None):
-        """
-        Description:
-            Creates a special fake version of a unit to display as a hypothetical, with the same images and tooltips as a real unit
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize the object, with contents varying based on the type of object
-                'init_type': string value - Always required, determines type of object created
-        Output:
-            actor: Returns the unit that was created
-        """
-        if not input_dict:
-            input_dict = {}
-        new_actor = dummy.dummy(input_dict)
-        return new_actor
-
-    def create_interface_element(self, input_dict):
-        """
-        Description:
-            Initializes an interface element based on inputted values
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize the object, with contents varying based on the type of object
-                'init_type': string value - Always required, determines type of object created
-        Output:
-            actor: Returns the interface element created
-        """
-        constructor = {
+        }
+        self.interface_constructors = {
             constants.BUTTON: buttons.button,
             constants.NEW_GAME_BUTTON: buttons.button,
             constants.LOAD_GAME_BUTTON: buttons.button,
@@ -271,12 +241,49 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.ACTION_NOTIFICATION: action_notifications.action_notification,
             constants.DICE_ROLLING_NOTIFICATION: action_notifications.dice_rolling_notification,
             constants.OFF_TILE_EXPLORATION_NOTIFICATION: action_notifications.off_tile_exploration_notification,
-        }[input_dict["init_type"]]
-        return constructor(input_dict)
+        }
 
-    def display_recruitment_choice_notification(
-        self, choice_info_dict, recruitment_name
-    ):
+    def create(self, from_save, input_dict):
+        """
+        Description:
+            Initializes a mob, building, cell icon, or loan based on inputted values
+        Input:
+            boolean from_save: True if the object is being recreated from a save file, False if it is being newly created
+            dictionary input_dict: Keys corresponding to the values needed to initialize the object, with contents varying based on the type of object
+                'init_type': string value - Always required, determines type of object created
+        Output:
+            actor: Returns the mob or building that was created
+        """
+        return self.actor_constructors[input_dict["init_type"]](from_save, input_dict)
+
+    def create_dummy(self, input_dict=None):
+        """
+        Description:
+            Creates a special fake version of a unit to display as a hypothetical, with the same images and tooltips as a real unit
+        Input:
+            dictionary input_dict: Keys corresponding to the values needed to initialize the object, with contents varying based on the type of object
+                'init_type': string value - Always required, determines type of object created
+        Output:
+            actor: Returns the unit that was created
+        """
+        if not input_dict:
+            input_dict = {}
+        new_actor = dummy.dummy(input_dict)
+        return new_actor
+
+    def create_interface_element(self, input_dict):
+        """
+        Description:
+            Initializes an interface element based on inputted values
+        Input:
+            dictionary input_dict: Keys corresponding to the values needed to initialize the object, with contents varying based on the type of object
+                'init_type': string value - Always required, determines type of object created
+        Output:
+            actor: Returns the interface element created
+        """
+        return self.interface_constructors[input_dict["init_type"]](input_dict)
+
+    def display_recruitment_choice_notification(self, choice_info_dict):
         """
         Description:
             Displays a choice notification to verify the recruitment of a unit
@@ -286,19 +293,22 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                 'cost': double value - Recruitment cost of the unit
                 'mob_image_id': string value - File path to the image used by the recruited unit
                 'type': string value - Type of choice notification to display, always 'recruitment' for recruitment notificatoins
-            string recruitment_name: Name used in the notification to signify the unit, like 'explorer'
+                'recruitment_name': string value - Name used in the notification to signify the unit, like 'explorer'
         Output:
             None
         """
-        recruitment_type = recruitment_name
-        if recruitment_name in [constants.SHIP]:
+        recruitment_type, recruitment_name = (
+            choice_info_dict["recruitment_type"],
+            choice_info_dict["recruitment_name"],
+        )
+        if recruitment_type in [constants.SHIP]:
             verb = "purchase"
-        elif recruitment_name.endswith(" workers"):
+        elif recruitment_type.endswith("workers"):
             verb = "hire"
         else:
             verb = "recruit"
 
-        if recruitment_name.endswith(" workers"):
+        if recruitment_type.endswith("workers"):
             message = f"Are you sure you want to {verb} a unit of {recruitment_name} for {choice_info_dict['cost']} money? /n /n"
         else:
             message = f"Are you sure you want to {verb} {utility.generate_article(recruitment_name)} {recruitment_name} for {str(choice_info_dict['cost'])} money? /n /n"

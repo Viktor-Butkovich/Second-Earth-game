@@ -103,7 +103,7 @@ def generate_autofill_actors(search_start_index=0):
                 return_dict["officer"], return_dict["worker"] = simulate_split(
                     return_dict["group"], required_dummy_attributes, dummy_input_dict
                 )
-                return_dict["procedure"] = constants.CREW_PROCEDURE
+                return_dict["procedure"] = constants.SPLIT_PROCEDURE
             elif return_dict["group"].get_permission(constants.VEHICLE_PERMISSION):
                 return_dict["officer"], return_dict["worker"] = simulate_uncrew(
                     return_dict["group"], required_dummy_attributes, dummy_input_dict

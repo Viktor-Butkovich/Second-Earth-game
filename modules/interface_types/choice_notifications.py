@@ -43,7 +43,10 @@ class choice_notification(action_notifications.action_notification):
         for current_button_type_index in range(len(button_types)):
             if type(button_types[current_button_type_index]) == dict:
                 init_type = constants.ANONYMOUS_BUTTON
-            elif button_types[current_button_type_index] == "recruitment":
+            elif (
+                button_types[current_button_type_index]
+                == constants.RECRUITMENT_CHOICE_BUTTON
+            ):
                 init_type = constants.RECRUITMENT_CHOICE_BUTTON
             else:
                 init_type = constants.CHOICE_BUTTON
@@ -134,36 +137,44 @@ class choice_button(buttons.button):
         Output:
             None
         """
+        self.button_type = input_dict.get("button_type", input_dict["init_type"])
         self.notification = input_dict["notification"]
-        if input_dict["button_type"] == constants.RECRUITMENT_CHOICE_BUTTON:
-            self.recruitment_type = self.notification.choice_info_dict[
-                "recruitment_type"
-            ]
-            if self.recruitment_type in [constants.SHIP]:
-                self.message = "Purchase"
-                self.verb = "purchase"
-            else:
-                self.message = "Hire"
-                self.verb = "hire"
-            self.cost = self.notification.choice_info_dict["cost"]
-            self.mob_image_id = self.notification.choice_info_dict.get(
-                "mob_image_id"
-            )  # Image ID provided for most units, but generated on creation for workers
+        match self.button_type:
+            case constants.RECRUITMENT_CHOICE_BUTTON:
+                self.recruitment_type = self.notification.choice_info_dict[
+                    "recruitment_type"
+                ]
+                self.recruitment_name = self.notification.choice_info_dict[
+                    "recruitment_name"
+                ]
+                if self.recruitment_type in [constants.SHIP]:
+                    self.message = "Purchase"
+                    self.verb = "purchase"
+                else:
+                    self.message = "Hire"
+                    self.verb = "hire"
+                self.cost = self.notification.choice_info_dict["cost"]
+                self.mob_image_id = self.notification.choice_info_dict.get(
+                    "mob_image_id"
+                )  # Image ID provided for most units, but generated on creation for workers
 
-        elif input_dict["button_type"] == constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON:
-            self.message = "Main menu"
+            case constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON:
+                self.message = "Main menu"
 
-        elif input_dict["button_type"] == constants.CHOICE_CONFIRM_REMOVE_MINISTER:
-            self.message = "Confirm"
+            case constants.CHOICE_CONFIRM_REMOVE_MINISTER:
+                self.message = "Confirm"
 
-        elif input_dict["button_type"] == constants.CHOICE_QUIT_BUTTON:
-            self.message = "Exit game"
+            case constants.CHOICE_QUIT_BUTTON:
+                self.message = "Exit game"
 
-        elif input_dict["button_type"] == None:
-            self.message = "Cancel"
+            case constants.CHOICE_END_TURN_BUTTON:
+                self.message = "End turn"
 
-        else:
-            self.message = input_dict["button_type"].capitalize()
+            case None:
+                self.message = "Cancel"
+
+            case _:
+                self.message = input_dict["button_type"].capitalize()
         super().__init__(input_dict)
         self.font = constants.fonts["default_notification"]
         self.in_notification = True
@@ -209,11 +220,18 @@ class choice_button(buttons.button):
             None
         """
         if self.button_type == constants.RECRUITMENT_CHOICE_BUTTON:
-            self.set_tooltip(
-                [
-                    f"{utility.capitalize(self.verb)} a {self.recruitment_type} for {str(self.cost)} money"
-                ]
-            )
+            if self.recruitment_type.endswith("workers"):
+                self.set_tooltip(
+                    [
+                        f"{utility.capitalize(self.verb)} a unit of {self.recruitment_name} for {str(self.cost)} money"
+                    ]
+                )
+            else:
+                self.set_tooltip(
+                    [
+                        f"{utility.capitalize(self.verb)} a {self.recruitment_name} for {str(self.cost)} money"
+                    ]
+                )
 
         elif self.button_type == constants.CHOICE_END_TURN_BUTTON:
             self.set_tooltip(["End the current turn"])

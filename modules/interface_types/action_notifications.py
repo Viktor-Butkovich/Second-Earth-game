@@ -140,13 +140,14 @@ class action_notification(notification):
                 self.notification_ordered_collection.remove_member(interface_element)
                 transferred_interface_elements.append(interface_element)
 
+        constants.notification_manager.handle_next_notification(
+            transferred_interface_elements=transferred_interface_elements
+        )
+
         if self.has_parent_collection:
             self.parent_collection.remove_recursive(complete=False)
         else:
             self.remove()
-        constants.notification_manager.handle_next_notification(
-            transferred_interface_elements=transferred_interface_elements
-        )
 
     def format_message(self):
         """

@@ -19,6 +19,7 @@ from modules.tools.data_managers import (
     value_tracker_template,
     achievement_manager_template,
     character_manager_template,
+    actor_creation_manager_template,
 )
 from modules.action_types import (
     public_relations_campaign,
@@ -86,6 +87,10 @@ def misc():
     Output:
         None
     """
+    constants.actor_creation_manager = (
+        actor_creation_manager_template.actor_creation_manager_template()
+    )
+
     constants.font_size = scaling.scale_height(constants.default_font_size)
     constants.notification_font_size = scaling.scale_height(
         constants.default_notification_font_size
@@ -1468,9 +1473,8 @@ def mob_interface():
                 "minimum_width": scaling.scale_width(115),
                 "height": scaling.scale_height(115),
                 "image_id": "misc/empty.png",
-                "actor_label_type": "tooltip",
                 "actor_type": "mob",
-                "init_type": constants.ACTOR_DISPLAY_LABEL,
+                "init_type": constants.ACTOR_TOOLTIP_LABEL,
                 "parent_collection": status.mob_info_display,
                 "member_config": {"order_overlap": True},
             }
@@ -1560,7 +1564,7 @@ def mob_interface():
     )
 
     # mob info labels setup
-    mob_info_display_labels = [
+    for current_actor_label_type in [
         constants.NAME_LABEL,
         constants.MINISTER_LABEL,
         constants.OFFICER_LABEL,
@@ -1572,8 +1576,7 @@ def mob_interface():
         constants.CREW_LABEL,
         constants.PASSENGERS_LABEL,
         constants.CURRENT_PASSENGER_LABEL,
-    ]  # order of mob info display labels
-    for current_actor_label_type in mob_info_display_labels:
+    ]:
         if (
             current_actor_label_type == constants.MINISTER_LABEL
         ):  # how far from edge of screen
@@ -1591,7 +1594,6 @@ def mob_interface():
             "actor_type": "mob",
             "parent_collection": status.mob_info_display,
             "member_config": {"order_x_offset": x_displacement},
-            "init_type": constants.ACTOR_DISPLAY_LABEL,
         }
         if current_actor_label_type != constants.CURRENT_PASSENGER_LABEL:
             constants.actor_creation_manager.create_interface_element(input_dict)
@@ -2555,9 +2557,8 @@ def minister_interface():
                 "minimum_width": scaling.scale_width(125),
                 "height": scaling.scale_height(125),
                 "image_id": "misc/empty.png",
-                "actor_label_type": "tooltip",
                 "actor_type": "minister",
-                "init_type": constants.ACTOR_DISPLAY_LABEL,
+                "init_type": constants.ACTOR_TOOLTIP_LABEL,
                 "parent_collection": status.minister_info_display,
                 "member_config": {"order_overlap": False},
             }
