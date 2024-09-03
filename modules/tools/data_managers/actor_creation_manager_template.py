@@ -49,7 +49,200 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         Output:
             None
         """
-        return
+        self.actor_constructors = {
+            constants.MOB: mobs.mob,
+            constants.EUROPEAN_WORKERS: workers.worker,
+            constants.CHURCH_VOLUNTEERS: workers.church_volunteers,
+            constants.TRAIN: vehicles.train,
+            constants.SHIP: vehicles.ship,
+            constants.EXPLORER: officers.officer,
+            constants.ENGINEER: officers.officer,
+            constants.DRIVER: officers.officer,
+            constants.FOREMAN: officers.officer,
+            constants.MERCHANT: officers.officer,
+            constants.EVANGELIST: officers.officer,
+            constants.MAJOR: officers.officer,
+            constants.PORTERS: porters.porters,
+            constants.WORK_CREW: work_crews.work_crew,
+            constants.CONSTRUCTION_GANG: construction_gangs.construction_gang,
+            constants.CARAVAN: caravans.caravan,
+            constants.MISSIONARIES: missionaries.missionaries,
+            constants.EXPEDITION: expeditions.expedition,
+            constants.BATTALION: battalions.battalion,
+            constants.INFRASTRUCTURE: buildings.infrastructure_building,
+            constants.FORT: buildings.building,
+            constants.TRAIN_STATION: buildings.building,
+            constants.PORT: buildings.port,
+            constants.WAREHOUSES: buildings.warehouses,
+            constants.RESOURCE: buildings.resource_building,
+            constants.SLUMS: buildings.slums,
+            constants.SETTLEMENT: settlements.settlement,
+            constants.CELL_ICON: cell_icons.cell_icon,
+            constants.NAME_ICON: cell_icons.name_icon,
+            constants.LOAN: market_utility.loan,
+        }
+        self.interface_constructors = {
+            constants.BUTTON: buttons.button,
+            constants.NEW_GAME_BUTTON: buttons.button,
+            constants.LOAD_GAME_BUTTON: buttons.button,
+            constants.CYCLE_UNITS_BUTTON: buttons.button,
+            constants.WAKE_UP_ALL_BUTTON: buttons.button,
+            constants.GENERATE_CRASH_BUTTON: buttons.button,
+            constants.EXECUTE_MOVEMENT_ROUTES_BUTTON: buttons.button,
+            constants.MOVE_LEFT_BUTTON: buttons.button,
+            constants.MOVE_RIGHT_BUTTON: buttons.button,
+            constants.MOVE_UP_BUTTON: buttons.button,
+            constants.MOVE_DOWN_BUTTON: buttons.button,
+            constants.SAVE_GAME_BUTTON: buttons.button,
+            constants.USE_EACH_EQUIPMENT_BUTTON: buttons.button,
+            constants.SELL_COMMODITY_BUTTON: buttons.button,
+            constants.SELL_ALL_COMMODITY_BUTTON: buttons.button,
+            constants.DROP_EACH_COMMODITY_BUTTON: buttons.button,
+            constants.USE_EQUIPMENT_BUTTON: buttons.button,
+            constants.RENAME_SETTLEMENT_BUTTON: buttons.button,
+            constants.MINIMIZE_INTERFACE_COLLECTION_BUTTON: buttons.button,
+            constants.MOVE_INTERFACE_COLLECTION_BUTTON: buttons.button,
+            constants.RESET_INTERFACE_COLLECTION_BUTTON: buttons.button,
+            constants.BUILD_TRAIN_BUTTON: buttons.button,
+            constants.INTERFACE_ELEMENT: interface_elements.interface_element,
+            constants.INTERFACE_COLLECTION: interface_elements.interface_collection,
+            constants.AUTOFILL_COLLECTION: interface_elements.autofill_collection,
+            constants.ORDERED_COLLECTION: interface_elements.ordered_collection,
+            constants.INVENTORY_GRID: inventory_interface.inventory_grid,
+            constants.TABBED_COLLECTION: interface_elements.tabbed_collection,
+            constants.END_TURN_BUTTON: buttons.end_turn_button,
+            constants.CYCLE_SAME_TILE_BUTTON: buttons.cycle_same_tile_button,
+            constants.FIRE_UNIT_BUTTON: buttons.fire_unit_button,
+            constants.SWITCH_GAME_MODE_BUTTON: buttons.switch_game_mode_button,
+            constants.CYCLE_AVAILABLE_MINISTERS_BUTTON: buttons.cycle_available_ministers_button,
+            constants.COMMODITY_BUTTON: buttons.commodity_button,
+            constants.SHOW_PREVIOUS_REPORTS_BUTTON: buttons.show_previous_reports_button,
+            constants.TAB_BUTTON: buttons.tab_button,
+            constants.REORGANIZE_UNIT_BUTTON: buttons.reorganize_unit_button,
+            constants.CYCLE_AUTOFILL_BUTTON: buttons.cycle_autofill_button,
+            constants.ANONYMOUS_BUTTON: buttons.anonymous_button,
+            constants.ACTION_BUTTON: buttons.action_button,
+            constants.SCROLL_BUTTON: buttons.scroll_button,
+            constants.REMOVE_EQUIPMENT_BUTTON: buttons.remove_equipment_button,
+            constants.MAP_MODE_BUTTON: buttons.map_mode_button,
+            constants.INSTRUCTIONS_BUTTON: instructions.instructions_button,
+            constants.CHOICE_BUTTON: choice_notifications.choice_button,
+            constants.RECRUITMENT_CHOICE_BUTTON: choice_notifications.recruitment_choice_button,
+            constants.RECRUITMENT_BUTTON: earth_transactions.recruitment_button,
+            constants.BUY_ITEM_BUTTON: earth_transactions.buy_item_button,
+            constants.EMBARK_ALL_PASSENGERS_BUTTON: actor_display_buttons.embark_all_passengers_button,
+            constants.DISEMBARK_ALL_PASSENGERS_BUTTON: actor_display_buttons.disembark_all_passengers_button,
+            constants.ENABLE_SENTRY_MODE_BUTTON: actor_display_buttons.enable_sentry_mode_button,
+            constants.DISABLE_SENTRY_MODE_BUTTON: actor_display_buttons.disable_sentry_mode_button,
+            constants.ENABLE_AUTOMATIC_REPLACEMENT_BUTTON: actor_display_buttons.enable_automatic_replacement_button,
+            constants.DISABLE_AUTOMATIC_REPLACEMENT_BUTTON: actor_display_buttons.disable_automatic_replacement_button,
+            constants.END_UNIT_TURN_BUTTON: actor_display_buttons.end_unit_turn_button,
+            constants.REMOVE_WORK_CREW_BUTTON: actor_display_buttons.remove_work_crew_button,
+            constants.DISEMBARK_VEHICLE_BUTTON: actor_display_buttons.disembark_vehicle_button,
+            constants.EMBARK_VEHICLE_BUTTON: actor_display_buttons.embark_vehicle_button,
+            constants.CYCLE_PASSENGERS_BUTTON: actor_display_buttons.cycle_passengers_button,
+            constants.CYCLE_WORK_CREWS_BUTTON: actor_display_buttons.cycle_work_crews_button,
+            constants.WORK_CREW_TO_BUILDING_BUTTON: actor_display_buttons.work_crew_to_building_button,
+            constants.SWITCH_THEATRE_BUTTON: actor_display_buttons.switch_theatre_button,
+            constants.APPOINT_MINISTER_BUTTON: actor_display_buttons.appoint_minister_button,
+            constants.REMOVE_MINISTER_BUTTON: actor_display_buttons.remove_minister_button,
+            constants.TO_TRIAL_BUTTON: actor_display_buttons.to_trial_button,
+            constants.FABRICATE_EVIDENCE_BUTTON: actor_display_buttons.fabricate_evidence_button,
+            constants.BRIBE_JUDGE_BUTTON: actor_display_buttons.bribe_judge_button,
+            constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON: actor_display_buttons.automatic_route_button,
+            constants.DRAW_AUTOMATIC_ROUTE_BUTTON: actor_display_buttons.automatic_route_button,
+            constants.CLEAR_AUTOMATIC_ROUTE_BUTTON: actor_display_buttons.automatic_route_button,
+            constants.TOGGLE_BUTTON: actor_display_buttons.toggle_button,
+            constants.CHANGE_PARAMETER_BUTTON: actor_display_buttons.change_parameter_button,
+            constants.SAME_TILE_ICON: buttons.same_tile_icon,
+            constants.MINISTER_PORTRAIT_IMAGE: buttons.minister_portrait_image,
+            constants.ITEM_ICON: inventory_interface.item_icon,
+            constants.DIE_ELEMENT: dice.die,
+            constants.PANEL_ELEMENT: panels.panel,
+            constants.SAFE_CLICK_PANEL_ELEMENT: panels.safe_click_panel,
+            constants.LABEL: labels.label,
+            constants.VALUE_LABEL: labels.value_label,
+            constants.MONEY_LABEL: labels.money_label_template,
+            constants.COMMODITY_PRICES_LABEL: labels.commodity_prices_label_template,
+            constants.MULTI_LINE_LABEL: labels.multi_line_label,
+            constants.ACTOR_DISPLAY_LABEL: actor_display_labels.actor_display_label,
+            constants.MINISTER_NAME_LABEL: actor_display_labels.actor_display_label,
+            constants.MINISTER_BACKGROUND_LABEL: actor_display_labels.actor_display_label,
+            constants.MINISTER_OFFICE_LABEL: actor_display_labels.actor_display_label,
+            constants.MINISTER_SOCIAL_STATUS_LABEL: actor_display_labels.actor_display_label,
+            constants.MINISTER_INTERESTS_LABEL: actor_display_labels.actor_display_label,
+            constants.MINISTER_LOYALTY_LABEL: actor_display_labels.actor_display_label,
+            constants.MINISTER_ABILITY_LABEL: actor_display_labels.actor_display_label,
+            constants.MILITARY_SKILL_LABEL: actor_display_labels.actor_display_label,
+            constants.RELIGION_SKILL_LABEL: actor_display_labels.actor_display_label,
+            constants.TRADE_SKILL_LABEL: actor_display_labels.actor_display_label,
+            constants.EXPLORATION_SKILL_LABEL: actor_display_labels.actor_display_label,
+            constants.CONSTRUCTION_SKILL_LABEL: actor_display_labels.actor_display_label,
+            constants.PRODUCTION_SKILL_LABEL: actor_display_labels.actor_display_label,
+            constants.TRANSPORTATION_SKILL_LABEL: actor_display_labels.actor_display_label,
+            constants.PROSECUTION_SKILL_LABEL: actor_display_labels.actor_display_label,
+            constants.EVIDENCE_LABEL: actor_display_labels.actor_display_label,
+            constants.NAME_LABEL: actor_display_labels.actor_display_label,
+            constants.MINISTER_LABEL: actor_display_labels.actor_display_label,
+            constants.OFFICER_LABEL: actor_display_labels.actor_display_label,
+            constants.WORKERS_LABEL: actor_display_labels.actor_display_label,
+            constants.MOVEMENT_LABEL: actor_display_labels.actor_display_label,
+            constants.COMBAT_STRENGTH_LABEL: actor_display_labels.actor_display_label,
+            constants.ATTITUDE_LABEL: actor_display_labels.actor_display_label,
+            constants.CONTROLLABLE_LABEL: actor_display_labels.actor_display_label,
+            constants.CREW_LABEL: actor_display_labels.actor_display_label,
+            constants.PASSENGERS_LABEL: actor_display_labels.actor_display_label,
+            constants.COORDINATES_LABEL: actor_display_labels.actor_display_label,
+            constants.KNOWLEDGE_LABEL: actor_display_labels.actor_display_label,
+            constants.TERRAIN_LABEL: actor_display_labels.actor_display_label,
+            constants.WATER_LABEL: actor_display_labels.actor_display_label,
+            constants.TEMPERATURE_LABEL: actor_display_labels.actor_display_label,
+            constants.VEGETATION_LABEL: actor_display_labels.actor_display_label,
+            constants.ROUGHNESS_LABEL: actor_display_labels.actor_display_label,
+            constants.SOIL_LABEL: actor_display_labels.actor_display_label,
+            constants.ALTITUDE_LABEL: actor_display_labels.actor_display_label,
+            constants.RESOURCE_LABEL: actor_display_labels.actor_display_label,
+            constants.MOB_INVENTORY_CAPACITY_LABEL: actor_display_labels.actor_display_label,
+            constants.TILE_INVENTORY_CAPACITY_LABEL: actor_display_labels.actor_display_label,
+            constants.INVENTORY_NAME_LABEL: actor_display_labels.actor_display_label,
+            constants.INVENTORY_QUANTITY_LABEL: actor_display_labels.actor_display_label,
+            constants.SETTLEMENT: actor_display_labels.actor_display_label,
+            constants.SLUMS: actor_display_labels.actor_display_label,
+            constants.RESOURCE: actor_display_labels.actor_display_label,
+            constants.PORT: actor_display_labels.actor_display_label,
+            constants.INFRASTRUCTURE: actor_display_labels.actor_display_label,
+            constants.TRAIN_STATION: actor_display_labels.actor_display_label,
+            constants.FORT: actor_display_labels.actor_display_label,
+            constants.WAREHOUSES: actor_display_labels.actor_display_label,
+            constants.TERRAIN_FEATURE_LABEL: actor_display_labels.terrain_feature_label,
+            constants.CURRENT_PASSENGER_LABEL: actor_display_labels.list_item_label,
+            constants.ACTOR_TOOLTIP_LABEL: actor_display_labels.actor_tooltip_label,
+            constants.LIST_ITEM_LABEL: actor_display_labels.list_item_label,
+            constants.BUILDING_WORK_CREWS_LABEL: actor_display_labels.building_work_crews_label,
+            constants.BUILDING_EFFICIENCY_LABEL: actor_display_labels.building_efficiency_label,
+            constants.TERRAIN_FEATURE_LABEL: actor_display_labels.terrain_feature_label,
+            constants.BANNER_LABEL: actor_display_labels.banner,
+            constants.FREE_IMAGE: images.free_image,
+            constants.ACTOR_DISPLAY_FREE_IMAGE: actor_display_images.actor_display_free_image,
+            constants.MOB_BACKGROUND_IMAGE: actor_display_images.mob_background_image,
+            constants.MINISTER_BACKGROUND_IMAGE: actor_display_images.minister_background_image,
+            constants.LABEL_IMAGE: actor_display_images.label_image,
+            constants.BACKGROUND_IMAGE: images.background_image,
+            constants.TOOLTIP_FREE_IMAGE: images.tooltip_free_image,
+            constants.MINISTER_TYPE_IMAGE: images.minister_type_image,
+            constants.DICE_ROLL_MINISTER_IMAGE: images.dice_roll_minister_image,
+            constants.INDICATOR_IMAGE: images.indicator_image,
+            constants.WARNING_IMAGE: images.warning_image,
+            constants.LOADING_IMAGE_TEMPLATE_IMAGE: images.loading_image_template,
+            constants.MOUSE_FOLLOWER_IMAGE: mouse_followers.mouse_follower_template,
+            constants.DIRECTIONAL_INDICATOR_IMAGE: images.directional_indicator_image,
+            constants.NOTIFICATION: notifications.notification,
+            constants.ZOOM_NOTIFICATION: notifications.zoom_notification,
+            constants.CHOICE_NOTIFICATION: choice_notifications.choice_notification,
+            constants.ACTION_NOTIFICATION: action_notifications.action_notification,
+            constants.DICE_ROLLING_NOTIFICATION: action_notifications.dice_rolling_notification,
+            constants.OFF_TILE_EXPLORATION_NOTIFICATION: action_notifications.off_tile_exploration_notification,
+        }
 
     def create(self, from_save, input_dict):
         """
@@ -62,70 +255,9 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         Output:
             actor: Returns the mob or building that was created
         """
-        init_type = input_dict["init_type"]
-        # mobs
-        if init_type == "mob":
-            new_actor = mobs.mob(from_save, input_dict)
-        elif init_type == "workers":
-            new_actor = workers.worker(from_save, input_dict)
-        elif init_type == "church_volunteers":
-            new_actor = workers.church_volunteers(from_save, input_dict)
-        elif init_type == "train":
-            new_actor = vehicles.train(from_save, input_dict)
-        elif init_type == "ship":
-            new_actor = vehicles.ship(from_save, input_dict)
-        elif init_type == "boat":
-            new_actor = vehicles.boat(from_save, input_dict)
-        elif init_type in constants.officer_types:
-            new_actor = officers.officer(from_save, input_dict)
+        return self.actor_constructors[input_dict["init_type"]](from_save, input_dict)
 
-        # groups
-        elif init_type == "porters":
-            new_actor = porters.porters(from_save, input_dict)
-        elif init_type == "work_crew":
-            new_actor = work_crews.work_crew(from_save, input_dict)
-        elif init_type == "construction_gang":
-            new_actor = construction_gangs.construction_gang(from_save, input_dict)
-        elif init_type == "caravan":
-            new_actor = caravans.caravan(from_save, input_dict)
-        elif init_type == "missionaries":
-            new_actor = missionaries.missionaries(from_save, input_dict)
-        elif init_type == "expedition":
-            new_actor = expeditions.expedition(from_save, input_dict)
-        elif init_type == "battalion":
-            new_actor = battalions.battalion(from_save, input_dict)
-
-        # buildings
-        elif init_type == "infrastructure":
-            new_actor = buildings.infrastructure_building(from_save, input_dict)
-        elif init_type == "fort":
-            new_actor = buildings.fort(from_save, input_dict)
-        elif init_type == "train_station":
-            new_actor = buildings.train_station(from_save, input_dict)
-        elif init_type == "port":
-            new_actor = buildings.port(from_save, input_dict)
-        elif init_type == "warehouses":
-            new_actor = buildings.warehouses(from_save, input_dict)
-        elif init_type == "resource":
-            new_actor = buildings.resource_building(from_save, input_dict)
-        elif init_type == "slums":
-            new_actor = buildings.slums(from_save, input_dict)
-        elif init_type == "settlement":
-            new_actor = settlements.settlement(from_save, input_dict)
-
-        # cell icons
-        elif init_type == "cell icon":
-            new_actor = cell_icons.cell_icon(from_save, input_dict)
-        elif init_type == "name icon":
-            new_actor = cell_icons.name_icon(from_save, input_dict)
-
-        # loans
-        elif init_type == "loan":
-            new_actor = market_utility.loan(from_save, input_dict)
-
-        return new_actor
-
-    def create_dummy(self, input_dict):
+    def create_dummy(self, input_dict=None):
         """
         Description:
             Creates a special fake version of a unit to display as a hypothetical, with the same images and tooltips as a real unit
@@ -135,6 +267,8 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         Output:
             actor: Returns the unit that was created
         """
+        if not input_dict:
+            input_dict = {}
         new_actor = dummy.dummy(input_dict)
         return new_actor
 
@@ -148,294 +282,9 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         Output:
             actor: Returns the interface element created
         """
-        init_type = input_dict["init_type"]
-        # interface elements
-        if init_type == "button":
-            new_element = buttons.button(input_dict)
-        if init_type == "interface element":
-            new_element = interface_elements.interface_element(input_dict)
-        elif init_type == "interface collection":
-            new_element = interface_elements.interface_collection(input_dict)
-        elif init_type == "autofill collection":
-            new_element = interface_elements.autofill_collection(input_dict)
-        elif init_type == "ordered collection":
-            new_element = interface_elements.ordered_collection(input_dict)
-        elif init_type == "inventory grid":
-            new_element = inventory_interface.inventory_grid(input_dict)
-        elif init_type == "tabbed collection":
-            new_element = interface_elements.tabbed_collection(input_dict)
-        if init_type.endswith("button"):
-            base = init_type.removesuffix("button")
-            # buttons buttons
-            if base == "":
-                new_element = buttons.button(input_dict)
-            else:
-                base = base.removesuffix(" ")
-                if base == "end turn":
-                    new_element = buttons.end_turn_button(input_dict)
-                elif base == "cycle same tile":
-                    new_element = buttons.cycle_same_tile_button(input_dict)
-                elif base == "fire unit":
-                    new_element = buttons.fire_unit_button(input_dict)
-                elif base == "switch game mode":
-                    new_element = buttons.switch_game_mode_button(input_dict)
-                elif base == "cycle available ministers":
-                    new_element = buttons.cycle_available_ministers_button(input_dict)
-                elif base == "commodity":
-                    new_element = buttons.commodity_button(input_dict)
-                elif base == "show previous reports":
-                    new_element = buttons.show_previous_reports_button(input_dict)
-                elif base == "tab":
-                    new_element = buttons.tab_button(input_dict)
-                elif base == "reorganize unit":
-                    new_element = buttons.reorganize_unit_button(input_dict)
-                elif base == "cycle autofill":
-                    new_element = buttons.cycle_autofill_button(input_dict)
-                elif base == "anonymous":
-                    new_element = buttons.anonymous_button(input_dict)
-                elif base == "action":
-                    new_element = buttons.action_button(input_dict)
-                elif base == "scroll":
-                    new_element = buttons.scroll_button(input_dict)
-                elif base == "remove equipment":
-                    new_element = buttons.remove_equipment_button(input_dict)
-                elif base == "map mode":
-                    new_element = buttons.map_mode_button(input_dict)
+        return self.interface_constructors[input_dict["init_type"]](input_dict)
 
-                # instructions buttons
-                elif base == "instructions":
-                    new_element = instructions.instructions_button(input_dict)
-
-                # choice_notifications buttons
-                elif base == "choice":
-                    new_element = choice_notifications.choice_button(input_dict)
-                elif base == "recruitment choice":
-                    new_element = choice_notifications.recruitment_choice_button(
-                        input_dict
-                    )
-                elif base.endswith(
-                    " choice"
-                ):  # if given init type end turn choice button, base is end turn choice and button type is end turn as a choice button
-                    base = base.removesuffix(" choice")
-                    input_dict["button_type"] = base.removesuffix(" choice")
-                    new_element = choice_notifications.choice_button(input_dict)
-
-                # earth_transactions buttons
-                elif base == "recruitment":
-                    new_element = earth_transactions.recruitment_button(input_dict)
-                elif base == "buy item":
-                    new_element = earth_transactions.buy_item_button(input_dict)
-
-                # actor_display_buttons buttons
-                elif base == "embark all passengers":
-                    new_element = actor_display_buttons.embark_all_passengers_button(
-                        input_dict
-                    )
-                elif base == "disembark all passengers":
-                    new_element = actor_display_buttons.disembark_all_passengers_button(
-                        input_dict
-                    )
-                elif base == "enable sentry mode":
-                    new_element = actor_display_buttons.enable_sentry_mode_button(
-                        input_dict
-                    )
-                elif base == "disable sentry mode":
-                    new_element = actor_display_buttons.disable_sentry_mode_button(
-                        input_dict
-                    )
-                elif base == "enable automatic replacement":
-                    new_element = (
-                        actor_display_buttons.enable_automatic_replacement_button(
-                            input_dict
-                        )
-                    )
-                elif base == "disable automatic replacement":
-                    new_element = (
-                        actor_display_buttons.disable_automatic_replacement_button(
-                            input_dict
-                        )
-                    )
-                elif base == "end unit turn":
-                    new_element = actor_display_buttons.end_unit_turn_button(input_dict)
-                elif base == "remove work crew":
-                    new_element = actor_display_buttons.remove_work_crew_button(
-                        input_dict
-                    )
-                elif base == "disembark vehicle":
-                    new_element = actor_display_buttons.disembark_vehicle_button(
-                        input_dict
-                    )
-                elif base == "embark vehicle":
-                    new_element = actor_display_buttons.embark_vehicle_button(
-                        input_dict
-                    )
-                elif base == "cycle passengers":
-                    new_element = actor_display_buttons.cycle_passengers_button(
-                        input_dict
-                    )
-                elif base == "cycle work crews":
-                    new_element = actor_display_buttons.cycle_work_crews_button(
-                        input_dict
-                    )
-                elif base == "work crew to building":
-                    new_element = actor_display_buttons.work_crew_to_building_button(
-                        input_dict
-                    )
-                elif base == "switch theatre":
-                    new_element = actor_display_buttons.switch_theatre_button(
-                        input_dict
-                    )
-                elif base == "appoint minister":
-                    new_element = actor_display_buttons.appoint_minister_button(
-                        input_dict
-                    )
-                elif base == "remove minister":
-                    new_element = actor_display_buttons.remove_minister_button(
-                        input_dict
-                    )
-                elif base == "to trial":
-                    new_element = actor_display_buttons.to_trial_button(input_dict)
-                elif base == "fabricate evidence":
-                    new_element = actor_display_buttons.fabricate_evidence_button(
-                        input_dict
-                    )
-                elif base == "bribe judge":
-                    new_element = actor_display_buttons.bribe_judge_button(input_dict)
-                elif base == "recruit workers":
-                    new_element = actor_display_buttons.recruit_workers_button(
-                        input_dict
-                    )
-                elif base == "automatic route":
-                    new_element = actor_display_buttons.automatic_route_button(
-                        input_dict
-                    )
-                elif base == "toggle":
-                    new_element = actor_display_buttons.toggle_button(input_dict)
-                elif base == "change parameter":
-                    new_element = actor_display_buttons.change_parameter_button(
-                        input_dict
-                    )
-                else:  # if given init type cycle passengers button, will initialize as base button class with button type cycle passengers
-                    input_dict["button_type"] = base
-                    new_element = buttons.button(input_dict)
-        elif init_type == "same tile icon":
-            new_element = buttons.same_tile_icon(input_dict)
-        elif (
-            init_type == "minister portrait image"
-        ):  # actually a button, fix misleading name eventually
-            new_element = buttons.minister_portrait_image(input_dict)
-        elif init_type == "item icon":
-            new_element = inventory_interface.item_icon(input_dict)
-        elif init_type == "die":
-            new_element = dice.die(input_dict)
-        elif init_type == "panel":
-            new_element = panels.panel(input_dict)
-        elif init_type == "safe click panel":
-            new_element = panels.safe_click_panel(input_dict)
-
-        elif init_type.endswith("label"):
-            base = init_type.removesuffix("label")
-            # labels labels
-            if base == "":
-                new_element = labels.label(input_dict)
-            else:
-                base = base.removesuffix(" ")
-                if base == "value":
-                    new_element = labels.value_label(input_dict)
-                elif base == "money":
-                    new_element = labels.money_label_template(input_dict)
-                elif base == "commodity prices":
-                    new_element = labels.commodity_prices_label_template(input_dict)
-                elif base == "multi line":
-                    new_element = labels.multi_line_label(input_dict)
-
-                # actor display labels
-                elif base == "actor display":
-                    new_element = actor_display_labels.actor_display_label(input_dict)
-                elif base == "actor tooltip":
-                    new_element = actor_display_labels.actor_tooltip_label(input_dict)
-                elif base == "list item":
-                    new_element = actor_display_labels.list_item_label(input_dict)
-                elif base == "building work crews":
-                    new_element = actor_display_labels.building_work_crews_label(
-                        input_dict
-                    )
-                elif base == "building efficiency":
-                    new_element = actor_display_labels.building_efficiency_label(
-                        input_dict
-                    )
-                elif base == "terrain feature":
-                    new_element = actor_display_labels.terrain_feature_label(input_dict)
-
-                else:
-                    new_element = actor_display_labels.actor_display_label(input_dict)
-        elif init_type == "instructions page":
-            new_element = instructions.instructions_page(input_dict)
-
-        elif init_type.endswith("image"):
-            base = init_type.removesuffix(" image")
-            if base == "free":
-                new_element = images.free_image(input_dict)
-            elif base == "actor display free":
-                new_element = actor_display_images.actor_display_free_image(input_dict)
-            elif base == "mob background":
-                new_element = actor_display_images.mob_background_image(input_dict)
-            elif base == "minister background":
-                new_element = actor_display_images.minister_background_image(input_dict)
-            elif base == "label":
-                new_element = actor_display_images.label_image(input_dict)
-            elif base == "background":
-                new_element = images.background_image(input_dict)
-            elif base == "tooltip free":
-                new_element = images.tooltip_free_image(input_dict)
-            elif base == "minister type":
-                new_element = images.minister_type_image(input_dict)
-            elif base == "dice roll minister":
-                new_element = images.dice_roll_minister_image(input_dict)
-            elif base == "indicator":
-                new_element = images.indicator_image(input_dict)
-            elif base == "warning":
-                new_element = images.warning_image(input_dict)
-            elif base == "loading image template":
-                new_element = images.loading_image_template(input_dict)
-            elif base == "mouse follower":
-                new_element = mouse_followers.mouse_follower_template(input_dict)
-
-        elif init_type.endswith("notification"):
-            base = init_type.removesuffix("notification")
-            # notifications notifications
-            if base == "":
-                new_element = notifications.notification(input_dict)
-            else:
-                base = base.removesuffix(" ")
-                if base == "zoom":
-                    new_element = notifications.zoom_notification(input_dict)
-
-                # choice_notifications notifications
-                elif base == "choice":
-                    new_element = choice_notifications.choice_notification(input_dict)
-
-                # action_notifications notifications
-                elif base == "action":
-                    new_element = action_notifications.action_notification(input_dict)
-                elif base == "dice rolling":
-                    new_element = action_notifications.dice_rolling_notification(
-                        input_dict
-                    )
-                elif base == "off tile exploration":
-                    new_element = (
-                        action_notifications.off_tile_exploration_notification(
-                            input_dict
-                        )
-                    )
-                else:
-                    new_element = notifications.notification(input_dict)
-        new_element.showing = new_element.can_show()
-        return new_element
-
-    def display_recruitment_choice_notification(
-        self, choice_info_dict, recruitment_name
-    ):
+    def display_recruitment_choice_notification(self, choice_info_dict):
         """
         Description:
             Displays a choice notification to verify the recruitment of a unit
@@ -445,19 +294,22 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                 'cost': double value - Recruitment cost of the unit
                 'mob_image_id': string value - File path to the image used by the recruited unit
                 'type': string value - Type of choice notification to display, always 'recruitment' for recruitment notificatoins
-            string recruitment_name: Name used in the notification to signify the unit, like 'explorer'
+                'recruitment_name': string value - Name used in the notification to signify the unit, like 'explorer'
         Output:
             None
         """
-        recruitment_type = recruitment_name
-        if recruitment_name in ["steamship"]:
+        recruitment_type, recruitment_name = (
+            choice_info_dict["recruitment_type"],
+            choice_info_dict["recruitment_name"],
+        )
+        if recruitment_type in [constants.SHIP]:
             verb = "purchase"
-        elif recruitment_name.endswith(" workers"):
+        elif recruitment_type.endswith("workers"):
             verb = "hire"
         else:
             verb = "recruit"
 
-        if recruitment_name.endswith(" workers"):
+        if recruitment_type.endswith("workers"):
             message = f"Are you sure you want to {verb} a unit of {recruitment_name} for {choice_info_dict['cost']} money? /n /n"
         else:
             message = f"Are you sure you want to {verb} {utility.generate_article(recruitment_name)} {recruitment_name} for {str(choice_info_dict['cost'])} money? /n /n"
@@ -468,7 +320,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         constants.notification_manager.display_notification(
             {
                 "message": message,
-                "choices": ["recruitment", "none"],
+                "choices": [constants.RECRUITMENT_CHOICE_BUTTON, None],
                 "extra_parameters": choice_info_dict,
             }
         )

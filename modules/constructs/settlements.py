@@ -78,7 +78,7 @@ class settlement:
                 'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
         """
         save_dict = {}
-        save_dict["init_type"] = "settlement"
+        save_dict["init_type"] = constants.SETTLEMENT
         save_dict["name"] = self.name
         save_dict["coordinates"] = (self.x, self.y)
         return save_dict

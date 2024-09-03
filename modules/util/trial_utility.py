@@ -35,12 +35,7 @@ def manage_defense(corruption_evidence, prosecutor_corrupt):
             building_defense = False
             if constants.effect_manager.effect_active("show_minister_stealing"):
                 print(
-                    defense.current_position
-                    + " "
-                    + defense.name
-                    + " now has "
-                    + str(defense.stolen_money - defense_cost)
-                    + " money remaining."
+                    f"{defense.current_position} {defense.name} now has {defense.stolen_money - defense_cost} money remaining."
                 )
         else:
             lawyer_cost = get_lawyer_cost(num_lawyers)

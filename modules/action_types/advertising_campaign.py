@@ -32,7 +32,11 @@ class advertising_campaign(action.campaign):
         super().initial_setup()
         constants.transaction_descriptions[self.action_type] = "advertising"
         self.name = "advertising campaign"
-        self.target_commodity = "none"
+        self.target_commodity = None
+        self.requirements += [
+            constants.OFFICER_PERMISSION,
+            constants.MERCHANT_PERMISSION,
+        ]
 
     def pre_start(self, unit):
         """
@@ -41,7 +45,7 @@ class advertising_campaign(action.campaign):
         Input:
             pmob unit: Unit selected when the linked button is clicked
         Output:
-            none
+            None
         """
         super().pre_start(unit)
         self.current_min_success = 5  # alternative to subtracting a roll modifier, which would change the max crit fail
@@ -215,21 +219,6 @@ class advertising_campaign(action.campaign):
                 audio += self.success_audio
         return audio
 
-    def can_show(self):
-        """
-        Description:
-            Returns whether a button linked to this action should be drawn
-        Input:
-            None
-        Output:
-            boolean: Returns whether a button linked to this action should be drawn
-        """
-        return (
-            super().can_show()
-            and status.displayed_mob.is_officer
-            and status.displayed_mob.officer_type == "merchant"
-        )
-
     def on_click(self, unit):
         """
         Description:
@@ -241,8 +230,8 @@ class advertising_campaign(action.campaign):
         """
         if super().on_click(unit):
             if status.earth_grid in unit.grids:
-                if not constants.current_game_mode == "earth":
-                    game_transitions.set_game_mode("earth")
+                if constants.current_game_mode != constants.EARTH_MODE:
+                    game_transitions.set_game_mode(constants.EARTH_MODE)
                     unit.select()
                 text_utility.print_to_screen(
                     "Select a commodity to advertise, or click elsewhere to cancel: "
@@ -283,14 +272,11 @@ class advertising_campaign(action.campaign):
                         {
                             "on_click": (self.middle, []),
                             "tooltip": [
-                                "Starts an "
-                                + self.name
-                                + " for "
-                                + self.target_commodity
+                                f"Starts an {self.name} for {self.target_commodity}"
                             ],
                             "message": "Start campaign",
                         },
-                        {"tooltip": ["Stop " + self.name], "message": "Stop campaign"},
+                        {"tooltip": [f"Stop {self.name}"], "message": "Stop campaign"},
                     ],
                 }
             )

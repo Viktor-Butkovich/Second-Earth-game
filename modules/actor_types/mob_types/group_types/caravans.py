@@ -1,9 +1,6 @@
 # Contains functionality for caravans
 
-import random
-import math
 from ..groups import group
-from ....util import utility, actor_utility, dice_utility, market_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -28,8 +25,8 @@ class caravan(group):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this group's name
                 'modes': string list value - Game modes during which this group's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'worker': worker or dictionary value - If creating a new group, equals a worker that is part of this group. If loading, equals a dictionary of the saved information necessary to recreate the worker
@@ -38,6 +35,6 @@ class caravan(group):
             None
         """
         super().__init__(from_save, input_dict)
-        self.can_trade = True
+        self.set_permission(constants.CARAVAN_PERMISSION, True)
         self.set_inventory_capacity(9)
         self.set_group_type("caravan")

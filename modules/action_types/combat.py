@@ -77,14 +77,14 @@ class combat(action.action):
         ):
             local_infrastructure = tooltip_info_dict["local_infrastructure"]
             adjacent_infrastructure = tooltip_info_dict["adjacent_infrastructure"]
-            if local_infrastructure != "none" and adjacent_infrastructure != "none":
-                text += "and connecting roads"
-            elif local_infrastructure == "none" and adjacent_infrastructure != "none":
-                text += "and no connecting roads"
-            elif local_infrastructure != "none":
-                text += "and no connecting roads"
+            if local_infrastructure and adjacent_infrastructure:
+                text += " and connecting roads"
+            elif local_infrastructure == None and adjacent_infrastructure:
+                text += " and no connecting roads"
+            elif local_infrastructure:
+                text += " and no connecting roads"
             else:
-                text += "and no connecting roads"
+                text += " and no connecting roads"
         message.append(text)
         return message
 
@@ -182,24 +182,24 @@ class combat(action.action):
         elif subject == "modifier_breakdown":
             text += f"The {self.current_unit.name} {utility.conjugate('attempt', self.current_unit.number)} to defeat the {self.opponent.name}. /n /n"
 
-            if self.current_unit.veteran:
+            if self.current_unit.get_permission(constants.VETERAN_PERMISSION):
                 text += f"The {self.current_unit.officer.name} can roll twice and pick the higher result. /n"
 
-            if self.current_unit.is_battalion:
+            if self.current_unit.get_permission(constants.BATTALION_PERMISSION):
                 if self.current_unit.battalion_type == "imperial":
                     text += "Your professional imperial soldiers will receive a +2 bonus after their roll. /n"
             else:
                 text += f"As a non-military unit, your {self.current_unit.name} will receive a -1 penalty after their roll. /n"
 
-            if self.current_unit.disorganized:
+            if self.current_unit.get_permission(constants.DISORGANIZED_PERMISSION):
                 text += f"The {self.current_unit.name} {utility.conjugate('be', self.current_unit.number)} disorganized and will receive a -1 penalty after their roll. /n"
-            elif self.opponent.disorganized:
+            if self.opponent.get_permission(constants.DISORGANIZED_PERMISSION):
                 text += f"The {self.opponent.name} {utility.conjugate('be', self.opponent.number)} disorganized and will receive a -1 after their roll. /n"
 
-            if self.current_unit.images[0].current_cell.has_intact_building("fort"):
+            if self.current_unit.get_cell().has_intact_building(constants.FORT):
                 text += f"The fort in this tile grants your {self.current_unit.name} a +1 bonus after their roll. /n"
 
-            if self.current_unit.veteran:
+            if self.current_unit.get_permission(constants.VETERAN_PERMISSION):
                 text += "The outcome will be based on the difference between your highest roll and the enemy's roll. /n /n"
             else:
                 text += "The outcome will be based on the difference between your roll and the enemy's roll. /n /n"
@@ -309,11 +309,11 @@ class combat(action.action):
             future_cell = unit.grid.find_cell(
                 self.x_change + unit.x, self.y_change + unit.y
             )
-            opponent = "none"
-            if unit.is_battalion:
+            opponent = None
+            if unit.get_permission(constants.BATTALION_PERMISSION):
                 opponent = future_cell.get_best_combatant("npmob")
                 self.action_type = "combat"
-            if opponent == "none":
+            if not opponent:
                 return False
             elif super().on_click(unit):
                 self.current_unit = unit
@@ -326,10 +326,10 @@ class combat(action.action):
                 elif self.y_change < 0:
                     self.direction = "south"
                 else:
-                    self.direction = "none"
+                    self.direction = None
                 if (
-                    not on_click_info_dict["attack_confirmed"]
-                ) and opponent != "none":  # if enemy in destination tile and attack not confirmed yet
+                    opponent and not on_click_info_dict["attack_confirmed"]
+                ):  # if enemy in destination tile and attack not confirmed yet
                     self.opponent = opponent
                     self.defending = False
                     self.start(unit)
@@ -347,13 +347,13 @@ class combat(action.action):
         Input:
             pmob unit: Unit selected when the linked button is clicked
         Output:
-            none
+            None
         """
         super().pre_start(unit)
         self.current_max_crit_fail = 0
         self.current_min_success = 0
         self.current_max_crit_fail = 0
-        if unit.is_battalion:
+        if unit.get_permission(constants.BATTALION_PERMISSION):
             self.current_min_crit_success = 6
         else:
             self.current_min_crit_success = 7
@@ -416,10 +416,10 @@ class combat(action.action):
         """
         audio = super().generate_audio(subject)
         if subject == "initial":
-            if self.current_unit.is_battalion:
+            if self.current_unit.get_permission(constants.BATTALION_PERMISSION):
                 audio.append("effects/bolt_action_1")
         elif subject == "roll_started":
-            if self.current_unit.is_battalion:
+            if self.current_unit.get_permission(constants.BATTALION_PERMISSION):
                 audio.append("effects/gunfire")
         return audio
 
@@ -455,7 +455,7 @@ class combat(action.action):
             self.current_unit.move(self.x_change, self.y_change, True)
 
         self.roll_lists = []
-        if self.current_unit.veteran:
+        if self.current_unit.get_permission(constants.VETERAN_PERMISSION):
             num_dice = 2
         else:
             num_dice = 1
@@ -480,7 +480,7 @@ class combat(action.action):
                 num_dice,
             )
             results = minister_rolls
-        elif self.current_unit.is_battalion:
+        elif self.current_unit.get_permission(constants.BATTALION_PERMISSION):
             # 'combat' modifiers don't apply on defense because no roll type is specified in no_corruption_roll, while unit modifiers do apply on defense
             #   Defense is a more spontaneous action that should only rely on what is immediately on-site, but this could be modified in the future
             results = [self.opponent.combat_roll()] + [
@@ -525,7 +525,7 @@ class combat(action.action):
         constants.notification_manager.display_notification(
             {
                 "message": self.generate_notification_text("initial"),
-                "notification_type": "action",
+                "notification_type": constants.ACTION_NOTIFICATION,
                 "audio": self.generate_audio("initial"),
                 "attached_interface_elements": attached_interface_elements,
                 "transfer_interface_elements": True,
@@ -539,7 +539,7 @@ class combat(action.action):
         constants.notification_manager.display_notification(
             {
                 "message": text + roll_message,
-                "notification_type": "action",
+                "notification_type": constants.ACTION_NOTIFICATION,
                 "transfer_interface_elements": True,
             },
             insert_index=insert_index + 1,
@@ -548,7 +548,7 @@ class combat(action.action):
         constants.notification_manager.display_notification(
             {
                 "message": text + "Rolling... ",
-                "notification_type": "roll",
+                "notification_type": constants.DICE_ROLLING_NOTIFICATION,
                 "transfer_interface_elements": True,
                 "audio": self.generate_audio("roll_started"),
             },
@@ -580,7 +580,7 @@ class combat(action.action):
         constants.notification_manager.display_notification(
             {
                 "message": text + "Click to remove this notification. /n /n",
-                "notification_type": "action",
+                "notification_type": constants.ACTION_NOTIFICATION,
                 "transfer_interface_elements": True,
                 "on_remove": self.complete,
                 "audio": self.generate_audio("roll_finished"),
@@ -594,7 +594,7 @@ class combat(action.action):
         else:
             result = "success"
             if (
-                not self.current_unit.veteran
+                not self.current_unit.get_permission(constants.VETERAN_PERMISSION)
             ) and self.roll_result >= self.current_min_crit_success:
                 result = "critical_success"
 
@@ -603,7 +603,7 @@ class combat(action.action):
         constants.notification_manager.display_notification(
             {
                 "message": text + "Click to remove this notification. /n /n",
-                "notification_type": "action",
+                "notification_type": constants.ACTION_NOTIFICATION,
                 "attached_interface_elements": self.generate_attached_interface_elements(
                     result
                 ),
@@ -619,39 +619,41 @@ class combat(action.action):
         Output:
             None
         """
-        combat_cell = self.current_unit.images[0].current_cell
-        if self.total_roll_result <= -2:  # defeat
+        combat_cell = self.current_unit.get_cell()
+        if self.total_roll_result <= -2:  # Defeat
             if self.defending:
                 self.current_unit.die()
-                if combat_cell.get_best_combatant("pmob") == "none":
+                if not combat_cell.get_best_combatant("pmob"):
                     self.opponent.kill_noncombatants()
                     self.opponent.damage_buildings()
-                else:  # return to original tile if non-defenseless enemies still in other tile, can't be in tile with enemy units or have more than 1 offensive combat per turn
+                else:  # Return to original tile if non-defenseless enemies still in other tile, can't be in tile with enemy units or have more than 1 offensive combat per turn
                     self.opponent.retreat()
                 constants.public_opinion_tracker.change(self.public_opinion_change)
             else:
                 self.current_unit.retreat()
-                self.current_unit.set_disorganized(True)
+                self.current_unit.set_permission(
+                    constants.DISORGANIZED_PERMISSION, True
+                )
 
-        elif self.total_roll_result <= 1:  # draw
+        elif self.total_roll_result <= 1:  # Draw
             if self.defending:
                 self.opponent.retreat()
             else:
                 self.current_unit.retreat()
 
-        else:  # victory
+        else:  # Victory
             if self.defending:
                 self.opponent.retreat()
-                self.opponent.set_disorganized(True)
+                self.opponent.set_permission(constants.DISORGANIZED_PERMISSION, True)
             else:
                 if (
                     len(combat_cell.contained_mobs) > 2
                 ):  # len == 2 if only attacker and defender in tile
-                    self.current_unit.retreat()  # attacker retreats in draw or if more defenders remaining
+                    self.current_unit.retreat()  # Attacker retreats in draw or if more defenders remaining
                 elif (
                     self.current_unit.movement_points
                     < self.current_unit.get_movement_cost(0, 0, True)
-                ):  # if can't afford movement points to stay in attacked tile
+                ):  # If can't afford movement points to stay in attacked tile
                     constants.notification_manager.display_notification(
                         {
                             "message": f"While the attack was successful, this unit did not have the {self.current_unit.get_movement_cost(0, 0, True)} movement points required to fully move into the attacked tile and was forced to withdraw. /n /n",
@@ -668,7 +670,9 @@ class combat(action.action):
                 and combat_cell.y > 0
                 and not self.current_unit.can_swim
             ):  # if attacked water and can't swim, become disorganized after combat
-                self.current_unit.set_disorganized(True)
+                self.current_unit.set_permission(
+                    constants.DISORGANIZED_PERMISSION, True
+                )
 
         super().complete()
 
@@ -678,8 +682,8 @@ class combat(action.action):
             turn_management_utility.start_player_turn()
         else:
             for current_pmob in status.pmob_list:
-                if current_pmob.is_vehicle:
+                if current_pmob.get_permission(constants.VEHICLE_PERMISSION):
                     current_pmob.reembark()
             for current_building in status.building_list:
-                if current_building.building_type == "resource":
+                if current_building.building_type == constants.RESOURCE:
                     current_building.reattach_work_crews()

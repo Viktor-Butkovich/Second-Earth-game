@@ -32,7 +32,7 @@ class inventory_grid(ordered_collection):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'separation' = scaling.scale_height(5): int value - Distance to set between ordered members
                 'direction' = 'vertical': string value - Direction to order members in
                 'reversed' = False: boolean value - Whether to reverse the order of members in the specified direction (top to bottom or bottom to top)
@@ -93,13 +93,13 @@ class inventory_grid(ordered_collection):
         Description:
             Atttaches this collection and its members to inputted actor and updates their information based on the inputted actor
         Input:
-            string/actor new_actor: The displayed actor whose information is matched by this label. If this equals 'none', the label does not match any actors.
+            string/actor new_actor: The displayed actor whose information is matched by this label. If this equals None, the label does not match any actors.
         Output:
             None
         """
         if (
             self.inventory_page != 0
-            and new_actor != "none"
+            and new_actor
             and not new_actor.infinite_inventory_capacity
         ):
             functional_capacity = max(
@@ -126,9 +126,9 @@ class item_icon(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -141,7 +141,7 @@ class item_icon(button):
         self.in_inventory_capacity: bool = False
         self.default_image_id = input_dict["image_id"]
         self.actor_type = input_dict["actor_type"]
-        self.actor = "none"
+        self.actor = None
         input_dict["button_type"] = "item_icon"
         super().__init__(input_dict)
 
@@ -184,13 +184,13 @@ class item_icon(button):
             Attaches this button to the inputted actor and updates this button's image to that of the actor. May also display a shader over this button, if its particular
                 requirements are fulfilled
         Input:
-            string/actor new_actor: The minister whose information is matched by this button. If this equals 'none', this button is detached from any ministers
+            string/actor new_actor: The minister whose information is matched by this button. If this equals None, this button is detached from any ministers
             bool override_exempt: Optional parameter that may be given to calibrate functions, does nothing for buttons
         Output:
             None
         """
         self.actor = new_actor
-        if new_actor != "none":
+        if new_actor:
             functional_capacity: int = max(
                 new_actor.get_inventory_used(), new_actor.inventory_capacity
             )

@@ -38,6 +38,17 @@ class trial(action.campaign):
         self.allow_critical_failures = False
         self.placement_type = "free"
 
+    def can_show(self):
+        """
+        Description:
+            Returns whether a button linked to this action should be drawn
+        Input:
+            None
+        Output:
+            boolean: Returns whether a button linked to this action should be drawn
+        """
+        return True
+
     def button_setup(self, initial_input_dict):
         """
         Description:
@@ -55,7 +66,7 @@ class trial(action.campaign):
         )
         initial_input_dict["width"] = scaling.scale_width(button_width)
         initial_input_dict["height"] = scaling.scale_height(button_width)
-        initial_input_dict["modes"] = ["trial"]
+        initial_input_dict["modes"] = [constants.TRIAL_MODE]
         initial_input_dict["image_id"] = "buttons/to_trial_button.png"
         return super().button_setup(initial_input_dict)
 
@@ -66,7 +77,7 @@ class trial(action.campaign):
         Input:
             pmob unit: Unit selected when the linked button is clicked
         Output:
-            none
+            None
         """
         super().pre_start(unit)
         self.current_min_success = 5  # alternative to subtracting a roll modifier, which would change the max crit fail
@@ -82,7 +93,7 @@ class trial(action.campaign):
             None
         """
         return [
-            f"Tries the defending minister in an attempt to remove him from office and imprison him for corruption",
+            f"Tries the defending minister in an attempt to remove them from office and imprison them for corruption",
             f"Costs {self.get_price()} money",
             f"Each trial attempted doubles the cost of other trials in the same turn",
         ]
@@ -283,7 +294,7 @@ class trial(action.campaign):
         constants.notification_manager.display_notification(
             {
                 "message": text,
-                "notification_type": "action",
+                "notification_type": constants.ACTION_NOTIFICATION,
                 "audio": self.generate_audio("initial"),
             }
         )
@@ -307,7 +318,7 @@ class trial(action.campaign):
                 constants.notification_manager.display_notification(
                     {
                         "message": f"{remaining_rolls_message}{text}{self.generate_notification_text('roll_message')}",
-                        "notification_type": "action",
+                        "notification_type": constants.ACTION_NOTIFICATION,
                         "attached_interface_elements": self.generate_attached_interface_elements(
                             "die"
                         ),
@@ -317,7 +328,7 @@ class trial(action.campaign):
                 constants.notification_manager.display_notification(
                     {
                         "message": remaining_rolls_message + text + "Rolling... ",
-                        "notification_type": "roll",
+                        "notification_type": constants.DICE_ROLLING_NOTIFICATION,
                         "transfer_interface_elements": True,
                         "audio": self.generate_audio("roll_started"),
                     }
@@ -326,7 +337,7 @@ class trial(action.campaign):
                 constants.notification_manager.display_notification(
                     {
                         "message": f"{remaining_rolls_message}{text}{current_roll_list[1]}",
-                        "notification_type": "action",
+                        "notification_type": constants.ACTION_NOTIFICATION,
                     }
                 )
                 if i == roll_result_index:
@@ -334,7 +345,7 @@ class trial(action.campaign):
             constants.notification_manager.display_notification(
                 {
                     "message": text + "Click to remove this notification. /n /n",
-                    "notification_type": "action",
+                    "notification_type": constants.ACTION_NOTIFICATION,
                     "transfer_interface_elements": True,
                     "on_remove": self.complete,
                     "audio": self.generate_audio("roll_finished"),
@@ -344,7 +355,7 @@ class trial(action.campaign):
             constants.notification_manager.display_notification(
                 {
                     "message": "As you have no evidence rolls remaining, you automatically lose the trial. /n /n",
-                    "notification_type": "action",
+                    "notification_type": constants.ACTION_NOTIFICATION,
                     "on_remove": self.complete,
                 }
             )
@@ -358,7 +369,7 @@ class trial(action.campaign):
         Output:
             None
         """
-        game_transitions.set_game_mode("ministers")
+        game_transitions.set_game_mode(constants.MINISTERS_MODE)
 
     def complete(self):
         """
@@ -373,7 +384,7 @@ class trial(action.campaign):
         defense = status.displayed_defense
         if self.roll_result >= self.current_min_success:
             confiscated_money = defense.stolen_money / 2.0
-            text = f"You have won the trial, removing {defense.name} as {defense.current_position} and putting him in prison. /n /n"
+            text = f"You have won the trial, removing {defense.name} as {defense.current_position.name} and putting them in prison. /n /n"
             if confiscated_money > 0:
                 text += f"While most of {defense.name}'s money was spent on the trial or unaccounted for, authorities managed to confiscate {str(confiscated_money)} money, which has been given to your company as compensation. /n /n"
                 text += " /n /n"
@@ -383,11 +394,11 @@ class trial(action.campaign):
             constants.notification_manager.display_notification(
                 {
                     "message": text,
-                    "notification_type": "action",
+                    "notification_type": constants.ACTION_NOTIFICATION,
                     "audio": "voices/guilty",
                 }
             )
-            defense.appoint("none")
+            defense.appoint(None)
             minister_utility.calibrate_minister_info_display(None)
             defense.respond("prison")
             defense.remove_complete()
@@ -396,20 +407,14 @@ class trial(action.campaign):
             constants.notification_manager.display_notification(
                 {
                     "message": text,
-                    "notification_type": "action",
+                    "notification_type": constants.ACTION_NOTIFICATION,
                     "on_remove": self.leave_trial_screen,
                 }
             )
             constants.achievement_manager.achieve("Guilty")
 
         else:
-            text = (
-                "You have lost the trial and "
-                + defense.name
-                + " goes unpunished, remaining your "
-                + defense.current_position
-                + ". /n /n"
-            )
+            text += f"You have lost the trial and {defense.name} goes unpunished, remaining your {defense.current_position.name}. /n /n"
             fabricated_evidence = defense.fabricated_evidence
             real_evidence = defense.corruption_evidence - defense.fabricated_evidence
 
@@ -423,10 +428,7 @@ class trial(action.campaign):
 
             if fabricated_evidence > 0:
                 text += f"Fabricated evidence is temporary, so the {fabricated_evidence} piece{utility.generate_plural(fabricated_evidence)} of fabricated evidence used in this trial "
-                text += (
-                    utility.conjugate("be", fabricated_evidence)
-                    + " now irrelevant to future trials. /n /n"
-                )
+                text += f"{utility.conjugate('be', fabricated_evidence)} now irrelevant to future trials. /n /n"
 
             if real_evidence > 0:
                 if lost_evidence == 0:  # if no evidence lost
@@ -444,7 +446,7 @@ class trial(action.campaign):
             constants.notification_manager.display_notification(
                 {
                     "message": text,
-                    "notification_type": "action",
+                    "notification_type": constants.ACTION_NOTIFICATION,
                     "audio": "voices/not guilty",
                     "on_remove": self.leave_trial_screen,
                 }

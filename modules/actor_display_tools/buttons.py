@@ -11,6 +11,7 @@ from ..util import (
     text_utility,
     game_transitions,
 )
+from ..constructs import minister_types
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -31,17 +32,16 @@ class embark_all_passengers_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
         Output:
             None
         """
-        self.vehicle_type = "none"
-        input_dict["button_type"] = "embark all"
+        self.vehicle_type = None
         super().__init__(input_dict)
 
     def on_click(self):
@@ -56,10 +56,10 @@ class embark_all_passengers_button(button):
         if main_loop_utility.action_possible():
             vehicle = status.displayed_mob
             can_embark = True
-            if self.vehicle_type == "train":
+            if self.vehicle_type == constants.TRAIN:
                 if (
-                    vehicle.images[0].current_cell.contained_buildings["train_station"]
-                    == "none"
+                    vehicle.get_cell().contained_buildings[constants.TRAIN_STATION]
+                    == None
                 ):
                     text_utility.print_to_screen(
                         "A train can only pick up passengers at a train station."
@@ -68,10 +68,12 @@ class embark_all_passengers_button(button):
             if can_embark:
                 if vehicle.sentry_mode:
                     vehicle.set_sentry_mode(False)
-                for contained_mob in vehicle.images[0].current_cell.contained_mobs:
+                for contained_mob in vehicle.get_cell().contained_mobs:
                     passenger = contained_mob
-                    if (
-                        passenger.is_pmob and not passenger.is_vehicle
+                    if passenger.get_permission(
+                        constants.PMOB_PERMISSION
+                    ) and not passenger.get_permission(
+                        constants.VEHICLE_PERMISSION
                     ):  # vehicles and enemies won't be picked up as passengers
                         passenger.embark_vehicle(vehicle)
                 constants.sound_manager.play_sound(
@@ -94,15 +96,14 @@ class embark_all_passengers_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.has_crew:  # do not show if ship does not have crew
-                return False
-            if (not self.vehicle_type == displayed_mob.vehicle_type) and (
-                not displayed_mob.vehicle_type == "vehicle"
-            ):  # update vehicle type and image when shown if type has changed, like train to ship
-                self.vehicle_type = displayed_mob.vehicle_type
-                self.image.set_image(
-                    "buttons/embark_" + self.vehicle_type + "_button.png"
-                )
+            if displayed_mob.get_permission(constants.ACTIVE_PERMISSION):
+                if (not self.vehicle_type == displayed_mob.vehicle_type) and (
+                    not displayed_mob.vehicle_type == "vehicle"
+                ):  # update vehicle type and image when shown if type has changed, like train to ship
+                    self.vehicle_type = displayed_mob.vehicle_type
+                    self.image.set_image(
+                        "buttons/embark_" + self.vehicle_type + "_button.png"
+                    )
         return result
 
 
@@ -121,17 +122,16 @@ class disembark_all_passengers_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
         Output:
             None
         """
-        self.vehicle_type = "none"
-        input_dict["button_type"] = "disembark all"
+        self.vehicle_type = None
         super().__init__(input_dict)
 
     def on_click(self):
@@ -146,11 +146,8 @@ class disembark_all_passengers_button(button):
         if main_loop_utility.action_possible():
             vehicle = status.displayed_mob
             can_disembark = True
-            if self.vehicle_type == "train":
-                if (
-                    vehicle.images[0].current_cell.contained_buildings["train_station"]
-                    == "none"
-                ):
+            if self.vehicle_type == constants.TRAIN:
+                if not vehicle.get_cell().contained_buildings[constants.TRAIN_STATION]:
                     text_utility.print_to_screen(
                         "A train can only drop off passengers at a train station."
                     )
@@ -178,15 +175,16 @@ class disembark_all_passengers_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             vehicle = status.displayed_mob
-            if not vehicle.has_crew:  # do not show if ship does not have crew
-                return False
-            if (not self.vehicle_type == vehicle.vehicle_type) and (
-                not vehicle.vehicle_type == "vehicle"
-            ):  # update vehicle type and image when shown if type has changed, like train to ship
-                self.vehicle_type = vehicle.vehicle_type
-                self.image.set_image(
-                    "buttons/disembark_" + self.vehicle_type + "_button.png"
-                )
+            if vehicle.get_permission(
+                constants.ACTIVE_PERMISSION
+            ):  # do not show if ship does not have crew
+                if (not self.vehicle_type == vehicle.vehicle_type) and (
+                    not vehicle.vehicle_type == "vehicle"
+                ):  # update vehicle type and image when shown if type has changed, like train to ship
+                    self.vehicle_type = vehicle.vehicle_type
+                    self.image.set_image(
+                        f"buttons/disembark_{self.vehicle_type}_button.png"
+                    )
         return result
 
 
@@ -194,28 +192,6 @@ class enable_sentry_mode_button(button):
     """
     Button that enables sentry mode for a unit, causing it to not be added to the turn cycle queue
     """
-
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'width': int value - pixel width of this element
-                'height': int value - pixel height of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-        Output:
-            None
-        """
-        input_dict["button_type"] = "enable sentry mode"
-        super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -229,7 +205,7 @@ class enable_sentry_mode_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.is_pmob:
+            if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 return False
             elif displayed_mob.sentry_mode:
                 return False
@@ -249,8 +225,10 @@ class enable_sentry_mode_button(button):
             displayed_mob.set_sentry_mode(True)
             if (
                 constants.effect_manager.effect_active("promote_on_sentry")
-                and (displayed_mob.is_group or displayed_mob.is_officer)
-                and not displayed_mob.veteran
+                and displayed_mob.any_permissions(
+                    constants.GROUP_PERMISSION, constants.OFFICER_PERMISSION
+                )
+                and not displayed_mob.get_permission(constants.VETERAN_PERMISSION)
             ):  # purely for promotion testing, not normal functionality
                 displayed_mob.promote()
         else:
@@ -261,28 +239,6 @@ class disable_sentry_mode_button(button):
     """
     Button that disables sentry mode for a unit, causing it to not be added to the turn cycle queue
     """
-
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'width': int value - pixel width of this element
-                'height': int value - pixel height of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-        Output:
-            None
-        """
-        input_dict["button_type"] = "disable sentry mode"
-        super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -296,7 +252,7 @@ class disable_sentry_mode_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.is_pmob:
+            if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 return False
             elif not displayed_mob.sentry_mode:
                 return False
@@ -336,9 +292,9 @@ class enable_automatic_replacement_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -347,7 +303,6 @@ class enable_automatic_replacement_button(button):
             None
         """
         self.target_type = input_dict["target_type"]
-        input_dict["button_type"] = "enable automatic replacement"
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -362,13 +317,18 @@ class enable_automatic_replacement_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.is_pmob:
+            if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 return False
-            elif displayed_mob.is_vehicle:
+            elif displayed_mob.get_permission(constants.VEHICLE_PERMISSION):
                 return False
-            elif displayed_mob.is_group and self.target_type == "unit":
+            elif (
+                displayed_mob.get_permission(constants.GROUP_PERMISSION)
+                and self.target_type == "unit"
+            ):
                 return False
-            elif (not displayed_mob.is_group) and (not self.target_type == "unit"):
+            elif (
+                not displayed_mob.get_permission(constants.GROUP_PERMISSION)
+            ) and self.target_type != "unit":
                 return False
             elif (
                 (self.target_type == "unit" and displayed_mob.automatically_replace)
@@ -423,9 +383,9 @@ class disable_automatic_replacement_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -449,13 +409,18 @@ class disable_automatic_replacement_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.is_pmob:
+            if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 return False
-            elif displayed_mob.is_vehicle:
+            elif displayed_mob.get_permission(constants.VEHICLE_PERMISSION):
                 return False
-            elif displayed_mob.is_group and self.target_type == "unit":
+            elif (
+                displayed_mob.get_permission(constants.GROUP_PERMISSION)
+                and self.target_type == "unit"
+            ):
                 return False
-            elif (not displayed_mob.is_group) and (not self.target_type == "unit"):
+            elif (
+                not displayed_mob.get_permission(constants.GROUP_PERMISSION)
+            ) and self.target_type != "unit":
                 return False
             elif (
                 (self.target_type == "unit" and not displayed_mob.automatically_replace)
@@ -510,9 +475,9 @@ class end_unit_turn_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -534,7 +499,7 @@ class end_unit_turn_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.is_pmob:
+            if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 return False
             elif not displayed_mob in status.player_turn_queue:
                 return False
@@ -573,19 +538,18 @@ class remove_work_crew_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'attached_label': label value - Label that this button is attached to
-                'building_type': Type of building to remove workers from, like 'resource building'
+                'building_type': Type of building to remove workers from, like constants.RESOURCE
         Output:
             None
         """
         self.building_type = input_dict["building_type"]
-        input_dict["button_type"] = "remove worker"
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -641,9 +605,9 @@ class disembark_vehicle_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -651,8 +615,7 @@ class disembark_vehicle_button(button):
         Output:
             None
         """
-        self.vehicle_type = "none"
-        input_dict["button_type"] = "disembark"
+        self.vehicle_type = None
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -673,11 +636,10 @@ class disembark_vehicle_button(button):
             old_vehicle_type = self.vehicle_type
             self.vehicle_type = self.attached_label.actor.vehicle_type
             if (
-                not self.vehicle_type == old_vehicle_type
-                and not self.vehicle_type == "none"
+                not self.vehicle_type == old_vehicle_type and self.vehicle_type
             ):  # if changed
                 self.image.set_image(
-                    "buttons/disembark_" + self.vehicle_type + "_button.png"
+                    f"buttons/disembark_{self.vehicle_type}_button.png"
                 )
         return result
 
@@ -693,13 +655,10 @@ class disembark_vehicle_button(button):
         if main_loop_utility.action_possible():
             if len(self.attached_label.actor.contained_mobs) > 0:
                 can_disembark = True
-                if self.vehicle_type == "train":
-                    if (
-                        self.attached_label.actor.images[
-                            0
-                        ].current_cell.contained_buildings["train_station"]
-                        == "none"
-                    ):
+                if self.vehicle_type == constants.TRAIN:
+                    if not self.attached_label.actor.images[
+                        0
+                    ].current_cell.contained_buildings[constants.TRAIN_STATION]:
                         text_utility.print_to_screen(
                             "A train can only drop off passengers at a train station."
                         )
@@ -716,13 +675,11 @@ class disembark_vehicle_button(button):
                     ].disembark_vehicle(self.attached_label.actor)
             else:
                 text_utility.print_to_screen(
-                    "You must select a "
-                    + self.vehicle_type
-                    + "with passengers to disembark passengers."
+                    f"You must select a {self.vehicle_type} with passengers to disembark passengers."
                 )
         else:
             text_utility.print_to_screen(
-                "You are busy and cannot disembark from a " + self.vehicle_type + "."
+                f"You are busy and cannot disembark from a {self.vehicle_type}."
             )
 
 
@@ -741,9 +698,9 @@ class embark_vehicle_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -753,7 +710,6 @@ class embark_vehicle_button(button):
         """
         self.vehicle_type = input_dict["vehicle_type"]
         self.was_showing = False
-        input_dict["button_type"] = "embark"
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -768,15 +724,15 @@ class embark_vehicle_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.is_pmob:
+            if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 result = False
-            elif displayed_mob.in_vehicle or displayed_mob.is_vehicle:
+            elif displayed_mob.in_vehicle or displayed_mob.get_permission(
+                constants.VEHICLE_PERMISSION
+            ):
                 result = False
             elif (
                 not displayed_mob.actor_type == "minister"
-                and not displayed_mob.images[0].current_cell.has_vehicle(
-                    self.vehicle_type
-                )
+                and not displayed_mob.get_cell().has_vehicle(self.vehicle_type)
             ):
                 result = False
         if (
@@ -799,18 +755,15 @@ class embark_vehicle_button(button):
             None
         """
         if main_loop_utility.action_possible():
-            if status.displayed_mob.images[0].current_cell.has_vehicle(
-                self.vehicle_type
-            ):
+            if status.displayed_mob.get_cell().has_vehicle(self.vehicle_type):
                 rider = status.displayed_mob
-                vehicles = rider.images[0].current_cell.get_vehicles(self.vehicle_type)
+                vehicles = rider.get_cell().get_vehicles(self.vehicle_type)
                 can_embark = True
-                if vehicles[0].vehicle_type == "train":
+                if vehicles[0].vehicle_type == constants.TRAIN:
                     if (
-                        vehicles[0]
-                        .images[0]
-                        .current_cell.contained_buildings["train_station"]
-                        == "none"
+                        not vehicles[0]
+                        .get_cell()
+                        .contained_buildings[constants.TRAIN_STATION]
                     ):
                         text_utility.print_to_screen(
                             "A train can only pick up passengers at a train station."
@@ -915,17 +868,16 @@ class cycle_passengers_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
         Output:
             None
         """
-        self.vehicle_type = "none"
-        input_dict["button_type"] = "cycle passengers"
+        self.vehicle_type = None
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -940,7 +892,7 @@ class cycle_passengers_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.is_vehicle:
+            if not displayed_mob.get_permission(constants.VEHICLE_PERMISSION):
                 return False
             elif (
                 not len(displayed_mob.contained_mobs) > 3
@@ -984,9 +936,9 @@ class cycle_work_crews_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -995,7 +947,6 @@ class cycle_work_crews_button(button):
             None
         """
         self.previous_showing_result = False
-        input_dict["button_type"] = "cycle work crews"
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -1010,13 +961,13 @@ class cycle_work_crews_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_tile = status.displayed_tile
-            if displayed_tile.cell.contained_buildings["resource"] == "none":
+            if not displayed_tile.cell.contained_buildings[constants.RESOURCE]:
                 self.previous_showing_result = False
                 return False
             elif (
                 not len(
                     displayed_tile.cell.contained_buildings[
-                        "resource"
+                        constants.RESOURCE
                     ].contained_work_crews
                 )
                 > 3
@@ -1043,10 +994,10 @@ class cycle_work_crews_button(button):
         if main_loop_utility.action_possible():
             displayed_tile = status.displayed_tile
             moved_mob = displayed_tile.cell.contained_buildings[
-                "resource"
+                constants.RESOURCE
             ].contained_work_crews.pop(0)
             displayed_tile.cell.contained_buildings[
-                "resource"
+                constants.RESOURCE
             ].contained_work_crews.append(moved_mob)
             actor_utility.calibrate_actor_info_display(
                 status.tile_info_display, displayed_tile
@@ -1070,20 +1021,19 @@ class work_crew_to_building_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'building_type': string value - Type of buliding this button attaches workers to, like 'resource building'
+                'building_type': string value - Type of buliding this button attaches workers to, like constants.RESOURCE
         Output:
             None
         """
         self.building_type = input_dict["building_type"]
         self.attached_work_crew = None
         self.attached_building = None
-        input_dict["button_type"] = "worker to resource"
         super().__init__(input_dict)
 
     def update_info(self):
@@ -1096,12 +1046,12 @@ class work_crew_to_building_button(button):
             None
         """
         self.attached_work_crew = status.displayed_mob
-        if self.attached_work_crew and self.attached_work_crew.is_work_crew:
+        if self.attached_work_crew and self.attached_work_crew.get_permission(
+            constants.WORK_CREW_PERMISSION
+        ):
             self.attached_building = self.attached_work_crew.images[
                 0
             ].current_cell.get_intact_building(self.building_type)
-            if self.attached_building == "none":
-                self.attached_building = None
         else:
             self.attached_building = None
 
@@ -1118,7 +1068,7 @@ class work_crew_to_building_button(button):
         return (
             super().can_show(skip_parent_collection=skip_parent_collection)
             and self.attached_work_crew
-            and self.attached_work_crew.is_work_crew
+            and self.attached_work_crew.get_permission(constants.WORK_CREW_PERMISSION)
         )
 
     def update_tooltip(self):
@@ -1131,20 +1081,16 @@ class work_crew_to_building_button(button):
             None
         """
         if self.attached_work_crew and self.attached_building:
-            if self.building_type == "resource":
+            if self.building_type == constants.RESOURCE:
                 self.set_tooltip(
                     [
-                        "Assigns the selected work crew to the "
-                        + self.attached_building.name
-                        + ", producing "
-                        + self.attached_building.resource_type
-                        + " over time."
+                        f"Assigns the selected work crew to the {self.attached_building.name}, producing {self.attached_building.resource_type} over time."
                     ]
                 )
             else:
                 self.set_tooltip(["placeholder"])
         elif self.attached_work_crew:
-            if self.building_type == "resource":
+            if self.building_type == constants.RESOURCE:
                 self.set_tooltip(
                     [
                         "Assigns the selected work crew to a resource building, producing commodities over time."
@@ -1192,28 +1138,6 @@ class switch_theatre_button(button):
     Button starts choosing a destination for a ship to travel between theatres, like between Earth and the planet. A destination is chosen when the player clicks a tile in another theatre.
     """
 
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'width': int value - pixel width of this element
-                'height': int value - pixel height of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-        Output:
-            None
-        """
-        input_dict["button_type"] = "switch theatre"
-        super().__init__(input_dict)
-
     def on_click(self):
         """
         Description:
@@ -1232,11 +1156,11 @@ class switch_theatre_button(button):
                 ):  # not current_mob.grids[0] in self.destination_grids and
                     if current_mob.sentry_mode:
                         current_mob.set_sentry_mode(False)
-                    if not constants.current_game_mode == "strategic":
-                        game_transitions.set_game_mode("strategic")
+                    if not constants.current_game_mode == constants.STRATEGIC_MODE:
+                        game_transitions.set_game_mode(constants.STRATEGIC_MODE)
                         current_mob.select()
                     current_mob.clear_automatic_route()
-                    current_mob.end_turn_destination = "none"
+                    current_mob.end_turn_destination = None
                     current_mob.add_to_turn_queue()
                     flags.choosing_destination = True
             else:
@@ -1257,7 +1181,7 @@ class switch_theatre_button(button):
         """
         return (
             super().can_show(skip_parent_collection=skip_parent_collection)
-            and status.displayed_mob.is_pmob
+            and status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
             and status.displayed_mob.can_travel()
         )
 
@@ -1276,21 +1200,16 @@ class appoint_minister_button(button):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'appoint_type': string value - Office appointed to by this button, like 'Minister of Trade'
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'appoint_type': minister_type value - Office appointed to by this button, like the "Minister of Trade" minister_type object
         Output:
             None
         """
-        self.appoint_type = input_dict["appoint_type"]
-        input_dict["button_type"] = "appoint minister"
-        input_dict["modes"] = ["ministers"]
-        input_dict["image_id"] = (
-            "ministers/icons/"
-            + constants.minister_type_dict[self.appoint_type]
-            + ".png"
-        )
+        self.appoint_type: minister_types.minister_type = input_dict["appoint_type"]
+        input_dict["modes"] = [constants.MINISTERS_MODE]
+        input_dict["image_id"] = f"ministers/icons/{self.appoint_type.skill_type}.png"
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -1302,16 +1221,12 @@ class appoint_minister_button(button):
         Output:
             boolean: Returns same as superclass if the minister office that this button is attached to is open, otherwise returns False
         """
-        if super().can_show(skip_parent_collection=skip_parent_collection):
-            displayed_minister = status.displayed_minister
-            if (
-                displayed_minister and displayed_minister.current_position == "none"
-            ):  # if there is an available minister displayed
-                if not status.current_ministers[
-                    self.appoint_type
-                ]:  # if the position that this button appoints is available
-                    return True
-        return False
+        return (
+            super().can_show(skip_parent_collection=skip_parent_collection)
+            and status.displayed_minister
+            and status.displayed_minister.current_position == None
+            and not minister_utility.get_minister(self.appoint_type.key)
+        )
 
     def on_click(self):
         """
@@ -1327,7 +1242,6 @@ class appoint_minister_button(button):
             if not appointed_minister.just_removed:
                 appointed_minister.respond("first hired")
             appointed_minister.appoint(self.appoint_type)
-            minister_utility.calibrate_minister_info_display(appointed_minister)
         else:
             text_utility.print_to_screen("You are busy and cannot appoint a minister.")
 
@@ -1346,14 +1260,13 @@ class remove_minister_button(button):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
         Output:
             None
         """
-        input_dict["button_type"] = "remove minister"
-        input_dict["modes"] = ["ministers"]
+        input_dict["modes"] = [constants.MINISTERS_MODE]
         input_dict["image_id"] = "buttons/remove_minister_button.png"
         super().__init__(input_dict)
 
@@ -1366,13 +1279,11 @@ class remove_minister_button(button):
         Output:
             boolean: Returns same as superclass if the selected minister is currently in an office, otherwise returns False
         """
-        if super().can_show(skip_parent_collection=skip_parent_collection):
-            displayed_minister = status.displayed_minister
-            if (
-                displayed_minister and displayed_minister.current_position != "none"
-            ):  # if there is an available minister displayed
-                return True
-        return False
+        return (
+            super().can_show(skip_parent_collection=skip_parent_collection)
+            and status.displayed_minister
+            and status.displayed_minister.current_position
+        )
 
     def on_click(self):
         """
@@ -1387,21 +1298,24 @@ class remove_minister_button(button):
         if main_loop_utility.action_possible():
             appointed_minister = status.displayed_minister
             public_opinion_penalty = appointed_minister.status_number
-            text = f"Are you sure you want to remove {appointed_minister.name} from office? If removed, he will return to the pool of available ministers and be available to reappoint until the end of the turn. /n /n"
-            text += f"Removing {appointed_minister.name} from office would incur a small public opinion penalty of {public_opinion_penalty}, even if he were reappointed. /n /n"
+            text = f"Are you sure you want to remove {appointed_minister.name} from office? If removed, they will return to the pool of available ministers and be available to reappoint until the end of the turn. /n /n"
+            text += f"Removing {appointed_minister.name} from office would incur a small public opinion penalty of {public_opinion_penalty}, even if they were reappointed. /n /n"
             text += (
                 appointed_minister.name
-                + " expects to be reappointed to a different position by the end of the turn. If not reappointed, he will be fired permanently and incur a much larger public opinion penalty. /n /n"
+                + " expects to be reappointed to a different position by the end of the turn. If not reappointed, they will be fired permanently and incur a much larger public opinion penalty. /n /n"
             )
             if appointed_minister.status_number >= 3:
                 if appointed_minister.status_number == 4:
-                    text += f"{appointed_minister.name} is of extremely high social status, so firing him would cause a national outrage. /n /n"
+                    text += f"{appointed_minister.name} is of extremely high social status, so firing them would cause a national outrage. /n /n"
                 else:
-                    text += f"{appointed_minister.name} is of high social status, so firing him would reflect particularly poorly on your company. /n /n"
+                    text += f"{appointed_minister.name} is of high social status, so firing them would reflect particularly poorly on your company. /n /n"
             elif appointed_minister.status_number == 1:
-                text += f"{appointed_minister.name} is of low social status, so firing him would have a relatively minimal impact on your company's reputation. /n /n"
+                text += f"{appointed_minister.name} is of low social status, so firing them would have a relatively minimal impact on your company's reputation. /n /n"
             constants.notification_manager.display_notification(
-                {"message": text, "choices": ["confirm remove minister", "none"]}
+                {
+                    "message": text,
+                    "choices": [constants.CHOICE_CONFIRM_REMOVE_MINISTER, None],
+                }
             )
         else:
             text_utility.print_to_screen("You are busy and cannot remove a minister.")
@@ -1421,13 +1335,12 @@ class to_trial_button(button):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
         Output:
             None
         """
-        input_dict["button_type"] = "to trial"
         input_dict["modes"] = input_dict["attached_label"].modes
         input_dict["image_id"] = "buttons/to_trial_button.png"
         super().__init__(input_dict)
@@ -1441,13 +1354,14 @@ class to_trial_button(button):
         Output:
             boolean: Returns same as superclass if a non-prosecutor minister with an office to be removed from is selected
         """
-        if super().can_show(skip_parent_collection=skip_parent_collection):
-            displayed_minister = status.displayed_minister
-            if displayed_minister and (
-                not displayed_minister.current_position in ["none", "Prosecutor"]
-            ):  # if there is an available non-prosecutor minister displayed
-                return True
-        return False
+        if (
+            super().can_show(skip_parent_collection=skip_parent_collection)
+            and status.displayed_minister
+            and status.displayed_minister.current_position
+            and status.displayed_minister.current_position.key
+            != constants.PROSECUTION_MINISTER
+        ):
+            return True
 
     def on_click(self):
         """
@@ -1464,8 +1378,10 @@ class to_trial_button(button):
                 if minister_utility.positions_filled():
                     if len(status.minister_list) > 8:  # if any available appointees
                         defense = status.displayed_minister
-                        prosecution = status.current_ministers["Prosecutor"]
-                        game_transitions.set_game_mode("trial")
+                        prosecution = minister_utility.get_minister(
+                            constants.PROSECUTION_MINISTER
+                        )
+                        game_transitions.set_game_mode(constants.TRIAL_MODE)
                         minister_utility.trial_setup(
                             defense, prosecution
                         )  # sets up defense and prosecution displays
@@ -1495,14 +1411,13 @@ class fabricate_evidence_button(button):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
         Output:
             None
         """
-        input_dict["button_type"] = "fabricate evidence"
-        input_dict["modes"] = ["trial", "ministers"]
+        input_dict["modes"] = [constants.TRIAL_MODE, constants.MINISTERS_MODE]
         input_dict["image_id"] = "buttons/fabricate_evidence_button.png"
         super().__init__(input_dict)
 
@@ -1533,7 +1448,7 @@ class fabricate_evidence_button(button):
                 defense = status.displayed_defense
                 prosecutor = status.displayed_prosecution
                 prosecutor.display_message(
-                    f"{prosecutor.current_position} {prosecutor.name} reports that evidence has been successfully fabricated for {str(self.get_cost())} money. /n /nEach new fabricated evidence will cost twice as much as the last, and fabricated evidence becomes useless at the end of the turn or after it is used in a trial. /n /n"
+                    f"{prosecutor.current_position.name} {prosecutor.name} reports that evidence has been successfully fabricated for {str(self.get_cost())} money. /n /nEach new fabricated evidence will cost twice as much as the last, and fabricated evidence becomes useless at the end of the turn or after it is used in a trial. /n /n"
                 )
                 defense.fabricated_evidence += 1
                 defense.corruption_evidence += 1
@@ -1562,14 +1477,13 @@ class bribe_judge_button(button):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
         Output:
             None
         """
-        input_dict["button_type"] = "bribe judge"
-        input_dict["modes"] = ["trial"]
+        input_dict["modes"] = [constants.TRIAL_MODE]
         input_dict["image_id"] = "buttons/bribe_judge_button.png"
         super().__init__(input_dict)
 
@@ -1616,7 +1530,7 @@ class bribe_judge_button(button):
                     flags.prosecution_bribed_judge = True
                     prosecutor = status.displayed_prosecution
                     prosecutor.display_message(
-                        f"{prosecutor.current_position} {prosecutor.name} reports that the judge has been successfully bribed for {self.get_cost()} money. /n /nThis may provide a bonus in the next trial this turn. /n /n"
+                        f"{prosecutor.current_position.name} {prosecutor.name} reports that the judge has been successfully bribed for {self.get_cost()} money. /n /nThis may provide a bonus in the next trial this turn. /n /n"
                     )
                 else:
                     text_utility.print_to_screen(
@@ -1649,12 +1563,13 @@ class automatic_route_button(button):
             attached_mob = status.displayed_mob
             if (
                 attached_mob.inventory_capacity > 0
-                and (not (attached_mob.is_group and attached_mob.can_trade))
-                and (not (attached_mob.is_vehicle and attached_mob.crew == "none"))
+                and not attached_mob.any_permissions(
+                    constants.CARAVAN_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
+                )
             ):
                 if self.button_type in [
-                    "clear automatic route",
-                    "execute automatic route",
+                    constants.CLEAR_AUTOMATIC_ROUTE_BUTTON,
+                    constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON,
                 ]:
                     if len(attached_mob.base_automatic_route) > 0:
                         return True
@@ -1676,15 +1591,15 @@ class automatic_route_button(button):
         attached_mob = status.displayed_mob
         if main_loop_utility.action_possible():
             if status.strategic_map_grid in attached_mob.grids:
-                if self.button_type == "clear automatic route":
+                if self.button_type == constants.CLEAR_AUTOMATIC_ROUTE_BUTTON:
                     attached_mob.clear_automatic_route()
 
-                elif self.button_type == "draw automatic route":
+                elif self.button_type == constants.DRAW_AUTOMATIC_ROUTE_BUTTON:
                     if (
-                        attached_mob.is_vehicle
-                        and attached_mob.vehicle_type == "train"
-                        and not attached_mob.images[0].current_cell.has_intact_building(
-                            "train_station"
+                        attached_mob.get_permission(constants.VEHICLE_PERMISSION)
+                        and attached_mob.vehicle_type == constants.TRAIN
+                        and not attached_mob.get_cell().has_intact_building(
+                            constants.TRAIN_STATION
                         )
                     ):
                         text_utility.print_to_screen(
@@ -1697,7 +1612,7 @@ class automatic_route_button(button):
                     )
                     flags.drawing_automatic_route = True
 
-                elif self.button_type == "execute automatic route":
+                elif self.button_type == constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON:
                     if attached_mob.can_follow_automatic_route():
                         attached_mob.follow_automatic_route()
                         attached_mob.remove_from_turn_queue()
@@ -1713,7 +1628,7 @@ class automatic_route_button(button):
                     "You can only create movement routes in Africa."
                 )
         else:
-            if self.button_type == "execute automatic route":
+            if self.button_type == constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON:
                 text_utility.print_to_screen("You are busy and cannot move this unit.")
             else:
                 text_utility.print_to_screen(
@@ -1736,9 +1651,9 @@ class toggle_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -1749,8 +1664,25 @@ class toggle_button(button):
         """
         self.toggle_variable: str = input_dict["toggle_variable"]
         self.attached_to_actor: bool = input_dict.get("attached_to_actor", True)
-
         super().__init__(input_dict)
+
+    def get_value(self):
+        """
+        Description:
+            Returns the value of the variable this button toggles
+        Input:
+            None
+        Output:
+            boolean: Returns the value of the variable this button toggles
+        """
+        if self.attached_to_actor:
+            if self.attached_label.actor:
+                return getattr(self.attached_label.actor, self.toggle_variable)
+            return False
+        elif constants.effect_manager.effect_exists(self.toggle_variable):
+            return constants.effect_manager.effect_active(self.toggle_variable)
+        else:
+            return getattr(flags, self.toggle_variable)
 
     def on_click(self):
         """
@@ -1765,12 +1697,27 @@ class toggle_button(button):
             setattr(
                 self.attached_label.actor,
                 self.toggle_variable,
-                not getattr(self.attached_label.actor, self.toggle_variable),
+                not self.get_value(),
             )
+        elif constants.effect_manager.effect_exists(self.toggle_variable):
+            constants.effect_manager.set_effect(
+                self.toggle_variable, not self.get_value()
+            )
+            if self.toggle_variable == "remove_fog_of_war":
+                constants.update_terrain_knowledge_requirements()
+                status.minimap_grid.calibrate(
+                    status.minimap_grid.center_x, status.minimap_grid.center_y
+                )
+                if status.displayed_mob:
+                    actor_utility.calibrate_actor_info_display(
+                        status.mob_info_display, status.displayed_mob
+                    )
+                if status.displayed_tile:
+                    actor_utility.calibrate_actor_info_display(
+                        status.tile_info_display, status.displayed_tile
+                    )
         else:
-            setattr(
-                flags, self.toggle_variable, not getattr(flags, self.toggle_variable)
-            )
+            setattr(flags, self.toggle_variable, not self.get_value())
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -1782,15 +1729,13 @@ class toggle_button(button):
             boolean: Returns whether this button should be drawn
         """
         if not self.attached_to_actor:
-            self.showing_outline = getattr(flags, self.toggle_variable)
+            self.showing_outline = self.get_value()
             return super().can_show()
 
-        if (
-            not self.attached_label.actor in ["none", None]
-        ) and self.attached_label.actor.is_pmob:
-            self.showing_outline = getattr(
-                self.attached_label.actor, self.toggle_variable
-            )
+        if self.attached_label.actor and self.attached_label.actor.get_permission(
+            constants.PMOB_PERMISSION
+        ):
+            self.showing_outline = self.get_value()
             if super().can_show(skip_parent_collection=skip_parent_collection):
                 if self.toggle_variable == "wait_until_full":
                     return bool(status.displayed_mob.base_automatic_route)
@@ -1807,29 +1752,14 @@ class toggle_button(button):
         Output:
             None
         """
-        if self.attached_to_actor:
-            if not self.attached_label.actor in [None, "none"]:
-                self.set_tooltip(
-                    [
-                        constants.toggle_button_tooltips[self.toggle_variable][
-                            "default"
-                        ],
-                        constants.toggle_button_tooltips[self.toggle_variable][
-                            str(
-                                getattr(self.attached_label.actor, self.toggle_variable)
-                            )
-                        ],
-                    ]
-                )
-        else:
-            self.set_tooltip(
-                [
-                    constants.toggle_button_tooltips[self.toggle_variable]["default"],
-                    constants.toggle_button_tooltips[self.toggle_variable][
-                        str(getattr(flags, self.toggle_variable))
-                    ],
-                ]
-            )
+        self.set_tooltip(
+            [
+                constants.toggle_button_tooltips[self.toggle_variable]["default"],
+                constants.toggle_button_tooltips[self.toggle_variable][
+                    str(self.get_value())
+                ],
+            ]
+        )
 
 
 class change_parameter_button(button):
@@ -1846,7 +1776,6 @@ class change_parameter_button(button):
         Output:
             None
         """
-        input_dict["button_type"] = "change parameter"
         self.change = input_dict["change"]
         super().__init__(input_dict)
 
@@ -1861,7 +1790,7 @@ class change_parameter_button(button):
         """
         if main_loop_utility.action_possible():
             self.attached_label.actor.cell.terrain_handler.change_parameter(
-                self.attached_label.actor_label_type, self.change
+                self.attached_label.actor_label_type.removesuffix("_label"), self.change
             )
         else:
             text_utility.print_to_screen(

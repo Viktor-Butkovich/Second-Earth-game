@@ -30,6 +30,7 @@ class action:
         """
         self.action_type = self.generate_action_type()  # class name
         self.button = None
+        self.requirements = []
         self.initial_setup(**kwargs)
 
     def generate_action_type(self):
@@ -53,7 +54,7 @@ class action:
             None
         """
         status.actions[self.action_type] = self
-        self.current_unit = "none"
+        self.current_unit = None
         self.actor_type = "mob"
         self.placement_type = "label"
         if not self.action_type in constants.action_types:
@@ -76,11 +77,11 @@ class action:
         Output:
             None
         """
-        initial_input_dict["init_type"] = "action button"
+        initial_input_dict["init_type"] = constants.ACTION_BUTTON
         initial_input_dict["corresponding_action"] = self
-        initial_input_dict["image_id"] = (
-            "buttons/actions/" + self.action_type + "_button.png"
-        )
+        initial_input_dict[
+            "image_id"
+        ] = f"buttons/actions/{self.action_type}_button.png"
         return initial_input_dict
 
     def can_show(self):
@@ -92,7 +93,9 @@ class action:
         Output:
             boolean: Returns whether a button linked to this action should be drawn
         """
-        return True
+        return status.displayed_mob and status.displayed_mob.all_permissions(
+            *self.requirements
+        )
 
     def on_click(self, unit):
         """
@@ -162,13 +165,10 @@ class action:
             full_roll_message = (
                 f"{base_roll_message}{self.current_min_success}+ required"
             )
-            officer_name = self.current_unit.name
-            if self.actor_type == "mob" and self.current_unit.veteran:
-                text += (
-                    "The "
-                    + officer_name
-                    + " can roll twice and pick the higher result. /n /n"
-                )
+            if self.actor_type == "mob" and self.current_unit.get_permission(
+                constants.VETERAN_PERMISSION
+            ):
+                text += f"The {self.current_unit.default_name} is a veteran and can roll twice and pick the higher result. /n /n"
                 full_roll_message += "on at least 1 die to succeed."
             else:
                 full_roll_message += "to succeed."
@@ -242,7 +242,7 @@ class action:
         if subject == "roll_finished":
             if (
                 self.roll_result >= self.current_min_crit_success
-                and not self.current_unit.veteran
+                and not self.current_unit.get_permission(constants.VETERAN_PERMISSION)
             ):
                 audio.append("effects/trumpet")
         return audio
@@ -283,10 +283,12 @@ class action:
         Input:
             pmob unit: Unit selected when the linked button is clicked
         Output:
-            none
+            None
         """
         if self.actor_type == "prosecutor":
-            self.current_unit = status.current_ministers["Prosecutor"]
+            self.current_unit = minister_utility.get_minister(
+                constants.PROSECUTION_MINISTER
+            )
         else:
             self.current_unit = unit
         self.current_roll_modifier = self.generate_current_roll_modifier()
@@ -383,7 +385,9 @@ class action:
 
         price = self.process_payment()
 
-        if self.actor_type == "mob" and self.current_unit.veteran:
+        if self.actor_type == "mob" and self.current_unit.get_permission(
+            constants.VETERAN_PERMISSION
+        ):
             num_dice = 2
         else:
             num_dice = 1
@@ -423,7 +427,7 @@ class action:
         constants.notification_manager.display_notification(
             {
                 "message": text + roll_message,
-                "notification_type": "action",
+                "notification_type": constants.ACTION_NOTIFICATION,
                 "attached_interface_elements": self.generate_attached_interface_elements(
                     "dice"
                 ),
@@ -436,7 +440,7 @@ class action:
         constants.notification_manager.display_notification(
             {
                 "message": text + "Rolling... ",
-                "notification_type": "roll",
+                "notification_type": constants.DICE_ROLLING_NOTIFICATION,
                 "transfer_interface_elements": True,
                 "audio": self.generate_audio("roll_started"),
             },
@@ -468,7 +472,7 @@ class action:
         constants.notification_manager.display_notification(
             {
                 "message": text + "Click to remove this notification. /n /n",
-                "notification_type": "action",
+                "notification_type": constants.ACTION_NOTIFICATION,
                 "transfer_interface_elements": True,
                 "on_remove": self.complete,
                 "audio": self.generate_audio("roll_finished"),
@@ -479,7 +483,8 @@ class action:
             if self.roll_result <= self.current_max_crit_fail:
                 result = "critical_failure"
             elif (
-                self.actor_type == "mob" and not self.current_unit.veteran
+                self.actor_type == "mob"
+                and not self.current_unit.get_permission(constants.VETERAN_PERMISSION)
             ) and self.roll_result >= self.current_min_crit_success:
                 result = "critical_success"
             elif self.roll_result >= self.current_min_success:
@@ -492,7 +497,7 @@ class action:
             constants.notification_manager.display_notification(
                 {
                     "message": text + "Click to remove this notification. /n /n",
-                    "notification_type": "action",
+                    "notification_type": constants.ACTION_NOTIFICATION,
                     "attached_interface_elements": self.generate_attached_interface_elements(
                         result
                     ),
@@ -511,10 +516,9 @@ class action:
         if (
             self.actor_type == "mob"
             and self.roll_result >= self.current_min_crit_success
-            and not self.current_unit.veteran
+            and not self.current_unit.get_permission(constants.VETERAN_PERMISSION)
         ):
             self.current_unit.promote()
-            status.displayed_mob.select()
 
 
 class campaign(action):

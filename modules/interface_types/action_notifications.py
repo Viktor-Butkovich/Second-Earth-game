@@ -20,7 +20,7 @@ class action_notification(notification):
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -140,13 +140,14 @@ class action_notification(notification):
                 self.notification_ordered_collection.remove_member(interface_element)
                 transferred_interface_elements.append(interface_element)
 
+        constants.notification_manager.handle_next_notification(
+            transferred_interface_elements=transferred_interface_elements
+        )
+
         if self.has_parent_collection:
             self.parent_collection.remove_recursive(complete=False)
         else:
             self.remove()
-        constants.notification_manager.handle_next_notification(
-            transferred_interface_elements=transferred_interface_elements
-        )
 
     def format_message(self):
         """
@@ -154,7 +155,7 @@ class action_notification(notification):
             Converts this notification's string message to a list of strings, with each string representing a line of text. Each line of text ends when its width exceeds the ideal_width or when a '/n' is encountered in the text. Unlike s
                 uperclass, this version removes the automatic prompt to close the notification, as action notifications often require more specific messages not add a prompt to close the notification.
         Input:
-            none
+            None
         Output:
             None
         """
@@ -252,7 +253,7 @@ class off_tile_exploration_notification(action_notification):
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size

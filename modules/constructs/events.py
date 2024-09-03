@@ -29,11 +29,11 @@ class event:
         Input:
             None
         Output:
-            none
+            None
         """
         self.function(
             *self.inputs
-        )  # unpacking argument operator - turns tuple into separate arguments for the function
+        )  # Unpacking argument operator - turns tuple into separate arguments for the function
 
     def remove_complete(self):
         """
@@ -91,7 +91,7 @@ class repeating_event(event):
         Input:
             None
         Output:
-            none
+            None
         """
         super().activate()
         if not self.num_repeats == -1:

@@ -22,16 +22,19 @@ class upgrade(action.action):
             None
         """
         super().initial_setup(**kwargs)
-        self.building_type = kwargs.get("building_type", "none")
+        self.building_type = kwargs.get("building_type", None)
         del status.actions[self.action_type]
         status.actions[self.building_type] = self
         self.building_name = self.building_type.replace("_", " ")
-        self.requirement = "can_construct"
-        self.current_building = "none"
+        self.requirements += [
+            constants.GROUP_PERMISSION,
+            constants.CONSTRUCTION_PERMISSION,
+        ]
+        self.current_building = None
         self.upgraded_building_type = {
-            "scale": "resource",
-            "efficiency": "resource",
-            "warehouse_level": "warehouses",
+            constants.RESOURCE_SCALE: constants.RESOURCE,
+            constants.RESOURCE_EFFICIENCY: constants.RESOURCE,
+            constants.WAREHOUSES_LEVEL: constants.WAREHOUSES,
         }[self.building_type]
         self.name = "upgrade"
         self.allow_critical_failures = False
@@ -58,14 +61,14 @@ class upgrade(action.action):
             None
         """
         initial_input_dict = super().button_setup(initial_input_dict)
-        initial_input_dict["image_id"] = (
-            "buttons/actions/upgrade_" + self.building_type + "_button.png"
-        )
+        initial_input_dict[
+            "image_id"
+        ] = f"buttons/actions/upgrade_{self.building_type}_button.png"
         initial_input_dict["keybind_id"] = {
-            "scale": "none",
-            "efficiency": "none",
-            "warehouse_level": pygame.K_k,
-        }.get(self.building_type, "none")
+            constants.RESOURCE_SCALE: None,
+            constants.RESOURCE_EFFICIENCY: None,
+            constants.WAREHOUSES_LEVEL: pygame.K_k,
+        }.get(self.building_type, None)
         return initial_input_dict
 
     def update_tooltip(self):
@@ -80,13 +83,16 @@ class upgrade(action.action):
         message = []
         unit = status.displayed_mob
         if unit != None:
-            self.current_building = unit.images[0].current_cell.get_intact_building(
+            self.current_building = unit.get_cell().get_intact_building(
                 self.upgraded_building_type
             )
             actor_utility.update_descriptions(self.building_type)
-            if self.building_type == "warehouse_level":
+            if self.building_type == constants.WAREHOUSES_LEVEL:
                 noun = "tile"
-            elif self.building_type in ["efficiency", "scale"]:
+            elif self.building_type in [
+                constants.RESOURCE_EFFICIENCY,
+                constants.RESOURCE_SCALE,
+            ]:
                 noun = self.current_building.name
             value = getattr(self.current_building, self.building_type)
             message.append(
@@ -113,9 +119,12 @@ class upgrade(action.action):
         """
         text = super().generate_notification_text(subject)
 
-        if self.building_type == "warehouse_level":
+        if self.building_type == constants.WAREHOUSES_LEVEL:
             noun = "tile"
-        elif self.building_type in ["efficiency", "scale"]:
+        elif self.building_type in [
+            constants.RESOURCE_EFFICIENCY,
+            constants.RESOURCE_SCALE,
+        ]:
             noun = self.current_building.name
 
         if subject == "confirmation":
@@ -145,8 +154,8 @@ class upgrade(action.action):
             float: Returns price of this action
         """
         building = self.current_building
-        if building == "none":
-            building = status.displayed_mob.images[0].current_cell.get_intact_building(
+        if not building:
+            building = status.displayed_mob.get_cell().get_intact_building(
                 self.upgraded_building_type
             )
         return building.get_upgrade_cost()
@@ -160,18 +169,12 @@ class upgrade(action.action):
         Output:
             boolean: Returns whether a button linked to this action should be drawn
         """
-        unit = status.displayed_mob
-        building = unit.images[0].current_cell.get_intact_building(
+        building = status.displayed_mob.get_cell().get_intact_building(
             self.upgraded_building_type
         )
-        can_show = (
-            super().can_show()
-            and unit.is_group
-            and getattr(unit, self.requirement)
-            and building != "none"
-            and building.can_upgrade(self.building_type)
+        return (
+            super().can_show() and building and building.can_upgrade(self.building_type)
         )
-        return can_show
 
     def on_click(self, unit):
         """
@@ -192,10 +195,10 @@ class upgrade(action.action):
         Input:
             pmob unit: Unit selected when the linked button is clicked
         Output:
-            none
+            None
         """
         super().pre_start(unit)
-        self.current_building = unit.images[0].current_cell.get_intact_building(
+        self.current_building = unit.get_cell().get_intact_building(
             self.upgraded_building_type
         )
 
@@ -239,7 +242,7 @@ class upgrade(action.action):
         if self.roll_result >= self.current_min_success:
             self.current_building.upgrade(self.building_type)
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, self.current_unit.images[0].current_cell.tile
+                status.tile_info_display, self.current_unit.get_cell().tile
             )  # update tile display to show building upgrade
             status.minimap_grid.calibrate(self.current_unit.x, self.current_unit.y)
         super().complete()

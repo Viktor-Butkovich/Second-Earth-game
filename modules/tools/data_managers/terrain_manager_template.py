@@ -3,7 +3,7 @@
 import random
 import json
 import os
-from typing import List, Dict
+from typing import List, Dict, Tuple, Any
 from ...util import utility, actor_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -24,10 +24,25 @@ class terrain_manager_template:
         Output:
             None
         """
+        # Dictionary of terrain names to number of image variants possible
         self.terrain_variant_dict: Dict[str, int] = {}
+
+        # Dictionary of parameter value combinations to terrain names
         self.parameter_to_terrain: Dict[str, str] = {}
-        self.terrain_list: List[str] = []
+
+        # Dictionary of terrain names to terrain definitions - better for giving parameter ranges but worse for classification
+        self.terrain_range_dict: Dict[str, Dict[str, Any]] = {}
+
+        self.terrain_list: List[str] = []  # List of all terrain names
         self.terrain_parameter_keywords = {
+            "knowledge": {
+                1: "orbital view",
+                2: "scouted",
+                3: "surveyed",
+                4: "studied I",
+                5: "studied II",
+                6: "studied III",
+            },
             "altitude": {
                 1: "very low",
                 2: "low",
@@ -118,12 +133,12 @@ class terrain_manager_template:
             None
         """
         with open(file_name) as active_file:
-            terrain_dict = json.load(
+            self.terrain_range_dict = json.load(
                 active_file
             )  # dictionary of terrain name keys and terrain dict values for each terrain
-        for terrain_name in terrain_dict:
+        for terrain_name in self.terrain_range_dict:
             self.terrain_list.append(terrain_name)
-            terrain = terrain_dict[terrain_name]
+            terrain = self.terrain_range_dict[terrain_name]
             for temperature in range(
                 terrain["min_temperature"], terrain["max_temperature"] + 1
             ):
@@ -160,10 +175,13 @@ class terrain_manager_template:
         Output:
             string: Returns the terrain type that the inputted parameters classify as
         """
-        # return random.choice(["mesa", "mountains", "desert"])
-        return self.parameter_to_terrain[
-            f"{max(min(terrain_parameters['temperature'], 6), 1)}{terrain_parameters['roughness']}{terrain_parameters['vegetation']}{terrain_parameters['soil']}{terrain_parameters['water']}"
-        ]
+        unbounded_temperature = f"{terrain_parameters['temperature']}{terrain_parameters['roughness']}{terrain_parameters['vegetation']}{terrain_parameters['soil']}{terrain_parameters['water']}"
+        default = f"{max(min(terrain_parameters['temperature'], 6), 1)}{terrain_parameters['roughness']}{terrain_parameters['vegetation']}{terrain_parameters['soil']}{terrain_parameters['water']}"
+        # Check -5 to 12 for temperature but use 1-6 if not defined
+        # Terrain hypercube is fully defined within 1-6, but temperature terrains can exist outside of this range
+        return self.parameter_to_terrain.get(
+            unbounded_temperature, self.parameter_to_terrain[default]
+        )
 
 
 class world_handler:
@@ -287,21 +305,27 @@ class world_handler:
         """
         if self.get_tuning("mars_preset"):
             sand_color = (170, 107, 60)
-
-        elif random.randrange(1, 4) != 1:
-            sand_color = (
-                random.randrange(150, 240),
-                random.randrange(70, 196),
-                random.randrange(20, 161),
-            )
-
         else:
-            base_sand_color = random.randrange(50, 200)
-            sand_color = (
-                base_sand_color * random.randrange(80, 121) / 100,
-                base_sand_color * random.randrange(80, 121) / 100,
-                base_sand_color * random.randrange(80, 121) / 100,
-            )
+            sand_type = random.randrange(1, 7)
+            if sand_type >= 5:
+                sand_color = (
+                    random.randrange(150, 240),
+                    random.randrange(70, 196),
+                    random.randrange(20, 161),
+                )
+            elif sand_type >= 3:
+                base_sand_color = random.randrange(50, 200)
+                sand_color = (
+                    base_sand_color * random.randrange(80, 121) / 100,
+                    base_sand_color * random.randrange(80, 121) / 100,
+                    base_sand_color * random.randrange(80, 121) / 100,
+                )
+            else:
+                sand_color = (
+                    random.randrange(20, 236),
+                    random.randrange(20, 236),
+                    random.randrange(20, 236),
+                )
 
         rock_multiplier = random.randrange(80, 141) / 100
         rock_color = (
@@ -430,10 +454,10 @@ class terrain_handler:
         """
         if not input_dict:
             input_dict = {}
-        self.terrain_features: Dict[str, bool] = input_dict.get("terrain_features", {})
         self.terrain_parameters: Dict[str, int] = input_dict.get(
             "terrain_parameters",
             {
+                "knowledge": 1,
                 "altitude": 1,
                 "temperature": 1,
                 "roughness": 1,
@@ -442,6 +466,23 @@ class terrain_handler:
                 "water": 1,
             },
         )
+        # self.apparent_terrain_parameters: Dict[str, int] = input_dict.get(
+        #     "apparent_terrain_parameters",
+        #     {
+        #         "altitude_min": 1,
+        #         "altitude_max": 6,
+        #         "temperature_min": -5,
+        #         "temperature_max": 12,
+        #         "roughness_min": 1,
+        #         "roughness_max": 6,
+        #         "vegetation_min": 1,
+        #         "vegetation_max": 6,
+        #         "soil_min": 1,
+        #         "soil_max": 6,
+        #         "water_min": 1,
+        #         "water_max": 6,
+        #     },
+        # )
         self.terrain_variant: int = input_dict.get("terrain_variant", 0)
         self.pole_distance_multiplier: float = (
             1.0  # 0.1 for polar cells, 1.0 for equatorial cells
@@ -450,11 +491,64 @@ class terrain_handler:
         self.minima = {"temperature": -5}
         self.maxima = {"temperature": 12}
         self.terrain: str = constants.terrain_manager.classify(self.terrain_parameters)
-        self.resource: str = input_dict.get("resource", "none")
+        self.resource: str = input_dict.get("resource", None)
         self.visible: bool = input_dict.get("visible", True)
         self.default_cell = attached_cell
         self.attached_cells: list = []
         self.add_cell(attached_cell)
+        self.terrain_features: Dict[str, bool] = {}
+        for key, value in input_dict.get("terrain_features", {}).items():
+            self.add_terrain_feature(value)
+        # if not input_dict: # If not from save, set all parameters for proper initialization
+        #     print("initializing")
+        #     for terrain_parameter in self.terrain_parameters:
+        #         self.set_parameter(terrain_parameter, self.get_parameter(terrain_parameter))
+
+    def add_terrain_feature(self, terrain_feature_dict: Dict[str, Any]) -> None:
+        """
+        Description:
+            Adds a terrain feature with the inputted dictionary to this terrain handler
+        Input:
+            dictionary terrain_feature_dict: Dictionary containing information about the terrain feature to add
+                Requires feature type and anything unique about this particular instance, like name
+        Output:
+            None
+        """
+        self.terrain_features[
+            terrain_feature_dict["feature_type"]
+        ] = terrain_feature_dict
+        feature_type = status.terrain_feature_types[
+            terrain_feature_dict["feature_type"]
+        ]
+        feature_key = terrain_feature_dict["feature_type"].replace(" ", "_")
+
+        if feature_type.tracking_type == constants.UNIQUE_FEATURE_TRACKING:
+            setattr(status, feature_key, self.attached_cells[0])
+        elif feature_type.tracking_type == constants.LIST_FEATURE_TRACKING:
+            feature_key += "_list"
+            getattr(status, feature_key).append(self.attached_cells[0])
+
+    def knowledge_available(self, information_type: str) -> bool:
+        """
+        Description:
+            Returns whether the inputted type of information is visible for this terrain handler, based on knowledge of the tile
+        Input:
+            string information_type: Type of information to check visibility of, like 'terrain' or 'hidden_units'
+        Output:
+            None
+        """
+        if information_type == constants.TERRAIN_KNOWLEDGE:
+            return (
+                self.get_parameter("knowledge")
+                >= constants.TERRAIN_KNOWLEDGE_REQUIREMENT
+            )
+        elif information_type == constants.TERRAIN_PARAMETER_KNOWLEDGE:
+            return (
+                self.get_parameter("knowledge")
+                >= constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
+            )
+        else:
+            return True
 
     def change_parameter(self, parameter_name: str, change: int) -> None:
         """
@@ -489,22 +583,17 @@ class terrain_handler:
             min(new_value, self.maxima.get(parameter_name, 6)),
         )
 
-        if parameter_name == "water" and self.terrain_parameters["temperature"] >= 10:
-            while self.terrain_parameters["water"] > 1:
-                self.terrain_parameters["water"] -= 1
-                status.strategic_map_grid.place_water(frozen_bound=9)
-        elif (
-            parameter_name == "temperature"
-            and self.terrain_parameters["temperature"] >= 10
-        ):
-            self.set_parameter("water", 1)
-
         new_terrain = constants.terrain_manager.classify(self.terrain_parameters)
 
-        if self.terrain != new_terrain or overlay_images != self.get_overlay_images():
+        if (
+            constants.current_map_mode != "terrain"
+            or self.terrain != new_terrain
+            or overlay_images != self.get_overlay_images()
+            or parameter_name == "knowledge"
+        ):
             self.set_terrain(new_terrain)
             for cell in self.attached_cells:
-                if cell.tile != "none":
+                if cell.tile:
                     cell.tile.set_terrain(self.terrain, update_image_bundle=True)
 
         if status.displayed_tile:
@@ -532,16 +621,16 @@ class terrain_handler:
     def boiling(self) -> bool:
         """
         Description:
-            Returns whether this terrain would have snow based on its temperature and water levels
+            Returns whether this terrain would have visible steam based on its temperature and water levels
         Input:
             None
         Output:
-            boolean: True if this terrain would have snow, False if not
+            boolean: True if this terrain would have visible steam, False if not
         """
         return (
             self.get_parameter("temperature")
             >= constants.terrain_manager.get_tuning("water_boiling_point") - 4
-            and self.get_parameter("water") >= 3
+            and self.get_parameter("water") >= 2
         )
 
     def get_overlay_images(self) -> List[str]:
@@ -556,8 +645,19 @@ class terrain_handler:
         return_list = []
         if self.has_snow():
             return_list.append(f"terrains/snow_{self.terrain_variant % 4}.png")
-        elif self.boiling():
+        elif self.boiling():  # If 4 below boiling, add steam
             return_list.append(f"terrains/boiling_{self.terrain_variant % 4}.png")
+            if self.get_parameter("water") >= 3 and self.get_parameter(
+                "temperature"
+            ) >= constants.terrain_manager.get_tuning("water_boiling_point"):
+                # If boiling, add more steam as water increases
+                return_list.append(
+                    f"terrains/boiling_{(self.terrain_variant + 1) % 4}.png"
+                )
+                if self.get_parameter("water") >= 5:
+                    return_list.append(
+                        f"terrains/boiling_{(self.terrain_variant + 2) % 4}.png"
+                    )
         return return_list
 
     def to_save_dict(self) -> Dict[str, any]:
@@ -579,6 +679,7 @@ class terrain_handler:
         save_dict["terrain_variant"] = self.terrain_variant
         save_dict["terrain_features"] = self.terrain_features
         save_dict["terrain_parameters"] = self.terrain_parameters
+        # save_dict["apparent_terrain_parameters"] = self.apparent_terrain_parameters
         save_dict["terrain"] = self.terrain
         save_dict["resource"] = self.resource
         return save_dict
@@ -624,7 +725,7 @@ class terrain_handler:
             )
         self.terrain = new_terrain
         for cell in self.attached_cells:
-            if cell.tile != "none":
+            if cell.tile:
                 cell.tile.set_terrain(self.terrain, update_image_bundle=False)
 
     def set_resource(self, new_resource) -> None:
@@ -638,7 +739,7 @@ class terrain_handler:
         """
         self.resource = new_resource
         for cell in self.attached_cells:
-            if cell.tile != "none":
+            if cell.tile:
                 cell.tile.set_resource(self.resource, update_image_bundle=False)
 
     def set_visibility(self, new_visibility, update_image_bundle=False) -> None:
@@ -654,7 +755,7 @@ class terrain_handler:
         self.visible = new_visibility
         if update_image_bundle:
             for cell in self.attached_cells:
-                if cell.tile != "none":
+                if cell.tile:
                     cell.tile.update_image_bundle()
 
     def add_cell(self, cell) -> None:
@@ -671,7 +772,7 @@ class terrain_handler:
         self.attached_cells.append(cell)
         cell.terrain_handler = self
 
-        if cell.tile != "none":
+        if cell.tile:
             cell.tile.set_terrain(self.terrain, update_image_bundle=False)
             cell.tile.set_resource(self.resource, update_image_bundle=False)
             cell.tile.update_image_bundle()
@@ -701,7 +802,7 @@ class terrain_handler:
             None
         """
         flowed = False
-        if self.terrain_parameters["water"] >= 3 and self.terrain_parameters[
+        if self.terrain_parameters["water"] >= 5 and self.terrain_parameters[
             "temperature"
         ] > constants.terrain_manager.get_tuning(
             "water_freezing_point"

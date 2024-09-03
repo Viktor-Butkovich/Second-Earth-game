@@ -24,8 +24,11 @@ class loan_search(action.campaign):
         super().initial_setup()
         constants.transaction_descriptions[self.action_type] = "loan searches"
         self.name = "loan search"
-        self.target_commodity = "none"
         self.current_proposed_loan = {}
+        self.requirements += [
+            constants.OFFICER_PERMISSION,
+            constants.MERCHANT_PERMISSION,
+        ]
 
     def button_setup(self, initial_input_dict):
         """
@@ -97,21 +100,6 @@ class loan_search(action.campaign):
             )
         return return_list
 
-    def can_show(self):
-        """
-        Description:
-            Returns whether a button linked to this action should be drawn
-        Input:
-            None
-        Output:
-            boolean: Returns whether a button linked to this action should be drawn
-        """
-        return (
-            super().can_show()
-            and status.displayed_mob.is_officer
-            and status.displayed_mob.officer_type == "merchant"
-        )
-
     def on_click(self, unit):
         """
         Description:
@@ -172,7 +160,7 @@ class loan_search(action.campaign):
 
         self.process_payment()
 
-        if self.current_unit.veteran:
+        if self.current_unit.get_permission(constants.VETERAN_PERMISSION):
             num_dice = 2
         else:
             num_dice = 1
@@ -210,7 +198,9 @@ class loan_search(action.campaign):
         ) * 10  # 12 interest -> 20%
 
         if (
-            (not self.current_unit.veteran) and result == 6 and num_attempts == 1
+            (not self.current_unit.get_permission(constants.VETERAN_PERMISSION))
+            and result == 6
+            and num_attempts == 1
         ):  # promote if rolled 6 on first attempt and not yet veteran
             result = "critical_success"
             self.roll_result = 6

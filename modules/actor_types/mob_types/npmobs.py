@@ -36,7 +36,6 @@ class npmob(mob):
         self.can_swim = True
         self.hostile = False
         self.can_damage_buildings = False
-        self.is_npmob = True
         self.npmob_type = "npmob"
         self.aggro_distance = 0
         self.selection_outline_color = "bright red"
@@ -46,6 +45,18 @@ class npmob(mob):
             self.last_move_direction = (0, -1)
         status.npmob_list.append(self)
         self.turn_done = True
+
+    def permissions_setup(self) -> None:
+        """
+        Description:
+            Sets up this mob's permissions
+        Input:
+            None
+        Output:
+            None
+        """
+        super().permissions_setup()
+        self.set_permission(constants.NPMOB_PERMISSION, True)
 
     def remove(self):
         """
@@ -79,10 +90,7 @@ class npmob(mob):
         Output:
             boolean: Returns whether this unit is currently visible to the player
         """
-        return (
-            self.images[0].current_cell != "none"
-            and self.images[0].current_cell.terrain_handler.visible
-        )
+        return self.get_cell() and self.get_cell().terrain_handler.visible
 
     def find_closest_target(self):
         """
@@ -91,7 +99,7 @@ class npmob(mob):
         Input:
             None
         Output:
-            string/actor: Returns one of the closest reachable pmobs or buildings, or returns 'none' if none are reachable
+            string/actor: Returns one of the closest reachable pmobs or buildings, or returns None if none are reachable
         """
         target_list = []
         for current_building in status.building_list:
@@ -99,7 +107,7 @@ class npmob(mob):
                 target_list.append(current_building)
         target_list += status.pmob_list
         min_distance = -1
-        closest_targets = ["none"]
+        closest_targets = [None]
         for possible_target in target_list:
             if (
                 not possible_target.y == 0
@@ -131,7 +139,7 @@ class npmob(mob):
                                     closest_targets.append(possible_target)
         return random.choice(
             closest_targets
-        )  # return one of the closest ones, or 'none' if none were found
+        )  # return one of the closest ones, or None if none were found
 
     def attempt_local_combat(self):
         """
@@ -143,19 +151,19 @@ class npmob(mob):
         Output:
             None
         """
-        if self.images[0].current_cell == "none":
+        if not self.get_cell():
             current_cell = self.grids[0].find_cell(self.x, self.y)
         else:
-            current_cell = self.images[0].current_cell
+            current_cell = self.get_cell()
         status.minimap_grid.calibrate(self.x, self.y)
         for current_mob in current_cell.contained_mobs:
-            if current_mob.is_vehicle:
+            if current_mob.get_permission(constants.VEHICLE_PERMISSION):
                 current_mob.eject_passengers()
                 current_mob.eject_crew()
-        if current_cell.has_intact_building("resource"):
-            current_cell.get_intact_building("resource").eject_work_crews()
+        if current_cell.has_intact_building(constants.RESOURCE):
+            current_cell.get_intact_building(constants.RESOURCE).eject_work_crews()
         defender = current_cell.get_best_combatant("pmob", self.npmob_type)
-        if defender != "none":
+        if defender:
             status.actions["combat"].middle(
                 {"defending": True, "opponent": self, "current_unit": defender}
             )
@@ -178,24 +186,16 @@ class npmob(mob):
         Output:
             None
         """
-        if self.images[0].current_cell == "none":
+        if not self.get_cell():
             current_cell = self.grids[0].find_cell(self.x, self.y)
         else:
-            current_cell = self.images[0].current_cell
+            current_cell = self.get_cell()
 
         noncombatants = current_cell.get_noncombatants("pmob")
         for current_noncombatant in noncombatants:
             constants.notification_manager.display_notification(
                 {
-                    "message": "The undefended "
-                    + current_noncombatant.name
-                    + " has been killed by "
-                    + self.name
-                    + " at ("
-                    + str(self.x)
-                    + ", "
-                    + str(self.y)
-                    + "). /n",
+                    "message": f"The undefended {current_noncombatant.name} has been killed by {self.name} at ({self.x}, {self.y}). /n"
                 }
             )
             current_noncombatant.die()
@@ -209,24 +209,16 @@ class npmob(mob):
         Output:
             None
         """
-        if self.images[0].current_cell == "none":
+        if not self.get_cell():
             current_cell = self.grids[0].find_cell(self.x, self.y)
         else:
-            current_cell = self.images[0].current_cell
+            current_cell = self.get_cell()
 
         for current_building in current_cell.get_intact_buildings():
             if current_building.can_damage():
                 constants.notification_manager.display_notification(
                     {
-                        "message": "The undefended "
-                        + current_building.name
-                        + " has been damaged by "
-                        + self.name
-                        + " at ("
-                        + str(self.x)
-                        + ", "
-                        + str(self.y)
-                        + "). /n",
+                        "message": f"The undefended {current_building.name} has been damaged by {self.name} at ({self.x}, {self.y}). /n"
                     }
                 )
                 current_building.set_damaged(True)
@@ -242,28 +234,28 @@ class npmob(mob):
             None
         """
         closest_target = self.find_closest_target()
-        if random.randrange(1, 7) <= 3:  # half chance of moving randomly instead
+        if random.randrange(1, 7) <= 3:  # Half chance of moving randomly instead
             if not self.visible():
                 current_cell = self.grids[0].find_cell(self.x, self.y)
             else:
-                current_cell = self.images[0].current_cell
+                current_cell = self.get_cell()
             closest_target = random.choice(current_cell.adjacent_list)
             while (
                 closest_target.y == 0
             ):  # npmobs avoid the ocean if can't swim in ocean
                 closest_target = random.choice(current_cell.adjacent_list)
-        if closest_target != "none":
-            if not (
-                closest_target.x == self.x and closest_target.y == self.y
-            ):  # don't move if target is own tile
-                if closest_target.x > self.x:  # decides moving left or right
+        if closest_target:
+            if (
+                closest_target.x != self.x or closest_target.y != self.y
+            ):  # Don't move if target is own tile
+                if closest_target.x > self.x:  # Decides moving left or right
                     horizontal_multiplier = 1
                 elif closest_target.x == self.x:
                     horizontal_multiplier = 0
                 else:
                     horizontal_multiplier = -1
 
-                if closest_target.y > self.y:  # decides moving up or down
+                if closest_target.y > self.y:  # Decides moving up or down
                     vertical_multiplier = 1
                 elif closest_target.y == self.y:
                     vertical_multiplier = 0
@@ -272,7 +264,7 @@ class npmob(mob):
 
                 if horizontal_multiplier == 0:
                     if not vertical_multiplier == 0:
-                        # while self.movement_points > 0:
+                        # While self.movement_points > 0:
                         if self.movement_points >= self.get_movement_cost(
                             0, 1 * vertical_multiplier
                         ):
@@ -280,7 +272,7 @@ class npmob(mob):
                         else:
                             self.movement_points -= 1
                 elif vertical_multiplier == 0:
-                    # while self.movement_points > 0:
+                    # While self.movement_points > 0:
                     if self.movement_points >= self.get_movement_cost(
                         1 * horizontal_multiplier, 0
                     ):
@@ -290,15 +282,15 @@ class npmob(mob):
                 else:
                     horizontal_difference = abs(
                         self.x - closest_target.x
-                    )  # decides moving left/right or up/down
+                    )  # Decides moving left/right or up/down
                     vertical_difference = abs(self.y - closest_target.y)
                     total_difference = (
                         horizontal_difference + vertical_difference
-                    )  # if horizontal is 3 and vertical is 2, move horizontally if random from 1 to 5 is 3 or lower: 60% chance of moving horizontally, 40% of moving vertically
+                    )  # If horizontal is 3 and vertical is 2, move horizontally if random from 1 to 5 is 3 or lower: 60% chance of moving horizontally, 40% of moving vertically
                     if (
                         random.randrange(0, total_difference + 1)
                         <= horizontal_difference
-                    ):  # allows weighting of movement to be more likely to move along more different axis
+                    ):  # Allows weighting of movement to be more likely to move along more different axis
                         if self.movement_points >= self.get_movement_cost(
                             1 * horizontal_multiplier, 0
                         ):
@@ -323,7 +315,7 @@ class npmob(mob):
                 if not self.visible():
                     current_cell = self.grids[0].find_cell(self.x, self.y)
                 else:
-                    current_cell = self.images[0].current_cell
+                    current_cell = self.get_cell()
                 if current_cell.has_pmob() or (
                     self.can_damage_buildings
                     and current_cell.has_destructible_buildings()

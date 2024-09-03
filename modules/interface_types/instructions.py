@@ -40,7 +40,7 @@ class instructions_page(label):
             Initializes this object
         Input:
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'message': string value - Default text for this label
         Output:
             None
@@ -52,7 +52,7 @@ class instructions_page(label):
         input_dict["coordinates"] = scaling.scale_coordinates(60, 60)
         input_dict["minimum_width"] = self.ideal_width
         input_dict["height"] = self.minimum_height
-        input_dict["modes"] = ["strategic", "earth"]
+        input_dict["modes"] = [constants.STRATEGIC_MODE, constants.EARTH_MODE]
         input_dict["image_id"] = "misc/default_instructions.png"
         super().__init__(input_dict)
 

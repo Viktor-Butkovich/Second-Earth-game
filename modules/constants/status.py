@@ -5,8 +5,9 @@ from modules.actor_types.mobs import mob
 from modules.constructs.ministers import minister
 from modules.constructs.worker_types import worker_type
 from modules.constructs.equipment_types import equipment_type
+from modules.constructs.minister_types import minister_type
 from modules.constructs.terrain_feature_types import terrain_feature_type
-from modules.constructs.images import image, free_image
+from modules.constructs.images import image, free_image, directional_indicator_image
 from modules.interface_types.interface_elements import (
     interface_collection,
     tabbed_collection,
@@ -18,7 +19,11 @@ from modules.interface_types.world_grids import world_grid
 from modules.interface_types.cells import cell
 from modules.interface_types.panels import safe_click_panel
 from modules.interface_types.notifications import notification
-from modules.interface_types.buttons import button, same_tile_icon
+from modules.interface_types.buttons import (
+    button,
+    same_tile_icon,
+    reorganize_unit_button,
+)
 from modules.interface_types.inventory_interface import item_icon
 from modules.interface_types.instructions import instructions_page
 from modules.interface_types.dice import die
@@ -58,6 +63,7 @@ minister_list: List[minister] = []
 available_minister_list: List[minister] = []
 worker_types: Dict[str, worker_type] = {}
 equipment_types: Dict[str, equipment_type] = {}
+minister_types: Dict[str, minister_type] = {}
 terrain_feature_types: Dict[str, terrain_feature_type] = {}
 flag_icon_list: List[button] = []
 grid_list: List[grid] = []
@@ -82,6 +88,7 @@ independent_interface_elements: List[Any] = []
 dice_list: List[die] = []
 draw_list: List[Any] = []
 same_tile_icon_list: List[same_tile_icon] = []
+directional_indicator_image_list: List[directional_indicator_image] = []
 
 loading_image: image = None
 safe_click_area: safe_click_panel = None
@@ -99,11 +106,13 @@ defense_info_display: ordered_collection = None
 mob_tabbed_collection: tabbed_collection = None
 tile_tabbed_collection: tabbed_collection = None
 mob_inventory_collection: ordered_collection = None
-mob_reorganization_collection: ordered_collection = None
 tile_inventory_collection: ordered_collection = None
+mob_reorganization_collection: ordered_collection = None
+settlement_collection: ordered_collection = None
+terrain_collection: ordered_collection = None
 commodity_prices_label: commodity_prices_label_template = None
-reorganize_unit_left_button: button = None
-reorganize_unit_right_button: button = None
+reorganize_unit_left_button: reorganize_unit_button = None
+reorganize_unit_right_button: reorganize_unit_button = None
 cursor_image: pygame.image = None
 next_boarded_vehicle: pmob = None
 text_box_destination: callable = None
@@ -118,14 +127,7 @@ transaction_history: Dict[str, float] = {}
 
 initial_tutorial_completed: bool = False
 
+# Status variables automatically updated when corresponding terrain features are created
 north_pole: cell = None
 south_pole: cell = None
-equator: List[cell] = None
-
-HAT_LEVEL: int = 6
-EYES_LEVEL: int = 2
-GLASSES_LEVEL: int = 3
-HAIR_LEVEL: int = 4
-FACIAL_HAIR_LEVEL: int = 8
-PORTRAIT_LEVEL: int = 10
-LABEL_LEVEL: int = 11
+equator_list: List[cell] = []

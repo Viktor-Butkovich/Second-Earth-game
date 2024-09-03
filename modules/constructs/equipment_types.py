@@ -142,8 +142,8 @@ def transfer(item_type: str, amount, source_type: str) -> None:
             if (
                 displayed_mob
                 and displayed_tile
-                and displayed_mob.is_pmob
-                and displayed_mob.images[0].current_cell.tile == displayed_tile
+                and displayed_mob.get_permission(constants.PMOB_PERMISSION)
+                and displayed_mob.get_cell().tile == displayed_tile
             ):
                 if amount == "all":
                     if source_type == "tile_inventory":
@@ -168,9 +168,11 @@ def transfer(item_type: str, amount, source_type: str) -> None:
                     return
 
                 if (
-                    displayed_mob.is_vehicle
-                    and displayed_mob.vehicle_type == "train"
-                    and not displayed_tile.cell.has_intact_building("train_station")
+                    displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
+                    and displayed_mob.vehicle_type == constants.TRAIN
+                    and not displayed_tile.cell.has_intact_building(
+                        constants.TRAIN_STATION
+                    )
                 ):
                     text_utility.print_to_screen(
                         "A train can only transfer cargo at a train station."

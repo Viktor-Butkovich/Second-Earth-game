@@ -26,30 +26,42 @@ class officer(pmob):
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
                 'officer_type': string value - Type of officer that this is, like 'explorer', or 'engineer'
-                'end_turn_destination': string or int tuple - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'veteran': boolean value - Required if from save, whether this officer is a veteran
         Output:
             None
         """
+        self.officer_type = input_dict["init_type"]
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.is_officer = True
-        self.officer_type = input_dict.get("officer_type", type(self).__name__)
         self.set_controlling_minister_type(
-            constants.officer_minister_dict[self.officer_type]
+            status.minister_types[constants.officer_minister_dict[self.officer_type]]
         )
         if not from_save:
-            self.veteran = False
             self.selection_sound()
         else:
-            self.veteran = input_dict["veteran"]
-            if self.veteran:
-                self.load_veteran()
+            if input_dict["veteran"]:
+                self.promote()
         self.finish_init(original_constructor, from_save, input_dict)
 
-    def replace(self, attached_group="none"):
+    def permissions_setup(self) -> None:
+        """
+        Description:
+            Sets up this mob's permissions
+        Input:
+            None
+        Output:
+            None
+        """
+        super().permissions_setup()
+        self.set_permission(constants.OFFICER_PERMISSION, True)
+        self.set_permission(
+            getattr(constants, self.officer_type.upper() + "_PERMISSION"), True
+        )
+
+    def replace(self, attached_group=None):
         """
         Description:
             Replaces this unit for a new version of itself when it dies from attrition, removing all experience and name modifications. Also charges the usual officer recruitment cost
@@ -63,9 +75,9 @@ class officer(pmob):
             constants.recruitment_costs[self.default_name] * -1,
             "attrition_replacements",
         )
-        if not attached_group == "none":
+        if attached_group:
             attached_group.set_name(attached_group.default_name)
-            attached_group.veteran = False
+            attached_group.set_permission(constants.VETERAN_PERMISSION, False)
 
     def to_save_dict(self):
         """
@@ -81,7 +93,7 @@ class officer(pmob):
         """
         save_dict = super().to_save_dict()
         save_dict["officer_type"] = self.officer_type
-        save_dict["veteran"] = self.veteran
+        save_dict["veteran"] = self.get_permission(constants.VETERAN_PERMISSION)
         return save_dict
 
     def promote(self):
@@ -93,26 +105,9 @@ class officer(pmob):
         Output:
             None
         """
-        self.veteran = True
-        self.set_name("veteran " + self.name)
-        self.update_image_bundle()
-        if status.displayed_mob == self:
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, self
-            )  # updates actor info display with veteran icon
-
-    def load_veteran(self):
-        """
-        Description:
-            Promotes this officer to a veteran while loading, changing the name as needed to prevent the word veteran from being added multiple times
-        Input:
-            None
-        Output:
-            None
-        """
-        self.promote()
-        if status.displayed_mob == self:
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
+        if not self.get_permission(constants.VETERAN_PERMISSION):
+            self.set_name("veteran " + self.name)
+            self.set_permission(constants.VETERAN_PERMISSION, True)
 
     def can_show_tooltip(self):
         """
@@ -154,7 +149,7 @@ class officer(pmob):
         self.x = group.x
         self.y = group.y
         self.show_images()
-        self.go_to_grid(self.images[0].current_cell.grid, (self.x, self.y))
+        self.go_to_grid(self.get_cell().grid, (self.x, self.y))
         self.select()
         if self.movement_points > 0:
             self.add_to_turn_queue()

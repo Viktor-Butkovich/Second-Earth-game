@@ -21,7 +21,7 @@ class label(button):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -31,7 +31,7 @@ class label(button):
             None
         """
         self.font = constants.fonts["default_notification"]
-        self.current_character = "none"
+        self.current_character = None
         self.message = input_dict["message"]
         self.minimum_width = input_dict["minimum_width"]
         input_dict["width"] = self.minimum_width
@@ -114,7 +114,7 @@ class value_label(label):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -178,10 +178,10 @@ class money_label_template(value_label):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
                 'button_type': string value - Determines the function of this button, like 'end turn'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -243,25 +243,22 @@ class money_label_template(value_label):
         total_upkeep = 0.0
         total_number = 0
         worker_type_info_dicts = {}
-        for worker_type in status.worker_types:
+        for key, worker_type in status.worker_types.items():
             current_dict = {}
-            current_dict["upkeep"] = status.worker_types[worker_type].upkeep
-            current_dict["total_upkeep"] = status.worker_types[
-                worker_type
-            ].get_total_upkeep()
-            current_dict["number"] = status.worker_types[worker_type].number
-            current_dict["name"] = status.worker_types[worker_type].name
+            current_dict["upkeep"] = worker_type.upkeep
+            current_dict["total_upkeep"] = worker_type.get_total_upkeep()
+            current_dict["number"] = worker_type.number
+            current_dict["name"] = worker_type.name
             total_upkeep += current_dict["total_upkeep"]
             total_number += current_dict["number"]
-            worker_type_info_dicts[worker_type] = current_dict
+            worker_type_info_dicts[key] = current_dict
         total_upkeep = round(total_upkeep, 2)
 
         tooltip_text.append("")
         tooltip_text.append(
             f"At the end of the turn, your {total_number} worker{utility.generate_plural(total_number)} will cost a total of {total_upkeep} money in upkeep."
         )
-        for worker_type in worker_type_info_dicts:
-            current_dict = worker_type_info_dicts[worker_type]
+        for key, current_dict in worker_type_info_dicts.items():
             if current_dict["upkeep"] > 0:
                 if current_dict["number"] > 0:
                     tooltip_text.append(
@@ -297,7 +294,7 @@ class money_label_template(value_label):
         if total_sale_revenue > 0:
             tooltip_text.append("")
             tooltip_text.append(
-                f"Your {constants.type_minister_dict['trade']} has been ordered to sell commodities at the end of the turn for an estimated total of {total_sale_revenue} money"
+                f"Your {status.minister_types[constants.TRADE_MINISTER].name} has been ordered to sell commodities at the end of the turn for an estimated total of {total_sale_revenue} money"
             )
 
         tooltip_text.append("")
@@ -332,7 +329,7 @@ class commodity_prices_label_template(label):
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -421,8 +418,10 @@ class commodity_prices_label_template(label):
 
     def update_tooltip(self):
         """
+        Description:
+            Sets this label's tooltip to be the same as the text it displays
         Input:
-            none
+            None
         Output:
             Sets this label's tooltip to be the same as the text it displays
         """
@@ -442,7 +441,7 @@ class multi_line_label(label):
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -485,7 +484,7 @@ class multi_line_label(label):
     def update_tooltip(self):
         """
         Input:
-            none
+            None
         Output:
             Sets this label's tooltip to be the same as the text it displays
         """

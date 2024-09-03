@@ -2,6 +2,7 @@
 
 from typing import List, Dict, Tuple
 from ...util import csv_utility, utility, actor_utility
+import modules.constants.constants as constants
 import modules.constants.status as status
 import json
 import random
@@ -183,7 +184,9 @@ class character_manager_template:
             List[Dict[str, any]]: Returns list of image id's for each portrait section
         """
         minister_face = []
-        if unit.is_pmob and (unit.is_officer or unit.is_worker):
+        if unit.get_permission(constants.PMOB_PERMISSION) and unit.any_permissions(
+            constants.OFFICER_PERMISSION, constants.WORKER_PERMISSION
+        ):
             minister_face = self.generate_appearance(
                 unit, full_body=True, metadata=metadata
             )
@@ -194,7 +197,7 @@ class character_manager_template:
                 part["y_offset"] = part.get("y_offset", 0) + 0.342
                 part["level"] = part.get("level", 1) - 5
 
-            if unit.is_worker:
+            if unit.get_permission(constants.WORKER_PERMISSION):
                 hidden_sections = ["eyes", "hat"]
             else:
                 hidden_sections = ["eyes", "hat"]
@@ -344,7 +347,7 @@ class character_manager_template:
                 "image_id": random.choice(self.outfit_images),
                 "green_screen": metadata["suit_colors"],
                 "metadata": {"portrait_section": "outfit"},
-                "level": status.HAIR_LEVEL + random.choice([-1, 1]),
+                "level": constants.HAIR_LEVEL + random.choice([-1, 1]),
             }
         )
 
@@ -390,7 +393,7 @@ class character_manager_template:
             {
                 "image_id": random.choice(possible_hair_images),
                 "green_screen": metadata["hair_color"],
-                "level": status.HAIR_LEVEL,
+                "level": constants.HAIR_LEVEL,
                 "metadata": {"portrait_section": "hair"},
             }
         )
@@ -413,7 +416,7 @@ class character_manager_template:
                     "image_id": random.choice(self.facial_hair_images),
                     "green_screen": metadata["hair_color"],
                     "metadata": {"portrait_section": "facial_hair"},
-                    "level": status.FACIAL_HAIR_LEVEL,
+                    "level": constants.FACIAL_HAIR_LEVEL,
                 }
             )
 
@@ -434,7 +437,7 @@ class character_manager_template:
                 {
                     "image_id": random.choice(self.accessories_images["glasses"]),
                     "green_screen": random.choice(self.clothing_colors),
-                    "level": status.GLASSES_LEVEL,
+                    "level": constants.GLASSES_LEVEL,
                     "metadata": {"portrait_section": "glasses"},
                 }
             )
@@ -446,7 +449,7 @@ class character_manager_template:
             {
                 "image_id": random.choice(hat_images),
                 "green_screen": metadata["suit_colors"],
-                "level": status.HAT_LEVEL,
+                "level": constants.HAT_LEVEL,
                 "metadata": {"portrait_section": "hat"},
             }
         )
@@ -510,7 +513,7 @@ class character_manager_template:
                 "image_id": random.choice(self.eyes_images[metadata["masculine"]]),
                 "green_screen": [metadata["eye_color"], metadata["hair_color"]],
                 "metadata": {"portrait_section": "eyes"},
-                "level": status.EYES_LEVEL,
+                "level": constants.EYES_LEVEL,
             }
         )
 
@@ -531,7 +534,7 @@ class character_manager_template:
                 {
                     "image_id": random.choice(self.portrait_images),
                     "metadata": {"portrait_section": "portrait"},
-                    "level": status.PORTRAIT_LEVEL,
+                    "level": constants.PORTRAIT_LEVEL,
                 }
             )
 

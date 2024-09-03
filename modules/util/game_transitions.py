@@ -43,12 +43,12 @@ def cycle_player_turn(start_of_turn=False):
             )  # if unit is already selected, move it to the end and shift to the next one
         cycled_mob = turn_queue[0]
         if (
-            constants.current_game_mode == "earth"
+            constants.current_game_mode == constants.EARTH_MODE
             and not status.earth_grid in cycled_mob.grids
         ):
-            set_game_mode("strategic")
-        elif constants.current_game_mode == "ministers":
-            set_game_mode("strategic")
+            set_game_mode(constants.STRATEGIC_MODE)
+        elif constants.current_game_mode == constants.MINISTERS_MODE:
+            set_game_mode(constants.STRATEGIC_MODE)
         actor_utility.calibrate_actor_info_display(
             status.mob_info_display, None, override_exempt=True
         )
@@ -71,45 +71,54 @@ def set_game_mode(new_game_mode):
         return ()
     else:
         if previous_game_mode in [
-            "main_menu",
-            "new_game_setup",
+            constants.MAIN_MENU_MODE,
+            constants.NEW_GAME_SETUP_MODE,
         ] and not new_game_mode in [
-            "main_menu",
-            "new_game_setup",
+            constants.MAIN_MENU_MODE,
+            constants.NEW_GAME_SETUP_MODE,
         ]:  # new_game_mode in ['strategic', 'ministers', 'earth']:
             constants.event_manager.clear()
             constants.sound_manager.play_random_music("earth")
         elif (
-            not previous_game_mode in ["main_menu", "new_game_setup"]
+            not previous_game_mode
+            in [constants.MAIN_MENU_MODE, constants.NEW_GAME_SETUP_MODE]
         ) and new_game_mode in [
-            "main_menu",
-            "new_game_setup",
-        ]:  # game starts in 'none' mode so this would work on startup
+            constants.MAIN_MENU_MODE,
+            constants.NEW_GAME_SETUP_MODE,
+        ]:  # game starts in None mode so this would work on startup
             constants.event_manager.clear()
             constants.sound_manager.play_random_music("main menu")
 
-        if new_game_mode == "main_menu" or previous_game_mode == "new_game_setup":
+        if (
+            new_game_mode == constants.MAIN_MENU_MODE
+            or previous_game_mode == constants.NEW_GAME_SETUP_MODE
+        ):
             start_loading()
         constants.current_game_mode = new_game_mode
-        if new_game_mode == "strategic":
+        if new_game_mode == constants.STRATEGIC_MODE:
             constants.default_text_box_height = constants.font_size * 5.5
             constants.text_box_height = constants.default_text_box_height
-        elif new_game_mode == "main_menu":
+        elif new_game_mode == constants.MAIN_MENU_MODE:
             constants.default_text_box_height = constants.font_size * 5.5
             constants.text_box_height = constants.default_text_box_height
             status.text_list = []  # clear text box when going to main menu
-        elif new_game_mode == "ministers":
+        elif new_game_mode == constants.MINISTERS_MODE:
             status.table_map_image.set_image(
                 status.strategic_map_grid.create_map_image()
             )
             actor_utility.calibrate_actor_info_display(
                 status.tile_info_display, status.earth_grid.cell_list[0][0].tile
             )  # calibrate tile info to Earth
-        elif not new_game_mode in ["trial", "new_game_setup"]:
+        elif not new_game_mode in [constants.TRIAL_MODE, constants.NEW_GAME_SETUP_MODE]:
             constants.default_text_box_height = constants.font_size * 5.5
             constants.text_box_height = constants.default_text_box_height
 
-    if previous_game_mode in ["strategic", "earth", "new_game_setup", "ministers"]:
+    if previous_game_mode in [
+        constants.STRATEGIC_MODE,
+        constants.EARTH_MODE,
+        constants.NEW_GAME_SETUP_MODE,
+        constants.MINISTERS_MODE,
+    ]:
         actor_utility.calibrate_actor_info_display(
             status.mob_info_display, None, override_exempt=True
         )  # deselect actors/ministers and remove any actor info from display when switching screens
@@ -117,17 +126,17 @@ def set_game_mode(new_game_mode):
             status.tile_info_display, None, override_exempt=True
         )
         minister_utility.calibrate_minister_info_display(None)
-        if new_game_mode == "earth":
+        if new_game_mode == constants.EARTH_MODE:
             if status.earth_grid.cell_list[0][0].contained_mobs:
                 status.earth_grid.cell_list[0][0].contained_mobs[0].cycle_select()
             actor_utility.calibrate_actor_info_display(
                 status.tile_info_display, status.earth_grid.cell_list[0][0].tile
             )  # calibrate tile info to Earth
-        elif new_game_mode == "strategic":
+        elif new_game_mode == constants.STRATEGIC_MODE:
             centered_cell = status.strategic_map_grid.find_cell(
                 status.minimap_grid.center_x, status.minimap_grid.center_y
             )
-            if centered_cell.tile != "none":
+            if centered_cell.tile:
                 actor_utility.calibrate_actor_info_display(
                     status.tile_info_display, centered_cell.tile
                 )
@@ -139,18 +148,21 @@ def set_game_mode(new_game_mode):
                         status.mob_info_display, centered_cell.contained_mobs[0]
                     )
                 # calibrate tile info to minimap center
-    if new_game_mode == "ministers":
+    if new_game_mode == constants.MINISTERS_MODE:
         constants.available_minister_left_index = -2
         minister_utility.update_available_minister_display()
         minister_utility.calibrate_minister_info_display(None)
 
-    elif previous_game_mode == "trial":
+    elif previous_game_mode == constants.TRIAL_MODE:
         minister_utility.calibrate_trial_info_display(status.defense_info_display, None)
         minister_utility.calibrate_trial_info_display(
             status.prosecution_info_display, None
         )
 
-    if flags.startup_complete and not new_game_mode in ["main_menu", "new_game_setup"]:
+    if flags.startup_complete and not new_game_mode in [
+        constants.MAIN_MENU_MODE,
+        constants.NEW_GAME_SETUP_MODE,
+    ]:
         constants.notification_manager.update_notification_layout()
 
 
@@ -235,7 +247,9 @@ def to_main_menu(override=False):
     if status.current_instructions_page:
         status.current_instructions_page.remove_complete()
         status.current_instructions_page = None
-    set_game_mode("main_menu")
+    for key, terrain_feature_type in status.terrain_feature_types.items():
+        terrain_feature_type.clear_tracking()
+    set_game_mode(constants.MAIN_MENU_MODE)
 
 
 def force_minister_appointment():
@@ -248,10 +262,10 @@ def force_minister_appointment():
     Output:
         None
     """
-    set_game_mode("ministers")
+    set_game_mode(constants.MINISTERS_MODE)
     constants.notification_manager.display_notification(
         {
             "message": "You cannot do that until all minister positions have been appointed. /n /n",
-            "notification_type": "default",
+            "notification_type": constants.NOTIFICATION,
         }
     )

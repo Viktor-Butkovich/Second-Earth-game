@@ -46,7 +46,7 @@ class grid(interface_elements.interface_element):
         self.from_save = from_save
         self.is_mini_grid = False
         self.is_abstract_grid = False
-        self.attached_grid = "none"
+        self.attached_grid = None
         self.coordinate_width: int = input_dict.get(
             "coordinate_size", input_dict.get("coordinate_width")
         )
@@ -402,7 +402,7 @@ class grid(interface_elements.interface_element):
                 continue
             possible_cells.append(current_cell)
         if len(possible_cells) == 0:
-            possible_cells.append("none")
+            possible_cells.append(None)
         return random.choice(possible_cells)
 
     def create_cells(self):
@@ -431,7 +431,7 @@ class grid(interface_elements.interface_element):
         """
         return itertools.chain.from_iterable(self.cell_list)
 
-    def create_cell(self, x, y, save_dict="none") -> cells.cell:
+    def create_cell(self, x, y, save_dict=None) -> cells.cell:
         """
         Description:
             Creates a cell at the inputted coordinates
@@ -562,10 +562,15 @@ class mini_grid(grid):
                 attached_cell = self.attached_grid.find_cell(attached_x, attached_y)
                 current_cell.copy(attached_cell)
             for current_mob in status.mob_list:
-                if current_mob.images[0].current_cell != "none":
+                if current_mob.get_cell():
                     for current_image in current_mob.images:
                         if current_image.grid == self:
                             current_image.add_to_cell()
+            if self == status.minimap_grid:
+                for (
+                    directional_indicator_image
+                ) in status.directional_indicator_image_list:
+                    directional_indicator_image.calibrate()
 
     def get_main_grid_coordinates(self, mini_x, mini_y):
         """

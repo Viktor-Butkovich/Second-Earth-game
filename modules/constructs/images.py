@@ -1,7 +1,7 @@
 # Contains functionality for images
 
 import pygame
-from ..util import utility, drawing_utility, text_utility, scaling
+from ..util import utility, drawing_utility, text_utility, scaling, minister_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -26,7 +26,7 @@ class image:
         self.text = False
         self.width = width
         self.height = height
-        self.Rect = "none"
+        self.Rect = None
 
     def complete_draw(self):
         """
@@ -51,12 +51,8 @@ class image:
         Output:
             boolean: Returns True if this image is colliding with the mouse, otherwise returns False
         """
-        if self.Rect != "none" and self.Rect.collidepoint(
-            pygame.mouse.get_pos()
-        ):  # if mouse is in button
-            return True
-        else:
-            return False
+        return self.Rect and self.Rect.collidepoint(pygame.mouse.get_pos())
+        # If mouse is in button
 
     def remove_complete(self):
         """
@@ -156,7 +152,7 @@ class image_bundle(image):
             None
         """
         self.image_type = "bundle"
-        self.combined_surface = "none"
+        self.combined_surface = None
         super().__init__(parent_image.width, parent_image.height)
         self.parent_image = parent_image
         self.members = []
@@ -390,7 +386,7 @@ class bundle_image:
             None
         """
         self.bundle = bundle
-        self.image = "none"
+        self.image = None
         self.member_type = member_type
         self.is_offset = is_offset
 
@@ -409,6 +405,7 @@ class bundle_image:
             self.x_offset = image_id.get("x_offset", 0)
             self.y_offset = image_id.get("y_offset", 0)
             self.level = image_id.get("level", 0)
+            self.alpha = image_id.get("alpha", 255)
             if image_id.get("override_width", None):
                 self.override_width = image_id["override_width"]
             if image_id.get("override_height", None):
@@ -430,20 +427,21 @@ class bundle_image:
                 self.color_filter = image_id["color_filter"]
             else:
                 self.has_color_filter = False
+            self.pixellated = image_id.get("pixellated", False)
             if "font" in image_id:
                 self.font = image_id["font"]
             elif type(self.image_id) == str and not self.image_id.endswith(".png"):
                 self.font = constants.myfont
             if "free" in image_id:
                 self.free = image_id["free"]
-
+        self.scale()
         if (
             type(self.image_id) == pygame.Surface
         ):  # if given pygame Surface, avoid having to render it again
             self.image = self.image_id
         else:
             self.load()
-        self.scale()
+        self.image = pygame.transform.scale(self.image, (self.width, self.height))
 
     def get_blit_x_offset(self):
         """
@@ -502,8 +500,6 @@ class bundle_image:
         else:
             self.width = self.bundle.width
             self.height = self.bundle.height
-        if self.image != "none":
-            self.image = pygame.transform.scale(self.image, (self.width, self.height))
 
     def get_color_difference(self, color1, color2):
         """
@@ -536,7 +532,9 @@ class bundle_image:
                 key += str(self.green_screen_colors)
             if self.has_color_filter:
                 key += str(self.color_filter)
-
+            if self.pixellated:
+                non_pixellated_key = key
+                key += "pixellated"
         if key in status.rendered_images:  # if image already loaded, use it
             self.image = status.rendered_images[key]
         else:  # if image not loaded, load it and add it to the loaded images
@@ -545,177 +543,175 @@ class bundle_image:
                 try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
                     self.image = pygame.image.load(full_image_id)
                 except:
-                    print(full_image_id)
                     self.image = pygame.image.load(full_image_id)
                 self.image.convert()
                 if self.is_offset and (self.has_green_screen or self.has_color_filter):
-                    width, height = self.image.get_size()
-                    smart_green_screen = (
-                        self.has_green_screen and type(self.green_screen_colors) == dict
-                    )
-                    color_cache = (
-                        {}
-                    )  # Avoid re-computing color changes for that starting color for the rest of the image
-                    for x in range(width):
-                        for y in range(height):
-                            (
-                                original_red,
-                                original_green,
-                                original_blue,
-                                alpha,
-                            ) = self.image.get_at((x, y))
-                            red, green, blue = (
-                                original_red,
-                                original_green,
-                                original_blue,
-                            )
-                            if (
-                                color_cache.get(
-                                    (original_red, original_green, original_blue), None
-                                )
-                                == None
-                            ):
-                                if self.has_green_screen:
-                                    if smart_green_screen:
-                                        replaced = False
-                                        for terrain_type in self.green_screen_colors:
-                                            if not replaced:
-                                                metadata = self.green_screen_colors[
-                                                    terrain_type
-                                                ]
-                                                for base_color in metadata[
-                                                    "base_colors"
-                                                ]:
-                                                    displacement = (
-                                                        self.get_color_difference(
-                                                            (red, green, blue),
-                                                            base_color,
-                                                        )
-                                                    )
-                                                    if (
-                                                        sum(
-                                                            [
-                                                                abs(a)
-                                                                for a in displacement
-                                                            ]
-                                                        )
-                                                        <= metadata["tolerance"]
-                                                    ):
-                                                        replaced = True
-                                                        difference_proportion = (
-                                                            min(
-                                                                red / base_color[0], 1.5
-                                                            ),
-                                                            min(
-                                                                green / base_color[1],
-                                                                1.5,
-                                                            ),
-                                                            min(
-                                                                blue / base_color[2],
-                                                                1.5,
-                                                            ),
-                                                        )
-                                                        red = min(
-                                                            max(
-                                                                round(
-                                                                    metadata[
-                                                                        "replacement_color"
-                                                                    ][0]
-                                                                    * difference_proportion[
-                                                                        0
-                                                                    ]
-                                                                ),
-                                                                0,
-                                                            ),
-                                                            255,
-                                                        )
-                                                        green = min(
-                                                            max(
-                                                                round(
-                                                                    metadata[
-                                                                        "replacement_color"
-                                                                    ][1]
-                                                                    * difference_proportion[
-                                                                        1
-                                                                    ]
-                                                                ),
-                                                                0,
-                                                            ),
-                                                            255,
-                                                        )
-                                                        blue = min(
-                                                            max(
-                                                                round(
-                                                                    metadata[
-                                                                        "replacement_color"
-                                                                    ][2]
-                                                                    * difference_proportion[
-                                                                        2
-                                                                    ]
-                                                                ),
-                                                                0,
-                                                            ),
-                                                            255,
-                                                        )
-                                                        break
-                                    else:
-                                        for (
-                                            index,
-                                            current_green_screen_color,
-                                        ) in enumerate(constants.green_screen_colors):
-                                            # If pixel matches preset green screen color, replace it with the image's corresponding replacement color
-                                            if (
-                                                red,
-                                                green,
-                                                blue,
-                                            ) == current_green_screen_color:
-                                                (
-                                                    red,
-                                                    green,
-                                                    blue,
-                                                ) = self.green_screen_colors[index]
-                                                break
-                                if self.has_color_filter:
-                                    red = round(
-                                        max(
-                                            min(
-                                                self.color_filter.get("red", 1) * red,
-                                                255,
-                                            ),
-                                            0,
-                                        )
-                                    )
-                                    green = round(
-                                        max(
-                                            min(
-                                                self.color_filter.get("green", 1)
-                                                * green,
-                                                255,
-                                            ),
-                                            0,
-                                        )
-                                    )
-                                    blue = round(
-                                        max(
-                                            min(
-                                                self.color_filter.get("blue", 1) * blue,
-                                                255,
-                                            ),
-                                            0,
-                                        )
-                                    )
-                                color_cache[
-                                    (original_red, original_green, original_blue)
-                                ] = (red, green, blue)
-                            else:
-                                red, green, blue = color_cache[
-                                    (original_red, original_green, original_blue)
-                                ]
-                            self.image.set_at((x, y), (red, green, blue, alpha))
+                    self.apply_per_pixel_mutations()
             else:
                 self.text = True
                 self.image = text_utility.text(self.image_id, self.font)
+            if self.is_offset and self.pixellated:
+                status.rendered_images[non_pixellated_key] = self.image
+                self.image = pygame.transform.scale(
+                    self.image, (constants.PIXELLATED_SIZE, constants.PIXELLATED_SIZE)
+                )
+                hashed_key = hash(
+                    key
+                )  # Randomly flip pixellated image in the same way every time
+                if hashed_key % 2 == 0:
+                    self.image = pygame.transform.flip(self.image, True, False)
+                if hashed_key % 4 >= 2:
+                    self.image = pygame.transform.flip(self.image, False, True)
+            if self.is_offset and self.alpha != 255:
+                self.image.set_alpha(self.alpha)
             status.rendered_images[key] = self.image
+
+    def apply_per_pixel_mutations(self):
+        """
+        Description:
+            Applies green screen and color filter changes to this image
+        Input:
+            None
+        Output:
+            None
+        """
+        width, height = self.image.get_size()
+        smart_green_screen = (
+            self.has_green_screen and type(self.green_screen_colors) == dict
+        )
+        color_cache = (
+            {}
+        )  # Avoid re-computing color changes for that starting color for the rest of the image
+        for x in range(width):
+            for y in range(height):
+                (
+                    original_red,
+                    original_green,
+                    original_blue,
+                    alpha,
+                ) = self.image.get_at((x, y))
+                red, green, blue = (
+                    original_red,
+                    original_green,
+                    original_blue,
+                )
+                if (
+                    color_cache.get((original_red, original_green, original_blue), None)
+                    == None
+                ):
+                    if self.has_green_screen:
+                        if smart_green_screen:
+                            replaced = False
+                            for terrain_type in self.green_screen_colors:
+                                if not replaced:
+                                    metadata = self.green_screen_colors[terrain_type]
+                                    for base_color in metadata["base_colors"]:
+                                        displacement = self.get_color_difference(
+                                            (red, green, blue),
+                                            base_color,
+                                        )
+                                        if (
+                                            sum([abs(a) for a in displacement])
+                                            <= metadata["tolerance"]
+                                        ):
+                                            replaced = True
+                                            difference_proportion = (
+                                                min(red / base_color[0], 1.5),
+                                                min(
+                                                    green / base_color[1],
+                                                    1.5,
+                                                ),
+                                                min(
+                                                    blue / base_color[2],
+                                                    1.5,
+                                                ),
+                                            )
+                                            red = min(
+                                                max(
+                                                    round(
+                                                        metadata["replacement_color"][0]
+                                                        * difference_proportion[0]
+                                                    ),
+                                                    0,
+                                                ),
+                                                255,
+                                            )
+                                            green = min(
+                                                max(
+                                                    round(
+                                                        metadata["replacement_color"][1]
+                                                        * difference_proportion[1]
+                                                    ),
+                                                    0,
+                                                ),
+                                                255,
+                                            )
+                                            blue = min(
+                                                max(
+                                                    round(
+                                                        metadata["replacement_color"][2]
+                                                        * difference_proportion[2]
+                                                    ),
+                                                    0,
+                                                ),
+                                                255,
+                                            )
+                                            break
+                        else:
+                            for (
+                                index,
+                                current_green_screen_color,
+                            ) in enumerate(constants.green_screen_colors):
+                                # If pixel matches preset green screen color, replace it with the image's corresponding replacement color
+                                if (
+                                    red,
+                                    green,
+                                    blue,
+                                ) == current_green_screen_color:
+                                    (
+                                        red,
+                                        green,
+                                        blue,
+                                    ) = self.green_screen_colors[index]
+                                    break
+                    if self.has_color_filter:
+                        red = round(
+                            max(
+                                min(
+                                    self.color_filter.get("red", 1) * red,
+                                    255,
+                                ),
+                                0,
+                            )
+                        )
+                        green = round(
+                            max(
+                                min(
+                                    self.color_filter.get("green", 1) * green,
+                                    255,
+                                ),
+                                0,
+                            )
+                        )
+                        blue = round(
+                            max(
+                                min(
+                                    self.color_filter.get("blue", 1) * blue,
+                                    255,
+                                ),
+                                0,
+                            )
+                        )
+                    color_cache[(original_red, original_green, original_blue)] = (
+                        red,
+                        green,
+                        blue,
+                    )
+                else:
+                    red, green, blue = color_cache[
+                        (original_red, original_green, original_blue)
+                    ]
+                self.image.set_at((x, y), (red, green, blue, alpha))
 
 
 class free_image(image):
@@ -734,7 +730,7 @@ class free_image(image):
                 'width': int value - Pixel width of this image
                 'height': int value - Pixel height of this image
                 'modes': string list value - Game modes during which this button can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'member_config' = {}: Dictionary of extra configuration values for how to add elements to collections
                 'to_front' = False: boolean value - If True, allows this image to appear in front of most other objects instead of being behind them
         Output:
@@ -744,9 +740,9 @@ class free_image(image):
         self.showing = False
         self.has_parent_collection = False
         super().__init__(input_dict["width"], input_dict["height"])
-        self.parent_collection = input_dict.get("parent_collection", "none")
+        self.parent_collection = input_dict.get("parent_collection", None)
         self.color_key = input_dict.get("color_key", None)
-        self.has_parent_collection = self.parent_collection != "none"
+        self.has_parent_collection = self.parent_collection
         if not self.has_parent_collection:
             status.independent_interface_elements.append(self)
 
@@ -762,7 +758,7 @@ class free_image(image):
 
         if "modes" in input_dict:
             self.set_modes(input_dict["modes"])
-        elif "parent_collection" != "none":
+        elif self.parent_collection:
             self.set_modes(self.parent_collection.modes)
         self.set_image(input_dict["image_id"])
 
@@ -784,7 +780,7 @@ class free_image(image):
         """
         self.x = new_x
         self.y = constants.display_height - new_y
-        if hasattr(self, "Rect") and self.Rect != "none":
+        if hasattr(self, "Rect") and self.Rect:
             self.Rect.x = self.x
             self.Rect.y = constants.display_height - (new_y + self.height)
         if self.has_parent_collection:
@@ -1110,6 +1106,193 @@ class tooltip_free_image(free_image):
                 )
 
 
+class directional_indicator_image(tooltip_free_image):
+    """
+    Image that moves around minimap to indicate direction or location of a particular cell from status, automatically calibrating with minimap
+    """
+
+    def __init__(self, input_dict):
+        """
+        Description:
+            Initializes this object
+        Input:
+            dictionary input_dict: Keys corresponding to the values needed to initialize this object
+                'image_id': string/string list value - List of image bundle component descriptions or string file path to the image used by this object
+                'coordinates' = (0, 0): int tuple value - Two values representing x and y coordinates for the pixel location of this image
+                'width': int value - Pixel width of this image
+                'height': int value - Pixel height of this image
+                'modes': string list value - Game modes during which this button can appear
+                'to_front' = False: boolean value - If True, allows this image to appear in front of most other objects instead of being behind them
+                'anchor_key': string value - String status key identifying cell to point to when minimap is calibrated
+        Output:
+            None
+        """
+        self.hosting_tile = None
+        self.anchor_key = input_dict["anchor_key"]
+        status.directional_indicator_image_list.append(self)
+        super().__init__(input_dict)
+
+    def update_tooltip(self):
+        """
+        Description:
+            Sets this image's tooltip to what it should be, depending on its subclass. By default, tooltip free images do not have any tooltip text
+        Input:
+            None
+        Output:
+            None
+        """
+        self.set_tooltip([f"Points towards the {self.anchor_key.replace('_', ' ')}"])
+
+    def can_show(self, skip_parent_collection=False):
+        """
+        Description:
+            Returns whether this image can be shown
+        Input:
+            None
+        Output:
+            boolean: Returns True if this image can currently appear, otherwise returns False
+        """
+        return (
+            super().can_show(skip_parent_collection=skip_parent_collection)
+            and self.hosting_tile == None
+        )
+
+    def get_image_id_list(self):
+        """
+        Description:
+            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
+                orientation
+        Input:
+            None
+        Output:
+            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
+        """
+        image_id_list = super().get_image_id_list()
+        for index, current_image in enumerate(image_id_list):
+            if type(current_image) == str:
+                image_id_list[index] = {
+                    "image_id": current_image,
+                    "override_width": self.width,
+                    "override_height": self.height,
+                }
+            elif type(current_image) == dict:
+                current_image["override_width"] = self.width
+                current_image["override_height"] = self.height
+        return image_id_list
+
+    def calibrate(self):
+        """
+        Description:
+            Places this image on the anchor cell, if visible on minimap, or otherwise points towards it along the side of the minimap grid
+        Input:
+            None
+        Output:
+            None
+        """
+        anchor = getattr(status, self.anchor_key, None)
+        if not anchor:  # Don't attempt to calibrate if anchor cell is not yet defined
+            return
+
+        status.scrolling_strategic_map_grid.find_cell(
+            *status.scrolling_strategic_map_grid.get_mini_grid_coordinates(
+                anchor.x, anchor.y
+            )
+        ).tile.add_hosted_image(self)
+        if status.minimap_grid.is_on_mini_grid(anchor.x, anchor.y):
+            status.minimap_grid.find_cell(
+                *status.minimap_grid.get_mini_grid_coordinates(anchor.x, anchor.y)
+            ).tile.add_hosted_image(self)
+        else:
+            if self.hosting_tile:
+                self.hosting_tile.remove_hosted_image(self)
+            anchor_scrolling_cell = status.scrolling_strategic_map_grid.find_cell(
+                *status.scrolling_strategic_map_grid.get_mini_grid_coordinates(
+                    anchor.x, anchor.y
+                )
+            )
+            anchor_scrolling_coordinates = (
+                anchor_scrolling_cell.x,
+                anchor_scrolling_cell.y,
+            )
+            x_offset = (
+                status.scrolling_strategic_map_grid.coordinate_width // 2
+                - anchor_scrolling_coordinates[0]
+            )
+            y_offset = (
+                status.scrolling_strategic_map_grid.coordinate_height // 2
+                - anchor_scrolling_coordinates[1]
+            )
+            if abs(x_offset) > abs(y_offset):
+                slope = y_offset / x_offset
+
+                if x_offset < 0:
+                    slope *= -1
+
+                x_position = (
+                    status.minimap_grid.x + status.minimap_grid.width - self.width // 2
+                )
+                x_origin = status.minimap_grid.x + (status.minimap_grid.width // 2)
+                y_origin = status.minimap_grid.y + (status.minimap_grid.height // 2)
+                y_position = (
+                    y_origin - slope * (x_position - x_origin)
+                ) - self.height // 2
+
+                if x_offset > 0:
+                    x_position -= status.minimap_grid.width
+            elif abs(x_offset) < abs(y_offset):
+                if x_offset != 0:
+                    slope = y_offset / x_offset
+                    if y_offset < 0:
+                        slope *= -1
+                    y_position = (
+                        status.minimap_grid.y
+                        + status.minimap_grid.height
+                        - self.height // 2
+                    )
+                    y_origin = status.minimap_grid.y + (status.minimap_grid.height // 2)
+                    x_origin = status.minimap_grid.x + (status.minimap_grid.width // 2)
+                    x_position = (
+                        ((y_origin - y_position) / slope) + x_origin - self.width // 2
+                    )
+                    if y_offset > 0:
+                        y_position -= status.minimap_grid.height
+                elif y_offset < 0:
+                    x_position, y_position = (
+                        status.minimap_grid.x
+                        + status.minimap_grid.width // 2
+                        - self.width // 2,
+                        status.minimap_grid.y
+                        + status.minimap_grid.height
+                        - self.height // 2,
+                    )
+                else:
+                    x_position, y_position = (
+                        status.minimap_grid.x
+                        + status.minimap_grid.width // 2
+                        - self.width // 2,
+                        status.minimap_grid.y - self.height // 2,
+                    )
+            else:  # If x_offset == y_offset
+                if y_offset > 0:
+                    y_position = status.minimap_grid.y - self.height // 2
+                else:
+                    y_position = (
+                        status.minimap_grid.y
+                        + status.minimap_grid.height
+                        - self.height // 2
+                    )
+                if x_offset > 0:
+                    x_position = status.minimap_grid.x - self.width // 2
+                else:
+                    x_position = (
+                        status.minimap_grid.x
+                        + status.minimap_grid.width
+                        - self.width // 2
+                    )
+
+            self.set_origin(x_position, y_position)
+
+
 class indicator_image(tooltip_free_image):
     """
     Image that appears under certain conditions based on its type
@@ -1210,14 +1393,10 @@ class dice_roll_minister_image(tooltip_free_image):
         if self.minister_image_type == "portrait":
             input_dict["image_id"] = self.attached_minister.image_id
         elif self.minister_image_type == "position":
-            if self.attached_minister.current_position != "none":
-                input_dict["image_id"] = (
-                    "ministers/icons/"
-                    + constants.minister_type_dict[
-                        self.attached_minister.current_position
-                    ]
-                    + ".png"
-                )
+            if self.attached_minister.current_position:
+                input_dict[
+                    "image_id"
+                ] = f"ministers/icons/{self.attached_minister.current_position.skill_type}.png"
             else:
                 input_dict["image_id"] = "misc/mob_background.png"
         self.minister_message_image = input_dict.get("minister_message_image", False)
@@ -1256,22 +1435,19 @@ class minister_type_image(tooltip_free_image):
                 'width': int value - Pixel width of this image
                 'height': int value - Pixel height of this image
                 'modes': string list value - Game modes during which this button can appear
-                'minister_type': string value - Minister office whose icon is always represented by this image, or 'none' if the icon can change
-                'attached_label': actor_display_label/string value - Actor display label that this image appears next to, or 'none' if not attached to a label
+                'minister_type': string value - Minister office whose icon is always represented by this image, or None if the icon can change
+                'attached_label': actor_display_label/string value - Actor display label that this image appears next to, or None if not attached to a label
                 'minister_image_type': string value = 'position': Type of minister image to show - either only position or full portrait
         Output:
             None
         """
-        self.current_minister = "none"
+        self.current_minister = None
         input_dict["image_id"] = "misc/empty.png"
-        self.minister_image_type = input_dict.get("minister_image_type", "position")
         super().__init__(input_dict)
         self.attached_label = input_dict["attached_label"]
         self.minister_type = input_dict["minister_type"]  # position, like General
-        if self.minister_type != "none":
-            self.calibrate(
-                status.current_ministers[self.minister_type]
-            )  # calibrate to current minister or none if no current minister
+        if self.minister_type:
+            self.calibrate(minister_utility.get_minister(self.minister_type))
         status.minister_image_list.append(self)
         self.to_front = True
 
@@ -1280,95 +1456,31 @@ class minister_type_image(tooltip_free_image):
         Description:
             Attaches this image to the inputted minister and updates this image's appearance to the minister's office icon
         Input:
-            string/minister new_minister: The displayed minister whose information is matched by this label. If this equals 'none', the label is detached from any minister and is hidden
+            string/minister new_minister: The displayed minister whose information is matched by this label. If this equals None, the label is detached from any minister and is hidden
         Output:
             None
         """
-        if new_minister == None:
-            new_minister = "none"
-        if new_minister != "none":
-            if new_minister.actor_type != "minister":
-                if hasattr(new_minister, "controlling_minister"):
-                    new_minister = new_minister.controlling_minister
-                else:
-                    new_minister = "none"
+        if new_minister and new_minister.actor_type != "minister":
+            if hasattr(new_minister, "controlling_minister"):
+                new_minister = new_minister.controlling_minister
+            else:
+                new_minister = None
 
         self.current_minister = new_minister
-        if new_minister != "none":
-            self.minister_type = (
-                new_minister.current_position
-            )  # new_minister.current_position
+        if new_minister:
+            self.minister_type = new_minister.current_position
         current_minister_type = self.minister_type
         if (
-            self.attached_label != "none"
-            and self.attached_label.actor != "none"
-            and self.attached_label.actor.is_pmob
+            self.attached_label
+            and self.attached_label.actor
+            and self.attached_label.actor.get_permission(constants.PMOB_PERMISSION)
         ):
             current_minister_type = self.attached_label.actor.controlling_minister_type
-        if current_minister_type != "none":
-            keyword = constants.minister_type_dict[
-                current_minister_type
-            ]  # type, like military
-            self.tooltip_text = []
-            if keyword == "prosecution":
-                self.tooltip_text.append(
-                    "Rather than controlling units, a prosecutor controls the process of investigating and removing ministers suspected to be corrupt."
-                )
-            else:
-                self.tooltip_text.append(
-                    "Whenever you command a "
-                    + keyword
-                    + "-oriented unit to do an action, the "
-                    + current_minister_type
-                    + " is responsible for executing the action."
-                )  # new_minister.tooltip_text
-                if keyword == "military":
-                    self.tooltip_text.append(
-                        "Military-oriented units include majors and battalions."
-                    )
-                elif keyword == "religion":
-                    self.tooltip_text.append(
-                        "Religion-oriented units include evangelists, church volunteers, and missionaries."
-                    )
-                elif keyword == "trade":
-                    self.tooltip_text.append(
-                        "Trade-oriented units include merchants and caravans."
-                    )
-                    self.tooltip_text.append(
-                        "The "
-                        + current_minister_type
-                        + " also controls the purchase and sale of goods on Earth."
-                    )
-                elif keyword == "exploration":
-                    self.tooltip_text.append(
-                        "Exploration-oriented units include explorers and expeditions."
-                    )
-                elif keyword == "construction":
-                    self.tooltip_text.append(
-                        "Construction-oriented units include engineers and construction gangs."
-                    )
-                elif keyword == "production":
-                    self.tooltip_text.append(
-                        "Production-oriented units include work crews, foremen, and workers not attached to other units."
-                    )
-                elif keyword == "transportation":
-                    self.tooltip_text.append(
-                        "Transportation-oriented units include ships, trains, drivers, and porters."
-                    )
-                    self.tooltip_text.append(
-                        "The "
-                        + current_minister_type
-                        + " also ensures that goods are not lost in transport or storage."
-                    )
-            if new_minister == "none":
-                self.tooltip_text.append(
-                    "There is currently no "
-                    + current_minister_type
-                    + " appointed, so "
-                    + keyword
-                    + "-oriented actions are not possible."
-                )
-            image_id_list = ["ministers/icons/" + keyword + ".png"]
+        if current_minister_type:
+            self.tooltip_text = current_minister_type.get_description()
+            image_id_list = [
+                "ministers/icons/" + current_minister_type.skill_type + ".png"
+            ]
             self.set_image(image_id_list)
         self.update_image_bundle()
 
@@ -1392,7 +1504,7 @@ class minister_type_image(tooltip_free_image):
         Output:
             boolean: Returns True if this image can currently appear, otherwise returns False
         """
-        if self.attached_label != "none":
+        if self.attached_label:
             return self.attached_label.showing
         else:
             return super().can_show(skip_parent_collection=skip_parent_collection)
@@ -1696,7 +1808,7 @@ class mob_image(actor_image):
             None
         """
         super().__init__(actor, width, height, grid, image_description)
-        self.current_cell = "none"
+        self.current_cell = None
         self.image_type = "mob"
         self.add_to_cell()
 
@@ -1709,11 +1821,11 @@ class mob_image(actor_image):
         Output:
             None
         """
-        if not self.current_cell in ["none", None]:
+        if self.current_cell:
             self.current_cell.contained_mobs = utility.remove_from_list(
                 self.current_cell.contained_mobs, self.actor
             )
-        self.current_cell = "none"
+        self.current_cell = None
 
     def add_to_cell(self):
         """
@@ -1836,22 +1948,22 @@ class button_image(actor_image):
             None
         """
         self.image_id = new_image_id
-        if isinstance(self.image_id, str):  # if set to string image path
+        if isinstance(self.image_id, str):  # If set to string image path
             self.contains_bundle = False
-            full_image_id = "graphics/" + self.image_id
+            full_image_id = f"graphics/{self.image_id}"
             if full_image_id in status.rendered_images:
                 self.image = status.rendered_images[full_image_id]
             else:
-                try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
+                try:  # Use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
                     self.image = pygame.image.load(full_image_id)
                 except:
                     print(full_image_id)
                     self.image = pygame.image.load(full_image_id)
                 status.rendered_images[full_image_id] = self.image
             self.image = pygame.transform.scale(self.image, (self.width, self.height))
-        else:  # if set to image path list
+        else:  # If set to image path list
             self.contains_bundle = True
-            self.image = image_bundle(self, self.image_id)  # self.image_id
+            self.image = image_bundle(self, self.image_id)
 
     def draw(self):
         """

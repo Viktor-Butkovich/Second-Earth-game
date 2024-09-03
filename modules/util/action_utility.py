@@ -41,7 +41,7 @@ def generate_die_input_dict(
         "result_outcome_dict": result_outcome_dict,
         "outcome_color_dict": outcome_color_dict,
         "final_result": final_result,
-        "init_type": "die",
+        "init_type": constants.DIE_ELEMENT,
     }
     if override_input_dict:
         for value in override_input_dict:
@@ -66,7 +66,7 @@ def generate_action_ordered_collection_input_dict(
         "width": scaling.scale_width(10),
         "height": scaling.scale_height(30),
         "modes": [constants.current_game_mode],
-        "init_type": "ordered collection",
+        "init_type": constants.ORDERED_COLLECTION,
         "initial_members": [],
         "reversed": True,
     }
@@ -94,7 +94,7 @@ def generate_free_image_input_dict(image_id, default_size, override_input_dict=N
         "height": scaling.scale_height(default_size),
         "modes": [constants.current_game_mode],
         "to_front": True,
-        "init_type": "free image",
+        "init_type": constants.FREE_IMAGE,
     }
     if override_input_dict:
         for value in override_input_dict:
@@ -120,7 +120,7 @@ def generate_minister_portrait_input_dicts(coordinates, action):
         "modes": [constants.current_game_mode],
         "attached_minister": action.current_unit.controlling_minister,
         "minister_image_type": "position",
-        "init_type": "dice roll minister image",
+        "init_type": constants.DICE_ROLL_MINISTER_IMAGE,
     }
 
     portrait_front_input_dict = {
@@ -130,7 +130,7 @@ def generate_minister_portrait_input_dicts(coordinates, action):
         "modes": [constants.current_game_mode],
         "attached_minister": action.self.current_unit.controlling_minister,
         "minister_image_type": "portrait",
-        "init_type": "dice roll minister image",
+        "init_type": constants.DICE_ROLL_MINISTER_IMAGE,
         "member_config": {"order_overlap": True},
     }
     return [portrait_background_input_dict, portrait_front_input_dict]
@@ -178,7 +178,7 @@ def generate_risk_message(action, unit):
     risk_value = (
         -1 * action.current_roll_modifier
     )  # modifier of -1 means risk value of 1
-    if unit.veteran:  # reduce risk if veteran
+    if unit.get_permission(constants.VETERAN_PERMISSION):  # reduce risk if veteran
         risk_value -= 1
 
     if action.current_max_crit_fail <= 0:  # if action can never have risk

@@ -21,7 +21,7 @@ class panel(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
@@ -39,11 +39,11 @@ class panel(button):
         Input:
             None
         Output:
-            string: Returns 'none' to designate that this click did nothing - still prevents units from deselected but also allows other buttons to be clicked
+            string: Returns None to designate that this click did nothing - still prevents units from deselected but also allows other buttons to be clicked
         """
         flags.choosing_advertised_commodity = False
         flags.choosing_destination = False
-        return "none"
+        return None
 
     def update_tooltip(self):
         """

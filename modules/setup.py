@@ -11,12 +11,15 @@ import modules.util.actor_utility as actor_utility
 import modules.util.game_transitions as game_transitions
 import modules.constructs.fonts as fonts
 import modules.constructs.worker_types as worker_types
+import modules.constructs.minister_types as minister_types
 import modules.constructs.equipment_types as equipment_types
 import modules.constructs.terrain_feature_types as terrain_feature_types
 from modules.tools.data_managers import (
     notification_manager_template,
     value_tracker_template,
     achievement_manager_template,
+    character_manager_template,
+    actor_creation_manager_template,
 )
 from modules.action_types import (
     public_relations_campaign,
@@ -66,8 +69,13 @@ def info_displays():
                 ),
                 "width": scaling.scale_width(10),
                 "height": scaling.scale_height(10),
-                "modes": ["strategic", "earth", "ministers", "new_game_setup"],
-                "init_type": "ordered collection",
+                "modes": [
+                    constants.STRATEGIC_MODE,
+                    constants.EARTH_MODE,
+                    constants.MINISTERS_MODE,
+                    constants.NEW_GAME_SETUP_MODE,
+                ],
+                "init_type": constants.ORDERED_COLLECTION,
                 "description": "general information panel",
                 "resize_with_contents": True,
             }
@@ -84,6 +92,10 @@ def misc():
     Output:
         None
     """
+    constants.actor_creation_manager = (
+        actor_creation_manager_template.actor_creation_manager_template()
+    )
+
     constants.font_size = scaling.scale_height(constants.default_font_size)
     constants.notification_font_size = scaling.scale_height(
         constants.default_notification_font_size
@@ -161,7 +173,7 @@ def misc():
     status.loading_image = constants.actor_creation_manager.create_interface_element(
         {
             "image_id": ["misc/title.png", "misc/loading.png"],
-            "init_type": "loading image template image",
+            "init_type": constants.LOADING_IMAGE_TEMPLATE_IMAGE,
         }
     )
 
@@ -169,13 +181,13 @@ def misc():
         constants.actor_creation_manager.create_interface_element(
             {
                 "modes": [
-                    "strategic",
-                    "earth",
-                    "trial",
-                    "new_game_setup",
+                    constants.STRATEGIC_MODE,
+                    constants.EARTH_MODE,
+                    constants.TRIAL_MODE,
+                    constants.NEW_GAME_SETUP_MODE,
                 ],
                 "image_id": "misc/background.png",
-                "init_type": "background image",
+                "init_type": constants.BACKGROUND_IMAGE,
             }
         )
     )
@@ -184,10 +196,10 @@ def misc():
         constants.actor_creation_manager.create_interface_element(
             {
                 "modes": [
-                    "ministers",
+                    constants.MINISTERS_MODE,
                 ],
                 "image_id": "misc/ministers_background.png",
-                "init_type": "background image",
+                "init_type": constants.BACKGROUND_IMAGE,
             }
         )
     )
@@ -195,10 +207,10 @@ def misc():
     title_background_image = constants.actor_creation_manager.create_interface_element(
         {
             "modes": [
-                "main_menu",
+                constants.MAIN_MENU_MODE,
             ],
             "image_id": "misc/title.png",
-            "init_type": "background image",
+            "init_type": constants.BACKGROUND_IMAGE,
         }
     )
 
@@ -206,18 +218,23 @@ def misc():
         {
             "width": constants.display_width / 2 - scaling.scale_width(35),
             "height": constants.display_height,
-            "modes": ["strategic", "earth", "ministers", "new_game_setup"],
+            "modes": [
+                constants.STRATEGIC_MODE,
+                constants.EARTH_MODE,
+                constants.MINISTERS_MODE,
+                constants.NEW_GAME_SETUP_MODE,
+            ],
             "image_id": "misc/empty.png",  # make a good image for this
-            "init_type": "safe click panel",
+            "init_type": constants.SAFE_CLICK_PANEL_ELEMENT,
         }
     )
     # safe click area has empty image but is managed with panel to create correct behavior - its intended image is in the background image's bundle to blit more efficiently
 
-    game_transitions.set_game_mode("main_menu")
+    game_transitions.set_game_mode(constants.MAIN_MENU_MODE)
 
     constants.mouse_follower = (
         constants.actor_creation_manager.create_interface_element(
-            {"init_type": "mouse follower image"}
+            {"init_type": constants.MOUSE_FOLLOWER_IMAGE}
         )
     )
 
@@ -229,6 +246,10 @@ def misc():
         achievement_manager_template.achievement_manager_template()
     )
 
+    constants.character_manager = (
+        character_manager_template.character_manager_template()
+    )
+
     status.grids_collection = constants.actor_creation_manager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(
@@ -236,11 +257,34 @@ def misc():
             ),
             "width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
-            "modes": ["strategic", "earth"],
-            "init_type": "interface collection",
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            "init_type": constants.INTERFACE_COLLECTION,
         }
     )
 
+    north_indicator_image = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "modes": [constants.STRATEGIC_MODE],
+            "image_id": "misc/north_indicator.png",
+            "init_type": constants.DIRECTIONAL_INDICATOR_IMAGE,
+            "anchor_key": "north_pole",
+            "width": scaling.scale_width(25),
+            "height": scaling.scale_height(25),
+        }
+    )
+
+    south_indicator_image = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "modes": [constants.STRATEGIC_MODE],
+            "image_id": "misc/south_indicator.png",
+            "init_type": constants.DIRECTIONAL_INDICATOR_IMAGE,
+            "anchor_key": "south_pole",
+            "width": scaling.scale_width(25),
+            "height": scaling.scale_height(25),
+        }
+    )
     # anchor = constants.actor_creation_manager.create_interface_element(
     #    {'width': 1, 'height': 1, 'init_type': 'interface element', 'parent_collection': status.info_displays_collection}
     # ) #rect at original location prevents collection from moving unintentionally when resizing
@@ -258,9 +302,14 @@ def worker_types_config():
     worker_types.worker_type(
         False,
         {
+            "key": constants.EUROPEAN_WORKERS,
             "adjective": "European",
+            "permissions": [
+                constants.WORKER_PERMISSION,
+                constants.EUROPEAN_WORKERS_PERMISSION,
+            ],
             "upkeep": 6.0,
-            "can_crew": ["steamship", "train"],
+            "can_crew": [constants.SHIP, constants.TRAIN],
             "upkeep_variance": True,
             "fired_description": "Fired description. /n /n",
         },
@@ -268,7 +317,12 @@ def worker_types_config():
     worker_types.worker_type(
         False,
         {
+            "key": constants.CHURCH_VOLUNTEERS,
             "adjective": "religious",
+            "permissions": [
+                constants.WORKER_PERMISSION,
+                constants.CHURCH_VOLUNTEERS_PERMISSION,
+            ],
             "name": "church volunteers",
             "upkeep": 0.0,
             "fired_description": "Fired church volunteers will never settle in slums and will instead return to Europe. /n /n"
@@ -301,24 +355,42 @@ def terrain_feature_types_config():
     terrain_feature_types.terrain_feature_type(
         {
             "terrain_feature_type": "north pole",
-            "image_id": "North Pole",
-            "description": ["This is the north pole of the planet"],
+            "image_id": "misc/empty.png",
+            "description": ["North pole of the planet"],
+            "tracking_type": constants.UNIQUE_FEATURE_TRACKING,
         }
     )
 
     terrain_feature_types.terrain_feature_type(
         {
             "terrain_feature_type": "south pole",
-            "image_id": "South Pole",
-            "description": ["This is the south pole of the planet"],
+            "image_id": "misc/empty.png",
+            "description": ["South pole of the planet"],
+            "tracking_type": constants.UNIQUE_FEATURE_TRACKING,
         }
     )
 
     terrain_feature_types.terrain_feature_type(
         {
             "terrain_feature_type": "equator",
-            "image_id": "Equator",
-            "description": ["This lies along the equator of the planet"],
+            "image_id": "misc/empty.png",
+            "description": ["Lies along the equator of the planet"],
+            "tracking_type": constants.LIST_FEATURE_TRACKING,
+            "visible": False,
+        }
+    )
+    terrain_feature_types.terrain_feature_type(
+        {
+            "terrain_feature_type": "northern tropic",
+            "image_id": "Northern Tropic",
+            "description": ["Lies along the northern edge of the equatorial zone"],
+        }
+    )
+    terrain_feature_types.terrain_feature_type(
+        {
+            "terrain_feature_type": "southern tropic",
+            "image_id": "Southern Tropic",
+            "description": ["Lies along the southern edge of the equatorial zone"],
         }
     )
 
@@ -330,15 +402,12 @@ def actions():
     Input:
         None
     Output:
-        none
+        None
     """
-    for building_type in constants.building_types + ["train"]:
-        if not building_type in [
-            "warehouses",
-            "slums",
-        ]:  # only include buildings that can be built manually
+    for building_type in constants.building_types + [constants.TRAIN]:
+        if not building_type in [constants.WAREHOUSES, constants.SLUMS]:
             construction.construction(building_type=building_type)
-            if not building_type in ["train", "infrastructure"]:
+            if not building_type in [constants.TRAIN, constants.INFRASTRUCTURE]:
                 repair.repair(building_type=building_type)
     for upgrade_type in constants.upgrade_types:
         upgrade.upgrade(building_type=upgrade_type)
@@ -392,8 +461,87 @@ def def_ministers():
     Output:
         None
     """
-    for current_minister_type in constants.minister_types:
-        status.current_ministers[current_minister_type] = None
+    minister_types.minister_type(
+        {
+            "key": constants.MILITARY_MINISTER,
+            "name": "General",
+            "skill_type": "military",
+            "description": ["Military-oriented units include majors and battalions."],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.RELIGION_MINISTER,
+            "name": "Bishop",
+            "skill_type": "religion",
+            "description": [
+                "Religion-oriented units include evangelists, church volunteers, and missionaries."
+            ],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.TRADE_MINISTER,
+            "name": "Minister of Trade",
+            "skill_type": "trade",
+            "description": [
+                "Trade-oriented units include merchants and caravans.",
+                "The Minister of Trade also controls the purchase and sale of goods on Earth",
+            ],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.EXPLORATION_MINISTER,
+            "name": "Minister of Geography",
+            "skill_type": "exploration",
+            "description": [
+                "Exploration-oriented units include explorers and expeditions."
+            ],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.CONSTRUCTION_MINISTER,
+            "name": "Minister of Construction",
+            "skill_type": "construction",
+            "description": [
+                "Construction-oriented units include engineers and construction gangs."
+            ],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.PRODUCTION_MINISTER,
+            "name": "Minister of Production",
+            "skill_type": "production",
+            "description": [
+                "Production-oriented units include work crews and foremen."
+            ],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.TRANSPORTATION_MINISTER,
+            "name": "Minister of Transportation",
+            "skill_type": "transportation",
+            "description": [
+                "Transportation-oriented units include ships, trains, drivers, and porters.",
+                "The Minister of Transportation also ensures that goods are not lost in transport or storage",
+            ],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.PROSECUTION_MINISTER,
+            "name": "Prosecutor",
+            "skill_type": "prosecution",
+            "controls_units": False,
+            "description": [
+                "Rather than controlling units, a prosecutor controls the process of investigating and removing ministers suspected to be corrupt."
+            ],
+        }
+    )
 
 
 def transactions():
@@ -431,29 +579,33 @@ def value_trackers():
                 "width": scaling.scale_width(10),
                 "height": scaling.scale_height(30),
                 "modes": [
-                    "strategic",
-                    "earth",
-                    "ministers",
-                    "trial",
-                    "main_menu",
-                    "new_game_setup",
+                    constants.STRATEGIC_MODE,
+                    constants.EARTH_MODE,
+                    constants.MINISTERS_MODE,
+                    constants.TRIAL_MODE,
+                    constants.MAIN_MENU_MODE,
+                    constants.NEW_GAME_SETUP_MODE,
                 ],
-                "init_type": "ordered collection",
+                "init_type": constants.ORDERED_COLLECTION,
             }
         )
     )
 
     constants.turn_tracker = value_tracker_template.value_tracker_template(
-        "turn", 0, "none", "none"
+        value_key="turn", initial_value=0, min_value=None, max_value=None
     )
     constants.actor_creation_manager.create_interface_element(
         {
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
-            "modes": ["strategic", "earth", "ministers"],
+            "modes": [
+                constants.STRATEGIC_MODE,
+                constants.EARTH_MODE,
+                constants.MINISTERS_MODE,
+            ],
             "image_id": "misc/default_label.png",
             "value_name": "turn",
-            "init_type": "value label",
+            "init_type": constants.VALUE_LABEL,
             "parent_collection": value_trackers_ordered_collection,
             "member_config": {
                 "order_x_offset": scaling.scale_width(315),
@@ -467,9 +619,14 @@ def value_trackers():
         {
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
-            "modes": ["strategic", "earth", "ministers", "trial"],
+            "modes": [
+                constants.STRATEGIC_MODE,
+                constants.EARTH_MODE,
+                constants.MINISTERS_MODE,
+                constants.TRIAL_MODE,
+            ],
             "image_id": "misc/default_label.png",
-            "init_type": "money label",
+            "init_type": constants.MONEY_LABEL,
             "parent_collection": value_trackers_ordered_collection,
             "member_config": {
                 "index": 1
@@ -479,40 +636,45 @@ def value_trackers():
 
     constants.public_opinion_tracker = (
         value_tracker_template.public_opinion_tracker_template(
-            "public_opinion", 0, 0, 100
+            value_key="public_opinion", initial_value=0, min_value=0, max_value=100
         )
     )
     constants.actor_creation_manager.create_interface_element(
         {
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
-            "modes": ["strategic", "earth", "ministers", "trial"],
+            "modes": [
+                constants.STRATEGIC_MODE,
+                constants.EARTH_MODE,
+                constants.MINISTERS_MODE,
+                constants.TRIAL_MODE,
+            ],
             "image_id": "misc/default_label.png",
             "value_name": "public_opinion",
-            "init_type": "value label",
+            "init_type": constants.VALUE_LABEL,
             "parent_collection": value_trackers_ordered_collection,
         }
     )
 
     if constants.effect_manager.effect_active("track_fps"):
         constants.fps_tracker = value_tracker_template.value_tracker_template(
-            "fps", 0, 0, "none"
+            value_key="fps", initial_value=0, min_value=0, max_value=None
         )
         constants.actor_creation_manager.create_interface_element(
             {
                 "minimum_width": scaling.scale_width(10),
                 "height": scaling.scale_height(30),
                 "modes": [
-                    "strategic",
-                    "earth",
-                    "ministers",
-                    "trial",
-                    "main_menu",
-                    "new_game_setup",
+                    constants.STRATEGIC_MODE,
+                    constants.EARTH_MODE,
+                    constants.MINISTERS_MODE,
+                    constants.TRIAL_MODE,
+                    constants.MAIN_MENU_MODE,
+                    constants.NEW_GAME_SETUP_MODE,
                 ],
                 "image_id": "misc/default_label.png",
                 "value_name": "fps",
-                "init_type": "value label",
+                "init_type": constants.VALUE_LABEL,
                 "parent_collection": value_trackers_ordered_collection,
             }
         )
@@ -524,9 +686,14 @@ def value_trackers():
             ),
             "width": scaling.scale_width(30),
             "height": scaling.scale_height(30),
-            "modes": ["strategic", "earth", "ministers", "trial"],
+            "modes": [
+                constants.STRATEGIC_MODE,
+                constants.EARTH_MODE,
+                constants.MINISTERS_MODE,
+                constants.TRIAL_MODE,
+            ],
             "image_id": "buttons/instructions.png",
-            "init_type": "show previous reports button",
+            "init_type": constants.SHOW_PREVIOUS_REPORTS_BUTTON,
         }
     )
 
@@ -554,8 +721,10 @@ def buttons():
             "width": scaling.scale_width(constants.strategic_map_pixel_width),
             "height": scaling.scale_height(constants.strategic_map_pixel_height),
             "parent_collection": status.grids_collection,
-            "modes": ["strategic"],  # Manually drawn by scrolling strategic grid
-            "init_type": "free image",
+            "modes": [
+                constants.STRATEGIC_MODE
+            ],  # Manually drawn by scrolling strategic grid
+            "init_type": constants.FREE_IMAGE,
             "color_key": (255, 255, 255),
             "image_id": "misc/planet_view_mask.png",
         }
@@ -566,20 +735,20 @@ def buttons():
         "width": scaling.scale_width(150),
         "height": scaling.scale_height(100),
         "image_id": "misc/empty.png",
-        "modes": ["strategic", "earth"],
-        "to_mode": "earth",
-        "init_type": "free image",
+        "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+        "to_mode": constants.EARTH_MODE,
+        "init_type": constants.FREE_IMAGE,
         "parent_collection": status.grids_collection,
     }
     strategic_flag_icon = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
 
-    input_dict["modes"] = ["ministers"]
+    input_dict["modes"] = [constants.MINISTERS_MODE]
     input_dict["coordinates"] = scaling.scale_coordinates(
         constants.default_display_width / 2 - 75, constants.default_display_height - 160
     )
-    input_dict["parent_collection"] = "none"
+    input_dict["parent_collection"] = None
     ministers_flag_icon = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
@@ -593,9 +762,14 @@ def buttons():
         "width": scaling.scale_width(50),
         "keybind_id": pygame.K_1,
         "image_id": "locations/africa_button.png",
-        "modes": ["ministers", "strategic", "earth", "trial"],
-        "to_mode": "strategic",
-        "init_type": "switch game mode button",
+        "modes": [
+            constants.MINISTERS_MODE,
+            constants.STRATEGIC_MODE,
+            constants.EARTH_MODE,
+            constants.TRIAL_MODE,
+        ],
+        "to_mode": constants.STRATEGIC_MODE,
+        "init_type": constants.SWITCH_GAME_MODE_BUTTON,
     }
     to_strategic_button = constants.actor_creation_manager.create_interface_element(
         input_dict
@@ -607,7 +781,7 @@ def buttons():
                 1125, constants.default_display_height - 55
             ),
             "image_id": "locations/europe_button.png",
-            "to_mode": "earth",
+            "to_mode": constants.EARTH_MODE,
             "keybind_id": pygame.K_2,
         }
     )
@@ -621,7 +795,7 @@ def buttons():
                 1185, constants.default_display_height - 55
             ),
             "width": scaling.scale_width(50),
-            "to_mode": "ministers",
+            "to_mode": constants.MINISTERS_MODE,
             "image_id": "buttons/european_hq_button.png",
             "keybind_id": pygame.K_3,
         }
@@ -638,8 +812,14 @@ def buttons():
             ),
             "width": 10,
             "height": 10,
-            "modes": ["strategic", "earth", "ministers", "trial", "new_game_setup"],
-            "init_type": "ordered collection",
+            "modes": [
+                constants.STRATEGIC_MODE,
+                constants.EARTH_MODE,
+                constants.MINISTERS_MODE,
+                constants.TRIAL_MODE,
+                constants.NEW_GAME_SETUP_MODE,
+            ],
+            "init_type": constants.ORDERED_COLLECTION,
             "member_config": {"order_exempt": True},
             "separation": 5,
         }
@@ -652,8 +832,13 @@ def buttons():
             ),
             "width": 10,
             "height": 10,
-            "modes": ["strategic", "earth", "ministers", "new_game_setup"],
-            "init_type": "ordered collection",
+            "modes": [
+                constants.STRATEGIC_MODE,
+                constants.EARTH_MODE,
+                constants.MINISTERS_MODE,
+                constants.NEW_GAME_SETUP_MODE,
+            ],
+            "init_type": constants.ORDERED_COLLECTION,
             "member_config": {"order_exempt": True},
             "separation": 5,
             "direction": "horizontal",
@@ -664,12 +849,17 @@ def buttons():
         constants.default_display_width - 50, constants.default_display_height - 50
     )
     input_dict["image_id"] = "buttons/exit_european_hq_button.png"
-    input_dict["init_type"] = "switch game mode button"
+    input_dict["init_type"] = constants.SWITCH_GAME_MODE_BUTTON
     input_dict["width"] = scaling.scale_width(50)
     input_dict["height"] = scaling.scale_height(50)
-    input_dict["modes"] = ["strategic", "earth", "ministers", "trial"]
+    input_dict["modes"] = [
+        constants.STRATEGIC_MODE,
+        constants.EARTH_MODE,
+        constants.MINISTERS_MODE,
+        constants.TRIAL_MODE,
+    ]
     input_dict["keybind_id"] = pygame.K_ESCAPE
-    input_dict["to_mode"] = "main_menu"
+    input_dict["to_mode"] = constants.MAIN_MENU_MODE
     to_main_menu_button = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
@@ -678,7 +868,7 @@ def buttons():
     input_dict["coordinates"] = scaling.scale_coordinates(
         0, constants.default_display_height - 50
     )
-    input_dict["modes"] = ["new_game_setup"]
+    input_dict["modes"] = [constants.NEW_GAME_SETUP_MODE]
     input_dict["keybind_id"] = pygame.K_ESCAPE
     new_game_setup_to_main_menu_button = (
         constants.actor_creation_manager.create_interface_element(input_dict)
@@ -692,10 +882,15 @@ def buttons():
         ),
         "width": scaling.scale_width(round(constants.default_display_width * 0.2)),
         "height": scaling.scale_height(50),
-        "modes": ["strategic", "earth", "ministers", "trial"],
+        "modes": [
+            constants.STRATEGIC_MODE,
+            constants.EARTH_MODE,
+            constants.MINISTERS_MODE,
+            constants.TRIAL_MODE,
+        ],
         "keybind_id": pygame.K_SPACE,
         "image_id": "buttons/end_turn_button.png",
-        "init_type": "end turn button",
+        "init_type": constants.END_TURN_BUTTON,
     }
     end_turn_button = constants.actor_creation_manager.create_interface_element(
         input_dict
@@ -705,10 +900,10 @@ def buttons():
         input_dict["coordinates"][0],
         scaling.scale_height(constants.default_display_height / 2 - 150),
     )
-    input_dict["modes"] = ["main_menu"]
+    input_dict["modes"] = [constants.MAIN_MENU_MODE]
     input_dict["keybind_id"] = pygame.K_n
     input_dict["image_id"] = "buttons/new_game_button.png"
-    input_dict["init_type"] = "new game button"
+    input_dict["init_type"] = constants.NEW_GAME_BUTTON
     main_menu_new_game_button = (
         constants.actor_creation_manager.create_interface_element(input_dict)
     )
@@ -717,7 +912,7 @@ def buttons():
         input_dict["coordinates"][0],
         scaling.scale_height(constants.default_display_height / 2 - 400),
     )
-    input_dict["modes"] = ["new_game_setup"]
+    input_dict["modes"] = [constants.NEW_GAME_SETUP_MODE]
     input_dict["keybind_id"] = pygame.K_n
     setup_new_game_button = constants.actor_creation_manager.create_interface_element(
         input_dict
@@ -727,10 +922,10 @@ def buttons():
         input_dict["coordinates"][0],
         scaling.scale_height(constants.default_display_height / 2 - 225),
     )
-    input_dict["modes"] = ["main_menu"]
+    input_dict["modes"] = [constants.MAIN_MENU_MODE]
     input_dict["keybind_id"] = pygame.K_l
     input_dict["image_id"] = "buttons/load_game_button.png"
-    input_dict["init_type"] = "load game button"
+    input_dict["init_type"] = constants.LOAD_GAME_BUTTON
     load_game_button = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
@@ -741,18 +936,28 @@ def buttons():
         ),
         "width": scaling.scale_width(50),
         "height": scaling.scale_height(50),
-        "modes": ["strategic", "earth", "ministers", "trial"],
+        "modes": [
+            constants.STRATEGIC_MODE,
+            constants.EARTH_MODE,
+            constants.MINISTERS_MODE,
+            constants.TRIAL_MODE,
+        ],
         "image_id": "buttons/save_game_button.png",
-        "init_type": "save game button",
+        "init_type": constants.SAVE_GAME_BUTTON,
     }
     save_game_button = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
     rhs_menu_collection.add_member(save_game_button)
 
-    input_dict["modes"] = ["strategic", "earth", "ministers", "trial"]
+    input_dict["modes"] = [
+        constants.STRATEGIC_MODE,
+        constants.EARTH_MODE,
+        constants.MINISTERS_MODE,
+        constants.TRIAL_MODE,
+    ]
     input_dict["image_id"] = "buttons/text_box_size_button.png"
-    input_dict["init_type"] = "toggle button"
+    input_dict["init_type"] = constants.TOGGLE_BUTTON
     input_dict["toggle_variable"] = "expand_text_box"
     input_dict["attached_to_actor"] = False
     expand_text_box_button = constants.actor_creation_manager.create_interface_element(
@@ -760,10 +965,10 @@ def buttons():
     )
     rhs_menu_collection.add_member(expand_text_box_button)
 
-    input_dict["modes"] = ["strategic"]
+    input_dict["modes"] = [constants.STRATEGIC_MODE]
     input_dict["image_id"] = "buttons/grid_line_button.png"
 
-    input_dict["init_type"] = "toggle button"
+    input_dict["init_type"] = constants.TOGGLE_BUTTON
     input_dict["attached_to_actor"] = False
     input_dict["toggle_variable"] = "show_grid_lines"
     toggle_grid_lines_button = (
@@ -772,12 +977,24 @@ def buttons():
     rhs_menu_collection.add_member(toggle_grid_lines_button)
 
     if constants.effect_manager.effect_active("allow_planet_mask"):
-        input_dict["init_type"] = "toggle button"
+        input_dict["init_type"] = constants.TOGGLE_BUTTON
         input_dict["toggle_variable"] = "show_planet_mask"
         input_dict["attached_to_actor"] = False
-        input_dict["modes"] = ["strategic"]
+        input_dict["modes"] = [constants.STRATEGIC_MODE]
         input_dict["image_id"] = actor_utility.generate_frame(
             "buttons/toggle_planet_mask_button.png"
+        )
+        rhs_menu_collection.add_member(
+            constants.actor_creation_manager.create_interface_element(input_dict)
+        )
+
+    if constants.effect_manager.effect_active("allow_toggle_fog_of_war"):
+        input_dict["init_type"] = constants.TOGGLE_BUTTON
+        input_dict["toggle_variable"] = "remove_fog_of_war"
+        input_dict["attached_to_actor"] = False
+        input_dict["modes"] = [constants.STRATEGIC_MODE]
+        input_dict["image_id"] = actor_utility.generate_frame(
+            "buttons/toggle_fog_of_war_button.png"
         )
         rhs_menu_collection.add_member(
             constants.actor_creation_manager.create_interface_element(input_dict)
@@ -786,10 +1003,14 @@ def buttons():
     input_dict["coordinates"] = scaling.scale_coordinates(
         110, constants.default_display_height - 50
     )
-    input_dict["modes"] = ["strategic", "earth", "ministers"]
+    input_dict["modes"] = [
+        constants.STRATEGIC_MODE,
+        constants.EARTH_MODE,
+        constants.MINISTERS_MODE,
+    ]
     input_dict["keybind_id"] = pygame.K_TAB
     input_dict["image_id"] = "buttons/cycle_units_button.png"
-    input_dict["init_type"] = "cycle units button"
+    input_dict["init_type"] = constants.CYCLE_UNITS_BUTTON
     cycle_units_button = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
@@ -797,9 +1018,9 @@ def buttons():
     del input_dict["keybind_id"]
 
     input_dict["coordinates"] = (scaling.scale_width(165), input_dict["coordinates"][1])
-    input_dict["modes"] = ["strategic", "earth"]
+    input_dict["modes"] = [constants.STRATEGIC_MODE, constants.EARTH_MODE]
     input_dict["image_id"] = "buttons/disable_sentry_mode_button.png"
-    input_dict["init_type"] = "wake up all button"
+    input_dict["init_type"] = constants.WAKE_UP_ALL_BUTTON
     wake_up_all_button = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
@@ -807,7 +1028,7 @@ def buttons():
 
     input_dict["coordinates"] = (scaling.scale_width(220), input_dict["coordinates"][1])
     input_dict["image_id"] = "buttons/execute_movement_routes_button.png"
-    input_dict["init_type"] = "execute movement routes button"
+    input_dict["init_type"] = constants.EXECUTE_MOVEMENT_ROUTES_BUTTON
     execute_movement_routes_button = (
         constants.actor_creation_manager.create_interface_element(input_dict)
     )
@@ -816,17 +1037,17 @@ def buttons():
     input_dict["coordinates"] = scaling.scale_coordinates(
         constants.default_display_width - 55, constants.default_display_height - 55
     )
-    input_dict["modes"] = ["main_menu"]
+    input_dict["modes"] = [constants.MAIN_MENU_MODE]
     input_dict["image_id"] = ["buttons/exit_european_hq_button.png"]
-    input_dict["init_type"] = "generate crash button"
+    input_dict["init_type"] = constants.GENERATE_CRASH_BUTTON
     generate_crash_button = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
 
     if constants.effect_manager.effect_active("map_modes"):
-        input_dict["init_type"] = "map mode button"
+        input_dict["init_type"] = constants.MAP_MODE_BUTTON
         input_dict["parent_collection"] = rhs_menu_collection
-        input_dict["modes"] = ["strategic", "earth"]
+        input_dict["modes"] = [constants.STRATEGIC_MODE, constants.EARTH_MODE]
         for map_mode in constants.map_modes:
             input_dict["map_mode"] = map_mode
             input_dict["image_id"] = actor_utility.generate_frame(
@@ -849,8 +1070,8 @@ def earth_screen():
             "coordinates": scaling.scale_coordinates(1500, 20),
             "width": 10,
             "height": 10,
-            "modes": ["earth"],
-            "init_type": "ordered collection",
+            "modes": [constants.EARTH_MODE],
+            "init_type": constants.ORDERED_COLLECTION,
             "separation": scaling.scale_height(20),
             "reversed": True,
             "second_dimension_increment": scaling.scale_width(125),
@@ -865,7 +1086,7 @@ def earth_screen():
             {
                 "width": scaling.scale_width(100),
                 "height": scaling.scale_height(100),
-                "init_type": "recruitment button",
+                "init_type": constants.RECRUITMENT_BUTTON,
                 "parent_collection": earth_purchase_buttons,
                 "recruitment_type": recruitment_type,
                 "member_config": {
@@ -879,7 +1100,7 @@ def earth_screen():
             {
                 "width": scaling.scale_width(100),
                 "height": scaling.scale_height(100),
-                "init_type": "buy item button",
+                "init_type": constants.BUY_ITEM_BUTTON,
                 "parent_collection": earth_purchase_buttons,
                 "item_type": item_type,
                 "member_config": {
@@ -910,8 +1131,8 @@ def ministers_screen():
             ),
             "width": scaling.scale_width(table_width),
             "height": scaling.scale_height(table_height),
-            "modes": ["ministers"],
-            "init_type": "free image",
+            "modes": [constants.MINISTERS_MODE],
+            "init_type": constants.FREE_IMAGE,
         }
     )
     status.table_map_image = constants.actor_creation_manager.create_interface_element(
@@ -919,8 +1140,8 @@ def ministers_screen():
             "coordinates": scaling.scale_coordinates(
                 (constants.default_display_width / 2) - 100, 400
             ),
-            "init_type": "free image",
-            "modes": ["ministers"],
+            "init_type": constants.FREE_IMAGE,
+            "modes": [constants.MINISTERS_MODE],
             "width": scaling.scale_width(200),
             "height": scaling.scale_height(200),
             "image_id": "misc/empty.png",
@@ -931,14 +1152,13 @@ def ministers_screen():
     input_dict = {
         "width": scaling.scale_width(portrait_icon_width),
         "height": scaling.scale_height(portrait_icon_width),
-        "modes": ["ministers"],
+        "modes": [constants.MINISTERS_MODE],
         "color": "gray",
-        "init_type": "minister portrait image",
+        "init_type": constants.MINISTER_PORTRAIT_IMAGE,
     }
-    for current_index in range(
-        0, 8
-    ):  # creates an office icon and a portrait at a section of the table for each minister
-        input_dict["minister_type"] = constants.minister_types[current_index]
+    for current_index, minister_type_tuple in enumerate(status.minister_types.items()):
+        # Creates an office icon and a portrait at a section of the table for each minister
+        key, minister_type = minister_type_tuple
         if current_index <= 3:  # left side
             constants.actor_creation_manager.create_interface_element(
                 {
@@ -950,10 +1170,10 @@ def ministers_screen():
                     ),
                     "width": scaling.scale_width(position_icon_width),
                     "height": scaling.scale_height(position_icon_width),
-                    "modes": ["ministers"],
-                    "minister_type": constants.minister_types[current_index],
-                    "attached_label": "none",
-                    "init_type": "minister type image",
+                    "modes": [constants.MINISTERS_MODE],
+                    "minister_type": minister_type,
+                    "attached_label": None,
+                    "init_type": constants.MINISTER_TYPE_IMAGE,
                 }
             )
 
@@ -964,6 +1184,7 @@ def ministers_screen():
                 - 10,
                 current_index * 180 + 95,
             )
+            input_dict["minister_type"] = minister_type
             constants.actor_creation_manager.create_interface_element(input_dict)
 
         else:
@@ -980,10 +1201,10 @@ def ministers_screen():
                     ),
                     "width": scaling.scale_width(position_icon_width),
                     "height": scaling.scale_height(position_icon_width),
-                    "modes": ["ministers"],
-                    "minister_type": constants.minister_types[current_index],
-                    "attached_label": "none",
-                    "init_type": "minister type image",
+                    "modes": [constants.MINISTERS_MODE],
+                    "minister_type": minister_type,
+                    "attached_label": None,
+                    "init_type": constants.MINISTER_TYPE_IMAGE,
                 }
             )
 
@@ -991,6 +1212,7 @@ def ministers_screen():
                 (constants.default_display_width / 2) + (table_width / 2) + 10,
                 (current_index - 4) * 180 + 95,
             )
+            input_dict["minister_type"] = minister_type
             constants.actor_creation_manager.create_interface_element(input_dict)
 
     available_minister_display_x = constants.default_display_width - 205
@@ -1003,9 +1225,9 @@ def ministers_screen():
         "width": scaling.scale_width(50),
         "height": scaling.scale_height(50),
         "keybind_id": pygame.K_w,
-        "modes": ["ministers"],
+        "modes": [constants.MINISTERS_MODE],
         "image_id": "buttons/cycle_ministers_up_button.png",
-        "init_type": "cycle available ministers button",
+        "init_type": constants.CYCLE_AVAILABLE_MINISTERS_BUTTON,
         "direction": "left",
     }
     cycle_left_button = constants.actor_creation_manager.create_interface_element(
@@ -1022,10 +1244,10 @@ def ministers_screen():
                 ),
                 "width": scaling.scale_width(portrait_icon_width),
                 "height": scaling.scale_height(portrait_icon_width),
-                "modes": ["ministers"],
-                "init_type": "minister portrait image",
+                "modes": [constants.MINISTERS_MODE],
+                "init_type": constants.MINISTER_PORTRAIT_IMAGE,
                 "color": "gray",
-                "minister_type": "none",
+                "minister_type": None,
             }
         )
 
@@ -1069,12 +1291,12 @@ def trial_screen():
                 "coordinates": (defense_x, defense_y),
                 "width": 10,
                 "height": 10,
-                "modes": ["trial"],
-                "init_type": "ordered collection",
+                "modes": [constants.TRIAL_MODE],
+                "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
                 "actor_type": "defense",
-                "allow_minimize": True,
-                "allow_move": True,
+                "allow_minimize": False,
+                "allow_move": False,
                 "description": "defense information panel",
             }
         )
@@ -1085,10 +1307,10 @@ def trial_screen():
             "coordinates": scaling.scale_coordinates(0, defense_current_y),
             "width": scaling.scale_width(button_separation * 2 - 5),
             "height": scaling.scale_height(button_separation * 2 - 5),
-            "modes": ["trial"],
-            "minister_type": "none",
-            "attached_label": "none",
-            "init_type": "minister type image",
+            "modes": [constants.TRIAL_MODE],
+            "minister_type": None,
+            "attached_label": None,
+            "init_type": constants.MINISTER_TYPE_IMAGE,
             "parent_collection": status.defense_info_display,
         }
     )
@@ -1099,8 +1321,8 @@ def trial_screen():
             "coordinates": scaling.scale_coordinates(0, defense_current_y),
             "width": scaling.scale_width(button_separation * 2 - 5),
             "height": scaling.scale_height(button_separation * 2 - 5),
-            "init_type": "minister portrait image",
-            "minister_type": "none",
+            "init_type": constants.MINISTER_PORTRAIT_IMAGE,
+            "minister_type": None,
             "color": "gray",
             "parent_collection": status.defense_info_display,
         }
@@ -1113,7 +1335,7 @@ def trial_screen():
         "height": scaling.scale_height(30),
         "image_id": "misc/default_label.png",
         "message": "Defense",
-        "init_type": "label",
+        "init_type": constants.LABEL,
         "parent_collection": status.defense_info_display,
     }
     defense_label = constants.actor_creation_manager.create_interface_element(
@@ -1122,12 +1344,14 @@ def trial_screen():
 
     input_dict["actor_type"] = "minister"
     del input_dict["message"]
-    input_dict["init_type"] = "actor display label"
-    defense_info_display_labels = ["minister_name", "minister_office", "evidence"]
-    for current_actor_label_type in defense_info_display_labels:
+    for current_actor_label_type in [
+        constants.MINISTER_NAME_LABEL,
+        constants.MINISTER_OFFICE_LABEL,
+        constants.EVIDENCE_LABEL,
+    ]:
         defense_current_y -= 35
         input_dict["coordinates"] = scaling.scale_coordinates(0, defense_current_y)
-        input_dict["actor_label_type"] = current_actor_label_type
+        input_dict["init_type"] = current_actor_label_type
         constants.actor_creation_manager.create_interface_element(input_dict)
 
     prosecution_y = trial_display_default_y
@@ -1144,12 +1368,12 @@ def trial_screen():
                 "coordinates": (prosecution_x, prosecution_y),
                 "width": 10,
                 "height": 10,
-                "modes": ["trial"],
-                "init_type": "ordered collection",
+                "modes": [constants.TRIAL_MODE],
+                "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
                 "actor_type": "prosecution",
-                "allow_minimize": True,
-                "allow_move": True,
+                "allow_minimize": False,
+                "allow_move": False,
                 "description": "prosecution information panel",
             }
         )
@@ -1160,10 +1384,10 @@ def trial_screen():
             "coordinates": scaling.scale_coordinates(0, prosecution_current_y),
             "width": scaling.scale_width(button_separation * 2 - 5),
             "height": scaling.scale_height(button_separation * 2 - 5),
-            "modes": ["trial"],
-            "minister_type": "none",
-            "attached_label": "none",
-            "init_type": "minister type image",
+            "modes": [constants.TRIAL_MODE],
+            "minister_type": None,
+            "attached_label": None,
+            "init_type": constants.MINISTER_TYPE_IMAGE,
             "parent_collection": status.prosecution_info_display,
         }
     )
@@ -1174,8 +1398,8 @@ def trial_screen():
             {
                 "width": scaling.scale_width(button_separation * 2 - 5),
                 "height": scaling.scale_height(button_separation * 2 - 5),
-                "init_type": "minister portrait image",
-                "minister_type": "none",
+                "init_type": constants.MINISTER_PORTRAIT_IMAGE,
+                "minister_type": None,
                 "color": "gray",
                 "parent_collection": status.prosecution_info_display,
             }
@@ -1188,7 +1412,7 @@ def trial_screen():
         "height": scaling.scale_height(30),
         "image_id": "misc/default_label.png",
         "message": "Prosecution",
-        "init_type": "label",
+        "init_type": constants.LABEL,
         "parent_collection": status.prosecution_info_display,
     }
     prosecution_label = constants.actor_creation_manager.create_interface_element(
@@ -1197,13 +1421,14 @@ def trial_screen():
 
     input_dict["actor_type"] = "minister"
     del input_dict["message"]
-    input_dict["init_type"] = "actor display label"
     input_dict["parent_collection"] = status.prosecution_info_display
-    prosecution_info_display_labels = ["minister_name", "minister_office"]
-    for current_actor_label_type in prosecution_info_display_labels:
+    for current_actor_label_type in [
+        constants.MINISTER_NAME_LABEL,
+        constants.MINISTER_OFFICE_LABEL,
+    ]:
         prosecution_current_y -= 35
         input_dict["coordinates"] = scaling.scale_coordinates(0, prosecution_current_y)
-        input_dict["actor_label_type"] = current_actor_label_type
+        input_dict["init_type"] = current_actor_label_type
         constants.actor_creation_manager.create_interface_element(input_dict)
 
     bribed_judge_indicator = constants.actor_creation_manager.create_interface_element(
@@ -1216,9 +1441,9 @@ def trial_screen():
             ),
             "width": scaling.scale_width(button_separation * 2 - 5),
             "height": scaling.scale_height(button_separation * 2 - 5),
-            "modes": ["trial"],
+            "modes": [constants.TRIAL_MODE],
             "indicator_type": "prosecution_bribed_judge",
-            "init_type": "indicator image",
+            "init_type": constants.INDICATOR_IMAGE,
         }
     )
 
@@ -1233,9 +1458,9 @@ def trial_screen():
                 ),
                 "width": scaling.scale_width(button_separation * 2 - 5),
                 "height": scaling.scale_height(button_separation * 2 - 5),
-                "modes": ["trial"],
+                "modes": [constants.TRIAL_MODE],
                 "indicator_type": "not prosecution_bribed_judge",
-                "init_type": "indicator image",
+                "init_type": constants.INDICATOR_IMAGE,
             }
         )
     )
@@ -1255,12 +1480,12 @@ def new_game_setup_screen():
     image_height = 200
     separation = 50
     per_row = 3
-    input_dict = {
-        "width": scaling.scale_width(image_width),
-        "height": scaling.scale_height(image_height),
-        "modes": ["new_game_setup"],
-        "init_type": "___ selection image",
-    }
+    # input_dict = {
+    #     "width": scaling.scale_width(image_width),
+    #     "height": scaling.scale_height(image_height),
+    #     "modes": [constants.NEW_GAME_SETUP_MODE],
+    #     "init_type": "___ selection image",
+    # }
     """
         input_dict["coordinates"] = scaling.scale_coordinates(
             (constants.default_display_width / 2)
@@ -1298,8 +1523,8 @@ def mob_interface():
             "coordinates": scaling.scale_coordinates(0, 0),
             "width": scaling.scale_width(400),
             "height": scaling.scale_height(430),
-            "modes": ["strategic", "earth"],
-            "init_type": "ordered collection",
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            "init_type": constants.ORDERED_COLLECTION,
             "is_info_display": True,
             "actor_type": "mob",
             "description": "unit information panel",
@@ -1317,9 +1542,8 @@ def mob_interface():
                 "minimum_width": scaling.scale_width(115),
                 "height": scaling.scale_height(115),
                 "image_id": "misc/empty.png",
-                "actor_label_type": "tooltip",
                 "actor_type": "mob",
-                "init_type": "actor display label",
+                "init_type": constants.ACTOR_TOOLTIP_LABEL,
                 "parent_collection": status.mob_info_display,
                 "member_config": {"order_overlap": True},
             }
@@ -1332,9 +1556,9 @@ def mob_interface():
             "coordinates": scaling.scale_coordinates(0, 0),
             "width": scaling.scale_width(115),
             "height": scaling.scale_height(115),
-            "modes": ["strategic", "earth"],
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "actor_image_type": "default",
-            "init_type": "actor display free image",
+            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
             "parent_collection": status.mob_info_display,
             "member_config": {"order_overlap": False},
         }
@@ -1344,9 +1568,9 @@ def mob_interface():
         "coordinates": scaling.scale_coordinates(125, -115),
         "width": scaling.scale_width(35),
         "height": scaling.scale_height(35),
-        "modes": ["strategic", "earth"],
+        "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
         "image_id": "buttons/remove_minister_button.png",
-        "init_type": "fire unit button",
+        "init_type": constants.FIRE_UNIT_BUTTON,
         "parent_collection": status.mob_info_display,
         "member_config": {"order_exempt": True},
     }
@@ -1359,10 +1583,10 @@ def mob_interface():
             "coordinates": scaling.scale_coordinates(200, -105),
             "width": scaling.scale_width(40),
             "height": scaling.scale_height(40),
-            "modes": ["strategic", "earth"],
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "keybind_id": pygame.K_a,
             "image_id": "buttons/left_button.png",
-            "init_type": "move left button",
+            "init_type": constants.MOVE_LEFT_BUTTON,
             "parent_collection": status.mob_info_display,
             "member_config": {"order_exempt": True},
         }
@@ -1372,10 +1596,10 @@ def mob_interface():
             "coordinates": scaling.scale_coordinates(245, -105),
             "width": scaling.scale_width(40),
             "height": scaling.scale_height(40),
-            "modes": ["strategic", "earth"],
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "keybind_id": pygame.K_s,
             "image_id": "buttons/down_button.png",
-            "init_type": "move down button",
+            "init_type": constants.MOVE_DOWN_BUTTON,
             "parent_collection": status.mob_info_display,
             "member_config": {"order_exempt": True},
         }
@@ -1386,10 +1610,10 @@ def mob_interface():
             "coordinates": scaling.scale_coordinates(245, -60),
             "width": scaling.scale_width(40),
             "height": scaling.scale_height(40),
-            "modes": ["strategic", "earth"],
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "keybind_id": pygame.K_w,
             "image_id": "buttons/up_button.png",
-            "init_type": "move up button",
+            "init_type": constants.MOVE_UP_BUTTON,
             "parent_collection": status.mob_info_display,
             "member_config": {"order_exempt": True},
         }
@@ -1400,33 +1624,34 @@ def mob_interface():
             "coordinates": scaling.scale_coordinates(290, -105),
             "width": scaling.scale_width(40),
             "height": scaling.scale_height(40),
-            "modes": ["strategic", "earth"],
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "keybind_id": pygame.K_d,
             "image_id": "buttons/right_button.png",
-            "init_type": "move right button",
+            "init_type": constants.MOVE_RIGHT_BUTTON,
             "parent_collection": status.mob_info_display,
             "member_config": {"order_exempt": True},
         }
     )
 
     # mob info labels setup
-    mob_info_display_labels = [
-        "name",
-        "minister",
-        "officer",
-        "workers",
-        "movement",
-        "combat_strength",
-        "attitude",
-        "controllable",
-        "crew",
-        "passengers",
-        "current passenger",
-    ]  # order of mob info display labels
-    for current_actor_label_type in mob_info_display_labels:
-        if current_actor_label_type == "minister":  # how far from edge of screen
+    for current_actor_label_type in [
+        constants.NAME_LABEL,
+        constants.MINISTER_LABEL,
+        constants.OFFICER_LABEL,
+        constants.WORKERS_LABEL,
+        constants.MOVEMENT_LABEL,
+        constants.COMBAT_STRENGTH_LABEL,
+        constants.ATTITUDE_LABEL,
+        constants.CONTROLLABLE_LABEL,
+        constants.CREW_LABEL,
+        constants.PASSENGERS_LABEL,
+        constants.CURRENT_PASSENGER_LABEL,
+    ]:
+        if (
+            current_actor_label_type == constants.MINISTER_LABEL
+        ):  # how far from edge of screen
             x_displacement = 40
-        elif current_actor_label_type == "current passenger":
+        elif current_actor_label_type == constants.CURRENT_PASSENGER_LABEL:
             x_displacement = 30
         else:
             x_displacement = 0
@@ -1435,17 +1660,15 @@ def mob_interface():
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
             "image_id": "misc/default_label.png",
-            "actor_label_type": current_actor_label_type,
+            "init_type": current_actor_label_type,
             "actor_type": "mob",
             "parent_collection": status.mob_info_display,
             "member_config": {"order_x_offset": x_displacement},
         }
-        if current_actor_label_type != "current passenger":
-            input_dict["init_type"] = "actor display label"
+        if current_actor_label_type != constants.CURRENT_PASSENGER_LABEL:
             constants.actor_creation_manager.create_interface_element(input_dict)
         else:
-            input_dict["init_type"] = "list item label"
-            input_dict["list_type"] = "ship"
+            input_dict["list_type"] = constants.SHIP
             for i in range(0, 3):  # 0, 1, 2
                 # label for each passenger
                 input_dict["list_index"] = i
@@ -1461,7 +1684,7 @@ def mob_interface():
                 ),
                 "width": scaling.scale_width(10),
                 "height": scaling.scale_height(30),
-                "init_type": "tabbed collection",
+                "init_type": constants.TABBED_COLLECTION,
                 "parent_collection": status.mob_info_display,
                 "member_config": {"order_exempt": True},
                 "description": "unit information tabs",
@@ -1485,8 +1708,8 @@ def tile_interface():
                 "coordinates": scaling.scale_coordinates(0, 0),
                 "width": scaling.scale_width(775),
                 "height": scaling.scale_height(10),
-                "modes": ["strategic", "earth"],
-                "init_type": "ordered collection",
+                "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+                "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
                 "actor_type": "tile",
                 "description": "tile information panel",
@@ -1502,7 +1725,7 @@ def tile_interface():
                 "coordinates": scaling.scale_coordinates(120, 0),
                 "width": 10,
                 "height": 10,
-                "init_type": "ordered collection",
+                "init_type": constants.ORDERED_COLLECTION,
                 "parent_collection": status.tile_info_display,
                 "member_config": {"order_exempt": True},
                 "separation": separation,
@@ -1514,8 +1737,8 @@ def tile_interface():
         "coordinates": (0, 0),
         "width": scaling.scale_width(25),
         "height": scaling.scale_height(25),
-        "modes": ["strategic", "earth"],
-        "init_type": "same tile icon",
+        "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+        "init_type": constants.SAME_TILE_ICON,
         "image_id": "buttons/default_button.png",
         "is_last": False,
         "color": "gray",
@@ -1533,8 +1756,8 @@ def tile_interface():
             "coordinates": (0, 0),
             "width": scaling.scale_width(25),
             "height": scaling.scale_height(15),
-            "modes": ["strategic", "earth"],
-            "init_type": "same tile icon",
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            "init_type": constants.SAME_TILE_ICON,
             "image_id": "buttons/default_button.png",
             "index": 3,
             "is_last": True,
@@ -1548,9 +1771,9 @@ def tile_interface():
             "coordinates": scaling.scale_coordinates(0, separation),
             "width": scaling.scale_width(25),
             "height": scaling.scale_height(15),
-            "modes": ["strategic", "earth"],
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "image_id": "buttons/cycle_passengers_down_button.png",
-            "init_type": "cycle same tile button",
+            "init_type": constants.CYCLE_SAME_TILE_BUTTON,
             "parent_collection": same_tile_ordered_collection,
         }
     )
@@ -1563,9 +1786,8 @@ def tile_interface():
                 "minimum_width": scaling.scale_width(115),
                 "height": scaling.scale_height(115),
                 "image_id": "misc/empty.png",
-                "actor_label_type": "tooltip",
                 "actor_type": "tile",
-                "init_type": "actor display label",
+                "init_type": constants.ACTOR_TOOLTIP_LABEL,
                 "parent_collection": status.tile_info_display,
                 "member_config": {"order_overlap": True},
             }
@@ -1577,51 +1799,43 @@ def tile_interface():
             "coordinates": scaling.scale_coordinates(5, 5),
             "width": scaling.scale_width(115),
             "height": scaling.scale_height(115),
-            "modes": ["strategic", "earth"],
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "actor_image_type": "default",
-            "init_type": "actor display free image",
+            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
             "parent_collection": status.tile_info_display,
             "member_config": {"order_overlap": False},
         }
     )
 
     # tile info labels setup
-    tile_info_display_labels = [
-        "coordinates",
-        "terrain",
-        "water",
-        "temperature",
-        "vegetation",
-        "roughness",
-        "soil",
-        "altitude",
-        "resource",
-        "terrain features",
-    ]
-    for current_actor_label_type in tile_info_display_labels:
-        if (
-            current_actor_label_type
-            in ["terrain features"] + constants.terrain_parameters
-        ):
-            x_displacement = 25
-        else:
-            x_displacement = 0
+    for current_actor_label_type in [
+        constants.COORDINATES_LABEL,
+        constants.TERRAIN_LABEL,
+        constants.RESOURCE_LABEL,
+        constants.TERRAIN_FEATURE_LABEL,
+    ]:
+        x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
             "image_id": "misc/default_label.png",
-            "actor_label_type": current_actor_label_type,
+            "init_type": current_actor_label_type,
             "actor_type": "tile",
             "parent_collection": status.tile_info_display,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
-        if current_actor_label_type == "terrain features":
-            input_dict["init_type"] = "terrain feature label"
-            for terrain_feature_type in status.terrain_feature_types:
-                input_dict["terrain_feature_type"] = terrain_feature_type
-                constants.actor_creation_manager.create_interface_element(input_dict)
+        if current_actor_label_type == constants.TERRAIN_FEATURE_LABEL:
+            for key, terrain_feature_type in status.terrain_feature_types.items():
+                if terrain_feature_type.visible:
+                    input_dict["terrain_feature_type"] = key
+                    constants.actor_creation_manager.create_interface_element(
+                        input_dict
+                    )
+        elif current_actor_label_type == constants.BANNER_LABEL:
+            input_dict["banner_type"] = "terrain details"
+            input_dict["banner_text"] = "Details unknown"
+            constants.actor_creation_manager.create_interface_element(input_dict)
         else:
-            input_dict["init_type"] = "actor display label"
             constants.actor_creation_manager.create_interface_element(input_dict)
 
     tab_collection_relative_coordinates = (450, -30)
@@ -1635,7 +1849,7 @@ def tile_interface():
                 ),
                 "width": scaling.scale_width(10),
                 "height": scaling.scale_height(30),
-                "init_type": "tabbed collection",
+                "init_type": constants.TABBED_COLLECTION,
                 "parent_collection": status.tile_info_display,
                 "member_config": {"order_exempt": True},
                 "description": "tile information tabs",
@@ -1665,9 +1879,9 @@ def inventory_interface():
                 ),
                 "minimum_width": scaling.scale_width(commodity_prices_width),
                 "height": scaling.scale_height(commodity_prices_height),
-                "modes": ["earth"],
+                "modes": [constants.EARTH_MODE],
                 "image_id": "misc/commodity_prices_label.png",
-                "init_type": "commodity prices label",
+                "init_type": constants.COMMODITY_PRICES_LABEL,
             }
         )
     )
@@ -1675,8 +1889,8 @@ def inventory_interface():
     input_dict = {
         "width": scaling.scale_width(30),
         "height": scaling.scale_height(30),
-        "modes": ["earth"],
-        "init_type": "commodity button",
+        "modes": [constants.EARTH_MODE],
+        "init_type": constants.COMMODITY_BUTTON,
     }
     for current_index in range(
         len(constants.commodity_types)
@@ -1699,7 +1913,7 @@ def inventory_interface():
             {
                 "width": scaling.scale_width(10),
                 "height": scaling.scale_height(30),
-                "init_type": "ordered collection",
+                "init_type": constants.ORDERED_COLLECTION,
                 "parent_collection": status.mob_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
@@ -1708,7 +1922,7 @@ def inventory_interface():
                         {"image_id": "misc/green_circle.png", "size": 0.75},
                         {"image_id": "items/consumer goods.png", "size": 0.75},
                     ],
-                    "identifier": "inventory",
+                    "identifier": constants.INVENTORY_PANEL,
                 },
                 "description": "unit inventory panel",
             }
@@ -1719,9 +1933,8 @@ def inventory_interface():
         "minimum_width": scaling.scale_width(10),
         "height": scaling.scale_height(30),
         "image_id": "misc/default_label.png",
-        "actor_label_type": "mob inventory capacity",
+        "init_type": constants.MOB_INVENTORY_CAPACITY_LABEL,
         "actor_type": "mob",
-        "init_type": "actor display label",
         "parent_collection": status.mob_inventory_collection,
     }
     mob_inventory_capacity_label = (
@@ -1736,7 +1949,7 @@ def inventory_interface():
             {
                 "width": scaling.scale_width(10),
                 "height": (inventory_cell_height + scaling.scale_height(5)) * 3,
-                "init_type": "inventory grid",
+                "init_type": constants.INVENTORY_GRID,
                 "parent_collection": status.mob_inventory_collection,
                 "second_dimension_increment": inventory_cell_width
                 + scaling.scale_height(5),
@@ -1749,7 +1962,7 @@ def inventory_interface():
                 "width": inventory_cell_width,
                 "height": inventory_cell_height,
                 "image_id": "buttons/default_button.png",
-                "init_type": "item icon",
+                "init_type": constants.ITEM_ICON,
                 "parent_collection": status.mob_inventory_grid,
                 "icon_index": current_index,
                 "actor_type": "mob_inventory",
@@ -1765,7 +1978,7 @@ def inventory_interface():
             {
                 "width": scaling.scale_width(10),
                 "height": scaling.scale_height(30),
-                "init_type": "ordered collection",
+                "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
                 "actor_type": "mob_inventory",
                 "description": "mob inventory panel",
@@ -1782,9 +1995,8 @@ def inventory_interface():
                 "minimum_width": scaling.scale_width(90),
                 "height": scaling.scale_height(90),
                 "image_id": "misc/empty.png",
-                "actor_label_type": "tooltip",
+                "init_type": constants.ACTOR_TOOLTIP_LABEL,
                 "actor_type": "tile",
-                "init_type": "actor display label",
                 "parent_collection": status.mob_inventory_info_display,
                 "member_config": {"order_overlap": True},
             }
@@ -1796,27 +2008,28 @@ def inventory_interface():
             "coordinates": scaling.scale_coordinates(5, 5),
             "width": scaling.scale_width(90),
             "height": scaling.scale_height(90),
-            "modes": ["strategic", "earth"],
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "actor_image_type": "inventory_default",
-            "init_type": "actor display free image",
+            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
             "parent_collection": status.mob_inventory_info_display,
             "member_config": {"order_overlap": False},
         }
     )
 
-    mob_info_display_labels = ["inventory_name", "inventory_quantity"]
-    for current_actor_label_type in mob_info_display_labels:
+    for current_actor_label_type in [
+        constants.INVENTORY_NAME_LABEL,
+        constants.INVENTORY_QUANTITY_LABEL,
+    ]:
         x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
             "image_id": "misc/default_label.png",
-            "actor_label_type": current_actor_label_type,
+            "init_type": current_actor_label_type,
             "actor_type": "mob",
             "parent_collection": status.mob_inventory_info_display,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
-        input_dict["init_type"] = "actor display label"
         constants.actor_creation_manager.create_interface_element(input_dict)
 
     status.tile_inventory_collection = (
@@ -1824,7 +2037,7 @@ def inventory_interface():
             {
                 "width": scaling.scale_width(10),
                 "height": scaling.scale_height(30),
-                "init_type": "ordered collection",
+                "init_type": constants.ORDERED_COLLECTION,
                 "parent_collection": status.tile_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
@@ -1833,7 +2046,7 @@ def inventory_interface():
                         {"image_id": "misc/green_circle.png", "size": 0.75},
                         {"image_id": "items/consumer goods.png", "size": 0.75},
                     ],
-                    "identifier": "inventory",
+                    "identifier": constants.INVENTORY_PANEL,
                 },
                 "description": "tile inventory panel",
             }
@@ -1843,10 +2056,9 @@ def inventory_interface():
     input_dict = {
         "minimum_width": scaling.scale_width(10),
         "height": scaling.scale_height(30),
-        "image_id": "misc/default_label.png",  #'misc/underline.png',
-        "actor_label_type": "tile inventory capacity",
+        "image_id": "misc/default_label.png",
+        "init_type": constants.TILE_INVENTORY_CAPACITY_LABEL,
         "actor_type": "tile",
-        "init_type": "actor display label",
         "parent_collection": status.tile_inventory_collection,
     }
     tile_inventory_capacity_label = (
@@ -1858,7 +2070,7 @@ def inventory_interface():
             {
                 "width": scaling.scale_width(10),
                 "height": (inventory_cell_height + scaling.scale_height(5)) * 3,
-                "init_type": "inventory grid",
+                "init_type": constants.INVENTORY_GRID,
                 "parent_collection": status.tile_inventory_collection,
                 "second_dimension_increment": inventory_cell_width
                 + scaling.scale_height(5),
@@ -1881,7 +2093,7 @@ def inventory_interface():
                 - ((inventory_cell_height + scaling.scale_height(5)) * 3)
                 + scaling.scale_height(5),
             },
-            "init_type": "scroll button",
+            "init_type": constants.SCROLL_BUTTON,
         }
     )
 
@@ -1898,7 +2110,7 @@ def inventory_interface():
                 "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
                 "y_offset": status.tile_inventory_grid.height - (inventory_cell_height),
             },
-            "init_type": "scroll button",
+            "init_type": constants.SCROLL_BUTTON,
         }
     )
 
@@ -1908,7 +2120,7 @@ def inventory_interface():
                 "width": inventory_cell_width,
                 "height": inventory_cell_height,
                 "image_id": "buttons/default_button.png",
-                "init_type": "item icon",
+                "init_type": constants.ITEM_ICON,
                 "parent_collection": status.tile_inventory_grid,
                 "icon_index": current_index,
                 "actor_type": "tile_inventory",
@@ -1924,7 +2136,7 @@ def inventory_interface():
             {
                 "width": scaling.scale_width(10),
                 "height": scaling.scale_height(30),
-                "init_type": "ordered collection",
+                "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
                 "actor_type": "tile_inventory",
                 "description": "tile inventory panel",
@@ -1941,9 +2153,8 @@ def inventory_interface():
                 "minimum_width": scaling.scale_width(90),
                 "height": scaling.scale_height(90),
                 "image_id": "misc/empty.png",
-                "actor_label_type": "tooltip",
                 "actor_type": "tile",
-                "init_type": "actor display label",
+                "init_type": constants.ACTOR_TOOLTIP_LABEL,
                 "parent_collection": status.tile_inventory_info_display,
                 "member_config": {"order_overlap": True},
             }
@@ -1955,27 +2166,28 @@ def inventory_interface():
             "coordinates": scaling.scale_coordinates(5, 5),
             "width": scaling.scale_width(90),
             "height": scaling.scale_height(90),
-            "modes": ["strategic", "earth"],
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "actor_image_type": "inventory_default",
-            "init_type": "actor display free image",
+            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
             "parent_collection": status.tile_inventory_info_display,
             "member_config": {"order_overlap": False},
         }
     )
 
-    tile_info_display_labels = ["inventory_name", "inventory_quantity"]
-    for current_actor_label_type in tile_info_display_labels:
+    for current_actor_label_type in [
+        constants.INVENTORY_NAME_LABEL,
+        constants.INVENTORY_QUANTITY_LABEL,
+    ]:
         x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
             "image_id": "misc/default_label.png",
-            "actor_label_type": current_actor_label_type,
+            "init_type": current_actor_label_type,
             "actor_type": "tile",
             "parent_collection": status.tile_inventory_info_display,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
-        input_dict["init_type"] = "actor display label"
         constants.actor_creation_manager.create_interface_element(input_dict)
 
 
@@ -1994,38 +2206,40 @@ def settlement_interface():
                 "coordinates": scaling.scale_coordinates(0, 0),
                 "width": scaling.scale_width(10),
                 "height": scaling.scale_height(30),
-                "init_type": "ordered collection",
+                "init_type": constants.ORDERED_COLLECTION,
                 "parent_collection": status.tile_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
                     "button_image_id": "buttons/crew_train_button.png",
-                    "identifier": "settlement",
+                    "identifier": constants.SETTLEMENT_PANEL,
                 },
                 "description": "settlement panel",
             }
         )
     )
-    settlement_info_display_labels = [
-        "settlement",
-        "port",
-        "train_station",
-        "resource building",
-        "building efficiency",
-        "building work crews",
-        "current building work crew",
-        "fort",
-        "slums",
-        "infrastructure",
-    ]
-    for current_actor_label_type in settlement_info_display_labels:
+    for current_actor_label_type in [
+        constants.SETTLEMENT,
+        constants.PORT,
+        constants.TRAIN_STATION,
+        constants.RESOURCE,
+        constants.BUILDING_EFFICIENCY_LABEL,
+        constants.BUILDING_WORK_CREWS_LABEL,
+        constants.CURRENT_BUILDING_WORK_CREW_LABEL,
+        constants.FORT,
+        constants.SLUMS,
+        constants.INFRASTRUCTURE,
+    ]:
         if current_actor_label_type in [
-            "settlement",
-            "infrastructure",
+            constants.SETTLEMENT,
+            constants.INFRASTRUCTURE,
         ]:  # Left align any top-level buildings
             x_displacement = 0
-        elif current_actor_label_type == "current building work crew":
+        elif current_actor_label_type == constants.CURRENT_BUILDING_WORK_CREW_LABEL:
             x_displacement = 75
-        elif current_actor_label_type in ["building efficiency", "building work crews"]:
+        elif current_actor_label_type in [
+            constants.BUILDING_EFFICIENCY_LABEL,
+            constants.BUILDING_WORK_CREWS_LABEL,
+        ]:
             x_displacement = 50
         else:
             x_displacement = 25
@@ -2033,29 +2247,81 @@ def settlement_interface():
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
             "image_id": "misc/default_label.png",
-            "actor_label_type": current_actor_label_type,
             "actor_type": "tile",
             "parent_collection": status.settlement_collection,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
 
-        if current_actor_label_type == "building efficiency":
-            input_dict["init_type"] = "building efficiency label"
-            input_dict["building_type"] = "resource"
+        if current_actor_label_type == constants.BUILDING_EFFICIENCY_LABEL:
+            input_dict["init_type"] = constants.BUILDING_EFFICIENCY_LABEL
+            input_dict["building_type"] = constants.RESOURCE
             constants.actor_creation_manager.create_interface_element(input_dict)
-        elif current_actor_label_type == "building work crews":
-            input_dict["init_type"] = "building work crews label"
-            input_dict["building_type"] = "resource"
+        elif current_actor_label_type == constants.BUILDING_WORK_CREWS_LABEL:
+            input_dict["init_type"] = constants.BUILDING_WORK_CREWS_LABEL
+            input_dict["building_type"] = constants.RESOURCE
             constants.actor_creation_manager.create_interface_element(input_dict)
-        elif current_actor_label_type == "current building work crew":
-            input_dict["init_type"] = "list item label"
-            input_dict["list_type"] = "resource building"
+        elif current_actor_label_type == constants.CURRENT_BUILDING_WORK_CREW_LABEL:
+            input_dict["init_type"] = constants.LIST_ITEM_LABEL
+            input_dict["list_type"] = constants.RESOURCE
             for i in range(0, 3):
                 input_dict["list_index"] = i
                 constants.actor_creation_manager.create_interface_element(input_dict)
         else:
-            input_dict["init_type"] = "actor display label"
+            input_dict["init_type"] = current_actor_label_type
             constants.actor_creation_manager.create_interface_element(input_dict)
+
+
+def terrain_interface():
+    """
+    Description:
+        Initializes the terrain interface as part of the tile tabbed collection
+    Input:
+        None
+    Output:
+        None
+    """
+    status.terrain_collection = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "width": scaling.scale_width(10),
+                "height": scaling.scale_height(30),
+                "init_type": constants.ORDERED_COLLECTION,
+                "parent_collection": status.tile_tabbed_collection,
+                "member_config": {
+                    "tabbed": True,
+                    "button_image_id": "buttons/crew_train_button.png",
+                    "identifier": constants.TERRAIN_PANEL,
+                },
+                "description": "terrain details panel",
+            }
+        )
+    )
+
+    for current_actor_label_type in [
+        constants.KNOWLEDGE_LABEL,
+        constants.BANNER_LABEL,
+        constants.WATER_LABEL,
+        constants.TEMPERATURE_LABEL,
+        constants.VEGETATION_LABEL,
+        constants.ROUGHNESS_LABEL,
+        constants.SOIL_LABEL,
+        constants.ALTITUDE_LABEL,
+    ]:
+        x_displacement = 0
+        input_dict = {
+            "minimum_width": scaling.scale_width(10),
+            "height": scaling.scale_height(30),
+            "image_id": "misc/default_label.png",
+            "init_type": current_actor_label_type,
+            "actor_type": "tile",
+            "parent_collection": status.terrain_collection,
+            "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
+        }
+        if current_actor_label_type == constants.BANNER_LABEL:
+            input_dict["banner_type"] = "terrain details"
+            input_dict["banner_text"] = "Details unknown"
+        constants.actor_creation_manager.create_interface_element(input_dict)
 
 
 def unit_organization_interface():
@@ -2077,12 +2343,12 @@ def unit_organization_interface():
                 "coordinates": scaling.scale_coordinates(-30, -1 * image_height - 115),
                 "width": scaling.scale_width(10),
                 "height": scaling.scale_height(30),
-                "init_type": "autofill collection",
+                "init_type": constants.AUTOFILL_COLLECTION,
                 "parent_collection": status.mob_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
                     "button_image_id": "buttons/merge_button.png",
-                    "identifier": "reorganization",
+                    "identifier": constants.REORGANIZATION_PANEL,
                 },
                 "description": "unit organization panel",
                 "direction": "horizontal",
@@ -2099,7 +2365,7 @@ def unit_organization_interface():
             "height": scaling.scale_height(image_height - 10),
             "image_id": "misc/empty.png",
             "actor_type": "mob",
-            "init_type": "actor tooltip label",
+            "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.mob_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
         }
@@ -2114,10 +2380,10 @@ def unit_organization_interface():
             "coordinates": scaling.scale_coordinates(0, 0),
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
-            "modes": ["strategic", "earth"],
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "actor_image_type": "default",
             "default_image_id": "mobs/default/mock_officer.png",
-            "init_type": "actor display free image",
+            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
             "parent_collection": status.mob_reorganization_collection,
             "member_config": {
                 "calibrate_exempt": True,
@@ -2139,7 +2405,7 @@ def unit_organization_interface():
             "height": scaling.scale_height(image_height - 10),
             "image_id": "misc/empty.png",
             "actor_type": "mob",
-            "init_type": "actor tooltip label",
+            "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.mob_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
         }
@@ -2163,10 +2429,10 @@ def unit_organization_interface():
                 "coordinates": scaling.scale_coordinates(0, 0),
                 "width": scaling.scale_width(image_height - 10),
                 "height": scaling.scale_height(image_height - 10),
-                "modes": ["strategic", "earth"],
+                "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
                 "actor_image_type": "default",
                 "default_image_id": default_image_id,
-                "init_type": "actor display free image",
+                "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
                 "parent_collection": status.mob_reorganization_collection,
                 "member_config": {
                     "calibrate_exempt": True,
@@ -2189,7 +2455,7 @@ def unit_organization_interface():
             "height": scaling.scale_height(image_height - 10),
             "image_id": "misc/empty.png",
             "actor_type": "mob",
-            "init_type": "actor tooltip label",
+            "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.mob_reorganization_collection,
             "member_config": {
                 "calibrate_exempt": True,
@@ -2223,10 +2489,10 @@ def unit_organization_interface():
             "coordinates": scaling.scale_coordinates(0, 0),
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
-            "modes": ["strategic", "earth"],
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "actor_image_type": "default",
             "default_image_id": default_image_id,
-            "init_type": "actor display free image",
+            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
             "parent_collection": status.mob_reorganization_collection,
             "member_config": {
                 "calibrate_exempt": True,
@@ -2249,10 +2515,13 @@ def unit_organization_interface():
                 ),
                 "width": scaling.scale_width(60),
                 "height": scaling.scale_height(25),
-                "init_type": "reorganize unit button",
+                "init_type": constants.REORGANIZE_UNIT_BUTTON,
                 "parent_collection": status.mob_reorganization_collection,
                 "image_id": "buttons/cycle_units_button.png",
-                "allowed_procedures": ["merge", "crew"],
+                "allowed_procedures": [
+                    constants.MERGE_PROCEDURE,
+                    constants.CREW_PROCEDURE,
+                ],
                 "keybind_id": pygame.K_m,
                 "enable_shader": True,
             }
@@ -2269,10 +2538,13 @@ def unit_organization_interface():
                 ),
                 "width": scaling.scale_width(60),
                 "height": scaling.scale_height(25),
-                "init_type": "reorganize unit button",
+                "init_type": constants.REORGANIZE_UNIT_BUTTON,
                 "parent_collection": status.mob_reorganization_collection,
                 "image_id": "buttons/cycle_units_reverse_button.png",
-                "allowed_procedures": ["split", "uncrew"],
+                "allowed_procedures": [
+                    constants.SPLIT_PROCEDURE,
+                    constants.UNCREW_PROCEDURE,
+                ],
                 "keybind_id": pygame.K_n,
                 "enable_shader": True,
             }
@@ -2285,7 +2557,7 @@ def unit_organization_interface():
         ),
         "width": scaling.scale_width(30),
         "height": scaling.scale_height(30),
-        "init_type": "cycle autofill button",
+        "init_type": constants.CYCLE_AUTOFILL_BUTTON,
         "parent_collection": status.mob_reorganization_collection,
         "image_id": "buttons/reset_button.png",
         "autofill_target_type": "officer",
@@ -2329,12 +2601,12 @@ def minister_interface():
                 "coordinates": (5, -5),
                 "width": 10,
                 "height": 10,
-                "modes": ["ministers"],
-                "init_type": "ordered collection",
+                "modes": [constants.MINISTERS_MODE],
+                "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
                 "actor_type": "minister",
-                "allow_minimize": True,
-                "allow_move": True,
+                "allow_minimize": False,
+                "allow_move": False,
                 "description": "minister information panel",
                 "parent_collection": status.info_displays_collection,
             }
@@ -2349,8 +2621,8 @@ def minister_interface():
                 "coordinates": scaling.scale_coordinates(0, 0),
                 "width": scaling.scale_width(125),
                 "height": scaling.scale_height(125),
-                "modes": ["ministers"],
-                "init_type": "minister background image",
+                "modes": [constants.MINISTERS_MODE],
+                "init_type": constants.MINISTER_BACKGROUND_IMAGE,
                 "parent_collection": status.minister_info_display,
                 "member_config": {"order_overlap": True},
             }
@@ -2363,9 +2635,9 @@ def minister_interface():
             "coordinates": scaling.scale_coordinates(0, 0),
             "width": scaling.scale_width(115),
             "height": scaling.scale_height(115),
-            "modes": ["ministers"],
+            "modes": [constants.MINISTERS_MODE],
             "actor_image_type": "minister_default",
-            "init_type": "actor display free image",
+            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
             "parent_collection": status.minister_info_display,
             "member_config": {
                 "order_overlap": True,
@@ -2383,9 +2655,8 @@ def minister_interface():
                 "minimum_width": scaling.scale_width(125),
                 "height": scaling.scale_height(125),
                 "image_id": "misc/empty.png",
-                "actor_label_type": "tooltip",
                 "actor_type": "minister",
-                "init_type": "actor display label",
+                "init_type": constants.ACTOR_TOOLTIP_LABEL,
                 "parent_collection": status.minister_info_display,
                 "member_config": {"order_overlap": False},
             }
@@ -2401,31 +2672,44 @@ def minister_interface():
         "height": scaling.scale_height(30),
         "image_id": "misc/default_label.png",
         "actor_type": "minister",
-        "init_type": "actor display label",
+        "init_type": constants.ACTOR_DISPLAY_LABEL,
         "parent_collection": status.minister_info_display,
     }
 
     # minister info labels setup
-    minister_info_display_labels = (
-        [
-            "minister_name",
-            "minister_office",
-            "background",
-            "social status",
-            "interests",
-            "loyalty",
-            "ability",
-        ]
-        + constants.skill_types
-        + ["evidence"]
-    )
-    for current_actor_label_type in minister_info_display_labels:
-        if current_actor_label_type in constants.skill_types:
+    for current_actor_label_type in [
+        constants.MINISTER_NAME_LABEL,
+        constants.MINISTER_OFFICE_LABEL,
+        constants.MINISTER_BACKGROUND_LABEL,
+        constants.MINISTER_SOCIAL_STATUS_LABEL,
+        constants.MINISTER_INTERESTS_LABEL,
+        constants.MINISTER_LOYALTY_LABEL,
+        constants.MINISTER_ABILITY_LABEL,
+        constants.MILITARY_SKILL_LABEL,
+        constants.RELIGION_SKILL_LABEL,
+        constants.TRADE_SKILL_LABEL,
+        constants.EXPLORATION_SKILL_LABEL,
+        constants.CONSTRUCTION_SKILL_LABEL,
+        constants.PRODUCTION_SKILL_LABEL,
+        constants.TRANSPORTATION_SKILL_LABEL,
+        constants.PROSECUTION_SKILL_LABEL,
+        constants.EVIDENCE_LABEL,
+    ]:
+        if current_actor_label_type in [
+            constants.MILITARY_SKILL_LABEL,
+            constants.RELIGION_SKILL_LABEL,
+            constants.TRADE_SKILL_LABEL,
+            constants.EXPLORATION_SKILL_LABEL,
+            constants.CONSTRUCTION_SKILL_LABEL,
+            constants.PRODUCTION_SKILL_LABEL,
+            constants.TRANSPORTATION_SKILL_LABEL,
+            constants.PROSECUTION_SKILL_LABEL,
+        ]:
             x_displacement = 25
         else:
             x_displacement = 0
         input_dict["member_config"] = {"order_x_offset": x_displacement}
-        input_dict["actor_label_type"] = current_actor_label_type
+        input_dict["init_type"] = current_actor_label_type
         constants.actor_creation_manager.create_interface_element(input_dict)
     # minister info labels setup
 

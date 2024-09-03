@@ -13,26 +13,21 @@ def generate_autofill_actors(search_start_index=0):
     Input:
         None
     Output:
-        dict: Generates and returns dictionary with 'worker', 'officer', 'group', and 'procedure' entries corresponding to 'none' or a dummy/actual unit of that type that
+        dict: Generates and returns dictionary with 'worker', 'officer', 'group', and 'procedure' entries corresponding to None or a dummy/actual unit of that type that
         would be involved in the determined merge/split procedure
     """
     return_dict = {
-        "worker": "none",
-        "officer": "none",
-        "group": "none",
-        "procedure": "none",
+        "worker": None,
+        "officer": None,
+        "group": None,
+        "procedure": None,
     }
     displayed_mob = status.displayed_mob
-    if displayed_mob and displayed_mob.is_pmob:
-
+    if displayed_mob and displayed_mob.get_permission(constants.PMOB_PERMISSION):
         required_dummy_attributes = [
             "name",
-            "is_group",
-            "is_vehicle",
-            "is_pmob",
-            "is_npmob",
-            "is_officer",
-            "has_crew",
+            "default_permissions",
+            "override_permissions",
             "has_infinite_movement",
             "crew",
             "movement_points",
@@ -42,8 +37,6 @@ def generate_autofill_actors(search_start_index=0):
             "equipment",
             "contained_mobs",
             "temp_movement_disabled",
-            "disorganized",
-            "veteran",
             "sentry_mode",
             "base_automatic_route",
             "end_turn_destination",
@@ -63,61 +56,65 @@ def generate_autofill_actors(search_start_index=0):
             ],
         }
 
-        if (
-            displayed_mob.is_officer
-            or displayed_mob.is_worker
-            or (displayed_mob.is_vehicle and not displayed_mob.has_crew)
+        if displayed_mob.any_permissions(
+            constants.WORKER_PERMISSION,
+            constants.OFFICER_PERMISSION,
+            constants.INACTIVE_VEHICLE_PERMISSION,
         ):
-            if displayed_mob.is_worker:
+            if displayed_mob.get_permission(constants.WORKER_PERMISSION):
                 return_dict["worker"] = displayed_mob
                 return_dict["officer"] = displayed_mob.images[
                     0
                 ].current_cell.get_officer(start_index=search_start_index)
             else:
                 return_dict["officer"] = displayed_mob
-                return_dict["worker"] = displayed_mob.images[0].current_cell.get_worker(
+                return_dict["worker"] = displayed_mob.get_cell().get_worker(
                     start_index=search_start_index
                 )
 
-            if return_dict["worker"] != "none" and return_dict["officer"] != "none":
-                if return_dict["officer"].is_officer:
+            if return_dict["worker"] and return_dict["officer"]:
+                if return_dict["officer"].get_permission(constants.OFFICER_PERMISSION):
                     return_dict["group"] = simulate_merge(
                         return_dict["officer"],
                         return_dict["worker"],
                         required_dummy_attributes,
                         dummy_input_dict,
                     )
-                    return_dict["procedure"] = "merge"
-                elif return_dict["officer"].is_vehicle:
+                    return_dict["procedure"] = constants.MERGE_PROCEDURE
+                elif return_dict["officer"].get_permission(
+                    constants.VEHICLE_PERMISSION
+                ):
                     return_dict["group"] = simulate_crew(
                         return_dict["officer"],
                         return_dict["worker"],
                         required_dummy_attributes,
                         dummy_input_dict,
                     )
-                    return_dict["procedure"] = "crew"
+                    return_dict["procedure"] = constants.CREW_PROCEDURE
 
-        elif displayed_mob.is_group or (
-            displayed_mob.is_vehicle and displayed_mob.has_crew
+        elif displayed_mob.get_permission(
+            constants.GROUP_PERMISSION
+        ) or displayed_mob.all_permissions(
+            constants.VEHICLE_PERMISSION, constants.ACTIVE_PERMISSION
         ):
             return_dict["group"] = displayed_mob
 
-            if return_dict["group"].is_group:
+            if return_dict["group"].get_permission(constants.GROUP_PERMISSION):
                 return_dict["officer"], return_dict["worker"] = simulate_split(
                     return_dict["group"], required_dummy_attributes, dummy_input_dict
                 )
-                return_dict["procedure"] = "split"
-            elif return_dict["group"].is_vehicle:
+                return_dict["procedure"] = constants.SPLIT_PROCEDURE
+            elif return_dict["group"].get_permission(constants.VEHICLE_PERMISSION):
                 return_dict["officer"], return_dict["worker"] = simulate_uncrew(
                     return_dict["group"], required_dummy_attributes, dummy_input_dict
                 )
-                return_dict["procedure"] = "uncrew"
+                return_dict["procedure"] = constants.UNCREW_PROCEDURE
 
     return return_dict
 
 
 def create_dummy_copy(
-    unit, dummy_input_dict, required_dummy_attributes, override_values={}
+    unit, dummy_input_dict, required_dummy_attributes, override_permissions={}
 ):
     """
     Description:
@@ -127,14 +124,20 @@ def create_dummy_copy(
         string list required_dummy_attributes: List of attributes required for dummies to have working tooltips/images to copy over from unit
         dictionary dummy_input_dict: Input dict for mock units with initial values - any values also contained in required attributes will be overridden by the unit
             values
-        dictionary override_values = {}: Overridden values for copy - any values contained will be used rather than those from the inputted unit
+        dictionary override_permissions = {}: Overridden values for copy - any permissions contained will be prioritize of unit's defaults
     Output:
         dummy: Returns dummy object copied from inputted unit
     """
-    dummy_input_dict["image_id_list"] = unit.get_image_id_list(override_values)
+    dummy_input_dict["image_id_list"] = unit.get_image_id_list(
+        override_values={"override_permissions": override_permissions}
+    )
     for attribute in required_dummy_attributes:
         if hasattr(unit, attribute):
-            dummy_input_dict[attribute] = getattr(unit, attribute)
+            if type(getattr(unit, attribute)) in [list, dict]:
+                dummy_input_dict[attribute] = getattr(unit, attribute).copy()
+            else:
+                dummy_input_dict[attribute] = getattr(unit, attribute)
+    dummy_input_dict["override_permissions"].update(override_permissions)
     return constants.actor_creation_manager.create_dummy(dummy_input_dict)
 
 
@@ -151,21 +154,28 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
     Output:
         dummy: Returns dummy object representing group that would be created from merging inputted officer and worker
     """
-    return_value = "none"
-    if officer != "none" and worker != "none":
+    return_value = None
+    if officer and worker:
         for attribute in required_dummy_attributes:
             if hasattr(officer, attribute):
-                dummy_input_dict[attribute] = getattr(officer, attribute)
+                if type(getattr(officer, attribute)) in [list, dict]:
+                    dummy_input_dict[attribute] = getattr(officer, attribute).copy()
+                else:
+                    dummy_input_dict[attribute] = getattr(officer, attribute)
         dummy_input_dict["officer"] = officer
         dummy_input_dict["worker"] = worker
         dummy_input_dict["group_type"] = constants.officer_group_type_dict[
             officer.officer_type
         ]
-        dummy_input_dict["disorganized"] = worker.disorganized
-        dummy_input_dict["veteran"] = officer.veteran
+        dummy_input_dict["disorganized"] = worker.get_permission(
+            constants.DISORGANIZED_PERMISSION
+        )
+        dummy_input_dict["veteran"] = officer.get_permission(
+            constants.VETERAN_PERMISSION
+        )
         if dummy_input_dict["group_type"] == "battalion":
             dummy_input_dict["disorganized"] = True
-            if worker.worker_type == "European":
+            if worker.get_permission(constants.EUROPEAN_WORKERS_PERMISSION):
                 dummy_input_dict["battalion_type"] = "imperial"
             else:
                 dummy_input_dict["battalion_type"] = "colonial"
@@ -180,8 +190,14 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
         ] = actor_utility.generate_group_movement_points(
             worker, officer, generate_max=True
         )
-        dummy_input_dict["is_officer"] = False
-        dummy_input_dict["is_group"] = True
+        dummy_input_dict["default_permissions"].update(
+            {
+                constants.OFFICER_PERMISSION: False,
+                constants.GROUP_PERMISSION: True,
+                constants.DISORGANIZED_PERMISSION: dummy_input_dict["disorganized"],
+                constants.VETERAN_PERMISSION: dummy_input_dict["veteran"],
+            }
+        )
         image_id_list = []
         dummy_input_dict[
             "image_id_list"
@@ -209,9 +225,13 @@ def simulate_crew(vehicle, worker, required_dummy_attributes, dummy_input_dict):
         dummy: Returns dummy object representing inputted vehicle once crewed by inputted worker
     """
     dummy_vehicle = create_dummy_copy(
-        vehicle, dummy_input_dict, required_dummy_attributes, {"has_crew": True}
+        vehicle,
+        dummy_input_dict,
+        required_dummy_attributes,
+        override_permissions={
+            constants.ACTIVE_PERMISSION: True,
+        },
     )
-    dummy_vehicle.has_crew = True
     dummy_vehicle.crew = worker
     return dummy_vehicle
 
@@ -229,7 +249,10 @@ def simulate_split(unit, required_dummy_attributes, dummy_input_dict):
         dummy, dummy tuple: Returns tuple of dummy objects representing output officer and worker resulting from split
     """
     dummy_worker_dict = dummy_input_dict
-    unit.worker.disorganized = unit.disorganized
+    unit.worker.set_permission(
+        constants.DISORGANIZED_PERMISSION,
+        unit.get_permission(constants.DISORGANIZED_PERMISSION),
+    )
     dummy_officer_dict = dummy_input_dict.copy()
     dummy_worker = create_dummy_copy(
         unit.worker, dummy_worker_dict, required_dummy_attributes
@@ -256,7 +279,9 @@ def simulate_uncrew(unit, required_dummy_attributes, dummy_input_dict):
         unit.crew, dummy_input_dict.copy(), required_dummy_attributes
     )
     dummy_vehicle = create_dummy_copy(
-        unit, dummy_input_dict, required_dummy_attributes, {"has_crew": False}
+        unit,
+        dummy_input_dict,
+        required_dummy_attributes,
+        override_permissions={constants.ACTIVE_PERMISSION: False},
     )
-    dummy_vehicle.has_crew = False
     return (dummy_vehicle, dummy_worker)

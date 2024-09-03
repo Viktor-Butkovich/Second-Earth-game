@@ -9,6 +9,7 @@ from ..util import (
     utility,
     actor_utility,
     minister_utility,
+    dummy_utility,
 )
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -29,9 +30,9 @@ class recruitment_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -51,32 +52,64 @@ class recruitment_button(button):
             else:
                 self.recruitment_name += " "
         status.recruitment_button_list.append(self)
-        if self.recruitment_name.endswith(" workers"):
-            image_id_list = ["buttons/default_button_alt.png"]
-            left_worker_dict = {
-                "image_id": self.mob_image_id,
-                "size": 0.8,
-                "x_offset": -0.2,
-                "y_offset": 0,
-                "level": 1,
-            }
-            image_id_list.append(left_worker_dict)
+        dummy_recruited_unit = constants.actor_creation_manager.create_dummy({})
+        dummy_recruited_unit.set_permission(constants.PMOB_PERMISSION, True)
 
-            right_worker_dict = left_worker_dict.copy()
-            right_worker_dict["x_offset"] *= -1
-            image_id_list.append(right_worker_dict)
+        if self.recruitment_name.endswith(" workers"):
+            dummy_recruited_unit.set_permission(constants.WORKER_PERMISSION, True)
+        elif self.recruitment_name == constants.SHIP:
+            dummy_recruited_unit.set_permission(constants.VEHICLE_PERMISSION, True)
+            dummy_recruited_unit.set_permission(constants.ACTIVE_PERMISSION, True)
         else:
-            image_id_list = [
-                "buttons/default_button_alt.png",
-                {
-                    "image_id": self.mob_image_id,
-                    "size": 0.95,
-                    "x_offset": 0,
-                    "y_offset": 0,
-                    "level": 1,
-                },
-            ]
-        input_dict["image_id"] = image_id_list
+            dummy_recruited_unit.set_permission(constants.OFFICER_PERMISSION, True)
+
+        original_random_state = random.getstate()
+        random.seed(
+            self.recruitment_type
+        )  # Consistently generate the same random portrait for the same interface elements
+        if self.recruitment_name.endswith(" workers"):
+            image_id = utility.combine(
+                actor_utility.generate_unit_component_portrait(
+                    constants.character_manager.generate_unit_portrait(
+                        dummy_recruited_unit, metadata={"body_image": self.mob_image_id}
+                    ),
+                    "left",
+                ),
+                actor_utility.generate_unit_component_portrait(
+                    constants.character_manager.generate_unit_portrait(
+                        dummy_recruited_unit, metadata={"body_image": self.mob_image_id}
+                    ),
+                    "right",
+                ),
+            )
+            for image in image_id:
+                if (
+                    type(image) == dict
+                    and image.get("metadata", {}).get("portrait_section", "")
+                    != "full_body"
+                ):
+                    image["y_offset"] = image.get("y_offset", 0) - 0.02
+
+        elif self.recruitment_name == constants.SHIP:
+            image_id = self.mob_image_id
+        else:
+            image_id = constants.character_manager.generate_unit_portrait(
+                dummy_recruited_unit, metadata={"body_image": self.mob_image_id}
+            )
+            for image in image_id:
+                if (
+                    type(image) == dict
+                    and image.get("metadata", {}).get("portrait_section", "")
+                    != "full_body"
+                ):
+                    image["x_offset"] = image.get("x_offset", 0) - 0.01
+                    image["y_offset"] = image.get("y_offset", 0) - 0.01
+        random.setstate(original_random_state)
+
+        image_id = actor_utility.generate_frame(
+            image_id, frame="buttons/default_button_alt.png", size=0.9, y_offset=0.02
+        )
+        input_dict["image_id"] = image_id
         input_dict["button_type"] = "recruitment"
         super().__init__(input_dict)
 
@@ -94,12 +127,13 @@ class recruitment_button(button):
             if constants.money_tracker.get() >= cost:
                 choice_info_dict = {
                     "recruitment_type": self.recruitment_type,
+                    "recruitment_name": self.recruitment_name,
                     "cost": cost,
                     "mob_image_id": self.mob_image_id,
                     "type": "recruitment",
                 }
                 constants.actor_creation_manager.display_recruitment_choice_notification(
-                    choice_info_dict, self.recruitment_name
+                    choice_info_dict
                 )
             else:
                 text_utility.print_to_screen(
@@ -119,28 +153,19 @@ class recruitment_button(button):
         """
         actor_utility.update_descriptions(self.recruitment_type)
         cost = constants.recruitment_costs[self.recruitment_type]
-        if self.recruitment_type.endswith(" workers"):
+        if self.recruitment_type in [
+            constants.CHURCH_VOLUNTEERS,
+            constants.EUROPEAN_WORKERS,
+        ]:
             self.set_tooltip(
                 [
-                    "Recruits a unit of "
-                    + self.recruitment_name
-                    + " for "
-                    + str(cost)
-                    + " money."
+                    f"Recruits a unit of {status.worker_types[self.recruitment_type].name} for {cost} money."
                 ]
                 + constants.list_descriptions[self.recruitment_type]
             )
         else:
             self.set_tooltip(
-                [
-                    "Recruits "
-                    + utility.generate_article(self.recruitment_type)
-                    + " "
-                    + self.recruitment_name
-                    + " for "
-                    + str(cost)
-                    + " money."
-                ]
+                [f"Recruits an {self.recruitment_name} for {cost} money."]
                 + constants.list_descriptions[self.recruitment_type]
             )
 
@@ -174,10 +199,10 @@ class buy_item_button(button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
                 'button_type': string value - Determines the function of this button, like 'end turn'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'commodity_type': string value - Type of commodity that this button buys, like 'consumer goods'
         Output:
             None
@@ -214,19 +239,11 @@ class buy_item_button(button):
                     constants.money_tracker.change(-1 * cost, "items")
                     if self.item_type.endswith("s"):
                         text_utility.print_to_screen(
-                            "You spent "
-                            + str(cost)
-                            + " money to buy 1 unit of "
-                            + self.item_type
-                            + "."
+                            f"You spent {cost} money to buy 1 unit of {self.item_type}."
                         )
                     else:
                         text_utility.print_to_screen(
-                            "You spent "
-                            + str(cost)
-                            + " money to buy 1 "
-                            + self.item_type
-                            + "."
+                            f"You spent {cost} money to buy 1 {self.item_type}."
                         )
                     if (
                         random.randrange(1, 7) == 1
@@ -234,13 +251,7 @@ class buy_item_button(button):
                     ):  # 1/6 chance
                         market_utility.change_price(self.item_type, 1)
                         text_utility.print_to_screen(
-                            "The price of "
-                            + self.item_type
-                            + " has increased from "
-                            + str(cost)
-                            + " to "
-                            + str(cost + 1)
-                            + "."
+                            f"The price of {self.item_type} has increased from {cost} to {cost + 1}."
                         )
                     actor_utility.calibrate_actor_info_display(
                         status.tile_inventory_info_display,
@@ -267,19 +278,11 @@ class buy_item_button(button):
         new_tooltip = []
         if self.item_type.endswith("s"):
             new_tooltip.append(
-                "Purchases 1 unit of "
-                + self.item_type
-                + " for "
-                + str(constants.item_prices[self.item_type])
-                + " money."
+                f"Purchases 1 unit of {self.item_type} for {constants.item_prices[self.item_type]} money."
             )
         else:
             new_tooltip.append(
-                "Purchases 1 "
-                + self.item_type
-                + " for "
-                + str(constants.item_prices[self.item_type])
-                + " money."
+                f"Purchases 1 {self.item_type} for {constants.item_prices[self.item_type]} money."
             )
         if self.item_type in status.equipment_types:
             new_tooltip += status.equipment_types[self.item_type].description

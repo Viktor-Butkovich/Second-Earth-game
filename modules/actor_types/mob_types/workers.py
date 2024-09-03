@@ -29,28 +29,43 @@ class worker(pmob):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
-                'worker_type': string value - Type of worker this is, like 'European'. Each type of worker has a separate upkeep, labor pool, and abilities
+                'worker_type': worker_type value - Type of worker this is, like 'European'. Each type of worker has a separate upkeep, labor pool, and abilities
         Output:
             None
         """
+        self.worker_type = input_dict.get(
+            "worker_type", status.worker_types.get(input_dict.get("init_type"))
+        )  # European, religious etc. worker_type object
         super().__init__(from_save, input_dict, original_constructor=False)
         self.number = 2  # Workers is plural
-        self.is_worker = True
-        self.is_church_volunteers = False
-        self.worker_type = input_dict["worker_type"]  # European, religious
-        status.worker_types[self.worker_type].number += 1
+        self.worker_type.number += 1
         if not from_save:
-            status.worker_types[self.worker_type].on_recruit()
-        self.set_controlling_minister_type(constants.type_minister_dict["production"])
+            self.worker_type.on_recruit()
+        self.set_controlling_minister_type(
+            status.minister_types[constants.PRODUCTION_MINISTER]
+        )
 
         if not from_save:
             self.second_image_variant = random.randrange(0, len(self.image_variants))
         constants.money_label.check_for_updates()
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def permissions_setup(self) -> None:
+        """
+        Description:
+            Sets up this mob's permissions
+        Input:
+            None
+        Output:
+            None
+        """
+        super().permissions_setup()
+        for permission in self.worker_type.permissions:
+            self.set_permission(permission, True)
 
     def finish_init(
         self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
@@ -81,23 +96,11 @@ class worker(pmob):
             else:
                 self.image_dict["left portrait"] = input_dict.get("left portrait", [])
                 self.image_dict["right portrait"] = input_dict.get("right portrait", [])
-            super().finish_init(original_constructor, from_save, input_dict)
-            self.image_dict["portrait"] = []
-            self.update_image_bundle()
+            super().finish_init(
+                original_constructor, from_save, input_dict, create_portrait=False
+            )
 
-            if not from_save:
-                if ("select_on_creation" in input_dict) and input_dict[
-                    "select_on_creation"
-                ]:
-                    actor_utility.calibrate_actor_info_display(
-                        status.mob_info_display, None, override_exempt=True
-                    )
-                    actor_utility.calibrate_actor_info_display(
-                        status.mob_info_display, self
-                    )  # updates mob info display list to account for is_worker changing
-                    self.selection_sound()
-
-    def replace(self, attached_group="none"):
+    def replace(self, attached_group=None):
         """
         Description:
             Replaces this unit for a new version of itself when it dies from attrition, removing all experience and name modifications
@@ -107,38 +110,22 @@ class worker(pmob):
             None
         """
         super().replace()
-        if attached_group == "none":
-            destination = self
-        else:
+        if attached_group:
             destination = attached_group
+        else:
+            destination = self
         destination_message = (
             f" for the {destination.name} at ({destination.x}, {destination.y})"
         )
-        status.worker_types[self.worker_type].on_recruit(purchased=True)
-        if not self.worker_type in ["religious"]:
+        self.worker_type.on_recruit(purchased=True)
+        if not self.get_permission(constants.CHURCH_VOLUNTEERS_PERMISSION):
             text_utility.print_to_screen(
-                f"Replacement {self.worker_type} workers have been automatically hired{destination_message}."
+                f"Replacement {self.worker_type.adjective} workers have been automatically hired{destination_message}."
             )
-
-        elif self.worker_type == "religious":
+        else:
             text_utility.print_to_screen(
                 "Replacement church volunteers have been automatically found among nearby colonists."
             )
-
-    def to_save_dict(self):
-        """
-        Description:
-            Uses this object's values to create a dictionary that can be saved and used as input to recreate it on loading
-        Input:
-            None
-        Output:
-            dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
-                Along with superclass outputs, also saves the following values:
-                'worker_type': string value - Type of worker this is, like 'European'. Each type of worker has a separate upkeep, labor pool, and abilities
-        """
-        save_dict = super().to_save_dict()
-        save_dict["worker_type"] = self.worker_type
-        return save_dict
 
     def fire(self, wander=True):
         """
@@ -151,7 +138,7 @@ class worker(pmob):
             None
         """
         super().fire()
-        status.worker_types[self.worker_type].on_fire(wander=wander)
+        self.worker_type.on_fire(wander=wander)
 
     def can_show_tooltip(self):
         """
@@ -181,7 +168,7 @@ class worker(pmob):
         vehicle.set_crew(self)
         moved_mob = vehicle
         for current_image in moved_mob.images:  # moves vehicle to front
-            if not current_image.current_cell == "none":
+            if current_image.current_cell:
                 while not moved_mob == current_image.current_cell.contained_mobs[0]:
                     current_image.current_cell.contained_mobs.append(
                         current_image.current_cell.contained_mobs.pop(0)
@@ -210,10 +197,10 @@ class worker(pmob):
         self.x = vehicle.x
         self.y = vehicle.y
         self.show_images()
-        if self.images[0].current_cell.get_intact_building("port") == "none":
-            self.set_disorganized(True)
-        vehicle.set_crew("none")
-        vehicle.end_turn_destination = "none"
+        if not self.get_cell().get_intact_building(constants.PORT):
+            self.set_permission(constants.DISORGANIZED_PERMISSION, True)
+        vehicle.set_crew(None)
+        vehicle.end_turn_destination = None
         vehicle.hide_images()
         vehicle.show_images()  # bring vehicle to front of tile
         vehicle.remove_from_turn_queue()
@@ -250,8 +237,11 @@ class worker(pmob):
         self.x = group.x
         self.y = group.y
         self.show_images()
-        self.disorganized = group.disorganized
-        self.go_to_grid(self.images[0].current_cell.grid, (self.x, self.y))
+        self.set_permission(
+            constants.DISORGANIZED_PERMISSION,
+            group.get_permission(constants.DISORGANIZED_PERMISSION),
+        )
+        self.go_to_grid(self.get_cell().grid, (self.x, self.y))
         if self.movement_points > 0:
             self.add_to_turn_queue()
         self.update_image_bundle()
@@ -266,7 +256,7 @@ class worker(pmob):
             None
         """
         super().remove()
-        status.worker_types[self.worker_type].number -= 1
+        self.worker_type.number -= 1
         constants.money_label.check_for_updates()
 
     def image_variants_setup(self, from_save, input_dict):
@@ -279,7 +269,7 @@ class worker(pmob):
         Output:
             None
         """
-        if not input_dict["worker_type"] == "religious":
+        if not self.get_permission(constants.CHURCH_VOLUNTEERS_PERMISSION):
             for variant_type in [
                 "soldier",
                 "porter",
@@ -343,12 +333,14 @@ class church_volunteers(worker):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
         Output:
             None
         """
-        input_dict["worker_type"] = "religious"
+        input_dict["worker_type"] = status.worker_types[constants.CHURCH_VOLUNTEERS]
         super().__init__(from_save, input_dict)
-        self.set_controlling_minister_type(constants.type_minister_dict["religion"])
+        self.set_controlling_minister_type(
+            status.minister_types[constants.RELIGION_MINISTER]
+        )

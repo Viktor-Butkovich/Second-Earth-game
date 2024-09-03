@@ -24,6 +24,10 @@ class religious_campaign(action.campaign):
         super().initial_setup()
         constants.transaction_descriptions[self.action_type] = "religious campaigning"
         self.name = "religious campaign"
+        self.requirements += [
+            constants.OFFICER_PERMISSION,
+            constants.EVANGELIST_PERMISSION,
+        ]
 
     def button_setup(self, initial_input_dict):
         """
@@ -68,7 +72,7 @@ class religious_campaign(action.campaign):
         if subject == "confirmation":
             text += f"Are you sure you want to start a religious campaign? /n /nIf successful, a religious campaign will convince church volunteers to join you, allowing the formation of groups of missionaries. /n /nThe campaign will cost {self.get_price()} money. /n /n"
         elif subject == "initial":
-            text += f"The evangelist campaigns for the support of church volunteers to join him. /n /n"
+            text += f"The evangelist campaigns for the support of church volunteers to join them. /n /n"
         elif subject == "success":
             text += f"Inspired by the evangelist's message to save the heathens from their own ignorance, a group of church volunteers joins you. /n /n"
         elif subject == "failure":
@@ -90,6 +94,7 @@ class religious_campaign(action.campaign):
         Output:
             dictionary list: Returns list of input dicts for inputted subject
         """
+        return super().generate_attached_interface_elements(subject)
         return_list = super().generate_attached_interface_elements(subject)
         if subject in ["success", "critical_success"]:
             return_list.append(
@@ -113,21 +118,6 @@ class religious_campaign(action.campaign):
                 )
             )
         return return_list
-
-    def can_show(self):
-        """
-        Description:
-            Returns whether a button linked to this action should be drawn
-        Input:
-            None
-        Output:
-            boolean: Returns whether a button linked to this action should be drawn
-        """
-        return (
-            super().can_show()
-            and status.displayed_mob.is_officer
-            and status.displayed_mob.officer_type == "evangelist"
-        )
 
     def on_click(self, unit):
         """
@@ -182,17 +172,18 @@ class religious_campaign(action.campaign):
             None
         """
         if self.roll_result >= self.current_min_success:
-            church_volunteers = constants.actor_creation_manager.create(
-                False,
+            input_dict = status.worker_types[
+                constants.CHURCH_VOLUNTEERS
+            ].generate_input_dict()
+            input_dict.update(
                 {
                     "coordinates": (0, 0),
                     "grids": [status.earth_grid],
-                    "image": "mobs/church volunteers/default.png",
-                    "name": "church volunteers",
-                    "modes": ["strategic", "earth"],
-                    "init_type": "church_volunteers",
-                    "worker_type": "religious",  # not european - doesn't count as a European worker for upkeep
-                },
+                    "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+                }
+            )
+            church_volunteers = constants.actor_creation_manager.create(
+                False, input_dict
             )
 
             self.current_unit = constants.actor_creation_manager.create_group(

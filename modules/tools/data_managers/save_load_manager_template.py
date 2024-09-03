@@ -83,15 +83,17 @@ class save_load_manager_template:
 
         for grid_type in constants.grid_types_list:
             world_grids.create(from_save=False, grid_type=grid_type)
-
-        game_transitions.set_game_mode("strategic")
+        game_transitions.set_game_mode(constants.STRATEGIC_MODE)
         game_transitions.create_strategic_map(from_save=False)
         for terrain_parameter in constants.terrain_parameters:
             status.earth_grid.cell_list[0][0].set_parameter(
                 terrain_parameter,
                 constants.terrain_manager.get_tuning(f"earth_tile_{terrain_parameter}"),
             )
-        status.minimap_grid.calibrate(0, 0)
+        status.minimap_grid.calibrate(
+            round(0.75 * status.strategic_map_grid.coordinate_width),
+            round(0.75 * status.strategic_map_grid.coordinate_height),
+        )
 
         for current_commodity in constants.commodity_types:
             if current_commodity != "consumer goods":
@@ -115,8 +117,8 @@ class save_load_manager_template:
 
         constants.available_minister_left_index = -2
 
-        for worker_type_name in status.worker_types:
-            status.worker_types[worker_type_name].reset()
+        for key, worker_type in status.worker_types.items():
+            worker_type.reset()
         actor_utility.reset_action_prices()
         for current_commodity in constants.commodity_types:
             constants.sold_commodities[current_commodity] = 0
@@ -136,15 +138,15 @@ class save_load_manager_template:
         turn_management_utility.start_player_turn(True)
         if not constants.effect_manager.effect_active("skip_intro"):
             status.initial_tutorial_completed = False
-            game_transitions.set_game_mode("ministers")
+            game_transitions.set_game_mode(constants.MINISTERS_MODE)
             tutorial_utility.show_tutorial_notifications()
         else:
             status.initial_tutorial_completed = True
-            for current_minister_position_index in range(len(constants.minister_types)):
-                status.minister_list[current_minister_position_index].appoint(
-                    constants.minister_types[current_minister_position_index]
-                )
-            game_transitions.set_game_mode("strategic")
+            for index, minister_type_tuple in enumerate(status.minister_types.items()):
+                key, minister_type = minister_type_tuple
+                status.minister_list[index].appoint(minister_type)
+            minister_utility.calibrate_minister_info_display(None)
+            game_transitions.set_game_mode(constants.STRATEGIC_MODE)
         flags.creating_new_game = False
 
     def save_game(self, file_path):
@@ -176,8 +178,8 @@ class save_load_manager_template:
                 saved_grid_dicts.append(current_grid.to_save_dict())
 
         saved_worker_types = [
-            status.worker_types[worker_type_name].to_save_dict()
-            for worker_type_name in status.worker_types
+            worker_type.to_save_dict()
+            for key, worker_type in status.worker_types.items()
         ]
 
         saved_actor_dicts = []
@@ -206,7 +208,7 @@ class save_load_manager_template:
             saved_minister_dicts.append(current_minister.to_save_dict())
             if constants.effect_manager.effect_active("show_corruption_on_save"):
                 print(
-                    f"{current_minister.name}, {current_minister.current_position}, skill modifier: {current_minister.get_skill_modifier()}, corruption threshold: {current_minister.corruption_threshold}, stolen money: {current_minister.stolen_money}, personal savings: {current_minister.personal_savings}"
+                    f"{current_minister.name}, {current_minister.current_position.name}, skill modifier: {current_minister.get_skill_modifier()}, corruption threshold: {current_minister.corruption_threshold}, stolen money: {current_minister.stolen_money}, personal savings: {current_minister.personal_savings}"
                 )
 
         with open(file_path, "wb") as handle:  # write wb, read rb
@@ -278,7 +280,7 @@ class save_load_manager_template:
         world_grids.create(from_save=False, grid_type="scrolling_strategic_map_grid")
         world_grids.create(from_save=False, grid_type="minimap_grid")
 
-        game_transitions.set_game_mode("strategic")
+        game_transitions.set_game_mode(constants.STRATEGIC_MODE)
         game_transitions.create_strategic_map(from_save=True)
 
         for current_worker_type in saved_worker_types:
@@ -295,8 +297,11 @@ class save_load_manager_template:
         minister_utility.update_available_minister_display()
         status.commodity_prices_label.update_label()
 
-        status.minimap_grid.calibrate(0, 0)
-        game_transitions.set_game_mode("strategic")
+        status.minimap_grid.calibrate(
+            round(0.75 * status.strategic_map_grid.coordinate_width),
+            round(0.75 * status.strategic_map_grid.coordinate_height),
+        )
+        game_transitions.set_game_mode(constants.STRATEGIC_MODE)
 
         tutorial_utility.show_tutorial_notifications()
 

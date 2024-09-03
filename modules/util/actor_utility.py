@@ -43,34 +43,31 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
     Description:
         Returns the cost of the inputted unit attempting to construct the inputted building
     Input:
-        pmob/string constructor: Unit attempting to construct the building, or 'none' if no location/unit type is needed
+        pmob/string constructor: Unit attempting to construct the building, or None if no location/unit type is needed
         string building_type: Type of building to build, like 'infrastructure'
         string building_name = 'n/a': Name of building being built, used to differentiate roads from railroads
     Output:
         int: Returns the cost of the inputted unit attempting to construct the inputted building
     """
-    if building_type == "infrastructure":
+    if building_type == constants.INFRASTRUCTURE:
         building_type = building_name.replace(
             " ", "_"
         )  # road, railroad, road_bridge, or railroad_bridge
-    if building_type == "warehouses":
-        if constructor in ["none", None]:
-            base_price = 5
+    if building_type == constants.WAREHOUSES:
+        if constructor:
+            base_price = constructor.get_cell().get_warehouses_cost()
         else:
-            base_price = constructor.images[0].current_cell.get_warehouses_cost()
+            base_price = 5
     else:
         base_price = constants.building_prices[building_type]
 
-    if building_type in ["train"]:
+    if building_type in [constants.TRAIN]:
         cost_multiplier = 1
-    elif (
-        constructor in ["none", None]
-        or not status.strategic_map_grid in constructor.grids
-    ):
+    elif (not constructor) or not status.strategic_map_grid in constructor.grids:
         cost_multiplier = 1
     else:
         cost_multiplier = constants.terrain_build_cost_multiplier_dict.get(
-            constructor.images[0].current_cell.terrain_handler.terrain, 1
+            constructor.get_cell().terrain_handler.terrain, 1
         )
 
     return base_price * cost_multiplier
@@ -88,11 +85,11 @@ def update_descriptions(target="all"):
     """
     if target == "all":
         targets_to_update = constants.building_types + [
-            "road",
-            "railroad",
-            "ferry",
-            "road_bridge",
-            "railroad_bridge",
+            constants.ROAD,
+            constants.RAILROAD,
+            constants.FERRY,
+            constants.ROAD_BRIDGE,
+            constants.RAILROAD_BRIDGE,
         ]
         targets_to_update += constants.upgrade_types
     else:
@@ -104,59 +101,62 @@ def update_descriptions(target="all"):
         text_list = []
         if current_target in constants.officer_types:
             first_line = f"{utility.capitalize(current_target)}s are controlled by the {constants.officer_minister_dict[current_target]}"
-            if current_target == "explorer":
+            if current_target == constants.EXPLORER:
                 first_line += "."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with workers, an explorer becomes an expedition unit that can explore new tiles."
                 )
 
-            elif current_target == "engineer":
+            elif current_target == constants.ENGINEER:
                 first_line += "."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with workers, an engineer becomes a construction gang unit that can build buildings, roads, railroads, and trains."
                 )
 
-            elif current_target == "driver":
+            elif current_target == constants.DRIVER:
                 first_line += "."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with workers, a driver becomes a porters unit that can move quickly and transport commodities."
                 )
 
-            elif current_target == "foreman":
+            elif current_target == constants.FOREMAN:
                 first_line += "."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with workers, a foreman becomes a work crew unit that can produce commodities when attached to a production facility."
                 )
 
-            elif current_target == "merchant":
+            elif current_target == constants.MERCHANT:
                 first_line += " and can personally search for loans and conduct advertising campaigns on Earth."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with workers, a merchant becomes a caravan that can build trading posts and trade."
                 )
 
-            elif current_target == "evangelist":
+            elif current_target == constants.EVANGELIST:
                 first_line += " and can personally conduct religious campaigns and public relations campaigns on Earth."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with religious volunteers, an evangelist becomes a missionaries unit that can build missions."
                 )
 
-            elif current_target == "major":
+            elif current_target == constants.MAJOR:
                 first_line += "."
                 text_list.append(first_line)
                 text_list.append(
                     "When combined with workers, a major becomes a battalion unit that has a very high combat strength, and can build forts and attack enemies."
                 )
 
-        elif current_target.endswith(" workers"):
+        elif current_target in [
+            constants.EUROPEAN_WORKERS,
+            constants.CHURCH_VOLUNTEERS,
+        ]:
             text_list.append(current_target.capitalize() + " placeholder description.")
 
-        elif current_target == "steamship":
+        elif current_target == constants.SHIP:
             text_list.append(
                 "While useless by itself, a steamship crewed by workers can quickly transport units and cargo through coastal waters and between theatres."
             )
@@ -164,33 +164,31 @@ def update_descriptions(target="all"):
                 "Crewing a steamship requires an advanced level of technological training, which is generally only available to European workers in this time period."
             )
 
-        elif current_target == "train":
+        elif current_target == constants.TRAIN:
             text_list.append(
                 "While useless by itself, a train crewed by workers can quickly transport units and cargo through railroads between train stations."
             )
 
-        elif current_target == "resource":
+        elif current_target == constants.RESOURCE:
             if current_target in status.actions:
                 building_name = status.actions[current_target].building_name
-                if building_name == "none":
+                if not building_name:
                     building_name = "resource production facility"
             else:
                 building_name = "resource production facility"
             text_list.append(
-                "A "
-                + building_name
-                + " expands the tile's warehouse capacity, and each work crew attached to it attempts to produce resources each turn."
+                f"A {building_name} expands the tile's warehouse capacity, and each work crew attached to it attempts to produce resources each turn."
             )
             text_list.append(
                 "Upgrades to the facility can increase the maximum number of attached work crews and the number of production attempts each work crew can make. "
             )
 
-        elif current_target == "road":
+        elif current_target == constants.ROAD:
             text_list.append(
                 "A road halves movement cost when moving to another tile that has a road or railroad and can later be upgraded to a railroad."
             )
 
-        elif current_target == "railroad":
+        elif current_target == constants.RAILROAD:
             text_list.append(
                 "A railroad, like a road, halves movement cost when moving to another tile that has a road or railroad."
             )
@@ -198,7 +196,7 @@ def update_descriptions(target="all"):
                 "It is also required for trains to move and for a train station to be built."
             )
 
-        elif current_target == "ferry":
+        elif current_target == constants.FERRY:
             text_list.append(
                 "A ferry built on a water tile between 2 land tiles allows movement across the water."
             )
@@ -206,7 +204,7 @@ def update_descriptions(target="all"):
                 "A ferry allows moving to the ferry tile for 2 movement points, and can later be upgraded to a road bridge."
             )
 
-        elif current_target == "road_bridge":
+        elif current_target == constants.ROAD_BRIDGE:
             text_list.append(
                 "A bridge built on a water tile between 2 land tiles allows movement across the water."
             )
@@ -214,7 +212,7 @@ def update_descriptions(target="all"):
                 "A road bridge acts as a road between the tiles it connects and can later be upgraded to a railroad bridge."
             )
 
-        elif current_target == "railroad_bridge":
+        elif current_target == constants.RAILROAD_BRIDGE:
             text_list.append(
                 "A bridge built on a water tile between 2 land tiles allows movement across the water."
             )
@@ -222,33 +220,33 @@ def update_descriptions(target="all"):
                 "A railroad bridge acts as a railroad between the tiles it connects."
             )
 
-        elif current_target == "port":
+        elif current_target == constants.PORT:
             text_list.append(
                 "A port allows steamships to enter the tile and expands the tile's warehouse capacity."
             )
             text_list.append("A port adjacent to the water allows entry by steamships.")
 
-        elif current_target == "train_station":
+        elif current_target == constants.TRAIN_STATION:
             text_list.append(
                 "A train station is required for a train to exchange cargo and passengers, expands the tile's warehouse capacity, and allows assembly of trains."
             )
 
-        elif current_target == "fort":
+        elif current_target == constants.FORT:
             text_list.append(
                 "A fort increases the combat effectiveness of your units standing in this tile."
             )
 
-        elif current_target == "scale":
+        elif current_target == constants.RESOURCE_SCALE:
             text_list.append(
                 "A resource production facility can have a number of attached work crews equal to its scale"
             )
 
-        elif current_target == "efficiency":
+        elif current_target == constants.RESOURCE_EFFICIENCY:
             text_list.append(
                 "A resource production facility's attached work crews each make a number of production attempts per turn equal to its efficiency."
             )
 
-        elif current_target == "warehouse_level":
+        elif current_target == constants.WAREHOUSES_LEVEL:
             text_list.append(
                 "Each of a tile's warehouse levels corresponds to 9 inventory capacity."
             )
@@ -291,7 +289,7 @@ def update_roads():
         None
     """
     for current_building in status.building_list:
-        if current_building.building_type == "infrastructure":
+        if current_building.building_type == constants.INFRASTRUCTURE:
             current_building.cell.tile.update_image_bundle()
 
 
@@ -320,8 +318,6 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
     Output:
         None
     """
-    if new_actor == "none":
-        print(0 / 0)
     if info_display == status.tile_info_display:
         for current_same_tile_icon in status.same_tile_icon_list:
             current_same_tile_icon.reset()
@@ -339,7 +335,7 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
         if new_actor != status.displayed_mob:
             calibrate_actor_info_display(status.mob_inventory_info_display, None)
         status.displayed_mob = new_actor
-        if new_actor and new_actor.images[0].current_cell.tile == status.displayed_tile:
+        if new_actor and new_actor.get_cell().tile == status.displayed_tile:
             for current_same_tile_icon in status.same_tile_icon_list:
                 current_same_tile_icon.reset()
         if (
@@ -347,7 +343,7 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
         ):  # Don't change tabs while choosing destination
             select_default_tab(status.mob_tabbed_collection, status.displayed_mob)
 
-    target = "none"
+    target = None
     if new_actor:
         target = new_actor
     info_display.calibrate(target, override_exempt)
@@ -370,8 +366,10 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
                 target_tab = status.tile_inventory_collection
             elif status.displayed_tile.cell.settlement:
                 target_tab = status.settlement_collection
+            else:
+                target_tab = status.terrain_collection
         elif tabbed_collection == status.mob_tabbed_collection:
-            if status.displayed_mob.is_pmob:
+            if status.displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 if status.displayed_mob.inventory or status.displayed_mob.equipment:
                     target_tab = status.mob_inventory_collection
                 else:
@@ -518,6 +516,7 @@ def generate_unit_component_portrait(
             "y_offset": section.get("y_offset", 0) - 0.1,
             "level": section.get("level", 0) - 1,
             "green_screen": section.get("green_screen", []),
+            "metadata": section.get("metadata", {}),
         }
         if component.endswith("left"):
             edited_section["x_offset"] -= 0.245
@@ -582,7 +581,7 @@ def generate_group_name(worker, officer, add_veteran=False):
     Output:
         list: Returns image id list of dictionaries for each part of the group image
     """
-    if not officer.officer_type == "major":
+    if not officer.get_permission(constants.MAJOR_PERMISSION):
         name = ""
         for character in constants.officer_group_type_dict[officer.officer_type]:
             if not character == "_":
@@ -590,11 +589,11 @@ def generate_group_name(worker, officer, add_veteran=False):
             else:
                 name += " "
     else:  # battalions have special naming convention based on worker type
-        if worker.worker_type == "European":
+        if worker.get_permission(constants.EUROPEAN_WORKERS_PERMISSION):
             name = "imperial battalion"
         else:
             name = "colonial battalion"
-    if add_veteran and officer.veteran:
+    if add_veteran and officer.get_permission(constants.VETERAN_PERMISSION):
         name = "veteran " + name
     return name
 
@@ -612,7 +611,9 @@ def generate_group_movement_points(worker, officer, generate_max=False):
     """
     if generate_max:
         max_movement_points = officer.max_movement_points
-        if officer.officer_type == "driver" and officer.veteran:
+        if officer.all_permissions(
+            constants.DRIVER_PERMISSION, constants.VETERAN_PERMISSION
+        ):
             max_movement_points = 6
         return max_movement_points
     else:
@@ -673,7 +674,7 @@ def generate_label_image_id(text: str, y_offset=0):
             "x_offset": x_offset - 0.01,
             "y_offset": y_offset,
             "free": True,
-            "level": status.LABEL_LEVEL,
+            "level": constants.LABEL_LEVEL,
             "x_size": x_size + 0.02,
             "y_size": y_size,
         },
@@ -684,7 +685,7 @@ def generate_label_image_id(text: str, y_offset=0):
                 "x_offset": x_offset,
                 "y_offset": y_offset,
                 "free": True,
-                "level": status.LABEL_LEVEL,
+                "level": constants.LABEL_LEVEL,
                 "override_height": None,
                 "override_width": None,
                 "x_size": x_size,
@@ -706,7 +707,13 @@ def callback(target, function, *args):
     getattr(getattr(status, target), function)(*args)
 
 
-def generate_frame(image_id: any, frame="buttons/default_button.png"):
+def generate_frame(
+    image_id: any,
+    frame: str = "buttons/default_button.png",
+    size: float = 0.75,
+    y_offset: float = -0.02,
+    x_offset: float = 0.02,
+):
     """
     Description:
         Generates and returns a version of the inputted image ID with a frame added
@@ -716,17 +723,28 @@ def generate_frame(image_id: any, frame="buttons/default_button.png"):
     Output:
         None
     """
+    frame = {
+        "image_id": frame,
+        "level": constants.BACKGROUND_LEVEL,
+    }
+
     if type(image_id) == str:
-        return [
+        return utility.combine(
             frame,
             {
                 "image_id": image_id,
-                "size": 0.75,
-                "x_offset": 0.02,
-                "y_offset": -0.02,
+                "x_size": size,
+                "y_size": size,
+                "x_offset": x_offset,
+                "y_offset": y_offset,
+                "level": constants.BACKGROUND_LEVEL + 1,
             },
-        ]
-    elif type(image_id) == dict:
-        return  # Implement as needed
+        )
+
     elif type(image_id) == list:
-        return  # Implement as needed
+        for image in image_id:
+            image["x_size"] = image.get("x_size", 1) * size
+            image["y_size"] = image.get("y_size", 1) * size
+            image["x_offset"] = image.get("x_offset", 0) + x_offset
+            image["y_offset"] = image.get("y_offset", 0) + y_offset
+        return utility.combine(frame, image_id)

@@ -2,6 +2,7 @@
 # Run with powershell.exe -noprofile -executionpolicy Bypass -file .\scripts/build.ps1
 # If necessary, replace the beginning of the PyInstaller command with py, python3, or a specific interpreter path
 #   If py or python3 causes an error, the automatic interpreter likely doesn't have PyInstaller installed
+# Install new packages with pip --python C:/Users/vikto/AppData/Local/Programs/Python/Python310/python.exe install networkx (replace interpreter path if necessary)
 
 if (Test-Path SE_exe) {
     rm SE_exe -force -Recurse

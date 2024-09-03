@@ -19,7 +19,7 @@ class notification(multi_line_label):
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -41,7 +41,9 @@ class notification(multi_line_label):
             0  # by default, do not show any dice when notification shown
         )
         constants.sound_manager.play_sound("effects/opening_letter")
-        self.notification_type = input_dict["notification_type"]
+        self.notification_type = input_dict.get(
+            "notification_type", input_dict["init_type"]
+        )
         if input_dict.get("on_reveal", None):
             if (
                 type(input_dict["on_reveal"]) == tuple
@@ -128,7 +130,7 @@ class zoom_notification(notification):
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -151,11 +153,9 @@ class zoom_notification(notification):
             for mini_grid in target.cell.grid.mini_grids:
                 mini_grid.calibrate(target.x, target.y)
         elif target.actor_type == "mob":
-            if (
-                target.images[0].current_cell != "none"
-            ):  # if non-hidden mob, move to front of tile and select
+            if target.get_cell():  # If non-hidden mob, move to front of tile and select
                 target.select()
-            else:  # if hidden mob, move to location and select tile
+            else:  # If hidden mob, move to location and select tile
                 for mini_grid in target.grids[0].mini_grids:
                     mini_grid.calibrate(target.x, target.y)
                 actor_utility.calibrate_actor_info_display(

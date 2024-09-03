@@ -26,8 +26,8 @@ class battalion(group):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this group's name
                 'modes': string list value - Game modes during which this group's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'worker': worker or dictionary value - If creating a new group, equals a worker that is part of this group. If loading, equals a dictionary of the saved information necessary to recreate the worker
@@ -36,17 +36,14 @@ class battalion(group):
             None
         """
         super().__init__(from_save, input_dict)
-        self.is_battalion = True
-        if self.worker.worker_type == "European":
+        self.set_permission(constants.BATTALION_PERMISSION, True)
+        if self.worker.get_permission(constants.EUROPEAN_WORKERS_PERMISSION):
             self.battalion_type = "imperial"
         else:
             self.battalion_type = "colonial"
         self.set_group_type("battalion")
         if not from_save:
-            self.set_disorganized(True)
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, self
-            )  # updates label to show new combat strength
+            self.set_permission(constants.DISORGANIZED_PERMISSION, True)
 
     def get_movement_cost(self, x_change, y_change, post_attack=False):
         """
@@ -61,12 +58,12 @@ class battalion(group):
             double: How many movement points would be spent by moving by the inputted amount
         """
         cost = self.movement_cost
-        if not (self.is_npmob and not self.visible()):
-            local_cell = self.images[0].current_cell
+        if not (self.get_permission(constants.NPMOB_PERMISSION) and not self.visible()):
+            local_cell = self.get_cell()
         else:
             local_cell = self.grids[0].find_cell(self.x, self.y)
 
-        direction = "none"
+        direction = None
         if x_change < 0:
             direction = "left"
         elif x_change > 0:
@@ -76,18 +73,18 @@ class battalion(group):
         elif y_change < 0:
             direction = "down"
         elif x_change == 0 and y_change == 0:
-            direction = "none"
+            direction = None
 
-        if direction == "none":
-            adjacent_cell = local_cell
-        else:
+        if direction:
             adjacent_cell = local_cell.adjacent_cells[direction]
+        else:
+            adjacent_cell = local_cell
 
         if adjacent_cell:
             if (
                 (not post_attack)
-                and self.is_battalion
-                and not adjacent_cell.get_best_combatant("npmob") == "none"
+                and self.get_permission(constants.BATTALION_PERMISSION)
+                and adjacent_cell.get_best_combatant("npmob")
             ):  # if battalion attacking
                 cost = 1
             else:
@@ -121,11 +118,13 @@ class battalion(group):
         ):  # if destination empty or attack already confirmed, move in
             initial_movement_points = self.movement_points
             if attack_confirmed:
-                original_disorganized = self.disorganized
+                original_disorganized = self.get_permission(
+                    constants.DISORGANIZED_PERMISSION
+                )
             super().move(x_change, y_change)
             if attack_confirmed:
-                self.set_disorganized(
-                    original_disorganized
+                self.set_permission(
+                    constants.DISORGANIZED_PERMISSION, original_disorganized
                 )  # cancel effect from moving into water until after combat
             if attack_confirmed:
                 self.set_movement_points(

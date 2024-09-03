@@ -8,6 +8,7 @@ from . import (
     market_utility,
     utility,
     game_transitions,
+    minister_utility,
 )
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -64,10 +65,10 @@ def start_player_turn(first_turn=False):
     text_utility.print_to_screen("Turn " + str(constants.turn + 1))
     if not first_turn:
         for current_pmob in status.pmob_list:
-            if current_pmob.is_vehicle:
+            if current_pmob.get_permission(constants.VEHICLE_PERMISSION):
                 current_pmob.reembark()
         for current_building in status.building_list:
-            if current_building.building_type == "resource":
+            if current_building.building_type == constants.RESOURCE:
                 current_building.reattach_work_crews()
         manage_attrition()  # have attrition before or after enemy turn? Before upkeep?
         manage_production()
@@ -92,7 +93,9 @@ def start_player_turn(first_turn=False):
     if not first_turn:
         market_utility.adjust_prices()
 
-    if status.displayed_mob == None or status.displayed_mob.is_npmob:
+    if status.displayed_mob == None or status.displayed_mob.get_permission(
+        constants.NPMOB_PERMISSION
+    ):
         game_transitions.cycle_player_turn(True)
 
     if status.displayed_mob:
@@ -116,18 +119,18 @@ def reset_mobs(mob_type):
     if mob_type == "pmobs":
         for current_pmob in status.pmob_list:
             current_pmob.reset_movement_points()
-            current_pmob.set_disorganized(False)
+            current_pmob.set_permission(constants.DISORGANIZED_PERMISSION, False)
     elif mob_type == "npmobs":
         for current_npmob in status.npmob_list:
             current_npmob.reset_movement_points()
-            current_npmob.set_disorganized(False)
+            current_npmob.set_permission(constants.DISORGANIZED_PERMISSION, False)
             # if not current_npmob.creation_turn == constants.turn: #if not created this turn
             current_npmob.turn_done = False
             status.enemy_turn_queue.append(current_npmob)
     else:
         for current_mob in status.mob_list:
             current_mob.reset_movement_points()
-            current_mob.set_disorganized(False)
+            current_mob.set_permission(constants.DISORGANIZED_PERMISSION, False)
 
 
 def manage_attrition():
@@ -146,7 +149,7 @@ def manage_attrition():
         ):  # vehicles, groups, and buildings handle attrition for their submobs
             current_pmob.manage_health_attrition()
     for current_building in status.building_list:
-        if current_building.building_type == "resource":
+        if current_building.building_type == constants.RESOURCE:
             current_building.manage_health_attrition()
 
     for current_pmob in status.pmob_list:
@@ -200,7 +203,7 @@ def manage_production():
         if not current_resource_building.damaged:
             for current_work_crew in current_resource_building.contained_work_crews:
                 if current_work_crew.movement_points >= 1:
-                    if current_work_crew.veteran:
+                    if current_work_crew.get_permission(constants.VETERAN_PERMISSION):
                         expected_production[
                             current_resource_building.resource_type
                         ] += (0.75 * current_resource_building.efficiency)
@@ -226,16 +229,14 @@ def manage_production_report(expected_production):
     """
     attempted_commodities = constants.attempted_commodities
     displayed_commodities = []
-    production_minister = status.current_ministers[
-        constants.type_minister_dict["production"]
-    ]
+    production_minister = minister_utility.get_minister(constants.PRODUCTION_MINISTER)
     if (
         not len(constants.attempted_commodities) == 0
     ):  # if any attempted, do production report
-        text = f"{production_minister.current_position} {production_minister.name} reports the following commodity production: /n /n"
+        text = f"{production_minister.current_position.name} {production_minister.name} reports the following commodity production: /n /n"
         while len(displayed_commodities) < len(attempted_commodities):
             max_produced = 0
-            max_commodity = "none"
+            max_commodity = None
             for current_commodity in attempted_commodities:
                 if not current_commodity in displayed_commodities:
                     if (
@@ -244,9 +245,13 @@ def manage_production_report(expected_production):
                     ):
                         max_commodity = current_commodity
                         max_produced = constants.commodities_produced[current_commodity]
-                        expected_production[max_commodity] = status.current_ministers[
-                            "Prosecutor"
-                        ].estimate_expected(expected_production[max_commodity])
+                        expected_production[
+                            max_commodity
+                        ] = minister_utility.get_minister(
+                            constants.PROSECUTION_MINISTER
+                        ).estimate_expected(
+                            expected_production[max_commodity]
+                        )
             displayed_commodities.append(max_commodity)
             text += f"{max_commodity.capitalize()}: {max_produced} (expected {expected_production[max_commodity]}) /n /n"
         status.previous_production_report = text
@@ -352,27 +357,27 @@ def manage_worker_price_changes():
     Output:
         None
     """
-    for worker_type in status.worker_types:
-        if status.worker_types[worker_type].upkeep_variance:
+    for key, worker_type in status.worker_types.items():
+        if worker_type.upkeep_variance:
             worker_roll = random.randrange(1, 7)
             if worker_roll >= 5:
-                current_price = status.worker_types[worker_type].upkeep
+                current_price = worker_type.upkeep
                 changed_price = round(
                     current_price - constants.worker_upkeep_increment, 2
                 )
-                if changed_price >= status.worker_types[worker_type].min_upkeep:
-                    status.worker_types[worker_type].upkeep = changed_price
+                if changed_price >= worker_type.min_upkeep:
+                    worker_type.upkeep = changed_price
                     text_utility.print_to_screen(
-                        f"An influx of {worker_type} workers has decreased their upkeep from {current_price} to {changed_price}."
+                        f"An influx of {worker_type.name} has decreased their upkeep from {current_price} to {changed_price}."
                     )
             elif worker_roll == 1:
-                current_price = status.worker_types[worker_type].upkeep
+                current_price = worker_type.upkeep
                 changed_price = round(
                     current_price + constants.worker_upkeep_increment, 2
                 )
-                status.worker_types[worker_type].upkeep = changed_price
+                worker_type.upkeep = changed_price
                 text_utility.print_to_screen(
-                    f"A shortage of {worker_type} workers has increased their upkeep from {current_price} to {changed_price}."
+                    f"A shortage of {worker_type.name} has increased their upkeep from {current_price} to {changed_price}."
                 )
 
 
@@ -419,17 +424,15 @@ def manage_ministers():
     removed_ministers = []
     for current_minister in status.minister_list:
         removing_current_minister = False
-        if (
-            current_minister.just_removed
-            and current_minister.current_position == "none"
-        ):
+        if current_minister.just_removed and not current_minister.current_position:
             current_minister.respond("fired")
             removing_current_minister = True
         elif (
-            current_minister.current_position == "none"
+            current_minister.current_position == None
             and random.randrange(1, 7) == 1
             and random.randrange(1, 7) <= 2
-        ):  # 1/18 chance of switching out available ministers
+        ):
+            # 1/18 chance of switching out available ministers
             removed_ministers.append(current_minister)
         elif (
             random.randrange(1, 7) == 1
@@ -440,7 +443,7 @@ def manage_ministers():
             )
         ) or constants.effect_manager.effect_active("farm_upstate"):
             removed_ministers.append(current_minister)
-        else:  # if not retired/fired
+        else:  # If not retired/fired
             if (
                 random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1
             ):  # 1/36 chance to increase relevant specific skill
@@ -448,10 +451,9 @@ def manage_ministers():
         current_minister.just_removed = False
 
         if current_minister.fabricated_evidence > 0:
-            prosecutor = status.current_ministers["Prosecutor"]
-            if (
-                prosecutor.check_corruption()
-            ):  # corruption is normally resolved during a trial, but prosecutor can still steal money from unused fabricated evidence if no trial occurs
+            prosecutor = minister_utility.get_minister(constants.PROSECUTION_MINISTER)
+            if prosecutor.check_corruption():
+                # Corruption is normally resolved during a trial, but prosecutor can still steal money from unused fabricated evidence if no trial occurs
                 prosecutor.steal_money(
                     trial_utility.get_fabricated_evidence_cost(
                         current_minister.fabricated_evidence, True
@@ -469,17 +471,17 @@ def manage_ministers():
             if random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1:
                 evidence_lost += 1
         if evidence_lost > 0:
-            if current_minister.current_position == "none":
+            if not current_minister.current_position:
                 current_position = ""
             else:
                 current_position = current_minister.current_position
             if evidence_lost == current_minister.corruption_evidence:
                 current_minister.display_message(
-                    f"All of the {current_minister.corruption_evidence} evidence of {current_position} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against him. /n /n"
+                    f"All of the {current_minister.corruption_evidence} evidence of {current_position.name} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against them. /n /n"
                 )
             else:
                 current_minister.display_message(
-                    f"{evidence_lost} of the {current_minister.corruption_evidence} evidence of {current_position} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against him. /n /n"
+                    f"{evidence_lost} of the {current_minister.corruption_evidence} evidence of {current_position.name} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against them. /n /n"
                 )
             current_minister.corruption_evidence -= evidence_lost
         if removing_current_minister:
@@ -494,8 +496,8 @@ def manage_ministers():
         current_minister = removed_ministers.pop(0)
         current_minister.respond("retirement")
 
-        if current_minister.current_position != "none":
-            current_minister.appoint("none")
+        if current_minister.current_position:
+            current_minister.appoint(None)
         current_minister.remove_complete()
 
     if (
@@ -529,21 +531,25 @@ def manage_minister_rumors():
     """
     for current_minister in status.minister_list:
         if random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1:
-            current_minister.attempt_rumor("loyalty", "none")
-        for skill_type in constants.minister_types:
-            if skill_type == current_minister.current_position:
+            current_minister.attempt_rumor("loyalty", None)
+        for key, minister_type in status.minister_types.items():
+            if (
+                current_minister.current_position
+                and minister_type.skill_type
+                == current_minister.current_position.skill_type
+            ):
                 if random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1:
-                    current_minister.attempt_rumor(skill_type, "none")
+                    current_minister.attempt_rumor(minister_type.skill_type, None)
             elif (
                 random.randrange(1, 7) == 1
                 and random.randrange(1, 7) == 1
                 and random.randrange(1, 7) == 1
             ):
-                current_minister.attempt_rumor(skill_type, "none")
+                current_minister.attempt_rumor(minister_type.skill_type, None)
         # 1/36 of getting loyalty report
-        # if currently employed, 1/36 of getting report on working skill
-        # if currently employed, 1/216 of getting report on each non-working skill
-        # if not employed, 1/216 of getting report on each skill
+        # If currently employed, 1/36 of getting report on working skill
+        # If currently employed, 1/216 of getting report on each non-working skill
+        # If not employed, 1/216 of getting report on each skill
 
 
 def game_end_check():
@@ -562,7 +568,10 @@ def game_end_check():
         constants.notification_manager.display_notification(
             {
                 "message": text,
-                "choices": ["confirm main menu", "quit"],
+                "choices": [
+                    constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON,
+                    constants.CHOIEC_QUIT_BUTTON,
+                ],
             }
         )
 
@@ -577,25 +586,19 @@ def manage_commodity_sales():
         None
     """
     sold_commodities = constants.sold_commodities
-    trade_minister = status.current_ministers[constants.type_minister_dict["trade"]]
-    stealing = False
+    trade_minister = minister_utility.get_minister(constants.TRADE_MINISTER)
     money_stolen = 0
     reported_revenue = 0
-    text = (
-        trade_minister.current_position
-        + " "
-        + trade_minister.name
-        + " reports the following commodity sales: /n /n"
-    )
+    text = f"{trade_minister.current_position.name} {trade_minister.name} reports the following commodity sales: /n /n"
     any_sold = False
     for current_commodity in constants.commodity_types:
         if sold_commodities[current_commodity] > 0:
             any_sold = True
             sell_price = constants.item_prices[current_commodity]
             expected_revenue = sold_commodities[current_commodity] * sell_price
-            expected_revenue = status.current_ministers["Prosecutor"].estimate_expected(
-                expected_revenue, False
-            )
+            expected_revenue = minister_utility.get_minister(
+                constants.PROSECUTION_MINISTER
+            ).estimate_expected(expected_revenue, False)
             actual_revenue = 0
 
             for i in range(sold_commodities[current_commodity]):
@@ -613,17 +616,7 @@ def manage_commodity_sales():
                 actual_revenue += individual_sell_price
                 if random.randrange(1, 7) <= 1:  # 1/6 chance
                     market_utility.change_price(current_commodity, -1)
-
-            text += (
-                str(sold_commodities[current_commodity])
-                + " "
-                + current_commodity
-                + " sold for "
-                + str(actual_revenue)
-                + " money (expected "
-                + str(expected_revenue)
-                + ") /n /n"
-            )
+            text += f"{sold_commodities[current_commodity]} {current_commodity} sold for {actual_revenue} money (expected {expected_revenue}) /n /n"
 
     constants.money_tracker.change(reported_revenue, "sold_commodities")
 
@@ -647,16 +640,10 @@ def end_turn_warnings():
         None
     """
     for current_minister in status.minister_list:  # Warn for firing minister
-        if (
-            current_minister.just_removed
-            and current_minister.current_position == "none"
-        ):
-            text = (
-                "Warning: if you do not reappoint "
-                + current_minister.name
-                + " by the end of the turn, he will be considered fired, leaving the candidate pool and incurring a large public opinion penalty. /n /n"
+        if current_minister.just_removed and not current_minister.current_position:
+            current_minister.display_message(
+                f"Warning: if you do not reappoint {current_minister.name} by the end of the turn, they will be considered fired, leaving the candidate pool and incurring a large public opinion penalty. /n /n"
             )
-            current_minister.display_message(text)
 
     for (
         current_cell
@@ -668,17 +655,9 @@ def end_turn_warnings():
             and current_cell.tile.get_inventory_used()
             > current_cell.tile.inventory_capacity
         ):
-            text = (
-                "Warning: the warehouses at ("
-                + str(current_cell.x)
-                + ", "
-                + str(current_cell.y)
-                + ") are not sufficient to hold the commodities stored there. /n /n"
-            )
-            text += "Any commodities exceeding the tile's storage capacity will be lost at the end of the turn. /n /n"
             constants.notification_manager.display_notification(
                 {
-                    "message": text,
+                    "message": f"Warning: the warehouses at {current_cell.x}, {current_cell.y} are not sufficient to hold the commodities stored there. /n /nAny commodities exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
                     "zoom_destination": current_cell.tile,
                 }
             )
@@ -690,15 +669,9 @@ def end_turn_warnings():
                 > current_cell.tile.inventory_capacity
                 and not current_cell.tile.infinite_inventory_capacity
             ):
-                text = (
-                    "Warning: the warehouses in "
-                    + current_grid.cell_list[0][0].tile.name
-                    + " are not sufficient to hold the commodities stored there. /n /n"
-                )
-                text += "Any commodities exceeding the tile's storage capacity will be lost at the end of the turn. /n /n"
                 constants.notification_manager.display_notification(
                     {
-                        "message": text,
+                        "message": f"Warning: the warehouses in {current_grid.cell_list[0][0].tile.name} are not sufficient to hold the commodities stored there. /n /nAny commodities exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
                         "zoom_destination": current_cell.tile,
                     }
                 )
@@ -715,12 +688,13 @@ def end_turn_warnings():
                 0,
             )  # Vehicles leaving, and vehicles staying behind, respectively
             for current_mob in current_cell.contained_mobs:
-                if (
-                    current_mob.end_turn_destination != "none"
-                    and current_mob.is_vehicle
+                if current_mob.end_turn_destination and current_mob.get_permission(
+                    constants.VEHICLE_PERMISSION
                 ):
                     num_leaving += 1
-                elif current_mob.is_vehicle and current_mob.has_crew:
+                elif current_mob.all_permissions(
+                    constants.VEHICLE_PERMISSION, constants.ACTIVE_PERMISSION
+                ):
                     num_reserve += 1
             num_stranded = len(current_cell.contained_mobs) - (
                 num_leaving + num_reserve
@@ -731,18 +705,14 @@ def end_turn_warnings():
             if (
                 num_leaving > 0 and num_stranded > 0 and num_reserve == 0
             ):  # If at least 1 vehicle leaving grid and at least 1 unit left behind, give warning
-                text = (
-                    "Warning: at least 1 unit is being left behind in "
-                    + grid_name
-                    + " and will not be able to leave without another ship. /n /n"
-                )
+                text += f"Warning: at least 1 unit is being left behind in {grid_name} and will not be able to leave without another ship. /n /n"
                 constants.notification_manager.display_notification(
                     {"message": text, "zoom_destination": current_cell.tile}
                 )
 
     for minister in status.minister_list:
         if minister.fabricated_evidence > 0:
-            text = f"WARNING: Your {minister.fabricated_evidence} piece{utility.generate_plural(minister.fabricated_evidence)} of fabricated evidence against {minister.current_position} {minister.name} will disappear at the end of the turn if left unused. /n /n"
+            text = f"WARNING: Your {minister.fabricated_evidence} piece{utility.generate_plural(minister.fabricated_evidence)} of fabricated evidence against {minister.current_position.name} {minister.name} will disappear at the end of the turn if left unused. /n /n"
             constants.notification_manager.display_notification(
                 {
                     "message": text,

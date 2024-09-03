@@ -26,8 +26,8 @@ class work_crew(group):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this group's name
                 'modes': string list value - Game modes during which this group's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'worker': worker or dictionary value - If creating a new group, equals a worker that is part of this group. If loading, equals a dictionary of the saved information necessary to recreate the worker
@@ -36,12 +36,8 @@ class work_crew(group):
             None
         """
         super().__init__(from_save, input_dict)
-        self.is_work_crew = True
+        self.set_permission(constants.WORK_CREW_PERMISSION, True)
         self.set_group_type("work_crew")
-        if not from_save:
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, self
-            )  # updates mob info display list to account for new button available
 
     def work_building(self, building):
         """
@@ -76,7 +72,7 @@ class work_crew(group):
             None
         """
         self.in_building = False
-        self.building = "none"
+        self.building = None
         self.show_images()
         self.add_to_turn_queue()
         building.contained_work_crews = utility.remove_from_list(
@@ -104,7 +100,7 @@ class work_crew(group):
             if not building.resource_type in constants.attempted_commodities:
                 constants.attempted_commodities.append(building.resource_type)
             for current_attempt in range(building.efficiency):
-                if self.veteran:
+                if self.get_permission(constants.VETERAN_PERMISSION):
                     results = [
                         self.controlling_minister.no_corruption_roll(6),
                         self.controlling_minister.no_corruption_roll(6),
@@ -118,20 +114,13 @@ class work_crew(group):
                         building.cell.tile.change_inventory(building.resource_type, 1)
                         constants.commodities_produced[building.resource_type] += 1
 
-                        if (not self.veteran) and roll_result >= 6:
+                        if (
+                            not self.get_permission(constants.VETERAN_PERMISSION)
+                        ) and roll_result >= 6:
                             self.promote()
-                            message = (
-                                "The work crew working in the "
-                                + building.name
-                                + " at ("
-                                + str(building.cell.x)
-                                + ", "
-                                + str(building.cell.y)
-                            )
-                            message += ") has become a veteran and will be more successful in future production attempts. /n /n"
                             constants.notification_manager.display_notification(
                                 {
-                                    "message": message,
+                                    "message": f"The work crew working in the {building.name} at ({building.cell.x}, {building.cell.y}) has become a veteran and will be more successful in future production attempts. /n /n",
                                     "zoom_destination": building.cell.tile,
                                 }
                             )

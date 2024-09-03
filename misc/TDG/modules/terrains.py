@@ -23,8 +23,8 @@ class terrain:
         for current_parameter_type in self.global_manager.get("parameter_types"):
             current_parameter = self.parameter_dict[current_parameter_type]
             return_value += f"\n\t{str(current_parameter.name).capitalize()}: {str(current_parameter.min)}-{str(current_parameter.max)}"
-            return_value += f" ({self.global_manager.get('parameter_keywords')[current_parameter_type][current_parameter.min]})"
-            return_value += f" - {self.global_manager.get('parameter_keywords')[current_parameter_type][current_parameter.max]})"
+            return_value += f" ({self.global_manager.get('parameter_keywords')[current_parameter_type][min(max(current_parameter.min, 1), 6)]})"
+            return_value += f" - {self.global_manager.get('parameter_keywords')[current_parameter_type][min(max(current_parameter.max, 1), 6)]})"
         return_value += f"\n\tVolume: {self.volume()}"
         return_value += "\n"
         return return_value

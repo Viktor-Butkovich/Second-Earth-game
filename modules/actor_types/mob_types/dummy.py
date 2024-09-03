@@ -1,5 +1,6 @@
 # Contains functionality for dummies, which replicate other objects or act as models of hypothetical objects with fake attribute values and tooltips
 
+from typing import Dict, Any
 from .. import mobs
 import modules.constants.constants as constants
 
@@ -13,9 +14,11 @@ class dummy(mobs.mob):
         """
         input dict always includes dummy_type, which is generally equal to the init type of the unit being replicated?
         """
+        self.default_permissions: Dict[str, Any] = {}
+        self.override_permissions: Dict[str, Any] = {}
         for key in input_dict:
             setattr(self, key, input_dict[key])
-        self.is_dummy = True
+        self.set_permission(constants.DUMMY_PERMISSION, True)
 
     def set_tooltip(self, tooltip_text):
         """

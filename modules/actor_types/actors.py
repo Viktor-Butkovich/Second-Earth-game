@@ -2,7 +2,14 @@
 
 import pygame
 import random
-from ..util import text_utility, utility, actor_utility, scaling, market_utility
+from ..util import (
+    text_utility,
+    utility,
+    actor_utility,
+    scaling,
+    market_utility,
+    minister_utility,
+)
 from ..interface_types.grids import grid
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -83,14 +90,14 @@ class actor:
         save_dict = {}
         init_type = ""
         if self.actor_type == "mob":
-            if self.is_pmob:
-                if self.is_worker:
-                    init_type = "workers"
-                elif self.is_vehicle:
+            if self.get_permission(constants.PMOB_PERMISSION):
+                if self.get_permission(constants.WORKER_PERMISSION):
+                    init_type = self.worker_type.key
+                elif self.get_permission(constants.VEHICLE_PERMISSION):
                     init_type = self.vehicle_type
-                elif self.is_officer:
+                elif self.get_permission(constants.OFFICER_PERMISSION):
                     init_type = self.officer_type
-                elif self.is_group:
+                elif self.get_permission(constants.GROUP_PERMISSION):
                     init_type = self.group_type
             else:  # if npmob
                 init_type = self.npmob_type
@@ -141,16 +148,14 @@ class actor:
             None
         """
         for current_commodity in self.get_held_commodities():
-            self.images[0].current_cell.tile.change_inventory(
+            self.get_cell().tile.change_inventory(
                 current_commodity, self.get_inventory(current_commodity)
             )
             self.set_inventory(current_commodity, 0)
-        if self.actor_type == "mob" and self.is_pmob:
+        if self.actor_type == "mob" and self.get_permission(constants.PMOB_PERMISSION):
             for current_equipment in self.equipment.copy():
                 if self.equipment[current_equipment]:
-                    self.images[0].current_cell.tile.change_inventory(
-                        current_equipment, 1
-                    )
+                    self.get_cell().tile.change_inventory(current_equipment, 1)
                     status.equipment_types[current_equipment].unequip(self)
             self.equipment = {}
 
@@ -274,18 +279,18 @@ class actor:
                 or constants.effect_manager.effect_active("boost_attrition")
                 or (
                     self.actor_type == "mob"
-                    and (not self.is_vehicle)
+                    and (not self.get_permission(constants.VEHICLE_PERMISSION))
                     and random.randrange(1, 7) <= 1
                 )
             ):  # extra chance of failure when carried by porters/caravan
-                transportation_minister = status.current_ministers[
-                    constants.type_minister_dict["transportation"]
-                ]
+                transportation_minister = minister_utility.get_minister(
+                    constants.TRANSPORTATION_MINISTER
+                )
                 if self.actor_type == "tile":
                     current_cell = self.cell
                 elif self.actor_type == "mob":
                     if not (self.in_building or self.in_group or self.in_vehicle):
-                        current_cell = self.images[0].current_cell
+                        current_cell = self.get_cell()
                     else:
                         return ()  # only surface-level mobs can have inventories and need to roll for attrition
                 if (
@@ -304,10 +309,11 @@ class actor:
             # this part of function only reached if no inventory attrition was triggered
             if (
                 self.actor_type == "mob"
-                and self.is_pmob
-                and self.is_group
-                and self.group_type == "porters"
-                and (not self.veteran)
+                and self.all_permissions(
+                    constants.PMOB_PERMISSION, constants.GROUP_PERMISSION
+                )
+                and self.group_type == constants.PORTERS
+                and (not self.get_permission(constants.VETERAN_PERMISSION))
                 and random.randrange(1, 7) == 6
                 and random.randrange(1, 7) == 6
             ):  # 1/36 chance of porters promoting on successful inventory attrition roll
@@ -489,7 +495,7 @@ class actor:
                 pygame.mouse.get_pos()
             ):  # if mouse is in image
                 return True
-        return False  # return false if none touch mouse
+        return False  # return false if None touch mouse
 
     def can_show_tooltip(self):
         """

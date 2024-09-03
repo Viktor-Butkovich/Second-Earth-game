@@ -3,7 +3,7 @@
 import random
 
 from .pmobs import pmob
-from ...util import text_utility, actor_utility
+from ...util import text_utility, actor_utility, minister_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -26,11 +26,11 @@ class vehicle(pmob):
                 'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_ship.png'
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
-                'crew': worker, string, or dictionary value - If no crew, equals 'none'. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
+                'crew': worker, string, or dictionary value - If no crew, equals None. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
                     recreate the worker to serve as crew
                 'passenger_dicts': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each of this vehicle's passengers
         Output:
@@ -39,23 +39,16 @@ class vehicle(pmob):
         self.vehicle_type = "vehicle"
         input_dict["image"] = input_dict["image_dict"]["default"]
         self.contained_mobs = []
-        self.ejected_crew = "none"
+        self.ejected_crew = None
         self.ejected_passengers = []
         self.travel_possible = False
         super().__init__(from_save, input_dict, original_constructor=False)
         self.image_dict = input_dict["image_dict"]  # should have default and uncrewed
-        self.is_vehicle = True
         if not from_save:
-            self.crew = input_dict["crew"]
-            if self.crew == "none":
-                self.has_crew = False
-            else:
-                self.has_crew = True
-            self.update_image_bundle()
-            self.selection_sound()
+            self.set_crew(input_dict["crew"])
         else:  # create crew and passengers through recruitment_manager and embark them
-            if input_dict["crew"] == "none":
-                self.set_crew("none")
+            if not input_dict["crew"]:
+                self.set_crew(None)
             else:
                 constants.actor_creation_manager.create(
                     True, input_dict["crew"]
@@ -69,16 +62,24 @@ class vehicle(pmob):
                     self
                 )  # create passengers and merge as passengers
         self.set_controlling_minister_type(
-            constants.type_minister_dict["transportation"]
+            status.minister_types[constants.TRANSPORTATION_MINISTER]
         )
-        if not self.has_crew:
+        if not self.get_permission(constants.ACTIVE_PERMISSION):
             self.remove_from_turn_queue()
-        if ("select_on_creation" in input_dict) and input_dict["select_on_creation"]:
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, None, override_exempt=True
-            )
-            self.select()
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def permissions_setup(self) -> None:
+        """
+        Description:
+            Sets up this mob's permissions
+        Input:
+            None
+        Output:
+            None
+        """
+        super().permissions_setup()
+        self.set_permission(constants.VEHICLE_PERMISSION, True)
+        self.set_permission(constants.ACTIVE_PERMISSION, False)
 
     def set_crew(self, new_crew):
         """
@@ -90,15 +91,18 @@ class vehicle(pmob):
             None
         """
         self.crew = new_crew
-        if new_crew == "none":
-            self.has_crew = False
-            self.set_inventory_capacity(0)
-        else:
-            self.has_crew = True
+        if new_crew:
+            self.set_permission(constants.ACTIVE_PERMISSION, True, override=True)
+            self.set_permission(
+                constants.INACTIVE_VEHICLE_PERMISSION, None, override=True
+            )
             self.set_inventory_capacity(27)
-        self.update_image_bundle()
-        if status.displayed_mob == self:
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
+        else:
+            self.set_permission(constants.ACTIVE_PERMISSION, None, override=True)
+            self.set_permission(
+                constants.INACTIVE_VEHICLE_PERMISSION, True, override=True
+            )
+            self.set_inventory_capacity(0)
 
     def get_image_id_list(self, override_values={}):
         """
@@ -110,12 +114,11 @@ class vehicle(pmob):
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        if "has_crew" in override_values:
-            has_crew = override_values["has_crew"]
-        else:
-            has_crew = self.has_crew
         image_id_list = super().get_image_id_list(override_values)
-        if not has_crew:
+        if not self.get_permission(
+            constants.ACTIVE_PERMISSION,
+            one_time_permissions=override_values.get("override_permissions", {}),
+        ):
             image_id_list.remove(self.image_dict["default"])
             image_id_list.append(self.image_dict["uncrewed"])
         return image_id_list
@@ -130,25 +133,20 @@ class vehicle(pmob):
             None
         """
         if current_cell == "default":
-            current_cell = self.images[0].current_cell
-        if current_cell == "none":
-            return ()
-        if self.crew == "none":
+            current_cell = self.get_cell()
+        elif not current_cell:
+            return
+        if not self.crew:
             sub_mobs = []
         else:
             sub_mobs = [self.crew]
         sub_mobs += self.contained_mobs
 
-        transportation_minister = status.current_ministers[
-            constants.type_minister_dict["transportation"]
-        ]
+        transportation_minister = minister_utility.get_minister(
+            constants.TRANSPORTATION_MINISTER
+        )
         non_replaced_attrition = []
         for current_sub_mob in sub_mobs:
-            worker_type = "none"
-            if current_sub_mob.is_worker:
-                worker_type = current_sub_mob.worker_type
-            elif current_sub_mob.is_group:
-                worker_type = current_sub_mob.worker.worker_type
             if (
                 current_cell.local_attrition() and random.randrange(1, 7) >= 4
             ):  # vehicle removes 1/2 of attrition, slightly less than forts, ports, etc.
@@ -162,24 +160,14 @@ class vehicle(pmob):
                                 self.eject_passengers()
                                 self.eject_crew()
                             self.crew_attrition_death(crew)
-                        elif (
-                            current_sub_mob.is_group
+                        elif current_sub_mob.get_permission(
+                            constants.GROUP_PERMISSION
                         ):  # if group passenger died of attrition
                             attrition_unit_type = random.choice(["officer", "worker"])
                             current_sub_mob.attrition_death(attrition_unit_type)
 
                         else:  # if non-group passenger died of attrition
-                            text = (
-                                "The "
-                                + current_sub_mob.name
-                                + " aboard the "
-                                + self.name
-                                + " at ("
-                                + str(self.x)
-                                + ", "
-                                + str(self.y)
-                                + ") have died from attrition. /n /n"
-                            )
+                            text = f"The {current_sub_mob.name} aboard the {self.name} at ({self.x}, {self.y}) have died from attrition. /n /n"
                             if current_sub_mob.automatically_replace:
                                 text += (
                                     current_sub_mob.generate_attrition_replacement_text()
@@ -263,9 +251,9 @@ class vehicle(pmob):
         for current_passenger in self.contained_mobs:
             current_passenger.x = self.x
             current_passenger.y = self.y
-            if current_passenger.is_group:
+            if current_passenger.get_permission(constants.GROUP_PERMISSION):
                 current_passenger.calibrate_sub_mob_positions()
-        if not self.crew == "none":
+        if self.crew:
             self.crew.x = self.x
             self.crew.y = self.y
 
@@ -278,7 +266,7 @@ class vehicle(pmob):
         Output:
             None
         """
-        if self.has_crew:
+        if self.crew:
             self.ejected_crew = self.crew
             self.crew.uncrew_vehicle(self)
 
@@ -306,13 +294,13 @@ class vehicle(pmob):
         Output:
             None
         """
-        if self.ejected_crew != "none":
+        if self.ejected_crew:
             if self.ejected_crew in status.pmob_list:
                 self.ejected_crew.crew_vehicle(self)
                 for current_passenger in self.ejected_passengers:
                     if current_passenger in status.pmob_list:
                         current_passenger.embark_vehicle(self)
-            self.ejected_crew = "none"
+            self.ejected_crew = None
             self.ejected_passengers = []
 
     def die(self, death_type="violent"):
@@ -328,9 +316,9 @@ class vehicle(pmob):
         for current_passenger in self.contained_mobs:
             current_passenger.die()
         self.contained_mobs = []
-        if not self.crew == "none":
+        if self.crew:
             self.crew.die()
-            self.crew = "none"
+            self.crew = None
 
     def fire(self):
         """
@@ -344,9 +332,9 @@ class vehicle(pmob):
         for current_passenger in self.contained_mobs:
             current_passenger.fire()
         self.contained_mobs = []
-        if self.crew != "none":
+        if self.crew:
             self.crew.fire()
-            self.set_crew("none")
+            self.set_crew(None)
         super().fire()
 
     def to_save_dict(self):
@@ -359,22 +347,20 @@ class vehicle(pmob):
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
                 Along with superclass outputs, also saves the following values:
                 'image_dict': string value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_ship.png'
-                'crew': string or dictionary value - If no crew, equals 'none'. Otherwise, equals a dictionary of the saved information necessary to recreate the worker to serve as crew
+                'crew': string or dictionary value - If no crew, equals None. Otherwise, equals a dictionary of the saved information necessary to recreate the worker to serve as crew
                 'passenger_dicts': dictionary list value - List of dictionaries of saved information necessary to recreate each of this vehicle's passengers
         """
         save_dict = super().to_save_dict()
         save_dict["image_dict"] = self.image_dict
-        if self.crew == "none":
-            save_dict["crew"] = "none"
-        else:
+        if self.crew:
             save_dict["crew"] = self.crew.to_save_dict()
-        save_dict[
-            "passenger_dicts"
-        ] = (
-            []
-        )  # list of dictionaries for each passenger, on load a vehicle creates all of its passengers and embarks them
-        for current_mob in self.contained_mobs:
-            save_dict["passenger_dicts"].append(current_mob.to_save_dict())
+        else:
+            save_dict["crew"] = None
+
+        save_dict["passenger_dicts"] = [
+            current_mob.to_save_dict() for current_mob in self.contained_mobs
+        ]
+        # List of dictionaries for each passenger, on load a vehicle creates all of its passengers and embarks them
         return save_dict
 
     def can_move(self, x_change, y_change, can_print=True):
@@ -389,21 +375,17 @@ class vehicle(pmob):
         Output:
             boolean: Returns True if this mob can move to the proposed destination, otherwise returns False
         """
-        if self.has_crew:
+        if self.get_permission(constants.ACTIVE_PERMISSION):
             if not self.temp_movement_disabled:
                 return super().can_move(x_change, y_change, can_print)
-            else:
-                if can_print:
-                    text_utility.print_to_screen(
-                        "This "
-                        + self.name
-                        + " is still having its crew replaced and cannot move this turn."
-                    )
-        else:
-            if can_print:
-                text_utility.print_to_screen(
-                    "A " + self.vehicle_type + " cannot move without crew."
+            elif can_print:
+                print(
+                    f"This {self.vehicle_type} is still having its crew replaced and cannot move this turn."
                 )
+        elif can_print:
+            text_utility.print_to_screen(
+                f"A {self.vehicle_type} cannot move without crew."
+            )
         return False
 
     def go_to_grid(self, new_grid, new_coordinates):
@@ -425,7 +407,7 @@ class vehicle(pmob):
             current_mob.hide_images()
         if new_grid == status.earth_grid or self.images[
             0
-        ].current_cell.has_intact_building("port"):
+        ].current_cell.has_intact_building(constants.PORT):
             self.eject_passengers()
             self.drop_inventory()
         elif new_grid.grid_type in constants.abstract_grid_type_list:
@@ -440,10 +422,10 @@ class vehicle(pmob):
         Output:
             worker: Returns the worker associated with this unit, if any
         """
-        if self.crew == "none":
-            return super().get_worker()
-        else:
+        if self.crew:
             return self.crew
+        else:
+            return super().get_worker()
 
 
 class train(vehicle):
@@ -463,10 +445,10 @@ class train(vehicle):
                 'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_ship.png'
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
-                'crew': worker, string, or dictionary value - If no crew, equals 'none'. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
+                'crew': worker, string, or dictionary value - If no crew, equals None. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
                     recreate the worker to serve as crew
                 'passenger_dicts': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each of this vehicle's passengers
         Output:
@@ -475,7 +457,7 @@ class train(vehicle):
         super().__init__(from_save, input_dict)
         self.set_max_movement_points(16)
         self.has_infinite_movement = False
-        self.vehicle_type = "train"
+        self.vehicle_type = constants.TRAIN
         self.can_swim = False
         self.can_walk = True
         if not from_save:
@@ -496,10 +478,10 @@ class train(vehicle):
         result = super().can_move(x_change, y_change, can_print)
         if result:
             if not (
-                self.images[0].current_cell.has_intact_building("railroad")
+                self.get_cell().has_intact_building(constants.RAILROAD)
                 and self.grids[0]
                 .find_cell(self.x + x_change, self.y + y_change)
-                .has_intact_building("railroad")
+                .has_intact_building(constants.RAILROAD)
             ):
                 if can_print:
                     text_utility.print_to_screen(
@@ -529,7 +511,7 @@ class train(vehicle):
         Output:
             Returns the name of this type of vehicle
         """
-        return "train"
+        return constants.TRAIN
 
 
 class ship(vehicle):
@@ -549,10 +531,10 @@ class ship(vehicle):
                 'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_ship.png'
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, 'none' if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not 'none', matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
-                'crew': worker, string, or dictionary value - If no crew, equals 'none'. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
+                'crew': worker, string, or dictionary value - If no crew, equals None. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
                     recreate the worker to serve as crew
                 'passenger_dicts': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each of this vehicle's passengers
         Output:
@@ -561,7 +543,7 @@ class ship(vehicle):
         super().__init__(from_save, input_dict)
         self.set_max_movement_points(10)
         self.has_infinite_movement = True
-        self.vehicle_type = "ship"
+        self.vehicle_type = constants.SHIP
         self.can_swim = True
         self.can_walk = False
         self.travel_possible = True  # if this mob would ever be able to travel
@@ -579,21 +561,24 @@ class ship(vehicle):
             boolean: Returns False if this ship is in a water tile and there are any mobs in its tile that cannot move on water and are not in a ship, otherwise returns True
         """
         num_ships = 0
-        for current_mob in self.images[0].current_cell.contained_mobs:
-            if current_mob.is_pmob and current_mob.is_vehicle and current_mob.can_swim:
+        for current_mob in self.get_cell().contained_mobs:
+            if (
+                current_mob.all_permissions(
+                    constants.PMOB_PERMISSION, constants.VEHICLE_PERMISSION
+                )
+                and current_mob.can_swim
+            ):
                 num_ships += 1
         if (
             num_ships <= 1
         ):  # can leave units behind if another steamship is present to pick them up
-            if self.images[0].current_cell.terrain_handler.terrain == "water":
-                for current_mob in self.images[0].current_cell.contained_mobs:
-                    if current_mob.is_pmob and not current_mob.can_swim_at(
-                        self.images[0].current_cell
-                    ):
+            if self.get_cell().terrain_handler.terrain == "water":
+                for current_mob in self.get_cell().contained_mobs:
+                    if current_mob.get_permission(
+                        constants.PMOB_PERMISSION
+                    ) and not current_mob.can_swim_at(self.get_cell()):
                         text_utility.print_to_screen(
-                            "A "
-                            + self.vehicle_type
-                            + " cannot leave without taking unaccompanied units as passengers."
+                            f"A {self.vehicle_type} cannot leave without taking unaccompanied units as passengers."
                         )
                         return False
         return True
@@ -607,11 +592,11 @@ class ship(vehicle):
         Output:
             boolean: Returs True if this ship has any crew, otherwise returns False
         """
-        if self.travel_possible:
-            if self.has_crew:
-                if not self.temp_movement_disabled:
-                    return True
-        return False
+        return (
+            self.travel_possible
+            and self.get_permission(constants.ACTIVE_PERMISSION)
+            and not self.temp_movement_disabled
+        )
 
     def get_vehicle_name(self) -> str:
         """
@@ -622,4 +607,4 @@ class ship(vehicle):
         Output:
             Returns the name of this type of vehicle
         """
-        return "steamship"
+        return constants.SHIP

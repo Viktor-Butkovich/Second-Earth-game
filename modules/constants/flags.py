@@ -28,5 +28,5 @@ r_ctrl: bool = False
 l_ctrl: bool = False
 ctrl: bool = False
 show_planet_mask: bool = False
-show_grid_lines: bool = True
+show_grid_lines: bool = False
 expand_text_box: bool = False

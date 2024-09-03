@@ -141,7 +141,10 @@ class world_grid(grid):
             ):  # Random but smooth initialization to represent weather patterns
                 pass
 
-        temperature_sources = [status.north_pole, status.south_pole] + status.equator
+        temperature_sources = [
+            status.north_pole,
+            status.south_pole,
+        ] + status.equator_list
         random.shuffle(
             temperature_sources
         )  # Avoids edge-case bias from poles or equator consistently being chosen first
@@ -292,7 +295,13 @@ class world_grid(grid):
         """
         best_frozen = None
         best_liquid = None
-        for candidate in self.sample(k=self.get_tuning("water_placement_candidates")):
+        for candidate in self.sample(
+            k=round(
+                self.get_tuning("water_placement_candidates")
+                * (self.coordinate_width**2)
+                / (25**2)
+            )
+        ):
             if candidate.get_parameter("water") < 6:
                 if (
                     candidate.get_parameter("temperature") <= frozen_bound
@@ -301,9 +310,7 @@ class world_grid(grid):
                         "temperature"
                     ) < best_frozen.get_parameter("temperature"):
                         best_frozen = candidate
-                elif candidate.get_parameter("temperature") < self.get_tuning(
-                    "water_boiling_point"
-                ):  # Water can go to lowest liquid location
+                else:
                     if best_liquid == None or candidate.get_parameter(
                         "altitude"
                     ) < best_liquid.get_parameter("altitude"):
@@ -329,22 +336,9 @@ class world_grid(grid):
 
         if best_frozen:
             best_frozen.change_parameter("water", 1)
-            if frozen_bound != self.get_tuning(
-                "water_freezing_point"
-            ):  # If placing liquid water after boiling
-                best_frozen.terrain_handler.flow()
         elif best_liquid:
             best_liquid.change_parameter("water", 1)
             best_liquid.terrain_handler.flow()
-        else:
-            if frozen_bound != self.get_tuning(
-                "water_freezing_point"
-            ):  # Avoid infinite recursion if there are no non-boiling water locations left
-                return
-            else:
-                self.place_water(
-                    frozen_bound=self.get_tuning("water_boiling_point") - 1
-                )
 
     def generate_soil(self) -> None:
         """
@@ -635,6 +629,16 @@ class world_grid(grid):
         return (
             self.x_distance(cell1, cell2) ** 2 + self.y_distance(cell1, cell2) ** 2
         ) ** 0.5
+
+    def cell_distance(self, cell1, cell2):
+        """
+        Description:
+            Calculates and returns the non-diagonal distance between two cells
+        Input:
+            cell cell1: First cell
+            cell cell2: Second cell
+        Output: int: Returns the non-diagonal distance between the two cells
+        """
         return self.x_distance(cell1, cell2) + self.y_distance(cell1, cell2)
 
     def create_resource_list_dict(self):
@@ -742,22 +746,25 @@ class world_grid(grid):
         Output:
             None
         """
-        status.north_pole = self.find_cell(0, 0)
-        status.north_pole.terrain_handler.terrain_features["north pole"] = {
-            "feature_type": "north pole",
-        }
+        self.find_cell(0, 0).terrain_handler.add_terrain_feature(
+            {
+                "feature_type": "north pole",
+            }
+        )
+
         max_distance = 0
 
-        status.south_pole = None
+        south_pole = None
         for cell in self.get_flat_cell_list():
             if self.distance(cell, status.north_pole) > max_distance:
                 max_distance = self.distance(cell, status.north_pole)
-                status.south_pole = cell
-        status.south_pole.terrain_handler.terrain_features["south pole"] = {
-            "feature_type": "south pole",
-        }
+                south_pole = cell
+        south_pole.terrain_handler.add_terrain_feature(
+            {
+                "feature_type": "south pole",
+            }
+        )
 
-        status.equator = []
         equatorial_distance = self.distance(status.north_pole, status.south_pole) / 2
         for (
             cell
@@ -798,10 +805,31 @@ class world_grid(grid):
                     and south_pole_distance > north_pole_distance
                 )
             ):
-                cell.terrain_handler.terrain_features["equator"] = {
-                    "feature_type": "equator",
-                }
-                status.equator.append(cell)
+                cell.terrain_handler.add_terrain_feature(
+                    {
+                        "feature_type": "equator",
+                    }
+                )
+
+            if (
+                self.cell_distance(status.south_pole, cell)
+                == self.coordinate_width // 3
+            ):
+                cell.terrain_handler.add_terrain_feature(
+                    {
+                        "feature_type": "southern tropic",
+                    }
+                )
+
+            if (
+                self.cell_distance(status.north_pole, cell)
+                == self.coordinate_width // 3
+            ):
+                cell.terrain_handler.add_terrain_feature(
+                    {
+                        "feature_type": "northern tropic",
+                    }
+                )
 
 
 def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -> grid:
@@ -813,7 +841,7 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
 
     input_dict.update(
         {
-            "modes": ["strategic"],
+            "modes": [constants.STRATEGIC_MODE],
             "parent_collection": status.grids_collection,
             "grid_type": grid_type,
         }
@@ -883,7 +911,7 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
             }
         )
         if grid_type == "earth_grid":
-            input_dict["modes"].append("earth")
+            input_dict["modes"].append(constants.EARTH_MODE)
 
         input_dict["name"] = (
             grid_type[:-5].replace("_", " ").capitalize()

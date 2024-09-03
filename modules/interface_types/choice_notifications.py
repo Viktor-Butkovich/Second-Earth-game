@@ -20,7 +20,7 @@ class choice_notification(action_notifications.action_notification):
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -28,7 +28,7 @@ class choice_notification(action_notifications.action_notification):
                 'ideal_width': int value - Pixel width that this label will try to retain. Each time a word is added to the label, if the word extends past the ideal width, the next line
                     will be started
                 'minimum_height': int value - Minimum pixel height of this label. Its height will increase if the contained text would extend past the bottom of the label
-                'button_types': string list value - List of string corresponding to the button types of this notification's choice buttons, like ['end turn', 'none']
+                'button_types': string list value - List of string corresponding to the button types of this notification's choice buttons, like ['end turn', None
                     - Each button type could also be a dictionary value, in which case the created button will be an anonymous button with
                         functionality decided by the dictionary's contents
                 'choice_info_dict': dictionary value - Dictionary containing any case-specific information for choice buttons to function as intended
@@ -42,11 +42,14 @@ class choice_notification(action_notifications.action_notification):
         button_types = input_dict["button_types"]
         for current_button_type_index in range(len(button_types)):
             if type(button_types[current_button_type_index]) == dict:
-                init_type = "anonymous button"
-            elif button_types[current_button_type_index] == "recruitment":
-                init_type = "recruitment choice button"
+                init_type = constants.ANONYMOUS_BUTTON
+            elif (
+                button_types[current_button_type_index]
+                == constants.RECRUITMENT_CHOICE_BUTTON
+            ):
+                init_type = constants.RECRUITMENT_CHOICE_BUTTON
             else:
-                init_type = "choice button"
+                init_type = constants.CHOICE_BUTTON
             self.choice_buttons.append(
                 constants.actor_creation_manager.create_interface_element(
                     {
@@ -123,10 +126,10 @@ class choice_button(buttons.button):
                 'width': int value - pixel width of this element
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = 'none': interface_collection value - Interface collection that this element directly reports to, not passed for independent element
+                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
                 'button_type': string value - Determines the function of this button, like 'end turn'
-                'keybind_id' = 'none': pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
@@ -134,36 +137,44 @@ class choice_button(buttons.button):
         Output:
             None
         """
+        self.button_type = input_dict.get("button_type", input_dict["init_type"])
         self.notification = input_dict["notification"]
-        if input_dict["button_type"] == "recruitment":
-            self.recruitment_type = self.notification.choice_info_dict[
-                "recruitment_type"
-            ]
-            if self.recruitment_type in ["steamship"]:
-                self.message = "Purchase"
-                self.verb = "purchase"
-            else:
-                self.message = "Hire"
-                self.verb = "hire"
-            self.cost = self.notification.choice_info_dict["cost"]
-            self.mob_image_id = self.notification.choice_info_dict.get(
-                "mob_image_id"
-            )  # Image ID provided for most units, but generated on creation for workers
+        match self.button_type:
+            case constants.RECRUITMENT_CHOICE_BUTTON:
+                self.recruitment_type = self.notification.choice_info_dict[
+                    "recruitment_type"
+                ]
+                self.recruitment_name = self.notification.choice_info_dict[
+                    "recruitment_name"
+                ]
+                if self.recruitment_type in [constants.SHIP]:
+                    self.message = "Purchase"
+                    self.verb = "purchase"
+                else:
+                    self.message = "Hire"
+                    self.verb = "hire"
+                self.cost = self.notification.choice_info_dict["cost"]
+                self.mob_image_id = self.notification.choice_info_dict.get(
+                    "mob_image_id"
+                )  # Image ID provided for most units, but generated on creation for workers
 
-        elif input_dict["button_type"] == "confirm main menu":
-            self.message = "Main menu"
+            case constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON:
+                self.message = "Main menu"
 
-        elif input_dict["button_type"] == "confirm remove minister":
-            self.message = "Confirm"
+            case constants.CHOICE_CONFIRM_REMOVE_MINISTER:
+                self.message = "Confirm"
 
-        elif input_dict["button_type"] == "quit":
-            self.message = "Exit game"
+            case constants.CHOICE_QUIT_BUTTON:
+                self.message = "Exit game"
 
-        elif input_dict["button_type"] == "none":
-            self.message = "Cancel"
+            case constants.CHOICE_END_TURN_BUTTON:
+                self.message = "End turn"
 
-        else:
-            self.message = input_dict["button_type"].capitalize()
+            case None:
+                self.message = "Cancel"
+
+            case _:
+                self.message = input_dict["button_type"].capitalize()
         super().__init__(input_dict)
         self.font = constants.fonts["default_notification"]
         self.in_notification = True
@@ -208,23 +219,30 @@ class choice_button(buttons.button):
         Output:
             None
         """
-        if self.button_type == "recruitment":
-            self.set_tooltip(
-                [
-                    f"{utility.capitalize(self.verb)} a {self.recruitment_type} for {str(self.cost)} money"
-                ]
-            )
+        if self.button_type == constants.RECRUITMENT_CHOICE_BUTTON:
+            if self.recruitment_type.endswith("workers"):
+                self.set_tooltip(
+                    [
+                        f"{utility.capitalize(self.verb)} a unit of {self.recruitment_name} for {str(self.cost)} money"
+                    ]
+                )
+            else:
+                self.set_tooltip(
+                    [
+                        f"{utility.capitalize(self.verb)} a {self.recruitment_name} for {str(self.cost)} money"
+                    ]
+                )
 
-        elif self.button_type == "end turn":
+        elif self.button_type == constants.CHOICE_END_TURN_BUTTON:
             self.set_tooltip(["End the current turn"])
 
-        elif self.button_type == "confirm main menu":
+        elif self.button_type == constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON:
             self.set_tooltip(["Exits to the main menu without saving"])
 
-        elif self.button_type == "quit":
+        elif self.button_type == constants.CHOICE_QUIT_BUTTON:
             self.set_tooltip(["Exits the game without saving"])
 
-        elif self.button_type == "none":
+        elif self.button_type == None:
             self.set_tooltip(["Cancel"])
 
         else:
@@ -269,21 +287,22 @@ class recruitment_choice_button(choice_button):
             input_dict["init_type"] = self.recruitment_type
             input_dict["officer_type"] = self.recruitment_type
 
-        elif self.recruitment_type.endswith(" workers"):
+        elif self.recruitment_type in [
+            constants.EUROPEAN_WORKERS,
+            constants.CHURCH_VOLUNTEERS,
+        ]:
             input_dict.update(
-                status.worker_types[
-                    self.recruitment_type.replace(" workers", "")
-                ].generate_input_dict()
-            )  # Like European workers
+                status.worker_types[self.recruitment_type].generate_input_dict()
+            )
 
-        elif self.recruitment_type == "steamship":
+        elif self.recruitment_type == constants.SHIP:
             image_dict = {
                 "default": self.mob_image_id,
-                "uncrewed": "mobs/steamship/uncrewed.png",
+                "uncrewed": "mobs/ship/uncrewed.png",
             }
             input_dict["image_dict"] = image_dict
-            input_dict["name"] = "steamship"
-            input_dict["crew"] = "none"
-            input_dict["init_type"] = "ship"
+            input_dict["name"] = "ship"
+            input_dict["crew"] = None
+            input_dict["init_type"] = constants.SHIP
         constants.actor_creation_manager.create(False, input_dict)
         super().on_click()
