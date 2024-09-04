@@ -84,7 +84,7 @@ class world_grid(grid):
         """
         default_altitude = 1
         for cell in self.get_flat_cell_list():
-            cell.set_parameter("altitude", default_altitude)
+            cell.set_parameter(constants.ALTITUDE, default_altitude)
 
         for i in range(constants.terrain_manager.get_tuning("altitude_worms")):
             min_length = (
@@ -104,13 +104,13 @@ class world_grid(grid):
             self.make_random_terrain_parameter_worm(
                 min_length,
                 max_length,
-                "altitude",
+                constants.ALTITUDE,
                 random.choice(self.get_tuning("altitude_changes")),
                 bound=random.choice(self.get_tuning("altitude_bounds")),
             )
         if self.get_tuning("smooth_altitude"):
             while self.smooth(
-                "altitude"
+                constants.ALTITUDE
             ):  # Continue running smooth until it doesn't make any more changes
                 pass
 
@@ -126,7 +126,7 @@ class world_grid(grid):
         default_temperature = self.world_handler.default_temperature
         for cell in self.get_flat_cell_list():
             cell.set_parameter(
-                "temperature",
+                constants.TEMPERATURE,
                 random.randrange(
                     default_temperature
                     - self.get_tuning("initial_temperature_variation"),
@@ -137,7 +137,7 @@ class world_grid(grid):
             )
         if self.get_tuning("smooth_temperature"):
             while self.smooth(
-                "temperature"
+                constants.TEMPERATURE
             ):  # Random but smooth initialization to represent weather patterns
                 pass
 
@@ -150,14 +150,16 @@ class world_grid(grid):
         )  # Avoids edge-case bias from poles or equator consistently being chosen first
         for temperature_source in temperature_sources:
             if temperature_source in [status.north_pole, status.south_pole]:
-                temperature_source.set_parameter("temperature", default_temperature)
+                temperature_source.set_parameter(
+                    constants.TEMPERATURE, default_temperature
+                )
                 if temperature_source == status.north_pole:
                     weight_parameter = "north_pole_distance_multiplier"
                     if constants.effect_manager.effect_active(
                         "mars_preset"
                     ):  # Causes warmer north pole than south - ice caps at north pole, dry ice caps at south pole
                         temperature_source.set_parameter(
-                            "temperature", default_temperature + 1
+                            constants.TEMPERATURE, default_temperature + 1
                         )
                 else:
                     weight_parameter = "south_pole_distance_multiplier"
@@ -182,7 +184,7 @@ class world_grid(grid):
                     self.make_random_terrain_parameter_worm(
                         min_length * pole_worm_length_multiplier,
                         max_length * pole_worm_length_multiplier,
-                        "temperature",
+                        constants.TEMPERATURE,
                         -1,
                         bound=1,
                         start_cell=temperature_source,
@@ -210,7 +212,7 @@ class world_grid(grid):
                 self.make_random_terrain_parameter_worm(
                     min_length,
                     max_length,
-                    "temperature",
+                    constants.TEMPERATURE,
                     random.choice([1]),
                     bound=1,
                     start_cell=temperature_source,
@@ -219,11 +221,11 @@ class world_grid(grid):
 
         if self.get_tuning("smooth_temperature"):
             while self.smooth(
-                "temperature"
+                constants.TEMPERATURE
             ):  # Continue running smooth until it doesn't make any more changes
                 pass
         self.bound(
-            "temperature",
+            constants.TEMPERATURE,
             default_temperature - self.get_tuning("final_temperature_variations")[0],
             default_temperature + self.get_tuning("final_temperature_variations")[1],
         )
@@ -265,7 +267,7 @@ class world_grid(grid):
             self.make_random_terrain_parameter_worm(
                 min_length,
                 max_length,
-                "roughness",
+                constants.ROUGHNESS,
                 1,
                 bound=self.get_tuning("roughness_worm_bound"),
             )
@@ -302,18 +304,18 @@ class world_grid(grid):
                 / (25**2)
             )
         ):
-            if candidate.get_parameter("water") < 6:
+            if candidate.get_parameter(constants.WATER) < 6:
                 if (
-                    candidate.get_parameter("temperature") <= frozen_bound
+                    candidate.get_parameter(constants.TEMPERATURE) <= frozen_bound
                 ):  # Water can go to coldest freezing location
                     if best_frozen == None or candidate.get_parameter(
-                        "temperature"
-                    ) < best_frozen.get_parameter("temperature"):
+                        constants.TEMPERATURE
+                    ) < best_frozen.get_parameter(constants.TEMPERATURE):
                         best_frozen = candidate
                 else:
                     if best_liquid == None or candidate.get_parameter(
-                        "altitude"
-                    ) < best_liquid.get_parameter("altitude"):
+                        constants.ALTITUDE
+                    ) < best_liquid.get_parameter(constants.ALTITUDE):
                         best_liquid = candidate
 
         if best_frozen and best_liquid:
@@ -321,10 +323,10 @@ class world_grid(grid):
                 [best_frozen, best_liquid],
                 weights=[
                     abs(
-                        (2 - best_frozen.get_parameter("temperature"))
+                        (2 - best_frozen.get_parameter(constants.TEMPERATURE))
                     ),  # Weight frozen placement for low temperature
                     abs(
-                        10 - best_liquid.get_parameter("altitude")
+                        10 - best_liquid.get_parameter(constants.ALTITUDE)
                     ),  # Weight liquid placement for low altitude
                 ],
                 k=1,
@@ -335,9 +337,9 @@ class world_grid(grid):
                 best_frozen = None
 
         if best_frozen:
-            best_frozen.change_parameter("water", 1)
+            best_frozen.change_parameter(constants.WATER, 1)
         elif best_liquid:
-            best_liquid.change_parameter("water", 1)
+            best_liquid.change_parameter(constants.WATER, 1)
             best_liquid.terrain_handler.flow()
 
     def generate_soil(self) -> None:
@@ -351,10 +353,10 @@ class world_grid(grid):
         """
         if self.get_tuning("earth_preset"):
             for cell in self.get_flat_cell_list():
-                cell.set_parameter("soil", random.randrange(1, 7))
+                cell.set_parameter(constants.SOIL, random.randrange(1, 7))
         else:
             for cell in self.get_flat_cell_list():
-                cell.set_parameter("soil", random.randrange(1, 4))
+                cell.set_parameter(constants.SOIL, random.randrange(1, 4))
 
         num_worms = random.randrange(
             self.get_tuning("min_soil_multiplier"),
@@ -378,13 +380,13 @@ class world_grid(grid):
             self.make_random_terrain_parameter_worm(
                 min_length,
                 max_length,
-                "soil",
+                constants.SOIL,
                 random.choice([-1, 1]),
                 bound=1,
             )
 
         self.bound(
-            "soil",
+            constants.SOIL,
             1,
             3,
         )
@@ -400,21 +402,21 @@ class world_grid(grid):
         """
         if self.get_tuning("earth_preset"):
             for cell in self.get_flat_cell_list():
-                if cell.get_parameter("temperature") > 1:
-                    if cell.get_parameter("water") < 5:
+                if cell.get_parameter(constants.TEMPERATURE) > 1:
+                    if cell.get_parameter(constants.WATER) < 5:
                         cell.set_parameter(
-                            "vegetation",
-                            cell.get_parameter("water") * 3 - 1,
+                            constants.VEGETATION,
+                            cell.get_parameter(constants.WATER) * 3 - 1,
                         )
                     else:
                         cell.set_parameter(
-                            "vegetation",
-                            cell.get_parameter("altitude") + 1,
+                            constants.VEGETATION,
+                            cell.get_parameter(constants.ALTITUDE) + 1,
                         )
-            self.smooth("vegetation")
+            self.smooth(constants.VEGETATION)
         else:
             for cell in self.get_flat_cell_list():
-                cell.set_parameter("vegetation", 1)
+                cell.set_parameter(constants.VEGETATION, 1)
 
     def generate_terrain_parameters(self):
         """
@@ -850,6 +852,8 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
     if grid_type == "strategic_map_grid":
         if constants.effect_manager.effect_active("large_map"):
             map_size_list = constants.terrain_manager.get_tuning("large_map_sizes")
+        elif constants.effect_manager.effect_active("tiny_map"):
+            map_size_list = constants.terrain_manager.get_tuning("tiny_map_sizes")
         else:
             map_size_list = constants.terrain_manager.get_tuning("map_sizes")
         map_size = input_dict.get("map_size", random.choice(map_size_list))

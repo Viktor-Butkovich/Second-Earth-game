@@ -945,4 +945,10 @@ class ordered_collection(interface_collection):
         if self == status.terrain_collection and new_actor:
             self.tab_button.image.set_image(
                 new_actor.get_image_id_list(terrain_only=True)
+                + [
+                    {
+                        "image_id": "buttons/default_button_frame.png",
+                        "level": constants.BACKGROUND_LEVEL,
+                    }
+                ]
             )

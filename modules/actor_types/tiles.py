@@ -356,27 +356,29 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             ),
                         }
                     )
-                for terrain_feature in self.cell.terrain_handler.terrain_features:
-                    new_image_id = self.cell.terrain_handler.terrain_features[
-                        terrain_feature
-                    ].get(
-                        "image_id",
-                        status.terrain_feature_types[terrain_feature].image_id,
-                    )
-                    if type(new_image_id) == str and not new_image_id.endswith(".png"):
-                        new_image_id = actor_utility.generate_label_image_id(
-                            new_image_id, y_offset=-0.75
-                        )
-                    image_id_list = utility.combine(image_id_list, new_image_id)
-                if (
-                    self.cell.terrain_handler.resource
-                ):  # If resource visible based on current knowledge
-                    resource_icon = actor_utility.generate_resource_icon(self)
-                    if type(resource_icon) == str:
-                        image_id_list.append(resource_icon)
-                    else:
-                        image_id_list += resource_icon
                 if not terrain_only:
+                    for terrain_feature in self.cell.terrain_handler.terrain_features:
+                        new_image_id = self.cell.terrain_handler.terrain_features[
+                            terrain_feature
+                        ].get(
+                            "image_id",
+                            status.terrain_feature_types[terrain_feature].image_id,
+                        )
+                        if type(new_image_id) == str and not new_image_id.endswith(
+                            ".png"
+                        ):
+                            new_image_id = actor_utility.generate_label_image_id(
+                                new_image_id, y_offset=-0.75
+                            )
+                        image_id_list = utility.combine(image_id_list, new_image_id)
+                    if (
+                        self.cell.terrain_handler.resource
+                    ):  # If resource visible based on current knowledge
+                        resource_icon = actor_utility.generate_resource_icon(self)
+                        if type(resource_icon) == str:
+                            image_id_list.append(resource_icon)
+                        else:
+                            image_id_list += resource_icon
                     for current_building_type in constants.building_types:
                         current_building = self.cell.get_building(current_building_type)
                         if current_building:
@@ -399,9 +401,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     constants.TERRAIN_PARAMETER_KNOWLEDGE
                 ):
                     if constants.current_map_mode in [
-                        "water",
-                        "temperature",
-                        "vegetation",
+                        constants.WATER,
+                        constants.TEMPERATURE,
+                        constants.VEGETATION,
                     ]:
                         map_mode_image = f"misc/map_modes/{constants.current_map_mode}/{self.cell.get_parameter(constants.current_map_mode)}.png"
                     else:
@@ -506,14 +508,16 @@ class tile(actor):  # to do: make terrain tiles a subclass
             coordinates = self.get_main_grid_coordinates()
             tooltip_message.append(f"Coordinates: ({coordinates[0]}, {coordinates[1]})")
             if self.cell.terrain_handler.terrain:
-                knowledge_value = self.cell.terrain_handler.get_parameter("knowledge")
+                knowledge_value = self.cell.terrain_handler.get_parameter(
+                    constants.KNOWLEDGE
+                )
                 knowledge_keyword = (
-                    constants.terrain_manager.terrain_parameter_keywords["knowledge"][
-                        knowledge_value
-                    ]
+                    constants.terrain_manager.terrain_parameter_keywords[
+                        constants.KNOWLEDGE
+                    ][knowledge_value]
                 )
                 knowledge_maximum = maximum = self.cell.terrain_handler.maxima.get(
-                    "knowledge", 6
+                    constants.KNOWLEDGE, 6
                 )
                 tooltip_message.append(
                     f"Knowledge: {knowledge_keyword} ({knowledge_value}/{knowledge_maximum})"
@@ -529,7 +533,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         constants.TERRAIN_PARAMETER_KNOWLEDGE
                     ):
                         for terrain_parameter in constants.terrain_parameters:
-                            if terrain_parameter != "knowledge":
+                            if terrain_parameter != constants.KNOWLEDGE:
                                 maximum = self.cell.terrain_handler.maxima.get(
                                     terrain_parameter, 6
                                 )

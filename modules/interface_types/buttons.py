@@ -3118,7 +3118,7 @@ class map_mode_button(button):
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'map_mode": Map mode that this button sets, like "default" or "altitude"
+                'map_mode": Map mode that this button sets, like "default" or constants.ALTITUDE
         Output:
             None
         """

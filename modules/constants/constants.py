@@ -188,7 +188,9 @@ input_manager: input_manager_template = input_manager_template()
 actor_creation_manager: actor_creation_manager_template = (
     None  # requires additional setup before initialization
 )
-terrain_manager: terrain_manager_template = terrain_manager_template()
+terrain_manager: terrain_manager_template = (
+    None  # requires additional setup before initialization
+)
 character_manager: character_manager_template = (
     None  # requires additional setup before initialization
 )
@@ -329,16 +331,6 @@ green_screen_colors: List[tuple[int, int, int]] = [
     (62, 82, 82),
     (70, 70, 92),
     (110, 107, 3),
-]
-
-terrain_parameters: List[str] = [
-    "knowledge",
-    "water",
-    "temperature",
-    "vegetation",
-    "roughness",
-    "soil",
-    "altitude",
 ]
 
 terrain_movement_cost_dict: Dict[str, int] = {
@@ -542,15 +534,32 @@ game_modes: List[str] = [
     NEW_GAME_SETUP_MODE,
 ]
 
+KNOWLEDGE: str = "knowledge"
+WATER: str = "water"
+TEMPERATURE: str = "temperature"
+VEGETATION: str = "vegetation"
+ROUGHNESS: str = "roughness"
+SOIL: str = "soil"
+ALTITUDE: str = "altitude"
+terrain_parameters: List[str] = [
+    KNOWLEDGE,
+    WATER,
+    TEMPERATURE,
+    VEGETATION,
+    ROUGHNESS,
+    SOIL,
+    ALTITUDE,
+]
+
 current_map_mode: str = "terrain"
 map_modes: List[str] = [
     "terrain",
-    "altitude",
-    "temperature",
-    "roughness",
-    "vegetation",
-    "soil",
-    "water",
+    ALTITUDE,
+    TEMPERATURE,
+    ROUGHNESS,
+    VEGETATION,
+    SOIL,
+    WATER,
     "magnetic",
 ]
 

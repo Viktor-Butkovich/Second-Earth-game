@@ -149,7 +149,11 @@ class pmob(mob):
                     constants.TERRAIN_KNOWLEDGE
                 ):
                     cell.terrain_handler.set_parameter(
-                        "knowledge", constants.TERRAIN_KNOWLEDGE_REQUIREMENT
+                        constants.KNOWLEDGE,
+                        max(
+                            constants.TERRAIN_KNOWLEDGE_REQUIREMENT,
+                            cell.terrain_handler.get_parameter(constants.KNOWLEDGE),
+                        ),
                     )
 
     def to_save_dict(self):

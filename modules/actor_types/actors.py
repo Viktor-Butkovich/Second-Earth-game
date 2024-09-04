@@ -42,11 +42,10 @@ class actor:
         if self.from_save:
             self.grid: grid = getattr(status, input_dict["grid_type"])
             self.grids: List[grid] = [self.grid] + self.grid.mini_grids
-            self.set_name(input_dict["name"])
         else:
             self.grid: grid = input_dict["grids"][0]
             self.grids: List[grid] = input_dict["grids"]
-            self.set_name("placeholder")
+        self.set_name(input_dict.get("name", "placeholder"))
         self.set_coordinates(self.x, self.y)
 
         self.tooltip_text = []

@@ -20,6 +20,7 @@ from modules.tools.data_managers import (
     achievement_manager_template,
     character_manager_template,
     actor_creation_manager_template,
+    terrain_manager_template,
 )
 from modules.action_types import (
     public_relations_campaign,
@@ -95,6 +96,7 @@ def misc():
     constants.actor_creation_manager = (
         actor_creation_manager_template.actor_creation_manager_template()
     )
+    constants.terrain_manager = terrain_manager_template.terrain_manager_template()
 
     constants.font_size = scaling.scale_height(constants.default_font_size)
     constants.notification_font_size = scaling.scale_height(
@@ -216,7 +218,7 @@ def misc():
 
     status.safe_click_area = constants.actor_creation_manager.create_interface_element(
         {
-            "width": constants.display_width / 2 - scaling.scale_width(35),
+            "width": constants.display_width / 2,
             "height": constants.display_height,
             "modes": [
                 constants.STRATEGIC_MODE,
@@ -1867,7 +1869,7 @@ def inventory_interface():
     Output:
         None
     """
-    commodity_prices_x, commodity_prices_y = (900, 100)
+    commodity_prices_x, commodity_prices_y = (1000, 100)
     commodity_prices_height = 35 + (30 * len(constants.commodity_types))
     commodity_prices_width = 200
 

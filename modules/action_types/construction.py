@@ -492,7 +492,7 @@ class construction(action.action):
             if self.building_type == constants.RESOURCE:
                 input_dict["image"] = "buildings/resource_building.png"
                 input_dict["resource_type"] = self.attached_resource
-            elif self.building_type == constants.RESOURCE:
+            elif self.building_type == constants.INFRASTRUCTURE:
                 building_image_id = None
                 if self.building_name == "road":
                     building_image_id = "buildings/infrastructure/road.png"
