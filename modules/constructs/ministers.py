@@ -160,7 +160,7 @@ class minister:
         self.tooltip_text.append(f"Social status: {self.status}")
         self.tooltip_text.append(f"Ethnicity: {self.ethnicity}")
         self.tooltip_text.append(
-            f"Interests: {self.interests[0]} and {self.interests[1]}"
+            f"Interests: {self.interests[0].replace('_', ' ')}, {self.interests[1].replace('_', ' ')}"
         )
 
         if self.apparent_corruption_description != "unknown":
@@ -296,7 +296,7 @@ class minister:
         Output:
             bool: Returns whether the prosecutor detected the theft
         """
-        prosecutor = minister_utility.get_minister(constants.PROSECUTION_MINISTER)
+        prosecutor = minister_utility.get_minister(constants.SECURITY_MINISTER)
         if prosecutor:
             if constants.effect_manager.effect_active("show_minister_stealing"):
                 print(
@@ -918,14 +918,13 @@ class minister:
         if constants.effect_manager.effect_active("band_of_thieves") or (
             (
                 constants.effect_manager.effect_active("lawbearer")
-                and self
-                != minister_utility.get_minister(constants.PROSECUTION_MINISTER)
+                and self != minister_utility.get_minister(constants.SECURITY_MINISTER)
             )
         ):
             return_value = True
         elif constants.effect_manager.effect_active("ministry_of_magic") or (
             constants.effect_manager.effect_active("lawbearer")
-            and self == minister_utility.get_minister(constants.PROSECUTION_MINISTER)
+            and self == minister_utility.get_minister(constants.SECURITY_MINISTER)
         ):
             return_value = False
         elif random.randrange(1, 7) >= self.corruption_threshold:
@@ -1011,7 +1010,7 @@ class minister:
         modifier = 0
         if constants.effect_manager.effect_active("ministry_of_magic") or (
             constants.effect_manager.effect_active("lawbearer")
-            and self == minister_utility.get_minister(constants.PROSECUTION_MINISTER)
+            and self == minister_utility.get_minister(constants.SECURITY_MINISTER)
         ):
             return 5
         elif constants.effect_manager.effect_active("nine_mortal_men"):

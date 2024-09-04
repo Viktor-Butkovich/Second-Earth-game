@@ -465,60 +465,61 @@ def def_ministers():
     """
     minister_types.minister_type(
         {
-            "key": constants.MILITARY_MINISTER,
-            "name": "General",
-            "skill_type": "military",
-            "description": ["Military-oriented units include majors and battalions."],
-        }
-    )
-    minister_types.minister_type(
-        {
-            "key": constants.RELIGION_MINISTER,
-            "name": "Bishop",
-            "skill_type": "religion",
+            "key": constants.SPACE_MINISTER,
+            "name": "Minister of Space",
+            "skill_type": constants.SPACE_SKILL,
             "description": [
-                "Religion-oriented units include evangelists, church volunteers, and missionaries."
+                "Space-oriented units include astronauts, navigators, and space vehicles.",
+                "The Minister of Space also controls outer colonies and space logistics.",
             ],
         }
     )
     minister_types.minister_type(
         {
-            "key": constants.TRADE_MINISTER,
-            "name": "Minister of Trade",
-            "skill_type": "trade",
+            "key": constants.HEALTH_AND_ENVIRONMENT_MINISTER,
+            "name": "Minister of Health and Environment",
+            "skill_type": constants.HEALTH_AND_ENVIRONMENT_SKILL,
             "description": [
-                "Trade-oriented units include merchants and caravans.",
-                "The Minister of Trade also controls the purchase and sale of goods on Earth",
+                "Health and Environment-oriented units include doctors and terraformers."
             ],
         }
     )
     minister_types.minister_type(
         {
-            "key": constants.EXPLORATION_MINISTER,
-            "name": "Minister of Geography",
-            "skill_type": "exploration",
+            "key": constants.TERRAN_AFFAIRS_MINISTER,
+            "name": "Minister of Terran Affairs",
+            "skill_type": constants.TERRAN_AFFAIRS_SKILL,
             "description": [
-                "Exploration-oriented units include explorers and expeditions."
+                "Terran Affairs-oriented units include lobbyists, executives, and influencers.",
+                "The Minister of Terran Affairs also controls the purchase and sale of goods on Earth",
             ],
         }
     )
     minister_types.minister_type(
         {
-            "key": constants.CONSTRUCTION_MINISTER,
-            "name": "Minister of Construction",
-            "skill_type": "construction",
+            "key": constants.SCIENCE_MINISTER,
+            "name": "Minister of Science",
+            "skill_type": constants.SCIENCE_SKILL,
             "description": [
-                "Construction-oriented units include engineers and construction gangs."
+                "Science-oriented units include researchers and surveyors."
             ],
         }
     )
     minister_types.minister_type(
         {
-            "key": constants.PRODUCTION_MINISTER,
-            "name": "Minister of Production",
-            "skill_type": "production",
+            "key": constants.ENERGY_MINISTER,
+            "name": "Minister of Energy",
+            "skill_type": constants.ENERGY_SKILL,
+            "description": ["Energy-oriented units include technicians."],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.INDUSTRY_MINISTER,
+            "name": "Minister of Industry",
+            "skill_type": constants.INDUSTRY_SKILL,
             "description": [
-                "Production-oriented units include work crews and foremen."
+                "Industry-oriented units include construction gangs and work crews."
             ],
         }
     )
@@ -526,21 +527,22 @@ def def_ministers():
         {
             "key": constants.TRANSPORTATION_MINISTER,
             "name": "Minister of Transportation",
-            "skill_type": "transportation",
+            "skill_type": constants.TRANSPORTATION_SKILL,
             "description": [
-                "Transportation-oriented units include ships, trains, drivers, and porters.",
-                "The Minister of Transportation also ensures that goods are not lost in transport or storage",
+                "Transportation-oriented units include planetary vehicles and their crews.",
+                "The Minister of Transportation also manages planetary logistics and warehouses.",
             ],
         }
     )
     minister_types.minister_type(
         {
-            "key": constants.PROSECUTION_MINISTER,
-            "name": "Prosecutor",
-            "skill_type": "prosecution",
+            "key": constants.SECURITY_MINISTER,
+            "name": "Minister of Security",
+            "skill_type": constants.SECURITY_SKILL,
             "controls_units": False,
             "description": [
-                "Rather than controlling units, a prosecutor controls the process of investigating and removing ministers suspected to be corrupt."
+                "Security-oriented units include marines and investigators."
+                "The Minister of Security also controls the process of investigating and removing corrupt ministers."
             ],
         }
     )
@@ -2687,25 +2689,25 @@ def minister_interface():
         constants.MINISTER_INTERESTS_LABEL,
         constants.MINISTER_LOYALTY_LABEL,
         constants.MINISTER_ABILITY_LABEL,
-        constants.MILITARY_SKILL_LABEL,
-        constants.RELIGION_SKILL_LABEL,
-        constants.TRADE_SKILL_LABEL,
-        constants.EXPLORATION_SKILL_LABEL,
-        constants.CONSTRUCTION_SKILL_LABEL,
-        constants.PRODUCTION_SKILL_LABEL,
+        constants.SPACE_SKILL_LABEL,
+        constants.HEALTH_AND_ENVIRONMENT_SKILL_LABEL,
+        constants.TERRAN_AFFAIRS_SKILL_LABEL,
+        constants.SCIENCE_SKILL_LABEL,
+        constants.ENERGY_SKILL_LABEL,
+        constants.INDUSTRY_SKILL_LABEL,
         constants.TRANSPORTATION_SKILL_LABEL,
-        constants.PROSECUTION_SKILL_LABEL,
+        constants.SECURITY_SKILL_LABEL,
         constants.EVIDENCE_LABEL,
     ]:
         if current_actor_label_type in [
-            constants.MILITARY_SKILL_LABEL,
-            constants.RELIGION_SKILL_LABEL,
-            constants.TRADE_SKILL_LABEL,
-            constants.EXPLORATION_SKILL_LABEL,
-            constants.CONSTRUCTION_SKILL_LABEL,
-            constants.PRODUCTION_SKILL_LABEL,
+            constants.SPACE_SKILL_LABEL,
+            constants.HEALTH_AND_ENVIRONMENT_SKILL_LABEL,
+            constants.TERRAN_AFFAIRS_SKILL_LABEL,
+            constants.SCIENCE_SKILL_LABEL,
+            constants.ENERGY_SKILL_LABEL,
+            constants.INDUSTRY_SKILL_LABEL,
             constants.TRANSPORTATION_SKILL_LABEL,
-            constants.PROSECUTION_SKILL_LABEL,
+            constants.SECURITY_SKILL_LABEL,
         ]:
             x_displacement = 25
         else:

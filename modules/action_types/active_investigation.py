@@ -79,7 +79,7 @@ class active_investigation(action.campaign):
             text += f"This may uncover information regarding {status.displayed_minister.name}'s loyalty, skills, or past crimes. /n /n"
             text += f"The investigation will cost {str(self.get_price())} money. /n /n "
         elif subject == "initial":
-            text += f"Prosecutor {minister_utility.get_minister(constants.PROSECUTION_MINISTER).name} launches an investigation against "
+            text += f"Minister of Security {minister_utility.get_minister(constants.SECURITY_MINISTER).name} launches an investigation against "
             if status.displayed_minister.current_position:
                 text += f"{status.displayed_minister.current_position.name} {status.displayed_minister.name}. /n /n"
             else:
@@ -99,7 +99,7 @@ class active_investigation(action.campaign):
             status.displayed_minister
             and status.displayed_minister.current_position
             and status.displayed_minister.current_position.key
-            != constants.PROSECUTION_MINISTER
+            != constants.SECURITY_MINISTER
         )
 
     def on_click(self, unit):
@@ -112,9 +112,9 @@ class active_investigation(action.campaign):
             None
         """
         if super().on_click(unit):
-            if not minister_utility.get_minister(constants.PROSECUTION_MINISTER):
+            if not minister_utility.get_minister(constants.SECURITY_MINISTER):
                 text_utility.print_to_screen(
-                    "An active investigation requires a prosecutor to be appointed."
+                    "An active investigation requires a Minister of Security to be appointed."
                 )
             else:
                 self.start(unit)

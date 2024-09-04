@@ -1,4 +1,4 @@
-# Contains functionality for minister type templates, such as Prosecutor or Minister of Construction
+# Contains functionality for minister type templates, such as Minister of Security or Minister of Energy
 
 from typing import Dict, List
 import modules.constants.status as status

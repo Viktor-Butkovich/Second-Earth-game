@@ -60,13 +60,14 @@ except Exception:  # displays error message and records error message in crash l
 #   Trade -> Terran Affairs (foreign/diplomacy/marketing)
 #   Religion -> Health and Environment (settler health, ecology, terraforming)
 #   Military -> Space (space transportation, space colonies, space construction, space special projects)
-#   Prosecutor -> Auditor (finding corruption, security)
+#   Prosecutor -> Security (finding corruption, security)
 #   Transportation -> Transportation (planetary transportation, logistics)
 #   Production -> Industry (construction, factories, mining, agriculture)
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
 # Add new minister positions
+# Replace group/officer subclasses with unit type classes that each instance can belong to
 # Add astronauts/cosmonauts group with corresponding officer
 # Add support for vehicles being crewed by groups, combining in new interface with any group attaching/detaching, like to mines/factories
 #   This allows embarking/disembarking to be part of the reorganization interface

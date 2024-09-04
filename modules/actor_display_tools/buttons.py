@@ -1359,7 +1359,7 @@ class to_trial_button(button):
             and status.displayed_minister
             and status.displayed_minister.current_position
             and status.displayed_minister.current_position.key
-            != constants.PROSECUTION_MINISTER
+            != constants.SECURITY_MINISTER
         ):
             return True
 
@@ -1379,7 +1379,7 @@ class to_trial_button(button):
                     if len(status.minister_list) > 8:  # if any available appointees
                         defense = status.displayed_minister
                         prosecution = minister_utility.get_minister(
-                            constants.PROSECUTION_MINISTER
+                            constants.SECURITY_MINISTER
                         )
                         game_transitions.set_game_mode(constants.TRIAL_MODE)
                         minister_utility.trial_setup(

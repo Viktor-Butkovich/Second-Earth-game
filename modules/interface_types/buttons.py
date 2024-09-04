@@ -388,7 +388,7 @@ class button(interface_elements.interface_element):
                 if self.button_type == constants.SELL_COMMODITY_BUTTON:
                     self.set_tooltip(
                         [
-                            f"Orders your {status.minister_types[constants.TRADE_MINISTER].name} to sell 1 unit of {self.attached_label.actor.current_item} for about {constants.item_prices[self.attached_label.actor.current_item]} money at the end of the turn",
+                            f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell 1 unit of {self.attached_label.actor.current_item} for about {constants.item_prices[self.attached_label.actor.current_item]} money at the end of the turn",
                             "The amount each commodity was sold for is reported at the beginning of your next turn",
                             f"Each unit of {self.attached_label.actor.current_item} sold has a chance of reducing its sale price",
                         ]
@@ -399,7 +399,7 @@ class button(interface_elements.interface_element):
                     )
                     self.set_tooltip(
                         [
-                            f"Orders your {status.minister_types[constants.TRADE_MINISTER].name} to sell your entire stockpile of {self.attached_label.actor.current_item} for about {constants.item_prices[self.attached_label.actor.current_item]} money each at the end of the turn, for a total of about {constants.item_prices[self.attached_label.actor.current_item] * num_present} money",
+                            f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell your entire stockpile of {self.attached_label.actor.current_item} for about {constants.item_prices[self.attached_label.actor.current_item]} money each at the end of the turn, for a total of about {constants.item_prices[self.attached_label.actor.current_item] * num_present} money",
                             "The amount each commodity was sold for is reported at the beginning of your next turn",
                             f"Each unit of {self.attached_label.actor.current_item} sold has a chance of reducing its sale price",
                         ]
@@ -407,7 +407,7 @@ class button(interface_elements.interface_element):
                 else:
                     self.set_tooltip(
                         [
-                            f"Orders your {status.minister_types[constants.TRADE_MINISTER].name} to sell all commodities at the end of the turn, "
+                            f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell all commodities at the end of the turn, "
                             f"The amount each commodity was sold for is reported at the beginning of your next turn",
                             "Each commodity sold has a chance of reducing its sale price",
                         ]
@@ -2051,7 +2051,9 @@ class minister_portrait_image(button):
         input_dict["image_id"] = self.default_image_id
         super().__init__(input_dict)
         self.insert_collection_above()
-        self.minister_type = input_dict["minister_type"]  # Position, like General
+        self.minister_type = input_dict[
+            "minister_type"
+        ]  # Position, like Minister of Space minister_type object
         if not self.minister_type:  # If available minister portrait
             if constants.MINISTERS_MODE in self.modes:
                 status.available_minister_portrait_list.append(self)

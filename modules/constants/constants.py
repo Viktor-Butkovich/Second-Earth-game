@@ -400,87 +400,6 @@ resource_building_dict: Dict[str, str] = {
     "ivory": "camp",
     "rubber": "plantation",
 }
-
-weighted_backgrounds: List[str] = [
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "banker",
-    "merchant",
-    "lawyer",
-    "industrialist",
-    "industrialist",
-    "industrialist",
-    "industrialist",
-    "industrialist",
-    "industrialist",
-    "natural scientist",
-    "doctor",
-    "politician",
-    "politician",
-    "army officer",
-    "naval officer",
-]
-background_status_dict: Dict[str, int] = {
-    "lowborn": 1,
-    "banker": 2,
-    "merchant": 2,
-    "lawyer": 2,
-    "army officer": 2,
-    "naval officer": 2,
-    "priest": 2,
-    "preacher": 2,
-    "natural scientist": 2,
-    "doctor": 2,
-    "industrialist": 3,
-    "aristocrat": 3,
-    "politician": 3,
-    "business magnate": 4,
-    "royal heir": 4,
-}
-background_skills_dict: Dict[str, List[str]] = {
-    "lowborn": [None],
-    "banker": ["trade"],
-    "merchant": ["trade"],
-    "lawyer": ["prosecution"],
-    "army officer": ["military"],
-    "naval officer": ["transportation"],
-    "priest": ["religion"],
-    "preacher": ["religion"],
-    "natural scientist": ["exploration"],
-    "doctor": ["random"],
-    "industrialist": ["construction", "production", "transportation"],
-    "aristocrat": [None, "random"],
-    "politician": [None, "random"],
-    "business magnate": ["construction", "production", "transportation"],
-    "royal heir": [None, "random"],
-}
-skill_types: List[str] = []
-minister_skill_to_description_dict: List[List[str]] = [
-    ["unknown"],
-    ["brainless", "moronic", "stupid", "idiotic"],
-    ["incompetent", "dull", "slow", "bad"],
-    ["incapable", "poor", "ineffective", "lacking"],
-    ["able", "capable", "effective", "competent"],
-    ["smart", "clever", "quick", "good"],
-    ["expert", "genius", "brilliant", "superior"],
-]  # not literally a dict, but index of skill number can be used like a dictionary
-minister_corruption_to_description_dict: List[List[str]] = [
-    ["unknown"],
-    ["absolute", "fanatic", "pure", "saintly"],
-    ["steadfast", "honest", "straight", "solid"],
-    ["decent", "obedient", "dependable", "trustworthy"],
-    ["opportunist", "questionable", "undependable", "untrustworthy"],
-    ["shady", "dishonest", "slippery", "mercurial"],
-    ["corrupt", "crooked", "rotten", "treacherous"],
-]  # not literally a dict, but index of corruption number can be used like a dictionary
 minister_limit: int = 15
 
 worker_upkeep_increment: float = 0.25
@@ -603,14 +522,104 @@ TERRAIN_PANEL: str = "terrain_panel"
 INVENTORY_PANEL: str = "inventory_panel"
 REORGANIZATION_PANEL: str = "reorganization_panel"
 
-MILITARY_MINISTER: str = "military"
-RELIGION_MINISTER: str = "religion"
-TRADE_MINISTER: str = "trade"
-EXPLORATION_MINISTER: str = "exploration"
-CONSTRUCTION_MINISTER: str = "construction"
-PRODUCTION_MINISTER: str = "production"
+SPACE_MINISTER: str = "space"
+HEALTH_AND_ENVIRONMENT_MINISTER: str = "health_and_environment"
+TERRAN_AFFAIRS_MINISTER: str = "terran_affairs"
+SCIENCE_MINISTER: str = "science"
+ENERGY_MINISTER: str = "energy"
+INDUSTRY_MINISTER: str = "industry"
 TRANSPORTATION_MINISTER: str = "transportation"
-PROSECUTION_MINISTER: str = "prosecution"
+SECURITY_MINISTER: str = "security"
+
+SPACE_SKILL: str = "space"
+HEALTH_AND_ENVIRONMENT_SKILL = "health_and_environment"
+TERRAN_AFFAIRS_SKILL = "terran_affairs"
+SCIENCE_SKILL = "science"
+ENERGY_SKILL = "energy"
+INDUSTRY_SKILL = "industry"
+TRANSPORTATION_SKILL = "transportation"
+SECURITY_SKILL = "security"
+
+weighted_backgrounds: List[str] = [
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "lowborn",
+    "banker",
+    "merchant",
+    "lawyer",
+    "industrialist",
+    "industrialist",
+    "industrialist",
+    "industrialist",
+    "industrialist",
+    "industrialist",
+    "natural scientist",
+    "doctor",
+    "politician",
+    "politician",
+    "army officer",
+    "naval officer",
+]
+background_status_dict: Dict[str, int] = {
+    "lowborn": 1,
+    "banker": 2,
+    "merchant": 2,
+    "lawyer": 2,
+    "army officer": 2,
+    "naval officer": 2,
+    "priest": 2,
+    "preacher": 2,
+    "natural scientist": 2,
+    "doctor": 2,
+    "industrialist": 3,
+    "aristocrat": 3,
+    "politician": 3,
+    "business magnate": 4,
+    "royal heir": 4,
+}
+background_skills_dict: Dict[str, List[str]] = {
+    "lowborn": [None],
+    "banker": [TERRAN_AFFAIRS_SKILL],
+    "merchant": [TERRAN_AFFAIRS_SKILL],
+    "lawyer": [SECURITY_SKILL],
+    "army officer": [SPACE_SKILL],
+    "naval officer": [TRANSPORTATION_SKILL],
+    "priest": [TERRAN_AFFAIRS_SKILL],
+    "preacher": [TERRAN_AFFAIRS_SKILL],
+    "natural scientist": [SCIENCE_SKILL],
+    "doctor": ["random"],
+    "industrialist": [INDUSTRY_SKILL, TRANSPORTATION_SKILL],
+    "aristocrat": [None, "random"],
+    "politician": [None, "random"],
+    "business magnate": [INDUSTRY_SKILL, TRANSPORTATION_SKILL],
+    "royal heir": [None, "random"],
+}
+skill_types: List[str] = []
+minister_skill_to_description_dict: List[List[str]] = [
+    ["unknown"],
+    ["brainless", "moronic", "stupid", "idiotic"],
+    ["incompetent", "dull", "slow", "bad"],
+    ["incapable", "poor", "ineffective", "lacking"],
+    ["able", "capable", "effective", "competent"],
+    ["smart", "clever", "quick", "good"],
+    ["expert", "genius", "brilliant", "superior"],
+]  # not literally a dict, but index of skill number can be used like a dictionary
+minister_corruption_to_description_dict: List[List[str]] = [
+    ["unknown"],
+    ["absolute", "fanatic", "pure", "saintly"],
+    ["steadfast", "honest", "straight", "solid"],
+    ["decent", "obedient", "dependable", "trustworthy"],
+    ["opportunist", "questionable", "undependable", "untrustworthy"],
+    ["shady", "dishonest", "slippery", "mercurial"],
+    ["corrupt", "crooked", "rotten", "treacherous"],
+]  # not literally a dict, but index of corruption number can be used like a dictionary
 
 MOB: str = "mob"
 EUROPEAN_WORKERS: str = "european_workers"
@@ -769,14 +778,14 @@ MINISTER_SOCIAL_STATUS_LABEL: str = "minister_social_status_label"
 MINISTER_INTERESTS_LABEL: str = "minister_interests_label"
 MINISTER_LOYALTY_LABEL: str = "minister_loyalty_label"
 MINISTER_ABILITY_LABEL: str = "minister_ability_label"
-MILITARY_SKILL_LABEL: str = "military_skill_label"
-RELIGION_SKILL_LABEL: str = "religion_skill_label"
-TRADE_SKILL_LABEL: str = "trade_skill_label"
-EXPLORATION_SKILL_LABEL: str = "exploration_skill_label"
-CONSTRUCTION_SKILL_LABEL: str = "construction_skill_label"
-PRODUCTION_SKILL_LABEL: str = "production_skill_label"
+SPACE_SKILL_LABEL: str = "space_skill_label"
+HEALTH_AND_ENVIRONMENT_SKILL_LABEL: str = "health_and_environment_skill_label"
+TERRAN_AFFAIRS_SKILL_LABEL: str = "terran_affairs_skill_label"
+SCIENCE_SKILL_LABEL: str = "science_skill_label"
+ENERGY_SKILL_LABEL: str = "energy_skill_label"
+INDUSTRY_SKILL_LABEL: str = "industry_skill_label"
 TRANSPORTATION_SKILL_LABEL: str = "transportation_skill_label"
-PROSECUTION_SKILL_LABEL: str = "prosecution_skill_label"
+SECURITY_SKILL_LABEL: str = "security_skill_label"
 
 EVIDENCE_LABEL: str = "evidence_label"
 NAME_LABEL: str = "name_label"
@@ -880,22 +889,22 @@ officer_group_type_dict: Dict[str, str] = {
     MAJOR: BATTALION,
 }
 officer_minister_dict: Dict[str, str] = {
-    EXPLORER: EXPLORATION_MINISTER,
-    ENGINEER: CONSTRUCTION_MINISTER,
+    EXPLORER: SCIENCE_MINISTER,
+    ENGINEER: INDUSTRY_MINISTER,
     DRIVER: TRANSPORTATION_MINISTER,
-    FOREMAN: PRODUCTION_MINISTER,
-    MERCHANT: TRADE_MINISTER,
-    EVANGELIST: RELIGION_MINISTER,
-    MAJOR: MILITARY_MINISTER,
+    FOREMAN: INDUSTRY_MINISTER,
+    MERCHANT: TERRAN_AFFAIRS_MINISTER,
+    EVANGELIST: TERRAN_AFFAIRS_MINISTER,
+    MAJOR: SPACE_MINISTER,
 }
 group_minister_dict: Dict[str, str] = {
-    EXPEDITION: EXPLORATION_MINISTER,
-    CONSTRUCTION_GANG: CONSTRUCTION_MINISTER,
+    EXPEDITION: SCIENCE_MINISTER,
+    CONSTRUCTION_GANG: INDUSTRY_MINISTER,
     PORTERS: TRANSPORTATION_MINISTER,
-    WORK_CREW: PRODUCTION_MINISTER,
-    CARAVAN: TRADE_MINISTER,
-    MISSIONARIES: RELIGION_MINISTER,
-    BATTALION: MILITARY_MINISTER,
+    WORK_CREW: INDUSTRY_MINISTER,
+    CARAVAN: TERRAN_AFFAIRS_MINISTER,
+    MISSIONARIES: TERRAN_AFFAIRS_MINISTER,
+    BATTALION: SPACE_MINISTER,
 }
 
 recruitment_types: List[str] = officer_types + [EUROPEAN_WORKERS, SHIP]

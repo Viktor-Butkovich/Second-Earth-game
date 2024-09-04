@@ -1013,7 +1013,7 @@ class actor_display_label(label):
 
             elif self.actor_label_type == constants.MINISTER_INTERESTS_LABEL:
                 self.set_label(
-                    f"{self.message_start}{new_actor.interests[0]} and {new_actor.interests[1]}"
+                    f"{self.message_start}{new_actor.interests[0].replace('_', ' ')}, {new_actor.interests[1].replace('_', ' ')}"
                 )
 
             elif self.actor_label_type == constants.MINISTER_ABILITY_LABEL:

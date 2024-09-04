@@ -46,7 +46,7 @@ class worker(pmob):
         if not from_save:
             self.worker_type.on_recruit()
         self.set_controlling_minister_type(
-            status.minister_types[constants.PRODUCTION_MINISTER]
+            status.minister_types[constants.INDUSTRY_MINISTER]
         )
 
         if not from_save:
@@ -342,5 +342,5 @@ class church_volunteers(worker):
         input_dict["worker_type"] = status.worker_types[constants.CHURCH_VOLUNTEERS]
         super().__init__(from_save, input_dict)
         self.set_controlling_minister_type(
-            status.minister_types[constants.RELIGION_MINISTER]
+            status.minister_types[constants.HEALTH_AND_ENVIRONMENT_MINISTER]
         )
