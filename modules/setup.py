@@ -503,14 +503,7 @@ def def_ministers():
             ],
         }
     )
-    minister_types.minister_type(
-        {
-            "key": constants.ENERGY_MINISTER,
-            "name": "Minister of Energy",
-            "skill_type": constants.ENERGY_SKILL,
-            "description": ["Energy-oriented units include technicians."],
-        }
-    )
+
     minister_types.minister_type(
         {
             "key": constants.INDUSTRY_MINISTER,
@@ -521,6 +514,16 @@ def def_ministers():
             ],
         }
     )
+
+    minister_types.minister_type(
+        {
+            "key": constants.ENERGY_MINISTER,
+            "name": "Minister of Energy",
+            "skill_type": constants.ENERGY_SKILL,
+            "description": ["Energy-oriented units include technicians."],
+        }
+    )
+
     minister_types.minister_type(
         {
             "key": constants.TRANSPORTATION_MINISTER,
@@ -2691,8 +2694,8 @@ def minister_interface():
         constants.ECOLOGY_SKILL_LABEL,
         constants.TERRAN_AFFAIRS_SKILL_LABEL,
         constants.SCIENCE_SKILL_LABEL,
-        constants.ENERGY_SKILL_LABEL,
         constants.INDUSTRY_SKILL_LABEL,
+        constants.ENERGY_SKILL_LABEL,
         constants.TRANSPORTATION_SKILL_LABEL,
         constants.SECURITY_SKILL_LABEL,
         constants.EVIDENCE_LABEL,
