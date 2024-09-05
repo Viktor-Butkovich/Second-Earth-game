@@ -66,7 +66,6 @@ except Exception:  # displays error message and records error message in crash l
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
-# Add new minister positions
 # Replace group/officer subclasses with unit type classes that each instance can belong to
 # Add astronauts/cosmonauts group with corresponding officer
 # Add support for vehicles being crewed by groups, combining in new interface with any group attaching/detaching, like to mines/factories
