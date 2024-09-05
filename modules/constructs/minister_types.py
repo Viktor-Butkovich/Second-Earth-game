@@ -46,12 +46,12 @@ class minister_type:
         tooltip_text = []
         if self.controls_units:
             tooltip_text.append(
-                f"Whenever you command a {self.skill_type}-oriented unit to do an action, the {self.name} is responsible for executing the action."
+                f"Whenever you command a {self.skill_type.replace('_', ' ')}-oriented unit to do an action, the {self.name} is responsible for executing the action."
             )
         tooltip_text += self.description
         if not minister_utility.get_minister(self.key):
             tooltip_text.append(
-                f"There is currently no {self.name} appointed, so {self.skill_type}-oriented actions are not possible."
+                f"There is currently no {self.name} appointed, so {self.skill_type.replace('_', ' ')}-oriented actions are not possible."
             )
         return tooltip_text
 

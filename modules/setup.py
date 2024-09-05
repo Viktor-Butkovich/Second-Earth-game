@@ -476,12 +476,10 @@ def def_ministers():
     )
     minister_types.minister_type(
         {
-            "key": constants.HEALTH_AND_ENVIRONMENT_MINISTER,
-            "name": "Minister of Health and Environment",
-            "skill_type": constants.HEALTH_AND_ENVIRONMENT_SKILL,
-            "description": [
-                "Health and Environment-oriented units include doctors and terraformers."
-            ],
+            "key": constants.ECOLOGY_MINISTER,
+            "name": "Minister of Ecology",
+            "skill_type": constants.ECOLOGY_SKILL,
+            "description": ["Ecology-oriented units include terraformers and doctors."],
         }
     )
     minister_types.minister_type(
@@ -2690,7 +2688,7 @@ def minister_interface():
         constants.MINISTER_LOYALTY_LABEL,
         constants.MINISTER_ABILITY_LABEL,
         constants.SPACE_SKILL_LABEL,
-        constants.HEALTH_AND_ENVIRONMENT_SKILL_LABEL,
+        constants.ECOLOGY_SKILL_LABEL,
         constants.TERRAN_AFFAIRS_SKILL_LABEL,
         constants.SCIENCE_SKILL_LABEL,
         constants.ENERGY_SKILL_LABEL,
@@ -2701,7 +2699,7 @@ def minister_interface():
     ]:
         if current_actor_label_type in [
             constants.SPACE_SKILL_LABEL,
-            constants.HEALTH_AND_ENVIRONMENT_SKILL_LABEL,
+            constants.ECOLOGY_SKILL_LABEL,
             constants.TERRAN_AFFAIRS_SKILL_LABEL,
             constants.SCIENCE_SKILL_LABEL,
             constants.ENERGY_SKILL_LABEL,

@@ -174,7 +174,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.MINISTER_LOYALTY_LABEL: actor_display_labels.actor_display_label,
             constants.MINISTER_ABILITY_LABEL: actor_display_labels.actor_display_label,
             constants.SPACE_SKILL_LABEL: actor_display_labels.actor_display_label,
-            constants.HEALTH_AND_ENVIRONMENT_SKILL_LABEL: actor_display_labels.actor_display_label,
+            constants.ECOLOGY_SKILL_LABEL: actor_display_labels.actor_display_label,
             constants.TERRAN_AFFAIRS_SKILL_LABEL: actor_display_labels.actor_display_label,
             constants.SCIENCE_SKILL_LABEL: actor_display_labels.actor_display_label,
             constants.ENERGY_SKILL_LABEL: actor_display_labels.actor_display_label,

@@ -342,5 +342,5 @@ class church_volunteers(worker):
         input_dict["worker_type"] = status.worker_types[constants.CHURCH_VOLUNTEERS]
         super().__init__(from_save, input_dict)
         self.set_controlling_minister_type(
-            status.minister_types[constants.HEALTH_AND_ENVIRONMENT_MINISTER]
+            status.minister_types[constants.TERRAN_AFFAIRS_MINISTER]
         )

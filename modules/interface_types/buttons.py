@@ -2203,7 +2203,7 @@ class minister_portrait_image(button):
             else:  # If appointed minister portrait
                 self.tooltip_text = [
                     f"No {self.minister_type.name} is currently appointed.",
-                    f"Without a {self.minister_type.name}, {self.minister_type.skill_type}-oriented actions are not possible",
+                    f"Without a {self.minister_type.name}, {self.minister_type.skill_type.replace('_', ' ')}-oriented actions are not possible",
                 ]
             self.image.set_image(self.default_image_id)
         else:  # If minister icon on strategic mode, no need to show empty minister
