@@ -143,15 +143,20 @@ class pmob(mob):
             None
         """
         super().on_move()
-        if self.get_cell():
-            for cell in [self.get_cell()] + self.get_cell().adjacent_list:
-                if not cell.terrain_handler.knowledge_available(
-                    constants.TERRAIN_KNOWLEDGE
-                ):
+        current_cell = self.get_cell()
+        if current_cell:
+            for cell in [current_cell] + current_cell.adjacent_list:
+                if cell == current_cell:  # Show knowledge 3 about current cell
+                    requirement = constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
+                    category = constants.TERRAIN_PARAMETER_KNOWLEDGE
+                else:  # Show knowledge 2 about adjacent cells
+                    requirement = constants.TERRAIN_KNOWLEDGE_REQUIREMENT
+                    category = constants.TERRAIN_KNOWLEDGE
+                if not cell.terrain_handler.knowledge_available(category):
                     cell.terrain_handler.set_parameter(
                         constants.KNOWLEDGE,
                         max(
-                            constants.TERRAIN_KNOWLEDGE_REQUIREMENT,
+                            requirement,
                             cell.terrain_handler.get_parameter(constants.KNOWLEDGE),
                         ),
                     )

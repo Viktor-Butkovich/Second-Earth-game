@@ -38,10 +38,10 @@ class terrain_manager_template:
             constants.KNOWLEDGE: {
                 1: "orbital view",
                 2: "scouted",
-                3: "surveyed",
-                4: "studied I",
-                5: "studied II",
-                6: "studied III",
+                3: "visited",
+                4: "surveyed",
+                5: "sampled",
+                6: "studied",
             },
             constants.ALTITUDE: {
                 1: "very low",

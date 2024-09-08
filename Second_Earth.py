@@ -67,6 +67,7 @@ except Exception:  # displays error message and records error message in crash l
 
 # Upcoming work queue:
 # Replace group/officer subclasses with unit type classes that each instance can belong to
+# Add building type classes that each instance can belong to
 # Add astronauts/cosmonauts group with corresponding officer
 # Add support for vehicles being crewed by groups, combining in new interface with any group attaching/detaching, like to mines/factories
 #   This allows embarking/disembarking to be part of the reorganization interface
