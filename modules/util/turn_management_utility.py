@@ -42,7 +42,7 @@ def start_enemy_turn():
         None
     """
     reset_mobs("npmobs")
-    # manage_combat() #should probably do reset_mobs, manage_production, etc. after combat completed in a separate function
+    # manage_combat() # Should probably do reset_mobs, manage_production, etc. after combat completed in a separate function
     # the manage_combat function starts the player turn
 
 
@@ -124,7 +124,7 @@ def reset_mobs(mob_type):
         for current_npmob in status.npmob_list:
             current_npmob.reset_movement_points()
             current_npmob.set_permission(constants.DISORGANIZED_PERMISSION, False)
-            # if not current_npmob.creation_turn == constants.turn: #if not created this turn
+            # if not current_npmob.creation_turn == constants.turn: # If not created this turn
             current_npmob.turn_done = False
             status.enemy_turn_queue.append(current_npmob)
     else:

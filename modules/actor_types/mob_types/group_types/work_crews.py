@@ -96,7 +96,7 @@ class work_crew(group):
         value_stolen = 0
         if (
             self.movement_points >= 1
-        ):  # do not attempt production if unit already did something this turn or suffered from attrition #not self.temp_movement_disabled:
+        ):  # Do not attempt production if unit already did something this turn or suffered from attrition # not self.temp_movement_disabled:
             if not building.resource_type in constants.attempted_commodities:
                 constants.attempted_commodities.append(building.resource_type)
             for current_attempt in range(building.efficiency):

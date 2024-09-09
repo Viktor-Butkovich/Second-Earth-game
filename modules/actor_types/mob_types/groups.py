@@ -205,7 +205,7 @@ class group(pmob):
             if self.officer.automatically_replace:
                 text += (
                     self.officer.generate_attrition_replacement_text()
-                )  #'The ' + self.name + ' will remain inactive for the next turn as a replacement is found. /n /n'
+                )  # 'The ' + self.name + ' will remain inactive for the next turn as a replacement is found. /n /n'
                 self.officer.replace(self)
                 self.officer.death_sound()
             else:
@@ -232,7 +232,7 @@ class group(pmob):
             if self.worker.automatically_replace:
                 text += (
                     self.worker.generate_attrition_replacement_text()
-                )  #'The ' + self.name + ' will remain inactive for the next turn as replacements are found.'
+                )  # 'The ' + self.name + ' will remain inactive for the next turn as replacements are found.'
                 self.worker.replace(self)
                 self.worker.death_sound()
             else:

@@ -32,11 +32,11 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         self.actor_type = "tile"
-        self.selection_outline_color = "yellow"  #'bright blue'
+        self.selection_outline_color = "yellow"
         self.actor_match_outline_color = "white"
         input_dict["grids"] = [
             input_dict["grid"]
-        ]  # give actor a 1-item list of grids as input
+        ]  # Give actor a 1-item list of grids as input
         self.name_icon = None
         super().__init__(from_save, input_dict, original_constructor=False)
         self.set_name(input_dict["name"])

@@ -754,7 +754,7 @@ class cell:
         self.contained_mobs = other_cell.contained_mobs
         self.contained_buildings = other_cell.contained_buildings
         other_cell.terrain_handler.add_cell(self)
-        # self.tile.update_image_bundle(override_image=other_cell.tile.image) #correctly copies other cell's image bundle but ends up very pixellated due to size difference
+        # self.tile.update_image_bundle(override_image=other_cell.tile.image) # Correctly copies other cell's image bundle but ends up very pixellated due to size difference
 
     def draw(self):
         """

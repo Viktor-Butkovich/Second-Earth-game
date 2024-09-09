@@ -305,7 +305,6 @@ class interface_collection(interface_element):
                 'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'initial_members' = None: members initially created with this collection
                 'is_info_display' = False: boolean value - Whether this collection is an info display that should automatically maintain a status variable
-                'resize_with_contents' = False: boolean value - Whether this collection should resize its Rect to fit its members
                 'block_height_offset' = False: boolean value - Whether to ignore this collection's height in calculating member y offsets
                     This should be used when a collection needs height to determine the placement of elements after it withotu displacing its own members
         Output:
@@ -317,10 +316,6 @@ class interface_collection(interface_element):
         self.is_info_display = input_dict.get("is_info_display", False)
         if self.is_info_display:
             self.actor_type = input_dict["actor_type"]
-
-        self.resize_with_contents = input_dict.get("resize_with_contents", False)
-        if self.resize_with_contents:
-            self.member_rects = []
 
         self.calibrate_exempt_list = []
 
@@ -454,8 +449,6 @@ class interface_collection(interface_element):
             self.members.append(new_member)
         else:
             self.members.insert(member_config["index"], new_member)
-        if self.resize_with_contents and new_member.Rect:
-            self.member_rects.append(new_member.Rect)
         new_member.set_origin(
             self.x + member_config["x_offset"], self.y + member_config["y_offset"]
         )
@@ -574,19 +567,15 @@ class interface_collection(interface_element):
             return result and not self.minimized
 
     def update_collection(self):
-        if self.resize_with_contents:
-            for member in self.members:
-                if hasattr(member, "members"):
-                    member.update_collection()
-            if len(self.member_rects) > 0:
-                self.Rect.update(
-                    self.member_rects[0].unionall(self.member_rects)
-                )  # self.Rect = self.member_rects[0].unionall(self.member_rects) #Rect.unionall(self.member_rects)
-                if hasattr(self, "image"):
-                    self.x = self.Rect.x
-                    self.image.update_state(
-                        self.image.x, self.image.y, self.Rect.width, self.Rect.height
-                    )
+        """
+        Description:
+            Makes any necessary modifications to members on calibration, if applicable
+        Input:
+            None
+        Output:
+            None
+        """
+        return
 
 
 class autofill_collection(interface_collection):

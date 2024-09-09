@@ -171,7 +171,7 @@ class vehicle(pmob):
                             if current_sub_mob.automatically_replace:
                                 text += (
                                     current_sub_mob.generate_attrition_replacement_text()
-                                )  #'The ' + current_sub_mob.name + ' will remain inactive for the next turn as replacements are found.'
+                                )  # 'The ' + current_sub_mob.name + ' will remain inactive for the next turn as replacements are found.'
                                 current_sub_mob.replace()
                                 current_sub_mob.temp_disable_movement()
                                 current_sub_mob.death_sound("violent")

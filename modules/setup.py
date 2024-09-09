@@ -288,7 +288,7 @@ def misc():
     )
     # anchor = constants.actor_creation_manager.create_interface_element(
     #    {'width': 1, 'height': 1, 'init_type': 'interface element', 'parent_collection': status.info_displays_collection}
-    # ) #rect at original location prevents collection from moving unintentionally when resizing
+    # ) # rect at original location prevents collection from moving unintentionally when resizing
 
 
 def worker_types_config():
@@ -1533,8 +1533,6 @@ def mob_interface():
             "actor_type": "mob",
             "description": "unit information panel",
             "parent_collection": status.info_displays_collection,
-            #'resize_with_contents': True, #need to get resize to work with info displays - would prevent invisible things from taking space
-            # - collection with 5 width/height should still take space because of its member rects - the fact that this is not happening means something about resizing is not working
         }
     )
 

@@ -435,7 +435,7 @@ def manage_lmb_down(clicked_button):
                 or flags.choosing_advertised_commodity
                 or flags.drawing_automatic_route
             )
-        ):  # Do not do selecting operations if user was trying to click a button #and action_possible()
+        ):  # Do not do selecting operations if user was trying to click a button # and action_possible()
             selected_mob = False
             for current_grid in status.grid_list:
                 if current_grid.showing:

@@ -484,7 +484,7 @@ class actor_display_label(label):
                     self.actor_label_type.removesuffix("_label").replace("_", "")
                 )
                 + ": "
-            )  #'worker' -> 'Worker: '
+            )  # 'worker' -> 'Worker: '
         self.calibrate(None)
 
     def add_attached_button(self, input_dict, member_config=None):
