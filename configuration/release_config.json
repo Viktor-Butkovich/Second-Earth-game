@@ -35,7 +35,6 @@
    ],
    "active_effects": [
       "fullscreen",
-      "skip_intro",
       "allow_planet_mask",
       "map_modes",
       "god_mode",

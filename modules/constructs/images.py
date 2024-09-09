@@ -2008,10 +2008,7 @@ class collection_image(button_image):
     def draw(self):
         if self.button.showing:
             self.x = self.button.x
-            self.y = (
-                constants.display_height + self.height - self.button.y
-            )  # + self.height
-            # self.y = constants.display_height + self.button.y - (self.height * 3)
+            self.y = constants.display_height + self.height - self.button.y
             self.complete_draw()
 
 

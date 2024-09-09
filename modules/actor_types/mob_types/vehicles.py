@@ -197,23 +197,9 @@ class vehicle(pmob):
             None
         """
         constants.evil_tracker.change(1)
-        text = (
-            "The "
-            + crew.name
-            + " crewing the "
-            + self.name
-            + " at ("
-            + str(self.x)
-            + ", "
-            + str(self.y)
-            + ") have died from attrition. /n /n "
-        )
+        text += f"The {crew.name} crewing the {self.name} at ({self.x}, {self.y}) have died from attrition. /n /n"
         if crew.automatically_replace:
-            text += (
-                "The "
-                + self.name
-                + " will remain inactive for the next turn as replacements are found. /n /n"
-            )
+            text += f"The {self.name} will remain inactive for the next turn as replacements are found. /n /n"
             crew.replace(self)
             self.temp_disable_movement()
         else:

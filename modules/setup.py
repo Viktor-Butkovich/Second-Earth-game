@@ -78,7 +78,6 @@ def info_displays():
                 ],
                 "init_type": constants.ORDERED_COLLECTION,
                 "description": "general information panel",
-                "resize_with_contents": True,
             }
         )
     )
@@ -257,8 +256,8 @@ def misc():
             "coordinates": scaling.scale_coordinates(
                 constants.grids_collection_x, constants.grids_collection_y
             ),
-            "width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "width": scaling.scale_width(0),
+            "height": scaling.scale_height(0),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.INTERFACE_COLLECTION,
         }
@@ -581,8 +580,8 @@ def value_trackers():
                 "coordinates": scaling.scale_coordinates(
                     250, constants.default_display_height - 5
                 ),
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "modes": [
                     constants.STRATEGIC_MODE,
                     constants.EARTH_MODE,
@@ -1687,8 +1686,8 @@ def mob_interface():
                     tab_collection_relative_coordinates[0],
                     tab_collection_relative_coordinates[1],
                 ),
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.TABBED_COLLECTION,
                 "parent_collection": status.mob_info_display,
                 "member_config": {"order_exempt": True},
@@ -1852,8 +1851,8 @@ def tile_interface():
                     tab_collection_relative_coordinates[0],
                     tab_collection_relative_coordinates[1],
                 ),
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.TABBED_COLLECTION,
                 "parent_collection": status.tile_info_display,
                 "member_config": {"order_exempt": True},
@@ -1916,8 +1915,8 @@ def inventory_interface():
     status.mob_inventory_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
                 "parent_collection": status.mob_tabbed_collection,
                 "member_config": {
@@ -1981,8 +1980,8 @@ def inventory_interface():
     status.mob_inventory_info_display = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
                 "actor_type": "mob_inventory",
@@ -2040,8 +2039,8 @@ def inventory_interface():
     status.tile_inventory_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
                 "parent_collection": status.tile_tabbed_collection,
                 "member_config": {
@@ -2139,8 +2138,8 @@ def inventory_interface():
     status.tile_inventory_info_display = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
                 "actor_type": "tile_inventory",
@@ -2209,8 +2208,8 @@ def settlement_interface():
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(0, 0),
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
                 "parent_collection": status.tile_tabbed_collection,
                 "member_config": {
@@ -2289,8 +2288,8 @@ def terrain_interface():
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(0, 0),
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
                 "parent_collection": status.tile_tabbed_collection,
                 "member_config": {
@@ -2345,10 +2344,10 @@ def unit_organization_interface():
     status.mob_reorganization_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "coordinates": scaling.scale_coordinates(-30, -1 * image_height - 115),
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
-                "init_type": constants.AUTOFILL_COLLECTION,
+                "coordinates": scaling.scale_coordinates(0, -1 * image_height),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
+                "init_type": constants.ORDERED_COLLECTION,
                 "parent_collection": status.mob_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
@@ -2356,7 +2355,22 @@ def unit_organization_interface():
                     "identifier": constants.REORGANIZATION_PANEL,
                 },
                 "description": "unit organization panel",
+                "direction": "vertical",
+            }
+        )
+    )
+
+    status.group_reorganization_collection = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "width": scaling.scale_width(10),
+                "height": scaling.scale_height(3 * image_height),
+                "init_type": constants.AUTOFILL_COLLECTION,
+                "parent_collection": status.mob_reorganization_collection,
                 "direction": "horizontal",
+                "block_height_offset": True,
+                "member_config": {"order_x_offset": lhs_x_offset},
                 "autofill_targets": {"officer": [], "worker": [], "group": []},
             }
         )
@@ -2365,17 +2379,17 @@ def unit_organization_interface():
     # mob background image's tooltip
     lhs_top_tooltip = constants.actor_creation_manager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(lhs_x_offset, 0),
+            "coordinates": scaling.scale_coordinates(0, 0),
             "minimum_width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "image_id": "misc/empty.png",
             "actor_type": "mob",
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
-            "parent_collection": status.mob_reorganization_collection,
+            "parent_collection": status.group_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
         }
     )
-    status.mob_reorganization_collection.autofill_targets["officer"].append(
+    status.group_reorganization_collection.autofill_targets["officer"].append(
         lhs_top_tooltip
     )
 
@@ -2389,33 +2403,31 @@ def unit_organization_interface():
             "actor_image_type": "default",
             "default_image_id": "mobs/default/mock_officer.png",
             "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
-            "parent_collection": status.mob_reorganization_collection,
+            "parent_collection": status.group_reorganization_collection,
             "member_config": {
                 "calibrate_exempt": True,
-                "x_offset": scaling.scale_width(lhs_x_offset),
+                "x_offset": scaling.scale_width(0),
             },
         }
     )
-    status.mob_reorganization_collection.autofill_targets["officer"].append(
+    status.group_reorganization_collection.autofill_targets["officer"].append(
         lhs_top_mob_free_image
     )
 
     # mob background image's tooltip
     lhs_bottom_tooltip = constants.actor_creation_manager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(
-                lhs_x_offset, -1 * (image_height - 5)
-            ),
+            "coordinates": scaling.scale_coordinates(0, -1 * (image_height - 5)),
             "minimum_width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "image_id": "misc/empty.png",
             "actor_type": "mob",
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
-            "parent_collection": status.mob_reorganization_collection,
+            "parent_collection": status.group_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
         }
     )
-    status.mob_reorganization_collection.autofill_targets["worker"].append(
+    status.group_reorganization_collection.autofill_targets["worker"].append(
         lhs_bottom_tooltip
     )
 
@@ -2438,16 +2450,15 @@ def unit_organization_interface():
                 "actor_image_type": "default",
                 "default_image_id": default_image_id,
                 "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
-                "parent_collection": status.mob_reorganization_collection,
+                "parent_collection": status.group_reorganization_collection,
                 "member_config": {
                     "calibrate_exempt": True,
-                    "x_offset": scaling.scale_width(lhs_x_offset),
                     "y_offset": scaling.scale_height(-1 * (image_height - 5)),
                 },
             }
         )
     )
-    status.mob_reorganization_collection.autofill_targets["worker"].append(
+    status.group_reorganization_collection.autofill_targets["worker"].append(
         lhs_bottom_mob_free_image
     )
 
@@ -2461,15 +2472,15 @@ def unit_organization_interface():
             "image_id": "misc/empty.png",
             "actor_type": "mob",
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
-            "parent_collection": status.mob_reorganization_collection,
+            "parent_collection": status.group_reorganization_collection,
             "member_config": {
                 "calibrate_exempt": True,
-                "x_offset": scaling.scale_width(lhs_x_offset + rhs_x_offset),
+                "x_offset": scaling.scale_width(rhs_x_offset),
                 "y_offset": scaling.scale_height(-0.5 * (image_height)),
             },
         }
     )
-    status.mob_reorganization_collection.autofill_targets["group"].append(
+    status.group_reorganization_collection.autofill_targets["group"].append(
         rhs_top_tooltip
     )
 
@@ -2477,18 +2488,14 @@ def unit_organization_interface():
     default_image_id = [
         actor_utility.generate_unit_component_image_id(
             "mobs/default/mock_worker.png", "group left", to_front=True
-        )
-    ]
-    default_image_id.append(
+        ),
         actor_utility.generate_unit_component_image_id(
             "mobs/default/mock_worker.png", "group right", to_front=True
-        )
-    )
-    default_image_id.append(
+        ),
         actor_utility.generate_unit_component_image_id(
             "mobs/default/mock_officer.png", "center", to_front=True
-        )
-    )
+        ),
+    ]
     rhs_top_mob_free_image = constants.actor_creation_manager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, 0),
@@ -2498,15 +2505,15 @@ def unit_organization_interface():
             "actor_image_type": "default",
             "default_image_id": default_image_id,
             "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
-            "parent_collection": status.mob_reorganization_collection,
+            "parent_collection": status.group_reorganization_collection,
             "member_config": {
                 "calibrate_exempt": True,
-                "x_offset": scaling.scale_width(lhs_x_offset + rhs_x_offset),
+                "x_offset": scaling.scale_width(rhs_x_offset),
                 "y_offset": scaling.scale_height(-0.5 * (image_height)),
             },
         }
     )
-    status.mob_reorganization_collection.autofill_targets["group"].append(
+    status.group_reorganization_collection.autofill_targets["group"].append(
         rhs_top_mob_free_image
     )
 
@@ -2515,13 +2522,13 @@ def unit_organization_interface():
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(
-                    lhs_x_offset + rhs_x_offset - 60 - 15,
+                    rhs_x_offset - 60 - 15,
                     -1 * (image_height - 15) + 40 - 15 + 30 + 5,
                 ),
                 "width": scaling.scale_width(60),
                 "height": scaling.scale_height(25),
                 "init_type": constants.REORGANIZE_UNIT_BUTTON,
-                "parent_collection": status.mob_reorganization_collection,
+                "parent_collection": status.group_reorganization_collection,
                 "image_id": "buttons/cycle_units_button.png",
                 "allowed_procedures": [
                     constants.MERGE_PROCEDURE,
@@ -2538,13 +2545,13 @@ def unit_organization_interface():
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(
-                    lhs_x_offset + rhs_x_offset - 60 - 15,
+                    rhs_x_offset - 60 - 15,
                     -1 * (image_height - 15) + 40 - 15 + 5,
                 ),
                 "width": scaling.scale_width(60),
                 "height": scaling.scale_height(25),
                 "init_type": constants.REORGANIZE_UNIT_BUTTON,
-                "parent_collection": status.mob_reorganization_collection,
+                "parent_collection": status.group_reorganization_collection,
                 "image_id": "buttons/cycle_units_reverse_button.png",
                 "allowed_procedures": [
                     constants.SPLIT_PROCEDURE,
@@ -2558,12 +2565,12 @@ def unit_organization_interface():
 
     input_dict = {
         "coordinates": scaling.scale_coordinates(
-            lhs_x_offset - 35, -1 * (image_height - 15) + 95 - 35 / 2
+            35, -1 * (image_height - 15) + 95 - 35 / 2
         ),
         "width": scaling.scale_width(30),
         "height": scaling.scale_height(30),
         "init_type": constants.CYCLE_AUTOFILL_BUTTON,
-        "parent_collection": status.mob_reorganization_collection,
+        "parent_collection": status.group_reorganization_collection,
         "image_id": "buttons/reset_button.png",
         "autofill_target_type": "officer",
     }
@@ -2573,7 +2580,7 @@ def unit_organization_interface():
 
     input_dict = {
         "coordinates": scaling.scale_coordinates(
-            lhs_x_offset - 35, -1 * (image_height - 15) + 25 - 35 / 2
+            -35, -1 * (image_height - 15) + 25 - 35 / 2
         ),
         "width": input_dict["width"],  # copies most attributes from previous button
         "height": input_dict["height"],
@@ -2584,6 +2591,48 @@ def unit_organization_interface():
     }
     cycle_autofill_worker_button = (
         constants.actor_creation_manager.create_interface_element(input_dict)
+    )
+
+
+def vehicle_organization_interface():
+    """
+    Description:
+        Initializes the vehicle organization interface as a subsection of the mob reorganization collection
+    Input:
+        None
+    Output:
+        None
+    """
+    image_height = 75
+    lhs_x_offset = 35
+    rhs_x_offset = image_height + 80
+    status.vehicle_reorganization_collection = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
+                "init_type": constants.AUTOFILL_COLLECTION,
+                "parent_collection": status.mob_reorganization_collection,
+                "direction": "vertical",
+                "autofill_targets": {"officer": [], "worker": [], "group": []},
+                "member_config": {
+                    "calibrate_exempt": True,
+                    "order_x_offset": lhs_x_offset,
+                },
+            }
+        )
+    )
+
+    test_vehicle_image = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "width": scaling.scale_width(125),
+            "height": scaling.scale_height(125),
+            "image_id": "misc/default_notification.png",
+            "init_type": constants.FREE_IMAGE,
+            "parent_collection": status.vehicle_reorganization_collection,
+        }
     )
 
 

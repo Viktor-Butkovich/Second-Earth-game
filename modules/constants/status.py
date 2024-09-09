@@ -12,6 +12,7 @@ from modules.interface_types.interface_elements import (
     interface_collection,
     tabbed_collection,
     ordered_collection,
+    autofill_collection,
 )
 from modules.interface_types.inventory_interface import inventory_grid
 from modules.interface_types.grids import grid, mini_grid, abstract_grid
@@ -108,6 +109,8 @@ tile_tabbed_collection: tabbed_collection = None
 mob_inventory_collection: ordered_collection = None
 tile_inventory_collection: ordered_collection = None
 mob_reorganization_collection: ordered_collection = None
+group_reorganization_collection: autofill_collection = None
+vehicle_reorganization_collection: autofill_collection = None
 settlement_collection: ordered_collection = None
 terrain_collection: ordered_collection = None
 commodity_prices_label: commodity_prices_label_template = None

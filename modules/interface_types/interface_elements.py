@@ -304,19 +304,21 @@ class interface_collection(interface_element):
                 'modes': string list value - Game modes during which this element can appear
                 'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'initial_members' = None: members initially created with this collection
+                'is_info_display' = False: boolean value - Whether this collection is an info display that should automatically maintain a status variable
+                'resize_with_contents' = False: boolean value - Whether this collection should resize its Rect to fit its members
+                'block_height_offset' = False: boolean value - Whether to ignore this collection's height in calculating member y offsets
+                    This should be used when a collection needs height to determine the placement of elements after it withotu displacing its own members
         Output:
             None
         """
         self.members = []
         self.minimized = False
+        self.block_height_offset = input_dict.get("block_height_offset", False)
         self.is_info_display = input_dict.get("is_info_display", False)
         if self.is_info_display:
             self.actor_type = input_dict["actor_type"]
 
-        input_dict["resize_with_contents"] = input_dict.get(
-            "resize_with_contents", False
-        )
-        self.resize_with_contents = input_dict["resize_with_contents"]
+        self.resize_with_contents = input_dict.get("resize_with_contents", False)
         if self.resize_with_contents:
             self.member_rects = []
 
@@ -420,7 +422,7 @@ class interface_collection(interface_element):
                 else:
                     member.calibrate(new_actor)
         if self.is_info_display:
-            setattr(status, "displayed_" + self.actor_type, new_actor)
+            setattr(status, f"displayed_{self.actor_type}", new_actor)
 
     def add_member(self, new_member, member_config=None):
         """
@@ -438,6 +440,8 @@ class interface_collection(interface_element):
 
         member_config["x_offset"] = member_config.get("x_offset", 0)
         member_config["y_offset"] = member_config.get("y_offset", 0)
+        if self.block_height_offset:
+            member_config["y_offset"] += self.height
         member_config["calibrate_exempt"] = member_config.get("calibrate_exempt", False)
 
         if not new_member.has_parent_collection:

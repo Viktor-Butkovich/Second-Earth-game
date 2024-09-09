@@ -23,6 +23,7 @@ try:
         mob_interface,
         tile_interface,
         unit_organization_interface,
+        vehicle_organization_interface,
         settlement_interface,
         terrain_interface,
         inventory_interface,
@@ -45,6 +46,7 @@ except Exception:  # displays error message and records error message in crash l
 
 #
 #   new SE features:
+# Strange issue - in non-ordered collections, height of collection incorrectly affects y positions of elements, and without any apparent modification to their y values
 # Continue adding hairstyles
 # Minister table_map_image not using smart green screens, probably because it directly uses tile image ID
 # Add new unit art
@@ -66,6 +68,7 @@ except Exception:  # displays error message and records error message in crash l
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
+# Add new vehicle interface for crew/embark procedures, only appears if vehicle present
 # Replace group/officer subclasses with unit type classes that each instance can belong to
 # Add building type classes that each instance can belong to
 # Add astronauts/cosmonauts group with corresponding officer
