@@ -52,21 +52,11 @@ class equipment_type:
         if modifier != 0 and constants.effect_manager.effect_active("show_modifiers"):
             if modifier > 0:
                 print(
-                    self.equipment_type
-                    + " gave modifier of +"
-                    + str(modifier)
-                    + " to "
-                    + action_type
-                    + " roll"
+                    f"{self.equipment_type} gave modifier of +{modifier} to {action_type} roll"
                 )
             else:
                 print(
-                    self.equipment_type
-                    + " gave modifier of "
-                    + str(modifier)
-                    + " to "
-                    + action_type
-                    + " roll"
+                    f"{self.equipment_type} gave modifier of {modifier} to {action_type} roll"
                 )
         return modifier
 

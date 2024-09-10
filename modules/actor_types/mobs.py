@@ -126,7 +126,9 @@ class mob(actor):
         """
         return
 
-    def set_permission(self, task: str, value: Any, override: bool = False) -> None:
+    def set_permission(
+        self, task: str, value: Any, override: bool = False, update_image: bool = True
+    ) -> None:
         """
         Description:
             Sets the permission this mob has to perform the inputted task
@@ -134,6 +136,7 @@ class mob(actor):
             string task: Task for which to set permission
             Any value: Permission value to set for the inputted task, deleting the permission if None
             boolean override: Whether to modify override permissions or default permissions
+            boolean update_image: Whether to update the image bundle and tooltip after setting the permission
         Output:
             None
         """
@@ -152,6 +155,7 @@ class mob(actor):
             previous_effect != self.get_permission(task)
             and self.get_permission(constants.INIT_COMPLETE_PERMISSION)
             and not self.get_permission(constants.DUMMY_PERMISSION)
+            and update_image
         ):
             self.update_image_bundle()
             self.update_tooltip()

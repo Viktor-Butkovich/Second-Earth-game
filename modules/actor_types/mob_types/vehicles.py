@@ -92,13 +92,29 @@ class vehicle(pmob):
         """
         self.crew = new_crew
         if new_crew:
-            self.set_permission(constants.ACTIVE_PERMISSION, True, override=True)
+            self.set_permission(
+                constants.ACTIVE_PERMISSION, True, override=True, update_image=False
+            )
+            self.set_permission(
+                constants.ACTIVE_VEHICLE_PERMISSION,
+                True,
+                override=True,
+                update_image=False,
+            )
             self.set_permission(
                 constants.INACTIVE_VEHICLE_PERMISSION, None, override=True
             )
             self.set_inventory_capacity(27)
         else:
-            self.set_permission(constants.ACTIVE_PERMISSION, None, override=True)
+            self.set_permission(
+                constants.ACTIVE_PERMISSION, None, override=True, update_image=False
+            )
+            self.set_permission(
+                constants.ACTIVE_VEHICLE_PERMISSION,
+                None,
+                override=True,
+                update_image=False,
+            )
             self.set_permission(
                 constants.INACTIVE_VEHICLE_PERMISSION, True, override=True
             )

@@ -170,6 +170,9 @@ class choice_button(buttons.button):
             case constants.CHOICE_END_TURN_BUTTON:
                 self.message = "End turn"
 
+            case constants.CHOICE_FIRE_BUTTON:
+                self.message = "Fire"
+
             case None:
                 self.message = "Cancel"
 

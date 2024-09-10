@@ -2369,7 +2369,15 @@ def unit_organization_interface():
                 "direction": "horizontal",
                 "block_height_offset": True,
                 "member_config": {"order_x_offset": lhs_x_offset},
-                "autofill_targets": {"officer": [], "worker": [], "group": []},
+                "allowed_procedures": [
+                    constants.MERGE_PROCEDURE,
+                    constants.SPLIT_PROCEDURE,
+                ],
+                "autofill_targets": {
+                    constants.OFFICER_PERMISSION: [],
+                    constants.WORKER_PERMISSION: [],
+                    constants.GROUP_PERMISSION: [],
+                },
             }
         )
     )
@@ -2387,9 +2395,9 @@ def unit_organization_interface():
             "member_config": {"calibrate_exempt": True},
         }
     )
-    status.group_reorganization_collection.autofill_targets["officer"].append(
-        lhs_top_tooltip
-    )
+    status.group_reorganization_collection.autofill_targets[
+        constants.OFFICER_PERMISSION
+    ].append(lhs_top_tooltip)
 
     # mob image
     lhs_top_mob_free_image = constants.actor_creation_manager.create_interface_element(
@@ -2408,9 +2416,9 @@ def unit_organization_interface():
             },
         }
     )
-    status.group_reorganization_collection.autofill_targets["officer"].append(
-        lhs_top_mob_free_image
-    )
+    status.group_reorganization_collection.autofill_targets[
+        constants.OFFICER_PERMISSION
+    ].append(lhs_top_mob_free_image)
 
     # mob background image's tooltip
     lhs_bottom_tooltip = constants.actor_creation_manager.create_interface_element(
@@ -2425,9 +2433,9 @@ def unit_organization_interface():
             "member_config": {"calibrate_exempt": True},
         }
     )
-    status.group_reorganization_collection.autofill_targets["worker"].append(
-        lhs_bottom_tooltip
-    )
+    status.group_reorganization_collection.autofill_targets[
+        constants.WORKER_PERMISSION
+    ].append(lhs_bottom_tooltip)
 
     # mob image
     default_image_id = [
@@ -2456,9 +2464,9 @@ def unit_organization_interface():
             }
         )
     )
-    status.group_reorganization_collection.autofill_targets["worker"].append(
-        lhs_bottom_mob_free_image
-    )
+    status.group_reorganization_collection.autofill_targets[
+        constants.WORKER_PERMISSION
+    ].append(lhs_bottom_mob_free_image)
 
     # right side
     # mob background image's tooltip
@@ -2478,9 +2486,9 @@ def unit_organization_interface():
             },
         }
     )
-    status.group_reorganization_collection.autofill_targets["group"].append(
-        rhs_top_tooltip
-    )
+    status.group_reorganization_collection.autofill_targets[
+        constants.GROUP_PERMISSION
+    ].append(rhs_top_tooltip)
 
     # mob image
     default_image_id = [
@@ -2511,12 +2519,12 @@ def unit_organization_interface():
             },
         }
     )
-    status.group_reorganization_collection.autofill_targets["group"].append(
-        rhs_top_mob_free_image
-    )
+    status.group_reorganization_collection.autofill_targets[
+        constants.GROUP_PERMISSION
+    ].append(rhs_top_mob_free_image)
 
     # reorganize unit to right button
-    status.reorganize_unit_right_button = (
+    status.reorganize_group_right_button = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(
@@ -2530,7 +2538,6 @@ def unit_organization_interface():
                 "image_id": "buttons/cycle_units_button.png",
                 "allowed_procedures": [
                     constants.MERGE_PROCEDURE,
-                    constants.CREW_PROCEDURE,
                 ],
                 "keybind_id": pygame.K_m,
                 "enable_shader": True,
@@ -2539,7 +2546,7 @@ def unit_organization_interface():
     )
 
     # reorganize unit to left button
-    status.reorganize_unit_left_button = (
+    status.reorganize_group_left_button = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(
@@ -2553,7 +2560,6 @@ def unit_organization_interface():
                 "image_id": "buttons/cycle_units_reverse_button.png",
                 "allowed_procedures": [
                     constants.SPLIT_PROCEDURE,
-                    constants.UNCREW_PROCEDURE,
                 ],
                 "keybind_id": pygame.K_n,
                 "enable_shader": True,
@@ -2563,14 +2569,14 @@ def unit_organization_interface():
 
     input_dict = {
         "coordinates": scaling.scale_coordinates(
-            35, -1 * (image_height - 15) + 95 - 35 / 2
+            35 - image_height, -1 * (image_height - 15) + 95 - 35 / 2
         ),
         "width": scaling.scale_width(30),
         "height": scaling.scale_height(30),
         "init_type": constants.CYCLE_AUTOFILL_BUTTON,
         "parent_collection": status.group_reorganization_collection,
         "image_id": "buttons/reset_button.png",
-        "autofill_target_type": "officer",
+        "autofill_target_type": constants.OFFICER_PERMISSION,
     }
     cycle_autofill_officer_button = (
         constants.actor_creation_manager.create_interface_element(input_dict)
@@ -2578,14 +2584,14 @@ def unit_organization_interface():
 
     input_dict = {
         "coordinates": scaling.scale_coordinates(
-            -35, -1 * (image_height - 15) + 25 - 35 / 2
+            35 - image_height, -1 * (image_height - 15) + 25 - 35 / 2
         ),
         "width": input_dict["width"],  # copies most attributes from previous button
         "height": input_dict["height"],
         "init_type": input_dict["init_type"],
         "parent_collection": input_dict["parent_collection"],
         "image_id": input_dict["image_id"],
-        "autofill_target_type": "worker",
+        "autofill_target_type": constants.WORKER_PERMISSION,
     }
     cycle_autofill_worker_button = (
         constants.actor_creation_manager.create_interface_element(input_dict)
@@ -2612,25 +2618,234 @@ def vehicle_organization_interface():
                 "height": scaling.scale_height(0),
                 "init_type": constants.AUTOFILL_COLLECTION,
                 "parent_collection": status.mob_reorganization_collection,
-                "direction": "vertical",
-                "autofill_targets": {"officer": [], "worker": [], "group": []},
-                "member_config": {
-                    "calibrate_exempt": True,
-                    "order_x_offset": lhs_x_offset,
+                "direction": "horizontal",
+                "member_config": {"order_x_offset": lhs_x_offset},
+                "allowed_procedures": [
+                    constants.CREW_PROCEDURE,
+                    constants.UNCREW_PROCEDURE,
+                ],
+                "autofill_targets": {
+                    constants.INACTIVE_VEHICLE_PERMISSION: [],
+                    constants.EUROPEAN_WORKERS_PERMISSION: [],
+                    constants.ACTIVE_VEHICLE_PERMISSION: [],
                 },
             }
         )
     )
 
-    test_vehicle_image = constants.actor_creation_manager.create_interface_element(
+    # mob background image's tooltip
+    lhs_top_tooltip = constants.actor_creation_manager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, 0),
-            "width": scaling.scale_width(125),
-            "height": scaling.scale_height(125),
-            "image_id": "misc/default_notification.png",
-            "init_type": constants.FREE_IMAGE,
+            "minimum_width": scaling.scale_width(image_height - 10),
+            "height": scaling.scale_height(image_height - 10),
+            "image_id": "misc/empty.png",
+            "actor_type": "mob",
+            "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.vehicle_reorganization_collection,
+            "member_config": {"calibrate_exempt": True},
         }
+    )
+    status.vehicle_reorganization_collection.autofill_targets[
+        constants.INACTIVE_VEHICLE_PERMISSION
+    ].append(lhs_top_tooltip)
+
+    # mob image
+    lhs_top_mob_free_image = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "width": scaling.scale_width(image_height - 10),
+            "height": scaling.scale_height(image_height - 10),
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            "actor_image_type": "default",
+            "default_image_id": "mobs/default/mock_officer.png",
+            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+            "parent_collection": status.vehicle_reorganization_collection,
+            "member_config": {
+                "calibrate_exempt": True,
+                "x_offset": scaling.scale_width(0),
+            },
+        }
+    )
+    status.vehicle_reorganization_collection.autofill_targets[
+        constants.INACTIVE_VEHICLE_PERMISSION
+    ].append(lhs_top_mob_free_image)
+
+    # mob background image's tooltip
+    lhs_bottom_tooltip = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, -1 * (image_height - 5)),
+            "minimum_width": scaling.scale_width(image_height - 10),
+            "height": scaling.scale_height(image_height - 10),
+            "image_id": "misc/empty.png",
+            "actor_type": "mob",
+            "init_type": constants.ACTOR_TOOLTIP_LABEL,
+            "parent_collection": status.vehicle_reorganization_collection,
+            "member_config": {"calibrate_exempt": True},
+        }
+    )
+    status.vehicle_reorganization_collection.autofill_targets[
+        constants.EUROPEAN_WORKERS_PERMISSION
+    ].append(lhs_bottom_tooltip)
+
+    # mob image
+    default_image_id = [
+        actor_utility.generate_unit_component_image_id(
+            "mobs/default/mock_worker.png", "left", to_front=True
+        ),
+        actor_utility.generate_unit_component_image_id(
+            "mobs/default/mock_worker.png", "right", to_front=True
+        ),
+    ]
+    lhs_bottom_mob_free_image = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "width": scaling.scale_width(image_height - 10),
+                "height": scaling.scale_height(image_height - 10),
+                "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+                "actor_image_type": "default",
+                "default_image_id": default_image_id,
+                "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+                "parent_collection": status.vehicle_reorganization_collection,
+                "member_config": {
+                    "calibrate_exempt": True,
+                    "y_offset": scaling.scale_height(-1 * (image_height - 5)),
+                },
+            }
+        )
+    )
+    status.vehicle_reorganization_collection.autofill_targets[
+        constants.EUROPEAN_WORKERS_PERMISSION
+    ].append(lhs_bottom_mob_free_image)
+
+    # right side
+    # mob background image's tooltip
+    rhs_top_tooltip = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "minimum_width": scaling.scale_width(image_height - 10),
+            "height": scaling.scale_height(image_height - 10),
+            "image_id": "misc/empty.png",
+            "actor_type": "mob",
+            "init_type": constants.ACTOR_TOOLTIP_LABEL,
+            "parent_collection": status.vehicle_reorganization_collection,
+            "member_config": {
+                "calibrate_exempt": True,
+                "x_offset": scaling.scale_width(rhs_x_offset),
+                "y_offset": scaling.scale_height(-0.5 * (image_height)),
+            },
+        }
+    )
+    status.vehicle_reorganization_collection.autofill_targets[
+        constants.ACTIVE_VEHICLE_PERMISSION
+    ].append(rhs_top_tooltip)
+
+    # mob image
+    default_image_id = [
+        actor_utility.generate_unit_component_image_id(
+            "mobs/default/mock_worker.png", "group left", to_front=True
+        ),
+        actor_utility.generate_unit_component_image_id(
+            "mobs/default/mock_worker.png", "group right", to_front=True
+        ),
+        actor_utility.generate_unit_component_image_id(
+            "mobs/default/mock_officer.png", "center", to_front=True
+        ),
+    ]
+    rhs_top_mob_free_image = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "width": scaling.scale_width(image_height - 10),
+            "height": scaling.scale_height(image_height - 10),
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            "actor_image_type": "default",
+            "default_image_id": default_image_id,
+            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+            "parent_collection": status.vehicle_reorganization_collection,
+            "member_config": {
+                "calibrate_exempt": True,
+                "x_offset": scaling.scale_width(rhs_x_offset),
+                "y_offset": scaling.scale_height(-0.5 * (image_height)),
+            },
+        }
+    )
+    status.vehicle_reorganization_collection.autofill_targets[
+        constants.ACTIVE_VEHICLE_PERMISSION
+    ].append(rhs_top_mob_free_image)
+
+    # reorganize unit to right button
+    status.reorganize_vehicle_right_button = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(
+                    rhs_x_offset - 60 - 15,
+                    -1 * (image_height - 15) + 40 - 15 + 30 + 5,
+                ),
+                "width": scaling.scale_width(60),
+                "height": scaling.scale_height(25),
+                "init_type": constants.REORGANIZE_UNIT_BUTTON,
+                "parent_collection": status.vehicle_reorganization_collection,
+                "image_id": "buttons/cycle_units_button.png",
+                "allowed_procedures": [
+                    constants.CREW_PROCEDURE,
+                ],
+                "keybind_id": pygame.K_b,
+                "enable_shader": True,
+            }
+        )
+    )
+
+    # reorganize unit to left button
+    status.reorganize_vehicle_left_button = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(
+                    rhs_x_offset - 60 - 15,
+                    -1 * (image_height - 15) + 40 - 15 + 5,
+                ),
+                "width": scaling.scale_width(60),
+                "height": scaling.scale_height(25),
+                "init_type": constants.REORGANIZE_UNIT_BUTTON,
+                "parent_collection": status.vehicle_reorganization_collection,
+                "image_id": "buttons/cycle_units_reverse_button.png",
+                "allowed_procedures": [
+                    constants.UNCREW_PROCEDURE,
+                ],
+                "keybind_id": pygame.K_v,
+                "enable_shader": True,
+            }
+        )
+    )
+
+    input_dict = {
+        "coordinates": scaling.scale_coordinates(
+            35 - image_height, -1 * (image_height - 15) + 95 - 35 / 2
+        ),
+        "width": scaling.scale_width(30),
+        "height": scaling.scale_height(30),
+        "init_type": constants.CYCLE_AUTOFILL_BUTTON,
+        "parent_collection": status.vehicle_reorganization_collection,
+        "image_id": "buttons/reset_button.png",
+        "autofill_target_type": constants.INACTIVE_VEHICLE_PERMISSION,
+    }
+    cycle_autofill_vehicle_button = (
+        constants.actor_creation_manager.create_interface_element(input_dict)
+    )
+
+    input_dict = {
+        "coordinates": scaling.scale_coordinates(
+            35 - image_height, -1 * (image_height - 15) + 25 - 35 / 2
+        ),
+        "width": input_dict["width"],  # copies most attributes from previous button
+        "height": input_dict["height"],
+        "init_type": input_dict["init_type"],
+        "parent_collection": input_dict["parent_collection"],
+        "image_id": input_dict["image_id"],
+        "autofill_target_type": constants.EUROPEAN_WORKERS_PERMISSION,
+    }
+    cycle_autofill_crew_button = (
+        constants.actor_creation_manager.create_interface_element(input_dict)
     )
 
 

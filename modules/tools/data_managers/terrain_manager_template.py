@@ -506,10 +506,6 @@ class terrain_handler:
         self.terrain_features: Dict[str, bool] = {}
         for key, value in input_dict.get("terrain_features", {}).items():
             self.add_terrain_feature(value)
-        # if not input_dict: # If not from save, set all parameters for proper initialization
-        #     print("initializing")
-        #     for terrain_parameter in self.terrain_parameters:
-        #         self.set_parameter(terrain_parameter, self.get_parameter(terrain_parameter))
 
     def add_terrain_feature(self, terrain_feature_dict: Dict[str, Any]) -> None:
         """

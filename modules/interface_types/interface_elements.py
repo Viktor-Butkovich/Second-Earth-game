@@ -595,15 +595,17 @@ class autofill_collection(interface_collection):
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
                 'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'autofill target': dict value - Dictionary with lists of the elements to calibrate to each autofill target type, like {'officer': [...], 'group': [...]}
+                'allowed_procedures': string list value - Types of procedures this autofill collection can perform
+                'autofill_targets': dict value - Dictionary with lists of the elements to calibrate to each autofill target type, like {'officer': [...], 'group': [...]}
         Output:
             None
         """
+        self.allowed_procedures = input_dict["allowed_procedures"]
         self.autofill_targets = input_dict["autofill_targets"]
         self.autofill_actors = {}
         for autofill_target_type in self.autofill_targets:
             self.autofill_actors[autofill_target_type] = None
-        self.autofill_actors["procedure"] = None
+        self.autofill_actors[constants.AUTOFILL_PROCEDURE] = None
         self.search_start_index = 0
         super().__init__(input_dict)
 
@@ -618,12 +620,16 @@ class autofill_collection(interface_collection):
         """
         # search start index may be changed by cycle autofill buttons between calibrates
         self.autofill_actors = dummy_utility.generate_autofill_actors(
-            search_start_index=self.search_start_index
+            allowed_procedures=self.allowed_procedures,
+            targets=self.autofill_targets.keys(),
+            search_start_index=self.search_start_index,
         )
         for autofill_target_type in self.autofill_targets:
             for autofill_target in self.autofill_targets[autofill_target_type]:
                 # eg. generate autofill actors gives back a dummy officer, which all autofill targets that accept officers then calibrate to, repeat for worker/group targets
-                autofill_target.calibrate(self.autofill_actors[autofill_target_type])
+                autofill_target.calibrate(
+                    self.autofill_actors.get(autofill_target_type, None)
+                )
         super().calibrate(new_actor, override_exempt)
         self.search_start_index = 0
 

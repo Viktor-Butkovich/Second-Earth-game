@@ -1,11 +1,39 @@
 # Contains utility functions for setting up reorganization interface with correct dummy units for merge/split procedures
 
+from typing import List
 from . import actor_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 
 
-def generate_autofill_actors(search_start_index=0):
+required_dummy_attributes = [
+    "name",
+    "default_permissions",
+    "override_permissions",
+    "has_infinite_movement",
+    "crew",
+    "movement_points",
+    "max_movement_points",
+    "inventory_capacity",
+    "inventory",
+    "equipment",
+    "contained_mobs",
+    "temp_movement_disabled",
+    "sentry_mode",
+    "base_automatic_route",
+    "end_turn_destination",
+    "officer",
+    "worker",
+    "group_type",
+    "battalion_type",
+]
+
+
+def generate_autofill_actors(
+    allowed_procedures: List[str] = None,
+    targets: List[str] = None,
+    search_start_index=0,
+) -> dict:
     """
     Description:
         Based on the currently displayed mob and the other mobs in its tile, determine a possible merge/split procedure and find/create dummy versions of the other mobs
@@ -16,36 +44,10 @@ def generate_autofill_actors(search_start_index=0):
         dict: Generates and returns dictionary with 'worker', 'officer', 'group', and 'procedure' entries corresponding to None or a dummy/actual unit of that type that
         would be involved in the determined merge/split procedure
     """
-    return_dict = {
-        "worker": None,
-        "officer": None,
-        "group": None,
-        "procedure": None,
-    }
-    displayed_mob = status.displayed_mob
-    if displayed_mob and displayed_mob.get_permission(constants.PMOB_PERMISSION):
-        required_dummy_attributes = [
-            "name",
-            "default_permissions",
-            "override_permissions",
-            "has_infinite_movement",
-            "crew",
-            "movement_points",
-            "max_movement_points",
-            "inventory_capacity",
-            "inventory",
-            "equipment",
-            "contained_mobs",
-            "temp_movement_disabled",
-            "sentry_mode",
-            "base_automatic_route",
-            "end_turn_destination",
-            "officer",
-            "worker",
-            "group_type",
-            "battalion_type",
-        ]
-
+    return_dict = {constants.AUTOFILL_PROCEDURE: None}
+    if status.displayed_mob and status.displayed_mob.get_permission(
+        constants.PMOB_PERMISSION
+    ):
         dummy_input_dict = {
             "actor_type": "mob",
             "in_vehicle": False,
@@ -56,59 +58,121 @@ def generate_autofill_actors(search_start_index=0):
             ],
         }
 
-        if displayed_mob.any_permissions(
-            constants.WORKER_PERMISSION,
-            constants.OFFICER_PERMISSION,
-            constants.INACTIVE_VEHICLE_PERMISSION,
-        ):
-            if displayed_mob.get_permission(constants.WORKER_PERMISSION):
-                return_dict["worker"] = displayed_mob
-                return_dict["officer"] = displayed_mob.images[
-                    0
-                ].current_cell.get_officer(start_index=search_start_index)
-            else:
-                return_dict["officer"] = displayed_mob
-                return_dict["worker"] = displayed_mob.get_cell().get_worker(
-                    start_index=search_start_index
-                )
+        for target in targets:
+            if status.displayed_mob.get_permission(target):
+                if constants.MERGE_PROCEDURE in allowed_procedures and target in [
+                    constants.WORKER_PERMISSION,
+                    constants.OFFICER_PERMISSION,
+                ]:
+                    return_dict[target] = status.displayed_mob
+                    if target == constants.WORKER_PERMISSION:
+                        # If a worker selected, find an officer if present and make a dummy group
+                        return_dict[
+                            constants.OFFICER_PERMISSION
+                        ] = status.displayed_mob.get_cell().get_officer(
+                            start_index=search_start_index, allow_vehicles=False
+                        )
+                    elif target == constants.OFFICER_PERMISSION:
+                        # If an officer selected, find a worker if present and make a dummy group
+                        return_dict[
+                            constants.WORKER_PERMISSION
+                        ] = status.displayed_mob.get_cell().get_worker(
+                            start_index=search_start_index
+                        )
+                    if (
+                        return_dict[constants.WORKER_PERMISSION]
+                        and return_dict[constants.OFFICER_PERMISSION]
+                    ):
+                        # If officer and worker present
+                        return_dict[constants.GROUP_PERMISSION] = simulate_merge(
+                            return_dict[constants.OFFICER_PERMISSION],
+                            return_dict[constants.WORKER_PERMISSION],
+                            required_dummy_attributes,
+                            dummy_input_dict,
+                        )
+                    return_dict[
+                        constants.AUTOFILL_PROCEDURE
+                    ] = constants.MERGE_PROCEDURE
 
-            if return_dict["worker"] and return_dict["officer"]:
-                if return_dict["officer"].get_permission(constants.OFFICER_PERMISSION):
-                    return_dict["group"] = simulate_merge(
-                        return_dict["officer"],
-                        return_dict["worker"],
-                        required_dummy_attributes,
-                        dummy_input_dict,
-                    )
-                    return_dict["procedure"] = constants.MERGE_PROCEDURE
-                elif return_dict["officer"].get_permission(
-                    constants.VEHICLE_PERMISSION
+                elif (
+                    constants.SPLIT_PROCEDURE in allowed_procedures
+                    and target == constants.GROUP_PERMISSION
                 ):
-                    return_dict["group"] = simulate_crew(
-                        return_dict["officer"],
-                        return_dict["worker"],
+                    return_dict[target] = status.displayed_mob
+                    # If a group selected, split into dummy officer and worker
+                    (
+                        return_dict[constants.OFFICER_PERMISSION],
+                        return_dict[constants.WORKER_PERMISSION],
+                    ) = simulate_split(
+                        status.displayed_mob,
                         required_dummy_attributes,
                         dummy_input_dict,
                     )
-                    return_dict["procedure"] = constants.CREW_PROCEDURE
+                    return_dict[
+                        constants.AUTOFILL_PROCEDURE
+                    ] = constants.SPLIT_PROCEDURE
 
-        elif displayed_mob.get_permission(
-            constants.GROUP_PERMISSION
-        ) or displayed_mob.all_permissions(
-            constants.VEHICLE_PERMISSION, constants.ACTIVE_PERMISSION
-        ):
-            return_dict["group"] = displayed_mob
+                elif constants.CREW_PROCEDURE in allowed_procedures and target in [
+                    constants.EUROPEAN_WORKERS_PERMISSION,
+                    constants.INACTIVE_VEHICLE_PERMISSION,
+                ]:
+                    return_dict[target] = status.displayed_mob
+                    if target == constants.EUROPEAN_WORKERS_PERMISSION:
+                        # If a crew selected, find an uncrewed vehicle if present and make a dummy crewed vehicle
+                        return_dict[
+                            constants.INACTIVE_VEHICLE_PERMISSION
+                        ] = status.displayed_mob.get_cell().get_uncrewed_vehicle(
+                            start_index=search_start_index
+                        )
+                    elif target == constants.INACTIVE_VEHICLE_PERMISSION:
+                        # If a vehicle selected, find a crew if present and make a dummy crewed vehicle
+                        return_dict[
+                            constants.EUROPEAN_WORKERS_PERMISSION
+                        ] = status.displayed_mob.get_cell().get_worker(
+                            start_index=search_start_index,
+                            possible_types=[
+                                status.worker_types[constants.EUROPEAN_WORKERS]
+                            ],
+                        )
+                    if (
+                        return_dict[constants.EUROPEAN_WORKERS_PERMISSION]
+                        and return_dict[constants.INACTIVE_VEHICLE_PERMISSION]
+                    ):
+                        # If a crew and uncrewed vehicle present
+                        return_dict[
+                            constants.ACTIVE_VEHICLE_PERMISSION
+                        ] = simulate_crew(
+                            return_dict[constants.INACTIVE_VEHICLE_PERMISSION],
+                            return_dict[constants.EUROPEAN_WORKERS_PERMISSION],
+                            required_dummy_attributes,
+                            dummy_input_dict,
+                        )
+                    return_dict[constants.AUTOFILL_PROCEDURE] = constants.CREW_PROCEDURE
 
-            if return_dict["group"].get_permission(constants.GROUP_PERMISSION):
-                return_dict["officer"], return_dict["worker"] = simulate_split(
-                    return_dict["group"], required_dummy_attributes, dummy_input_dict
-                )
-                return_dict["procedure"] = constants.SPLIT_PROCEDURE
-            elif return_dict["group"].get_permission(constants.VEHICLE_PERMISSION):
-                return_dict["officer"], return_dict["worker"] = simulate_uncrew(
-                    return_dict["group"], required_dummy_attributes, dummy_input_dict
-                )
-                return_dict["procedure"] = constants.UNCREW_PROCEDURE
+                elif (
+                    constants.UNCREW_PROCEDURE in allowed_procedures
+                    and target == constants.ACTIVE_VEHICLE_PERMISSION
+                ):
+                    return_dict[target] = status.displayed_mob
+                    # If a crewed vehicle selected, uncrew into dummy vehicle and worker
+                    (
+                        return_dict[constants.INACTIVE_VEHICLE_PERMISSION],
+                        return_dict[constants.EUROPEAN_WORKERS_PERMISSION],
+                    ) = simulate_uncrew(
+                        status.displayed_mob,
+                        required_dummy_attributes,
+                        dummy_input_dict,
+                    )
+                    return_dict[
+                        constants.AUTOFILL_PROCEDURE
+                    ] = constants.UNCREW_PROCEDURE
+
+            if return_dict[
+                constants.AUTOFILL_PROCEDURE
+            ]:  # If procedure chosen, no need to check for others
+                break
+            else:
+                return_dict = {constants.AUTOFILL_PROCEDURE: None}
 
     return return_dict
 
@@ -229,6 +293,7 @@ def simulate_crew(vehicle, worker, required_dummy_attributes, dummy_input_dict):
         dummy_input_dict,
         required_dummy_attributes,
         override_permissions={
+            constants.ACTIVE_VEHICLE_PERMISSION: True,
             constants.ACTIVE_PERMISSION: True,
         },
     )
@@ -282,6 +347,9 @@ def simulate_uncrew(unit, required_dummy_attributes, dummy_input_dict):
         unit,
         dummy_input_dict,
         required_dummy_attributes,
-        override_permissions={constants.ACTIVE_PERMISSION: False},
+        override_permissions={
+            constants.ACTIVE_PERMISSION: False,
+            constants.ACTIVE_VEHICLE_PERMISSION: False,
+        },
     )
     return (dummy_vehicle, dummy_worker)

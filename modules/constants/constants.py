@@ -713,11 +713,19 @@ CHOICE_END_TURN_BUTTON: str = "choice_end_turn_button"
 CHOICE_CONFIRM_REMOVE_MINISTER: str = "choice_confirm_remove_minister_button"
 CHOICE_FIRE_BUTTON: str = "choice_fire_button"
 
-MERGE_PROCEDURE: str = "merge_procedure"
-SPLIT_PROCEDURE: str = "split_procedure"
-CREW_PROCEDURE: str = "crew_procedure"
-UNCREW_PROCEDURE: str = "uncrew_procedure"
-INVALID_PROCEDURE: str = "invalid_procedure"
+AUTOFILL_PROCEDURE: str = "autofill_procedure"
+MERGE_PROCEDURE: str = "merge"
+SPLIT_PROCEDURE: str = "split"
+CREW_PROCEDURE: str = "crew"
+UNCREW_PROCEDURE: str = "uncrew"
+INVALID_PROCEDURE: str = "invalid"
+AUTOFILL_PROCEDURES: List[str] = [
+    MERGE_PROCEDURE,
+    SPLIT_PROCEDURE,
+    CREW_PROCEDURE,
+    UNCREW_PROCEDURE,
+    INVALID_PROCEDURE,
+]
 
 START_END_TURN_BUTTON: str = "start_end_turn_button"
 RECRUITMENT_BUTTON: str = "recruitment_button"
@@ -840,6 +848,7 @@ PMOB_PERMISSION: str = "pmob"
 NPMOB_PERMISSION: str = "npmob"
 VEHICLE_PERMISSION: str = "vehicle"
 ACTIVE_PERMISSION: str = "active_permission"
+ACTIVE_VEHICLE_PERMISSION: str = "active_vehicle"
 INACTIVE_VEHICLE_PERMISSION: str = "inactive_vehicle"
 OFFICER_PERMISSION: str = "officer"
 WORKER_PERMISSION: str = "worker"
