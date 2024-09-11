@@ -68,14 +68,15 @@ except Exception:  # displays error message and records error message in crash l
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
-# Add new vehicle interface for crew/embark procedures, only appears if vehicle present
 # Replace group/officer subclasses with unit type classes that each instance can belong to
-# Add building type classes that each instance can belong to
-# Add astronauts/cosmonauts group with corresponding officer
-# Add support for vehicles being crewed by groups, combining in new interface with any group attaching/detaching, like to mines/factories
-#   This allows embarking/disembarking to be part of the reorganization interface
-#   Possibly solve with a related, separate reorganization interface that manages vehicles, crew/uncrew, embark/disembark
+#     Include unit type versions of class functions, default permissions, etc.
+#     Should fully replace any worker/officer/vehicle/group instance classes
 # Add spaceships
+# Add astronauts/cosmonauts group with corresponding officer
+# Allow vehicles to be crewed by groups instead of workers
+# Add building type classes that each instance can belong to
+# Add new resource types, allowing buying on Earth, transporting, and using to build when it is in the builder's tile
+# Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
 # Add radio distortion versions of voice lines, either as separate files or runtime filter
 # Add terrain details tile interface panel, such that terrain details aren't always showing
@@ -83,6 +84,7 @@ except Exception:  # displays error message and records error message in crash l
 # Load in all minister portraits on minister creation, not when first viewed
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
+# Add new autofill interface for vehicle passengers, and possibly building work crews
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>

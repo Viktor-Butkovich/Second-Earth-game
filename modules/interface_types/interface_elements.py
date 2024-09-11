@@ -602,12 +602,22 @@ class autofill_collection(interface_collection):
         """
         self.allowed_procedures = input_dict["allowed_procedures"]
         self.autofill_targets = input_dict["autofill_targets"]
-        self.autofill_actors = {}
-        for autofill_target_type in self.autofill_targets:
-            self.autofill_actors[autofill_target_type] = None
-        self.autofill_actors[constants.AUTOFILL_PROCEDURE] = None
+        self.autofill_actors = {constants.AUTOFILL_PROCEDURE: None}
         self.search_start_index = 0
         super().__init__(input_dict)
+
+    def can_show(self, skip_parent_collection=False):
+        """
+        Description:
+            Returns whether this collection can be shown
+        Input:
+            None
+        Output:
+            boolean: Returns True if this button can appear under current conditions, otherwise returns False
+        """
+        return super().can_show(
+            skip_parent_collection=skip_parent_collection
+        ) and self.autofill_actors != {constants.AUTOFILL_PROCEDURE: None}
 
     def calibrate(self, new_actor, override_exempt=False):
         """
