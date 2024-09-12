@@ -184,7 +184,7 @@ def update_descriptions(target="all"):
 
         list_descriptions[current_target] = text_list
 
-        text = " /n /n".join(list_descriptions[current_target])
+        text = " /n /n".join(list_descriptions[current_target]) + " /n /n"
         string_descriptions[current_target] = text
 
 

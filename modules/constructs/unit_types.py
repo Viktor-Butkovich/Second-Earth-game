@@ -32,6 +32,7 @@ class unit_type:
                 self.initial_recruitment_cost: float = self.recruitment_cost
                 self.min_recruitment_cost: float = min(2.0, self.recruitment_cost)
                 self.description: List[str] = input_dict.get("description", [])
+                status.recruitment_types.append(self)
 
             self.inventory_capacity: int = input_dict.get("inventory_capacity", 0)
             self.controlling_minister_type: minister_types.minister_type = input_dict[
@@ -50,7 +51,7 @@ class unit_type:
 
     def generate_center_recruitment_image(self, dummy_recruited_unit):
         image_id = constants.character_manager.generate_unit_portrait(
-            dummy_recruited_unit, metadata={"body_image": self.mob_image_id}
+            dummy_recruited_unit, metadata={"body_image": self.image_id}
         )
         for image in image_id:
             if (
@@ -70,7 +71,7 @@ class unit_type:
 
         original_random_state = random.getstate()
         random.seed(
-            self.key
+            self.key + "__"
         )  # Consistently generate the same random portrait for the same interface elements
 
         image_id = self.generate_center_recruitment_image(dummy_recruited_unit)
@@ -87,6 +88,9 @@ class unit_type:
     def get_string_description(self) -> str:
         return " /n /n".join(self.description) + " /n /n"
 
+    def on_recruit(self) -> None:
+        return
+
     def to_save_dict(self) -> Dict:
         """
         Description:
@@ -101,6 +105,7 @@ class unit_type:
         return {
             "key": self.key,
             "recruitment_cost": self.recruitment_cost,
+            "save_changes": self.save_changes,
         }
 
     def get_total_upkeep(self) -> float:
@@ -112,7 +117,7 @@ class unit_type:
         Output:
             float: Returns the total upkeep of this worker type's units
         """
-        return self.number * self.upkeep
+        return self.num_instances * self.upkeep
 
     def generate_input_dict(self) -> Dict:
         """
@@ -222,14 +227,14 @@ class worker_type(unit_type):
             actor_utility.generate_unit_component_portrait(
                 constants.character_manager.generate_unit_portrait(
                     dummy_recruited_unit,
-                    metadata={"body_image": self.recruitment_type.image_id},
+                    metadata={"body_image": self.image_id},
                 ),
                 "left",
             ),
             actor_utility.generate_unit_component_portrait(
                 constants.character_manager.generate_unit_portrait(
                     dummy_recruited_unit,
-                    metadata={"body_image": self.recruitment_type.image_id},
+                    metadata={"body_image": self.image_id},
                 ),
                 "right",
             ),
@@ -267,7 +272,7 @@ class worker_type(unit_type):
         Output:
             None
         """
-        self.number = 0
+        self.num_instances = 0
         self.upkeep = self.initial_upkeep
         if self.can_recruit:
             self.recruitment_cost = self.initial_recruitment_cost
@@ -281,7 +286,7 @@ class worker_type(unit_type):
         Output:
             float: Returns the total upkeep of this worker type's units
         """
-        return self.number * self.upkeep
+        return self.num_instances * self.upkeep
 
     def generate_input_dict(self) -> Dict:
         """
@@ -305,6 +310,7 @@ class worker_type(unit_type):
         Output:
             None
         """
+        super().on_recruit()
         if self.key != constants.CHURCH_VOLUNTEERS:
             market_utility.attempt_worker_upkeep_change("increase", self)
 

@@ -525,6 +525,7 @@ def unit_types_config():
                 constants.SCIENCE_MINISTER
             ],
             "permissions": {
+                constants.PMOB_PERMISSION: True,
                 constants.GROUP_PERMISSION: True,
                 constants.EXPEDITION_PERMISSION: True,
             },
@@ -540,6 +541,7 @@ def unit_types_config():
                 constants.SCIENCE_MINISTER
             ],
             "permissions": {
+                constants.PMOB_PERMISSION: True,
                 constants.OFFICER_PERMISSION: True,
                 constants.EXPLORER_PERMISSION: True,
             },
@@ -547,8 +549,8 @@ def unit_types_config():
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
             "description": [
-                f"Explorers are controlled by the {status.minister_types[constants.SCIENCE_MINISTER].name}"
-                "When combined with workers, an explorer becomes an expedition unit that can explore new tiles."
+                f"Explorers are controlled by the {status.minister_types[constants.SCIENCE_MINISTER].name}",
+                "When combined with workers, an explorer becomes an expedition unit that can explore new tiles.",
             ],
         },
     ).link_group_type(status.unit_types[constants.EXPEDITION])
@@ -562,6 +564,7 @@ def unit_types_config():
                 constants.TERRAN_AFFAIRS_MINISTER
             ],
             "permissions": {
+                constants.PMOB_PERMISSION: True,
                 constants.GROUP_PERMISSION: True,
                 constants.CARAVAN_PERMISSION: True,
             },
@@ -578,6 +581,7 @@ def unit_types_config():
                 constants.TERRAN_AFFAIRS_MINISTER
             ],
             "permissions": {
+                constants.PMOB_PERMISSION: True,
                 constants.OFFICER_PERMISSION: True,
                 constants.MERCHANT_PERMISSION: True,
             },
@@ -600,6 +604,7 @@ def unit_types_config():
                 constants.TERRAN_AFFAIRS_MINISTER
             ],
             "permissions": {
+                constants.PMOB_PERMISSION: True,
                 constants.GROUP_PERMISSION: True,
                 constants.MISSIONARIES_PERMISSION: True,
             },
@@ -615,6 +620,7 @@ def unit_types_config():
                 constants.TERRAN_AFFAIRS_MINISTER
             ],
             "permissions": {
+                constants.PMOB_PERMISSION: True,
                 constants.OFFICER_PERMISSION: True,
                 constants.EVANGELIST_PERMISSION: True,
             },
@@ -637,6 +643,7 @@ def unit_types_config():
                 constants.SPACE_MINISTER
             ],
             "permissions": {
+                constants.PMOB_PERMISSION: True,
                 constants.GROUP_PERMISSION: True,
                 constants.BATTALION_PERMISSION: True,
             },
@@ -652,6 +659,7 @@ def unit_types_config():
                 constants.SPACE_MINISTER
             ],
             "permissions": {
+                constants.PMOB_PERMISSION: True,
                 constants.OFFICER_PERMISSION: True,
                 constants.MAJOR_PERMISSION: True,
             },
@@ -659,8 +667,8 @@ def unit_types_config():
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
             "description": [
-                f"Majors are controlled by the {status.minister_types[constants.SPACE_MINISTER].name}"
-                "When combined with workers, a major becomes a battalion unit that has a very high combat strength, and can build forts and attack enemies."
+                f"Majors are controlled by the {status.minister_types[constants.SPACE_MINISTER].name}",
+                "When combined with workers, a major becomes a battalion unit that has a very high combat strength, and can build forts and attack enemies.",
             ],
         },
     ).link_group_type(status.unit_types[constants.BATTALION])
@@ -674,6 +682,7 @@ def unit_types_config():
                 constants.TRANSPORTATION_MINISTER
             ],
             "permissions": {
+                constants.PMOB_PERMISSION: True,
                 constants.GROUP_PERMISSION: True,
                 constants.PORTERS_PERMISSION: True,
             },
@@ -691,6 +700,7 @@ def unit_types_config():
                 constants.TRANSPORTATION_MINISTER
             ],
             "permissions": {
+                constants.PMOB_PERMISSION: True,
                 constants.OFFICER_PERMISSION: True,
                 constants.DRIVER_PERMISSION: True,
             },
@@ -713,6 +723,7 @@ def unit_types_config():
                 constants.INDUSTRY_MINISTER
             ],
             "permissions": {
+                constants.PMOB_PERMISSION: True,
                 constants.GROUP_PERMISSION: True,
                 constants.WORK_CREW_PERMISSION: True,
             },
@@ -728,6 +739,7 @@ def unit_types_config():
                 constants.INDUSTRY_MINISTER
             ],
             "permissions": {
+                constants.PMOB_PERMISSION: True,
                 constants.OFFICER_PERMISSION: True,
                 constants.FOREMAN_PERMISSION: True,
             },
@@ -735,8 +747,8 @@ def unit_types_config():
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
             "description": [
-                f"Foremen are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}"
-                "When combined with workers, a foreman becomes a work crew unit that can produce commodities when attached to a production facility."
+                f"Foremen are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}",
+                "When combined with workers, a foreman becomes a work crew unit that can produce commodities when attached to a production facility.",
             ],
         },
     ).link_group_type(status.unit_types[constants.WORK_CREW])
@@ -750,6 +762,7 @@ def unit_types_config():
                 constants.INDUSTRY_MINISTER
             ],
             "permissions": {
+                constants.PMOB_PERMISSION: True,
                 constants.GROUP_PERMISSION: True,
                 constants.CONSTRUCTION_PERMISSION: True,
             },
@@ -765,6 +778,7 @@ def unit_types_config():
                 constants.INDUSTRY_MINISTER
             ],
             "permissions": {
+                constants.PMOB_PERMISSION: True,
                 constants.OFFICER_PERMISSION: True,
                 constants.ENGINEER_PERMISSION: True,
             },
@@ -772,8 +786,8 @@ def unit_types_config():
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
             "description": [
-                f"Engineers are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}"
-                "When combined with workers, an engineer becomes a construction gang unit that can build buildings, roads, railroads, and trains."
+                f"Engineers are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}",
+                "When combined with workers, an engineer becomes a construction gang unit that can build buildings, roads, railroads, and trains.",
             ],
         },
     ).link_group_type(status.unit_types[constants.CONSTRUCTION_GANG])
@@ -787,6 +801,7 @@ def unit_types_config():
                 constants.INDUSTRY_MINISTER
             ],
             "permissions": {
+                constants.PMOB_PERMISSION: True,
                 constants.WORKER_PERMISSION: True,
                 constants.EUROPEAN_WORKERS_PERMISSION: True,
                 constants.CREW_SHIP_PERMISSION: True,
@@ -812,8 +827,9 @@ def unit_types_config():
                 constants.TERRAN_AFFAIRS_MINISTER
             ],
             "permissions": {
-                constants.WORKER_PERMISSION,
-                constants.CHURCH_VOLUNTEERS_PERMISSION,
+                constants.PMOB_PERMISSION: True,
+                constants.WORKER_PERMISSION: True,
+                constants.CHURCH_VOLUNTEERS_PERMISSION: True,
             },
             "upkeep": 0.0,
             "can_recruit": False,
@@ -835,8 +851,9 @@ def unit_types_config():
                 constants.TRANSPORTATION_MINISTER
             ],
             "permissions": {
-                constants.INACTIVE_VEHICLE_PERMISSION,
-                constants.VEHICLE_PERMISSION,
+                constants.PMOB_PERMISSION: True,
+                constants.INACTIVE_VEHICLE_PERMISSION: True,
+                constants.VEHICLE_PERMISSION: True,
             },
             "can_recruit": True,
             "recruitment_verb": "purchase",
@@ -857,12 +874,13 @@ def unit_types_config():
                 constants.TRANSPORTATION_MINISTER
             ],
             "permissions": {
-                constants.INACTIVE_VEHICLE_PERMISSION,
-                constants.VEHICLE_PERMISSION,
+                constants.PMOB_PERMISSION: True,
+                constants.INACTIVE_VEHICLE_PERMISSION: True,
+                constants.VEHICLE_PERMISSION: True,
             },
             "can_recruit": False,
             "description": [
-                "While useless by itself, a train crewed by workers can quickly transport units and cargo through railroads between train stations."
+                "While useless by itself, a train crewed by workers can quickly transport units and cargo through railroads between train stations.",
             ],
         },
     )

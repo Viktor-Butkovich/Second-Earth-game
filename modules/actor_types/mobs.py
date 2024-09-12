@@ -9,7 +9,7 @@ from ..util import (
     text_utility,
     minister_utility,
 )
-from ..constructs import unit_types
+from ..constructs import unit_types, ministers
 from ..interface_types import cells
 from .actors import actor
 import modules.constants.constants as constants
@@ -47,6 +47,8 @@ class mob(actor):
         self.unit_type: unit_types.unit_type = input_dict.get(
             "unit_type", status.unit_types.get(input_dict.get("init_type"))
         )
+        self.unit_type.num_instances += 1
+        self.controlling_minister: ministers.minister = None
         self.update_controlling_minister()
         self.in_group = False
         self.in_vehicle = False
@@ -377,7 +379,7 @@ class mob(actor):
         if self.get_permission(constants.PMOB_PERMISSION):
             if (
                 self.get_permission(constants.GROUP_PERMISSION)
-                and self.unit_type == status[unit_types[constants.BATTALION]]
+                and self.unit_type == status.unit_types[constants.BATTALION]
             ):
                 modifier += 1
                 if self.worker.get_permission(constants.EUROPEAN_WORKERS_PERMISSION):

@@ -297,7 +297,6 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         else:
             message = f"Are you sure you want to {recruitment_type.recruitment_verb} {utility.generate_article(recruitment_type.name)} {recruitment_type.name} for {recruitment_type.recruitment_cost} money? /n /n"
         message += recruitment_type.get_string_description()
-        message += constants.string_descriptions[recruitment_type]
 
         constants.notification_manager.display_notification(
             {

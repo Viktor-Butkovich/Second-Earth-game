@@ -50,7 +50,6 @@ except Exception:  # displays error message and records error message in crash l
 # Continue adding hairstyles
 # Minister table_map_image not using smart green screens, probably because it directly uses tile image ID
 # Add new unit art
-# Add new minister positions with placehold color-coded squares
 # Add new minister appointing system - selecting an unappointed minister should highlight all available positions, and clicking on one appoint w/ a confirmation check
 # Add more variety to water/ice colors
 # Eventually add hydrogen fuel cells - process to convert hydrogen and oxygen into water, actually releases energy but requires facility and hydrogen/oxygen input
@@ -68,7 +67,6 @@ except Exception:  # displays error message and records error message in crash l
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
-# Finish unit type stress testing, fix recruitment buttons, write docstrings for unit_types.py
 # Add spaceships
 # Add astronauts/cosmonauts group with corresponding officer
 # Allow vehicles to be crewed by groups instead of workers
