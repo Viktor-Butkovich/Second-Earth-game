@@ -1,4 +1,4 @@
-# Contains functionality for minister type templates, such as Prosecutor or Minister of Construction
+# Contains functionality for minister type templates, such as Minister of Security or Minister of Energy
 
 from typing import Dict, List
 import modules.constants.status as status
@@ -46,12 +46,12 @@ class minister_type:
         tooltip_text = []
         if self.controls_units:
             tooltip_text.append(
-                f"Whenever you command a {self.skill_type}-oriented unit to do an action, the {self.name} is responsible for executing the action."
+                f"Whenever you command a {self.skill_type.replace('_', ' ')}-oriented unit to do an action, the {self.name} is responsible for executing the action."
             )
         tooltip_text += self.description
         if not minister_utility.get_minister(self.key):
             tooltip_text.append(
-                f"There is currently no {self.name} appointed, so {self.skill_type}-oriented actions are not possible."
+                f"There is currently no {self.name} appointed, so {self.skill_type.replace('_', ' ')}-oriented actions are not possible."
             )
         return tooltip_text
 
@@ -66,16 +66,13 @@ class minister_type:
         """
         minister_utility.set_minister(self.key, new_minister)
 
-    def on_remove(self, old_minister):
+    def on_remove(self):
         """
         Description:
-            Makes any updates required when worker fired
+            Makes any updates required when a minister is removed from this office
         Input:
-            boolean wander=False: Whether this worker will wander after being fired
+            None
         Output:
             None
         """
         minister_utility.set_minister(self.key, None)
-        # for current_minister_image in status.minister_image_list:
-        #    if current_minister_image.minister_type == self:
-        #        current_minister_image.calibrate(None)

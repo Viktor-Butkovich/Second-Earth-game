@@ -1475,7 +1475,9 @@ class minister_type_image(tooltip_free_image):
             and self.attached_label.actor
             and self.attached_label.actor.get_permission(constants.PMOB_PERMISSION)
         ):
-            current_minister_type = self.attached_label.actor.controlling_minister_type
+            current_minister_type = (
+                self.attached_label.actor.unit_type.controlling_minister_type
+            )
         if current_minister_type:
             self.tooltip_text = current_minister_type.get_description()
             image_id_list = [
@@ -2008,10 +2010,7 @@ class collection_image(button_image):
     def draw(self):
         if self.button.showing:
             self.x = self.button.x
-            self.y = (
-                constants.display_height + self.height - self.button.y
-            )  # + self.height
-            # self.y = constants.display_height + self.button.y - (self.height * 3)
+            self.y = constants.display_height + self.height - self.button.y
             self.complete_draw()
 
 

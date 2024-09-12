@@ -39,7 +39,7 @@ class die(button):
         ]  # min_success: 4, min_crit_success: 6, max_crit_fail: 1
         self.outcome_color_dict = input_dict[
             "outcome_color_dict"
-        ]  #'success': 'green', 'crit_success': 'bright green', 'fail': 'red', crit_fail: 'black', 'default': 'gray'
+        ]  # 'success': 'green', 'crit_success': 'bright green', 'fail': 'red', crit_fail: 'black', 'default': 'gray'
         self.rolls_completed = 0
         self.num_sides = input_dict["num_sides"]
         if constants.effect_manager.effect_active("ministry_of_magic"):
@@ -72,7 +72,7 @@ class die(button):
         super().__init__(input_dict)
         status.dice_list.append(self)
         self.final_result = input_dict["final_result"]
-        # self.Rect = pygame.Rect(self.x, constants.display_height - (self.y + height), width, height)#create pygame rect with width and height, set color depending on roll result, maybe make a default gray appearance
+        # self.Rect = pygame.Rect(self.x, constants.display_height - (self.y + height), width, height) # Create pygame rect with width and height, set color depending on roll result, maybe make a default gray appearance
         self.highlight_Rect = pygame.Rect(
             self.x - 3,
             constants.display_height - (self.y + self.height + 3),

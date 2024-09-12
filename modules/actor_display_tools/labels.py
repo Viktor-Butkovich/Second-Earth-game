@@ -484,7 +484,7 @@ class actor_display_label(label):
                     self.actor_label_type.removesuffix("_label").replace("_", "")
                 )
                 + ": "
-            )  #'worker' -> 'Worker: '
+            )  # 'worker' -> 'Worker: '
         self.calibrate(None)
 
     def add_attached_button(self, input_dict, member_config=None):
@@ -613,8 +613,8 @@ class actor_display_label(label):
                     tooltip_text = self.actor.controlling_minister.tooltip_text
                 else:
                     tooltip_text = [
-                        f"The {self.actor.controlling_minister_type.name} is responsible for controlling this unit",
-                        f"As there is currently no {self.actor.controlling_minister_type.name}, this unit will not be able to complete most actions until one is appointed",
+                        f"The {self.actor.unit_type.controlling_minister_type.name} is responsible for controlling this unit",
+                        f"As there is currently no {self.actor.unit_type.controlling_minister_type.name}, this unit will not be able to complete most actions until one is appointed",
                     ]
             self.set_tooltip(tooltip_text)
 
@@ -1013,7 +1013,7 @@ class actor_display_label(label):
 
             elif self.actor_label_type == constants.MINISTER_INTERESTS_LABEL:
                 self.set_label(
-                    f"{self.message_start}{new_actor.interests[0]} and {new_actor.interests[1]}"
+                    f"{self.message_start}{new_actor.interests[0].replace('_', ' ')}, {new_actor.interests[1].replace('_', ' ')}"
                 )
 
             elif self.actor_label_type == constants.MINISTER_ABILITY_LABEL:
@@ -1335,18 +1335,23 @@ class actor_tooltip_label(actor_display_label):
             )
             actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
         elif self.actor.get_permission(constants.DUMMY_PERMISSION):
-            if self.actor.get_permission(
-                constants.GROUP_PERMISSION
-            ) or self.actor.all_permissions(
-                constants.VEHICLE_PERMISSION, constants.ACTIVE_PERMISSION
+            if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
+                status.reorganize_vehicle_right_button.on_click()
+            elif status.displayed_mob.get_permission(
+                constants.ACTIVE_VEHICLE_PERMISSION
             ):
-                status.reorganize_unit_right_button.on_click()
-            else:
-                status.reorganize_unit_left_button.on_click()
-                if not self.actor.get_permission(
-                    constants.DUMMY_PERMISSION
-                ):  # Only select if dummy unit successfully became real
-                    self.actor.cycle_select()
+                status.reorganize_vehicle_left_button.on_click()
+            elif self.actor.any_permissions(
+                constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
+            ):
+                status.reorganize_group_left_button.on_click()
+            elif self.actor.get_permission(constants.GROUP_PERMISSION):
+                status.reorganize_group_right_button.on_click()
+
+            if not self.actor.get_permission(
+                constants.DUMMY_PERMISSION
+            ):  # Only select if dummy unit successfully became real
+                self.actor.cycle_select()
         else:
             self.actor.cycle_select()
 

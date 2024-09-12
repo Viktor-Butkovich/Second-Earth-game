@@ -483,7 +483,7 @@ class cell:
                 return_list.append(current_mob)
         return return_list
 
-    def has_uncrewed_vehicle(self, vehicle_type):
+    def has_uncrewed_vehicle(self, vehicle_type=None, required_number=1):
         """
         Description:
             Returns whether this cell contains an uncrewed vehicle of the inputted type
@@ -492,16 +492,19 @@ class cell:
         Output:
             boolean: Returns True if this cell contains an uncrewed vehicle of the inputted type, otherwise returns False
         """
+        num_found = 0
         for current_mob in self.contained_mobs:
             if (
                 current_mob.get_permission(constants.VEHICLE_PERMISSION)
                 and (not current_mob.get_permission(constants.ACTIVE_PERMISSION))
-                and current_mob.vehicle_type == vehicle_type
+                and (current_mob.vehicle_type == vehicle_type or (not vehicle_type))
             ):
-                return True
-        return False
+                num_found += 1
+        return num_found >= required_number
 
-    def get_uncrewed_vehicle(self, vehicle_type, worker_type="default"):
+    def get_uncrewed_vehicle(
+        self, vehicle_type=None, worker_type="default", start_index=0
+    ):
         """
         Description:
             Returns the first uncrewed vehicle of the inputted type in this cell, or None if none are present
@@ -511,11 +514,22 @@ class cell:
         Output:
             string/vehicle: Returns the first uncrewed vehicle of the inputted type in this cell, or None if none are present
         """
-        for current_mob in self.contained_mobs:
+        if start_index >= len(self.contained_mobs):
+            start_index = 0
+        if (
+            start_index == 0
+        ):  # don't bother slicing/concatenating list if just iterating from index 0
+            iterated_list = self.contained_mobs
+        else:
+            iterated_list = (
+                self.contained_mobs[start_index : len(self.contained_mobs)]
+                + self.contained_mobs[0:start_index]
+            )
+        for current_mob in iterated_list:
             if (
                 current_mob.get_permission(constants.VEHICLE_PERMISSION)
                 and (not current_mob.get_permission(constants.ACTIVE_PERMISSION))
-                and current_mob.vehicle_type == vehicle_type
+                and (current_mob.vehicle_type == vehicle_type or not vehicle_type)
             ):
                 return current_mob
         return None
@@ -540,7 +554,7 @@ class cell:
                     return True
         return False
 
-    def has_officer(self, allow_vehicle=True, required_number=1):
+    def has_officer(self, allow_vehicles=True, required_number=1):
         """
         Description:
             Returns whether this cell contains an officer of an allowed type
@@ -551,13 +565,20 @@ class cell:
             Returns True if this cell contains the required number of officers of one of the inputted types, otherwise returns False
         """
         num_found = 0
-        for current_mob in self.contained_mobs:
-            if current_mob.any_permissions(
-                constants.OFFICER_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
-            ):
-                num_found += 1
-                if num_found >= required_number:
-                    return True
+        if allow_vehicles:
+            for current_mob in self.contained_mobs:
+                if current_mob.any_permissions(
+                    constants.OFFICER_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
+                ):
+                    num_found += 1
+                    if num_found >= required_number:
+                        return True
+        else:
+            for current_mob in self.contained_mobs:
+                if current_mob.get_permission(constants.OFFICER_PERMISSION):
+                    num_found += 1
+                    if num_found >= required_number:
+                        return True
         return False
 
     def get_worker(self, possible_types=None, start_index=0):
@@ -609,11 +630,16 @@ class cell:
                 self.contained_mobs[start_index : len(self.contained_mobs)]
                 + self.contained_mobs[0:start_index]
             )
-        for current_mob in iterated_list:
-            if current_mob.any_permissions(
-                constants.OFFICER_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
-            ):
-                return current_mob
+        if allow_vehicles:
+            for current_mob in iterated_list:
+                if current_mob.any_permissions(
+                    constants.OFFICER_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
+                ):
+                    return current_mob
+        else:
+            for current_mob in iterated_list:
+                if current_mob.get_permission(constants.OFFICER_PERMISSION):
+                    return current_mob
         return None
 
     def has_pmob(self):
@@ -754,7 +780,7 @@ class cell:
         self.contained_mobs = other_cell.contained_mobs
         self.contained_buildings = other_cell.contained_buildings
         other_cell.terrain_handler.add_cell(self)
-        # self.tile.update_image_bundle(override_image=other_cell.tile.image) #correctly copies other cell's image bundle but ends up very pixellated due to size difference
+        # self.tile.update_image_bundle(override_image=other_cell.tile.image) # Correctly copies other cell's image bundle but ends up very pixellated due to size difference
 
     def draw(self):
         """

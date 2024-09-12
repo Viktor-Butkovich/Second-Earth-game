@@ -42,11 +42,10 @@ class actor:
         if self.from_save:
             self.grid: grid = getattr(status, input_dict["grid_type"])
             self.grids: List[grid] = [self.grid] + self.grid.mini_grids
-            self.set_name(input_dict["name"])
         else:
             self.grid: grid = input_dict["grids"][0]
             self.grids: List[grid] = input_dict["grids"]
-            self.set_name("placeholder")
+        self.set_name(input_dict.get("name", "placeholder"))
         self.set_coordinates(self.x, self.y)
 
         self.tooltip_text = []
@@ -90,17 +89,7 @@ class actor:
         save_dict = {}
         init_type = ""
         if self.actor_type == "mob":
-            if self.get_permission(constants.PMOB_PERMISSION):
-                if self.get_permission(constants.WORKER_PERMISSION):
-                    init_type = self.worker_type.key
-                elif self.get_permission(constants.VEHICLE_PERMISSION):
-                    init_type = self.vehicle_type
-                elif self.get_permission(constants.OFFICER_PERMISSION):
-                    init_type = self.officer_type
-                elif self.get_permission(constants.GROUP_PERMISSION):
-                    init_type = self.group_type
-            else:  # if npmob
-                init_type = self.npmob_type
+            init_type = self.unit_type.key
         elif self.actor_type == "tile":
             init_type = "tile"
         elif self.actor_type == "building":
@@ -312,7 +301,7 @@ class actor:
                 and self.all_permissions(
                     constants.PMOB_PERMISSION, constants.GROUP_PERMISSION
                 )
-                and self.group_type == constants.PORTERS
+                and self.unit_type == status.unit_types[constants.PORTERS]
                 and (not self.get_permission(constants.VETERAN_PERMISSION))
                 and random.randrange(1, 7) == 6
                 and random.randrange(1, 7) == 6

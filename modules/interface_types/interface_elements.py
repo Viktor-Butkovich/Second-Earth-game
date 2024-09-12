@@ -304,21 +304,18 @@ class interface_collection(interface_element):
                 'modes': string list value - Game modes during which this element can appear
                 'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
                 'initial_members' = None: members initially created with this collection
+                'is_info_display' = False: boolean value - Whether this collection is an info display that should automatically maintain a status variable
+                'block_height_offset' = False: boolean value - Whether to ignore this collection's height in calculating member y offsets
+                    This should be used when a collection needs height to determine the placement of elements after it withotu displacing its own members
         Output:
             None
         """
         self.members = []
         self.minimized = False
+        self.block_height_offset = input_dict.get("block_height_offset", False)
         self.is_info_display = input_dict.get("is_info_display", False)
         if self.is_info_display:
             self.actor_type = input_dict["actor_type"]
-
-        input_dict["resize_with_contents"] = input_dict.get(
-            "resize_with_contents", False
-        )
-        self.resize_with_contents = input_dict["resize_with_contents"]
-        if self.resize_with_contents:
-            self.member_rects = []
 
         self.calibrate_exempt_list = []
 
@@ -420,7 +417,7 @@ class interface_collection(interface_element):
                 else:
                     member.calibrate(new_actor)
         if self.is_info_display:
-            setattr(status, "displayed_" + self.actor_type, new_actor)
+            setattr(status, f"displayed_{self.actor_type}", new_actor)
 
     def add_member(self, new_member, member_config=None):
         """
@@ -438,6 +435,8 @@ class interface_collection(interface_element):
 
         member_config["x_offset"] = member_config.get("x_offset", 0)
         member_config["y_offset"] = member_config.get("y_offset", 0)
+        if self.block_height_offset:
+            member_config["y_offset"] += self.height
         member_config["calibrate_exempt"] = member_config.get("calibrate_exempt", False)
 
         if not new_member.has_parent_collection:
@@ -450,8 +449,6 @@ class interface_collection(interface_element):
             self.members.append(new_member)
         else:
             self.members.insert(member_config["index"], new_member)
-        if self.resize_with_contents and new_member.Rect:
-            self.member_rects.append(new_member.Rect)
         new_member.set_origin(
             self.x + member_config["x_offset"], self.y + member_config["y_offset"]
         )
@@ -570,19 +567,15 @@ class interface_collection(interface_element):
             return result and not self.minimized
 
     def update_collection(self):
-        if self.resize_with_contents:
-            for member in self.members:
-                if hasattr(member, "members"):
-                    member.update_collection()
-            if len(self.member_rects) > 0:
-                self.Rect.update(
-                    self.member_rects[0].unionall(self.member_rects)
-                )  # self.Rect = self.member_rects[0].unionall(self.member_rects) #Rect.unionall(self.member_rects)
-                if hasattr(self, "image"):
-                    self.x = self.Rect.x
-                    self.image.update_state(
-                        self.image.x, self.image.y, self.Rect.width, self.Rect.height
-                    )
+        """
+        Description:
+            Makes any necessary modifications to members on calibration, if applicable
+        Input:
+            None
+        Output:
+            None
+        """
+        return
 
 
 class autofill_collection(interface_collection):
@@ -602,17 +595,29 @@ class autofill_collection(interface_collection):
                 'height': int value - pixel height of this element
                 'modes': string list value - Game modes during which this element can appear
                 'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'autofill target': dict value - Dictionary with lists of the elements to calibrate to each autofill target type, like {'officer': [...], 'group': [...]}
+                'allowed_procedures': string list value - Types of procedures this autofill collection can perform
+                'autofill_targets': dict value - Dictionary with lists of the elements to calibrate to each autofill target type, like {'officer': [...], 'group': [...]}
         Output:
             None
         """
+        self.allowed_procedures = input_dict["allowed_procedures"]
         self.autofill_targets = input_dict["autofill_targets"]
-        self.autofill_actors = {}
-        for autofill_target_type in self.autofill_targets:
-            self.autofill_actors[autofill_target_type] = None
-        self.autofill_actors["procedure"] = None
+        self.autofill_actors = {constants.AUTOFILL_PROCEDURE: None}
         self.search_start_index = 0
         super().__init__(input_dict)
+
+    def can_show(self, skip_parent_collection=False):
+        """
+        Description:
+            Returns whether this collection can be shown
+        Input:
+            None
+        Output:
+            boolean: Returns True if this button can appear under current conditions, otherwise returns False
+        """
+        return super().can_show(
+            skip_parent_collection=skip_parent_collection
+        ) and self.autofill_actors != {constants.AUTOFILL_PROCEDURE: None}
 
     def calibrate(self, new_actor, override_exempt=False):
         """
@@ -625,12 +630,16 @@ class autofill_collection(interface_collection):
         """
         # search start index may be changed by cycle autofill buttons between calibrates
         self.autofill_actors = dummy_utility.generate_autofill_actors(
-            search_start_index=self.search_start_index
+            allowed_procedures=self.allowed_procedures,
+            targets=self.autofill_targets.keys(),
+            search_start_index=self.search_start_index,
         )
         for autofill_target_type in self.autofill_targets:
             for autofill_target in self.autofill_targets[autofill_target_type]:
                 # eg. generate autofill actors gives back a dummy officer, which all autofill targets that accept officers then calibrate to, repeat for worker/group targets
-                autofill_target.calibrate(self.autofill_actors[autofill_target_type])
+                autofill_target.calibrate(
+                    self.autofill_actors.get(autofill_target_type, None)
+                )
         super().calibrate(new_actor, override_exempt)
         self.search_start_index = 0
 
@@ -945,4 +954,10 @@ class ordered_collection(interface_collection):
         if self == status.terrain_collection and new_actor:
             self.tab_button.image.set_image(
                 new_actor.get_image_id_list(terrain_only=True)
+                + [
+                    {
+                        "image_id": "buttons/default_button_frame.png",
+                        "level": constants.BACKGROUND_LEVEL,
+                    }
+                ]
             )

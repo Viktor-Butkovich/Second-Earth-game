@@ -13,7 +13,7 @@ class building(actor):
     Actor that exists in cells of multiple grids in front of tiles and behind mobs that cannot be clicked
     """
 
-    def __init__(self, from_save, input_dict):
+    def __init__(self, from_save, input_dict, original_constructor=True):
         """
         Description:
             Initializes this object
@@ -35,13 +35,12 @@ class building(actor):
         self.actor_type = "building"
         self.building_type = input_dict.get("building_type", input_dict["init_type"])
         self.damaged = False
-        super().__init__(from_save, input_dict)
+        super().__init__(from_save, input_dict, original_constructor=False)
         self.default_inventory_capacity = 0
         self.image_id = input_dict["image"]
         self.image_dict = {"default": input_dict["image"]}
         self.cell = self.grids[0].find_cell(self.x, self.y)
         status.building_list.append(self)
-        self.set_name(input_dict["name"])
         self.contained_work_crews = []
         if from_save:
             for current_work_crew in input_dict["contained_work_crews"]:
@@ -58,7 +57,7 @@ class building(actor):
 
         if (
             (not from_save)
-            and input_dict["building_type"]
+            and self.building_type
             in [
                 constants.RESOURCE,
                 constants.PORT,
@@ -80,6 +79,18 @@ class building(actor):
         if constants.effect_manager.effect_active("damaged_buildings"):
             if self.can_damage():
                 self.set_damaged(True, True)
+        self.finish_init(original_constructor, from_save, input_dict)
+
+    def update_image_bundle(self):
+        """
+        Description:
+            A building has no images on its own, instead existing in a tile and modifying that tile's images
+        Input:
+            None
+        Output:
+            None
+        """
+        return
 
     def to_save_dict(self):
         """

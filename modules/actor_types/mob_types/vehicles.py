@@ -46,7 +46,7 @@ class vehicle(pmob):
         self.image_dict = input_dict["image_dict"]  # should have default and uncrewed
         if not from_save:
             self.set_crew(input_dict["crew"])
-        else:  # create crew and passengers through recruitment_manager and embark them
+        else:  # Create crew and passengers through recruitment_manager and embark them
             if not input_dict["crew"]:
                 self.set_crew(None)
             else:
@@ -61,9 +61,6 @@ class vehicle(pmob):
                 ).embark_vehicle(
                     self
                 )  # create passengers and merge as passengers
-        self.set_controlling_minister_type(
-            status.minister_types[constants.TRANSPORTATION_MINISTER]
-        )
         if not self.get_permission(constants.ACTIVE_PERMISSION):
             self.remove_from_turn_queue()
         self.finish_init(original_constructor, from_save, input_dict)
@@ -92,13 +89,29 @@ class vehicle(pmob):
         """
         self.crew = new_crew
         if new_crew:
-            self.set_permission(constants.ACTIVE_PERMISSION, True, override=True)
             self.set_permission(
-                constants.INACTIVE_VEHICLE_PERMISSION, None, override=True
+                constants.ACTIVE_PERMISSION, True, override=True, update_image=False
+            )
+            self.set_permission(
+                constants.ACTIVE_VEHICLE_PERMISSION,
+                True,
+                override=True,
+                update_image=False,
+            )
+            self.set_permission(
+                constants.INACTIVE_VEHICLE_PERMISSION, False, override=True
             )
             self.set_inventory_capacity(27)
         else:
-            self.set_permission(constants.ACTIVE_PERMISSION, None, override=True)
+            self.set_permission(
+                constants.ACTIVE_PERMISSION, False, override=True, update_image=False
+            )
+            self.set_permission(
+                constants.ACTIVE_VEHICLE_PERMISSION,
+                None,
+                override=True,
+                update_image=False,
+            )
             self.set_permission(
                 constants.INACTIVE_VEHICLE_PERMISSION, True, override=True
             )
@@ -171,7 +184,7 @@ class vehicle(pmob):
                             if current_sub_mob.automatically_replace:
                                 text += (
                                     current_sub_mob.generate_attrition_replacement_text()
-                                )  #'The ' + current_sub_mob.name + ' will remain inactive for the next turn as replacements are found.'
+                                )  # 'The ' + current_sub_mob.name + ' will remain inactive for the next turn as replacements are found.'
                                 current_sub_mob.replace()
                                 current_sub_mob.temp_disable_movement()
                                 current_sub_mob.death_sound("violent")
@@ -197,23 +210,9 @@ class vehicle(pmob):
             None
         """
         constants.evil_tracker.change(1)
-        text = (
-            "The "
-            + crew.name
-            + " crewing the "
-            + self.name
-            + " at ("
-            + str(self.x)
-            + ", "
-            + str(self.y)
-            + ") have died from attrition. /n /n "
-        )
+        text += f"The {crew.name} crewing the {self.name} at ({self.x}, {self.y}) have died from attrition. /n /n"
         if crew.automatically_replace:
-            text += (
-                "The "
-                + self.name
-                + " will remain inactive for the next turn as replacements are found. /n /n"
-            )
+            text += f"The {self.name} will remain inactive for the next turn as replacements are found. /n /n"
             crew.replace(self)
             self.temp_disable_movement()
         else:
@@ -502,17 +501,6 @@ class train(vehicle):
         """
         return self.movement_cost
 
-    def get_vehicle_name(self) -> str:
-        """
-        Description:
-            Returns the name of this type of vehicle
-        Input:
-            None
-        Output:
-            Returns the name of this type of vehicle
-        """
-        return constants.TRAIN
-
 
 class ship(vehicle):
     """
@@ -597,14 +585,3 @@ class ship(vehicle):
             and self.get_permission(constants.ACTIVE_PERMISSION)
             and not self.temp_movement_disabled
         )
-
-    def get_vehicle_name(self) -> str:
-        """
-        Description:
-            Returns the name of this type of vehicle
-        Input:
-            None
-        Output:
-            Returns the name of this type of vehicle
-        """
-        return constants.SHIP

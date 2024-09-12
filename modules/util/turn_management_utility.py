@@ -42,7 +42,7 @@ def start_enemy_turn():
         None
     """
     reset_mobs("npmobs")
-    # manage_combat() #should probably do reset_mobs, manage_production, etc. after combat completed in a separate function
+    # manage_combat() # Should probably do reset_mobs, manage_production, etc. after combat completed in a separate function
     # the manage_combat function starts the player turn
 
 
@@ -124,7 +124,7 @@ def reset_mobs(mob_type):
         for current_npmob in status.npmob_list:
             current_npmob.reset_movement_points()
             current_npmob.set_permission(constants.DISORGANIZED_PERMISSION, False)
-            # if not current_npmob.creation_turn == constants.turn: #if not created this turn
+            # if not current_npmob.creation_turn == constants.turn: # If not created this turn
             current_npmob.turn_done = False
             status.enemy_turn_queue.append(current_npmob)
     else:
@@ -229,11 +229,11 @@ def manage_production_report(expected_production):
     """
     attempted_commodities = constants.attempted_commodities
     displayed_commodities = []
-    production_minister = minister_utility.get_minister(constants.PRODUCTION_MINISTER)
+    industry_minister = minister_utility.get_minister(constants.INDUSTRY_MINISTER)
     if (
         not len(constants.attempted_commodities) == 0
     ):  # if any attempted, do production report
-        text = f"{production_minister.current_position.name} {production_minister.name} reports the following commodity production: /n /n"
+        text = f"{industry_minister.current_position.name} {industry_minister.name} reports the following commodity production: /n /n"
         while len(displayed_commodities) < len(attempted_commodities):
             max_produced = 0
             max_commodity = None
@@ -248,14 +248,14 @@ def manage_production_report(expected_production):
                         expected_production[
                             max_commodity
                         ] = minister_utility.get_minister(
-                            constants.PROSECUTION_MINISTER
+                            constants.SECURITY_MINISTER
                         ).estimate_expected(
                             expected_production[max_commodity]
                         )
             displayed_commodities.append(max_commodity)
             text += f"{max_commodity.capitalize()}: {max_produced} (expected {expected_production[max_commodity]}) /n /n"
         status.previous_production_report = text
-        production_minister.display_message(text)
+        industry_minister.display_message(text)
 
 
 def manage_upkeep():
@@ -451,7 +451,7 @@ def manage_ministers():
         current_minister.just_removed = False
 
         if current_minister.fabricated_evidence > 0:
-            prosecutor = minister_utility.get_minister(constants.PROSECUTION_MINISTER)
+            prosecutor = minister_utility.get_minister(constants.SECURITY_MINISTER)
             if prosecutor.check_corruption():
                 # Corruption is normally resolved during a trial, but prosecutor can still steal money from unused fabricated evidence if no trial occurs
                 prosecutor.steal_money(
@@ -586,7 +586,7 @@ def manage_commodity_sales():
         None
     """
     sold_commodities = constants.sold_commodities
-    trade_minister = minister_utility.get_minister(constants.TRADE_MINISTER)
+    trade_minister = minister_utility.get_minister(constants.TERRAN_AFFAIRS_MINISTER)
     money_stolen = 0
     reported_revenue = 0
     text = f"{trade_minister.current_position.name} {trade_minister.name} reports the following commodity sales: /n /n"
@@ -597,7 +597,7 @@ def manage_commodity_sales():
             sell_price = constants.item_prices[current_commodity]
             expected_revenue = sold_commodities[current_commodity] * sell_price
             expected_revenue = minister_utility.get_minister(
-                constants.PROSECUTION_MINISTER
+                constants.SECURITY_MINISTER
             ).estimate_expected(expected_revenue, False)
             actual_revenue = 0
 

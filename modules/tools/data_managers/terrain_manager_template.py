@@ -35,15 +35,15 @@ class terrain_manager_template:
 
         self.terrain_list: List[str] = []  # List of all terrain names
         self.terrain_parameter_keywords = {
-            "knowledge": {
+            constants.KNOWLEDGE: {
                 1: "orbital view",
                 2: "scouted",
-                3: "surveyed",
-                4: "studied I",
-                5: "studied II",
-                6: "studied III",
+                3: "visited",
+                4: "surveyed",
+                5: "sampled",
+                6: "studied",
             },
-            "altitude": {
+            constants.ALTITUDE: {
                 1: "very low",
                 2: "low",
                 3: "medium",
@@ -51,7 +51,7 @@ class terrain_manager_template:
                 5: "very high",
                 6: "stratospheric",
             },
-            "temperature": {
+            constants.TEMPERATURE: {
                 -5: "frozen",
                 -4: "frozen",
                 -3: "frozen",
@@ -71,7 +71,7 @@ class terrain_manager_template:
                 11: "scorching",
                 12: "scorching",
             },
-            "roughness": {
+            constants.ROUGHNESS: {
                 1: "flat",
                 2: "rolling",
                 3: "hilly",
@@ -79,7 +79,7 @@ class terrain_manager_template:
                 5: "mountainous",
                 6: "extreme",
             },
-            "vegetation": {
+            constants.VEGETATION: {
                 1: "barren",
                 2: "sparse",
                 3: "light",
@@ -87,8 +87,15 @@ class terrain_manager_template:
                 5: "heavy",
                 6: "lush",
             },
-            "soil": {1: "rock", 2: "sand", 3: "clay", 4: "silt", 5: "peat", 6: "loam"},
-            "water": {
+            constants.SOIL: {
+                1: "rock",
+                2: "sand",
+                3: "clay",
+                4: "silt",
+                5: "peat",
+                6: "loam",
+            },
+            constants.WATER: {
                 1: "parched",
                 2: "dry",
                 3: "wet",
@@ -457,13 +464,13 @@ class terrain_handler:
         self.terrain_parameters: Dict[str, int] = input_dict.get(
             "terrain_parameters",
             {
-                "knowledge": 1,
-                "altitude": 1,
-                "temperature": 1,
-                "roughness": 1,
-                "vegetation": 1,
-                "soil": 1,
-                "water": 1,
+                constants.KNOWLEDGE: 1,
+                constants.ALTITUDE: 1,
+                constants.TEMPERATURE: 1,
+                constants.ROUGHNESS: 1,
+                constants.VEGETATION: 1,
+                constants.SOIL: 1,
+                constants.WATER: 1,
             },
         )
         # self.apparent_terrain_parameters: Dict[str, int] = input_dict.get(
@@ -488,8 +495,8 @@ class terrain_handler:
             1.0  # 0.1 for polar cells, 1.0 for equatorial cells
         )
         self.inverse_pole_distance_multiplier: float = 1.0
-        self.minima = {"temperature": -5}
-        self.maxima = {"temperature": 12}
+        self.minima = {constants.TEMPERATURE: -5}
+        self.maxima = {constants.TEMPERATURE: 12}
         self.terrain: str = constants.terrain_manager.classify(self.terrain_parameters)
         self.resource: str = input_dict.get("resource", None)
         self.visible: bool = input_dict.get("visible", True)
@@ -499,10 +506,6 @@ class terrain_handler:
         self.terrain_features: Dict[str, bool] = {}
         for key, value in input_dict.get("terrain_features", {}).items():
             self.add_terrain_feature(value)
-        # if not input_dict: # If not from save, set all parameters for proper initialization
-        #     print("initializing")
-        #     for terrain_parameter in self.terrain_parameters:
-        #         self.set_parameter(terrain_parameter, self.get_parameter(terrain_parameter))
 
     def add_terrain_feature(self, terrain_feature_dict: Dict[str, Any]) -> None:
         """
@@ -539,12 +542,12 @@ class terrain_handler:
         """
         if information_type == constants.TERRAIN_KNOWLEDGE:
             return (
-                self.get_parameter("knowledge")
+                self.get_parameter(constants.KNOWLEDGE)
                 >= constants.TERRAIN_KNOWLEDGE_REQUIREMENT
             )
         elif information_type == constants.TERRAIN_PARAMETER_KNOWLEDGE:
             return (
-                self.get_parameter("knowledge")
+                self.get_parameter(constants.KNOWLEDGE)
                 >= constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
             )
         else:
@@ -589,7 +592,7 @@ class terrain_handler:
             constants.current_map_mode != "terrain"
             or self.terrain != new_terrain
             or overlay_images != self.get_overlay_images()
-            or parameter_name == "knowledge"
+            or parameter_name == constants.KNOWLEDGE
         ):
             self.set_terrain(new_terrain)
             for cell in self.attached_cells:
@@ -613,9 +616,9 @@ class terrain_handler:
             boolean: True if this terrain would have snow, False if not
         """
         return (
-            self.get_parameter("temperature")
+            self.get_parameter(constants.TEMPERATURE)
             <= constants.terrain_manager.get_tuning("water_freezing_point")
-            and self.get_parameter("water") >= 2
+            and self.get_parameter(constants.WATER) >= 2
         )
 
     def boiling(self) -> bool:
@@ -628,9 +631,9 @@ class terrain_handler:
             boolean: True if this terrain would have visible steam, False if not
         """
         return (
-            self.get_parameter("temperature")
+            self.get_parameter(constants.TEMPERATURE)
             >= constants.terrain_manager.get_tuning("water_boiling_point") - 4
-            and self.get_parameter("water") >= 2
+            and self.get_parameter(constants.WATER) >= 2
         )
 
     def get_overlay_images(self) -> List[str]:
@@ -647,14 +650,14 @@ class terrain_handler:
             return_list.append(f"terrains/snow_{self.terrain_variant % 4}.png")
         elif self.boiling():  # If 4 below boiling, add steam
             return_list.append(f"terrains/boiling_{self.terrain_variant % 4}.png")
-            if self.get_parameter("water") >= 3 and self.get_parameter(
-                "temperature"
+            if self.get_parameter(constants.WATER) >= 3 and self.get_parameter(
+                constants.TEMPERATURE
             ) >= constants.terrain_manager.get_tuning("water_boiling_point"):
                 # If boiling, add more steam as water increases
                 return_list.append(
                     f"terrains/boiling_{(self.terrain_variant + 1) % 4}.png"
                 )
-                if self.get_parameter("water") >= 5:
+                if self.get_parameter(constants.WATER) >= 5:
                     return_list.append(
                         f"terrains/boiling_{(self.terrain_variant + 2) % 4}.png"
                     )
@@ -802,25 +805,27 @@ class terrain_handler:
             None
         """
         flowed = False
-        if self.terrain_parameters["water"] >= 5 and self.terrain_parameters[
-            "temperature"
+        if self.terrain_parameters[constants.WATER] >= 5 and self.terrain_parameters[
+            constants.TEMPERATURE
         ] > constants.terrain_manager.get_tuning(
             "water_freezing_point"
         ):  # If enough liquid water to flow
             for adjacent_cell in self.attached_cells[0].adjacent_list:
-                if adjacent_cell.get_parameter("altitude") <= self.get_parameter(
-                    "altitude"
+                if adjacent_cell.get_parameter(
+                    constants.ALTITUDE
+                ) <= self.get_parameter(
+                    constants.ALTITUDE
                 ) and adjacent_cell.get_parameter(
-                    "temperature"
+                    constants.TEMPERATURE
                 ) < constants.terrain_manager.get_tuning(
                     "water_boiling_point"
                 ):
                     if (
-                        adjacent_cell.get_parameter("water")
-                        <= self.terrain_parameters["water"] - 2
+                        adjacent_cell.get_parameter(constants.WATER)
+                        <= self.terrain_parameters[constants.WATER] - 2
                     ):
-                        adjacent_cell.change_parameter("water", 1)
-                        self.change_parameter("water", -1)
+                        adjacent_cell.change_parameter(constants.WATER, 1)
+                        self.change_parameter(constants.WATER, -1)
                         flowed = True
 
         if flowed:  # Flow could recursively trigger flows in adjacent cells

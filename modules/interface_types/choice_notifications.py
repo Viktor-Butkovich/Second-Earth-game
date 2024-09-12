@@ -2,6 +2,7 @@
 
 from . import buttons, action_notifications
 from ..util import text_utility, scaling, market_utility, utility
+from ..constructs import unit_types
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -141,22 +142,10 @@ class choice_button(buttons.button):
         self.notification = input_dict["notification"]
         match self.button_type:
             case constants.RECRUITMENT_CHOICE_BUTTON:
-                self.recruitment_type = self.notification.choice_info_dict[
-                    "recruitment_type"
-                ]
-                self.recruitment_name = self.notification.choice_info_dict[
-                    "recruitment_name"
-                ]
-                if self.recruitment_type in [constants.SHIP]:
-                    self.message = "Purchase"
-                    self.verb = "purchase"
-                else:
-                    self.message = "Hire"
-                    self.verb = "hire"
-                self.cost = self.notification.choice_info_dict["cost"]
-                self.mob_image_id = self.notification.choice_info_dict.get(
-                    "mob_image_id"
-                )  # Image ID provided for most units, but generated on creation for workers
+                self.recruitment_type: unit_types.unit_type = (
+                    self.notification.choice_info_dict["recruitment_type"]
+                )
+                self.message = self.recruitment_type.recruitment_verb.capitalize()
 
             case constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON:
                 self.message = "Main menu"
@@ -169,6 +158,9 @@ class choice_button(buttons.button):
 
             case constants.CHOICE_END_TURN_BUTTON:
                 self.message = "End turn"
+
+            case constants.CHOICE_FIRE_BUTTON:
+                self.message = "Fire"
 
             case None:
                 self.message = "Cancel"
@@ -220,16 +212,16 @@ class choice_button(buttons.button):
             None
         """
         if self.button_type == constants.RECRUITMENT_CHOICE_BUTTON:
-            if self.recruitment_type.endswith("workers"):
+            if self.recruitment_type.number >= 2:
                 self.set_tooltip(
                     [
-                        f"{utility.capitalize(self.verb)} a unit of {self.recruitment_name} for {str(self.cost)} money"
+                        f"{utility.capitalize(self.recruitment_type.recruitment_verb)} a unit of {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money"
                     ]
                 )
             else:
                 self.set_tooltip(
                     [
-                        f"{utility.capitalize(self.verb)} a {self.recruitment_name} for {str(self.cost)} money"
+                        f"{utility.capitalize(self.recruitment_type.recruitment_verb)} a {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money"
                     ]
                 )
 
@@ -272,37 +264,10 @@ class recruitment_choice_button(choice_button):
             input_dict["grids"] = status.displayed_tile.grids
         else:  # If no tile selected, assume recruiting on Earth
             input_dict["grids"] = [status.earth_grid]
-        if self.mob_image_id:
-            input_dict["image"] = self.mob_image_id
         input_dict["modes"] = input_dict["grids"][0].modes
-        constants.money_tracker.change(-1 * self.cost, "unit_recruitment")
-        if self.recruitment_type in constants.officer_types:
-            name = ""
-            for character in self.recruitment_type:
-                if not character == "_":
-                    name += character
-                else:
-                    name += " "
-            input_dict["name"] = name
-            input_dict["init_type"] = self.recruitment_type
-            input_dict["officer_type"] = self.recruitment_type
-
-        elif self.recruitment_type in [
-            constants.EUROPEAN_WORKERS,
-            constants.CHURCH_VOLUNTEERS,
-        ]:
-            input_dict.update(
-                status.worker_types[self.recruitment_type].generate_input_dict()
-            )
-
-        elif self.recruitment_type == constants.SHIP:
-            image_dict = {
-                "default": self.mob_image_id,
-                "uncrewed": "mobs/ship/uncrewed.png",
-            }
-            input_dict["image_dict"] = image_dict
-            input_dict["name"] = "ship"
-            input_dict["crew"] = None
-            input_dict["init_type"] = constants.SHIP
+        constants.money_tracker.change(
+            -1 * self.recruitment_type.recruitment_cost, "unit_recruitment"
+        )
+        input_dict.update(self.recruitment_type.generate_input_dict())
         constants.actor_creation_manager.create(False, input_dict)
         super().on_click()

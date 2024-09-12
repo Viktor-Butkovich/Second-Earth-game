@@ -175,26 +175,28 @@ class combat(action.action):
             text += f"Are you sure you want to spend {str(self.get_price())} money to attack the {self.opponent.name} to the {self.direction}? /n /nRegardless of the result, the rest of this unit's movement points will be consumed."
         elif subject == "initial":
             if self.defending:
-                text += f"{utility.capitalize(self.opponent.name)} {utility.conjugate('be', self.opponent.number)} attacking your {self.current_unit.name} at ({str(self.current_unit.x)}, {str(self.current_unit.y)})."
+                text += f"{utility.capitalize(self.opponent.name)} {utility.conjugate('be', self.opponent.unit_type.number)} attacking your {self.current_unit.name} at ({str(self.current_unit.x)}, {str(self.current_unit.y)})."
             else:
-                text += f"Your {self.current_unit.name} {utility.conjugate('be', self.current_unit.number)} attacking the {self.opponent.name} at ({str(self.current_unit.x)}, {str(self.current_unit.y)})."
+                text += f"Your {self.current_unit.name} {utility.conjugate('be', self.current_unit.unit_type.number)} attacking the {self.opponent.name} at ({str(self.current_unit.x)}, {str(self.current_unit.y)})."
 
         elif subject == "modifier_breakdown":
-            text += f"The {self.current_unit.name} {utility.conjugate('attempt', self.current_unit.number)} to defeat the {self.opponent.name}. /n /n"
+            text += f"The {self.current_unit.name} {utility.conjugate('attempt', self.current_unit.unit_type.number)} to defeat the {self.opponent.name}. /n /n"
 
             if self.current_unit.get_permission(constants.VETERAN_PERMISSION):
                 text += f"The {self.current_unit.officer.name} can roll twice and pick the higher result. /n"
 
             if self.current_unit.get_permission(constants.BATTALION_PERMISSION):
-                if self.current_unit.battalion_type == "imperial":
+                if self.current_unit.workers.get_permission(
+                    constants.EUROPEAN_WORKERS_PERMISSION
+                ):
                     text += "Your professional imperial soldiers will receive a +2 bonus after their roll. /n"
             else:
                 text += f"As a non-military unit, your {self.current_unit.name} will receive a -1 penalty after their roll. /n"
 
             if self.current_unit.get_permission(constants.DISORGANIZED_PERMISSION):
-                text += f"The {self.current_unit.name} {utility.conjugate('be', self.current_unit.number)} disorganized and will receive a -1 penalty after their roll. /n"
+                text += f"The {self.current_unit.name} {utility.conjugate('be', self.current_unit.unit_type.number)} disorganized and will receive a -1 penalty after their roll. /n"
             if self.opponent.get_permission(constants.DISORGANIZED_PERMISSION):
-                text += f"The {self.opponent.name} {utility.conjugate('be', self.opponent.number)} disorganized and will receive a -1 after their roll. /n"
+                text += f"The {self.opponent.name} {utility.conjugate('be', self.opponent.unit_type.number)} disorganized and will receive a -1 after their roll. /n"
 
             if self.current_unit.get_cell().has_intact_building(constants.FORT):
                 text += f"The fort in this tile grants your {self.current_unit.name} a +1 bonus after their roll. /n"
@@ -213,7 +215,7 @@ class combat(action.action):
         elif subject == "critical_failure":  # lose
             if self.defending:
                 self.public_opinion_change = random.randrange(-3, 4)
-                if self.current_unit.number == 1:
+                if self.current_unit.unit_type.number == 1:
                     phrase = "was "
                 else:
                     phrase = "were all "
@@ -221,7 +223,7 @@ class combat(action.action):
 
                 text += f"The {self.opponent.name} decisively defeated your {self.current_unit.name}, who {phrase} {ending}. /n /n"
             else:
-                text += f"The {self.opponent.name} decisively routed your {self.current_unit.name}, who {utility.conjugate('be', self.opponent.number)} scattered and will be vulnerable to counterattack. /n /n"
+                text += f"The {self.opponent.name} decisively routed your {self.current_unit.name}, who {utility.conjugate('be', self.opponent.unit_type.number)} scattered and will be vulnerable to counterattack. /n /n"
 
         elif subject == "failure":  # draw
             if self.defending:
@@ -242,9 +244,9 @@ class combat(action.action):
                 ):  # if enemy attacked by going south
                     retreat_direction = "north"
 
-                text += f"Your {self.current_unit.name} managed to repel the attacking {self.opponent.name}, who {utility.conjugate('be', self.opponent.number, 'preterite')} seen withdrawing to the {retreat_direction}. /n /n"
+                text += f"Your {self.current_unit.name} managed to repel the attacking {self.opponent.name}, who {utility.conjugate('be', self.opponent.unit_type.number, 'preterite')} seen withdrawing to the {retreat_direction}. /n /n"
             else:
-                text += f"Your {self.current_unit.name} failed to push back the defending {self.opponent.name} and {utility.conjugate('be', self.current_unit.number, 'preterite')} forced to withdraw. /n /n"
+                text += f"Your {self.current_unit.name} failed to push back the defending {self.opponent.name} and {utility.conjugate('be', self.current_unit.unit_type.number, 'preterite')} forced to withdraw. /n /n"
         elif subject == "success":  # win
             if self.defending:
                 if (
@@ -263,7 +265,7 @@ class combat(action.action):
                     self.opponent.last_move_direction[1] < 0
                 ):  # if enemy attacked by going south
                     retreat_direction = "north"
-                text += f"Your {self.current_unit.name} decisively routed the attacking {self.opponent.name}, who {utility.conjugate('be', self.opponent.number, 'preterite')} seen scattering to the {retreat_direction} and will be vulnerable to counterattack. /n /n"
+                text += f"Your {self.current_unit.name} decisively routed the attacking {self.opponent.name}, who {utility.conjugate('be', self.opponent.unit_type.number, 'preterite')} seen scattering to the {retreat_direction} and will be vulnerable to counterattack. /n /n"
             else:
                 text += f"Your {self.current_unit.name} decisively defeated and destroyed the {self.opponent.name}. /n /n"
         elif (

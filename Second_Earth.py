@@ -6,11 +6,11 @@ from modules.setup import *
 try:
     setup(
         misc,
-        worker_types_config,
         equipment_types_config,
         terrain_feature_types_config,
         commodities,
-        def_ministers,
+        minister_types_config,
+        unit_types_config,
         new_game_setup_screen,
         info_displays,
         transactions,
@@ -23,6 +23,7 @@ try:
         mob_interface,
         tile_interface,
         unit_organization_interface,
+        vehicle_organization_interface,
         settlement_interface,
         terrain_interface,
         inventory_interface,
@@ -45,10 +46,10 @@ except Exception:  # displays error message and records error message in crash l
 
 #
 #   new SE features:
+# Strange issue - in non-ordered collections, height of collection incorrectly affects y positions of elements, and without any apparent modification to their y values
 # Continue adding hairstyles
 # Minister table_map_image not using smart green screens, probably because it directly uses tile image ID
 # Add new unit art
-# Add new minister positions with placehold color-coded squares
 # Add new minister appointing system - selecting an unappointed minister should highlight all available positions, and clicking on one appoint w/ a confirmation check
 # Add more variety to water/ice colors
 # Eventually add hydrogen fuel cells - process to convert hydrogen and oxygen into water, actually releases energy but requires facility and hydrogen/oxygen input
@@ -60,18 +61,18 @@ except Exception:  # displays error message and records error message in crash l
 #   Trade -> Terran Affairs (foreign/diplomacy/marketing)
 #   Religion -> Health and Environment (settler health, ecology, terraforming)
 #   Military -> Space (space transportation, space colonies, space construction, space special projects)
-#   Prosecutor -> Auditor (finding corruption, security)
+#   Prosecutor -> Security (finding corruption, security)
 #   Transportation -> Transportation (planetary transportation, logistics)
 #   Production -> Industry (construction, factories, mining, agriculture)
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
-# Add new minister positions
-# Add astronauts/cosmonauts group with corresponding officer
-# Add support for vehicles being crewed by groups, combining in new interface with any group attaching/detaching, like to mines/factories
-#   This allows embarking/disembarking to be part of the reorganization interface
-#   Possibly solve with a related, separate reorganization interface that manages vehicles, crew/uncrew, embark/disembark
 # Add spaceships
+# Add astronauts/cosmonauts group with corresponding officer
+# Allow vehicles to be crewed by groups instead of workers
+# Add building type classes that each instance can belong to
+# Add new resource types, allowing buying on Earth, transporting, and using to build when it is in the builder's tile
+# Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
 # Add radio distortion versions of voice lines, either as separate files or runtime filter
 # Add terrain details tile interface panel, such that terrain details aren't always showing
@@ -79,6 +80,7 @@ except Exception:  # displays error message and records error message in crash l
 # Load in all minister portraits on minister creation, not when first viewed
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
+# Add new autofill interface for vehicle passengers, and possibly building work crews
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>

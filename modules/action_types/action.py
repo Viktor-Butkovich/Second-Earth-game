@@ -287,7 +287,7 @@ class action:
         """
         if self.actor_type == "prosecutor":
             self.current_unit = minister_utility.get_minister(
-                constants.PROSECUTION_MINISTER
+                constants.SECURITY_MINISTER
             )
         else:
             self.current_unit = unit

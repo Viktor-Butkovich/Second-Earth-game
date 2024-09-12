@@ -10,7 +10,7 @@ import modules.util.scaling as scaling
 import modules.util.actor_utility as actor_utility
 import modules.util.game_transitions as game_transitions
 import modules.constructs.fonts as fonts
-import modules.constructs.worker_types as worker_types
+import modules.constructs.unit_types as unit_types
 import modules.constructs.minister_types as minister_types
 import modules.constructs.equipment_types as equipment_types
 import modules.constructs.terrain_feature_types as terrain_feature_types
@@ -20,6 +20,7 @@ from modules.tools.data_managers import (
     achievement_manager_template,
     character_manager_template,
     actor_creation_manager_template,
+    terrain_manager_template,
 )
 from modules.action_types import (
     public_relations_campaign,
@@ -77,7 +78,6 @@ def info_displays():
                 ],
                 "init_type": constants.ORDERED_COLLECTION,
                 "description": "general information panel",
-                "resize_with_contents": True,
             }
         )
     )
@@ -95,6 +95,7 @@ def misc():
     constants.actor_creation_manager = (
         actor_creation_manager_template.actor_creation_manager_template()
     )
+    constants.terrain_manager = terrain_manager_template.terrain_manager_template()
 
     constants.font_size = scaling.scale_height(constants.default_font_size)
     constants.notification_font_size = scaling.scale_height(
@@ -216,7 +217,7 @@ def misc():
 
     status.safe_click_area = constants.actor_creation_manager.create_interface_element(
         {
-            "width": constants.display_width / 2 - scaling.scale_width(35),
+            "width": constants.display_width / 2,
             "height": constants.display_height,
             "modes": [
                 constants.STRATEGIC_MODE,
@@ -255,8 +256,8 @@ def misc():
             "coordinates": scaling.scale_coordinates(
                 constants.grids_collection_x, constants.grids_collection_y
             ),
-            "width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "width": scaling.scale_width(0),
+            "height": scaling.scale_height(0),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.INTERFACE_COLLECTION,
         }
@@ -287,48 +288,7 @@ def misc():
     )
     # anchor = constants.actor_creation_manager.create_interface_element(
     #    {'width': 1, 'height': 1, 'init_type': 'interface element', 'parent_collection': status.info_displays_collection}
-    # ) #rect at original location prevents collection from moving unintentionally when resizing
-
-
-def worker_types_config():
-    """
-    Description:
-        Defines worker type templates
-    Input:
-        None
-    Output:
-        None
-    """
-    worker_types.worker_type(
-        False,
-        {
-            "key": constants.EUROPEAN_WORKERS,
-            "adjective": "European",
-            "permissions": [
-                constants.WORKER_PERMISSION,
-                constants.EUROPEAN_WORKERS_PERMISSION,
-            ],
-            "upkeep": 6.0,
-            "can_crew": [constants.SHIP, constants.TRAIN],
-            "upkeep_variance": True,
-            "fired_description": "Fired description. /n /n",
-        },
-    )
-    worker_types.worker_type(
-        False,
-        {
-            "key": constants.CHURCH_VOLUNTEERS,
-            "adjective": "religious",
-            "permissions": [
-                constants.WORKER_PERMISSION,
-                constants.CHURCH_VOLUNTEERS_PERMISSION,
-            ],
-            "name": "church volunteers",
-            "upkeep": 0.0,
-            "fired_description": "Fired church volunteers will never settle in slums and will instead return to Europe. /n /n"
-            + "Firing church volunteers reflects poorly on your company and will incur a public opinion penalty of 1. /n /n",
-        },
-    )
+    # ) # rect at original location prevents collection from moving unintentionally when resizing
 
 
 def equipment_types_config():
@@ -452,7 +412,7 @@ def commodities():
         ].price
 
 
-def def_ministers():
+def minister_types_config():
     """
     Description:
         Defines minister positions, backgrounds, and associated units
@@ -463,84 +423,468 @@ def def_ministers():
     """
     minister_types.minister_type(
         {
-            "key": constants.MILITARY_MINISTER,
-            "name": "General",
-            "skill_type": "military",
-            "description": ["Military-oriented units include majors and battalions."],
-        }
-    )
-    minister_types.minister_type(
-        {
-            "key": constants.RELIGION_MINISTER,
-            "name": "Bishop",
-            "skill_type": "religion",
+            "key": constants.SPACE_MINISTER,
+            "name": "Minister of Space",
+            "skill_type": constants.SPACE_SKILL,
             "description": [
-                "Religion-oriented units include evangelists, church volunteers, and missionaries."
+                "Space-oriented units include astronauts, navigators, and space vehicles.",
+                "The Minister of Space also controls outer colonies and space logistics.",
             ],
         }
     )
     minister_types.minister_type(
         {
-            "key": constants.TRADE_MINISTER,
-            "name": "Minister of Trade",
-            "skill_type": "trade",
+            "key": constants.ECOLOGY_MINISTER,
+            "name": "Minister of Ecology",
+            "skill_type": constants.ECOLOGY_SKILL,
+            "description": ["Ecology-oriented units include terraformers and doctors."],
+        }
+    )
+    minister_types.minister_type(
+        {
+            "key": constants.TERRAN_AFFAIRS_MINISTER,
+            "name": "Minister of Terran Affairs",
+            "skill_type": constants.TERRAN_AFFAIRS_SKILL,
             "description": [
-                "Trade-oriented units include merchants and caravans.",
-                "The Minister of Trade also controls the purchase and sale of goods on Earth",
+                "Terran Affairs-oriented units include lobbyists, executives, and influencers.",
+                "The Minister of Terran Affairs also controls the purchase and sale of goods on Earth",
             ],
         }
     )
     minister_types.minister_type(
         {
-            "key": constants.EXPLORATION_MINISTER,
-            "name": "Minister of Geography",
-            "skill_type": "exploration",
+            "key": constants.SCIENCE_MINISTER,
+            "name": "Minister of Science",
+            "skill_type": constants.SCIENCE_SKILL,
             "description": [
-                "Exploration-oriented units include explorers and expeditions."
+                "Science-oriented units include researchers and surveyors."
             ],
         }
     )
+
     minister_types.minister_type(
         {
-            "key": constants.CONSTRUCTION_MINISTER,
-            "name": "Minister of Construction",
-            "skill_type": "construction",
+            "key": constants.INDUSTRY_MINISTER,
+            "name": "Minister of Industry",
+            "skill_type": constants.INDUSTRY_SKILL,
             "description": [
-                "Construction-oriented units include engineers and construction gangs."
+                "Industry-oriented units include construction gangs and work crews."
             ],
         }
     )
+
     minister_types.minister_type(
         {
-            "key": constants.PRODUCTION_MINISTER,
-            "name": "Minister of Production",
-            "skill_type": "production",
-            "description": [
-                "Production-oriented units include work crews and foremen."
-            ],
+            "key": constants.ENERGY_MINISTER,
+            "name": "Minister of Energy",
+            "skill_type": constants.ENERGY_SKILL,
+            "description": ["Energy-oriented units include technicians."],
         }
     )
+
     minister_types.minister_type(
         {
             "key": constants.TRANSPORTATION_MINISTER,
             "name": "Minister of Transportation",
-            "skill_type": "transportation",
+            "skill_type": constants.TRANSPORTATION_SKILL,
             "description": [
-                "Transportation-oriented units include ships, trains, drivers, and porters.",
-                "The Minister of Transportation also ensures that goods are not lost in transport or storage",
+                "Transportation-oriented units include planetary vehicles and their crews.",
+                "The Minister of Transportation also manages planetary logistics and warehouses.",
             ],
         }
     )
     minister_types.minister_type(
         {
-            "key": constants.PROSECUTION_MINISTER,
-            "name": "Prosecutor",
-            "skill_type": "prosecution",
+            "key": constants.SECURITY_MINISTER,
+            "name": "Minister of Security",
+            "skill_type": constants.SECURITY_SKILL,
             "controls_units": False,
             "description": [
-                "Rather than controlling units, a prosecutor controls the process of investigating and removing ministers suspected to be corrupt."
+                "Security-oriented units include marines and investigators."
+                "The Minister of Security also controls the process of investigating and removing corrupt ministers."
             ],
         }
+    )
+
+
+def unit_types_config():
+    """
+    Description:
+        Defines unit type templates
+    Input:
+        None
+    Output:
+        None
+    """
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.EXPEDITION,
+            "name": "expedition",
+            "controlling_minister_type": status.minister_types[
+                constants.SCIENCE_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.GROUP_PERMISSION: True,
+                constants.EXPEDITION_PERMISSION: True,
+            },
+            "can_recruit": False,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.EXPLORER,
+            "name": "explorer",
+            "controlling_minister_type": status.minister_types[
+                constants.SCIENCE_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.OFFICER_PERMISSION: True,
+                constants.EXPLORER_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Explorers are controlled by the {status.minister_types[constants.SCIENCE_MINISTER].name}",
+                "When combined with workers, an explorer becomes an expedition unit that can explore new tiles.",
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.EXPEDITION])
+
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.CARAVAN,
+            "name": "caravan",
+            "controlling_minister_type": status.minister_types[
+                constants.TERRAN_AFFAIRS_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.GROUP_PERMISSION: True,
+                constants.CARAVAN_PERMISSION: True,
+            },
+            "can_recruit": False,
+            "inventory_capacity": 9,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.MERCHANT,
+            "name": "merchant",
+            "controlling_minister_type": status.minister_types[
+                constants.TERRAN_AFFAIRS_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.OFFICER_PERMISSION: True,
+                constants.MERCHANT_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Merchants are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally search for loans and conduct advertising campaigns on Earth.",
+                "When combined with workers, a merchant becomes a caravan that can build trading posts and trade.",
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.CARAVAN])
+
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.MISSIONARIES,
+            "name": "missionaries",
+            "controlling_minister_type": status.minister_types[
+                constants.TERRAN_AFFAIRS_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.GROUP_PERMISSION: True,
+                constants.MISSIONARIES_PERMISSION: True,
+            },
+            "can_recruit": False,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.EVANGELIST,
+            "name": "evangelist",
+            "controlling_minister_type": status.minister_types[
+                constants.TERRAN_AFFAIRS_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.OFFICER_PERMISSION: True,
+                constants.EVANGELIST_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Evangelists are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally conduct religious campaigns and public relations campaigns on Earth.",
+                "When combined with religious volunteers, an evangelist becomes a missionaries unit that can build missions.",
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.MISSIONARIES])
+
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.BATTALION,
+            "name": "battalion",
+            "controlling_minister_type": status.minister_types[
+                constants.SPACE_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.GROUP_PERMISSION: True,
+                constants.BATTALION_PERMISSION: True,
+            },
+            "can_recruit": False,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.MAJOR,
+            "name": "major",
+            "controlling_minister_type": status.minister_types[
+                constants.SPACE_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.OFFICER_PERMISSION: True,
+                constants.MAJOR_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Majors are controlled by the {status.minister_types[constants.SPACE_MINISTER].name}",
+                "When combined with workers, a major becomes a battalion unit that has a very high combat strength, and can build forts and attack enemies.",
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.BATTALION])
+
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.PORTERS,
+            "name": "porters",
+            "controlling_minister_type": status.minister_types[
+                constants.TRANSPORTATION_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.GROUP_PERMISSION: True,
+                constants.PORTERS_PERMISSION: True,
+            },
+            "can_recruit": False,
+            "inventory_capacity": 9,
+            "number": 2,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.DRIVER,
+            "name": "driver",
+            "controlling_minister_type": status.minister_types[
+                constants.TRANSPORTATION_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.OFFICER_PERMISSION: True,
+                constants.DRIVER_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Drivers are controlled by the {status.minister_types[constants.TRANSPORTATION_MINISTER].name}",
+                "When combined with workers, a driver becomes a porters unit that can move quickly and transport commodities.",
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.PORTERS])
+
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.WORK_CREW,
+            "name": "work crew",
+            "controlling_minister_type": status.minister_types[
+                constants.INDUSTRY_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.GROUP_PERMISSION: True,
+                constants.WORK_CREW_PERMISSION: True,
+            },
+            "can_recruit": False,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.FOREMAN,
+            "name": "foreman",
+            "controlling_minister_type": status.minister_types[
+                constants.INDUSTRY_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.OFFICER_PERMISSION: True,
+                constants.FOREMAN_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Foremen are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}",
+                "When combined with workers, a foreman becomes a work crew unit that can produce commodities when attached to a production facility.",
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.WORK_CREW])
+
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.CONSTRUCTION_GANG,
+            "name": "construction gang",
+            "controlling_minister_type": status.minister_types[
+                constants.INDUSTRY_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.GROUP_PERMISSION: True,
+                constants.CONSTRUCTION_PERMISSION: True,
+            },
+            "can_recruit": False,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.ENGINEER,
+            "name": "engineer",
+            "controlling_minister_type": status.minister_types[
+                constants.INDUSTRY_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.OFFICER_PERMISSION: True,
+                constants.ENGINEER_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Engineers are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}",
+                "When combined with workers, an engineer becomes a construction gang unit that can build buildings, roads, railroads, and trains.",
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.CONSTRUCTION_GANG])
+
+    unit_types.worker_type(
+        False,
+        {
+            "key": constants.EUROPEAN_WORKERS,
+            "name": "European workers",
+            "controlling_minister_type": status.minister_types[
+                constants.INDUSTRY_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.WORKER_PERMISSION: True,
+                constants.EUROPEAN_WORKERS_PERMISSION: True,
+                constants.CREW_SHIP_PERMISSION: True,
+                constants.CREW_TRAIN_PERMISSION: True,
+            },
+            "upkeep": 6.0,
+            "upkeep_variance": True,
+            "save_changes": True,
+            "can_recruit": True,
+            "recruitment_cost": 0,
+            "recruitment_verb": "hire",
+            "fired_description": ["Fired description."],
+            "description": ["Placeholder"],
+            "number": 2,
+        },
+    )
+    unit_types.worker_type(
+        False,
+        {
+            "key": constants.CHURCH_VOLUNTEERS,
+            "name": "church volunteers",
+            "controlling_minister_type": status.minister_types[
+                constants.TERRAN_AFFAIRS_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.WORKER_PERMISSION: True,
+                constants.CHURCH_VOLUNTEERS_PERMISSION: True,
+            },
+            "upkeep": 0.0,
+            "can_recruit": False,
+            "fired_description": [
+                "Fired church volunteers will never settle in slums and will instead return to Europe.",
+                "Firing church volunteers reflects poorly on your company and will incur a public opinion penalty of 1.",
+            ],
+            "description": ["Placeholder"],
+            "number": 2,
+        },
+    )
+
+    unit_types.vehicle_type(
+        False,
+        {
+            "key": constants.SHIP,
+            "name": "ship",
+            "controlling_minister_type": status.minister_types[
+                constants.TRANSPORTATION_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.INACTIVE_VEHICLE_PERMISSION: True,
+                constants.VEHICLE_PERMISSION: True,
+                constants.ACTIVE_PERMISSION: False,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "purchase",
+            "recruitment_cost": 10,
+            "description": [
+                "While useless by itself, a steamship crewed by workers can quickly transport units and cargo through coastal waters and between theatres.",
+                "Crewing a steamship requires an advanced level of technological training, which is generally only available to European workers in this time period.",
+            ],
+        },
+    )
+
+    unit_types.vehicle_type(
+        False,
+        {
+            "key": constants.TRAIN,
+            "name": "train",
+            "controlling_minister_type": status.minister_types[
+                constants.TRANSPORTATION_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.INACTIVE_VEHICLE_PERMISSION: True,
+                constants.VEHICLE_PERMISSION: True,
+                constants.ACTIVE_PERMISSION: False,
+            },
+            "can_recruit": False,
+            "description": [
+                "While useless by itself, a train crewed by workers can quickly transport units and cargo through railroads between train stations.",
+            ],
+        },
     )
 
 
@@ -553,10 +897,6 @@ def transactions():
     Output:
         None
     """
-    for current_officer in constants.officer_types:
-        constants.recruitment_costs[current_officer] = constants.recruitment_costs[
-            "officer"
-        ]
     actor_utility.update_descriptions()
     actor_utility.reset_action_prices()
 
@@ -576,8 +916,8 @@ def value_trackers():
                 "coordinates": scaling.scale_coordinates(
                     250, constants.default_display_height - 5
                 ),
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "modes": [
                     constants.STRATEGIC_MODE,
                     constants.EARTH_MODE,
@@ -1079,9 +1419,8 @@ def earth_screen():
         }
     )
 
-    for recruitment_index, recruitment_type in enumerate(
-        constants.recruitment_types
-    ):  # Creates recruitment button for each officer type, workers, and steamship
+    recruitment_index = 0
+    for recruitment_index, recruitment_type in enumerate(status.recruitment_types):
         constants.actor_creation_manager.create_interface_element(
             {
                 "width": scaling.scale_width(100),
@@ -1095,14 +1434,16 @@ def earth_screen():
             }
         )
 
-    for item_type in ["consumer goods"]:  # Creates purchase button for items from earth
+    for purchase_index, purchase_item_type in enumerate(
+        ["consumer goods"]
+    ):  # Creates purchase button for items from earth
         constants.actor_creation_manager.create_interface_element(
             {
                 "width": scaling.scale_width(100),
                 "height": scaling.scale_height(100),
                 "init_type": constants.BUY_ITEM_BUTTON,
                 "parent_collection": earth_purchase_buttons,
-                "item_type": item_type,
+                "item_type": purchase_item_type,
                 "member_config": {
                     "second_dimension_coordinate": -1 * (recruitment_index // 8)
                 },  # Re-uses recruitment index from previous loop
@@ -1529,8 +1870,6 @@ def mob_interface():
             "actor_type": "mob",
             "description": "unit information panel",
             "parent_collection": status.info_displays_collection,
-            #'resize_with_contents': True, #need to get resize to work with info displays - would prevent invisible things from taking space
-            # - collection with 5 width/height should still take space because of its member rects - the fact that this is not happening means something about resizing is not working
         }
     )
 
@@ -1682,8 +2021,8 @@ def mob_interface():
                     tab_collection_relative_coordinates[0],
                     tab_collection_relative_coordinates[1],
                 ),
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.TABBED_COLLECTION,
                 "parent_collection": status.mob_info_display,
                 "member_config": {"order_exempt": True},
@@ -1847,8 +2186,8 @@ def tile_interface():
                     tab_collection_relative_coordinates[0],
                     tab_collection_relative_coordinates[1],
                 ),
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.TABBED_COLLECTION,
                 "parent_collection": status.tile_info_display,
                 "member_config": {"order_exempt": True},
@@ -1867,7 +2206,7 @@ def inventory_interface():
     Output:
         None
     """
-    commodity_prices_x, commodity_prices_y = (900, 100)
+    commodity_prices_x, commodity_prices_y = (1000, 100)
     commodity_prices_height = 35 + (30 * len(constants.commodity_types))
     commodity_prices_width = 200
 
@@ -1911,8 +2250,8 @@ def inventory_interface():
     status.mob_inventory_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
                 "parent_collection": status.mob_tabbed_collection,
                 "member_config": {
@@ -1976,8 +2315,8 @@ def inventory_interface():
     status.mob_inventory_info_display = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
                 "actor_type": "mob_inventory",
@@ -2035,8 +2374,8 @@ def inventory_interface():
     status.tile_inventory_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
                 "parent_collection": status.tile_tabbed_collection,
                 "member_config": {
@@ -2134,8 +2473,8 @@ def inventory_interface():
     status.tile_inventory_info_display = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
                 "actor_type": "tile_inventory",
@@ -2204,8 +2543,8 @@ def settlement_interface():
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(0, 0),
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
                 "parent_collection": status.tile_tabbed_collection,
                 "member_config": {
@@ -2284,8 +2623,8 @@ def terrain_interface():
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(0, 0),
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
                 "parent_collection": status.tile_tabbed_collection,
                 "member_config": {
@@ -2340,10 +2679,10 @@ def unit_organization_interface():
     status.mob_reorganization_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "coordinates": scaling.scale_coordinates(-30, -1 * image_height - 115),
-                "width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
-                "init_type": constants.AUTOFILL_COLLECTION,
+                "coordinates": scaling.scale_coordinates(0, -1 * image_height),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
+                "init_type": constants.ORDERED_COLLECTION,
                 "parent_collection": status.mob_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
@@ -2351,8 +2690,31 @@ def unit_organization_interface():
                     "identifier": constants.REORGANIZATION_PANEL,
                 },
                 "description": "unit organization panel",
+                "direction": "vertical",
+            }
+        )
+    )
+
+    status.group_reorganization_collection = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "width": scaling.scale_width(10),
+                "height": scaling.scale_height(3 * image_height),
+                "init_type": constants.AUTOFILL_COLLECTION,
+                "parent_collection": status.mob_reorganization_collection,
                 "direction": "horizontal",
-                "autofill_targets": {"officer": [], "worker": [], "group": []},
+                "block_height_offset": True,
+                "member_config": {"order_x_offset": lhs_x_offset},
+                "allowed_procedures": [
+                    constants.MERGE_PROCEDURE,
+                    constants.SPLIT_PROCEDURE,
+                ],
+                "autofill_targets": {
+                    constants.OFFICER_PERMISSION: [],
+                    constants.WORKER_PERMISSION: [],
+                    constants.GROUP_PERMISSION: [],
+                },
             }
         )
     )
@@ -2360,19 +2722,19 @@ def unit_organization_interface():
     # mob background image's tooltip
     lhs_top_tooltip = constants.actor_creation_manager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(lhs_x_offset, 0),
+            "coordinates": scaling.scale_coordinates(0, 0),
             "minimum_width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "image_id": "misc/empty.png",
             "actor_type": "mob",
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
-            "parent_collection": status.mob_reorganization_collection,
+            "parent_collection": status.group_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
         }
     )
-    status.mob_reorganization_collection.autofill_targets["officer"].append(
-        lhs_top_tooltip
-    )
+    status.group_reorganization_collection.autofill_targets[
+        constants.OFFICER_PERMISSION
+    ].append(lhs_top_tooltip)
 
     # mob image
     lhs_top_mob_free_image = constants.actor_creation_manager.create_interface_element(
@@ -2384,35 +2746,33 @@ def unit_organization_interface():
             "actor_image_type": "default",
             "default_image_id": "mobs/default/mock_officer.png",
             "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
-            "parent_collection": status.mob_reorganization_collection,
+            "parent_collection": status.group_reorganization_collection,
             "member_config": {
                 "calibrate_exempt": True,
-                "x_offset": scaling.scale_width(lhs_x_offset),
+                "x_offset": scaling.scale_width(0),
             },
         }
     )
-    status.mob_reorganization_collection.autofill_targets["officer"].append(
-        lhs_top_mob_free_image
-    )
+    status.group_reorganization_collection.autofill_targets[
+        constants.OFFICER_PERMISSION
+    ].append(lhs_top_mob_free_image)
 
     # mob background image's tooltip
     lhs_bottom_tooltip = constants.actor_creation_manager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(
-                lhs_x_offset, -1 * (image_height - 5)
-            ),
+            "coordinates": scaling.scale_coordinates(0, -1 * (image_height - 5)),
             "minimum_width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "image_id": "misc/empty.png",
             "actor_type": "mob",
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
-            "parent_collection": status.mob_reorganization_collection,
+            "parent_collection": status.group_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
         }
     )
-    status.mob_reorganization_collection.autofill_targets["worker"].append(
-        lhs_bottom_tooltip
-    )
+    status.group_reorganization_collection.autofill_targets[
+        constants.WORKER_PERMISSION
+    ].append(lhs_bottom_tooltip)
 
     # mob image
     default_image_id = [
@@ -2433,18 +2793,17 @@ def unit_organization_interface():
                 "actor_image_type": "default",
                 "default_image_id": default_image_id,
                 "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
-                "parent_collection": status.mob_reorganization_collection,
+                "parent_collection": status.group_reorganization_collection,
                 "member_config": {
                     "calibrate_exempt": True,
-                    "x_offset": scaling.scale_width(lhs_x_offset),
                     "y_offset": scaling.scale_height(-1 * (image_height - 5)),
                 },
             }
         )
     )
-    status.mob_reorganization_collection.autofill_targets["worker"].append(
-        lhs_bottom_mob_free_image
-    )
+    status.group_reorganization_collection.autofill_targets[
+        constants.WORKER_PERMISSION
+    ].append(lhs_bottom_mob_free_image)
 
     # right side
     # mob background image's tooltip
@@ -2456,34 +2815,30 @@ def unit_organization_interface():
             "image_id": "misc/empty.png",
             "actor_type": "mob",
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
-            "parent_collection": status.mob_reorganization_collection,
+            "parent_collection": status.group_reorganization_collection,
             "member_config": {
                 "calibrate_exempt": True,
-                "x_offset": scaling.scale_width(lhs_x_offset + rhs_x_offset),
+                "x_offset": scaling.scale_width(rhs_x_offset),
                 "y_offset": scaling.scale_height(-0.5 * (image_height)),
             },
         }
     )
-    status.mob_reorganization_collection.autofill_targets["group"].append(
-        rhs_top_tooltip
-    )
+    status.group_reorganization_collection.autofill_targets[
+        constants.GROUP_PERMISSION
+    ].append(rhs_top_tooltip)
 
     # mob image
     default_image_id = [
         actor_utility.generate_unit_component_image_id(
             "mobs/default/mock_worker.png", "group left", to_front=True
-        )
-    ]
-    default_image_id.append(
+        ),
         actor_utility.generate_unit_component_image_id(
             "mobs/default/mock_worker.png", "group right", to_front=True
-        )
-    )
-    default_image_id.append(
+        ),
         actor_utility.generate_unit_component_image_id(
             "mobs/default/mock_officer.png", "center", to_front=True
-        )
-    )
+        ),
+    ]
     rhs_top_mob_free_image = constants.actor_creation_manager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, 0),
@@ -2493,34 +2848,33 @@ def unit_organization_interface():
             "actor_image_type": "default",
             "default_image_id": default_image_id,
             "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
-            "parent_collection": status.mob_reorganization_collection,
+            "parent_collection": status.group_reorganization_collection,
             "member_config": {
                 "calibrate_exempt": True,
-                "x_offset": scaling.scale_width(lhs_x_offset + rhs_x_offset),
+                "x_offset": scaling.scale_width(rhs_x_offset),
                 "y_offset": scaling.scale_height(-0.5 * (image_height)),
             },
         }
     )
-    status.mob_reorganization_collection.autofill_targets["group"].append(
-        rhs_top_mob_free_image
-    )
+    status.group_reorganization_collection.autofill_targets[
+        constants.GROUP_PERMISSION
+    ].append(rhs_top_mob_free_image)
 
     # reorganize unit to right button
-    status.reorganize_unit_right_button = (
+    status.reorganize_group_right_button = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(
-                    lhs_x_offset + rhs_x_offset - 60 - 15,
+                    rhs_x_offset - 60 - 15,
                     -1 * (image_height - 15) + 40 - 15 + 30 + 5,
                 ),
                 "width": scaling.scale_width(60),
                 "height": scaling.scale_height(25),
                 "init_type": constants.REORGANIZE_UNIT_BUTTON,
-                "parent_collection": status.mob_reorganization_collection,
+                "parent_collection": status.group_reorganization_collection,
                 "image_id": "buttons/cycle_units_button.png",
                 "allowed_procedures": [
                     constants.MERGE_PROCEDURE,
-                    constants.CREW_PROCEDURE,
                 ],
                 "keybind_id": pygame.K_m,
                 "enable_shader": True,
@@ -2529,21 +2883,20 @@ def unit_organization_interface():
     )
 
     # reorganize unit to left button
-    status.reorganize_unit_left_button = (
+    status.reorganize_group_left_button = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(
-                    lhs_x_offset + rhs_x_offset - 60 - 15,
+                    rhs_x_offset - 60 - 15,
                     -1 * (image_height - 15) + 40 - 15 + 5,
                 ),
                 "width": scaling.scale_width(60),
                 "height": scaling.scale_height(25),
                 "init_type": constants.REORGANIZE_UNIT_BUTTON,
-                "parent_collection": status.mob_reorganization_collection,
+                "parent_collection": status.group_reorganization_collection,
                 "image_id": "buttons/cycle_units_reverse_button.png",
                 "allowed_procedures": [
                     constants.SPLIT_PROCEDURE,
-                    constants.UNCREW_PROCEDURE,
                 ],
                 "keybind_id": pygame.K_n,
                 "enable_shader": True,
@@ -2553,14 +2906,14 @@ def unit_organization_interface():
 
     input_dict = {
         "coordinates": scaling.scale_coordinates(
-            lhs_x_offset - 35, -1 * (image_height - 15) + 95 - 35 / 2
+            35 - image_height, -1 * (image_height - 15) + 95 - 35 / 2
         ),
         "width": scaling.scale_width(30),
         "height": scaling.scale_height(30),
         "init_type": constants.CYCLE_AUTOFILL_BUTTON,
-        "parent_collection": status.mob_reorganization_collection,
+        "parent_collection": status.group_reorganization_collection,
         "image_id": "buttons/reset_button.png",
-        "autofill_target_type": "officer",
+        "autofill_target_type": constants.OFFICER_PERMISSION,
     }
     cycle_autofill_officer_button = (
         constants.actor_creation_manager.create_interface_element(input_dict)
@@ -2568,16 +2921,256 @@ def unit_organization_interface():
 
     input_dict = {
         "coordinates": scaling.scale_coordinates(
-            lhs_x_offset - 35, -1 * (image_height - 15) + 25 - 35 / 2
+            35 - image_height, -1 * (image_height - 15) + 25 - 35 / 2
         ),
         "width": input_dict["width"],  # copies most attributes from previous button
         "height": input_dict["height"],
         "init_type": input_dict["init_type"],
         "parent_collection": input_dict["parent_collection"],
         "image_id": input_dict["image_id"],
-        "autofill_target_type": "worker",
+        "autofill_target_type": constants.WORKER_PERMISSION,
     }
     cycle_autofill_worker_button = (
+        constants.actor_creation_manager.create_interface_element(input_dict)
+    )
+
+
+def vehicle_organization_interface():
+    """
+    Description:
+        Initializes the vehicle organization interface as a subsection of the mob reorganization collection
+    Input:
+        None
+    Output:
+        None
+    """
+    image_height = 75
+    lhs_x_offset = 35
+    rhs_x_offset = image_height + 80
+    status.vehicle_reorganization_collection = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
+                "init_type": constants.AUTOFILL_COLLECTION,
+                "parent_collection": status.mob_reorganization_collection,
+                "direction": "horizontal",
+                "member_config": {"order_x_offset": lhs_x_offset},
+                "allowed_procedures": [
+                    constants.CREW_PROCEDURE,
+                    constants.UNCREW_PROCEDURE,
+                ],
+                "autofill_targets": {
+                    constants.INACTIVE_VEHICLE_PERMISSION: [],
+                    constants.EUROPEAN_WORKERS_PERMISSION: [],
+                    constants.ACTIVE_VEHICLE_PERMISSION: [],
+                },
+            }
+        )
+    )
+
+    # mob background image's tooltip
+    lhs_top_tooltip = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "minimum_width": scaling.scale_width(image_height - 10),
+            "height": scaling.scale_height(image_height - 10),
+            "image_id": "misc/empty.png",
+            "actor_type": "mob",
+            "init_type": constants.ACTOR_TOOLTIP_LABEL,
+            "parent_collection": status.vehicle_reorganization_collection,
+            "member_config": {"calibrate_exempt": True},
+        }
+    )
+    status.vehicle_reorganization_collection.autofill_targets[
+        constants.INACTIVE_VEHICLE_PERMISSION
+    ].append(lhs_top_tooltip)
+
+    # mob image
+    lhs_top_mob_free_image = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "width": scaling.scale_width(image_height - 10),
+            "height": scaling.scale_height(image_height - 10),
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            "actor_image_type": "default",
+            "default_image_id": "mobs/default/mock_uncrewed_vehicle.png",
+            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+            "parent_collection": status.vehicle_reorganization_collection,
+            "member_config": {
+                "calibrate_exempt": True,
+                "x_offset": scaling.scale_width(0),
+            },
+        }
+    )
+    status.vehicle_reorganization_collection.autofill_targets[
+        constants.INACTIVE_VEHICLE_PERMISSION
+    ].append(lhs_top_mob_free_image)
+
+    # mob background image's tooltip
+    lhs_bottom_tooltip = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, -1 * (image_height - 5)),
+            "minimum_width": scaling.scale_width(image_height - 10),
+            "height": scaling.scale_height(image_height - 10),
+            "image_id": "misc/empty.png",
+            "actor_type": "mob",
+            "init_type": constants.ACTOR_TOOLTIP_LABEL,
+            "parent_collection": status.vehicle_reorganization_collection,
+            "member_config": {"calibrate_exempt": True},
+        }
+    )
+    status.vehicle_reorganization_collection.autofill_targets[
+        constants.EUROPEAN_WORKERS_PERMISSION
+    ].append(lhs_bottom_tooltip)
+
+    # mob image
+    default_image_id = [
+        actor_utility.generate_unit_component_image_id(
+            "mobs/default/mock_worker.png", "left", to_front=True
+        ),
+        actor_utility.generate_unit_component_image_id(
+            "mobs/default/mock_worker.png", "right", to_front=True
+        ),
+    ]
+    lhs_bottom_mob_free_image = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "width": scaling.scale_width(image_height - 10),
+                "height": scaling.scale_height(image_height - 10),
+                "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+                "actor_image_type": "default",
+                "default_image_id": default_image_id,
+                "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+                "parent_collection": status.vehicle_reorganization_collection,
+                "member_config": {
+                    "calibrate_exempt": True,
+                    "y_offset": scaling.scale_height(-1 * (image_height - 5)),
+                },
+            }
+        )
+    )
+    status.vehicle_reorganization_collection.autofill_targets[
+        constants.EUROPEAN_WORKERS_PERMISSION
+    ].append(lhs_bottom_mob_free_image)
+
+    # right side
+    # mob background image's tooltip
+    rhs_top_tooltip = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "minimum_width": scaling.scale_width(image_height - 10),
+            "height": scaling.scale_height(image_height - 10),
+            "image_id": "misc/empty.png",
+            "actor_type": "mob",
+            "init_type": constants.ACTOR_TOOLTIP_LABEL,
+            "parent_collection": status.vehicle_reorganization_collection,
+            "member_config": {
+                "calibrate_exempt": True,
+                "x_offset": scaling.scale_width(rhs_x_offset),
+                "y_offset": scaling.scale_height(-0.5 * (image_height)),
+            },
+        }
+    )
+    status.vehicle_reorganization_collection.autofill_targets[
+        constants.ACTIVE_VEHICLE_PERMISSION
+    ].append(rhs_top_tooltip)
+
+    # mob image
+    rhs_top_mob_free_image = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "width": scaling.scale_width(image_height - 10),
+            "height": scaling.scale_height(image_height - 10),
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            "actor_image_type": "default",
+            "default_image_id": "mobs/default/mock_crewed_vehicle.png",
+            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+            "parent_collection": status.vehicle_reorganization_collection,
+            "member_config": {
+                "calibrate_exempt": True,
+                "x_offset": scaling.scale_width(rhs_x_offset),
+                "y_offset": scaling.scale_height(-0.5 * (image_height)),
+            },
+        }
+    )
+    status.vehicle_reorganization_collection.autofill_targets[
+        constants.ACTIVE_VEHICLE_PERMISSION
+    ].append(rhs_top_mob_free_image)
+
+    # reorganize unit to right button
+    status.reorganize_vehicle_right_button = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(
+                    rhs_x_offset - 60 - 15,
+                    -1 * (image_height - 15) + 40 - 15 + 30 + 5,
+                ),
+                "width": scaling.scale_width(60),
+                "height": scaling.scale_height(25),
+                "init_type": constants.REORGANIZE_UNIT_BUTTON,
+                "parent_collection": status.vehicle_reorganization_collection,
+                "image_id": "buttons/cycle_units_button.png",
+                "allowed_procedures": [
+                    constants.CREW_PROCEDURE,
+                ],
+                "keybind_id": pygame.K_b,
+                "enable_shader": True,
+            }
+        )
+    )
+
+    # reorganize unit to left button
+    status.reorganize_vehicle_left_button = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(
+                    rhs_x_offset - 60 - 15,
+                    -1 * (image_height - 15) + 40 - 15 + 5,
+                ),
+                "width": scaling.scale_width(60),
+                "height": scaling.scale_height(25),
+                "init_type": constants.REORGANIZE_UNIT_BUTTON,
+                "parent_collection": status.vehicle_reorganization_collection,
+                "image_id": "buttons/cycle_units_reverse_button.png",
+                "allowed_procedures": [
+                    constants.UNCREW_PROCEDURE,
+                ],
+                "keybind_id": pygame.K_v,
+                "enable_shader": True,
+            }
+        )
+    )
+
+    input_dict = {
+        "coordinates": scaling.scale_coordinates(
+            35 - image_height, -1 * (image_height - 15) + 95 - 35 / 2
+        ),
+        "width": scaling.scale_width(30),
+        "height": scaling.scale_height(30),
+        "init_type": constants.CYCLE_AUTOFILL_BUTTON,
+        "parent_collection": status.vehicle_reorganization_collection,
+        "image_id": "buttons/reset_button.png",
+        "autofill_target_type": constants.INACTIVE_VEHICLE_PERMISSION,
+    }
+    cycle_autofill_vehicle_button = (
+        constants.actor_creation_manager.create_interface_element(input_dict)
+    )
+
+    input_dict = {
+        "coordinates": scaling.scale_coordinates(
+            35 - image_height, -1 * (image_height - 15) + 25 - 35 / 2
+        ),
+        "width": input_dict["width"],  # copies most attributes from previous button
+        "height": input_dict["height"],
+        "init_type": input_dict["init_type"],
+        "parent_collection": input_dict["parent_collection"],
+        "image_id": input_dict["image_id"],
+        "autofill_target_type": constants.EUROPEAN_WORKERS_PERMISSION,
+    }
+    cycle_autofill_crew_button = (
         constants.actor_creation_manager.create_interface_element(input_dict)
     )
 
@@ -2685,25 +3278,25 @@ def minister_interface():
         constants.MINISTER_INTERESTS_LABEL,
         constants.MINISTER_LOYALTY_LABEL,
         constants.MINISTER_ABILITY_LABEL,
-        constants.MILITARY_SKILL_LABEL,
-        constants.RELIGION_SKILL_LABEL,
-        constants.TRADE_SKILL_LABEL,
-        constants.EXPLORATION_SKILL_LABEL,
-        constants.CONSTRUCTION_SKILL_LABEL,
-        constants.PRODUCTION_SKILL_LABEL,
+        constants.SPACE_SKILL_LABEL,
+        constants.ECOLOGY_SKILL_LABEL,
+        constants.TERRAN_AFFAIRS_SKILL_LABEL,
+        constants.SCIENCE_SKILL_LABEL,
+        constants.INDUSTRY_SKILL_LABEL,
+        constants.ENERGY_SKILL_LABEL,
         constants.TRANSPORTATION_SKILL_LABEL,
-        constants.PROSECUTION_SKILL_LABEL,
+        constants.SECURITY_SKILL_LABEL,
         constants.EVIDENCE_LABEL,
     ]:
         if current_actor_label_type in [
-            constants.MILITARY_SKILL_LABEL,
-            constants.RELIGION_SKILL_LABEL,
-            constants.TRADE_SKILL_LABEL,
-            constants.EXPLORATION_SKILL_LABEL,
-            constants.CONSTRUCTION_SKILL_LABEL,
-            constants.PRODUCTION_SKILL_LABEL,
+            constants.SPACE_SKILL_LABEL,
+            constants.ECOLOGY_SKILL_LABEL,
+            constants.TERRAN_AFFAIRS_SKILL_LABEL,
+            constants.SCIENCE_SKILL_LABEL,
+            constants.ENERGY_SKILL_LABEL,
+            constants.INDUSTRY_SKILL_LABEL,
             constants.TRANSPORTATION_SKILL_LABEL,
-            constants.PROSECUTION_SKILL_LABEL,
+            constants.SECURITY_SKILL_LABEL,
         ]:
             x_displacement = 25
         else:

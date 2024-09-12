@@ -4,6 +4,7 @@ import random
 from .pmobs import pmob
 from ...util import actor_utility
 from ...util import text_utility
+from ...constructs import unit_types
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
@@ -37,35 +38,15 @@ class worker(pmob):
         Output:
             None
         """
-        self.worker_type = input_dict.get(
+        self.worker_type: unit_types.worker_type = input_dict.get(
             "worker_type", status.worker_types.get(input_dict.get("init_type"))
         )  # European, religious etc. worker_type object
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.number = 2  # Workers is plural
-        self.worker_type.number += 1
-        if not from_save:
-            self.worker_type.on_recruit()
-        self.set_controlling_minister_type(
-            status.minister_types[constants.PRODUCTION_MINISTER]
-        )
 
         if not from_save:
             self.second_image_variant = random.randrange(0, len(self.image_variants))
         constants.money_label.check_for_updates()
         self.finish_init(original_constructor, from_save, input_dict)
-
-    def permissions_setup(self) -> None:
-        """
-        Description:
-            Sets up this mob's permissions
-        Input:
-            None
-        Output:
-            None
-        """
-        super().permissions_setup()
-        for permission in self.worker_type.permissions:
-            self.set_permission(permission, True)
 
     def finish_init(
         self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
@@ -120,7 +101,7 @@ class worker(pmob):
         self.worker_type.on_recruit(purchased=True)
         if not self.get_permission(constants.CHURCH_VOLUNTEERS_PERMISSION):
             text_utility.print_to_screen(
-                f"Replacement {self.worker_type.adjective} workers have been automatically hired{destination_message}."
+                f"Replacement {self.worker_type.name} have been automatically hired{destination_message}."
             )
         else:
             text_utility.print_to_screen(
@@ -246,19 +227,6 @@ class worker(pmob):
             self.add_to_turn_queue()
         self.update_image_bundle()
 
-    def remove(self):
-        """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
-        """
-        super().remove()
-        self.worker_type.number -= 1
-        constants.money_label.check_for_updates()
-
     def image_variants_setup(self, from_save, input_dict):
         """
         Description:
@@ -341,6 +309,3 @@ class church_volunteers(worker):
         """
         input_dict["worker_type"] = status.worker_types[constants.CHURCH_VOLUNTEERS]
         super().__init__(from_save, input_dict)
-        self.set_controlling_minister_type(
-            status.minister_types[constants.RELIGION_MINISTER]
-        )

@@ -3,7 +3,6 @@
 import pygame
 import random
 from ..mobs import mob
-from ...constructs import ministers
 from ...util import text_utility, utility, actor_utility, minister_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -48,8 +47,6 @@ class pmob(mob):
         super().__init__(from_save, input_dict, original_constructor=False)
         self.selection_outline_color = "bright green"
         status.pmob_list.append(self)
-        self.controlling_minister: ministers.minister = None
-        self.set_controlling_minister_type(None)
         self.equipment = {}
         for current_equipment in input_dict.get("equipment", {}):
             if input_dict.get("equipment", {}).get(current_equipment, False):
@@ -143,13 +140,22 @@ class pmob(mob):
             None
         """
         super().on_move()
-        if self.get_cell():
-            for cell in [self.get_cell()] + self.get_cell().adjacent_list:
-                if not cell.terrain_handler.knowledge_available(
-                    constants.TERRAIN_KNOWLEDGE
-                ):
+        current_cell = self.get_cell()
+        if current_cell:
+            for cell in [current_cell] + current_cell.adjacent_list:
+                if cell == current_cell:  # Show knowledge 3 about current cell
+                    requirement = constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
+                    category = constants.TERRAIN_PARAMETER_KNOWLEDGE
+                else:  # Show knowledge 2 about adjacent cells
+                    requirement = constants.TERRAIN_KNOWLEDGE_REQUIREMENT
+                    category = constants.TERRAIN_KNOWLEDGE
+                if not cell.terrain_handler.knowledge_available(category):
                     cell.terrain_handler.set_parameter(
-                        "knowledge", constants.TERRAIN_KNOWLEDGE_REQUIREMENT
+                        constants.KNOWLEDGE,
+                        max(
+                            requirement,
+                            cell.terrain_handler.get_parameter(constants.KNOWLEDGE),
+                        ),
                     )
 
     def to_save_dict(self):
@@ -625,10 +631,7 @@ class pmob(mob):
         """
         text = "The unit will remain inactive for the next turn as replacements are found. /n /n"
         if self.get_permission(constants.OFFICER_PERMISSION):
-            text += (
-                str(constants.recruitment_costs["officer"])
-                + " money has automatically been spent to recruit a replacement. /n /n"
-            )
+            text += f"{self.unit_type.recruitment_cost} money has automatically been spent to recruit a replacement. /n /n"
         return text
 
     def remove(self):
@@ -697,38 +700,6 @@ class pmob(mob):
                 self.end_turn_destination.draw_destination_outline()
                 for equivalent_tile in self.end_turn_destination.get_equivalent_tiles():
                     equivalent_tile.draw_destination_outline()
-
-    def set_controlling_minister_type(self, new_type):
-        """
-        Description:
-            Sets the type of minister that controls this unit, like 'Minister of Trade'
-        Input:
-            string new_type: Type of minister to control this unit, like 'Minister of Trade'
-        Output:
-            None
-        """
-        self.controlling_minister_type = new_type
-        self.update_controlling_minister()
-
-    def update_controlling_minister(self):
-        """
-        Description:
-            Sets the minister that controls this unit to the one occupying the office that has authority over this unit
-        Input:
-            None
-        Output:
-            None
-        """
-        if self.controlling_minister_type:
-            self.controlling_minister = minister_utility.get_minister(
-                self.controlling_minister_type.key
-            )
-        for current_minister_type_image in status.minister_image_list:
-            if (
-                current_minister_type_image.minister_type
-                == self.controlling_minister_type
-            ):
-                current_minister_type_image.calibrate(self.controlling_minister)
 
     def end_turn_move(self):
         """

@@ -11,6 +11,7 @@ from ..util import (
     minister_utility,
     dummy_utility,
 )
+from ..constructs import unit_types
 import modules.constants.constants as constants
 import modules.constants.status as status
 
@@ -40,76 +41,10 @@ class recruitment_button(button):
         Output:
             None
         """
-        self.recruitment_type = input_dict["recruitment_type"]
-        if self.recruitment_type in constants.recruitment_types:
-            self.mob_image_id = "mobs/" + self.recruitment_type + "/default.png"
-        else:
-            self.mob_image_id = "mobs/default/default.png"
-        self.recruitment_name = ""
-        for character in self.recruitment_type:
-            if not character == "_":
-                self.recruitment_name += character
-            else:
-                self.recruitment_name += " "
-        status.recruitment_button_list.append(self)
-        dummy_recruited_unit = constants.actor_creation_manager.create_dummy({})
-        dummy_recruited_unit.set_permission(constants.PMOB_PERMISSION, True)
-
-        if self.recruitment_name.endswith(" workers"):
-            dummy_recruited_unit.set_permission(constants.WORKER_PERMISSION, True)
-        elif self.recruitment_name == constants.SHIP:
-            dummy_recruited_unit.set_permission(constants.VEHICLE_PERMISSION, True)
-            dummy_recruited_unit.set_permission(constants.ACTIVE_PERMISSION, True)
-        else:
-            dummy_recruited_unit.set_permission(constants.OFFICER_PERMISSION, True)
-
-        original_random_state = random.getstate()
-        random.seed(
-            self.recruitment_type
-        )  # Consistently generate the same random portrait for the same interface elements
-        if self.recruitment_name.endswith(" workers"):
-            image_id = utility.combine(
-                actor_utility.generate_unit_component_portrait(
-                    constants.character_manager.generate_unit_portrait(
-                        dummy_recruited_unit, metadata={"body_image": self.mob_image_id}
-                    ),
-                    "left",
-                ),
-                actor_utility.generate_unit_component_portrait(
-                    constants.character_manager.generate_unit_portrait(
-                        dummy_recruited_unit, metadata={"body_image": self.mob_image_id}
-                    ),
-                    "right",
-                ),
-            )
-            for image in image_id:
-                if (
-                    type(image) == dict
-                    and image.get("metadata", {}).get("portrait_section", "")
-                    != "full_body"
-                ):
-                    image["y_offset"] = image.get("y_offset", 0) - 0.02
-
-        elif self.recruitment_name == constants.SHIP:
-            image_id = self.mob_image_id
-        else:
-            image_id = constants.character_manager.generate_unit_portrait(
-                dummy_recruited_unit, metadata={"body_image": self.mob_image_id}
-            )
-            for image in image_id:
-                if (
-                    type(image) == dict
-                    and image.get("metadata", {}).get("portrait_section", "")
-                    != "full_body"
-                ):
-                    image["x_offset"] = image.get("x_offset", 0) - 0.01
-                    image["y_offset"] = image.get("y_offset", 0) - 0.01
-        random.setstate(original_random_state)
-
-        image_id = actor_utility.generate_frame(
-            image_id, frame="buttons/default_button_alt.png", size=0.9, y_offset=0.02
-        )
-        input_dict["image_id"] = image_id
+        self.recruitment_type: unit_types.unit_type = input_dict["recruitment_type"]
+        input_dict[
+            "image_id"
+        ] = self.recruitment_type.generate_framed_recruitment_image()
         input_dict["button_type"] = "recruitment"
         super().__init__(input_dict)
 
@@ -122,18 +57,10 @@ class recruitment_button(button):
         Output:
             None
         """
-        cost = constants.recruitment_costs[self.recruitment_type]
         if main_loop_utility.action_possible():
-            if constants.money_tracker.get() >= cost:
-                choice_info_dict = {
-                    "recruitment_type": self.recruitment_type,
-                    "recruitment_name": self.recruitment_name,
-                    "cost": cost,
-                    "mob_image_id": self.mob_image_id,
-                    "type": "recruitment",
-                }
+            if constants.money_tracker.get() >= self.recruitment_type.recruitment_cost:
                 constants.actor_creation_manager.display_recruitment_choice_notification(
-                    choice_info_dict
+                    self.recruitment_type
                 )
             else:
                 text_utility.print_to_screen(
@@ -151,37 +78,20 @@ class recruitment_button(button):
         Output:
             None
         """
-        actor_utility.update_descriptions(self.recruitment_type)
-        cost = constants.recruitment_costs[self.recruitment_type]
-        if self.recruitment_type in [
-            constants.CHURCH_VOLUNTEERS,
-            constants.EUROPEAN_WORKERS,
-        ]:
+        if self.recruitment_type.number >= 2:
             self.set_tooltip(
                 [
-                    f"Recruits a unit of {status.worker_types[self.recruitment_type].name} for {cost} money."
+                    f"Recruits a unit of {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money."
                 ]
-                + constants.list_descriptions[self.recruitment_type]
+                + self.recruitment_type.get_list_description()
             )
         else:
             self.set_tooltip(
-                [f"Recruits an {self.recruitment_name} for {cost} money."]
-                + constants.list_descriptions[self.recruitment_type]
+                [
+                    f"Recruits a {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money."
+                ]
+                + self.recruitment_type.get_list_description()
             )
-
-    def remove(self):
-        """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
-        """
-        super().remove()
-        status.recruitment_button_list = utility.remove_from_list(
-            status.recruitment_button_list, self
-        )
 
 
 class buy_item_button(button):

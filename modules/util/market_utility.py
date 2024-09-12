@@ -290,11 +290,7 @@ class loan:
         """
         total_paid = self.interest * 10
         text_utility.print_to_screen(
-            "You have finished paying off the "
-            + str(total_paid)
-            + " money required for your "
-            + str(self.principal)
-            + " money loan"
+            f"You have finished paying off the {total_paid} money required for your {self.principal} money loan"
         )
         status.loan_list = utility.remove_from_list(status.loan_list, self)
 
@@ -307,15 +303,4 @@ class loan:
         Output:
             string: Returns a description of this loan, includings its principal, interest, remaining duration, and remaining payment
         """
-        message = ""
-        message += (
-            str(self.principal)
-            + " money loan with interest payments of "
-            + str(self.interest)
-            + " each turn. "
-            + str(self.remaining_duration)
-            + " turns/"
-            + str(self.total_to_pay)
-            + " money remaining"
-        )
-        return message
+        return f"{self.principal} money loan with interest payments of {self.interest} each turn. {self.remaining_duration} turns/{self.total_to_pay} money remaining"

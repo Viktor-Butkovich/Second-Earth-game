@@ -3,7 +3,7 @@ from typing import Dict, List, Any
 from modules.actor_types.tiles import tile
 from modules.actor_types.mobs import mob
 from modules.constructs.ministers import minister
-from modules.constructs.worker_types import worker_type
+from modules.constructs.unit_types import unit_type, worker_type
 from modules.constructs.equipment_types import equipment_type
 from modules.constructs.minister_types import minister_type
 from modules.constructs.terrain_feature_types import terrain_feature_type
@@ -12,6 +12,7 @@ from modules.interface_types.interface_elements import (
     interface_collection,
     tabbed_collection,
     ordered_collection,
+    autofill_collection,
 )
 from modules.interface_types.inventory_interface import inventory_grid
 from modules.interface_types.grids import grid, mini_grid, abstract_grid
@@ -57,11 +58,12 @@ displayed_notification: notification = None
 
 rendered_images: Dict[str, pygame.Surface] = {}
 button_list: List[button] = []
-recruitment_button_list: List[button] = []
 instructions_list: List[str] = []
 minister_list: List[minister] = []
 available_minister_list: List[minister] = []
+unit_types: Dict[str, unit_type] = {}
 worker_types: Dict[str, worker_type] = {}
+recruitment_types: List[unit_type] = []
 equipment_types: Dict[str, equipment_type] = {}
 minister_types: Dict[str, minister_type] = {}
 terrain_feature_types: Dict[str, terrain_feature_type] = {}
@@ -108,11 +110,15 @@ tile_tabbed_collection: tabbed_collection = None
 mob_inventory_collection: ordered_collection = None
 tile_inventory_collection: ordered_collection = None
 mob_reorganization_collection: ordered_collection = None
+group_reorganization_collection: autofill_collection = None
+vehicle_reorganization_collection: autofill_collection = None
 settlement_collection: ordered_collection = None
 terrain_collection: ordered_collection = None
 commodity_prices_label: commodity_prices_label_template = None
-reorganize_unit_left_button: reorganize_unit_button = None
-reorganize_unit_right_button: reorganize_unit_button = None
+reorganize_group_left_button: reorganize_unit_button = None
+reorganize_group_right_button: reorganize_unit_button = None
+reorganize_vehicle_left_button: reorganize_unit_button = None
+reorganize_vehicle_right_button: reorganize_unit_button = None
 cursor_image: pygame.image = None
 next_boarded_vehicle: pmob = None
 text_box_destination: callable = None

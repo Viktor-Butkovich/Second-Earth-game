@@ -9,6 +9,7 @@ from ..util import (
     text_utility,
     minister_utility,
 )
+from ..constructs import unit_types, ministers
 from ..interface_types import cells
 from .actors import actor
 import modules.constants.constants as constants
@@ -43,10 +44,15 @@ class mob(actor):
         """
         self.default_permissions: Dict[str, Any] = {}
         self.override_permissions: Dict[str, Any] = {}
+        self.unit_type: unit_types.unit_type = input_dict.get(
+            "unit_type", status.unit_types.get(input_dict.get("init_type"))
+        )
+        self.unit_type.num_instances += 1
+        self.controlling_minister: ministers.minister = None
+        self.update_controlling_minister()
         self.in_group = False
         self.in_vehicle = False
         self.in_building = False
-        self.number = 1  # how many entities are in a unit, used for verb conjugation
         self.actor_type = "mob"
         self.end_turn_destination = None
         super().__init__(from_save, input_dict, original_constructor=False)
@@ -69,14 +75,13 @@ class mob(actor):
             )
         status.mob_list.append(self)
         self.set_name(input_dict["name"])
-        self.can_swim = False  # if can enter water areas without ships in them
-        self.can_walk = True  # if can enter land areas
+        self.can_swim = False  # If can enter water areas without ships in them
+        self.can_walk = True  # If can enter land areas
         self.max_movement_points = 1
         self.movement_points = self.max_movement_points
         self.movement_cost = 1
         self.has_infinite_movement = False
         self.temp_movement_disabled = False
-        # self.default_interface_tab = 'reorganization'
         self.permissions_setup()
         if from_save:
             self.set_max_movement_points(input_dict["max_movement_points"])
@@ -86,12 +91,32 @@ class mob(actor):
                 constants.DISORGANIZED_PERMISSION, input_dict.get("disorganized", False)
             )
         else:
+            self.unit_type.on_recruit()
             self.reset_movement_points()
             if flags.creating_new_game:
                 self.creation_turn = 0
             else:
                 self.creation_turn = constants.turn
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def update_controlling_minister(self):
+        """
+        Description:
+            Sets the minister that controls this unit to the one occupying the office that has authority over this unit
+        Input:
+            None
+        Output:
+            None
+        """
+        self.controlling_minister = minister_utility.get_minister(
+            self.unit_type.controlling_minister_type.key
+        )
+        for current_minister_type_image in status.minister_image_list:
+            if (
+                current_minister_type_image.minister_type
+                == self.unit_type.controlling_minister_type
+            ):
+                current_minister_type_image.calibrate(self.controlling_minister)
 
     def get_cell(self) -> cells.cell:
         """
@@ -124,9 +149,12 @@ class mob(actor):
         Output:
             None
         """
-        return
+        for permission, value in self.unit_type.permissions.items():
+            self.set_permission(permission, value)
 
-    def set_permission(self, task: str, value: Any, override: bool = False) -> None:
+    def set_permission(
+        self, task: str, value: Any, override: bool = False, update_image: bool = True
+    ) -> None:
         """
         Description:
             Sets the permission this mob has to perform the inputted task
@@ -134,6 +162,7 @@ class mob(actor):
             string task: Task for which to set permission
             Any value: Permission value to set for the inputted task, deleting the permission if None
             boolean override: Whether to modify override permissions or default permissions
+            boolean update_image: Whether to update the image bundle and tooltip after setting the permission
         Output:
             None
         """
@@ -152,6 +181,7 @@ class mob(actor):
             previous_effect != self.get_permission(task)
             and self.get_permission(constants.INIT_COMPLETE_PERMISSION)
             and not self.get_permission(constants.DUMMY_PERMISSION)
+            and update_image
         ):
             self.update_image_bundle()
             self.update_tooltip()
@@ -282,6 +312,7 @@ class mob(actor):
                 'image_variant': int value - Optional variants of default image to use from same file, applied to get_image_id_list but not default image path
         """
         save_dict = super().to_save_dict()
+        save_dict["init_type"] = self.unit_type.key
         save_dict["movement_points"] = self.movement_points
         save_dict["max_movement_points"] = self.max_movement_points
         save_dict["image"] = self.image_dict["default"]
@@ -348,10 +379,10 @@ class mob(actor):
         if self.get_permission(constants.PMOB_PERMISSION):
             if (
                 self.get_permission(constants.GROUP_PERMISSION)
-                and self.group_type == "battalion"
+                and self.unit_type == status.unit_types[constants.BATTALION]
             ):
                 modifier += 1
-                if self.battalion_type == "imperial":
+                if self.worker.get_permission(constants.EUROPEAN_WORKERS_PERMISSION):
                     modifier += 1
             else:
                 modifier -= 1
@@ -889,6 +920,7 @@ class mob(actor):
         for current_status_icon in self.status_icons:
             current_status_icon.remove_complete()
         self.status_icons = []
+        self.unit_type.on_remove()
 
     def die(self, death_type="violent"):
         """

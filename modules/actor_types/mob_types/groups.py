@@ -46,7 +46,6 @@ class group(pmob):
             self.officer = constants.actor_creation_manager.create(
                 True, input_dict["officer"]
             )
-        self.group_type = None
         super().__init__(from_save, input_dict, original_constructor=False)
         self.worker.join_group()
         self.officer.join_group()
@@ -59,7 +58,6 @@ class group(pmob):
                     current_commodity, current_mob.get_inventory(current_commodity)
                 )
                 current_mob.set_inventory(current_commodity, 0)
-        self.set_group_type(None)
         if not from_save:
             self.set_permission(
                 constants.DISORGANIZED_PERMISSION,
@@ -74,6 +72,8 @@ class group(pmob):
             self.set_movement_points(
                 actor_utility.generate_group_movement_points(self.worker, self.officer)
             )
+        if self.get_permission(constants.EXPEDITION_PERMISSION):
+            self.on_move()
         self.finish_init(original_constructor, from_save, input_dict)
 
     def permissions_setup(self) -> None:
@@ -205,7 +205,7 @@ class group(pmob):
             if self.officer.automatically_replace:
                 text += (
                     self.officer.generate_attrition_replacement_text()
-                )  #'The ' + self.name + ' will remain inactive for the next turn as a replacement is found. /n /n'
+                )  # 'The ' + self.name + ' will remain inactive for the next turn as a replacement is found. /n /n'
                 self.officer.replace(self)
                 self.officer.death_sound()
             else:
@@ -232,7 +232,7 @@ class group(pmob):
             if self.worker.automatically_replace:
                 text += (
                     self.worker.generate_attrition_replacement_text()
-                )  #'The ' + self.name + ' will remain inactive for the next turn as replacements are found.'
+                )  # 'The ' + self.name + ' will remain inactive for the next turn as replacements are found.'
                 self.worker.replace(self)
                 self.worker.death_sound()
             else:
@@ -268,24 +268,6 @@ class group(pmob):
         self.worker.fire()
         self.remove_complete()
 
-    def set_group_type(self, new_type):
-        """
-        Description:
-            Sets this group's type to the inputted value, determining its capabilities and which minister controls it
-        Input:
-            string new_type: Type to set this group to, like 'missionaries'
-        Output:
-            None
-        """
-        self.group_type = new_type
-        if new_type:
-            self.set_controlling_minister_type(
-                status.minister_types[constants.group_minister_dict[self.group_type]]
-            )
-        else:
-            self.set_controlling_minister_type(None)
-        self.update_image_bundle()
-
     def to_save_dict(self):
         """
         Description:
@@ -313,6 +295,8 @@ class group(pmob):
         Output:
             None
         """
+        if self.get_permission(constants.PORTERS_PERMISSION):
+            self.set_max_movement_points(6, initial_setup=False)
         if not self.officer.get_permission(constants.VETERAN_PERMISSION):
             self.officer.promote()
         if not self.get_permission(constants.VETERAN_PERMISSION):
