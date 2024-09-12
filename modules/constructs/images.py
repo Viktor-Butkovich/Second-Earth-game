@@ -1475,7 +1475,9 @@ class minister_type_image(tooltip_free_image):
             and self.attached_label.actor
             and self.attached_label.actor.get_permission(constants.PMOB_PERMISSION)
         ):
-            current_minister_type = self.attached_label.actor.controlling_minister_type
+            current_minister_type = (
+                self.attached_label.actor.unit_type.controlling_minister_type
+            )
         if current_minister_type:
             self.tooltip_text = current_minister_type.get_description()
             image_id_list = [

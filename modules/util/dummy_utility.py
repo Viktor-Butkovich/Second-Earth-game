@@ -24,7 +24,6 @@ required_dummy_attributes = [
     "end_turn_destination",
     "officer",
     "worker",
-    "group_type",
     "battalion_type",
 ]
 
@@ -192,6 +191,7 @@ def create_dummy_copy(
     Output:
         dummy: Returns dummy object copied from inputted unit
     """
+    dummy_input_dict["unit_type"] = unit.unit_type
     dummy_input_dict["image_id_list"] = unit.get_image_id_list(
         override_values={"override_permissions": override_permissions}
     )
@@ -228,16 +228,14 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
                     dummy_input_dict[attribute] = getattr(officer, attribute)
         dummy_input_dict["officer"] = officer
         dummy_input_dict["worker"] = worker
-        dummy_input_dict["group_type"] = constants.officer_group_type_dict[
-            officer.officer_type
-        ]
+        dummy_input_dict["unit_type"] = officer.unit_type.group_type
         dummy_input_dict["disorganized"] = worker.get_permission(
             constants.DISORGANIZED_PERMISSION
         )
         dummy_input_dict["veteran"] = officer.get_permission(
             constants.VETERAN_PERMISSION
         )
-        if dummy_input_dict["group_type"] == "battalion":
+        if dummy_input_dict["unit_type"] == status.unit_types[constants.BATTALION]:
             dummy_input_dict["disorganized"] = True
             if worker.get_permission(constants.EUROPEAN_WORKERS_PERMISSION):
                 dummy_input_dict["battalion_type"] = "imperial"

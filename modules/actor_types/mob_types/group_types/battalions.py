@@ -36,12 +36,6 @@ class battalion(group):
             None
         """
         super().__init__(from_save, input_dict)
-        self.set_permission(constants.BATTALION_PERMISSION, True)
-        if self.worker.get_permission(constants.EUROPEAN_WORKERS_PERMISSION):
-            self.battalion_type = "imperial"
-        else:
-            self.battalion_type = "colonial"
-        self.set_group_type("battalion")
         if not from_save:
             self.set_permission(constants.DISORGANIZED_PERMISSION, True)
 

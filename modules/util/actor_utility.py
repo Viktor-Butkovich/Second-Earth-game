@@ -99,77 +99,8 @@ def update_descriptions(target="all"):
         list_descriptions = constants.list_descriptions
         string_descriptions = constants.string_descriptions
         text_list = []
-        if current_target in constants.officer_types:
-            first_line = f"{utility.capitalize(current_target)}s are controlled by the {constants.officer_minister_dict[current_target]}"
-            if current_target == constants.EXPLORER:
-                first_line += "."
-                text_list.append(first_line)
-                text_list.append(
-                    "When combined with workers, an explorer becomes an expedition unit that can explore new tiles."
-                )
 
-            elif current_target == constants.ENGINEER:
-                first_line += "."
-                text_list.append(first_line)
-                text_list.append(
-                    "When combined with workers, an engineer becomes a construction gang unit that can build buildings, roads, railroads, and trains."
-                )
-
-            elif current_target == constants.DRIVER:
-                first_line += "."
-                text_list.append(first_line)
-                text_list.append(
-                    "When combined with workers, a driver becomes a porters unit that can move quickly and transport commodities."
-                )
-
-            elif current_target == constants.FOREMAN:
-                first_line += "."
-                text_list.append(first_line)
-                text_list.append(
-                    "When combined with workers, a foreman becomes a work crew unit that can produce commodities when attached to a production facility."
-                )
-
-            elif current_target == constants.MERCHANT:
-                first_line += " and can personally search for loans and conduct advertising campaigns on Earth."
-                text_list.append(first_line)
-                text_list.append(
-                    "When combined with workers, a merchant becomes a caravan that can build trading posts and trade."
-                )
-
-            elif current_target == constants.EVANGELIST:
-                first_line += " and can personally conduct religious campaigns and public relations campaigns on Earth."
-                text_list.append(first_line)
-                text_list.append(
-                    "When combined with religious volunteers, an evangelist becomes a missionaries unit that can build missions."
-                )
-
-            elif current_target == constants.MAJOR:
-                first_line += "."
-                text_list.append(first_line)
-                text_list.append(
-                    "When combined with workers, a major becomes a battalion unit that has a very high combat strength, and can build forts and attack enemies."
-                )
-
-        elif current_target in [
-            constants.EUROPEAN_WORKERS,
-            constants.CHURCH_VOLUNTEERS,
-        ]:
-            text_list.append(current_target.capitalize() + " placeholder description.")
-
-        elif current_target == constants.SHIP:
-            text_list.append(
-                "While useless by itself, a steamship crewed by workers can quickly transport units and cargo through coastal waters and between theatres."
-            )
-            text_list.append(
-                "Crewing a steamship requires an advanced level of technological training, which is generally only available to European workers in this time period."
-            )
-
-        elif current_target == constants.TRAIN:
-            text_list.append(
-                "While useless by itself, a train crewed by workers can quickly transport units and cargo through railroads between train stations."
-            )
-
-        elif current_target == constants.RESOURCE:
+        if current_target == constants.RESOURCE:
             if current_target in status.actions:
                 building_name = status.actions[current_target].building_name
                 if not building_name:
@@ -253,11 +184,7 @@ def update_descriptions(target="all"):
 
         list_descriptions[current_target] = text_list
 
-        text = ""
-        for current_line in list_descriptions[current_target]:
-            text += (
-                current_line + " /n /n"
-            )  # replaces each tooltip list line with newline characters for notification descriptions
+        text = " /n /n".join(list_descriptions[current_target])
         string_descriptions[current_target] = text
 
 
@@ -583,7 +510,7 @@ def generate_group_name(worker, officer, add_veteran=False):
     """
     if not officer.get_permission(constants.MAJOR_PERMISSION):
         name = ""
-        for character in constants.officer_group_type_dict[officer.officer_type]:
+        for character in officer.unit_type.group_type.name:
             if not character == "_":
                 name += character
             else:

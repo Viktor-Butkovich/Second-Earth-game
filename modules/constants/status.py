@@ -3,7 +3,7 @@ from typing import Dict, List, Any
 from modules.actor_types.tiles import tile
 from modules.actor_types.mobs import mob
 from modules.constructs.ministers import minister
-from modules.constructs.worker_types import worker_type
+from modules.constructs.unit_types import unit_type, worker_type
 from modules.constructs.equipment_types import equipment_type
 from modules.constructs.minister_types import minister_type
 from modules.constructs.terrain_feature_types import terrain_feature_type
@@ -58,11 +58,12 @@ displayed_notification: notification = None
 
 rendered_images: Dict[str, pygame.Surface] = {}
 button_list: List[button] = []
-recruitment_button_list: List[button] = []
 instructions_list: List[str] = []
 minister_list: List[minister] = []
 available_minister_list: List[minister] = []
+unit_types: Dict[str, unit_type] = {}
 worker_types: Dict[str, worker_type] = {}
+recruitment_types: List[unit_type] = []
 equipment_types: Dict[str, equipment_type] = {}
 minister_types: Dict[str, minister_type] = {}
 terrain_feature_types: Dict[str, terrain_feature_type] = {}

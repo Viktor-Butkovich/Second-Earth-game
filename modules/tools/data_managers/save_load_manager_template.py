@@ -15,7 +15,7 @@ from ...interface_types import world_grids
 import modules.constants.constants as constants
 import modules.constants.status as status
 import modules.constants.flags as flags
-import modules.constructs.worker_types as worker_types
+import modules.constructs.unit_types as unit_types
 
 
 class save_load_manager_template:
@@ -55,7 +55,6 @@ class save_load_manager_template:
         self.copied_constants.append("fear")
         self.copied_constants.append("sold_commodities")
         self.copied_constants.append("item_prices")
-        self.copied_constants.append("recruitment_costs")
 
         self.copied_statuses = []
         self.copied_statuses.append("previous_production_report")
@@ -177,9 +176,10 @@ class save_load_manager_template:
             if not current_grid.is_mini_grid:  # minimap grid doesn't need to be saved
                 saved_grid_dicts.append(current_grid.to_save_dict())
 
-        saved_worker_types = [
-            worker_type.to_save_dict()
-            for key, worker_type in status.worker_types.items()
+        saved_unit_types = [
+            unit_type.to_save_dict()
+            for key, unit_type in status.unit_types.items()
+            if unit_type.save_changes
         ]
 
         saved_actor_dicts = []
@@ -216,7 +216,7 @@ class save_load_manager_template:
             pickle.dump(saved_statuses, handle)
             pickle.dump(saved_flags, handle)
             pickle.dump(saved_grid_dicts, handle)
-            pickle.dump(saved_worker_types, handle)
+            pickle.dump(saved_unit_types, handle)
             pickle.dump(saved_actor_dicts, handle)
             pickle.dump(saved_minister_dicts, handle)
             handle.close()
@@ -284,7 +284,7 @@ class save_load_manager_template:
         game_transitions.create_strategic_map(from_save=True)
 
         for current_worker_type in saved_worker_types:
-            worker_types.worker_type(True, current_worker_type)
+            unit_types.worker_type(True, current_worker_type)
 
         # Load actors
         for current_actor_dict in saved_actor_dicts:

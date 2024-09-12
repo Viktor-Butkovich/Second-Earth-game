@@ -479,7 +479,6 @@ class button(interface_elements.interface_element):
             self.set_tooltip(tooltip_text)
 
         elif self.button_type == constants.BUILD_TRAIN_BUTTON:
-            actor_utility.update_descriptions(constants.TRAIN)
             cost = actor_utility.get_building_cost(
                 status.displayed_mob, constants.TRAIN
             )
@@ -1881,7 +1880,9 @@ class fire_unit_button(button):
                 message = "Are you sure you want to fire this unit? Firing this unit would remove it, any units attached to it, and any associated upkeep from the game. /n /n"
                 worker = self.attached_mob.get_worker()
                 if worker:
-                    message += worker.worker_type.fired_description
+                    message += (
+                        " /n /n".join(worker.worker_type.fired_description) + " /n /n"
+                    )
                 constants.notification_manager.display_notification(
                     {
                         "message": message,
@@ -2803,13 +2804,14 @@ class reorganize_unit_button(button):
                         ).select()
 
                 elif procedure_type == constants.CREW_PROCEDURE:
-                    if (
-                        procedure_actors[
-                            constants.INACTIVE_VEHICLE_PERMISSION
-                        ].get_vehicle_name()
-                        in procedure_actors[
-                            constants.EUROPEAN_WORKERS_PERMISSION
-                        ].worker_type.can_crew
+                    if procedure_actors[
+                        constants.EUROPEAN_WORKERS_PERMISSION
+                    ].get_permission(
+                        constants.CREW_PERMISSIONS[
+                            procedure_actors[
+                                constants.INACTIVE_VEHICLE_PERMISSION
+                            ].unit_type.key
+                        ]
                     ):
                         procedure_actors[
                             constants.EUROPEAN_WORKERS_PERMISSION
@@ -2818,7 +2820,7 @@ class reorganize_unit_button(button):
                         )
                     else:
                         text_utility.print_to_screen(
-                            f"{procedure_actors[constants.EUROPEAN_WORKERS_PERMISSION].worker_type.name.capitalize()} cannot crew {procedure_actors[constants.OFFICER_PERMISSION].get_vehicle_name()}s."
+                            f"{procedure_actors[constants.EUROPEAN_WORKERS_PERMISSION].worker_type.name.capitalize()} cannot crew {procedure_actors[constants.INACTIVE_VEHICLE_PERMISSION].unit_type.name}s."
                         )
 
                 elif procedure_type == constants.SPLIT_PROCEDURE:

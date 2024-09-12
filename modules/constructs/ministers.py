@@ -610,7 +610,7 @@ class minister:
         """
         old_position = self.current_position
         if self.current_position:
-            self.current_position.on_remove(self)
+            self.current_position.on_remove()
         if new_position:
             new_position.on_appoint(self)
         self.current_position = new_position
@@ -1062,7 +1062,7 @@ class minister:
             None
         """
         if self.current_position:
-            self.current_position.on_remove(self)
+            self.current_position.on_remove()
             self.current_position = None
         status.minister_list = utility.remove_from_list(status.minister_list, self)
         status.available_minister_list = utility.remove_from_list(

@@ -6,11 +6,11 @@ from modules.setup import *
 try:
     setup(
         misc,
-        worker_types_config,
         equipment_types_config,
         terrain_feature_types_config,
         commodities,
-        def_ministers,
+        minister_types_config,
+        unit_types_config,
         new_game_setup_screen,
         info_displays,
         transactions,
@@ -68,9 +68,7 @@ except Exception:  # displays error message and records error message in crash l
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
-# Replace group/officer subclasses with unit type classes that each instance can belong to
-#     Include unit type versions of class functions, default permissions, etc.
-#     Should fully replace any worker/officer/vehicle/group instance classes
+# Finish unit type stress testing, fix recruitment buttons, write docstrings for unit_types.py
 # Add spaceships
 # Add astronauts/cosmonauts group with corresponding officer
 # Allow vehicles to be crewed by groups instead of workers

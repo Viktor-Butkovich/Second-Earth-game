@@ -10,7 +10,7 @@ import modules.util.scaling as scaling
 import modules.util.actor_utility as actor_utility
 import modules.util.game_transitions as game_transitions
 import modules.constructs.fonts as fonts
-import modules.constructs.worker_types as worker_types
+import modules.constructs.unit_types as unit_types
 import modules.constructs.minister_types as minister_types
 import modules.constructs.equipment_types as equipment_types
 import modules.constructs.terrain_feature_types as terrain_feature_types
@@ -291,47 +291,6 @@ def misc():
     # ) # rect at original location prevents collection from moving unintentionally when resizing
 
 
-def worker_types_config():
-    """
-    Description:
-        Defines worker type templates
-    Input:
-        None
-    Output:
-        None
-    """
-    worker_types.worker_type(
-        False,
-        {
-            "key": constants.EUROPEAN_WORKERS,
-            "adjective": "European",
-            "permissions": [
-                constants.WORKER_PERMISSION,
-                constants.EUROPEAN_WORKERS_PERMISSION,
-            ],
-            "upkeep": 6.0,
-            "can_crew": [constants.SHIP, constants.TRAIN],
-            "upkeep_variance": True,
-            "fired_description": "Fired description. /n /n",
-        },
-    )
-    worker_types.worker_type(
-        False,
-        {
-            "key": constants.CHURCH_VOLUNTEERS,
-            "adjective": "religious",
-            "permissions": [
-                constants.WORKER_PERMISSION,
-                constants.CHURCH_VOLUNTEERS_PERMISSION,
-            ],
-            "name": "church volunteers",
-            "upkeep": 0.0,
-            "fired_description": "Fired church volunteers will never settle in slums and will instead return to Europe. /n /n"
-            + "Firing church volunteers reflects poorly on your company and will incur a public opinion penalty of 1. /n /n",
-        },
-    )
-
-
 def equipment_types_config():
     """
     Description:
@@ -453,7 +412,7 @@ def commodities():
         ].price
 
 
-def def_ministers():
+def minister_types_config():
     """
     Description:
         Defines minister positions, backgrounds, and associated units
@@ -548,6 +507,367 @@ def def_ministers():
     )
 
 
+def unit_types_config():
+    """
+    Description:
+        Defines unit type templates
+    Input:
+        None
+    Output:
+        None
+    """
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.EXPEDITION,
+            "name": "expedition",
+            "controlling_minister_type": status.minister_types[
+                constants.SCIENCE_MINISTER
+            ],
+            "permissions": {
+                constants.GROUP_PERMISSION: True,
+                constants.EXPEDITION_PERMISSION: True,
+            },
+            "can_recruit": False,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.EXPLORER,
+            "name": "explorer",
+            "controlling_minister_type": status.minister_types[
+                constants.SCIENCE_MINISTER
+            ],
+            "permissions": {
+                constants.OFFICER_PERMISSION: True,
+                constants.EXPLORER_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Explorers are controlled by the {status.minister_types[constants.SCIENCE_MINISTER].name}"
+                "When combined with workers, an explorer becomes an expedition unit that can explore new tiles."
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.EXPEDITION])
+
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.CARAVAN,
+            "name": "caravan",
+            "controlling_minister_type": status.minister_types[
+                constants.TERRAN_AFFAIRS_MINISTER
+            ],
+            "permissions": {
+                constants.GROUP_PERMISSION: True,
+                constants.CARAVAN_PERMISSION: True,
+            },
+            "can_recruit": False,
+            "inventory_capacity": 9,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.MERCHANT,
+            "name": "merchant",
+            "controlling_minister_type": status.minister_types[
+                constants.TERRAN_AFFAIRS_MINISTER
+            ],
+            "permissions": {
+                constants.OFFICER_PERMISSION: True,
+                constants.MERCHANT_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Merchants are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally search for loans and conduct advertising campaigns on Earth.",
+                "When combined with workers, a merchant becomes a caravan that can build trading posts and trade.",
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.CARAVAN])
+
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.MISSIONARIES,
+            "name": "missionaries",
+            "controlling_minister_type": status.minister_types[
+                constants.TERRAN_AFFAIRS_MINISTER
+            ],
+            "permissions": {
+                constants.GROUP_PERMISSION: True,
+                constants.MISSIONARIES_PERMISSION: True,
+            },
+            "can_recruit": False,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.EVANGELIST,
+            "name": "evangelist",
+            "controlling_minister_type": status.minister_types[
+                constants.TERRAN_AFFAIRS_MINISTER
+            ],
+            "permissions": {
+                constants.OFFICER_PERMISSION: True,
+                constants.EVANGELIST_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Evangelists are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally conduct religious campaigns and public relations campaigns on Earth.",
+                "When combined with religious volunteers, an evangelist becomes a missionaries unit that can build missions.",
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.MISSIONARIES])
+
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.BATTALION,
+            "name": "battalion",
+            "controlling_minister_type": status.minister_types[
+                constants.SPACE_MINISTER
+            ],
+            "permissions": {
+                constants.GROUP_PERMISSION: True,
+                constants.BATTALION_PERMISSION: True,
+            },
+            "can_recruit": False,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.MAJOR,
+            "name": "major",
+            "controlling_minister_type": status.minister_types[
+                constants.SPACE_MINISTER
+            ],
+            "permissions": {
+                constants.OFFICER_PERMISSION: True,
+                constants.MAJOR_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Majors are controlled by the {status.minister_types[constants.SPACE_MINISTER].name}"
+                "When combined with workers, a major becomes a battalion unit that has a very high combat strength, and can build forts and attack enemies."
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.BATTALION])
+
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.PORTERS,
+            "name": "porters",
+            "controlling_minister_type": status.minister_types[
+                constants.TRANSPORTATION_MINISTER
+            ],
+            "permissions": {
+                constants.GROUP_PERMISSION: True,
+                constants.PORTERS_PERMISSION: True,
+            },
+            "can_recruit": False,
+            "inventory_capacity": 9,
+            "number": 2,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.DRIVER,
+            "name": "driver",
+            "controlling_minister_type": status.minister_types[
+                constants.TRANSPORTATION_MINISTER
+            ],
+            "permissions": {
+                constants.OFFICER_PERMISSION: True,
+                constants.DRIVER_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Drivers are controlled by the {status.minister_types[constants.TRANSPORTATION_MINISTER].name}",
+                "When combined with workers, a driver becomes a porters unit that can move quickly and transport commodities.",
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.PORTERS])
+
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.WORK_CREW,
+            "name": "work crew",
+            "controlling_minister_type": status.minister_types[
+                constants.INDUSTRY_MINISTER
+            ],
+            "permissions": {
+                constants.GROUP_PERMISSION: True,
+                constants.WORK_CREW_PERMISSION: True,
+            },
+            "can_recruit": False,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.FOREMAN,
+            "name": "foreman",
+            "controlling_minister_type": status.minister_types[
+                constants.INDUSTRY_MINISTER
+            ],
+            "permissions": {
+                constants.OFFICER_PERMISSION: True,
+                constants.FOREMAN_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Foremen are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}"
+                "When combined with workers, a foreman becomes a work crew unit that can produce commodities when attached to a production facility."
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.WORK_CREW])
+
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.CONSTRUCTION_GANG,
+            "name": "construction gang",
+            "controlling_minister_type": status.minister_types[
+                constants.INDUSTRY_MINISTER
+            ],
+            "permissions": {
+                constants.GROUP_PERMISSION: True,
+                constants.CONSTRUCTION_PERMISSION: True,
+            },
+            "can_recruit": False,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.ENGINEER,
+            "name": "engineer",
+            "controlling_minister_type": status.minister_types[
+                constants.INDUSTRY_MINISTER
+            ],
+            "permissions": {
+                constants.OFFICER_PERMISSION: True,
+                constants.ENGINEER_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Engineers are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}"
+                "When combined with workers, an engineer becomes a construction gang unit that can build buildings, roads, railroads, and trains."
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.CONSTRUCTION_GANG])
+
+    unit_types.worker_type(
+        False,
+        {
+            "key": constants.EUROPEAN_WORKERS,
+            "name": "European workers",
+            "controlling_minister_type": status.minister_types[
+                constants.INDUSTRY_MINISTER
+            ],
+            "permissions": {
+                constants.WORKER_PERMISSION: True,
+                constants.EUROPEAN_WORKERS_PERMISSION: True,
+                constants.CREW_SHIP_PERMISSION: True,
+                constants.CREW_TRAIN_PERMISSION: True,
+            },
+            "upkeep": 6.0,
+            "upkeep_variance": True,
+            "save_changes": True,
+            "can_recruit": True,
+            "recruitment_cost": 0,
+            "recruitment_verb": "hire",
+            "fired_description": ["Fired description."],
+            "description": ["Placeholder"],
+            "number": 2,
+        },
+    )
+    unit_types.worker_type(
+        False,
+        {
+            "key": constants.CHURCH_VOLUNTEERS,
+            "name": "church volunteers",
+            "controlling_minister_type": status.minister_types[
+                constants.TERRAN_AFFAIRS_MINISTER
+            ],
+            "permissions": {
+                constants.WORKER_PERMISSION,
+                constants.CHURCH_VOLUNTEERS_PERMISSION,
+            },
+            "upkeep": 0.0,
+            "can_recruit": False,
+            "fired_description": [
+                "Fired church volunteers will never settle in slums and will instead return to Europe.",
+                "Firing church volunteers reflects poorly on your company and will incur a public opinion penalty of 1.",
+            ],
+            "description": ["Placeholder"],
+            "number": 2,
+        },
+    )
+
+    unit_types.vehicle_type(
+        False,
+        {
+            "key": constants.SHIP,
+            "name": "ship",
+            "controlling_minister_type": status.minister_types[
+                constants.TRANSPORTATION_MINISTER
+            ],
+            "permissions": {
+                constants.INACTIVE_VEHICLE_PERMISSION,
+                constants.VEHICLE_PERMISSION,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "purchase",
+            "recruitment_cost": 10,
+            "description": [
+                "While useless by itself, a steamship crewed by workers can quickly transport units and cargo through coastal waters and between theatres.",
+                "Crewing a steamship requires an advanced level of technological training, which is generally only available to European workers in this time period.",
+            ],
+        },
+    )
+
+    unit_types.vehicle_type(
+        False,
+        {
+            "key": constants.TRAIN,
+            "name": "train",
+            "controlling_minister_type": status.minister_types[
+                constants.TRANSPORTATION_MINISTER
+            ],
+            "permissions": {
+                constants.INACTIVE_VEHICLE_PERMISSION,
+                constants.VEHICLE_PERMISSION,
+            },
+            "can_recruit": False,
+            "description": [
+                "While useless by itself, a train crewed by workers can quickly transport units and cargo through railroads between train stations."
+            ],
+        },
+    )
+
+
 def transactions():
     """
     Description:
@@ -557,10 +877,6 @@ def transactions():
     Output:
         None
     """
-    for current_officer in constants.officer_types:
-        constants.recruitment_costs[current_officer] = constants.recruitment_costs[
-            "officer"
-        ]
     actor_utility.update_descriptions()
     actor_utility.reset_action_prices()
 
@@ -1083,9 +1399,8 @@ def earth_screen():
         }
     )
 
-    for recruitment_index, recruitment_type in enumerate(
-        constants.recruitment_types
-    ):  # Creates recruitment button for each officer type, workers, and steamship
+    recruitment_index = 0
+    for recruitment_index, recruitment_type in enumerate(status.recruitment_types):
         constants.actor_creation_manager.create_interface_element(
             {
                 "width": scaling.scale_width(100),
@@ -1099,14 +1414,16 @@ def earth_screen():
             }
         )
 
-    for item_type in ["consumer goods"]:  # Creates purchase button for items from earth
+    for purchase_index, purchase_item_type in enumerate(
+        ["consumer goods"]
+    ):  # Creates purchase button for items from earth
         constants.actor_creation_manager.create_interface_element(
             {
                 "width": scaling.scale_width(100),
                 "height": scaling.scale_height(100),
                 "init_type": constants.BUY_ITEM_BUTTON,
                 "parent_collection": earth_purchase_buttons,
-                "item_type": item_type,
+                "item_type": purchase_item_type,
                 "member_config": {
                     "second_dimension_coordinate": -1 * (recruitment_index // 8)
                 },  # Re-uses recruitment index from previous loop

@@ -613,8 +613,8 @@ class actor_display_label(label):
                     tooltip_text = self.actor.controlling_minister.tooltip_text
                 else:
                     tooltip_text = [
-                        f"The {self.actor.controlling_minister_type.name} is responsible for controlling this unit",
-                        f"As there is currently no {self.actor.controlling_minister_type.name}, this unit will not be able to complete most actions until one is appointed",
+                        f"The {self.actor.unit_type.controlling_minister_type.name} is responsible for controlling this unit",
+                        f"As there is currently no {self.actor.unit_type.controlling_minister_type.name}, this unit will not be able to complete most actions until one is appointed",
                     ]
             self.set_tooltip(tooltip_text)
 

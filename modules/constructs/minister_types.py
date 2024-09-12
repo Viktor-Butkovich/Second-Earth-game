@@ -66,16 +66,13 @@ class minister_type:
         """
         minister_utility.set_minister(self.key, new_minister)
 
-    def on_remove(self, old_minister):
+    def on_remove(self):
         """
         Description:
-            Makes any updates required when worker fired
+            Makes any updates required when a minister is removed from this office
         Input:
-            boolean wander=False: Whether this worker will wander after being fired
+            None
         Output:
             None
         """
         minister_utility.set_minister(self.key, None)
-        # for current_minister_image in status.minister_image_list:
-        #    if current_minister_image.minister_type == self:
-        #        current_minister_image.calibrate(None)

@@ -61,9 +61,6 @@ class vehicle(pmob):
                 ).embark_vehicle(
                     self
                 )  # create passengers and merge as passengers
-        self.set_controlling_minister_type(
-            status.minister_types[constants.TRANSPORTATION_MINISTER]
-        )
         if not self.get_permission(constants.ACTIVE_PERMISSION):
             self.remove_from_turn_queue()
         self.finish_init(original_constructor, from_save, input_dict)
@@ -504,17 +501,6 @@ class train(vehicle):
         """
         return self.movement_cost
 
-    def get_vehicle_name(self) -> str:
-        """
-        Description:
-            Returns the name of this type of vehicle
-        Input:
-            None
-        Output:
-            Returns the name of this type of vehicle
-        """
-        return constants.TRAIN
-
 
 class ship(vehicle):
     """
@@ -599,14 +585,3 @@ class ship(vehicle):
             and self.get_permission(constants.ACTIVE_PERMISSION)
             and not self.temp_movement_disabled
         )
-
-    def get_vehicle_name(self) -> str:
-        """
-        Description:
-            Returns the name of this type of vehicle
-        Input:
-            None
-        Output:
-            Returns the name of this type of vehicle
-        """
-        return constants.SHIP

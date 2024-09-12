@@ -2,14 +2,10 @@
 
 import random
 from ...actor_types import mobs, buildings
-from ...actor_types.mob_types import vehicles, officers, dummy, workers
+from ...actor_types.mob_types import vehicles, officers, dummy, workers, groups
 from ...actor_types.mob_types.group_types import (
     battalions,
-    caravans,
-    construction_gangs,
     expeditions,
-    missionaries,
-    porters,
     work_crews,
 )
 from ...interface_types import (
@@ -29,10 +25,11 @@ from ...interface_types import (
 from ...actor_display_tools import buttons as actor_display_buttons
 from ...actor_display_tools import labels as actor_display_labels
 from ...actor_display_tools import images as actor_display_images
-from ...constructs import ministers, images, settlements
+from ...constructs import ministers, images, settlements, unit_types
 from ...util import utility, actor_utility, market_utility
 from .. import mouse_followers
 import modules.constants.constants as constants
+import modules.constants.status as status
 
 
 class actor_creation_manager_template:  # can get instance from anywhere and create actors with it without importing respective actor module
@@ -62,11 +59,11 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.MERCHANT: officers.officer,
             constants.EVANGELIST: officers.officer,
             constants.MAJOR: officers.officer,
-            constants.PORTERS: porters.porters,
+            constants.PORTERS: groups.group,
             constants.WORK_CREW: work_crews.work_crew,
-            constants.CONSTRUCTION_GANG: construction_gangs.construction_gang,
-            constants.CARAVAN: caravans.caravan,
-            constants.MISSIONARIES: missionaries.missionaries,
+            constants.CONSTRUCTION_GANG: groups.group,
+            constants.CARAVAN: groups.group,
+            constants.MISSIONARIES: groups.group,
             constants.EXPEDITION: expeditions.expedition,
             constants.BATTALION: battalions.battalion,
             constants.INFRASTRUCTURE: buildings.infrastructure_building,
@@ -284,50 +281,37 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         """
         return self.interface_constructors[input_dict["init_type"]](input_dict)
 
-    def display_recruitment_choice_notification(self, choice_info_dict):
+    def display_recruitment_choice_notification(
+        self, recruitment_type: unit_types.unit_type
+    ):
         """
         Description:
             Displays a choice notification to verify the recruitment of a unit
         Input:
-            dictionary choice_info_dict: dictionary containing various information needed for the choice notification
-                'recruitment_type': string value - Type of unit to recruit, like 'European worker'
-                'cost': double value - Recruitment cost of the unit
-                'mob_image_id': string value - File path to the image used by the recruited unit
-                'type': string value - Type of choice notification to display, always 'recruitment' for recruitment notificatoins
-                'recruitment_name': string value - Name used in the notification to signify the unit, like 'explorer'
+            unit_type recruitment_type: Type of unit to recruit
         Output:
             None
         """
-        recruitment_type, recruitment_name = (
-            choice_info_dict["recruitment_type"],
-            choice_info_dict["recruitment_name"],
-        )
-        if recruitment_type in [constants.SHIP]:
-            verb = "purchase"
-        elif recruitment_type.endswith("workers"):
-            verb = "hire"
+        if recruitment_type.number >= 2:
+            message = f"Are you sure you want to {recruitment_type.recruitment_verb} a unit of {recruitment_type.name} for {recruitment_type.recruitment_cost} money? /n /n"
         else:
-            verb = "recruit"
-
-        if recruitment_type.endswith("workers"):
-            message = f"Are you sure you want to {verb} a unit of {recruitment_name} for {choice_info_dict['cost']} money? /n /n"
-        else:
-            message = f"Are you sure you want to {verb} {utility.generate_article(recruitment_name)} {recruitment_name} for {str(choice_info_dict['cost'])} money? /n /n"
-
-        actor_utility.update_descriptions(recruitment_type)
+            message = f"Are you sure you want to {recruitment_type.recruitment_verb} {utility.generate_article(recruitment_type.name)} {recruitment_type.name} for {recruitment_type.recruitment_cost} money? /n /n"
+        message += recruitment_type.get_string_description()
         message += constants.string_descriptions[recruitment_type]
 
         constants.notification_manager.display_notification(
             {
                 "message": message,
                 "choices": [constants.RECRUITMENT_CHOICE_BUTTON, None],
-                "extra_parameters": choice_info_dict,
+                "extra_parameters": {
+                    "recruitment_type": recruitment_type,
+                },
             }
         )
 
     def create_group(
         self, worker, officer
-    ):  # use when merging groups. At beginning of game, instead of using this, create a group which creates its worker and officer and merges them
+    ):  # Use when merging groups. At beginning of game, instead of using this, create a group which creates its worker and officer and merges them
         """
         Description:
             Creates a group out of the inputted worker and officer. Once the group is created, it's component officer and worker will not be able to be directly seen or interacted with until the group is disbanded
@@ -348,7 +332,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                 "modes": officer.grids[
                     0
                 ].modes,  # if created in Africa grid, should be ['strategic']. If created on Earth, should be ['strategic', 'earth']
-                "init_type": constants.officer_group_type_dict[officer.officer_type],
+                "init_type": officer.unit_type.group_type.key,
                 "image": "misc/empty.png",
                 "name": actor_utility.generate_group_name(worker, officer),
             },

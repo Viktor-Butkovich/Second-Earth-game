@@ -241,37 +241,37 @@ class money_label_template(value_label):
         tooltip_text = [self.message]
 
         total_upkeep = 0.0
-        total_number = 0
+        total_num_instances = 0
         worker_type_info_dicts = {}
         for key, worker_type in status.worker_types.items():
             current_dict = {}
             current_dict["upkeep"] = worker_type.upkeep
             current_dict["total_upkeep"] = worker_type.get_total_upkeep()
-            current_dict["number"] = worker_type.number
+            current_dict["num_instances"] = worker_type.num_instances
             current_dict["name"] = worker_type.name
             total_upkeep += current_dict["total_upkeep"]
-            total_number += current_dict["number"]
+            total_num_instances += current_dict["num_instances"]
             worker_type_info_dicts[key] = current_dict
         total_upkeep = round(total_upkeep, 2)
 
         tooltip_text.append("")
         tooltip_text.append(
-            f"At the end of the turn, your {total_number} worker{utility.generate_plural(total_number)} will cost a total of {total_upkeep} money in upkeep."
+            f"At the end of the turn, your {total_num_instances} worker{utility.generate_plural(total_num_instances)} will cost a total of {total_upkeep} money in upkeep."
         )
         for key, current_dict in worker_type_info_dicts.items():
             if current_dict["upkeep"] > 0:
-                if current_dict["number"] > 0:
+                if current_dict["num_instances"] > 0:
                     tooltip_text.append(
-                        f"    Your {current_dict['number']} {current_dict['name']} will be paid {current_dict['upkeep']} money, totaling to {current_dict['total_upkeep']} money."
+                        f"    Your {current_dict['num_instances']} {current_dict['name']} will be paid {current_dict['upkeep']} money, totaling to {current_dict['total_upkeep']} money."
                     )
                 else:
                     tooltip_text.append(
                         f"    Any {current_dict['name']} would each be paid {current_dict['upkeep']} money."
                     )
             else:
-                if current_dict["number"] > 0:
+                if current_dict["num_instances"] > 0:
                     tooltip_text.append(
-                        f"    Your {current_dict['number']} {current_dict['name']} will not need to be paid."
+                        f"    Your {current_dict['num_instances']} {current_dict['name']} will not need to be paid."
                     )
                 else:
                     tooltip_text.append(

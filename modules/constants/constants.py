@@ -866,6 +866,7 @@ WORK_CREW_PERMISSION: str = "work_crew"
 CARAVAN_PERMISSION: str = "caravan"
 MISSIONARIES_PERMISSION: str = "missionaries"
 BATTALION_PERMISSION: str = "battalion"
+PORTERS_PERMISSION: str = "porters"
 
 EXPLORER_PERMISSION: str = "explorer"
 ENGINEER_PERMISSION: str = "engineer"
@@ -875,52 +876,16 @@ MERCHANT_PERMISSION: str = "merchant"
 EVANGELIST_PERMISSION: str = "evangelist"
 MAJOR_PERMISSION: str = "major"
 
+CREW_SHIP_PERMISSION: str = "crew_ship"
+CREW_TRAIN_PERMISSION: str = "crew_train"
+
 DEFAULT_PERMISSIONS: Dict[str, Any] = {
     ACTIVE_PERMISSION: True,
 }
 
-officer_types: List[str] = [
-    EXPLORER,
-    ENGINEER,
-    DRIVER,
-    FOREMAN,
-    MERCHANT,
-    EVANGELIST,
-    MAJOR,
-]
-officer_group_type_dict: Dict[str, str] = {
-    EXPLORER: EXPEDITION,
-    ENGINEER: CONSTRUCTION_GANG,
-    DRIVER: PORTERS,
-    FOREMAN: WORK_CREW,
-    MERCHANT: CARAVAN,
-    EVANGELIST: MISSIONARIES,
-    MAJOR: BATTALION,
-}
-officer_minister_dict: Dict[str, str] = {
-    EXPLORER: SCIENCE_MINISTER,
-    ENGINEER: INDUSTRY_MINISTER,
-    DRIVER: TRANSPORTATION_MINISTER,
-    FOREMAN: INDUSTRY_MINISTER,
-    MERCHANT: TERRAN_AFFAIRS_MINISTER,
-    EVANGELIST: TERRAN_AFFAIRS_MINISTER,
-    MAJOR: SPACE_MINISTER,
-}
-group_minister_dict: Dict[str, str] = {
-    EXPEDITION: SCIENCE_MINISTER,
-    CONSTRUCTION_GANG: INDUSTRY_MINISTER,
-    PORTERS: TRANSPORTATION_MINISTER,
-    WORK_CREW: INDUSTRY_MINISTER,
-    CARAVAN: TERRAN_AFFAIRS_MINISTER,
-    MISSIONARIES: TERRAN_AFFAIRS_MINISTER,
-    BATTALION: SPACE_MINISTER,
-}
-
-recruitment_types: List[str] = officer_types + [EUROPEAN_WORKERS, SHIP]
-recruitment_costs: Dict[str, int] = {
-    EUROPEAN_WORKERS: 0,
-    SHIP: 10,
-    OFFICER: 5,
+CREW_PERMISSIONS: Dict[str, Any] = {
+    SHIP: CREW_SHIP_PERMISSION,
+    TRAIN: CREW_TRAIN_PERMISSION,
 }
 
 building_types: List[str] = [
