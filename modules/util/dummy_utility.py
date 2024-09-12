@@ -172,7 +172,6 @@ def generate_autofill_actors(
                 break
             else:
                 return_dict = {constants.AUTOFILL_PROCEDURE: None}
-
     return return_dict
 
 

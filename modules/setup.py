@@ -854,6 +854,7 @@ def unit_types_config():
                 constants.PMOB_PERMISSION: True,
                 constants.INACTIVE_VEHICLE_PERMISSION: True,
                 constants.VEHICLE_PERMISSION: True,
+                constants.ACTIVE_PERMISSION: False,
             },
             "can_recruit": True,
             "recruitment_verb": "purchase",
@@ -877,6 +878,7 @@ def unit_types_config():
                 constants.PMOB_PERMISSION: True,
                 constants.INACTIVE_VEHICLE_PERMISSION: True,
                 constants.VEHICLE_PERMISSION: True,
+                constants.ACTIVE_PERMISSION: False,
             },
             "can_recruit": False,
             "description": [

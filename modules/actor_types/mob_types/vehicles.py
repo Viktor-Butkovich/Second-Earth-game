@@ -46,7 +46,7 @@ class vehicle(pmob):
         self.image_dict = input_dict["image_dict"]  # should have default and uncrewed
         if not from_save:
             self.set_crew(input_dict["crew"])
-        else:  # create crew and passengers through recruitment_manager and embark them
+        else:  # Create crew and passengers through recruitment_manager and embark them
             if not input_dict["crew"]:
                 self.set_crew(None)
             else:
@@ -99,12 +99,12 @@ class vehicle(pmob):
                 update_image=False,
             )
             self.set_permission(
-                constants.INACTIVE_VEHICLE_PERMISSION, None, override=True
+                constants.INACTIVE_VEHICLE_PERMISSION, False, override=True
             )
             self.set_inventory_capacity(27)
         else:
             self.set_permission(
-                constants.ACTIVE_PERMISSION, None, override=True, update_image=False
+                constants.ACTIVE_PERMISSION, False, override=True, update_image=False
             )
             self.set_permission(
                 constants.ACTIVE_VEHICLE_PERMISSION,

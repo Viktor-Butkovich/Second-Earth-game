@@ -1,4 +1,4 @@
-# Contains functionality for worker type templates, such as European, religious workers
+# Contains functionality for unit type templates, such as workers, engineers, ships, etc.
 
 import random
 from typing import Dict, List
@@ -12,7 +12,30 @@ import modules.constructs.minister_types as minister_types
 
 
 class unit_type:
+    """
+    Template for a conceptual type of unit with standard images, permissions, etc., not including actual instances of the unit
+    """
+
     def __init__(self, from_save: bool, input_dict: Dict) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
+            dictionary input_dict: Keys corresponding to the values needed to initialize this object
+                'key': string value - Constant uniquely identifying this type of worker across the program
+                'permissions': boolean dictionary value - Dictionary of this unit type's default permissions, with True/False permissions
+                'can_recruit': boolean value - Whether this unit type can be recruited
+                    'recruitment_verb': string value - Verb to use when recruiting this unit, default of 'recruit'
+                    'recruitment_cost': int value - Cost of recruiting this unit, default of 0.0
+                    'description': string list value - Description text to display when recruiting this unit
+                'inventory_capacity': int value - Maximum number of items this unit can carry, default of 0
+                'controlling_minister_type': minister_type value - Minister type that controls this unit type
+                'number': int value - Number of entities referenced by this unit's name, used in plural declension
+                'name': string value - Default name of this unit type
+        Output:
+            None
+        """
         self.save_changes: bool = input_dict.get("save_changes", False)
         self.key: str = input_dict["key"]
         if (
@@ -29,8 +52,8 @@ class unit_type:
                     "recruitment_verb", "recruit"
                 )
                 self.recruitment_cost: int = input_dict["recruitment_cost"]
-                self.initial_recruitment_cost: float = self.recruitment_cost
-                self.min_recruitment_cost: float = min(2.0, self.recruitment_cost)
+                self.initial_recruitment_cost: int = self.recruitment_cost
+                self.min_recruitment_cost: int = min(2, self.recruitment_cost)
                 self.description: List[str] = input_dict.get("description", [])
                 status.recruitment_types.append(self)
 
@@ -46,10 +69,15 @@ class unit_type:
             status.unit_types[self.key] = self
         return
 
-    def generate_recruitment_permissions(self):
-        return self.permissions
-
     def generate_center_recruitment_image(self, dummy_recruited_unit):
+        """
+        Description:
+            Generates the image for the center of a recruitment button for this unit type
+        Input:
+            actor dummy_recruited_unit: Dummy actor of this type to use for generating the image
+        Output
+            image_id list: List of image IDs for the recruitment button center image
+        """
         image_id = constants.character_manager.generate_unit_portrait(
             dummy_recruited_unit, metadata={"body_image": self.image_id}
         )
@@ -63,10 +91,18 @@ class unit_type:
         return image_id
 
     def generate_framed_recruitment_image(self):
+        """
+        Description:
+            Deterministically generates the image for a framed recruitment button for this unit type
+        Input:
+            None
+        Output
+            image_id list: List of image IDs for the recruitment button image
+        """
         dummy_recruited_unit = constants.actor_creation_manager.create_dummy(
             {"unit_type": self}
         )
-        for permission, value in self.generate_recruitment_permissions().items():
+        for permission, value in self.permissions.items():
             dummy_recruited_unit.set_permission(permission, value)
 
         original_random_state = random.getstate()
@@ -83,13 +119,26 @@ class unit_type:
         )
 
     def get_list_description(self) -> List[str]:
+        """
+        Description:
+            Gets the description of this unit type as a list of strings
+        Input:
+            None
+        Output:
+            string list: List of strings describing this unit type
+        """
         return self.description
 
     def get_string_description(self) -> str:
+        """
+        Description:
+            Gets the description of this unit type as a list of strings
+        Input:
+            None
+        Output:
+            string: /n /n separated string describing this unit type
+        """
         return " /n /n".join(self.description) + " /n /n"
-
-    def on_recruit(self) -> None:
-        return
 
     def to_save_dict(self) -> Dict:
         """
@@ -136,26 +185,116 @@ class unit_type:
         }
         return input_dict
 
-    def on_remove(self):
+    def on_recruit(self) -> None:
+        """
+        Description:
+            Called when an instance of this unit is newly hired (not reconstructed from save)
+        Input:
+            None
+        Output:
+            None
+        """
+        return
+
+    def on_remove(self) -> None:
+        """
+        Description:
+            Called whenever an instance of this unit is removed, tracking how many instances remain
+        Input:
+            None
+        Output:
+            None
+        """
         self.num_instances -= 1
+
+    def reset(self) -> None:
+        """
+        Description:
+            Resets this unit types value's when a new game is created, preventing any mutable values from carrying over
+        Input:
+            None
+        Output:
+            None
+        """
+        self.num_instances = 0
+        if self.can_recruit:
+            self.recruitment_cost = self.initial_recruitment_cost
 
 
 class officer_type(unit_type):
-    def link_group_type(self, group_type):
+    """
+    Unit type template representing an officer, which can combine with workers to form a certain type of group
+    """
+
+    def link_group_type(self, group_type) -> None:
+        """
+        Description:
+            Links this officer type to a group type, and vice versa. Must be used after initialization of both types, so not part of the constructor
+        Input:
+            group_type group_type: Type of group to link this officer type to
+        Output:
+            None
+        """
         self.group_type: unit_type = group_type
         group_type.officer_type = self
 
 
 class group_type(unit_type):
+    """
+    Unit type template representing a group, which is a combination of workers and a certain type of officer
+    """
+
     def __init__(self, from_save: bool, input_dict: Dict) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
+            dictionary input_dict: Keys corresponding to the values needed to initialize this object
+                'key': string value - Constant uniquely identifying this type of worker across the program
+                'permissions': boolean dictionary value - Dictionary of this unit type's default permissions, with True/False permissions
+                'can_recruit': boolean value - Whether this unit type can be recruited
+                    'recruitment_verb': string value - Verb to use when recruiting this unit, default of 'recruit'
+                    'recruitment_cost': int value - Cost of recruiting this unit, default of 0.0
+                    'description': string list value - Description text to display when recruiting this unit
+                'inventory_capacity': int value - Maximum number of items this unit can carry, default of 0
+                'controlling_minister_type': minister_type value - Minister type that controls this unit type
+                'number': int value - Number of entities referenced by this unit's name, used in plural declension
+                'name': string value - Default name of this unit type
+        Output:
+            None
+        """
         super().__init__(from_save, input_dict)
         self.officer_type: officer_type = None
 
 
 class vehicle_type(unit_type):
+    """
+    Unit type template representing a vehicle, which requires a crew to be operational
+    """
+
     def __init__(self, from_save: bool, input_dict: Dict) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
+            dictionary input_dict: Keys corresponding to the values needed to initialize this object
+                'key': string value - Constant uniquely identifying this type of worker across the program
+                'permissions': boolean dictionary value - Dictionary of this unit type's default permissions, with True/False permissions
+                'can_recruit': boolean value - Whether this unit type can be recruited
+                    'recruitment_verb': string value - Verb to use when recruiting this unit, default of 'recruit'
+                    'recruitment_cost': int value - Cost of recruiting this unit, default of 0.0
+                    'description': string list value - Description text to display when recruiting this unit
+                'inventory_capacity': int value - Maximum number of items this unit can carry, default of 0
+                'controlling_minister_type': minister_type value - Minister type that controls this unit type
+                'number': int value - Number of entities referenced by this unit's name, used in plural declension
+                'name': string value - Default name of this unit type
+        Output:
+            None
+        """
         super().__init__(from_save, input_dict)
-        self.uncrewed_image_id = input_dict.get("uncrewed_image_id", self.image_id)
+        self.uncrewed_image_id = f"mobs/{self.key}/uncrewed.png"
 
     def generate_input_dict(self) -> Dict:
         """
@@ -174,19 +313,21 @@ class vehicle_type(unit_type):
         input_dict["crew"] = None
         return input_dict
 
-    def generate_recruitment_permissions(self):
-        permissions = super().generate_recruitment_permissions()
-        del permissions[constants.INACTIVE_VEHICLE_PERMISSION]
-        permissions[constants.ACTIVE_VEHICLE_PERMISSION] = True
-        return permissions
-
-    def generate_center_recruitment_image(self, dummy_recruited_unit):
-        return self.image_id
+    def generate_center_recruitment_image(self, dummy_recruited_unit) -> List[Dict]:
+        """
+        Description:
+            Generates the image for the center of a recruitment button for this unit type. Rather than generating a character image, a vehicle can just use a pre-set image
+        Input:
+            actor dummy_recruited_unit: Dummy actor of this type to use for generating the image
+        Output
+            image_id list: List of image IDs for the recruitment button center image
+        """
+        return self.uncrewed_image_id
 
 
 class worker_type(unit_type):
     """
-    Worker template that tracks the current number, upkeep, and recruitment cost of a particular worker type
+    Unit type template representing a worker, which has upkeep and can combine with officers to form a group
     """
 
     def __init__(self, from_save: bool, input_dict: Dict) -> None:
@@ -223,6 +364,14 @@ class worker_type(unit_type):
             self.upkeep_variance: bool = input_dict.get("upkeep_variance", False)
 
     def generate_center_recruitment_image(self, dummy_recruited_unit):
+        """
+        Description:
+            Generates the image for the center of a recruitment button for this unit type
+        Input:
+            actor dummy_recruited_unit: Dummy actor of this type to use for generating the image
+        Output
+            image_id list: List of image IDs for the recruitment button center image
+        """
         image_id = utility.combine(
             actor_utility.generate_unit_component_portrait(
                 constants.character_manager.generate_unit_portrait(
@@ -266,16 +415,14 @@ class worker_type(unit_type):
     def reset(self) -> None:
         """
         Description:
-            Resets this worker type's values when a new game is created
+            Resets this unit types value's when a new game is created, preventing any mutable values from carrying over
         Input:
             None
         Output:
             None
         """
-        self.num_instances = 0
+        super().reset()
         self.upkeep = self.initial_upkeep
-        if self.can_recruit:
-            self.recruitment_cost = self.initial_recruitment_cost
 
     def get_total_upkeep(self) -> float:
         """
@@ -315,6 +462,14 @@ class worker_type(unit_type):
             market_utility.attempt_worker_upkeep_change("increase", self)
 
     def on_remove(self):
+        """
+        Description:
+            Called whenever an instance of this unit is removed, tracking how many instances remain
+        Input:
+            None
+        Output:
+            None
+        """
         super().on_remove()
         constants.money_label.check_for_updates()
 
