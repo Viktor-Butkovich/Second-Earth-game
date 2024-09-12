@@ -2995,7 +2995,7 @@ def vehicle_organization_interface():
             "height": scaling.scale_height(image_height - 10),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "actor_image_type": "default",
-            "default_image_id": "mobs/default/mock_officer.png",
+            "default_image_id": "mobs/default/mock_uncrewed_vehicle.png",
             "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
             "parent_collection": status.vehicle_reorganization_collection,
             "member_config": {
@@ -3079,17 +3079,6 @@ def vehicle_organization_interface():
     ].append(rhs_top_tooltip)
 
     # mob image
-    default_image_id = [
-        actor_utility.generate_unit_component_image_id(
-            "mobs/default/mock_worker.png", "group left", to_front=True
-        ),
-        actor_utility.generate_unit_component_image_id(
-            "mobs/default/mock_worker.png", "group right", to_front=True
-        ),
-        actor_utility.generate_unit_component_image_id(
-            "mobs/default/mock_officer.png", "center", to_front=True
-        ),
-    ]
     rhs_top_mob_free_image = constants.actor_creation_manager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, 0),
@@ -3097,7 +3086,7 @@ def vehicle_organization_interface():
             "height": scaling.scale_height(image_height - 10),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "actor_image_type": "default",
-            "default_image_id": default_image_id,
+            "default_image_id": "mobs/default/mock_crewed_vehicle.png",
             "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
             "parent_collection": status.vehicle_reorganization_collection,
             "member_config": {

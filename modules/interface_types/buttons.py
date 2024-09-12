@@ -2706,9 +2706,20 @@ class reorganize_unit_button(button):
                 self.parent_collection.autofill_actors[constants.AUTOFILL_PROCEDURE]
                 == constants.MERGE_PROCEDURE
             ):
-                self.tooltip_text.append(
-                    f"Press to combine the {self.parent_collection.autofill_actors[constants.OFFICER_PERMISSION].name} and the {self.parent_collection.autofill_actors[constants.WORKER_PERMISSION].name} into a {self.parent_collection.autofill_actors[constants.GROUP_PERMISSION].name}"
-                )
+                if (
+                    self.parent_collection.autofill_actors[constants.OFFICER_PERMISSION]
+                    and self.parent_collection.autofill_actors[
+                        constants.WORKER_PERMISSION
+                    ]
+                ):
+                    self.tooltip_text.append(
+                        f"Press to combine the {self.parent_collection.autofill_actors[constants.OFFICER_PERMISSION].name} and the {self.parent_collection.autofill_actors[constants.WORKER_PERMISSION].name} into a {self.parent_collection.autofill_actors[constants.GROUP_PERMISSION].name}"
+                    )
+                else:
+                    self.tooltip_text += [
+                        "Merging requires both a worker and an officer to be present",
+                        "The current combination of units has no valid reorganization procedure",
+                    ]
             elif (
                 self.parent_collection.autofill_actors[constants.AUTOFILL_PROCEDURE]
                 == constants.SPLIT_PROCEDURE
@@ -2720,9 +2731,22 @@ class reorganize_unit_button(button):
                 self.parent_collection.autofill_actors[constants.AUTOFILL_PROCEDURE]
                 == constants.CREW_PROCEDURE
             ):
-                self.tooltip_text.append(
-                    f"Press to combine the {self.parent_collection.autofill_actors[constants.INACTIVE_VEHICLE_PERMISSION].name} and the {self.parent_collection.autofill_actors[constants.EUROPEAN_WORKERS_PERMISSION].name} into a crewed {self.parent_collection.autofill_actors[constants.ACTIVE_VEHICLE_PERMISSION].name}"
-                )
+                if (
+                    self.parent_collection.autofill_actors[
+                        constants.INACTIVE_VEHICLE_PERMISSION
+                    ]
+                    and self.parent_collection.autofill_actors[
+                        constants.EUROPEAN_WORKERS_PERMISSION
+                    ]
+                ):
+                    self.tooltip_text.append(
+                        f"Press to combine the {self.parent_collection.autofill_actors[constants.INACTIVE_VEHICLE_PERMISSION].name} and the {self.parent_collection.autofill_actors[constants.EUROPEAN_WORKERS_PERMISSION].name} into a crewed {self.parent_collection.autofill_actors[constants.ACTIVE_VEHICLE_PERMISSION].name}"
+                    )
+                else:
+                    self.tooltip_text += [
+                        "Crewing a vehicle requires both an uncrewed vehicle and a crew to be present",
+                        "The current combination of units has no valid reorganization procedure",
+                    ]
             elif (
                 self.parent_collection.autofill_actors[constants.AUTOFILL_PROCEDURE]
                 == constants.UNCREW_PROCEDURE
