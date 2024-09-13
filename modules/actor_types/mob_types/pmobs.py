@@ -292,8 +292,9 @@ class pmob(mob):
         next_step = self.in_progress_automatic_route[0]
         if next_step == "end":  # can drop off freely unless train without train station
             if not (
-                self.get_permission(constants.VEHICLE_PERMISSION)
-                and self.vehicle_type == constants.TRAIN
+                self.all_permissions(
+                    constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
+                )
                 and not self.get_cell().has_intact_building(constants.TRAIN_STATION)
             ):
                 return True
@@ -316,8 +317,9 @@ class pmob(mob):
             ):  # only start round trip if there is something to deliver, either from tile or in inventory already
                 # If wait until full, instead wait until full load to transport or no warehouse space left
                 if not (
-                    self.get_permission(constants.VEHICLE_PERMISSION)
-                    and self.vehicle_type == constants.TRAIN
+                    self.all_permissions(
+                        constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
+                    )
                     and not self.get_cell().has_intact_building(constants.TRAIN_STATION)
                 ):  # can pick up freely unless train without train station
                     return True
@@ -350,8 +352,9 @@ class pmob(mob):
                     self.drop_inventory()
                 else:
                     if not (
-                        self.get_permission(constants.VEHICLE_PERMISSION)
-                        and self.vehicle_type == constants.TRAIN
+                        self.all_permissions(
+                            constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
+                        )
                         and not self.get_cell().has_intact_building(
                             constants.TRAIN_STATION
                         )
@@ -366,8 +369,9 @@ class pmob(mob):
                     y_change = next_step[1] - self.y
                     self.move(x_change, y_change)
                     if not (
-                        self.get_permission(constants.VEHICLE_PERMISSION)
-                        and self.vehicle_type == constants.TRAIN
+                        self.all_permissions(
+                            constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
+                        )
                         and not self.get_cell().has_intact_building(
                             constants.TRAIN_STATION
                         )
@@ -704,7 +708,7 @@ class pmob(mob):
     def end_turn_move(self):
         """
         Description:
-            If this mob has any pending movement orders at the end of the turn, this executes the movement. Currently used to move ships between Earth and the world at the end of the turn
+            If this mob has any pending movement orders at the end of the turn, this executes the movement. Currently used to move ships between Earth and the planet at the end of the turn
         Input:
             None
         Output:
@@ -722,7 +726,7 @@ class pmob(mob):
     def can_travel(self):  # if can move between Earth, the planet, etc.
         """
         Description:
-            Returns whether this mob can cross the ocean, like going between Earth and the planet. By default, mobs cannot cross the ocean, but subclasses like ship are able to return True
+            Returns whether this mob can enter space. By default, mobs cannot enter space, but subclasses like spaceships are able to return True
         Input:
             None
         Output:
@@ -794,7 +798,9 @@ class pmob(mob):
         """
         self.in_vehicle = True
         self.vehicle = vehicle
-        for current_commodity in self.get_held_commodities():  # gives inventory to ship
+        for (
+            current_commodity
+        ) in self.get_held_commodities():  # gives inventory to vehicle
             num_held = self.get_inventory(current_commodity)
             for current_commodity_unit in range(num_held):
                 if vehicle.get_inventory_remaining() > 0:
@@ -835,13 +841,6 @@ class pmob(mob):
         self.y = vehicle.y
         for current_image in self.images:
             current_image.add_to_cell()
-        if (
-            vehicle.vehicle_type == constants.SHIP
-            and self.get_cell().grid == status.strategic_map_grid
-            and not self.get_cell().get_intact_building(constants.SPACEPORT)
-        ):
-            if constants.ALLOW_DISORGANIZED:
-                self.set_permission(constants.DISORGANIZED_PERMISSION, True)
         if (
             self.get_permission(constants.CARAVAN_PERMISSION)
             and self.inventory_capacity > 0

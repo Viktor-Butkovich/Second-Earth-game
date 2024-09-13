@@ -626,7 +626,8 @@ MOB: str = "mob"
 EUROPEAN_WORKERS: str = "european_workers"
 CHURCH_VOLUNTEERS: str = "church_volunteers"
 TRAIN: str = "train"
-SHIP: str = "ship"
+COLONY_SHIP: str = "colony_ship"
+SPACESHIP: str = "spaceship"
 BOAT: str = "boat"
 OFFICER: str = "officer"
 EXPLORER: str = "explorer"
@@ -848,6 +849,8 @@ OFF_TILE_EXPLORATION_NOTIFICATION: str = "off_tile_exploration_notification"
 PMOB_PERMISSION: str = "pmob"
 NPMOB_PERMISSION: str = "npmob"
 VEHICLE_PERMISSION: str = "vehicle"
+SPACESHIP_PERMISSION: str = "spaceship"
+TRAIN_PERMISSION: str = "train"
 ACTIVE_PERMISSION: str = "active_permission"
 ACTIVE_VEHICLE_PERMISSION: str = "active_vehicle"
 INACTIVE_VEHICLE_PERMISSION: str = "inactive_vehicle"
@@ -877,7 +880,7 @@ MERCHANT_PERMISSION: str = "merchant"
 EVANGELIST_PERMISSION: str = "evangelist"
 MAJOR_PERMISSION: str = "major"
 
-CREW_SHIP_PERMISSION: str = "crew_ship"
+CREW_SPACESHIP_PERMISSION: str = "crew_spaceship"
 CREW_TRAIN_PERMISSION: str = "crew_train"
 
 DEFAULT_PERMISSIONS: Dict[str, Any] = {
@@ -885,7 +888,8 @@ DEFAULT_PERMISSIONS: Dict[str, Any] = {
 }
 
 CREW_PERMISSIONS: Dict[str, Any] = {
-    SHIP: CREW_SHIP_PERMISSION,
+    SPACESHIP: CREW_SPACESHIP_PERMISSION,
+    COLONY_SHIP: CREW_SPACESHIP_PERMISSION,
     TRAIN: CREW_TRAIN_PERMISSION,
 }
 
@@ -915,3 +919,6 @@ building_prices: Dict[str, int] = {
 }
 
 ALLOW_DISORGANIZED: bool = False
+
+INITIAL_MONEY: int = 1000
+INITIAL_PUBLIC_OPINION: int = 50

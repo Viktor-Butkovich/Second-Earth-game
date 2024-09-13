@@ -708,7 +708,7 @@ def end_turn_warnings():
             if (
                 num_leaving > 0 and num_stranded > 0 and num_reserve == 0
             ):  # If at least 1 vehicle leaving grid and at least 1 unit left behind, give warning
-                text += f"Warning: at least 1 unit is being left behind in {grid_name} and will not be able to leave without another ship. /n /n"
+                text += f"Warning: at least 1 unit is being left behind in {grid_name} and will not be able to leave without another spaceship. /n /n"
                 constants.notification_manager.display_notification(
                     {"message": text, "zoom_destination": current_cell.tile}
                 )

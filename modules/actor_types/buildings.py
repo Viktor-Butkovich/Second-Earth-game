@@ -162,7 +162,9 @@ class building(actor):
                 f"Lets {self.scale} attached work crews each attempt to produce {self.efficiency} units of {self.resource_type} each turn"
             )
         elif self.building_type == constants.SPACEPORT:
-            tooltip_text.append("Allows spaceships to land and launch in this tile")
+            tooltip_text.append(
+                "Allows spaceships to launch from this tile, and facilitates landings"
+            )
         elif self.building_type == constants.INFRASTRUCTURE:
             if self.is_bridge:
                 tooltip_text.append("Allows movement across the bridge")

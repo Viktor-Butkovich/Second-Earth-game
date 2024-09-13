@@ -15,7 +15,7 @@ class expedition(group):
     def move(self, x_change, y_change):
         """
         Description:
-            Moves this mob x_change to the right and y_change upward. Moving to a ship in the water automatically embarks the ship. Also allows exploration when moving into unexplored areas. Attempting an exploration starts the
+            Moves this mob x_change to the right and y_change upward. Allows exploration when moving into unexplored areas. Attempting an exploration starts the
                 exploration process, which requires various dice rolls to succeed and can also result in the death of the expedition or the promotion of its explorer. A successful exploration uncovers the area and units to move into it
                 normally in the future. As expeditions move, they automatically discover adjacent water tiles, and they also automatically discover all adjacent tiles when looking from a water tile
         Input:
@@ -30,7 +30,6 @@ class expedition(group):
 
         future_x = (self.x + x_change) % self.grid.coordinate_width
         future_y = (self.y + y_change) % self.grid.coordinate_height
-        roll_result = 0
         if x_change > 0:
             direction = "east"
         elif x_change < 0:

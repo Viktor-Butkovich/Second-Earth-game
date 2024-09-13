@@ -201,9 +201,8 @@ class button(interface_elements.interface_element):
                         )
                     else:
                         message = ""
-                        if (
-                            current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                            and current_mob.vehicle_type == constants.TRAIN
+                        if current_mob.all_permissions(
+                            constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                         ):
                             if (
                                 adjacent_infrastructure
@@ -238,28 +237,8 @@ class button(interface_elements.interface_element):
                                     message += " and no connecting roads"
 
                             tooltip_text.append(message)
-                            if (
-                                current_mob.can_walk
-                                and adjacent_cell.terrain_handler.terrain == "water"
-                                and (not current_mob.can_swim)
-                            ) and not local_cell.has_walking_connection(adjacent_cell):
-                                tooltip_text.append(
-                                    "Moving into a water tile costs an entire turn of movement points for units without boats"
-                                )
-                            else:
-                                tooltip_text.append(
-                                    f"Moving into a {adjacent_cell.terrain_handler.terrain.replace('_', ' ')} tile costs {constants.terrain_movement_cost_dict.get(adjacent_cell.terrain_handler.terrain, 1)} movement points"
-                                )
-                    if (
-                        (not current_mob.get_permission(constants.VEHICLE_PERMISSION))
-                        and current_mob.get_cell().terrain_handler.terrain == "water"
-                        and current_mob.get_cell().has_vehicle(constants.SHIP)
-                    ):
-                        if (
-                            not current_mob.can_swim
-                        ):  # if could not naturally move into current tile, must be from vehicle
                             tooltip_text.append(
-                                "Moving from a steamship in the water after disembarking requires all remaining movement points, at least the usual amount"
+                                f"Moving into a {adjacent_cell.terrain_handler.terrain.replace('_', ' ')} tile costs {constants.terrain_movement_cost_dict.get(adjacent_cell.terrain_handler.terrain, 1)} movement points"
                             )
                     if connecting_roads:
                         tooltip_text.append(
@@ -310,58 +289,33 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.CREW_PROCEDURE:  # clicked on vehicle side
             self.set_tooltip(
                 [
-                    f"Merges this {self.vehicle_type} with a worker in the same tile to form a crewed {self.vehicle_type}",
-                    f"Requires that an uncrewed {self.vehicle_type} is selected in the same tile as a worker",
+                    f"Merges this vehicle with a worker in the same tile to form a crewed vehicle",
+                    f"Requires that an uncrewed vehicle is selected in the same tile as a worker",
                 ]
             )
 
         elif self.button_type == constants.UNCREW_PROCEDURE:
-            self.set_tooltip(
-                [
-                    f"Orders this {self.vehicle_type}'s crew to abandon the {self.vehicle_type}."
-                ]
-            )
+            self.set_tooltip([f"Orders this vehicle's crew to abandon the vehicle."])
 
         elif self.button_type == constants.EMBARK_VEHICLE_BUTTON:
             self.set_tooltip(
                 [
-                    f"Orders this unit to embark a {self.vehicle_type} in the same tile",
-                    f"Requires that a unit is selected in the same tile as a crewed {self.vehicle_type}",
+                    f"Orders this unit to embark a vehicle in the same tile",
                 ]
             )
 
         elif self.button_type == constants.DISEMBARK_VEHICLE_BUTTON:
-            if self.vehicle_type == constants.TRAIN:
-                self.set_tooltip(
-                    ["Orders this unit to disembark the " + self.vehicle_type]
-                )
-            elif self.vehicle_type:
-                self.set_tooltip(
-                    [
-                        "Orders this unit to disembark the " + self.vehicle_type,
-                        "Disembarking a unit outside of a port renders it disorganized until the next turn, decreasing its combat effectiveness",
-                    ]
-                )
+            self.set_tooltip(["Orders this unit to disembark the vehicle"])
 
         elif self.button_type == constants.EMBARK_ALL_PASSENGERS_BUTTON:
             self.set_tooltip(
                 [
-                    f"Orders this {self.vehicle_type} to take all non-vehicle units in this tile as passengers"
+                    f"Orders this vehicle to take all non-vehicle units in this tile as passengers"
                 ]
             )
 
         elif self.button_type == constants.DISEMBARK_ALL_PASSENGERS_BUTTON:
-            if self.vehicle_type == constants.TRAIN:
-                self.set_tooltip(
-                    [f"Orders this {self.vehicle_type} to disembark all passengers"]
-                )
-            else:
-                self.set_tooltip(
-                    [
-                        f"Orders this {self.vehicle_type} to disembark all passengers",
-                        "Disembarking a unit outside of a port renders it disorganized until the next turn, decreasing its combat effectiveness",
-                    ]
-                )
+            self.set_tooltip([f"Orders this vehicle to disembark all passengers"])
 
         elif self.button_type == constants.REMOVE_WORK_CREW_BUTTON:
             if self.attached_label.attached_building:
@@ -442,20 +396,20 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.SWITCH_THEATRE_BUTTON:
             self.set_tooltip(
                 [
-                    "Moves this steamship across the ocean to another theatre at the end of the turn",
+                    "Moves this steamship across space to another theatre at the end of the turn",
                     "Once clicked, the mouse pointer can be used to click on the destination",
                     "The destination, once chosen, will having a flashing yellow outline",
-                    "Requires that this steamship is able to move",
+                    "Requires that this spaceship is able to move",
                 ]
             )
 
         elif self.button_type == constants.CYCLE_PASSENGERS_BUTTON:
             if self.vehicle_type:
-                tooltip_text = [f"Cycles through this {self.vehicle_type}'s passengers"]
+                tooltip_text = [f"Cycles through this vehicle's passengers"]
                 tooltip_text.append("Passengers: ")
                 if self.showing:
                     for current_passenger in status.displayed_mob.contained_mobs:
-                        tooltip_text.append("    " + current_passenger.name)
+                        tooltip_text.append(f"    {current_passenger.name}")
                 self.set_tooltip(tooltip_text)
 
         elif self.button_type == constants.CYCLE_WORK_CREWS_BUTTON:
@@ -996,7 +950,11 @@ class button(interface_elements.interface_element):
                     if not constants.current_game_mode == constants.STRATEGIC_MODE:
                         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
 
-                    unit_types = [constants.PORTERS, constants.SHIP, constants.TRAIN]
+                    unit_types = [
+                        constants.PORTERS,
+                        constants.SPACESHIP,
+                        constants.TRAIN,
+                    ]
                     moved_units = {}
                     attempted_units = {}
                     for current_unit_type in unit_types:
@@ -1005,15 +963,7 @@ class button(interface_elements.interface_element):
                     last_moved = None
                     for current_pmob in status.pmob_list:
                         if len(current_pmob.base_automatic_route) > 0:
-                            if current_pmob.get_permission(
-                                constants.VEHICLE_PERMISSION
-                            ):
-                                if current_pmob.vehicle_type == constants.TRAIN:
-                                    unit_type = constants.TRAIN
-                                elif current_pmob.can_swim:
-                                    unit_type = constants.SHIP
-                            else:
-                                unit_type = constants.PORTERS
+                            unit_type = current_pmob.unit_type.key
                             attempted_units[unit_type] += 1
 
                             progressed = current_pmob.follow_automatic_route()
@@ -1872,24 +1822,18 @@ class fire_unit_button(button):
         if (
             main_loop_utility.action_possible()
         ):  # when clicked, calibrate minimap to attached mob and move it to the front of each stack
-            if not (
-                self.attached_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and self.attached_mob.vehicle_type == constants.SHIP
-                and not self.attached_mob.can_leave()
-            ):
-                message = "Are you sure you want to fire this unit? Firing this unit would remove it, any units attached to it, and any associated upkeep from the game. /n /n"
-                worker = self.attached_mob.get_worker()
-                if worker:
-                    message += (
-                        " /n /n".join(worker.worker_type.fired_description) + " /n /n"
-                    )
-                constants.notification_manager.display_notification(
-                    {
-                        "message": message,
-                        "choices": [constants.CHOICE_FIRE_BUTTON, "cancel"],
-                    }
+            message = "Are you sure you want to fire this unit? Firing this unit would remove it, any units attached to it, and any associated upkeep from the game. /n /n"
+            worker = self.attached_mob.get_worker()
+            if worker:
+                message += (
+                    " /n /n".join(worker.worker_type.fired_description) + " /n /n"
                 )
-
+            constants.notification_manager.display_notification(
+                {
+                    "message": message,
+                    "choices": [constants.CHOICE_FIRE_BUTTON, "cancel"],
+                }
+            )
         else:
             text_utility.print_to_screen("You are busy and cannot fire a unit")
 
@@ -2613,8 +2557,8 @@ class tab_button(button):
 
 class reorganize_unit_button(button):
     """
-    Button that reorganizes 1 or more units into 1 or more other units, based on which are present - such as combining a ship and explorer to a ship with explorer as a
-        passenger, or combining a worker and explorer to an expedition
+    Button that reorganizes 1 or more units into 1 or more other units, based on which are present - such as combining a officer and worker into a group, or crew and vehicle
+        into a crewed vehicle
     """
 
     def __init__(self, input_dict):
@@ -2860,7 +2804,7 @@ class reorganize_unit_button(button):
                         ].get_held_commodities()
                     ):
                         text_utility.print_to_screen(
-                            f"You cannot remove the crew from a {procedure_actors[constants.ACTIVE_VEHICLE_PERMISSION].vehicle_type} with passengers or cargo."
+                            f"You cannot remove the crew from a {procedure_actors[constants.ACTIVE_VEHICLE_PERMISSION].name} with passengers or cargo."
                         )
                     else:
                         procedure_actors[

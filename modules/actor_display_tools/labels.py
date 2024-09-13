@@ -63,15 +63,15 @@ class actor_display_label(label):
             self.message_start = "Name: "
 
             input_dict["init_type"] = constants.EMBARK_VEHICLE_BUTTON
-            input_dict["image_id"] = "buttons/embark_ship_button.png"
+            input_dict["image_id"] = "buttons/embark_spaceship_button.png"
             input_dict["keybind_id"] = pygame.K_b
-            input_dict["vehicle_type"] = constants.SHIP
+            input_dict["vehicle_type"] = constants.SPACESHIP_PERMISSION
             self.add_attached_button(input_dict)
 
             input_dict["init_type"] = constants.EMBARK_VEHICLE_BUTTON
             input_dict["image_id"] = "buttons/embark_train_button.png"
             input_dict["keybind_id"] = pygame.K_b
-            input_dict["vehicle_type"] = constants.TRAIN
+            input_dict["vehicle_type"] = constants.TRAIN_PERMISSION
             self.add_attached_button(input_dict)
 
             input_dict["init_type"] = constants.WORK_CREW_TO_BUILDING_BUTTON
@@ -206,12 +206,12 @@ class actor_display_label(label):
             self.add_attached_button(input_dict)
 
             input_dict["init_type"] = constants.EMBARK_ALL_PASSENGERS_BUTTON
-            input_dict["image_id"] = "buttons/embark_ship_button.png"
+            input_dict["image_id"] = "buttons/embark_spaceship_button.png"
             input_dict["keybind_id"] = pygame.K_z
             self.add_attached_button(input_dict)
 
             input_dict["init_type"] = constants.DISEMBARK_ALL_PASSENGERS_BUTTON
-            input_dict["image_id"] = "buttons/disembark_ship_button.png"
+            input_dict["image_id"] = "buttons/disembark_spaceship_button.png"
             input_dict["keybind_id"] = pygame.K_x
             self.add_attached_button(input_dict)
 
@@ -225,7 +225,7 @@ class actor_display_label(label):
             elif self.list_index == 2:
                 input_dict["keybind_id"] = pygame.K_F3
             input_dict["init_type"] = constants.DISEMBARK_VEHICLE_BUTTON
-            input_dict["image_id"] = "buttons/disembark_ship_button.png"
+            input_dict["image_id"] = "buttons/disembark_spaceship_button.png"
             self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
@@ -856,7 +856,7 @@ class actor_display_label(label):
                         self.set_label(
                             f"{self.message_start}{new_actor.movement_points}/{new_actor.max_movement_points}"
                         )
-                    else:  # If ship or train without crew
+                    else:  # If spaceship or train without crew
                         if not new_actor.has_infinite_movement:
                             if (
                                 new_actor.movement_points == 0

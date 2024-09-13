@@ -89,7 +89,7 @@ class battalion(group):
     def move(self, x_change, y_change, attack_confirmed=False):
         """
         Description:
-            Moves this mob x_change to the right and y_change upward. Moving to a ship in the water automatically embarks the ship. If moving into a cell with an npmob, asks for a confirmation to attack instead of moving. If the attack
+            Moves this mob x_change to the right and y_change upward. If moving into a cell with an npmob, asks for a confirmation to attack instead of moving. If the attack
                 is confirmed, move is called again to cause a combat to start
         Input:
             int x_change: How many cells are moved to the right in the movement

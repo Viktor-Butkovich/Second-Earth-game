@@ -51,7 +51,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.EUROPEAN_WORKERS: workers.worker,
             constants.CHURCH_VOLUNTEERS: workers.church_volunteers,
             constants.TRAIN: vehicles.train,
-            constants.SHIP: vehicles.ship,
+            constants.COLONY_SHIP: vehicles.spaceship,
             constants.EXPLORER: officers.officer,
             constants.ENGINEER: officers.officer,
             constants.DRIVER: officers.officer,

@@ -806,7 +806,7 @@ def unit_types_config():
                 constants.PMOB_PERMISSION: True,
                 constants.WORKER_PERMISSION: True,
                 constants.EUROPEAN_WORKERS_PERMISSION: True,
-                constants.CREW_SHIP_PERMISSION: True,
+                constants.CREW_SPACESHIP_PERMISSION: True,
                 constants.CREW_TRAIN_PERMISSION: True,
             },
             "upkeep": 6.0,
@@ -847,23 +847,25 @@ def unit_types_config():
     unit_types.vehicle_type(
         False,
         {
-            "key": constants.SHIP,
-            "name": "ship",
+            "key": constants.COLONY_SHIP,
+            "name": "colony ship",
             "controlling_minister_type": status.minister_types[
-                constants.TRANSPORTATION_MINISTER
+                constants.SPACE_MINISTER
             ],
             "permissions": {
                 constants.PMOB_PERMISSION: True,
                 constants.INACTIVE_VEHICLE_PERMISSION: True,
                 constants.VEHICLE_PERMISSION: True,
                 constants.ACTIVE_PERMISSION: False,
+                constants.SPACESHIP_PERMISSION: True,
             },
             "can_recruit": True,
             "recruitment_verb": "purchase",
-            "recruitment_cost": 10,
+            "recruitment_cost": 500,
             "description": [
-                "While useless by itself, a steamship crewed by workers can quickly transport units and cargo through coastal waters and between theatres.",
-                "Crewing a steamship requires an advanced level of technological training, which is generally only available to European workers in this time period.",
+                "This ship is equipped for interstellar travel, with a massive cargo hold and advanced life support systems to serve as an initial base of operations on another planet.",
+                "A colony ship contains enough space for a small city of crew and passengers, as well as modules, equipment, and supplies (not included)",
+                "Suitable for a 1-way trip.",
             ],
         },
     )
@@ -881,6 +883,7 @@ def unit_types_config():
                 constants.INACTIVE_VEHICLE_PERMISSION: True,
                 constants.VEHICLE_PERMISSION: True,
                 constants.ACTIVE_PERMISSION: False,
+                constants.TRAIN_PERMISSION: True,
             },
             "can_recruit": False,
             "description": [
@@ -2009,7 +2012,7 @@ def mob_interface():
         if current_actor_label_type != constants.CURRENT_PASSENGER_LABEL:
             constants.actor_creation_manager.create_interface_element(input_dict)
         else:
-            input_dict["list_type"] = constants.SHIP
+            input_dict["list_type"] = constants.SPACESHIP_PERMISSION
             for i in range(0, 3):  # 0, 1, 2
                 # label for each passenger
                 input_dict["list_index"] = i

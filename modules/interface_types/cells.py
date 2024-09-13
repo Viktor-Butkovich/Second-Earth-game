@@ -427,68 +427,61 @@ class cell:
         Description:
             Returns whether this cell contains a crewed vehicle of the inputted type
         Input:
-            string vehicle_type: 'train' or 'ship', determines what kind of vehicle is searched for
+            string vehicle_type: 'train' or 'spaceship', determines what kind of vehicle is searched for
         Output:
             boolean: Returns True if this cell contains a crewed vehicle of the inputted type, otherwise returns False
         """
-        for current_mob in self.contained_mobs:
-            if (
-                current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and (
-                    current_mob.get_permission(constants.ACTIVE_PERMISSION) or is_worker
-                )
-                and current_mob.vehicle_type == vehicle_type
-            ):
-                return True
-        return False
+        return self.get_vehicle(vehicle_type, is_worker) != None
 
-    def get_vehicle(self, vehicle_type, is_worker=False):
+    def get_vehicle(self, vehicle_type, is_worker=False, stop_on_find=True):
         """
         Description:
             Returns the first crewed vehicle of the inputted type in this cell, or None if none are present
         Input:
-            string vehicle_type: 'train' or 'ship', determines what kind of vehicle is searched for
+            string vehicle_type: 'train' or 'spaceship', determines what kind of vehicle is searched for
         Output:
             string/vehicle: Returns the first crewed vehicle of the inputted type in this cell, or None if none are present
         """
+        if not stop_on_find:
+            return_list = []
         for current_mob in self.contained_mobs:
-            if (
-                current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and (
-                    current_mob.get_permission(constants.ACTIVE_PERMISSION) or is_worker
-                )
-                and current_mob.vehicle_type == vehicle_type
-            ):
-                return current_mob
-        return None
+            if stop_on_find:
+                if current_mob.all_permissions(
+                    constants.VEHICLE_PERMISSION, vehicle_type
+                ):
+                    if is_worker or current_mob.get_permission(
+                        constants.ACTIVE_PERMISSION
+                    ):
+                        return current_mob
+            else:
+                if current_mob.all_permissions(
+                    constants.VEHICLE_PERMISSION,
+                    constants.ACTIVE_PERMISSION,
+                    vehicle_type,
+                ):
+                    return_list.append(current_mob)
+        if stop_on_find:
+            return False
+        else:
+            return return_list
 
     def get_vehicles(self, vehicle_type, is_worker=False):
         """
         Description:
             Returns each crewed vehicle of the inputted type in this cell, or None if none are present
         Input:
-            string vehicle_type: 'train' or 'ship', determines what kind of vehicle is searched for
+            string vehicle_type: 'train' or 'spaceship', determines what kind of vehicle is searched for
         Output:
             string/vehicle: Returns the first crewed vehicle of the inputted type in this cell, or None if none are present
         """
-        return_list = []
-        for current_mob in self.contained_mobs:
-            if (
-                current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and (
-                    current_mob.get_permission(constants.ACTIVE_PERMISSION) or is_worker
-                )
-                and current_mob.vehicle_type == vehicle_type
-            ):
-                return_list.append(current_mob)
-        return return_list
+        return self.get_vehicle(vehicle_type, is_worker, stop_on_find=False)
 
     def has_uncrewed_vehicle(self, vehicle_type=None, required_number=1):
         """
         Description:
             Returns whether this cell contains an uncrewed vehicle of the inputted type
         Input:
-            string vehicle_type: 'train' or 'ship', determines what kind of vehicle is searched for
+            string vehicle_type: 'train' or 'spaceship', determines what kind of vehicle is searched for
         Output:
             boolean: Returns True if this cell contains an uncrewed vehicle of the inputted type, otherwise returns False
         """
@@ -497,7 +490,7 @@ class cell:
             if (
                 current_mob.get_permission(constants.VEHICLE_PERMISSION)
                 and (not current_mob.get_permission(constants.ACTIVE_PERMISSION))
-                and (current_mob.vehicle_type == vehicle_type or (not vehicle_type))
+                and ((not vehicle_type) or current_mob.get_permission(vehicle_type))
             ):
                 num_found += 1
         return num_found >= required_number
@@ -509,7 +502,7 @@ class cell:
         Description:
             Returns the first uncrewed vehicle of the inputted type in this cell, or None if none are present
         Input:
-            string vehicle_type: 'train' or 'ship', determines what kind of vehicle is searched for
+            string vehicle_type: Permission key, determines what kind of vehicle is searched for
             string worker_type = 'default': If a worker type is inputted, only vehicles that the inputted worker type oculd crew are returned
         Output:
             string/vehicle: Returns the first uncrewed vehicle of the inputted type in this cell, or None if none are present
@@ -529,7 +522,7 @@ class cell:
             if (
                 current_mob.get_permission(constants.VEHICLE_PERMISSION)
                 and (not current_mob.get_permission(constants.ACTIVE_PERMISSION))
-                and (current_mob.vehicle_type == vehicle_type or not vehicle_type)
+                and ((not vehicle_type) or current_mob.get_permission(vehicle_type))
             ):
                 return current_mob
         return None

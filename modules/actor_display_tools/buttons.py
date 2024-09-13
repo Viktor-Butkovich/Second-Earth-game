@@ -56,7 +56,7 @@ class embark_all_passengers_button(button):
         if main_loop_utility.action_possible():
             vehicle = status.displayed_mob
             can_embark = True
-            if self.vehicle_type == constants.TRAIN:
+            if self.vehicle_type == constants.TRAIN_PERMISSION:
                 if (
                     vehicle.get_cell().contained_buildings[constants.TRAIN_STATION]
                     == None
@@ -87,7 +87,7 @@ class embark_all_passengers_button(button):
     def can_show(self, skip_parent_collection=False):
         """
         Description:
-            Returns whether this button should be drawn. Also updates this button to reflect a train or ship depending on the selected vehicle
+            Returns whether this button should be drawn. Also updates this button to reflect a train or spaceship depending on the selected vehicle
         Input:
             None
         Output:
@@ -97,13 +97,18 @@ class embark_all_passengers_button(button):
         if result:
             displayed_mob = status.displayed_mob
             if displayed_mob.get_permission(constants.ACTIVE_PERMISSION):
-                if (not self.vehicle_type == displayed_mob.vehicle_type) and (
-                    not displayed_mob.vehicle_type == "vehicle"
-                ):  # update vehicle type and image when shown if type has changed, like train to ship
-                    self.vehicle_type = displayed_mob.vehicle_type
-                    self.image.set_image(
-                        "buttons/embark_" + self.vehicle_type + "_button.png"
-                    )
+                if (
+                    displayed_mob.get_permission(constants.SPACESHIP_PERMISSION)
+                    and self.vehicle_type != constants.SPACESHIP_PERMISSION
+                ):
+                    self.vehicle_type = constants.SPACESHIP_PERMISSION
+                    self.image.set_image(f"buttons/embark_spaceship_button.png")
+                elif (
+                    displayed_mob.get_permission(constants.TRAIN_PERMISSION)
+                    and self.vehicle_type != constants.TRAIN_PERMISSION
+                ):
+                    self.vehicle_type = constants.TRAIN_PERMISSION
+                    self.image.set_image(f"buttons/embark_train_button.png")
         return result
 
 
@@ -146,7 +151,7 @@ class disembark_all_passengers_button(button):
         if main_loop_utility.action_possible():
             vehicle = status.displayed_mob
             can_disembark = True
-            if self.vehicle_type == constants.TRAIN:
+            if vehicle.get_permission(self.vehicle_type):
                 if not vehicle.get_cell().contained_buildings[constants.TRAIN_STATION]:
                     text_utility.print_to_screen(
                         "A train can only drop off passengers at a train station."
@@ -166,7 +171,7 @@ class disembark_all_passengers_button(button):
     def can_show(self, skip_parent_collection=False):
         """
         Description:
-            Returns whether this button should be drawn. Also updates this button to reflect a train or ship depending on the selected vehicle
+            Returns whether this button should be drawn. Also updates this button to reflect a train or spaceship depending on the selected vehicle
         Input:
             None
         Output:
@@ -174,17 +179,20 @@ class disembark_all_passengers_button(button):
         """
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
-            vehicle = status.displayed_mob
-            if vehicle.get_permission(
-                constants.ACTIVE_PERMISSION
-            ):  # do not show if ship does not have crew
-                if (not self.vehicle_type == vehicle.vehicle_type) and (
-                    not vehicle.vehicle_type == "vehicle"
-                ):  # update vehicle type and image when shown if type has changed, like train to ship
-                    self.vehicle_type = vehicle.vehicle_type
-                    self.image.set_image(
-                        f"buttons/disembark_{self.vehicle_type}_button.png"
-                    )
+            displayed_mob = status.displayed_mob
+            if displayed_mob.get_permission(constants.ACTIVE_PERMISSION):
+                if (
+                    displayed_mob.get_permission(constants.SPACESHIP_PERMISSION)
+                    and self.vehicle_type != constants.SPACESHIP_PERMISSION
+                ):
+                    self.vehicle_type = constants.SPACESHIP_PERMISSION
+                    self.image.set_image(f"buttons/disembark_spaceship_button.png")
+                elif (
+                    displayed_mob.get_permission(constants.TRAIN_PERMISSION)
+                    and self.vehicle_type != constants.TRAIN_PERMISSION
+                ):
+                    self.vehicle_type = constants.TRAIN_PERMISSION
+                    self.image.set_image(f"buttons/disembark_train_button.png")
         return result
 
 
@@ -621,7 +629,7 @@ class disembark_vehicle_button(button):
     def can_show(self, skip_parent_collection=False):
         """
         Description:
-            Returns whether this button should be drawn. Also updates this button to reflect a train or ship depending on the selected vehicle
+            Returns whether this button should be drawn. Also updates this button to reflect a train or spaceship depending on the selected vehicle
         Input:
             None
         Output:
@@ -633,14 +641,19 @@ class disembark_vehicle_button(button):
                 self.attached_label.list_index
             ].in_vehicle:
                 return False
-            old_vehicle_type = self.vehicle_type
-            self.vehicle_type = self.attached_label.actor.vehicle_type
             if (
-                not self.vehicle_type == old_vehicle_type and self.vehicle_type
-            ):  # if changed
-                self.image.set_image(
-                    f"buttons/disembark_{self.vehicle_type}_button.png"
-                )
+                self.attached_label.actor.get_permission(constants.SPACESHIP_PERMISSION)
+                and self.vehicle_type != constants.SPACESHIP_PERMISSION
+            ):
+                self.vehicle_type = constants.SPACESHIP_PERMISSION
+                self.image.set_image(f"buttons/disembark_spaceship_button.png")
+
+            elif (
+                self.attached_label.actor.get_permission(constants.TRAIN_PERMISSION)
+                and self.vehicle_type != constants.TRAIN_PERMISSION
+            ):
+                self.vehicle_type = constants.TRAIN_PERMISSION
+                self.image.set_image(f"buttons/disembark_train_button.png")
         return result
 
     def on_click(self):
@@ -655,7 +668,7 @@ class disembark_vehicle_button(button):
         if main_loop_utility.action_possible():
             if len(self.attached_label.actor.contained_mobs) > 0:
                 can_disembark = True
-                if self.vehicle_type == constants.TRAIN:
+                if self.vehicle_type == constants.TRAIN_PERMISSION:
                     if not self.attached_label.actor.images[
                         0
                     ].current_cell.contained_buildings[constants.TRAIN_STATION]:
@@ -675,12 +688,10 @@ class disembark_vehicle_button(button):
                     ].disembark_vehicle(self.attached_label.actor)
             else:
                 text_utility.print_to_screen(
-                    f"You must select a {self.vehicle_type} with passengers to disembark passengers."
+                    f"You must select a vehicle with passengers to disembark passengers."
                 )
         else:
-            text_utility.print_to_screen(
-                f"You are busy and cannot disembark from a {self.vehicle_type}."
-            )
+            text_utility.print_to_screen(f"You are busy and cannot disembark.")
 
 
 class embark_vehicle_button(button):
@@ -704,7 +715,7 @@ class embark_vehicle_button(button):
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'vehicle_type': string value - Type of vehicle this button embarks, like 'train' or 'ship'
+                'vehicle_type': string value - Permission of vehicle this button embarks, like constants.TRAIN_PERMISSION or constants.SPACESHIP_PERMISSION
         Output:
             None
         """
@@ -752,7 +763,7 @@ class embark_vehicle_button(button):
                 rider = status.displayed_mob
                 vehicles = rider.get_cell().get_vehicles(self.vehicle_type)
                 can_embark = True
-                if vehicles[0].vehicle_type == constants.TRAIN:
+                if vehicles[0].get_permission(constants.TRAIN_PERMISSION):
                     if (
                         not vehicles[0]
                         .get_cell()
@@ -806,12 +817,10 @@ class embark_vehicle_button(button):
                         )
             else:
                 text_utility.print_to_screen(
-                    f"You must select a unit in the same tile as a crewed {self.vehicle_type} to embark."
+                    f"You must select a unit in the same tile as a crewed vehicle to embark."
                 )
         else:
-            text_utility.print_to_screen(
-                f"You are busy and cannot embark a {self.vehicle_type}."
-            )
+            text_utility.print_to_screen(f"You are busy and cannot embark.")
 
     def finish_embark_vehicle(self, rider, vehicle):
         """
@@ -891,7 +900,10 @@ class cycle_passengers_button(button):
                 not len(displayed_mob.contained_mobs) > 3
             ):  # only show if vehicle with 3+ passengers
                 return False
-            self.vehicle_type = displayed_mob.vehicle_type
+            if displayed_mob.get_permission(constants.SPACESHIP_PERMISSION):
+                self.vehicle_type = constants.SPACESHIP_PERMISSION
+            elif displayed_mob.get_permission(constants.TRAIN_PERMISSION):
+                self.vehicle_type = constants.TRAIN_PERMISSION
         return result
 
     def on_click(self):
@@ -1128,13 +1140,13 @@ class work_crew_to_building_button(button):
 
 class switch_theatre_button(button):
     """
-    Button starts choosing a destination for a ship to travel between theatres, like between Earth and the planet. A destination is chosen when the player clicks a tile in another theatre.
+    Button starts choosing a destination for a spaceship to travel between theatres, like between Earth and the planet. A destination is chosen when the player clicks a tile in another theatre.
     """
 
     def on_click(self):
         """
         Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button starts choosing a destination for a ship to travel between theatres, like between Earth and the planet. A
+            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button starts choosing a destination for a spaceship to travel between theatres, like between Earth and the planet. A
                 destination is chosen when the player clicks a tile in another theatre.
         Input:
             None
@@ -1144,18 +1156,15 @@ class switch_theatre_button(button):
         if main_loop_utility.action_possible():
             current_mob = status.displayed_mob
             if current_mob.movement_points >= 1:
-                if (
-                    current_mob.can_leave()
-                ):  # not current_mob.grids[0] in self.destination_grids and
-                    if current_mob.sentry_mode:
-                        current_mob.set_sentry_mode(False)
-                    if not constants.current_game_mode == constants.STRATEGIC_MODE:
-                        game_transitions.set_game_mode(constants.STRATEGIC_MODE)
-                        current_mob.select()
-                    current_mob.clear_automatic_route()
-                    current_mob.end_turn_destination = None
-                    current_mob.add_to_turn_queue()
-                    flags.choosing_destination = True
+                if current_mob.sentry_mode:
+                    current_mob.set_sentry_mode(False)
+                if not constants.current_game_mode == constants.STRATEGIC_MODE:
+                    game_transitions.set_game_mode(constants.STRATEGIC_MODE)
+                    current_mob.select()
+                current_mob.clear_automatic_route()
+                current_mob.end_turn_destination = None
+                current_mob.add_to_turn_queue()
+                flags.choosing_destination = True
             else:
                 text_utility.print_to_screen(
                     "Crossing the ocean requires all remaining movement points, at least 1."
@@ -1590,7 +1599,7 @@ class automatic_route_button(button):
                 elif self.button_type == constants.DRAW_AUTOMATIC_ROUTE_BUTTON:
                     if (
                         attached_mob.get_permission(constants.VEHICLE_PERMISSION)
-                        and attached_mob.vehicle_type == constants.TRAIN
+                        and attached_mob.vehicle_type == constants.TRAIN_PERMISSION
                         and not attached_mob.get_cell().has_intact_building(
                             constants.TRAIN_STATION
                         )

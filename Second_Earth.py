@@ -67,7 +67,7 @@ except Exception:  # Displays error message and records error message in crash l
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
-# Add spaceships
+# Add spaceships images
 # Add astronauts/cosmonauts group with corresponding officer
 # Allow vehicles to be crewed by groups instead of workers
 # Add building type classes that each instance can belong to
