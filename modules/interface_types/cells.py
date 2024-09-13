@@ -185,7 +185,7 @@ class cell:
 
             if (
                 self.has_building(constants.TRAIN_STATION)
-                or self.has_building(constants.PORT)
+                or self.has_building(constants.SPACEPORT)
                 or self.has_building(constants.RESOURCE)
                 or self.has_building(constants.FORT)
             ):
@@ -387,7 +387,7 @@ class cell:
             warehouses_built = warehouses.warehouses_level
         else:
             warehouses_built = 0
-        if self.has_building(constants.PORT):
+        if self.has_building(constants.SPACEPORT):
             warehouses_built -= 1
         if self.has_building(constants.TRAIN_STATION):
             warehouses_built -= 1

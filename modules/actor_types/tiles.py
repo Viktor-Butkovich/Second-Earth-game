@@ -119,7 +119,6 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     break
             if has_building:
                 y_offset += 0.3
-
             self.name_icon = constants.actor_creation_manager.create(
                 False,
                 {
@@ -128,7 +127,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     "image": actor_utility.generate_label_image_id(
                         new_name, y_offset=y_offset
                     ),
-                    "modes": self.cell.grid.modes,
+                    "modes": self.grid.mini_grids[0].modes,
                     "init_type": constants.NAME_ICON,
                     "tile": self,
                 },
@@ -337,6 +336,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         "pixellated": not self.cell.terrain_handler.knowledge_available(
                             constants.TERRAIN_KNOWLEDGE
                         ),
+                        "light_pixellated": False,
                     }
                 )
                 for (
@@ -354,6 +354,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             "pixellated": not self.cell.terrain_handler.knowledge_available(
                                 constants.TERRAIN_KNOWLEDGE
                             ),
+                            "light_pixellated": False,
                         }
                     )
                 if not terrain_only:

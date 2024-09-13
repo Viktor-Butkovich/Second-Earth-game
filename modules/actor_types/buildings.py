@@ -60,7 +60,7 @@ class building(actor):
             and self.building_type
             in [
                 constants.RESOURCE,
-                constants.PORT,
+                constants.SPACEPORT,
                 constants.TRAIN_STATION,
                 constants.FORT,
             ]
@@ -161,9 +161,8 @@ class building(actor):
             tooltip_text.append(
                 f"Lets {self.scale} attached work crews each attempt to produce {self.efficiency} units of {self.resource_type} each turn"
             )
-        elif self.building_type == constants.PORT:
-            tooltip_text.append("Allows ships to enter this tile")
-            tooltip_text.append("Steamships can move between ports")
+        elif self.building_type == constants.SPACEPORT:
+            tooltip_text.append("Allows spaceships to land and launch in this tile")
         elif self.building_type == constants.INFRASTRUCTURE:
             if self.is_bridge:
                 tooltip_text.append("Allows movement across the bridge")
@@ -268,7 +267,7 @@ class building(actor):
             self.set_building_inventory_capacity(self.default_inventory_capacity)
         if (not mid_setup) and self.building_type in [
             constants.RESOURCE,
-            constants.PORT,
+            constants.SPACEPORT,
             constants.TRAIN_STATION,
         ]:
             self.cell.get_building(constants.WAREHOUSES).set_damaged(new_value)
@@ -366,7 +365,7 @@ class building(actor):
         relative_coordinates = {
             constants.FORT: (-1, 1),
             constants.TRAIN_STATION: (0, -1),
-            constants.PORT: (1, -1),
+            constants.SPACEPORT: (1, -1),
         }.get(self.building_type, (0, 0))
         if relative_coordinates == (0, 0):
             modifiers = {}
@@ -611,9 +610,9 @@ class infrastructure_building(building):
         return image_id_list
 
 
-class port(building):
+class spaceport(building):
     """
-    Building adjacent to water that allows steamships to enter the tile, allows ships to travel to this tile if it is along the ocean, and increases the tile's inventory capacity
+    Building that allows spaceships to land and launch in the tile, and increases the tile's inventory capacity
     """
 
     def __init__(self, from_save, input_dict):

@@ -84,7 +84,7 @@ class construction(action.action):
             ] = f"buildings/buttons/{self.building_type}.png"
         initial_input_dict["keybind_id"] = {
             constants.RESOURCE: pygame.K_g,
-            constants.PORT: pygame.K_p,
+            constants.SPACEPORT: pygame.K_p,
             constants.INFRASTRUCTURE: pygame.K_r,
             constants.TRAIN_STATION: pygame.K_t,
             constants.FORT: pygame.K_v,
@@ -124,7 +124,7 @@ class construction(action.action):
 
         if self.building_type in [
             constants.TRAIN_STATION,
-            constants.PORT,
+            constants.SPACEPORT,
             constants.RESOURCE,
         ]:
             message.append(
@@ -320,16 +320,6 @@ class construction(action.action):
                 text_utility.print_to_screen(
                     "This building can only be built in tiles with resources."
                 )
-        elif self.building_type == constants.PORT:
-            if (
-                unit.adjacent_to_water()
-                and unit.get_cell().terrain_handler.terrain != "water"
-            ):
-                return_value = True
-            else:
-                text_utility.print_to_screen(
-                    "This building can only be built in land tiles adjacent to water."
-                )
         elif self.building_type == constants.TRAIN_STATION:
             if unit.get_cell().has_intact_building(constants.RAILROAD):
                 return_value = True
@@ -502,8 +492,8 @@ class construction(action.action):
                     building_image_id = "buildings/infrastructure/road.png"
                 input_dict["image"] = building_image_id
                 input_dict["infrastructure_type"] = self.building_name.replace(" ", "_")
-            elif self.building_type == constants.PORT:
-                input_dict["image"] = "buildings/port.png"
+            elif self.building_type == constants.SPACEPORT:
+                input_dict["image"] = "buildings/spaceport.png"
             elif self.building_type == constants.TRAIN_STATION:
                 input_dict["image"] = "buildings/train_station.png"
             elif self.building_type == constants.FORT:
@@ -521,7 +511,7 @@ class construction(action.action):
             new_building = constants.actor_creation_manager.create(False, input_dict)
 
             if self.building_type in [
-                constants.PORT,
+                constants.SPACEPORT,
                 constants.TRAIN_STATION,
                 constants.RESOURCE,
             ]:

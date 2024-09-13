@@ -380,12 +380,14 @@ def actions():
     active_investigation.active_investigation()
     trial.trial()
 
-    for action_type in status.actions:
-        if status.actions[action_type].placement_type == "free":
-            button_input_dict = status.actions[action_type].button_setup({})
+    for key, action_type in status.actions.items():
+        if action_type.placement_type == "free":
+            button_input_dict = action_type.button_setup({})
             if button_input_dict:
-                constants.actor_creation_manager.create_interface_element(
-                    button_input_dict
+                action_type.button = (
+                    constants.actor_creation_manager.create_interface_element(
+                        button_input_dict
+                    )
                 )
     # action imports hardcoded here, alternative to needing to keep module files in .exe version
 
@@ -2558,7 +2560,7 @@ def settlement_interface():
     )
     for current_actor_label_type in [
         constants.SETTLEMENT,
-        constants.PORT,
+        constants.SPACEPORT,
         constants.TRAIN_STATION,
         constants.RESOURCE,
         constants.BUILDING_EFFICIENCY_LABEL,
@@ -2673,7 +2675,7 @@ def unit_organization_interface():
         None
     """
     image_height = 75
-    lhs_x_offset = 35
+    lhs_x_offset = 95
     rhs_x_offset = image_height + 80
 
     status.mob_reorganization_collection = (
@@ -2945,7 +2947,7 @@ def vehicle_organization_interface():
         None
     """
     image_height = 75
-    lhs_x_offset = 35
+    lhs_x_offset = 95
     rhs_x_offset = image_height + 80
     status.vehicle_reorganization_collection = (
         constants.actor_creation_manager.create_interface_element(

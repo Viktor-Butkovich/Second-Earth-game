@@ -493,6 +493,7 @@ FRONT_LEVEL: int = 20
 BACKGROUND_LEVEL: int = -5
 
 PIXELLATED_SIZE: int = 2
+LIGHT_PIXELLATED_SIZE: int = 50
 
 TERRAIN_KNOWLEDGE: str = "terrain"
 TERRAIN_KNOWLEDGE_REQUIREMENT: int = 0
@@ -651,7 +652,7 @@ FERRY: str = "ferry"
 INFRASTRUCTURE: str = "infrastructure"
 FORT: str = "fort"
 TRAIN_STATION: str = "train_station"
-PORT: str = "port"
+SPACEPORT: str = "spaceport"
 WAREHOUSES: str = "warehouses"
 WAREHOUSES_LEVEL: str = "warehouses_level"
 RESOURCE: str = "resource"
@@ -890,7 +891,7 @@ CREW_PERMISSIONS: Dict[str, Any] = {
 
 building_types: List[str] = [
     RESOURCE,
-    PORT,
+    SPACEPORT,
     INFRASTRUCTURE,
     TRAIN_STATION,
     FORT,
@@ -906,9 +907,11 @@ building_prices: Dict[str, int] = {
     FERRY: 50,
     ROAD_BRIDGE: 100,
     RAILROAD_BRIDGE: 300,
-    PORT: 15,
+    SPACEPORT: 15,
     TRAIN_STATION: 10,
     FORT: 5,
     WAREHOUSES: 5,
     TRAIN: 10,
 }
+
+ALLOW_DISORGANIZED: bool = False

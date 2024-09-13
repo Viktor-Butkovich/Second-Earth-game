@@ -151,11 +151,10 @@ def update_descriptions(target="all"):
                 "A railroad bridge acts as a railroad between the tiles it connects."
             )
 
-        elif current_target == constants.PORT:
+        elif current_target == constants.SPACEPORT:
             text_list.append(
-                "A port allows steamships to enter the tile and expands the tile's warehouse capacity."
+                "A spaceport allows spaceships to land and launch in the tile and expands the tile's warehouse capacity."
             )
-            text_list.append("A port adjacent to the water allows entry by steamships.")
 
         elif current_target == constants.TRAIN_STATION:
             text_list.append(

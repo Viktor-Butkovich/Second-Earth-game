@@ -428,6 +428,7 @@ class bundle_image:
             else:
                 self.has_color_filter = False
             self.pixellated = image_id.get("pixellated", False)
+            self.light_pixellated = image_id.get("light_pixellated", False)
             if "font" in image_id:
                 self.font = image_id["font"]
             elif type(self.image_id) == str and not self.image_id.endswith(".png"):
@@ -550,18 +551,28 @@ class bundle_image:
             else:
                 self.text = True
                 self.image = text_utility.text(self.image_id, self.font)
-            if self.is_offset and self.pixellated:
-                status.rendered_images[non_pixellated_key] = self.image
-                self.image = pygame.transform.scale(
-                    self.image, (constants.PIXELLATED_SIZE, constants.PIXELLATED_SIZE)
-                )
-                hashed_key = hash(
-                    key
-                )  # Randomly flip pixellated image in the same way every time
-                if hashed_key % 2 == 0:
-                    self.image = pygame.transform.flip(self.image, True, False)
-                if hashed_key % 4 >= 2:
-                    self.image = pygame.transform.flip(self.image, False, True)
+            if self.is_offset:
+                if self.light_pixellated:
+                    self.image = pygame.transform.scale(
+                        self.image,
+                        (
+                            constants.LIGHT_PIXELLATED_SIZE,
+                            constants.LIGHT_PIXELLATED_SIZE,
+                        ),
+                    )
+                if self.pixellated:
+                    status.rendered_images[non_pixellated_key] = self.image
+                    self.image = pygame.transform.scale(
+                        self.image,
+                        (constants.PIXELLATED_SIZE, constants.PIXELLATED_SIZE),
+                    )
+                    hashed_key = hash(
+                        key
+                    )  # Randomly flip pixellated image in the same way every time
+                    if hashed_key % 2 == 0:
+                        self.image = pygame.transform.flip(self.image, True, False)
+                    if hashed_key % 4 >= 2:
+                        self.image = pygame.transform.flip(self.image, False, True)
             if self.is_offset and self.alpha != 255:
                 self.image.set_alpha(self.alpha)
             status.rendered_images[key] = self.image
@@ -1704,7 +1715,7 @@ class actor_image(image):
                 )
             else:  # if set to image path list
                 self.contains_bundle = True
-                self.image = image_bundle(self, self.image_id)  # self.image_id
+                self.image = image_bundle(self, self.image_id)
 
     def draw(self):
         """

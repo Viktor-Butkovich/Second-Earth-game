@@ -37,7 +37,8 @@ class battalion(group):
         """
         super().__init__(from_save, input_dict)
         if not from_save:
-            self.set_permission(constants.DISORGANIZED_PERMISSION, True)
+            if constants.ALLOW_DISORGANIZED:
+                self.set_permission(constants.DISORGANIZED_PERMISSION, True)
 
     def get_movement_cost(self, x_change, y_change, post_attack=False):
         """

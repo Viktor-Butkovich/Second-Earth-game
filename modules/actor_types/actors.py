@@ -576,9 +576,7 @@ class actor:
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        image_id_list = []
-        image_id_list.append(self.image_dict["default"])
-        return image_id_list
+        return utility.combine([], self.image_dict["default"])
 
     def update_image_bundle(self):
         """

@@ -65,9 +65,13 @@ class repair(action.action):
             None
         """
         initial_input_dict = super().button_setup(initial_input_dict)
-        initial_input_dict["image_id"] = (
-            "buildings/buttons/repair_" + self.building_type + ".png"
-        )
+        if self.building_type != constants.RESOURCE:
+            initial_input_dict["image_id"] = [
+                f"buildings/buttons/{self.building_type}.png",
+                "buildings/repair_hammer.png",
+            ]
+        else:
+            initial_input_dict["image_id"] = "buildings/buttons/repair_resource.png"
         initial_input_dict["keybind_id"] = status.actions[
             self.building_type
         ].button.keybind_id
@@ -90,7 +94,7 @@ class repair(action.action):
                 f"Attempts to repair this tile's {self.current_building.name} for {str(self.get_price())} money"
             )
             if self.building_type in [
-                constants.PORT,
+                constants.SPACEPORT,
                 constants.TRAIN_STATION,
                 constants.RESOURCE,
             ]:

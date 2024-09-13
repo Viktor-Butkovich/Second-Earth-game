@@ -119,18 +119,21 @@ def reset_mobs(mob_type):
     if mob_type == "pmobs":
         for current_pmob in status.pmob_list:
             current_pmob.reset_movement_points()
-            current_pmob.set_permission(constants.DISORGANIZED_PERMISSION, False)
+            if constants.ALLOW_DISORGANIZED:
+                current_pmob.set_permission(constants.DISORGANIZED_PERMISSION, False)
     elif mob_type == "npmobs":
         for current_npmob in status.npmob_list:
             current_npmob.reset_movement_points()
-            current_npmob.set_permission(constants.DISORGANIZED_PERMISSION, False)
+            if constants.ALLOW_DISORGANIZED:
+                current_npmob.set_permission(constants.DISORGANIZED_PERMISSION, False)
             # if not current_npmob.creation_turn == constants.turn: # If not created this turn
             current_npmob.turn_done = False
             status.enemy_turn_queue.append(current_npmob)
     else:
         for current_mob in status.mob_list:
             current_mob.reset_movement_points()
-            current_mob.set_permission(constants.DISORGANIZED_PERMISSION, False)
+            if constants.ALLOW_DISORGANIZED:
+                current_mob.set_permission(constants.DISORGANIZED_PERMISSION, False)
 
 
 def manage_attrition():

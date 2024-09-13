@@ -646,7 +646,10 @@ class combat(action.action):
         else:  # Victory
             if self.defending:
                 self.opponent.retreat()
-                self.opponent.set_permission(constants.DISORGANIZED_PERMISSION, True)
+                if constants.ALLOW_DISORGANIZED:
+                    self.opponent.set_permission(
+                        constants.DISORGANIZED_PERMISSION, True
+                    )
             else:
                 if (
                     len(combat_cell.contained_mobs) > 2

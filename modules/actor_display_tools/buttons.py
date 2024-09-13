@@ -731,17 +731,10 @@ class embark_vehicle_button(button):
             ):
                 result = False
             elif (
-                not displayed_mob.actor_type == "minister"
+                displayed_mob.actor_type != "minister"
                 and not displayed_mob.get_cell().has_vehicle(self.vehicle_type)
             ):
                 result = False
-        if (
-            not result == self.was_showing
-        ):  # if visibility changes, update actor info display
-            self.was_showing = result
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, displayed_mob
-            )
         self.was_showing = result
         return result
 

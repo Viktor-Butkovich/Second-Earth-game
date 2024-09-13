@@ -406,7 +406,7 @@ class vehicle(pmob):
             current_mob.hide_images()
         if new_grid == status.earth_grid or self.images[
             0
-        ].current_cell.has_intact_building(constants.PORT):
+        ].current_cell.has_intact_building(constants.SPACEPORT):
             self.eject_passengers()
             self.drop_inventory()
         elif new_grid.grid_type in constants.abstract_grid_type_list:

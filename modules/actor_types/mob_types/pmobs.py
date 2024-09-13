@@ -838,9 +838,10 @@ class pmob(mob):
         if (
             vehicle.vehicle_type == constants.SHIP
             and self.get_cell().grid == status.strategic_map_grid
-            and not self.get_cell().get_intact_building(constants.PORT)
+            and not self.get_cell().get_intact_building(constants.SPACEPORT)
         ):
-            self.set_permission(constants.DISORGANIZED_PERMISSION, True)
+            if constants.ALLOW_DISORGANIZED:
+                self.set_permission(constants.DISORGANIZED_PERMISSION, True)
         if (
             self.get_permission(constants.CARAVAN_PERMISSION)
             and self.inventory_capacity > 0

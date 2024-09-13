@@ -1175,7 +1175,8 @@ class mob(actor):
                 and not self.can_swim
                 and not previous_cell.has_walking_connection(self.get_cell())
             ):  # If entering water w/o canoes, spend maximum movement and become disorganized
-                self.set_permission(constants.DISORGANIZED_PERMISSION, True)
+                if constants.ALLOW_DISORGANIZED:
+                    self.set_permission(constants.DISORGANIZED_PERMISSION, True)
             if not (
                 self.get_cell() == None
                 or self.get_cell().terrain_handler.terrain == "water"

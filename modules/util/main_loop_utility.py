@@ -505,7 +505,7 @@ def manage_lmb_down(clicked_button):
                                                 or (
                                                     destination_y == 1
                                                     and target_cell.has_intact_building(
-                                                        constants.PORT
+                                                        constants.SPACEPORT
                                                     )
                                                 )
                                             )
@@ -618,7 +618,7 @@ def manage_lmb_down(clicked_button):
                                     (not target_cell.terrain_handler.terrain == "water")
                                     and (not displayed_mob.can_walk)
                                     and not target_cell.has_intact_building(
-                                        constants.PORT
+                                        constants.SPACEPORT
                                     )
                                 ):
                                     text_utility.print_to_screen(

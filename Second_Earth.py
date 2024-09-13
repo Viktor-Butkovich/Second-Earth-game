@@ -31,11 +31,11 @@ try:
     )
     main_loop.main_loop()
 
-except Exception:  # displays error message and records error message in crash log file
+except Exception:  # Displays error message and records error message in crash log file
     manage_crash(Exception)
 
-# tasks:
-#   general (game-agnostic):
+# Tasks:
+#   General (game-agnostic):
 # Add type hints on sight - gradual process
 # add minister speech bubbles
 # Add random events
@@ -45,7 +45,7 @@ except Exception:  # displays error message and records error message in crash l
 # Continue adding new songs
 
 #
-#   new SE features:
+#   New SE features:
 # Strange issue - in non-ordered collections, height of collection incorrectly affects y positions of elements, and without any apparent modification to their y values
 # Continue adding hairstyles
 # Minister table_map_image not using smart green screens, probably because it directly uses tile image ID
@@ -81,6 +81,8 @@ except Exception:  # displays error message and records error message in crash l
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
 # Add new autofill interface for vehicle passengers, and possibly building work crews
+# Modify vehicle classes to fit more with unit_type system - should not have their own permissions, especially can_swim and can_walk
+# Look into caching surface objects for faster rendering, and render during loading before needed
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>
