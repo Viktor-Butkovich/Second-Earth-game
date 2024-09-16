@@ -258,16 +258,18 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
             select_default_tab(status.tile_tabbed_collection, status.displayed_tile)
 
     elif info_display == status.mob_info_display:
+        switched = False
         if new_actor != status.displayed_mob:
             calibrate_actor_info_display(status.mob_inventory_info_display, None)
+            switched = True
         status.displayed_mob = new_actor
+        if switched and (
+            not flags.choosing_destination
+        ):  # Don't change tabs while choosing destination
+            select_default_tab(status.mob_tabbed_collection, new_actor)
         if new_actor and new_actor.get_cell().tile == status.displayed_tile:
             for current_same_tile_icon in status.same_tile_icon_list:
                 current_same_tile_icon.reset()
-        if (
-            not flags.choosing_destination
-        ):  # Don't change tabs while choosing destination
-            select_default_tab(status.mob_tabbed_collection, status.displayed_mob)
 
     target = None
     if new_actor:

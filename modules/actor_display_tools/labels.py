@@ -237,7 +237,7 @@ class actor_display_label(label):
         ]:
             self.message_start = "Inventory: "
             input_dict["width"], input_dict["height"] = (m_size, m_size)
-            if self.actor_label_type == "tile inventory capacity":
+            if self.actor_label_type == constants.TILE_INVENTORY_CAPACITY_LABEL:
                 input_dict["init_type"] = constants.USE_EACH_EQUIPMENT_BUTTON
                 input_dict["image_id"] = "buttons/use_equipment_button.png"
                 self.add_attached_button(input_dict)
@@ -250,12 +250,11 @@ class actor_display_label(label):
                 input_dict["image_id"] = "buttons/commodity_sell_each_button.png"
                 self.add_attached_button(input_dict)
 
-            else:
+            elif self.actor_label_type == constants.MOB_INVENTORY_CAPACITY_LABEL:
                 input_dict["init_type"] = constants.DROP_EACH_COMMODITY_BUTTON
                 input_dict["image_id"] = "buttons/commodity_drop_each_button.png"
                 self.add_attached_button(input_dict)
 
-            if self.actor_label_type == "mob inventory capacity":
                 input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
                 for equipment_type in status.equipment_types:
                     input_dict["equipment_type"] = equipment_type

@@ -859,6 +859,7 @@ def unit_types_config():
                 constants.ACTIVE_PERMISSION: False,
                 constants.SPACESHIP_PERMISSION: True,
             },
+            "inventory_capacity": 81,
             "can_recruit": True,
             "recruitment_verb": "purchase",
             "recruitment_cost": 500,
@@ -2357,6 +2358,42 @@ def inventory_interface():
             "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
             "parent_collection": status.mob_inventory_info_display,
             "member_config": {"order_overlap": False},
+        }
+    )
+
+    tile_scroll_up_button = constants.actor_creation_manager.create_interface_element(
+        {
+            "width": inventory_cell_width,
+            "height": inventory_cell_height,
+            "parent_collection": status.mob_inventory_grid,
+            "image_id": "buttons/cycle_ministers_up_button.png",
+            "value_name": "inventory_page",
+            "increment": -1,
+            "member_config": {
+                "order_exempt": True,
+                "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
+                "y_offset": status.mob_inventory_grid.height
+                - ((inventory_cell_height + scaling.scale_height(5)) * 3)
+                + scaling.scale_height(5),
+            },
+            "init_type": constants.SCROLL_BUTTON,
+        }
+    )
+
+    tile_scroll_down_button = constants.actor_creation_manager.create_interface_element(
+        {
+            "width": inventory_cell_width,
+            "height": inventory_cell_height,
+            "parent_collection": status.mob_inventory_grid,
+            "image_id": "buttons/cycle_ministers_down_button.png",
+            "value_name": "inventory_page",
+            "increment": 1,
+            "member_config": {
+                "order_exempt": True,
+                "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
+                "y_offset": status.mob_inventory_grid.height - (inventory_cell_height),
+            },
+            "init_type": constants.SCROLL_BUTTON,
         }
     )
 
