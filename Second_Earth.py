@@ -46,6 +46,12 @@ except Exception:  # Displays error message and records error message in crash l
 
 #
 #   New SE features:
+# Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
+# Add new colors for soil mapmode - gray to dark brown
+# Add label icons for names of minister offices on ministers screen - possible add to SFA as well
+# When creating new settlement, add notification that says what the name is and directs where to change it - also move this to SFA
+# Possibly add procedurally generated names, with consistent style for each planet
+#   Create new program to analyze series of inputs and extract letter/syllable frequencies - possibly combine with an ML method to output words of the same style
 # Strange issue - in non-ordered collections, height of collection incorrectly affects y positions of elements, and without any apparent modification to their y values
 # Continue adding hairstyles
 # Minister table_map_image not using smart green screens, probably because it directly uses tile image ID
