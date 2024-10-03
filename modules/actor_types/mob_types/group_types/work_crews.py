@@ -72,7 +72,9 @@ class work_crew(group):
         ):  # Do not attempt production if unit already did something this turn or suffered from attrition # not self.temp_movement_disabled:
             if not building.resource_type in constants.attempted_commodities:
                 constants.attempted_commodities.append(building.resource_type)
-            for current_attempt in range(building.efficiency):
+            for current_attempt in range(
+                building.upgrade_fields[constants.RESOURCE_EFFICIENCY]
+            ):
                 if self.get_permission(constants.VETERAN_PERMISSION):
                     results = [
                         self.controlling_minister.no_corruption_roll(6),

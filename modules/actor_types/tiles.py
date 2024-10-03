@@ -110,7 +110,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
 
             y_offset = -0.75
             has_building = False
-            for building_type in constants.building_types:
+            for building_type in status.building_types.keys():
                 if (
                     self.cell.has_building(building_type)
                     and building_type != constants.INFRASTRUCTURE
@@ -380,8 +380,8 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             image_id_list.append(resource_icon)
                         else:
                             image_id_list += resource_icon
-                    for current_building_type in constants.building_types:
-                        current_building = self.cell.get_building(current_building_type)
+                    for building_type in status.building_types.keys():
+                        current_building = self.cell.get_building(building_type)
                         if current_building:
                             image_id_list += current_building.get_image_id_list()
             elif self.show_terrain:

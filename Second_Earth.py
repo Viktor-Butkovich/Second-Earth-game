@@ -10,6 +10,7 @@ try:
         terrain_feature_types_config,
         commodities,
         minister_types_config,
+        building_types_config,
         unit_types_config,
         new_game_setup_screen,
         info_displays,

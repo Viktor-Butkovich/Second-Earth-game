@@ -2,8 +2,10 @@
 
 import pygame
 import random
+from typing import Dict
 from .actors import actor
 from ..util import utility, scaling, actor_utility, text_utility, minister_utility
+from ..constructs import building_types
 import modules.constants.constants as constants
 import modules.constants.status as status
 
@@ -33,12 +35,14 @@ class building(actor):
             None
         """
         self.actor_type = "building"
-        self.building_type = input_dict.get("building_type", input_dict["init_type"])
+        self.building_type: building_types.building_type = input_dict.get(
+            "building_type", status.building_types[input_dict["init_type"]]
+        )
         self.damaged = False
+        self.upgrade_fields: Dict[str, int] = {}
+        for upgrade_field in self.building_type.upgrade_fields:
+            self.upgrade_fields[upgrade_field] = input_dict.get(upgrade_field, 1)
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.default_inventory_capacity = 0
-        self.image_id = input_dict["image"]
-        self.image_dict = {"default": input_dict["image"]}
         self.cell = self.grids[0].find_cell(self.x, self.y)
         status.building_list.append(self)
         self.contained_work_crews = []
@@ -47,23 +51,17 @@ class building(actor):
                 constants.actor_creation_manager.create(
                     True, current_work_crew
                 ).work_building(self)
-            if self.can_damage():
+            if self.building_type.can_damage:
                 self.set_damaged(input_dict["damaged"], True)
 
-        if (not from_save) and self.can_damage():
+        if (not from_save) and self.building_type.can_damage:
             self.set_damaged(False, True)
-        self.cell.contained_buildings[self.building_type] = self
+        self.cell.contained_buildings[self.building_type.key] = self
         self.cell.tile.update_image_bundle()
 
         if (
             (not from_save)
-            and self.building_type
-            in [
-                constants.RESOURCE,
-                constants.SPACEPORT,
-                constants.TRAIN_STATION,
-                constants.FORT,
-            ]
+            and self.building_type.attached_settlement
             and not self.cell.settlement
         ):
             constants.actor_creation_manager.create(
@@ -75,9 +73,8 @@ class building(actor):
             )
         self.cell.tile.set_name(self.cell.tile.name)
 
-        self.set_building_inventory_capacity(self.default_inventory_capacity)
         if constants.effect_manager.effect_active("damaged_buildings"):
-            if self.can_damage():
+            if self.building_type.can_damage:
                 self.set_damaged(True, True)
         self.finish_init(original_constructor, from_save, input_dict)
 
@@ -112,22 +109,12 @@ class building(actor):
         ] = (
             []
         )  # List of dictionaries for each work crew, on load a building creates all of its work crews and attaches them
-        save_dict["image"] = self.image_dict["default"]
         save_dict["damaged"] = self.damaged
         for current_work_crew in self.contained_work_crews:
             save_dict["contained_work_crews"].append(current_work_crew.to_save_dict())
+        for upgrade_field in self.upgrade_fields:
+            save_dict[upgrade_field] = self.upgrade_fields[upgrade_field]
         return save_dict
-
-    def can_damage(self):
-        """
-        Description:
-            Returns whether this building is able to be damaged. Roads, railroads, and slums cannot be damaged
-        Input:
-            None
-        Output:
-            boolean: Returns whether this building is able to be damaged
-        """
-        return True
 
     def remove(self):
         """
@@ -154,68 +141,23 @@ class building(actor):
         tooltip_text = [text_utility.remove_underscores(self.name.capitalize())]
         if self.building_type == constants.RESOURCE:
             tooltip_text.append(
-                f"Work crews: {len(self.contained_work_crews)}/{self.scale}"
+                f"Work crews: {len(self.contained_work_crews)}/{self.upgrade_fields[constants.RESOURCE_SCALE]}"
             )
             for current_work_crew in self.contained_work_crews:
                 tooltip_text.append("    " + current_work_crew.name)
             tooltip_text.append(
-                f"Lets {self.scale} attached work crews each attempt to produce {self.efficiency} units of {self.resource_type} each turn"
-            )
-        elif self.building_type == constants.SPACEPORT:
-            tooltip_text.append(
-                "Allows spaceships to launch from this tile, and facilitates landings"
-            )
-        elif self.building_type == constants.INFRASTRUCTURE:
-            if self.is_bridge:
-                tooltip_text.append("Allows movement across the bridge")
-                if self.is_railroad:
-                    tooltip_text.append(
-                        "Acts as a railroad between the tiles it connects"
-                    )
-                elif self.is_road:
-                    tooltip_text.append("Acts as a road between the tiles it connects")
-                    tooltip_text.append(
-                        "Can be upgraded to a railroad bridge to allow trains to move through this tile"
-                    )
-                else:
-                    tooltip_text.append(
-                        "Allows walking for 2 movement points between the tiles it connects"
-                    )
-                    tooltip_text.append(
-                        "Can be upgraded to a road bridge to act as a road through this tile"
-                    )
-            else:
-                tooltip_text.append(
-                    "Halves movement cost for units going to another tile with a road or railroad"
-                )
-                if self.is_railroad:
-                    tooltip_text.append(
-                        "Allows trains to move from this tile to other tiles that have railroads"
-                    )
-                else:
-                    tooltip_text.append(
-                        "Can be upgraded to a railroad to allow trains to move through this tile"
-                    )
-        elif self.building_type == constants.TRAIN_STATION:
-            tooltip_text.append(
-                "Allows construction gangs to build trains on this tile"
-            )
-            tooltip_text.append(
-                "Allows trains to drop off or pick up cargo or passengers in this tile"
+                f"Lets {self.upgrade_fields[constants.RESOURCE_SCALE]} attached work crews each attempt to produce {self.upgrade_fields[constants.RESOURCE_EFFICIENCY]} units of {self.resource_type} each turn"
             )
         elif self.building_type == constants.SLUMS:
             tooltip_text.append(
                 f"Contains {self.available_workers} workers in search of employment"
             )
-        elif self.building_type == constants.FORT:
-            tooltip_text.append(
-                "Grants a +1 combat modifier to your units fighting in this tile"
-            )
         elif self.building_type == constants.WAREHOUSES:
             tooltip_text.append(
                 f"Level {self.warehouses_level} warehouses allow an inventory capacity of {9 * self.warehouses_level}"
             )
-
+        else:
+            tooltip_text += self.building_type.description
         if self.damaged:
             tooltip_text.append(
                 "This building is damaged and is currently not functional."
@@ -263,59 +205,11 @@ class building(actor):
         self.damaged = new_value
         if self.building_type == constants.INFRASTRUCTURE:
             actor_utility.update_roads()
-        if self.damaged:
-            self.set_building_inventory_capacity(0)
-        else:
-            self.set_building_inventory_capacity(self.default_inventory_capacity)
-        if (not mid_setup) and self.building_type in [
-            constants.RESOURCE,
-            constants.SPACEPORT,
-            constants.TRAIN_STATION,
-        ]:
+        if self.building_type.warehouse_level > 0 and self.cell.has_building(
+            constants.WAREHOUSES
+        ):
             self.cell.get_building(constants.WAREHOUSES).set_damaged(new_value)
         self.cell.tile.update_image_bundle()
-
-    def set_default_inventory_capacity(self, new_value):
-        """
-        Description:
-            Sets a new default inventory capacity for a building. A building's inventory capacity may differ from its default inventory capacity if it becomes damaged
-        Input:
-            int new_value: New default inventory capacity for the building
-        Output:
-            None
-        """
-        self.default_inventory_capacity = new_value
-        self.set_building_inventory_capacity(new_value)
-
-    def set_building_inventory_capacity(self, new_value):
-        """
-        Description:
-            Sets a new current inventory capacity for a building. A building's inventory capacity may change when it is upgraded, damaged, or repaired
-        Input:
-            int/string new_value: New current inventory capacity for the building. 'default' sets the inventory capacity to its default amount
-        Output:
-            None
-        """
-        old_value = self.inventory_capacity
-        if new_value == "default":
-            self.inventory_capacity = self.default_inventory_capacity
-        else:
-            self.inventory_capacity = new_value
-        self.contribute_local_inventory_capacity(old_value, new_value)
-
-    def contribute_local_inventory_capacity(self, previous_value, new_value):
-        """
-        Description:
-            Updates this building's tile's total inventory capacity based on changes to this buiding's current inventory capacity
-        Input:
-            int previous_value: Previous inventory capacity that had been used in the tile's total inventory capacity
-            int new_value: New inventory capacity to be used in the tile's total inventory capacity
-        Output:
-            None
-        """
-        self.cell.tile.set_inventory_capacity(
-            self.cell.tile.inventory_capacity + new_value - previous_value
-        )
 
     def touching_mouse(self):
         """
@@ -340,7 +234,7 @@ class building(actor):
         Output:
             double: Returns the total cost of building this building and all of its upgrades, not accounting for failed attempts or terrain
         """
-        return constants.building_prices[self.building_type]
+        return self.building_type.cost
 
     def get_repair_cost(self):
         """
@@ -363,29 +257,24 @@ class building(actor):
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        image_id = {"image_id": self.image_dict["default"]}
-        relative_coordinates = {
-            constants.FORT: (-1, 1),
-            constants.TRAIN_STATION: (0, -1),
-            constants.SPACEPORT: (1, -1),
-        }.get(self.building_type, (0, 0))
-        if relative_coordinates == (0, 0):
+        return_list = self.building_type.image_id_list.copy()
+        if self.building_type.display_coordinates == (0, 0):
             modifiers = {}
         else:  # If not centered, make smaller and move to one of 6 top/bottom slots
             modifiers = {
                 "size": 0.75 * 0.45,
-                "x_offset": relative_coordinates[0] * 0.33,
-                "y_offset": relative_coordinates[1] * 0.33,
+                "x_offset": self.building_type.display_coordinates[0] * 0.33,
+                "y_offset": self.building_type.display_coordinates[1] * 0.33,
             }
-        image_id.update(modifiers)
-        return_list = [image_id]
+        for image_id in return_list:
+            image_id.update(modifiers)
         if self.building_type == constants.RESOURCE:
             return_list[0]["green_screen"] = constants.quality_colors[
-                self.efficiency
+                self.upgrade_fields[constants.RESOURCE_EFFICIENCY]
             ]  # Set box to quality color based on efficiency
             return_list[0]["size"] = 0.6
             return_list[0]["level"] = image_id.get("level", 0) + 1
-            for scale in range(1, self.scale + 1):
+            for scale in range(1, self.upgrade_fields[constants.RESOURCE_SCALE] + 1):
                 scale_coordinates = {  # Place mine/camp/plantation icons in following order for each scale
                     1: (0, 1),  # top center
                     2: (-1, -1),  # bottom left
@@ -395,17 +284,9 @@ class building(actor):
                     6: (1, 1),  # top right
                 }
                 if scale > len(self.contained_work_crews):
-                    resource_image_id = (
-                        "buildings/"
-                        + constants.resource_building_dict[self.resource_type]
-                        + "_no_work_crew.png"
-                    )
+                    resource_image_id = f"buildings/{constants.resource_building_dict[self.resource_type]}_no_work_crew.png"
                 else:
-                    resource_image_id = (
-                        "buildings/"
-                        + constants.resource_building_dict[self.resource_type]
-                        + ".png"
-                    )
+                    resource_image_id = f"buildings/{constants.resource_building_dict[self.resource_type]}.png"
                 return_list.append(
                     {
                         "image_id": resource_image_id,
@@ -415,12 +296,7 @@ class building(actor):
                         "y_offset": -0.07 + 0.07 * scale_coordinates[scale][1],
                     }
                 )
-
-        if self.building_type == constants.TRAIN_STATION:
-            return_list.append(
-                {"image_id": "buildings/infrastructure/down_railroad.png"}
-            )
-        if self.damaged and self.building_type != constants.WAREHOUSES:
+        if self.damaged and self.building_type.can_construct:
             damaged_id = {"image_id": "buildings/damaged.png", "level": 3}
             damaged_id.update(modifiers)
             return_list.append(damaged_id)
@@ -551,17 +427,6 @@ class infrastructure_building(building):
         save_dict["infrastructure_type"] = self.infrastructure_type
         return save_dict
 
-    def can_damage(self):
-        """
-        Description:
-            Returns whether this building is able to be damaged. Roads, railroads, and slums cannot be damaged
-        Input:
-            None
-        Output:
-            boolean: Returns whether this building is able to be damaged
-        """
-        return False
-
     def get_image_id_list(self, override_values={}):
         """
         Description:
@@ -612,34 +477,6 @@ class infrastructure_building(building):
         return image_id_list
 
 
-class spaceport(building):
-    """
-    Building that allows spaceships to land and launch in the tile, and increases the tile's inventory capacity
-    """
-
-    def __init__(self, from_save, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
-                'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'name': string value - Required if from save, this building's name
-                'modes': string list value - Game modes during which this building's images can appear
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
-        Output:
-            None
-        """
-        super().__init__(from_save, input_dict)
-        if not from_save:
-            constants.sound_manager.play_random_music("earth")
-
-
 class warehouses(building):
     """
     Buiding attached to a port, train station, and/or resource production facility that stores commodities
@@ -664,42 +501,13 @@ class warehouses(building):
         Output:
             None
         """
-        self.warehouses_level = 1
         super().__init__(from_save, input_dict)
-        self.set_default_inventory_capacity(9)
-        if from_save:
-            while self.warehouses_level < input_dict["warehouses_level"]:
-                self.upgrade()
-
+        self.cell.tile.set_inventory_capacity(
+            self.upgrade_fields[constants.WAREHOUSES_LEVEL] * 9
+        )
         if constants.effect_manager.effect_active("damaged_buildings"):
-            if self.can_damage():
+            if self.building_type.can_damage:
                 self.set_damaged(True, True)
-
-    def to_save_dict(self):
-        """
-        Description:
-            Uses this object's values to create a dictionary that can be saved and used as input to recreate it on loading
-        Input:
-            None
-        Output:
-            dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
-                Along with superclass outputs, also saves the following values:
-                'warehouses_level': int value - Size of warehouse (9 inventory capacity per level)
-        """
-        save_dict = super().to_save_dict()
-        save_dict["warehouses_level"] = self.warehouses_level
-        return save_dict
-
-    def can_upgrade(self, upgrade_type="warehouses_level"):
-        """
-        Description:
-            Returns whether this building can be upgraded in the inputted field. Warehouses can be upgraded infinitely
-        Input:
-            string upgrade_type = 'warehouses_level': Represents type of upgrade, like 'scale' or 'efficiency'
-        Output:
-            boolean: Returns True if this building can be upgraded in the inputted field, otherwise returns False
-        """
-        return True
 
     def get_upgrade_cost(self):
         """
@@ -714,8 +522,8 @@ class warehouses(building):
         return self.cell.get_warehouses_cost()
 
     def upgrade(self, upgrade_type="warehouses_level"):
-        self.warehouses_level += 1
-        self.set_default_inventory_capacity(self.default_inventory_capacity + 9)
+        super().upgrade(upgrade_type)
+        self.cell.tile.set_inventory_capacity(self.warehouses_level * 9)
 
     def get_image_id_list(self, override_values={}):
         """
@@ -757,9 +565,11 @@ class resource_building(building):
             None
         """
         self.resource_type = input_dict["resource_type"]
-        self.scale = input_dict.get("scale", 1)
-        self.efficiency = input_dict.get("efficiency", 1)
-        self.num_upgrades = self.scale + self.efficiency - 2
+        self.num_upgrades = (
+            self.upgrade_fields[constants.RESOURCE_SCALE]
+            + self.upgrade_fields[constants.RESOURCE_EFFICIENCY]
+            - 2
+        )
         self.ejected_work_crews = []
         super().__init__(from_save, input_dict)
         status.resource_building_list.append(self)
@@ -780,8 +590,6 @@ class resource_building(building):
         """
         save_dict = super().to_save_dict()
         save_dict["resource_type"] = self.resource_type
-        save_dict["scale"] = self.scale
-        save_dict["efficiency"] = self.efficiency
         return save_dict
 
     def eject_work_crews(self):
@@ -873,23 +681,6 @@ class resource_building(building):
         for current_work_crew in officer_attrition_list:
             current_work_crew.attrition_death("officer")
 
-    def can_upgrade(self, upgrade_type):
-        """
-        Description:
-            Returns whether this building can be upgraded in the inputted field. A building can be upgraded not be ugpraded above 6 in a field
-        Input:
-            string upgrade_type: Represents type of upgrade, like 'scale' or 'efficiency'
-        Output:
-            boolean: Returns True if this building can be upgraded in the inputted field, otherwise returns False
-        """
-        if upgrade_type == constants.RESOURCE_SCALE:
-            if self.scale < 6:
-                return True
-        elif upgrade_type == constants.RESOURCE_EFFICIENCY:
-            if self.efficiency < 6:
-                return True
-        return False
-
     def upgrade(self, upgrade_type):
         """
         Description:
@@ -899,11 +690,11 @@ class resource_building(building):
         Output:
             None
         """
-        if upgrade_type == constants.RESOURCE_SCALE:
-            self.scale += 1
-        elif upgrade_type == constants.RESOURCE_EFFICIENCY:
-            self.efficiency += 1
-        if self.scale >= 6 and self.efficiency >= 6:
+        self.upgrade_fields[upgrade_type] += 1
+        if (
+            self.upgrade_fields.get(constants.RESOURCE_SCALE) >= 6
+            and self.upgrade_fields.get(constants.RESOURCE_EFFICIENCY) >= 6
+        ):
             constants.achievement_manager.achieve("Industrialist")
         self.num_upgrades += 1
 
@@ -919,7 +710,9 @@ class resource_building(building):
         if constants.effect_manager.effect_active("free_upgrades"):
             return 0
         else:
-            return constants.base_upgrade_price * (
+            return self.building_type.upgrade_fields[constants.RESOURCE_SCALE][
+                "cost"
+            ] * (
                 2**self.num_upgrades
             )  # 20 for 1st upgrade, 40 for 2nd, 80 for 3rd, etc.
 
@@ -936,7 +729,9 @@ class resource_building(building):
         for i in range(
             0, self.num_upgrades
         ):  # adds cost of each upgrade, each of which is more expensive than the last
-            cost += constants.base_upgrade_price * (i + 1)
+            cost += self.building_type.upgrade_fields[constants.RESOURCE_SCALE][
+                "cost"
+            ] * (i + 1)
         return cost
 
     def produce(self):
@@ -1014,17 +809,6 @@ class slums(building):
         for current_image_id in image_id_list:
             current_image_id.update({"level": -2})
         return image_id_list
-
-    def can_damage(self):
-        """
-        Description:
-            Returns whether this building is able to be damaged. Roads, railroads, and slums cannot be damaged
-        Input:
-            None
-        Output:
-            boolean: Returns whether this building is able to be damaged
-        """
-        return False
 
     def remove(self):
         """

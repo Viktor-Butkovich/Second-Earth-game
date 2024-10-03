@@ -209,11 +209,21 @@ def manage_production():
                     if current_work_crew.get_permission(constants.VETERAN_PERMISSION):
                         expected_production[
                             current_resource_building.resource_type
-                        ] += (0.75 * current_resource_building.efficiency)
+                        ] += (
+                            0.75
+                            * current_resource_building.upgrade_fields[
+                                constants.RESOURCE_EFFICIENCY
+                            ]
+                        )
                     else:
                         expected_production[
                             current_resource_building.resource_type
-                        ] += (0.5 * current_resource_building.efficiency)
+                        ] += (
+                            0.5
+                            * current_resource_building.upgrade_fields[
+                                constants.RESOURCE_EFFICIENCY
+                            ]
+                        )
             current_resource_building.produce()
             if (
                 not current_resource_building.resource_type

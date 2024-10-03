@@ -93,7 +93,7 @@ class actor:
         elif self.actor_type == "tile":
             init_type = "tile"
         elif self.actor_type == "building":
-            init_type = self.building_type
+            init_type = self.building_type.key
         save_dict["init_type"] = init_type
         save_dict["coordinates"] = (self.x, self.y)
         save_dict["modes"] = self.modes

@@ -349,7 +349,7 @@ class actor_display_label(label):
         elif self.actor_label_type == constants.SLUMS:
             self.message_start = "Slums population: "
 
-        elif self.actor_label_type in constants.building_types:
+        elif self.actor_label_type in status.building_types.keys():
             self.message_start = ""
 
         elif self.actor_label_type == constants.COMBAT_STRENGTH_LABEL:
@@ -697,7 +697,7 @@ class actor_display_label(label):
             )
             if self.attached_building:
                 tooltip_text.append(
-                    f"Work crews: {len(self.attached_building.contained_work_crews)}/{self.attached_building.scale}"
+                    f"Work crews: {len(self.attached_building.contained_work_crews)}/{self.attached_building.upgrade_fields[constants.RESOURCE_SCALE]}"
                 )
                 for current_work_crew in self.attached_building.contained_work_crews:
                     tooltip_text.append(
@@ -727,7 +727,7 @@ class actor_display_label(label):
             )
             self.set_tooltip(tooltip_text)
 
-        elif self.actor_label_type in constants.building_types:
+        elif self.actor_label_type in status.building_types.keys():
             if self.actor:
                 current_building = self.actor.cell.get_building(self.actor_label_type)
                 current_building.update_tooltip()
@@ -1057,7 +1057,7 @@ class actor_display_label(label):
                         f"{self.message_start}{str(self.actor.cell.get_building(constants.SLUMS).available_workers)}"
                     )
 
-            elif self.actor_label_type in constants.building_types:
+            elif self.actor_label_type in status.building_types.keys():
                 if self.actor.cell.has_building(self.actor_label_type):
                     self.set_label(
                         f"{self.message_start}{self.actor.cell.get_building(self.actor_label_type).name.capitalize()}"
@@ -1148,7 +1148,7 @@ class actor_display_label(label):
         ):  # Do not show mobs that are attached to another unit/building
             return False
         elif (
-            self.actor_label_type in constants.building_types
+            self.actor_label_type in status.building_types.keys()
             and not self.actor.cell.has_building(self.actor_label_type)
         ):
             return False
@@ -1400,7 +1400,7 @@ class building_work_crews_label(actor_display_label):
             self.attached_building = new_actor.cell.get_building(self.building_type)
             if self.attached_building:
                 self.set_label(
-                    f"{self.message_start}{len(self.attached_building.contained_work_crews)}/{self.attached_building.scale}"
+                    f"{self.message_start}{len(self.attached_building.contained_work_crews)}/{self.attached_building.upgrade_fields[constants.RESOURCE_SCALE]}"
                 )
                 self.show_label = True
 
@@ -1463,7 +1463,9 @@ class building_efficiency_label(actor_display_label):
         if new_actor:
             self.attached_building = new_actor.cell.get_building(self.building_type)
             if self.attached_building:
-                self.set_label(f"Efficiency: {self.attached_building.efficiency}")
+                self.set_label(
+                    f"Efficiency: {self.attached_building.upgrade_fields[constants.RESOURCE_EFFICIENCY]}"
+                )
                 self.show_label = True
 
     def can_show(self, skip_parent_collection=False):

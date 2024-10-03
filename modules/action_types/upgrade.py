@@ -3,6 +3,7 @@
 import pygame
 from . import action
 from ..util import actor_utility, action_utility
+import modules.constructs.building_types as building_types
 import modules.constants.constants as constants
 import modules.constants.status as status
 
@@ -22,20 +23,15 @@ class upgrade(action.action):
             None
         """
         super().initial_setup(**kwargs)
-        self.building_type = kwargs.get("building_type", None)
+        self.building_type: building_types.building_type = kwargs.get(
+            "building_type", None
+        )
+        self.upgrade_type: str = kwargs.get("upgrade_type", None)
+        self.upgrade_dict = self.building_type.upgrade_fields[self.upgrade_type]
         del status.actions[self.action_type]
         status.actions[self.building_type] = self
-        self.building_name = self.building_type.replace("_", " ")
-        self.requirements += [
-            constants.GROUP_PERMISSION,
-            constants.CONSTRUCTION_PERMISSION,
-        ]
+        self.requirements += self.building_type.build_requirements
         self.current_building = None
-        self.upgraded_building_type = {
-            constants.RESOURCE_SCALE: constants.RESOURCE,
-            constants.RESOURCE_EFFICIENCY: constants.RESOURCE,
-            constants.WAREHOUSES_LEVEL: constants.WAREHOUSES,
-        }[self.building_type]
         self.name = "upgrade"
         self.allow_critical_failures = False
 
@@ -63,12 +59,8 @@ class upgrade(action.action):
         initial_input_dict = super().button_setup(initial_input_dict)
         initial_input_dict[
             "image_id"
-        ] = f"buttons/actions/upgrade_{self.building_type}_button.png"
-        initial_input_dict["keybind_id"] = {
-            constants.RESOURCE_SCALE: None,
-            constants.RESOURCE_EFFICIENCY: None,
-            constants.WAREHOUSES_LEVEL: pygame.K_k,
-        }.get(self.building_type, None)
+        ] = f"buttons/actions/upgrade_{self.building_type.key}_button.png"
+        initial_input_dict["keybind_id"] = self.upgrade_dict.get("keybind", None)
         return initial_input_dict
 
     def update_tooltip(self):
@@ -84,26 +76,22 @@ class upgrade(action.action):
         unit = status.displayed_mob
         if unit != None:
             self.current_building = unit.get_cell().get_intact_building(
-                self.upgraded_building_type
+                self.building_type.key
             )
-            actor_utility.update_descriptions(self.building_type)
-            if self.building_type == constants.WAREHOUSES_LEVEL:
+            if self.upgrade_type == constants.WAREHOUSES_LEVEL:
                 noun = "tile"
-            elif self.building_type in [
-                constants.RESOURCE_EFFICIENCY,
-                constants.RESOURCE_SCALE,
-            ]:
+            else:
                 noun = self.current_building.name
-            value = getattr(self.current_building, self.building_type)
+            value = self.current_building.upgrade_fields[self.upgrade_type]
             message.append(
-                f"Attempts to increase this {noun}'s {self.building_name} from {value} to {value + 1} for {self.get_price()} money"
+                f"Attempts to increase this {noun}'s {self.upgrade_dict['name']} from {value} to {value + 1} for {self.get_price()} money"
             )
-            message += constants.list_descriptions[self.building_type]
+            message += self.upgrade_dict["description"]
             message.append(
                 "Unlike new buildings, the cost of building upgrades is not impacted by local terrain"
             )
             message.append(
-                "An upgrade's cost is doubled for each previous upgrade to that " + noun
+                f"An upgrade's cost is doubled for each previous upgrade to that {noun}"
             )
             message.append("Costs all remaining movement points, at least 1")
         return message
@@ -128,15 +116,17 @@ class upgrade(action.action):
             noun = self.current_building.name
 
         if subject == "confirmation":
-            value = getattr(self.current_building, self.building_type)
-            text += f"Are you sure you want to start upgrading this {noun}'s {self.building_name}? /n /n"
+            value = self.current_building.upgrade_fields[self.upgrade_type]
+            text += f"Are you sure you want to start upgrading this {noun}'s {self.upgrade_dict['name']}? /n /n"
             text += f"The planning and materials will cost {self.get_price()} money. Each upgrade to a building doubles the cost of all future upgrades to that building. /n /n"
-            text += f"If successful, this {noun}'s {self.building_name} will increase from {value} to {value + 1}. /n /n"
-            text += constants.string_descriptions[self.building_type]
+            text += f"If successful, this {noun}'s {self.upgrade_dict['name']} will increase from {value} to {value + 1}. /n /n"
+            text += self.building_type.upgrade_fields[self.upgrade_type].get(
+                "description", ""
+            )
         elif subject == "initial":
-            text += f"The {self.current_unit.name} attempts to upgrade the {noun}'s {self.building_name}. /n /n"
+            text += f"The {self.current_unit.name} attempts to upgrade the {noun}'s {self.upgrade_dict['name']}. /n /n"
         elif subject == "success":
-            text += f"The {self.current_unit.name} successfully upgraded the {noun}'s {self.building_name}. /n /n"
+            text += f"The {self.current_unit.name} successfully upgraded the {noun}'s {self.upgrade_dict['name']}. /n /n"
         elif subject == "failure":
             text += f"Little progress was made and the {self.current_unit.officer.name} requests more time and funds to complete the upgrade. /n /n"
         elif subject == "critical_success":
@@ -170,10 +160,15 @@ class upgrade(action.action):
             boolean: Returns whether a button linked to this action should be drawn
         """
         building = status.displayed_mob.get_cell().get_intact_building(
-            self.upgraded_building_type
+            self.building_type.key
         )
         return (
-            super().can_show() and building and building.can_upgrade(self.building_type)
+            super().can_show()
+            and building
+            and not (
+                self.upgrade_dict.get("max", None)
+                and building.upgrade_fields >= self.upgrade_dict["max"]
+            )
         )
 
     def on_click(self, unit):
@@ -219,12 +214,12 @@ class upgrade(action.action):
                     "choices": [
                         {
                             "on_click": (self.middle, []),
-                            "tooltip": ["Start " + self.name],
-                            "message": "Start " + self.name,
+                            "tooltip": [f"Start {self.name}"],
+                            "message": f"Start {self.name}",
                         },
                         {
-                            "tooltip": ["Stop " + self.name],
-                            "message": "Stop " + self.name,
+                            "tooltip": [f"Stop {self.name}"],
+                            "message": f"Stop {self.name}",
                         },
                     ],
                 }

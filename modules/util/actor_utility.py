@@ -49,17 +49,17 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
     Output:
         int: Returns the cost of the inputted unit attempting to construct the inputted building
     """
-    if building_type == constants.INFRASTRUCTURE:
+    if building_type.key == constants.INFRASTRUCTURE:
         building_type = building_name.replace(
             " ", "_"
         )  # road, railroad, road_bridge, or railroad_bridge
-    if building_type == constants.WAREHOUSES:
+    if building_type.key == constants.WAREHOUSES:
         if constructor:
             base_price = constructor.get_cell().get_warehouses_cost()
         else:
             base_price = 5
     else:
-        base_price = constants.building_prices[building_type]
+        base_price = building_type.cost
 
     if building_type in [constants.TRAIN]:
         cost_multiplier = 1
@@ -69,122 +69,7 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
         cost_multiplier = constants.terrain_build_cost_multiplier_dict.get(
             constructor.get_cell().terrain_handler.terrain, 1
         )
-
     return base_price * cost_multiplier
-
-
-def update_descriptions(target="all"):
-    """
-    Description:
-        Updates the descriptions of recruitable units for use in various parts of the program. Updates all units during setup and can target a certain unit to update prices, etc. when the information is needed later in the game.
-            Creates list versions for tooltips and string versions for notifications
-    Input:
-        string target = 'all': Targets a certain unit type, or 'all' by default, to update while minimizing unnecessary calculations
-    Output:
-        None
-    """
-    if target == "all":
-        targets_to_update = constants.building_types + [
-            constants.ROAD,
-            constants.RAILROAD,
-            constants.FERRY,
-            constants.ROAD_BRIDGE,
-            constants.RAILROAD_BRIDGE,
-        ]
-        targets_to_update += constants.upgrade_types
-    else:
-        targets_to_update = [target]
-
-    for current_target in targets_to_update:
-        list_descriptions = constants.list_descriptions
-        string_descriptions = constants.string_descriptions
-        text_list = []
-
-        if current_target == constants.RESOURCE:
-            if current_target in status.actions:
-                building_name = status.actions[current_target].building_name
-                if not building_name:
-                    building_name = "resource production facility"
-            else:
-                building_name = "resource production facility"
-            text_list.append(
-                f"A {building_name} expands the tile's warehouse capacity, and each work crew attached to it attempts to produce resources each turn."
-            )
-            text_list.append(
-                "Upgrades to the facility can increase the maximum number of attached work crews and the number of production attempts each work crew can make. "
-            )
-
-        elif current_target == constants.ROAD:
-            text_list.append(
-                "A road halves movement cost when moving to another tile that has a road or railroad and can later be upgraded to a railroad."
-            )
-
-        elif current_target == constants.RAILROAD:
-            text_list.append(
-                "A railroad, like a road, halves movement cost when moving to another tile that has a road or railroad."
-            )
-            text_list.append(
-                "It is also required for trains to move and for a train station to be built."
-            )
-
-        elif current_target == constants.FERRY:
-            text_list.append(
-                "A ferry built on a water tile between 2 land tiles allows movement across the water."
-            )
-            text_list.append(
-                "A ferry allows moving to the ferry tile for 2 movement points, and can later be upgraded to a road bridge."
-            )
-
-        elif current_target == constants.ROAD_BRIDGE:
-            text_list.append(
-                "A bridge built on a water tile between 2 land tiles allows movement across the water."
-            )
-            text_list.append(
-                "A road bridge acts as a road between the tiles it connects and can later be upgraded to a railroad bridge."
-            )
-
-        elif current_target == constants.RAILROAD_BRIDGE:
-            text_list.append(
-                "A bridge built on a water tile between 2 land tiles allows movement across the water."
-            )
-            text_list.append(
-                "A railroad bridge acts as a railroad between the tiles it connects."
-            )
-
-        elif current_target == constants.SPACEPORT:
-            text_list.append(
-                "A spaceport allows spaceships to land and launch in the tile and expands the tile's warehouse capacity."
-            )
-
-        elif current_target == constants.TRAIN_STATION:
-            text_list.append(
-                "A train station is required for a train to exchange cargo and passengers, expands the tile's warehouse capacity, and allows assembly of trains."
-            )
-
-        elif current_target == constants.FORT:
-            text_list.append(
-                "A fort increases the combat effectiveness of your units standing in this tile."
-            )
-
-        elif current_target == constants.RESOURCE_SCALE:
-            text_list.append(
-                "A resource production facility can have a number of attached work crews equal to its scale"
-            )
-
-        elif current_target == constants.RESOURCE_EFFICIENCY:
-            text_list.append(
-                "A resource production facility's attached work crews each make a number of production attempts per turn equal to its efficiency."
-            )
-
-        elif current_target == constants.WAREHOUSES_LEVEL:
-            text_list.append(
-                "Each of a tile's warehouse levels corresponds to 9 inventory capacity."
-            )
-
-        list_descriptions[current_target] = text_list
-
-        text = " /n /n".join(list_descriptions[current_target]) + " /n /n"
-        string_descriptions[current_target] = text
 
 
 def create_image_dict(stem):

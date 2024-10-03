@@ -434,7 +434,7 @@ class button(interface_elements.interface_element):
 
         elif self.button_type == constants.BUILD_TRAIN_BUTTON:
             cost = actor_utility.get_building_cost(
-                status.displayed_mob, constants.TRAIN
+                status.displayed_mob, status.building_types[constants.TRAIN]
             )
             self.set_tooltip(
                 [

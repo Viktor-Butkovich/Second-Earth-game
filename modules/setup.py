@@ -1,7 +1,6 @@
 # Manages initial game setup in a semi-modular order
 
 import pygame
-import os
 import logging
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -12,6 +11,7 @@ import modules.util.game_transitions as game_transitions
 import modules.constructs.fonts as fonts
 import modules.constructs.unit_types as unit_types
 import modules.constructs.minister_types as minister_types
+import modules.constructs.building_types as building_types
 import modules.constructs.equipment_types as equipment_types
 import modules.constructs.terrain_feature_types as terrain_feature_types
 from modules.tools.data_managers import (
@@ -364,13 +364,13 @@ def actions():
     Output:
         None
     """
-    for building_type in constants.building_types + [constants.TRAIN]:
-        if not building_type in [constants.WAREHOUSES, constants.SLUMS]:
+    for building_type in status.building_types.values():
+        if building_type.can_construct:
             construction.construction(building_type=building_type)
-            if not building_type in [constants.TRAIN, constants.INFRASTRUCTURE]:
-                repair.repair(building_type=building_type)
-    for upgrade_type in constants.upgrade_types:
-        upgrade.upgrade(building_type=upgrade_type)
+        if building_type.can_damage:
+            repair.repair(building_type=building_type)
+        for upgrade_type in building_type.upgrade_fields.keys():
+            upgrade.upgrade(building_type=building_type, upgrade_type=upgrade_type)
     public_relations_campaign.public_relations_campaign()
     religious_campaign.religious_campaign()
     advertising_campaign.advertising_campaign()
@@ -507,6 +507,162 @@ def minister_types_config():
             ],
         }
     )
+
+
+def building_types_config():
+    """
+    Description:
+        Defines building type templates
+    Input:
+        None
+    Output:
+        None
+    """
+    building_types.building_type(
+        {
+            "key": constants.SPACEPORT,
+            "name": "spaceport",
+            "description": [
+                "A spaceport allows spaceships to land and launch, and expands the tile's warehouse capacity."
+            ],
+            "warehouse_level": 1,
+            "can_construct": True,
+            "can_damage": True,
+            "cost": 15,
+            "display_coordinates": (1, -1),
+            "attached_settlement": True,
+            "build_keybind": pygame.K_p,
+        }
+    )
+    building_types.building_type(
+        {
+            "key": constants.TRAIN_STATION,
+            "name": "train station",
+            "description": [
+                "A train station allows trains to pick up or drop off cargo, and expands the tile's warehouse capacity.",
+            ],
+            "warehouse_level": 1,
+            "can_construct": True,
+            "can_damage": True,
+            "cost": 10,
+            "display_coordinates": (0, -1),
+            "attached_settlement": True,
+            "image_id_list": [
+                {"image_id": "buildings/train_station.png"},
+                {"image_id": "buildings/infrastructure/down_railroad.png"},
+            ],
+            "build_keybind": pygame.K_t,
+        }
+    )
+    # building_types.building_type(
+    #    {
+    #        "key": constants.RESOURCE,
+    #        "name": "resource production facility",
+    #        "warehouse_level": 1,
+    #        "can_construct": True,
+    #        "can_damage": True,
+    #        "cost": 10,
+    #        "description": [
+    #            "A resource production facility allows attaching work crews to attempt to produce resources each turn, and expands the tile's warehouse capacity.",
+    #            "Upgrades can increase the maximum number of attached work crews and the number of production attempts each work crew can make.",
+    #        ],
+    #        "upgrade_fields": {
+    #            constants.RESOURCE_SCALE: {
+    #                "cost": constants.base_upgrade_price,
+    #                "max": 6,
+    #                "name": "scale",
+    #            },
+    #            constants.RESOURCE_EFFICIENCY: {
+    #                "cost": constants.base_upgrade_price,
+    #                "max": 6,
+    #                "name": "efficiency",
+    #            },
+    #        },
+    #        "attached_settlement": True,
+    #        "build_keybind": pygame.K_g,
+    #    }
+    # )
+    building_types.building_type(
+        {
+            "key": constants.FORT,
+            "name": "fort",
+            "description": [
+                "A fort grants a +1 combat modifier to your units fighting in this tile."
+            ],
+            "can_construct": True,
+            "can_damage": True,
+            "cost": 5,
+            "display_coordinates": (-1, 1),
+            "attached_settlement": True,
+            "build_requirements": [
+                constants.GROUP_PERMISSION,
+                constants.BATTALION_PERMISSION,
+            ],
+            "build_keybind": pygame.K_v,
+        }
+    )
+    building_types.building_type(
+        {
+            "key": constants.TRAIN,
+            "name": "train",
+            "description": [
+                "A train can be built as a vehicle with 27 inventory capacity and 16 movement points that is restricted to moving on railroads and loading/unloading on train stations."
+            ],
+            "can_construct": True,
+            "can_damage": False,
+            "cost": 10,
+            "build_keybind": pygame.K_y,
+            "image_id_list": [{"image_id": "mobs/train/default.png"}],
+            "button_image_id_list": [
+                "buttons/default_button_alt.png",
+                {
+                    "image_id": "mobs/train/default.png",
+                    "size": 0.95,
+                    "x_offset": 0,
+                    "y_offset": 0,
+                    "level": 1,
+                },
+            ],
+        }
+    )
+
+    building_types.building_type(
+        {
+            "key": constants.WAREHOUSES,
+            "name": "warehouses",
+            "can_construct": False,
+            "can_damage": False,
+            "cost": 5,
+            "upgrade_fields": {
+                constants.WAREHOUSES_LEVEL: {
+                    "name": "warehouse capacity",
+                    "cost": constants.base_upgrade_price,
+                    "keybind": pygame.K_k,
+                },
+            },
+        }
+    )
+    building_types.building_type(
+        {
+            "key": constants.SLUMS,
+            "name": "slums",
+            "can_construct": False,
+            "can_damage": False,
+        }
+    )
+    # building_types.building_type(
+    #     {
+    #         "key": constants.INFRASTRUCTURE,
+    #         "name": "infrastructure",
+    #         "can_construct": True,
+    #         "can_damage": False,
+    #         "cost": 5, # 15 for railroad, 50 for ferry, 100 for road bridge, 300 for railroad bridge?
+    #         "build_keybind": pygame.K_r,
+    #     }
+    # )
+
+    # Add attrition modifiers
+    # add upgrade types
 
 
 def unit_types_config():
@@ -903,7 +1059,6 @@ def transactions():
     Output:
         None
     """
-    actor_utility.update_descriptions()
     actor_utility.reset_action_prices()
 
 

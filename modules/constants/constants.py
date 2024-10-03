@@ -406,9 +406,6 @@ worker_upkeep_increment: float = 0.25
 base_upgrade_price: float = 20.0  # 20 for 1st upgrade, 40 for 2nd, 80 for 3rd, etc.
 consumer_goods_starting_price: int = 1
 
-list_descriptions: Dict[str, List[str]] = {}
-string_descriptions: Dict[str, str] = {}
-
 toggle_button_tooltips: Dict[str, Dict[str, str]] = {
     "wait_until_full": {
         "default": "Toggles wait until full - waiting until there is a full load to transport or no remaining warehouse space before starting automatic route",
@@ -891,31 +888,6 @@ CREW_PERMISSIONS: Dict[str, Any] = {
     SPACESHIP: CREW_SPACESHIP_PERMISSION,
     COLONY_SHIP: CREW_SPACESHIP_PERMISSION,
     TRAIN: CREW_TRAIN_PERMISSION,
-}
-
-building_types: List[str] = [
-    RESOURCE,
-    SPACEPORT,
-    INFRASTRUCTURE,
-    TRAIN_STATION,
-    FORT,
-    SLUMS,
-    WAREHOUSES,
-]
-upgrade_types: List[str] = [RESOURCE_SCALE, RESOURCE_EFFICIENCY, WAREHOUSES_LEVEL]
-
-building_prices: Dict[str, int] = {
-    RESOURCE: 10,
-    ROAD: 5,
-    RAILROAD: 15,
-    FERRY: 50,
-    ROAD_BRIDGE: 100,
-    RAILROAD_BRIDGE: 300,
-    SPACEPORT: 15,
-    TRAIN_STATION: 10,
-    FORT: 5,
-    WAREHOUSES: 5,
-    TRAIN: 10,
 }
 
 ALLOW_DISORGANIZED: bool = False

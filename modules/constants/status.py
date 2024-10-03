@@ -3,6 +3,7 @@ from typing import Dict, List, Any
 from modules.actor_types.tiles import tile
 from modules.actor_types.mobs import mob
 from modules.constructs.ministers import minister
+from modules.constructs.building_types import building_type
 from modules.constructs.unit_types import unit_type, worker_type
 from modules.constructs.equipment_types import equipment_type
 from modules.constructs.minister_types import minister_type
@@ -61,6 +62,7 @@ button_list: List[button] = []
 instructions_list: List[str] = []
 minister_list: List[minister] = []
 available_minister_list: List[minister] = []
+building_types: Dict[str, building_type] = {}
 unit_types: Dict[str, unit_type] = {}
 worker_types: Dict[str, worker_type] = {}
 recruitment_types: List[unit_type] = []

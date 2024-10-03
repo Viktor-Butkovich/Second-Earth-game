@@ -57,10 +57,7 @@ class embark_all_passengers_button(button):
             vehicle = status.displayed_mob
             can_embark = True
             if self.vehicle_type == constants.TRAIN_PERMISSION:
-                if (
-                    vehicle.get_cell().contained_buildings[constants.TRAIN_STATION]
-                    == None
-                ):
+                if not vehicle.get_cell().get_inact_building(constants.TRAIN_STATION):
                     text_utility.print_to_screen(
                         "A train can only pick up passengers at a train station."
                     )
@@ -735,17 +732,12 @@ class embark_vehicle_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_mob = status.displayed_mob
-            if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
-                result = False
-            elif displayed_mob.in_vehicle or displayed_mob.get_permission(
-                constants.VEHICLE_PERMISSION
-            ):
-                result = False
-            elif (
-                displayed_mob.actor_type != "minister"
-                and not displayed_mob.get_cell().has_vehicle(self.vehicle_type)
-            ):
-                result = False
+            result = (
+                displayed_mob
+                and displayed_mob.get_permission(constants.PMOB_PERMISSION)
+                and displayed_mob.get_cell().has_vehicle(self.vehicle_type)
+                and not displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
+            )
         self.was_showing = result
         return result
 
@@ -1115,7 +1107,9 @@ class work_crew_to_building_button(button):
         """
         if main_loop_utility.action_possible():
             if self.attached_building:
-                if self.attached_building.scale > len(
+                if self.attached_building.upgrade_fields[
+                    constants.RESOURCE_SCALE
+                ] > len(
                     self.attached_building.contained_work_crews
                 ):  # if has extra space
                     if self.attached_work_crew.sentry_mode:
