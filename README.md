@@ -2,7 +2,7 @@ Second Earth - a game simulating human colonization of another world
 
 I enjoy contributing here in my free time - feel free to reach out for installation/build instructions, or just to chat. This is a multi-year project that I fully intend to finish.
 
-<img src="graphics/misc/title.png" alt="Title Screen">
+<img src="graphics/misc/screen_backgrounds/title.png" alt="Title Screen">
 
 Welcome to Second Earth!
 

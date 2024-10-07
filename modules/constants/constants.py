@@ -823,8 +823,6 @@ MOB_INVENTORY_CAPACITY_LABEL: str = "mob_inventory_capacity_label"
 
 FREE_IMAGE: str = "free_image"
 ACTOR_DISPLAY_FREE_IMAGE: str = "actor_display_free_image"
-MOB_BACKGROUND_IMAGE: str = "mob_background_image"
-MINISTER_BACKGROUND_IMAGE: str = "minister_background_image"
 LABEL_IMAGE: str = "label_image"
 BACKGROUND_IMAGE: str = "background_image"
 TOOLTIP_FREE_IMAGE: str = "tooltip_free_image"

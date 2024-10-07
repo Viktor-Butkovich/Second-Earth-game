@@ -173,7 +173,10 @@ def misc():
 
     status.loading_image = constants.actor_creation_manager.create_interface_element(
         {
-            "image_id": ["misc/title.png", "misc/loading.png"],
+            "image_id": [
+                "misc/screen_backgrounds/title.png",
+                "misc/screen_backgrounds/loading.png",
+            ],
             "init_type": constants.LOADING_IMAGE_TEMPLATE_IMAGE,
         }
     )
@@ -187,7 +190,7 @@ def misc():
                     constants.TRIAL_MODE,
                     constants.NEW_GAME_SETUP_MODE,
                 ],
-                "image_id": "misc/background.png",
+                "image_id": "misc/screen_backgrounds/background.png",
                 "init_type": constants.BACKGROUND_IMAGE,
             }
         )
@@ -199,7 +202,7 @@ def misc():
                 "modes": [
                     constants.MINISTERS_MODE,
                 ],
-                "image_id": "misc/ministers_background.png",
+                "image_id": "misc/screen_backgrounds/ministers_background.png",
                 "init_type": constants.BACKGROUND_IMAGE,
             }
         )
@@ -210,7 +213,7 @@ def misc():
             "modes": [
                 constants.MAIN_MENU_MODE,
             ],
-            "image_id": "misc/title.png",
+            "image_id": "misc/screen_backgrounds/title.png",
             "init_type": constants.BACKGROUND_IMAGE,
         }
     )
@@ -3404,20 +3407,20 @@ def minister_interface():
     )
 
     # minister background image
-    minister_free_image_background = (
-        constants.actor_creation_manager.create_interface_element(
-            {
-                "image_id": "misc/mob_background.png",
-                "coordinates": scaling.scale_coordinates(0, 0),
-                "width": scaling.scale_width(125),
-                "height": scaling.scale_height(125),
-                "modes": [constants.MINISTERS_MODE],
-                "init_type": constants.MINISTER_BACKGROUND_IMAGE,
-                "parent_collection": status.minister_info_display,
-                "member_config": {"order_overlap": True},
-            }
-        )
-    )
+    # minister_free_image_background = (
+    #     constants.actor_creation_manager.create_interface_element(
+    #         {
+    #             "image_id": "misc/actor_backgrounds/minister_background.png",
+    #             "coordinates": scaling.scale_coordinates(0, 0),
+    #             "width": scaling.scale_width(125),
+    #             "height": scaling.scale_height(125),
+    #             "modes": [constants.MINISTERS_MODE],
+    #             "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+    #             "parent_collection": status.minister_info_display,
+    #             "member_config": {"order_overlap": True},
+    #         }
+    #     )
+    # )
 
     # minister image
     minister_free_image = constants.actor_creation_manager.create_interface_element(
@@ -3426,7 +3429,7 @@ def minister_interface():
             "width": scaling.scale_width(115),
             "height": scaling.scale_height(115),
             "modes": [constants.MINISTERS_MODE],
-            "actor_image_type": "minister_default",
+            "actor_image_type": "default",
             "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
             "parent_collection": status.minister_info_display,
             "member_config": {

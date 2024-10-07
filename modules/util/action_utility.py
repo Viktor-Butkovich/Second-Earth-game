@@ -136,16 +136,34 @@ def generate_minister_portrait_input_dicts(coordinates, action):
     return [portrait_background_input_dict, portrait_front_input_dict]
 
 
-def generate_background_image_input_dict():
+def generate_background_image_id_list(actor=None) -> list:
     """
     Description:
-        Creates and returns the input dict of a unit background image
+        Creates and returns the image id list of a unit background image
     Input:
         None
     Output:
-        dictionary: Returns the created input dict
+        list: Returns the created image id list
     """
-    return {"image_id": "misc/mob_background.png", "level": -10}
+    if not actor:
+        return [{"image_id": "misc/actor_backgrounds/mob_background.png", "level": -10}]
+    image_id_list = []
+    if actor.actor_type == "minister":
+        if not actor.current_position:
+            image_id_list.append("misc/actor_backgrounds/mob_background.png")
+        else:
+            image_id_list.append(
+                f"ministers/icons/{actor.current_position.skill_type}.png"
+            )
+        if actor.just_removed and not actor.current_position:
+            image_id_list.append(
+                {"image_id": "misc/warning_icon.png", "x_offset": 0.75}
+            )
+        return image_id_list
+    elif actor.actor_type == "mob":
+        return [{"image_id": "misc/actor_backgrounds/mob_background.png", "level": -10}]
+    elif actor.actor_type == "tile":
+        return []
 
 
 def generate_tile_image_id_list(cell, force_visibility=False):
@@ -159,7 +177,7 @@ def generate_tile_image_id_list(cell, force_visibility=False):
         string/dict list: Generated image id list
     """
     return (
-        [generate_background_image_input_dict()]
+        generate_background_image_id_list()
         + cell.tile.get_image_id_list(force_visibility=force_visibility)
         + ["misc/tile_outline.png"]
     )

@@ -223,8 +223,6 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.BANNER_LABEL: actor_display_labels.banner,
             constants.FREE_IMAGE: images.free_image,
             constants.ACTOR_DISPLAY_FREE_IMAGE: actor_display_images.actor_display_free_image,
-            constants.MOB_BACKGROUND_IMAGE: actor_display_images.mob_background_image,
-            constants.MINISTER_BACKGROUND_IMAGE: actor_display_images.minister_background_image,
             constants.LABEL_IMAGE: actor_display_images.label_image,
             constants.BACKGROUND_IMAGE: images.background_image,
             constants.TOOLTIP_FREE_IMAGE: images.tooltip_free_image,

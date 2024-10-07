@@ -75,6 +75,7 @@ except Exception:  # Displays error message and records error message in crash l
 
 # Upcoming work queue:
 # Use terrain, space, or empty selection background based on unit/minister location
+#     Use action_utility.generate_background_image_id_list
 # Add spaceships images
 # Add astronauts/cosmonauts group with corresponding officer
 # Allow vehicles to be crewed by groups instead of workers
@@ -91,6 +92,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Add new autofill interface for vehicle passengers, and possibly building work crews
 # Modify vehicle classes to fit more with unit_type system - should not have their own permissions, especially can_swim and can_walk
 # Look into caching surface objects for faster rendering, and render during loading before needed
+# Convert actor_type ("tile", "mob", "minister") to use constant keys
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>

@@ -100,16 +100,18 @@ class combat(action.action):
         return_list = super().generate_attached_interface_elements(subject)
         if subject == "dice":
             return_list = []
-            background_dict = action_utility.generate_background_image_input_dict()
+            background_image_id_list = (
+                action_utility.generate_background_image_id_list()
+            )
             pmob_image_id_list = (
-                [background_dict]
+                background_image_id_list
                 + self.current_unit.get_image_id_list()
-                + ["misc/pmob_outline.png"]
+                + ["misc/actor_backgrounds/pmob_outline.png"]
             )
             npmob_image_id_list = (
-                [background_dict]
+                background_image_id_list
                 + self.opponent.get_image_id_list()
-                + ["misc/npmob_outline.png"]
+                + ["misc/actor_backgrounds/npmob_outline.png"]
             )
 
             image_size = 120

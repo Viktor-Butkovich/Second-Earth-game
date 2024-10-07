@@ -954,7 +954,9 @@ class background_image(free_image):
         Output:
             None
         """
-        input_dict["image_id"] = input_dict.get("image_id", "misc/background.png")
+        input_dict["image_id"] = input_dict.get(
+            "image_id", "misc/screen_backgrounds/background.png"
+        )
         self.default_image_id = input_dict["image_id"]
         input_dict["coordinates"] = (0, 0)
         input_dict["width"] = constants.display_width
@@ -1409,7 +1411,7 @@ class dice_roll_minister_image(tooltip_free_image):
                     "image_id"
                 ] = f"ministers/icons/{self.attached_minister.current_position.skill_type}.png"
             else:
-                input_dict["image_id"] = "misc/mob_background.png"
+                input_dict["image_id"] = "misc/actor_backgrounds/mob_background.png"
         self.minister_message_image = input_dict.get("minister_message_image", False)
         super().__init__(input_dict)
         self.to_front = True
