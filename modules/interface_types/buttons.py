@@ -13,7 +13,7 @@ from ..util import (
     game_transitions,
     minister_utility,
 )
-from ..constructs import equipment_types
+from ..constructs import equipment_types, minister_types
 from . import interface_elements
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -1993,20 +1993,27 @@ class minister_portrait_image(button):
         Output:
             None
         """
-        self.default_image_id = "ministers/empty_portrait.png"
+        self.background_image_id = []
+        self.empty_image_id = []
         self.current_minister = None
-        input_dict["image_id"] = self.default_image_id
+        input_dict["image_id"] = self.empty_image_id
         super().__init__(input_dict)
         self.insert_collection_above()
-        self.minister_type = input_dict[
+        self.minister_type: minister_types.minister_type = input_dict[
             "minister_type"
         ]  # Position, like Minister of Space minister_type object
-        if not self.minister_type:  # If available minister portrait
+        if self.minister_type:
+            self.background_image_id.append(
+                f"ministers/icons/{self.minister_type.key}.png"
+            )
+            self.empty_image_id.append(f"ministers/icons/{self.minister_type.key}.png")
+            warning_x_offset = 0
+        else:  # If available minister portrait
+            self.background_image_id.append("misc/empty.png")
+            self.empty_image_id.append("ministers/empty_portrait.png")
             if constants.MINISTERS_MODE in self.modes:
                 status.available_minister_portrait_list.append(self)
             warning_x_offset = scaling.scale_width(-100)
-        else:
-            warning_x_offset = 0
         status.minister_image_list.append(self)
 
         self.warning_image = constants.actor_creation_manager.create_interface_element(
@@ -2056,19 +2063,16 @@ class minister_portrait_image(button):
             self.showing and constants.current_game_mode == constants.MINISTERS_MODE
         ):  # Draw outline around portrait if minister selected
             showing = True
-            if self.current_minister:
+            if (
+                status.displayed_minister
+                and status.displayed_minister == self.current_minister
+                and flags.show_selection_outlines
+            ):
                 pygame.draw.rect(
-                    constants.game_display, constants.color_dict["white"], self.Rect
-                )  # draw white background
-                if (
-                    status.displayed_minister == self.current_minister
-                    and flags.show_selection_outlines
-                ):
-                    pygame.draw.rect(
-                        constants.game_display,
-                        constants.color_dict["bright green"],
-                        self.outline,
-                    )
+                    constants.game_display,
+                    constants.color_dict["bright green"],
+                    self.outline,
+                )
         super().draw(
             allow_show_outline=(constants.current_game_mode == constants.MINISTERS_MODE)
         )  # Show outline for selection icons on ministers mode but not the overlapping ones on strategic mode
@@ -2137,7 +2141,8 @@ class minister_portrait_image(button):
             self.tooltip_text = new_minister.tooltip_text
             if constants.MINISTERS_MODE in self.modes:
                 self.image.set_image(
-                    new_minister.image_id
+                    self.background_image_id
+                    + new_minister.image_id
                     + actor_utility.generate_label_image_id(new_minister.get_f_lname())
                 )
             else:
@@ -2152,7 +2157,7 @@ class minister_portrait_image(button):
                     f"No {self.minister_type.name} is currently appointed.",
                     f"Without a {self.minister_type.name}, {self.minister_type.skill_type.replace('_', ' ')}-oriented actions are not possible",
                 ]
-            self.image.set_image(self.default_image_id)
+            self.image.set_image(self.empty_image_id)
         else:  # If minister icon on strategic mode, no need to show empty minister
             self.image.set_image("misc/empty.png")
         self.current_minister = new_minister

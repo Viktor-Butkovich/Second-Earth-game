@@ -47,6 +47,7 @@ except Exception:  # Displays error message and records error message in crash l
 
 #
 #   New SE features:
+# Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
 # Add new colors for soil mapmode - gray to dark brown
 # Add label icons for names of minister offices on ministers screen - possible add to SFA as well
@@ -74,8 +75,6 @@ except Exception:  # Displays error message and records error message in crash l
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
-# Use terrain, space, or empty selection background based on unit/minister location
-#     Use action_utility.generate_background_image_id_list
 # Add spaceships images
 # Add astronauts/cosmonauts group with corresponding officer
 # Allow vehicles to be crewed by groups instead of workers

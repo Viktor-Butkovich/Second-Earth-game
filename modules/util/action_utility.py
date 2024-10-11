@@ -145,10 +145,15 @@ def generate_background_image_id_list(actor=None) -> list:
     Output:
         list: Returns the created image id list
     """
-    if not actor:
-        return [{"image_id": "misc/actor_backgrounds/mob_background.png", "level": -10}]
     image_id_list = []
-    if actor.actor_type == "minister":
+    if not actor:
+        image_id_list.append(
+            {
+                "image_id": "misc/actor_backgrounds/mob_background.png",
+                "level": constants.BACKGROUND_LEVEL,
+            }
+        )
+    elif actor.actor_type == "minister":
         if not actor.current_position:
             image_id_list.append("misc/actor_backgrounds/mob_background.png")
         else:
@@ -159,11 +164,24 @@ def generate_background_image_id_list(actor=None) -> list:
             image_id_list.append(
                 {"image_id": "misc/warning_icon.png", "x_offset": 0.75}
             )
-        return image_id_list
     elif actor.actor_type == "mob":
-        return [{"image_id": "misc/actor_backgrounds/mob_background.png", "level": -10}]
+        if actor.get_permission(constants.SPACESHIP_PERMISSION):
+            image_id_list.append(
+                {
+                    "image_id": "misc/actor_backgrounds/space_background.png",
+                    "level": constants.BACKGROUND_LEVEL,
+                }
+            )
+        else:
+            image_id_list.append(
+                {
+                    "image_id": "misc/actor_backgrounds/mob_background.png",
+                    "level": constants.BACKGROUND_LEVEL,
+                }
+            )
     elif actor.actor_type == "tile":
-        return []
+        pass
+    return image_id_list
 
 
 def generate_tile_image_id_list(cell, force_visibility=False):

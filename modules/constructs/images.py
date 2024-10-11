@@ -1493,9 +1493,7 @@ class minister_type_image(tooltip_free_image):
             )
         if current_minister_type:
             self.tooltip_text = current_minister_type.get_description()
-            image_id_list = [
-                "ministers/icons/" + current_minister_type.skill_type + ".png"
-            ]
+            image_id_list = [f"ministers/icons/{current_minister_type.skill_type}.png"]
             self.set_image(image_id_list)
         self.update_image_bundle()
 
