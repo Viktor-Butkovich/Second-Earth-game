@@ -75,6 +75,7 @@ except Exception:  # Displays error message and records error message in crash l
 #   Construction -> Energy (power plants, energy infrastructure)
 
 # Upcoming work queue:
+# Add updated minister backgrounds (engineers, soldiers, etc.)
 # Add spaceships images
 # Add astronauts/cosmonauts group with corresponding officer
 # Allow vehicles to be crewed by groups instead of workers

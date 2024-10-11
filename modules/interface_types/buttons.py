@@ -2003,10 +2003,8 @@ class minister_portrait_image(button):
             "minister_type"
         ]  # Position, like Minister of Space minister_type object
         if self.minister_type:
-            self.background_image_id.append(
-                f"ministers/icons/{self.minister_type.key}.png"
-            )
-            self.empty_image_id.append(f"ministers/icons/{self.minister_type.key}.png")
+            self.background_image_id.append("misc/empty.png")
+            self.empty_image_id.append("ministers/empty_portrait.png")
             warning_x_offset = 0
         else:  # If available minister portrait
             self.background_image_id.append("misc/empty.png")
