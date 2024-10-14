@@ -41,12 +41,6 @@ class minister:
         self.actor_type = "minister"  # used for actor display labels and images
         status.minister_list.append(self)
         self.tooltip_text: List[str] = []
-        status_number_dict: Dict[int, str] = {
-            1: "low",
-            2: "moderate",
-            3: "high",
-            4: "very high",
-        }
         if from_save:
             self.first_name: str = input_dict["first_name"]
             self.last_name: str = input_dict["last_name"]
@@ -57,8 +51,12 @@ class minister:
                 status.minister_types.get(input_dict["current_position_key"], None)
             )
             self.background: str = input_dict["background"]
-            self.status_number: int = constants.background_status_dict[self.background]
-            self.status: str = status_number_dict[self.status_number]
+            self.status_number: int = constants.character_manager.get_status_number(
+                self.background
+            )
+            self.status: str = constants.social_status_description_dict[
+                self.status_number
+            ]
             self.personal_savings: float = input_dict["personal_savings"]
             self.general_skill: int = input_dict["general_skill"]
             self.specific_skills: Dict[str, int] = input_dict["specific_skills"]
@@ -89,7 +87,15 @@ class minister:
             else:
                 status.available_minister_list.append(self)
         else:
-            self.background: str = random.choice(constants.weighted_backgrounds)
+            self.background: str = (
+                constants.character_manager.generate_weighted_background()
+            )
+            self.status_number: int = constants.character_manager.get_status_number(
+                self.background
+            )
+            self.status: str = constants.social_status_description_dict[
+                self.status_number
+            ]
             self.first_name: str
             self.last_name: str
             self.ethnicity: str = constants.character_manager.generate_ethnicity()
@@ -101,8 +107,6 @@ class minister:
                 self.ethnicity, self.masculine
             )
             self.name = self.first_name + " " + self.last_name
-            self.status_number: int = constants.background_status_dict[self.background]
-            self.status: str = status_number_dict[self.status_number]
             self.personal_savings: float = 5 ** (
                 self.status_number - 1
             ) + random.randrange(
@@ -659,24 +663,15 @@ class minister:
         self.specific_skills = {}
         self.apparent_skills = {}
         self.apparent_skill_descriptions = {}
-        background_skill = random.choice(
-            constants.background_skills_dict[self.background]
+        background_skills = constants.character_manager.generate_skill_modifiers(
+            self.background
         )
-        if background_skill == "random":
-            background_skill = random.choice(constants.skill_types)
         for key, current_minister_type in status.minister_types.items():
-            self.specific_skills[current_minister_type.skill_type] = random.randrange(
-                0, 4
-            )  # 0-3
-            if (
-                current_minister_type.skill_type == background_skill
-                and (
-                    self.specific_skills[current_minister_type.skill_type]
-                    + self.general_skill
-                )
-                < 6
-            ):
-                self.specific_skills[current_minister_type.skill_type] += 1
+            self.specific_skills[current_minister_type.skill_type] = min(
+                random.randrange(0, 4)
+                + background_skills[current_minister_type.skill_type],
+                6 - self.general_skill,
+            )
             if constants.effect_manager.effect_active("transparent_ministers"):
                 self.set_apparent_skill(
                     current_minister_type.skill_type,
@@ -774,7 +769,9 @@ class minister:
         Output:
             None
         """
-        self.corruption = random.randrange(1, 7)  # 1-6
+        self.corruption = random.randrange(
+            1, 7
+        ) + constants.character_manager.generate_corruption_modifier(self.background)
         self.corruption_threshold = (
             10 - self.corruption
         )  # minimum roll on D6 required for corruption to occur

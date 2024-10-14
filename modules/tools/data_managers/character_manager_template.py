@@ -25,6 +25,99 @@ class character_manager_template:
         """
         self.demographics_setup()
         self.appearances_setup()
+        self.backgrounds_setup()
+
+    def backgrounds_setup(self) -> None:
+        """
+        Description:
+            Reads in possible character backgrounds
+        Input:
+            None
+        Output:
+            None
+        """
+        with open("configuration/character_backgrounds.json") as active_file:
+            self.backgrounds_dict: Dict[str, any] = json.load(active_file)
+
+    def generate_weighted_background(self) -> str:
+        """
+        Description:
+            Generates a random background for a character, weighted by background frequencty
+        Input:
+            None
+        Output:
+            string: Returns background for a character
+        """
+        return random.choices(
+            [background for background in self.backgrounds_dict],
+            [details["weight"] for details in self.backgrounds_dict.values()],
+            k=1,
+        )[0]
+
+    def get_status_number(self, background: str) -> int:
+        """
+        Description:
+            Returns the social status of a background
+        Input:
+            string background: Background to check
+        Output:
+            int: Returns social status of background
+        """
+        return self.backgrounds_dict[background]["status"]
+
+    def generate_skill_modifiers(self, background: str) -> Dict[str, int]:
+        """
+        Description:
+            Generates random skill modifiers for a character based on their background
+        Input:
+            string background: Background to generate stat modifiers for
+        Output:
+            dictionary: Returns skill modifiers for a character, in the format
+                {
+                    "space": 0,
+                    "industry": 1,
+                    ...
+                    "energy": -1,
+                }
+        """
+        stat_modifiers = {}
+        for skill in constants.skill_types:
+            stat_modifiers[skill] = 0
+        for skill, modifier in self.backgrounds_dict[background]["skills"].items():
+            num_modifiers = abs(modifier)
+            multiplier = 1
+            if modifier != num_modifiers:
+                multiplier = -1
+            if skill == "random":  # If random, apply each point to a random skill
+                for _ in range(num_modifiers):
+                    stat_modifiers[
+                        random.choice(constants.skill_types)
+                    ] += multiplier * random.randrange(0, 2)
+            else:  # If not random, apply 1 modifier for each of the background's point in the stat
+                if not skill in constants.skill_types:
+                    raise ValueError(
+                        f"Within configuration/character_backgrounds.json[background], {skill} is not a valid skill type."
+                    )
+                stat_modifiers[skill] += sum(
+                    [random.randrange(0, 2) * multiplier for _ in range(num_modifiers)]
+                )
+        return stat_modifiers
+
+    def generate_corruption_modifier(self, background: str) -> int:
+        """
+        Description:
+            Generates a random corruption modifier for a character based on their background
+        Input:
+            string background: Background to generate corruption modifier for
+        Output:
+            int: Returns corruption modifier for a character
+        """
+        modifier = self.backgrounds_dict[background].get("corruption", 0)
+        num_modifiers = abs(modifier)
+        multiplier = 1
+        if modifier != num_modifiers:
+            multiplier = -1
+        return sum([multiplier * random.randrange(0, 2) for _ in range(num_modifiers)])
 
     def appearances_setup(self) -> None:
         """

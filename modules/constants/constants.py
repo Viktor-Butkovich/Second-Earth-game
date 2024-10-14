@@ -538,67 +538,13 @@ INDUSTRY_SKILL = "industry"
 TRANSPORTATION_SKILL = "transportation"
 SECURITY_SKILL = "security"
 
-weighted_backgrounds: List[str] = [
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "banker",
-    "merchant",
-    "lawyer",
-    "industrialist",
-    "industrialist",
-    "industrialist",
-    "industrialist",
-    "industrialist",
-    "industrialist",
-    "natural scientist",
-    "doctor",
-    "politician",
-    "politician",
-    "army officer",
-    "naval officer",
-]
-background_status_dict: Dict[str, int] = {
-    "lowborn": 1,
-    "banker": 2,
-    "merchant": 2,
-    "lawyer": 2,
-    "army officer": 2,
-    "naval officer": 2,
-    "priest": 2,
-    "preacher": 2,
-    "natural scientist": 2,
-    "doctor": 2,
-    "industrialist": 3,
-    "aristocrat": 3,
-    "politician": 3,
-    "business magnate": 4,
-    "royal heir": 4,
+social_status_description_dict: Dict[int, str] = {
+    1: "low",
+    2: "moderate",
+    3: "high",
+    4: "very high",
 }
-background_skills_dict: Dict[str, List[str]] = {
-    "lowborn": [None],
-    "banker": [TERRAN_AFFAIRS_SKILL],
-    "merchant": [TERRAN_AFFAIRS_SKILL],
-    "lawyer": [SECURITY_SKILL],
-    "army officer": [SPACE_SKILL],
-    "naval officer": [TRANSPORTATION_SKILL],
-    "priest": [TERRAN_AFFAIRS_SKILL],
-    "preacher": [TERRAN_AFFAIRS_SKILL],
-    "natural scientist": [SCIENCE_SKILL],
-    "doctor": ["random"],
-    "industrialist": [INDUSTRY_SKILL, TRANSPORTATION_SKILL],
-    "aristocrat": [None, "random"],
-    "politician": [None, "random"],
-    "business magnate": [INDUSTRY_SKILL, TRANSPORTATION_SKILL],
-    "royal heir": [None, "random"],
-}
+
 skill_types: List[str] = []
 minister_skill_to_description_dict: List[List[str]] = [
     ["unknown"],

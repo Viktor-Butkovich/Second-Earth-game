@@ -1,0 +1,18 @@
+{
+    "politician": {
+        "weight": 5,
+        "status": 3,
+        "skills": {
+            "random": 1
+        },
+        "corruption": 1
+    },
+    "astronaut": {
+        "weight": 10,
+        "status": 3,
+        "skills": {
+            "space": 2,
+            "random": 1
+        }
+    }
+}

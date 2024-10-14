@@ -466,7 +466,7 @@ class actor_display_label(label):
                 utility.capitalize(
                     self.actor_label_type.removesuffix("_label")
                     .removeprefix("minister_")
-                    .replace("_", "")
+                    .replace("_", " ")
                 )
                 + ": "
             )
