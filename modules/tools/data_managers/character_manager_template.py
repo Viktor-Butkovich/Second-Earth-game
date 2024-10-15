@@ -96,7 +96,7 @@ class character_manager_template:
             else:  # If not random, apply 1 modifier for each of the background's point in the stat
                 if not skill in constants.skill_types:
                     raise ValueError(
-                        f"Within configuration/character_backgrounds.json[background], {skill} is not a valid skill type."
+                        f"Within configuration/character_backgrounds.json[{background}], {skill} is not a valid skill type."
                     )
                 stat_modifiers[skill] += sum(
                     [random.randrange(0, 2) * multiplier for _ in range(num_modifiers)]

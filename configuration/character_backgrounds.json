@@ -1,18 +1,426 @@
 {
-    "politician": {
-        "weight": 5,
+    "philanthropist": {
+        "weight": 1,
+        "status": 4,
+        "skills": {
+            "random": -1,
+            "terran_affairs": 2
+        }
+    },
+    "business magnate": {
+        "weight": 1,
+        "status": 4,
+        "skills": {
+            "random": -1,
+            "terran_affairs": 2
+        }
+    },
+    "celebrity": {
+        "weight": 1,
+        "status": 4,
+        "skills": {
+            "random": -1,
+            "terran_affairs": 2
+        }
+    },
+    "war hero": {
+        "weight": 1,
         "status": 3,
         "skills": {
-            "random": 1
+            "random": 1,
+            "security": 1,
+            "space": 1,
+            "transportation": 1
+        }
+    },
+    "influencer": {
+        "weight": 1,
+        "status": 3,
+        "skills": {
+            "random": -1,
+            "terran_affairs": 2
+        }
+    },
+    "politician": {
+        "weight": 9,
+        "status": 3,
+        "skills": {
+            "random": -2,
+            "terran_affairs": 2
         },
         "corruption": 1
     },
-    "astronaut": {
-        "weight": 10,
+    "executive": {
+        "weight": 9,
         "status": 3,
         "skills": {
+            "random": -1,
+            "terran_affairs": 2
+        },
+        "corruption": 1
+    },
+    "businessperson": {
+        "weight": 9,
+        "status": 2,
+        "skills": {
+            "random": -2,
+            "terran_affairs": 2
+        }
+    },
+    "astronaut": {
+        "weight": 24,
+        "status": 3,
+        "skills": {
+            "random": 2,
+            "transportation": 1,
+            "space": 2
+        },
+        "corruption": -1
+    },
+    "biologist": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "science": 2,
+            "ecology": 2
+        }
+    },
+    "xeno-biologist": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "science": 1,
+            "ecology": 3
+        }
+    },
+    "chemist": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "science": 2,
+            "industry": 1,
+            "ecology": 1
+        }
+    },
+    "geologist": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "science": 2,
+            "industry": 1,
+            "ecology": 1
+        }
+    },
+    "exo-geologist": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "science": 1,
+            "industry": 1,
+            "ecology": 2
+        }
+    },
+    "physicist": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "science": 2,
+            "space": 1,
+            "energy": 1
+        }
+    },
+    "astronomer": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "science": 2,
+            "space": 2
+        }
+    },
+    "professor": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "science": 2,
+            "random": 2
+        }
+    },
+    "physician": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "science": 2,
+            "ecology": 2
+        }
+    },
+    "chemical engineer": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "industry": 2,
+            "ecology": 1
+        }
+    },
+    "civil engineer": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "transportation": 2,
+            "industry": 2
+        }
+    },
+    "mechanical engineer": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "transportation": 1,
+            "industry": 2
+        }
+    },
+    "aerospace engineer": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "random": 1,
             "space": 2,
+            "transportation": 1
+        }
+    },
+    "computer engineer": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "energy": 1,
+            "industry": 1,
+            "security": 1,
             "random": 1
+        }
+    },
+    "electrical engineer": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "energy": 2,
+            "industry": 1,
+            "random": 1
+        }
+    },
+    "nuclear engineer": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "energy": 2,
+            "industry": 1,
+            "random": 1
+        }
+    },
+    "computer scientist": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "science": 1,
+            "security": 1,
+            "random": 2
+        }
+    },
+    "software developer": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "security": 1,
+            "random": 3
+        }
+    },
+    "economist": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "terran_affairs": 2
+        }
+    },
+    "soldier": {
+        "weight": 6,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "security": 1,
+            "space": 1,
+            "transportation": 1
+        }
+    },
+    "sailor": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "security": 1,
+            "transportation": 2
+        }
+    },
+    "marine": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "security": 1,
+            "space": 1,
+            "transportation": 1
+        }
+    },
+    "pilot": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "space": 1,
+            "transportation": 2
+        }
+    },
+    "police officer": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "security": 2,
+            "random": 1
+        }
+    },
+    "firefighter": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "security": 1,
+            "ecology": 1,
+            "random": 1
+        }
+    },
+    "inspector": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "security": 1,
+            "ecology": 1,
+            "random": 1
+        }
+    },
+    "teacher": {
+        "weight": 4,
+        "status": 2,
+        "skills": {
+            "random": 2,
+            "terran_affairs": 1
+        }
+    },
+    "artist": {
+        "weight": 1,
+        "status": 2,
+        "skills": {
+            "random": 2
+        }
+    },
+    "sociologist": {
+        "weight": 1,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "terran_affairs": 1
+        }
+    },
+    "author": {
+        "weight": 1,
+        "status": 2,
+        "skills": {
+            "random": 2
+        }
+    },
+    "secret agent": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "security": 4,
+            "random": 2
+        },
+        "corruption": 2
+    },
+    "nurse": {
+        "weight": 2,
+        "status": 1,
+        "skills": {
+            "random": 2,
+            "ecology": 1
+        }
+    },
+    "cashier": {
+        "weight": 2,
+        "status": 1,
+        "skills": {
+            "terran_affairs": 1,
+            "random": 2
+        }
+    },
+    "janitor": {
+        "weight": 2,
+        "status": 1,
+        "skills": {
+            "security": 1,
+            "random": 2
+        }
+    },
+    "cook": {
+        "weight": 2,
+        "status": 1,
+        "skills": {
+            "random": 3
+        }
+    },
+    "waiter": {
+        "weight": 2,
+        "status": 1,
+        "skills": {
+            "random": 3
+        }
+    },
+    "farmer": {
+        "weight": 2,
+        "status": 1,
+        "skills": {
+            "random": 2,
+            "ecology": 1
+        }
+    },
+    "laborer": {
+        "weight": 2,
+        "status": 1,
+        "skills": {
+            "random": 1,
+            "industry": 2
+        }
+    },
+    "factory worker": {
+        "weight": 2,
+        "status": 1,
+        "skills": {
+            "random": 1,
+            "industry": 2
+        }
+    },
+    "secretary": {
+        "weight": 2,
+        "status": 1,
+        "skills": {
+            "random": 1,
+            "security": 2
+        }
+    },
+    "mechanic": {
+        "weight": 2,
+        "status": 1,
+        "skills": {
+            "random": 1,
+            "industry": 1,
+            "transportation": 1
         }
     }
 }

@@ -81,6 +81,8 @@ except Exception:  # Displays error message and records error message in crash l
         Work-crew style buildings, which can extract resources, convert between 2 resources, spend use resources to gain some functionality
         Specialized buildings, including space elevator, plasma torus, teleoperation center, etc.
         Infrastructure
+            Note - to create networks, calculating a minimal spanning tree could minimize total distances required (suggest most efficient road structure?)
+                Cormen et al., Chapter 21
 3. Add new unit types, such as astronauts/cosmonauts (allow crewing spaceship)
 4. Add new minister backgrounds
 5. Add new spaceship images
