@@ -3471,8 +3471,9 @@ def minister_interface():
 
     # minister info labels setup
     for current_actor_label_type in [
-        constants.MINISTER_NAME_LABEL,
         constants.MINISTER_OFFICE_LABEL,
+        constants.MINISTER_NAME_LABEL,
+        constants.MINISTER_ETHNICITY_LABEL,
         constants.MINISTER_BACKGROUND_LABEL,
         constants.MINISTER_SOCIAL_STATUS_LABEL,
         constants.MINISTER_INTERESTS_LABEL,
@@ -3497,7 +3498,11 @@ def minister_interface():
             constants.INDUSTRY_SKILL_LABEL,
             constants.TRANSPORTATION_SKILL_LABEL,
             constants.SECURITY_SKILL_LABEL,
+            constants.MINISTER_SOCIAL_STATUS_LABEL,
         ]:
+            # try displacing everything except office?
+            x_displacement = 50
+        elif current_actor_label_type != constants.MINISTER_OFFICE_LABEL:
             x_displacement = 25
         else:
             x_displacement = 0

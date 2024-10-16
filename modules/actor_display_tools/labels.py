@@ -457,6 +457,7 @@ class actor_display_label(label):
             constants.MINISTER_NAME_LABEL,
             constants.MINISTER_BACKGROUND_LABEL,
             constants.MINISTER_SOCIAL_STATUS_LABEL,
+            constants.MINISTER_ETHNICITY_LABEL,
             constants.MINISTER_OFFICE_LABEL,
             constants.MINISTER_INTERESTS_LABEL,
             constants.MINISTER_LOYALTY_LABEL,
@@ -656,13 +657,19 @@ class actor_display_label(label):
             )
             self.set_tooltip(tooltip_text)
 
+        elif self.actor_label_type == constants.MINISTER_ETHNICITY_LABEL:
+            tooltip_text = [self.message]
+            tooltip_text.append(
+                "A minister's ethnicity influences their name and appearance"
+            )
+
         elif self.actor_label_type == constants.MINISTER_SOCIAL_STATUS_LABEL:
             tooltip_text = [self.message]
             tooltip_text.append(
-                "A minister's social status determines their power independent of your company."
+                "A minister's background determines their social status, reflecting their power within society"
             )
             tooltip_text.append(
-                "A minister of higher social status has a much greater ability to either help your company when your goals align, or fight back should they ever diverge"
+                "Ministers with higher social status tend to be more influential, with the power and resources to help or hinder your cause"
             )
             self.set_tooltip(tooltip_text)
 
@@ -1009,6 +1016,9 @@ class actor_display_label(label):
 
             elif self.actor_label_type == constants.MINISTER_SOCIAL_STATUS_LABEL:
                 self.set_label(self.message_start + new_actor.status)
+
+            elif self.actor_label_type == constants.MINISTER_ETHNICITY_LABEL:
+                self.set_label(self.message_start + new_actor.ethnicity)
 
             elif self.actor_label_type == constants.MINISTER_INTERESTS_LABEL:
                 self.set_label(

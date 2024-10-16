@@ -160,9 +160,9 @@ class minister:
             self.tooltip_text.append(
                 f"This is {self.name}, an available minister candidate."
             )
-        self.tooltip_text.append(f"Background: {self.background}")
-        self.tooltip_text.append(f"Social status: {self.status}")
         self.tooltip_text.append(f"Ethnicity: {self.ethnicity}")
+        self.tooltip_text.append(f"Background: {self.background}")
+        self.tooltip_text.append(f"    Social status: {self.status}")
         self.tooltip_text.append(
             f"Interests: {self.interests[0].replace('_', ' ')}, {self.interests[1].replace('_', ' ')}"
         )

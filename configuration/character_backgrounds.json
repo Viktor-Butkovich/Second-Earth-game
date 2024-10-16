@@ -5,7 +5,8 @@
         "skills": {
             "random": -1,
             "terran_affairs": 2
-        }
+        },
+        "corruption": -1
     },
     "business magnate": {
         "weight": 1,
@@ -13,7 +14,8 @@
         "skills": {
             "random": -1,
             "terran_affairs": 2
-        }
+        },
+        "corruption": 1
     },
     "celebrity": {
         "weight": 1,
@@ -42,7 +44,7 @@
         }
     },
     "politician": {
-        "weight": 9,
+        "weight": 6,
         "status": 3,
         "skills": {
             "random": -2,
@@ -50,8 +52,17 @@
         },
         "corruption": 1
     },
+    "government official": {
+        "weight": 6,
+        "status": 3,
+        "skills": {
+            "random": 4,
+            "terran_affairs": 1
+        },
+        "corruption": 1
+    },
     "executive": {
-        "weight": 9,
+        "weight": 6,
         "status": 3,
         "skills": {
             "random": -1,
@@ -60,15 +71,16 @@
         "corruption": 1
     },
     "businessperson": {
-        "weight": 9,
+        "weight": 6,
         "status": 2,
         "skills": {
             "random": -2,
             "terran_affairs": 2
-        }
+        },
+        "corruption": 1
     },
     "astronaut": {
-        "weight": 24,
+        "weight": 18,
         "status": 3,
         "skills": {
             "random": 2,
@@ -94,7 +106,7 @@
         }
     },
     "chemist": {
-        "weight": 3,
+        "weight": 4,
         "status": 2,
         "skills": {
             "science": 2,
@@ -121,7 +133,7 @@
         }
     },
     "physicist": {
-        "weight": 3,
+        "weight": 4,
         "status": 2,
         "skills": {
             "science": 2,
@@ -130,7 +142,7 @@
         }
     },
     "astronomer": {
-        "weight": 3,
+        "weight": 4,
         "status": 2,
         "skills": {
             "science": 2,
@@ -138,7 +150,7 @@
         }
     },
     "professor": {
-        "weight": 3,
+        "weight": 4,
         "status": 2,
         "skills": {
             "science": 2,
@@ -146,7 +158,7 @@
         }
     },
     "physician": {
-        "weight": 3,
+        "weight": 4,
         "status": 2,
         "skills": {
             "science": 2,
@@ -154,7 +166,7 @@
         }
     },
     "chemical engineer": {
-        "weight": 3,
+        "weight": 4,
         "status": 2,
         "skills": {
             "random": 1,
@@ -163,7 +175,7 @@
         }
     },
     "civil engineer": {
-        "weight": 3,
+        "weight": 4,
         "status": 2,
         "skills": {
             "transportation": 2,
@@ -171,7 +183,7 @@
         }
     },
     "mechanical engineer": {
-        "weight": 3,
+        "weight": 4,
         "status": 2,
         "skills": {
             "random": 1,
@@ -180,7 +192,7 @@
         }
     },
     "aerospace engineer": {
-        "weight": 3,
+        "weight": 4,
         "status": 2,
         "skills": {
             "random": 1,
@@ -189,7 +201,7 @@
         }
     },
     "computer engineer": {
-        "weight": 3,
+        "weight": 4,
         "status": 2,
         "skills": {
             "energy": 1,
@@ -199,7 +211,7 @@
         }
     },
     "electrical engineer": {
-        "weight": 3,
+        "weight": 4,
         "status": 2,
         "skills": {
             "energy": 2,
@@ -208,7 +220,7 @@
         }
     },
     "nuclear engineer": {
-        "weight": 3,
+        "weight": 4,
         "status": 2,
         "skills": {
             "energy": 2,
@@ -217,7 +229,7 @@
         }
     },
     "computer scientist": {
-        "weight": 3,
+        "weight": 4,
         "status": 2,
         "skills": {
             "science": 1,
@@ -226,7 +238,7 @@
         }
     },
     "software developer": {
-        "weight": 3,
+        "weight": 4,
         "status": 2,
         "skills": {
             "security": 1,
@@ -280,7 +292,7 @@
         }
     },
     "police officer": {
-        "weight": 3,
+        "weight": 2,
         "status": 2,
         "skills": {
             "security": 2,
@@ -288,7 +300,7 @@
         }
     },
     "firefighter": {
-        "weight": 3,
+        "weight": 1,
         "status": 2,
         "skills": {
             "security": 1,
@@ -306,7 +318,7 @@
         }
     },
     "teacher": {
-        "weight": 4,
+        "weight": 2,
         "status": 2,
         "skills": {
             "random": 2,
@@ -345,7 +357,7 @@
         "corruption": 2
     },
     "nurse": {
-        "weight": 2,
+        "weight": 1,
         "status": 1,
         "skills": {
             "random": 2,
@@ -353,7 +365,7 @@
         }
     },
     "cashier": {
-        "weight": 2,
+        "weight": 1,
         "status": 1,
         "skills": {
             "terran_affairs": 1,
@@ -361,7 +373,7 @@
         }
     },
     "janitor": {
-        "weight": 2,
+        "weight": 1,
         "status": 1,
         "skills": {
             "security": 1,
@@ -369,21 +381,21 @@
         }
     },
     "cook": {
-        "weight": 2,
+        "weight": 1,
         "status": 1,
         "skills": {
             "random": 3
         }
     },
     "waiter": {
-        "weight": 2,
+        "weight": 1,
         "status": 1,
         "skills": {
             "random": 3
         }
     },
     "farmer": {
-        "weight": 2,
+        "weight": 1,
         "status": 1,
         "skills": {
             "random": 2,
@@ -391,7 +403,7 @@
         }
     },
     "laborer": {
-        "weight": 2,
+        "weight": 1,
         "status": 1,
         "skills": {
             "random": 1,
@@ -399,7 +411,7 @@
         }
     },
     "factory worker": {
-        "weight": 2,
+        "weight": 1,
         "status": 1,
         "skills": {
             "random": 1,
@@ -407,7 +419,7 @@
         }
     },
     "secretary": {
-        "weight": 2,
+        "weight": 1,
         "status": 1,
         "skills": {
             "random": 1,
@@ -415,7 +427,7 @@
         }
     },
     "mechanic": {
-        "weight": 2,
+        "weight": 1,
         "status": 1,
         "skills": {
             "random": 1,
