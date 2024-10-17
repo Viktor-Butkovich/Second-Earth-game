@@ -1235,9 +1235,9 @@ class appoint_minister_button(button):
         """
         if main_loop_utility.action_possible():
             appointed_minister = status.displayed_minister
+            appointed_minister.appoint(self.appoint_type)
             if not appointed_minister.just_removed:
                 appointed_minister.respond("first hired")
-            appointed_minister.appoint(self.appoint_type)
         else:
             text_utility.print_to_screen("You are busy and cannot appoint a minister.")
 

@@ -126,7 +126,8 @@ except Exception:  # Displays error message and records error message in crash l
 #   basic planetary construction, 3 ~ for titanium, carbon fiber, advanced modern-day materials, spaceships, etc., 4+ for more advanced
 
 # Upcoming work queue:
-# Add updated minister backgrounds (engineers, soldiers, etc.)
+# Add Slavic names
+# Add more retired messages for ministers
 # Add spaceships images
 # Add astronauts/cosmonauts group with corresponding officer
 # Allow vehicles to be crewed by groups instead of workers

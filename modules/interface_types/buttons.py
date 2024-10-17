@@ -2141,7 +2141,9 @@ class minister_portrait_image(button):
                 self.image.set_image(
                     self.background_image_id
                     + new_minister.image_id
-                    + actor_utility.generate_label_image_id(new_minister.get_f_lname())
+                    + actor_utility.generate_label_image_id(
+                        new_minister.get_f_lname(use_prefix=True)
+                    )
                 )
             else:
                 self.image.set_image(new_minister.image_id)

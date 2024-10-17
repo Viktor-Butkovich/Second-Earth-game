@@ -23,7 +23,9 @@
         "skills": {
             "random": -1,
             "terran_affairs": 2
-        }
+        },
+        "prefix_chance": 0.08333333333333333,
+        "prefixes": ["Dr."]
     },
     "war hero": {
         "weight": 1,
@@ -33,7 +35,9 @@
             "security": 1,
             "space": 1,
             "transportation": 1
-        }
+        },
+        "prefix_chance": 1,
+        "prefixes": ["Gen.", "Lt. Gen.", "Maj. Gen.", "Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."]
     },
     "influencer": {
         "weight": 1,
@@ -59,22 +63,15 @@
             "random": 4,
             "terran_affairs": 1
         },
-        "corruption": 1
+        "corruption": 1,
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Gen.", "Lt. Gen.", "Maj. Gen.", "Adm.", "Vice Adm.", "Rear Adm."]
     },
     "executive": {
         "weight": 6,
         "status": 3,
         "skills": {
             "random": -1,
-            "terran_affairs": 2
-        },
-        "corruption": 1
-    },
-    "businessperson": {
-        "weight": 6,
-        "status": 2,
-        "skills": {
-            "random": -2,
             "terran_affairs": 2
         },
         "corruption": 1
@@ -87,7 +84,18 @@
             "transportation": 1,
             "space": 2
         },
-        "corruption": -1
+        "corruption": -1,
+        "prefix_chance": 0.5,
+        "prefixes": ["Dr.", "Dr.", "Dr.", "Lt. Gen.", "Maj. Gen.", "Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."]
+    },
+    "businessperson": {
+        "weight": 6,
+        "status": 2,
+        "skills": {
+            "random": -2,
+            "terran_affairs": 2
+        },
+        "corruption": 1
     },
     "biologist": {
         "weight": 2,
@@ -95,7 +103,9 @@
         "skills": {
             "science": 2,
             "ecology": 2
-        }
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
     },
     "xeno-biologist": {
         "weight": 2,
@@ -103,7 +113,9 @@
         "skills": {
             "science": 1,
             "ecology": 3
-        }
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
     },
     "chemist": {
         "weight": 4,
@@ -112,7 +124,9 @@
             "science": 2,
             "industry": 1,
             "ecology": 1
-        }
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
     },
     "geologist": {
         "weight": 2,
@@ -121,7 +135,9 @@
             "science": 2,
             "industry": 1,
             "ecology": 1
-        }
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
     },
     "exo-geologist": {
         "weight": 2,
@@ -130,7 +146,9 @@
             "science": 1,
             "industry": 1,
             "ecology": 2
-        }
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
     },
     "physicist": {
         "weight": 4,
@@ -139,7 +157,9 @@
             "science": 2,
             "space": 1,
             "energy": 1
-        }
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
     },
     "astronomer": {
         "weight": 4,
@@ -147,7 +167,9 @@
         "skills": {
             "science": 2,
             "space": 2
-        }
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
     },
     "professor": {
         "weight": 4,
@@ -155,7 +177,9 @@
         "skills": {
             "science": 2,
             "random": 2
-        }
+        },
+        "prefix_chance": 1,
+        "prefixes": ["Dr."]
     },
     "physician": {
         "weight": 4,
@@ -163,7 +187,9 @@
         "skills": {
             "science": 2,
             "ecology": 2
-        }
+        },
+        "prefix_chance": 1,
+        "prefixes": ["Dr."]
     },
     "chemical engineer": {
         "weight": 4,
@@ -172,7 +198,9 @@
             "random": 1,
             "industry": 2,
             "ecology": 1
-        }
+        },
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Dr."]
     },
     "civil engineer": {
         "weight": 4,
@@ -180,7 +208,9 @@
         "skills": {
             "transportation": 2,
             "industry": 2
-        }
+        },
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Dr."]
     },
     "mechanical engineer": {
         "weight": 4,
@@ -189,7 +219,9 @@
             "random": 1,
             "transportation": 1,
             "industry": 2
-        }
+        },
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Dr."]
     },
     "aerospace engineer": {
         "weight": 4,
@@ -198,7 +230,9 @@
             "random": 1,
             "space": 2,
             "transportation": 1
-        }
+        },
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Dr."]
     },
     "computer engineer": {
         "weight": 4,
@@ -208,7 +242,9 @@
             "industry": 1,
             "security": 1,
             "random": 1
-        }
+        },
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Dr."]
     },
     "electrical engineer": {
         "weight": 4,
@@ -217,7 +253,9 @@
             "energy": 2,
             "industry": 1,
             "random": 1
-        }
+        },
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Dr."]
     },
     "nuclear engineer": {
         "weight": 4,
@@ -226,7 +264,9 @@
             "energy": 2,
             "industry": 1,
             "random": 1
-        }
+        },
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Dr."]
     },
     "computer scientist": {
         "weight": 4,
@@ -235,7 +275,9 @@
             "science": 1,
             "security": 1,
             "random": 2
-        }
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
     },
     "software developer": {
         "weight": 4,
@@ -251,7 +293,9 @@
         "skills": {
             "random": 1,
             "terran_affairs": 2
-        }
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
     },
     "soldier": {
         "weight": 6,
@@ -261,7 +305,9 @@
             "security": 1,
             "space": 1,
             "transportation": 1
-        }
+        },
+        "prefix_chance": 1,
+        "prefixes": ["Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."]
     },
     "sailor": {
         "weight": 2,
@@ -270,7 +316,9 @@
             "random": 1,
             "security": 1,
             "transportation": 2
-        }
+        },
+        "prefix_chance": 1,
+        "prefixes": ["Cdre.", "Capt.", "Comm.", "Lt. Comm.", "Lt.", "Ens."]
     },
     "marine": {
         "weight": 2,
@@ -280,7 +328,9 @@
             "security": 1,
             "space": 1,
             "transportation": 1
-        }
+        },
+        "prefix_chance": 1,
+        "prefixes": ["Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."]
     },
     "pilot": {
         "weight": 2,
@@ -289,7 +339,9 @@
             "random": 1,
             "space": 1,
             "transportation": 2
-        }
+        },
+        "prefix_chance": 1,
+        "prefixes": ["Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."]
     },
     "police officer": {
         "weight": 2,
@@ -338,7 +390,9 @@
         "skills": {
             "random": 1,
             "terran_affairs": 1
-        }
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
     },
     "author": {
         "weight": 1,

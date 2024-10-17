@@ -119,6 +119,23 @@ class character_manager_template:
             multiplier = -1
         return sum([multiplier * random.randrange(0, 2) for _ in range(num_modifiers)])
 
+    def generate_prefix(self, background: str, masculine: bool) -> str:
+        """
+        Description:
+            Generates a random prefix, like Dr., for a character based on their background
+        Input:
+            string background: Background to generate prefix for
+            bool masculine: Whether the character is masculine or feminine
+        Output:
+            string: Returns prefix for a character
+        """
+        if random.random() < self.backgrounds_dict[background].get("prefix_chance", 0):
+            return random.choice(self.backgrounds_dict[background]["prefixes"])
+        elif masculine:
+            return "Mr."
+        else:
+            return random.choice(["Ms.", "Mrs."])
+
     def appearances_setup(self) -> None:
         """
         Description:

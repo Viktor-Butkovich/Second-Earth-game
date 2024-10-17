@@ -47,6 +47,7 @@ class minister:
             self.name: str = self.first_name + " " + self.last_name
             self.ethnicity: str = input_dict["ethnicity"]
             self.masculine: bool = input_dict["masculine"]
+            self.prefix: str = input_dict["prefix"]
             self.current_position: minister_types.minister_type = (
                 status.minister_types.get(input_dict["current_position_key"], None)
             )
@@ -100,6 +101,9 @@ class minister:
             self.last_name: str
             self.ethnicity: str = constants.character_manager.generate_ethnicity()
             self.masculine: bool = random.choice([True, False])
+            self.prefix: str = constants.character_manager.generate_prefix(
+                self.background, self.masculine
+            )
             (
                 self.first_name,
                 self.last_name,
@@ -131,7 +135,7 @@ class minister:
         self.stolen_already: bool = False
         self.update_tooltip()
 
-    def get_f_lname(self):
+    def get_f_lname(self, use_prefix=False):
         """
         Description:
             Returns this minister's name in the form [first initial] [last name]
@@ -140,7 +144,10 @@ class minister:
         Output:
             str: Returns this minister's name in the form [first initial] [last name]
         """
-        return self.first_name[0] + ". " + self.last_name
+        if use_prefix:
+            return f"{self.prefix} {self.last_name}"
+        else:
+            return f"{self.first_name[0]}. {self.last_name}"
 
     def update_tooltip(self):
         """
@@ -1080,70 +1087,72 @@ class minister:
         audio = None
         public_opinion_change = 0
 
-        if self.status_number >= 3:
-            if self.background == "politician":
-                third_party = ["the media", "the prime minister", "Parliament"]
-            elif self.background in ["industrialist", "business magnate"]:
-                third_party = ["the business community", "my investors", "my friends"]
-            else:  # royal heir or aristocrat
-                third_party = ["my family", "my cousins", "the nobility"]
-
         if event == "first hired":
             if self.status_number >= 3:
                 public_opinion_change = self.status_number + random.randrange(-1, 2)
                 if self.status_number == 4:
                     public_opinion_change += 6
+            elif self.status_number == 1:
+                public_opinion_change = -1
             text += "From: " + self.name + " /n /n"
             intro_options = [
-                "You have my greatest thanks for appointing me to your cabinet. ",
-                "Honored governor, my gratitude knows no limits. ",
-                "Finally, a chance to bring glory to our empire! ",
+                f"It is with great pleasure that I accept your offer to be {self.current_position.name}. ",
+                f"It is with great pleasure that I accept this appointment. ",
+                f"It is with great pleasure that I accept the appointment to {self.current_position.name}. ",
             ]
-            text += random.choice(intro_options)
-
-            middle_options = [
-                "I shall ensure my duties are completed with the utmost precision and haste. ",
-                "I will never betray you, I swear. ",
-                "Nothing will keep us from completing our divine mission. ",
+            intro_options_2 = [
+                f"I consider it a privilege to be able to work with your team. "
+                f"I consider it a privilege to be invited as {self.current_position.name}. ",
+                f"Thank you for offering me the position of {self.current_position.name}. ",
             ]
-            text += random.choice(middle_options)
-
-            if self.status_number >= 3:
-                conclusion_options = [
-                    "I'll make sure to put a good word in with "
-                    + random.choice(third_party)
-                    + " about you.",
-                    "I'm sure "
-                    + random.choice(third_party)
-                    + " would enjoy hearing about this wise decision.",
-                    "Perhaps I could pull some strings with "
-                    + random.choice(third_party)
-                    + " to help repay you?",
-                ]
-                text += random.choice(conclusion_options)
-                text += (
-                    " /n /n /nYou have gained "
-                    + str(public_opinion_change)
-                    + " public opinion. /n /n"
-                )
-
+            intro_options_3 = [
+                f"I am pleased to accept your offer and look forward to working as soon as possible. ",
+                f"I am pleased to accept this offer and look forward to joining as soon as possible. ",
+            ]
+            if random.randrange(1, 7) >= 4:
+                text += random.choice(intro_options)
             else:
-                heres_to_options = ["victory", "conquest", "glory"]
-                conclusion_options = [
-                    "Please send the other ministers my regards - I look forward to working with them. ",
-                    "Here's to " + random.choice(heres_to_options) + "!",
-                    "We're going to make a lot of money together! ",
-                ]
-                text += random.choice(conclusion_options) + " /n /n /n"
+                text += random.choice(intro_options_2) + random.choice(intro_options_3)
 
-            if self.status_number == 1:
-                public_opinion_change = -1
-                text += "While lowborn can easily be removed should they prove incompetent or disloyal, it reflects poorly on the company to appoint them as ministers. /n /n"
-                text += (
-                    "You have lost "
-                    + str(-1 * public_opinion_change)
-                    + " public opinion. /n /n"
-                )
+            extra_options = []
+            if self.background in ["philanthropist", "business magnate", "executive"]:
+                extra_options = [
+                    f"I'm sure the business community will approve of this decision. ",
+                    f"I'm sure my investors will be pleased with this appointment. ",
+                    f"As we both know, this will be a very lucrative partnership. ",
+                    f"I will leverage my connections on Earth to ensure our success. ",
+                ]
+            elif self.background in ["government official", "politician"]:
+                extra_options = [
+                    f"I'm sure I could help you with any political matters you need. ",
+                    f"You've made a good choice in appointing me to your cabinet. ",
+                    f"It will take someone with experience to navigate the political waters. ",
+                    f"It will take someone with experience to make our new society. ",
+                ]
+            elif self.background == "celebrity":
+                extra_options = [
+                    f"I'm sure my fans will be thrilled to hear about this. ",
+                    f"I'll make sure my fans on Earth support us. ",
+                    f"My followers on Earth will be thrilled to hear about this. ",
+                ]
+            if extra_options:
+                text += random.choice(extra_options)
+
+            conclusion_options = [
+                f"If you require any other information, please let me know.",
+                f"Please let me know if you need any further information.",
+                f"If you need any further information, please let me know.",
+                f"If you have any other questions, feel free to reach out.",
+                f"If you have any other questions, you can reach out to me.",
+                f"If you have any other questions, you know how to contact me.",
+            ]
+            if random.randrange(1, 7) >= 2:
+                text += "/n /n" + random.choice(conclusion_options)
+            if self.status_number >= 3:
+                text += f" /n /n /nYou have gained {public_opinion_change} public opinion. /n /n"
+            elif self.status_number <= 1:
+                text += f"While less qualified candidates can very capable, the public may question this appointment. "
+                text += f"/n /n /nYou have lost {abs(public_opinion_change)} public opinion. /n /n"
             audio = self.get_voice_line("hired")
 
         elif event == "fired":
@@ -1154,95 +1163,54 @@ class minister:
             constants.evil_tracker.change(1)
             text += "From: " + self.name + " /n /n"
             intro_options = [
-                "How far our empire has fallen... ",
-                "You have made a very foolish decision in firing me. ",
-                "I was just about to retire, and you had to do this? ",
-                "I was your best minister - you're all doomed without me. ",
+                f"I can't help but feel that this is completely unjustified. ",
+                f"I fail to see how this decision benefits anyone. ",
+                f"This seems to be a very poor decision on your part. ",
+                f"Terminating me would put this entire operation in jeopardy. ",
+                f"I strongly suggest that you reconsider your choice of terminating me.",
+            ]
+            middle_options = []
+            if self.background in ["philanthropist", "business magnate", "executive"]:
+                f"My investors will not be pleased with this decision. ",
+                f"My assets on Earth are no longer at your disposal. ",
+                f"I will make sure that the business community knows about this. ",
+            elif self.background in ["government official", "politician"]:
+                f"I will make sure that the public knows about this. ",
+                f"Unilateral actions like this do not go unpunished. ",
+                f"I think you may find your support waning in the coming days. ",
+                f"Think of the poor example we are setting for the people on Earth. ",
+            elif self.background == "celebrity":
+                f"I will make sure that my fans know about this. ",
+                f"I think you may find your support waning in the coming days. ",
+                f"Think of the poor example we are setting for the people on Earth. ",
+            conclusion_options = [
+                f"If you change your mind, you know where to find me.",
+                f"This is not the last time you'll see me.",
+                f"This is not the last time you'll hear from me.",
+                f"I wish you luck in your future endeavors.",
+                f"I hope that this does not negatively affect our new society.",
             ]
             text += random.choice(intro_options)
-
-            if self.background == "royal heir":
-                family_members = [
-                    "father",
-                    "mother",
-                    "father",
-                    "mother",
-                    "uncle",
-                    "aunt",
-                    "brother",
-                    "sister",
-                ]
-                threats = [
-                    "killed",
-                    "executed",
-                    "decapitated",
-                    "thrown in jail",
-                    "banished",
-                    "exiled",
-                ]
-                text += (
-                    "My "
-                    + random.choice(family_members)
-                    + " could have you "
-                    + random.choice(threats)
-                    + " for this. "
-                )
-            elif self.status_number >= 3:
-                warnings = [
-                    "You better be careful making enemies in high places, friend. ",
-                    "Parliament will cut your funding before you can even say 'bribe'. ",
-                    "You have no place in our empire, you greedy upstart. ",
-                    "Learn how to respect your betters - we're not savages. ",
-                ]
-                text += random.choice(warnings)
-            else:
-                warnings = [
-                    "Think of what will happen to the "
-                    + random.choice(constants.commodity_types)
-                    + " prices after the media hears about this! ",
-                    "You think you can kick me down from your palace in the clouds? ",
-                    "I'll make sure to tell all about those judges you bribed. ",
-                    "So many dead... what will be left of this land by the time you're done? ",
-                    "You'll burn in hell for this. ",
-                    "Watch your back, friend. ",
-                ]
-                text += random.choice(warnings)
-            text += (
-                " /n /n /nYou have lost "
-                + str(-1 * public_opinion_change)
-                + " public opinion. /n"
-            )
+            if middle_options:
+                text += random.choice(middle_options)
+            text += random.choice(conclusion_options)
+            text += f"/n /n /nYou have lost {abs(public_opinion_change)} public opinion. /n /n"
             text += self.name + " has been fired and removed from the game. /n /n"
             audio = self.get_voice_line("fired")
 
         elif event == "prison":
             text += "From: " + self.name + " /n /n"
-            if self.status_number >= 3:
-                intro_options = [
-                    "Do you know what we used to do to upstarts like you?",
-                    "This is nothing, "
-                    + random.choice(third_party)
-                    + " will get me out within days.",
-                    "You better be careful making enemies in high places, friend. ",
-                ]
-            else:
-                intro_options = [
-                    "I would've gotten away with it, too, if it weren't for that meddling prosecutor.",
-                    "Get off your high horse - we could have done great things together.",
-                    "How much money would it take to change your mind?",
-                ]
-            intro_options.append(
-                "Do you even know how many we killed? We all deserve this."
-            )
-            intro_options.append("I'm innocent, I swear!")
-            intro_options.append("You'll join me here soon: sic semper tyrannis.")
+            intro_options = [
+                f"We could have done great things together.",
+                f"I still fail to comprehend why you would do this.",
+                f"Our society will fall apart without me.",
+                f"I hope you know what you're doing.",
+                f"This is not the last you'll see of me.",
+                f"This is just another example of your hubris for even coming here.",
+            ]
 
             text += random.choice(intro_options)
-            text += " /n /n /n"
-            text += (
-                self.name
-                + " is now in prison and has been removed from the game. /n /n"
-            )
+            text += f" /n /n /n{self.name} is now in prison and has been removed from the game. /n /n"
             audio = self.get_voice_line("fired")
 
         elif event == "retirement":
@@ -1250,18 +1218,50 @@ class minister:
                 text = f"{self.name} no longer desires to be appointed as a minister and has left the pool of available minister appointees. /n /n"
             else:
                 if random.randrange(0, 100) < constants.evil:
-                    tone = "guilty"
+                    if random.randrange(1, 7) >= 4:
+                        tone = "weary"
+                    else:
+                        tone = "guilty"
                 else:
                     tone = "content"
 
                 if self.stolen_money >= 10.0 and random.randrange(1, 7) >= 4:
                     tone = "confession"
 
-                if tone == "guilty":
+                if tone == "weary":
+                    intro_options = [
+                        "I regret to inform you that I will be returning to Earth as soon as possible, and must step down. ",
+                        "I regret to inform you that my family and I will be returning to Earth as soon as possible, and I must step down. ",
+                        "I can't stay on this planet any longer. ",
+                        "I can't keep my family on this planet any longer. ",
+                        "I miss Earth too much - I can't stay with the colony any longer. ",
+                        "We miss Earth too much - I can't keep my family here any longer. ",
+                        "This planet is driving me mad - I must go back home. ",
+                        "This planet is driving us mad - I must take my family back home. ",
+                    ]
+                    middle_options = [
+                        "I hold no ill will towards your cause, and I hope you continue to survive and thrive here. ",
+                        "Maybe I will return one day, once this planet becomes a green paradise. ",
+                        "I truly think humans were never meant to set foot here, and that we were meant to stay on Earth. It will always be our home!",
+                        "This is no home for us - it's a death trap. We've been lying to ourselves this whole time! ",
+                        "We've been looking to the stars for as long as we can remember, but there is nothing for us out here. ",
+                    ]
+                    conclusion_options = [
+                        "If you want to go back home too, you'll always be welcome. ",
+                        "I just can't stand making sacrifice after sacrifice to stay here. ",
+                        "You've seen the others - they're all just as tired as I am, and I know you are too. Maybe it's time to go home. ",
+                        "You've seen the others - they're going to take this all from you the moment they get the chance. Be careful. ",
+                    ]
+                elif tone == "guilty":
                     intro_options = [
                         "I can't believe some of the things I saw here. ",
                         "What gave us the right to conquer this place? ",
                         "I see them every time I close my eyes - I can't keep doing this.",
+                        "God never would have wanted us to come here. ",
+                        "Our planet will never recover from what we've done, the changes we've made. ",
+                    ]
+                    middle_options = [
+                        "I can only hope that our people will live on, past this. ",
                     ]
                     middle_options = [
                         "I hear God weeping at the crimes we commit in His name.",
