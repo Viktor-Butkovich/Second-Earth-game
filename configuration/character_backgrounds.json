@@ -29,7 +29,7 @@
     },
     "war hero": {
         "weight": 1,
-        "status": 3,
+        "status": 4,
         "skills": {
             "random": 1,
             "security": 1,
@@ -37,7 +37,8 @@
             "transportation": 1
         },
         "prefix_chance": 1,
-        "prefixes": ["Gen.", "Lt. Gen.", "Maj. Gen.", "Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."]
+        "prefixes": ["Gen.", "Lt. Gen.", "Maj. Gen.", "Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."],
+        "outfit_type": "military"
     },
     "influencer": {
         "weight": 1,
@@ -86,7 +87,8 @@
         },
         "corruption": -1,
         "prefix_chance": 0.5,
-        "prefixes": ["Dr.", "Dr.", "Dr.", "Lt. Gen.", "Maj. Gen.", "Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."]
+        "prefixes": ["Dr.", "Dr.", "Dr.", "Lt. Gen.", "Maj. Gen.", "Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."],
+        "outfit_type": "military"
     },
     "businessperson": {
         "weight": 6,
@@ -307,7 +309,8 @@
             "transportation": 1
         },
         "prefix_chance": 1,
-        "prefixes": ["Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."]
+        "prefixes": ["Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."],
+        "outfit_type": "military"
     },
     "sailor": {
         "weight": 2,
@@ -318,7 +321,8 @@
             "transportation": 2
         },
         "prefix_chance": 1,
-        "prefixes": ["Cdre.", "Capt.", "Comm.", "Lt. Comm.", "Lt.", "Ens."]
+        "prefixes": ["Cdre.", "Capt.", "Comm.", "Lt. Comm.", "Lt.", "Ens."],
+        "outfit_type": "military"
     },
     "marine": {
         "weight": 2,
@@ -330,7 +334,8 @@
             "transportation": 1
         },
         "prefix_chance": 1,
-        "prefixes": ["Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."]
+        "prefixes": ["Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."],
+        "outfit_type": "military"
     },
     "pilot": {
         "weight": 2,
@@ -341,7 +346,8 @@
             "transportation": 2
         },
         "prefix_chance": 1,
-        "prefixes": ["Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."]
+        "prefixes": ["Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."],
+        "outfit_type": "military"
     },
     "police officer": {
         "weight": 2,

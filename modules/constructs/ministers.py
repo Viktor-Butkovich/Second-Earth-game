@@ -395,6 +395,7 @@ class minister:
                 'last_name': string value - This minister's last name
                 'current_position_key': string value - Constant key corresponding to office that that this minister is currently occupying, or None if no office occupied
                 'background': string value - Career background of minister, determines social status and skills
+                'prefix': string value - Prefix used before last name, such as Dr. or Ms.
                 'personal savings': double value - How much non-stolen money this minister has based on their social status
                 'general_skill': int value - Value from 1 to 3 that changes what is added to or subtracted from dice rolls
                 'specific_skills': dictionary value - String keys corresponding to int values to record skill values for each minister office
@@ -435,6 +436,7 @@ class minister:
         save_dict["fabricated_evidence"] = self.fabricated_evidence
         save_dict["just_removed"] = self.just_removed
         save_dict["background"] = self.background
+        save_dict["prefix"] = self.prefix
         save_dict["personal_savings"] = self.personal_savings
         save_dict["image_id_list"] = self.image_id_list
         save_dict["voice_set"] = self.voice_set
@@ -1098,16 +1100,17 @@ class minister:
             intro_options = [
                 f"It is with great pleasure that I accept your offer to be {self.current_position.name}. ",
                 f"It is with great pleasure that I accept this appointment. ",
-                f"It is with great pleasure that I accept the appointment to {self.current_position.name}. ",
+                f"It is with great pleasure that I accept my appointment as {self.current_position.name}. ",
             ]
             intro_options_2 = [
-                f"I consider it a privilege to be able to work with your team. "
+                f"I consider it a privilege to be able to work with your team. ",
                 f"I consider it a privilege to be invited as {self.current_position.name}. ",
                 f"Thank you for offering me the position of {self.current_position.name}. ",
             ]
             intro_options_3 = [
-                f"I am pleased to accept your offer and look forward to working as soon as possible. ",
-                f"I am pleased to accept this offer and look forward to joining as soon as possible. ",
+                f"I am pleased to accept your offer, and look forward to working as soon as possible. ",
+                f"I am pleased to accept this offer, and look forward to joining as soon as possible. ",
+                f"I accept this offer, and hope to be of great assistance. ",
             ]
             if random.randrange(1, 7) >= 4:
                 text += random.choice(intro_options)
@@ -1139,20 +1142,24 @@ class minister:
                 text += random.choice(extra_options)
 
             conclusion_options = [
-                f"If you require any other information, please let me know.",
-                f"Please let me know if you need any further information.",
-                f"If you need any further information, please let me know.",
-                f"If you have any other questions, feel free to reach out.",
-                f"If you have any other questions, you can reach out to me.",
-                f"If you have any other questions, you know how to contact me.",
+                f"If you require any other information, please let me know. ",
+                f"Please let me know if you need any further information. ",
+                f"If you need any further information, please let me know. ",
+                f"If you have any other questions, feel free to reach out. ",
+                f"If you have any other questions, you can reach out to me. ",
+                f"If you have any other questions, you know how to contact me. ",
             ]
             if random.randrange(1, 7) >= 2:
-                text += "/n /n" + random.choice(conclusion_options)
+                text += random.choice(conclusion_options)
             if self.status_number >= 3:
-                text += f" /n /n /nYou have gained {public_opinion_change} public opinion. /n /n"
+                text += f"/n /n /nYou have gained {public_opinion_change} public opinion. /n /n"
             elif self.status_number <= 1:
-                text += f"While less qualified candidates can very capable, the public may question this appointment. "
-                text += f"/n /n /nYou have lost {abs(public_opinion_change)} public opinion. /n /n"
+                text += f"/n /n /nWhile less qualified candidates can still be quite capable, the public may question this appointment. "
+                text += (
+                    f"You have lost {abs(public_opinion_change)} public opinion. /n /n"
+                )
+            else:
+                text += f"/n /n"
             audio = self.get_voice_line("hired")
 
         elif event == "fired":

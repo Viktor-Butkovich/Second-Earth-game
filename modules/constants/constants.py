@@ -400,7 +400,7 @@ resource_building_dict: Dict[str, str] = {
     "ivory": "camp",
     "rubber": "plantation",
 }
-minister_limit: int = 15
+minister_limit: int = 17
 
 worker_upkeep_increment: float = 0.25
 base_upgrade_price: float = 20.0  # 20 for 1st upgrade, 40 for 2nd, 80 for 3rd, etc.
@@ -478,6 +478,8 @@ map_modes: List[str] = [
     WATER,
     "magnetic",
 ]
+
+DEFAULT_MINISTER_OUTFIT_TYPE = "business"
 
 HAT_LEVEL: int = 6
 EYES_LEVEL: int = 2

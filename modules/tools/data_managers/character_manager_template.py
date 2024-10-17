@@ -24,8 +24,8 @@ class character_manager_template:
             None
         """
         self.demographics_setup()
-        self.appearances_setup()
         self.backgrounds_setup()
+        self.appearances_setup()
 
     def backgrounds_setup(self) -> None:
         """
@@ -38,6 +38,14 @@ class character_manager_template:
         """
         with open("configuration/character_backgrounds.json") as active_file:
             self.backgrounds_dict: Dict[str, any] = json.load(active_file)
+        self.outfit_types = list(
+            set(
+                [
+                    details.get("outfit_type", constants.DEFAULT_MINISTER_OUTFIT_TYPE)
+                    for details in self.backgrounds_dict.values()
+                ]
+            )
+        )
 
     def generate_weighted_background(self) -> str:
         """
@@ -217,9 +225,12 @@ class character_manager_template:
                 "ministers/portraits/base_skin/default.png", "feminine"
             ),
         }
-        self.hat_images: List[str] = actor_utility.get_image_variants(
-            "ministers/portraits/hat/default.png", "hat"
-        )
+
+        self.hat_images: Dict[List[str]] = {}
+        for outfit_type in self.outfit_types:
+            self.hat_images[outfit_type] = actor_utility.get_image_variants(
+                f"ministers/portraits/hat/{outfit_type}/default.png", outfit_type
+            )
 
         self.hair_images: Dict[bool, Dict[str, List[str]]] = {True: {}, False: {}}
         for hair_type in self.hair_types["types"]:
@@ -230,9 +241,12 @@ class character_manager_template:
                 f"ministers/portraits/hair/feminine/default.png", hair_type
             )
 
-        self.outfit_images: List[str] = actor_utility.get_image_variants(
-            "ministers/portraits/outfit/default.png", "outfit"
-        )
+        self.outfit_images: Dict[List[str]] = {}
+        for outfit_type in self.outfit_types:
+            self.outfit_images[outfit_type] = actor_utility.get_image_variants(
+                f"ministers/portraits/outfit/{outfit_type}/default.png", outfit_type
+            )
+
         self.facial_hair_images: List[str] = actor_utility.get_image_variants(
             f"ministers/portraits/facial_hair/default.png", "facial_hair"
         )
@@ -350,6 +364,18 @@ class character_manager_template:
             ethnicity = random.choices(
                 self.ethnic_groups, self.ethnic_group_weights, k=1
             )[0]
+
+        if not full_body:
+            if minister:
+                background = minister.background
+            else:
+                background = self.generate_weighted_background()
+            outfit_type = self.backgrounds_dict[background].get(
+                "outfit_type", constants.DEFAULT_MINISTER_OUTFIT_TYPE
+            )
+        else:  # If generating for unit - maybe determine here to use unit-specific outfit?
+            outfit_type = None
+
         if minister and hasattr(minister, "masculine"):
             masculine = minister.masculine
         else:
@@ -396,6 +422,7 @@ class character_manager_template:
                 "full_body": full_body,
                 "ethnicity": ethnicity,
                 "masculine": masculine,
+                "outfit_type": outfit_type,
             }
         )
 
@@ -454,7 +481,7 @@ class character_manager_template:
         """
         portrait_sections.append(
             {
-                "image_id": random.choice(self.outfit_images),
+                "image_id": random.choice(self.outfit_images[metadata["outfit_type"]]),
                 "green_screen": metadata["suit_colors"],
                 "metadata": {"portrait_section": "outfit"},
                 "level": constants.HAIR_LEVEL + random.choice([-1, 1]),
@@ -552,7 +579,10 @@ class character_manager_template:
                 }
             )
         if metadata["has_hat"]:
-            hat_images = self.hat_images
+            hat_images = self.hat_images.get(
+                metadata["outfit_type"],
+                self.hat_images[constants.DEFAULT_MINISTER_OUTFIT_TYPE],
+            )
         else:
             hat_images = ["misc/empty.png"]
         portrait_sections.append(
