@@ -163,7 +163,7 @@
         "prefix_chance": 0.8333333333333333,
         "prefixes": ["Dr."]
     },
-    "astronomer": {
+    "astrophysicist": {
         "weight": 4,
         "status": 2,
         "skills": {
