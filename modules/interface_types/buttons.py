@@ -470,8 +470,19 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.APPOINT_MINISTER_BUTTON:
             self.set_tooltip(["Appoints this candidate as " + self.appoint_type.name])
 
-        elif self.button_type == constants.REMOVE_MINISTER_BUTTON:
-            self.set_tooltip(["Removes this minister from their current office"])
+        elif self.button_type == constants.FIRE_MINISTER_BUTTON:
+            self.set_tooltip(
+                [
+                    "Fires this minister, incurring a public opinion penalty based on their social status",
+                ]
+            )
+        elif self.button_type == constants.REAPPOINT_MINISTER_BUTTON:
+            self.set_tooltip(
+                [
+                    "Removes this minister from their current office, allowing them to be reappointed",
+                    "If this minister is not reappointed by the end of the turn, they will be automatically fired",
+                ]
+            )
 
         elif self.button_type == constants.TO_TRIAL_BUTTON:
             self.set_tooltip(
@@ -1259,12 +1270,11 @@ class button(interface_elements.interface_element):
                     "You are busy and cannot disable sentry mode."
                 )
 
-        elif self.button_type == constants.CHOICE_CONFIRM_REMOVE_MINISTER:
-            removed_minister = status.displayed_minister
-            removed_minister.just_removed = True
-            removed_minister.appoint(None)
-            public_opinion_penalty = removed_minister.status_number
-            constants.public_opinion_tracker.change(-1 * public_opinion_penalty)
+        elif self.button_type == constants.CHOICE_CONFIRM_FIRE_MINISTER_BUTTON:
+            status.displayed_minister.appoint(None, update_display=False)
+            status.displayed_minister.respond("fired")
+            status.displayed_minister.remove_complete()
+            minister_utility.calibrate_minister_info_display(None)
 
         elif self.button_type == constants.GENERATE_CRASH_BUTTON:
             if constants.effect_manager.effect_active("enable_crash_button"):

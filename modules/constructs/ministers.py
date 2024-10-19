@@ -162,12 +162,10 @@ class minister:
         self.tooltip_text = []
         if self.current_position:
             self.tooltip_text.append(
-                f"This is {self.name}, your {self.current_position.name}."
+                f"Name: {self.name} ({self.current_position.name})"
             )
         else:
-            self.tooltip_text.append(
-                f"This is {self.name}, an available minister candidate."
-            )
+            self.tooltip_text.append(f"Name: {self.name}")
         self.tooltip_text.append(f"Ethnicity: {self.ethnicity}")
         self.tooltip_text.append(f"Background: {self.background}")
         self.tooltip_text.append(f"    Social status: {self.status}")
@@ -613,12 +611,13 @@ class minister:
         self.stolen_already = False
         return results
 
-    def appoint(self, new_position):
+    def appoint(self, new_position, update_display=True):
         """
         Description:
             Appoints this minister to a new office, putting it in control of relevant units. If the new position is None, removes the minister from their current office
         Input:
             string new_position: Office to appoint this minister to, like 'Minister of Trade'. If this equals None, fires this minister
+            bool update_display: Whether to update the display of available ministers
         Output:
             None
         """
@@ -634,25 +633,28 @@ class minister:
             status.available_minister_list = utility.remove_from_list(
                 status.available_minister_list, self
             )
-            if (
-                constants.available_minister_left_index
-                >= len(status.available_minister_list) - 3
-            ):
-                constants.available_minister_left_index = (
-                    len(status.available_minister_list) - 3
-                )  # Move available minister display up because available minister was removed
+            if update_display:
+                if (
+                    constants.available_minister_left_index
+                    >= len(status.available_minister_list) - 3
+                ):
+                    constants.available_minister_left_index = (
+                        len(status.available_minister_list) - 3
+                    )  # Move available minister display up because available minister was removed
         else:
             status.available_minister_list.append(self)
-            constants.available_minister_left_index = (
-                len(status.available_minister_list) - 3
-            )  # Move available minister display to newly fired minister
+            if update_display:
+                constants.available_minister_left_index = (
+                    len(status.available_minister_list) - 3
+                )  # Move available minister display to newly fired minister
+        if new_position:
+            for current_minister_type_image in status.minister_image_list:
+                if not current_minister_type_image.get_actor_type():
+                    if current_minister_type_image.minister_type == new_position:
+                        current_minister_type_image.calibrate(self)
 
-        for current_minister_type_image in status.minister_image_list:
-            if not current_minister_type_image.get_actor_type():
-                if current_minister_type_image.minister_type == new_position:
-                    current_minister_type_image.calibrate(self)
-
-        minister_utility.update_available_minister_display()
+        if update_display:
+            minister_utility.update_available_minister_display()
 
         minister_utility.calibrate_minister_info_display(self)  # Update minister label
 
@@ -1070,10 +1072,9 @@ class minister:
             self.current_position.on_remove()
             self.current_position = None
         status.minister_list = utility.remove_from_list(status.minister_list, self)
-        status.available_minister_list = utility.remove_from_list(
-            status.available_minister_list, self
-        )
-        minister_utility.update_available_minister_display()
+        if self in status.available_minister_list:
+            status.available_minister_list.remove(self)
+            minister_utility.update_available_minister_display()
 
     def respond(self, event):
         """
@@ -1190,11 +1191,11 @@ class minister:
                 f"I think you may find your support waning in the coming days. ",
                 f"Think of the poor example we are setting for the people on Earth. ",
             conclusion_options = [
-                f"If you change your mind, you know where to find me.",
-                f"This is not the last time you'll see me.",
-                f"This is not the last time you'll hear from me.",
-                f"I wish you luck in your future endeavors.",
-                f"I hope that this does not negatively affect our new society.",
+                f"If you change your mind, you know where to find me. ",
+                f"This is not the last time you'll see me. ",
+                f"This is not the last time you'll hear from me. ",
+                f"I wish you luck in your future endeavors. ",
+                f"I hope that this does not negatively affect our new society. ",
             ]
             text += random.choice(intro_options)
             if middle_options:

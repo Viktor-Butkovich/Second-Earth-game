@@ -9,6 +9,7 @@ from . import (
     utility,
     game_transitions,
     minister_utility,
+    main_loop_utility,
 )
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -64,6 +65,10 @@ def start_player_turn(first_turn=False):
     text_utility.print_to_screen("")
     text_utility.print_to_screen("Turn " + str(constants.turn + 1))
     if not first_turn:
+        constants.notification_manager.set_lock(
+            True
+        )  # Don't attempt to show notifications until all processing completed
+        main_loop_utility.update_display()
         for current_pmob in status.pmob_list:
             if current_pmob.get_permission(constants.VEHICLE_PERMISSION):
                 current_pmob.reembark()
@@ -83,6 +88,7 @@ def start_player_turn(first_turn=False):
         manage_financial_report()
         actor_utility.reset_action_prices()
         game_end_check()
+        constants.notification_manager.set_lock(False)
 
     flags.player_turn = (
         True  # player_turn also set to True in main_loop when enemies done moving
@@ -434,84 +440,88 @@ def manage_ministers():
     Output:
         None
     """
-    removed_ministers = []
-    for current_minister in status.minister_list:
-        removing_current_minister = False
+    for current_minister in status.minister_list.copy():
         if current_minister.just_removed and not current_minister.current_position:
             current_minister.respond("fired")
-            removing_current_minister = True
+            current_minister.remove_complete()
+    for current_minister in status.minister_list.copy():
+        if constants.effect_manager.effect_active(
+            "farm_upstate"
+        ):  # Retire all ministers
+            current_minister.respond("retirement")
+            current_minister.appoint(None)
+            current_minister.remove_complete()
         elif (
             current_minister.current_position == None
             and random.randrange(1, 7) == 1
             and random.randrange(1, 7) <= 2
-        ):
-            # 1/18 chance of switching out available ministers
-            removed_ministers.append(current_minister)
-        elif (
-            random.randrange(1, 7) == 1
-            and random.randrange(1, 7) <= 2
-            and random.randrange(1, 7) <= 2
-            and (
-                random.randrange(1, 7) <= 3 or constants.evil > random.randrange(0, 100)
-            )
-        ) or constants.effect_manager.effect_active("farm_upstate"):
-            removed_ministers.append(current_minister)
-        else:  # If not retired/fired
-            if (
-                random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1
-            ):  # 1/36 chance to increase relevant specific skill
-                current_minister.gain_experience()
-        current_minister.just_removed = False
-
-        if current_minister.fabricated_evidence > 0:
-            prosecutor = minister_utility.get_minister(constants.SECURITY_MINISTER)
-            if prosecutor.check_corruption():
-                # Corruption is normally resolved during a trial, but prosecutor can still steal money from unused fabricated evidence if no trial occurs
-                prosecutor.steal_money(
-                    trial_utility.get_fabricated_evidence_cost(
-                        current_minister.fabricated_evidence, True
-                    ),
-                    "fabricated_evidence",
-                )
-            text_utility.print_to_screen(
-                f"The {current_minister.fabricated_evidence} fabricated evidence against {current_minister.name} is no longer usable."
-            )
-            current_minister.corruption_evidence -= current_minister.fabricated_evidence
-            current_minister.fabricated_evidence = 0
-
-        evidence_lost = 0
-        for i in range(current_minister.corruption_evidence):
-            if random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1:
-                evidence_lost += 1
-        if evidence_lost > 0:
-            if not current_minister.current_position:
-                current_position = ""
-            else:
-                current_position = current_minister.current_position
-            if evidence_lost == current_minister.corruption_evidence:
-                current_minister.display_message(
-                    f"All of the {current_minister.corruption_evidence} evidence of {current_position.name} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against them. /n /n"
-                )
-            else:
-                current_minister.display_message(
-                    f"{evidence_lost} of the {current_minister.corruption_evidence} evidence of {current_position.name} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against them. /n /n"
-                )
-            current_minister.corruption_evidence -= evidence_lost
-        if removing_current_minister:
+        ):  # 1/18 chance of switching out available ministers
+            current_minister.respond("retirement")
             current_minister.remove_complete()
+        elif current_minister.current_position:
+            if (
+                random.randrange(1, 7) == 1
+                and random.randrange(1, 7) <= 2
+                and random.randrange(1, 7) <= 2
+                and (
+                    random.randrange(1, 7) <= 3
+                    or constants.evil > random.randrange(0, 100)
+                )
+            ):
+                current_minister.respond("retirement")
+                current_minister.appoint(None)
+                current_minister.remove_complete()
+            else:  # If remaining in office
+                if (
+                    random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1
+                ):  # Chance to gain experience
+                    current_minister.gain_experience()
+                current_minister.just_removed = False
+                if current_minister.fabricated_evidence > 0:
+                    prosecutor = minister_utility.get_minister(
+                        constants.SECURITY_MINISTER
+                    )
+                    if prosecutor.check_corruption():
+                        # Corruption is normally resolved during a trial, but prosecutor can still steal money from unused fabricated evidence if no trial occurs
+                        prosecutor.steal_money(
+                            trial_utility.get_fabricated_evidence_cost(
+                                current_minister.fabricated_evidence, True
+                            ),
+                            "fabricated_evidence",
+                        )
+                    text_utility.print_to_screen(
+                        f"The {current_minister.fabricated_evidence} fabricated evidence against {current_minister.name} is no longer usable."
+                    )
+                    current_minister.corruption_evidence -= (
+                        current_minister.fabricated_evidence
+                    )
+                    current_minister.fabricated_evidence = 0
+
+                    evidence_lost = sum(
+                        [
+                            int(
+                                random.randrange(1, 7) == 1
+                                and random.randrange(1, 7) == 1
+                            )
+                            for i in range(current_minister.corruption_evidence)
+                        ]
+                    )
+                    if evidence_lost > 0:
+                        if evidence_lost == current_minister.corruption_evidence:
+                            current_minister.display_message(
+                                f"All of the {current_minister.corruption_evidence} evidence of {current_minister.current_position.name} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against them. /n /n"
+                            )
+                        else:
+                            current_minister.display_message(
+                                f"{evidence_lost} of the {current_minister.corruption_evidence} evidence of {current_minister.current_position.name} {current_minister.name}'s corruption has lost potency over time and will no longer be usable in trials against them. /n /n"
+                            )
+                        current_minister.corruption_evidence -= evidence_lost
+
     if flags.prosecution_bribed_judge:
         text_utility.print_to_screen(
             "The effect of bribing the judge has faded and will not affect the next trial."
         )
     flags.prosecution_bribed_judge = False
-
-    while len(removed_ministers) > 0:
-        current_minister = removed_ministers.pop(0)
-        current_minister.respond("retirement")
-
-        if current_minister.current_position:
-            current_minister.appoint(None)
-        current_minister.remove_complete()
 
     if (
         len(status.minister_list) <= constants.minister_limit - 2
@@ -526,9 +536,7 @@ def manage_ministers():
                 "message": "Several new minister candidates are available for appointment and can be found in the candidate pool. /n /n",
             }
         )
-    first_roll = random.randrange(1, 7)
-    second_roll = random.randrange(1, 7)
-    if first_roll == 1 and second_roll <= 3:
+    if random.randrange(1, 7) == 1 and random.randrange(1, 7) <= 3:
         constants.fear_tracker.change(-1)
     manage_minister_rumors()
 

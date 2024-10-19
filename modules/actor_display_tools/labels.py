@@ -324,7 +324,11 @@ class actor_display_label(label):
 
         elif self.actor_label_type == constants.MINISTER_OFFICE_LABEL:
             self.message_start = "Office: "
-            input_dict["init_type"] = constants.REMOVE_MINISTER_BUTTON
+            input_dict["init_type"] = constants.FIRE_MINISTER_BUTTON
+            input_dict["image_id"] = "buttons/fire_minister_button.png"
+            self.add_attached_button(input_dict)
+            input_dict["init_type"] = constants.REAPPOINT_MINISTER_BUTTON
+            input_dict["image_id"] = "buttons/reappoint_minister_button.png"
             self.add_attached_button(input_dict)
             input_dict["init_type"] = constants.APPOINT_MINISTER_BUTTON
             input_dict["width"], input_dict["height"] = (s_size, s_size)

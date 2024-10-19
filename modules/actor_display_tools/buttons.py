@@ -1242,29 +1242,49 @@ class appoint_minister_button(button):
             text_utility.print_to_screen("You are busy and cannot appoint a minister.")
 
 
-class remove_minister_button(button):
+class reappoint_minister_button(button):
     """
-    Button that removes the selected minister from their current office
+    Button that removes the selected minister from their current office, allowing them to be reappointed
     """
 
-    def __init__(self, input_dict):
+    def can_show(self, skip_parent_collection=False):
         """
         Description:
-            Initializes this object
+            Returns whether this button should be drawn
         Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'width': int value - pixel width of this element
-                'height': int value - pixel height of this element
-                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
+            None
+        Output:
+            boolean: Returns same as superclass if the selected minister is currently in an office, otherwise returns False
+        """
+        return (
+            super().can_show(skip_parent_collection=skip_parent_collection)
+            and status.displayed_minister
+            and status.displayed_minister.current_position
+        )
+
+    def on_click(self):
+        """
+        Description:
+            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes the selected minister from their current office, returning them to the pool of available
+                ministers
+        Input:
+            None
         Output:
             None
         """
-        input_dict["modes"] = [constants.MINISTERS_MODE]
-        input_dict["image_id"] = "buttons/remove_minister_button.png"
-        super().__init__(input_dict)
+        if main_loop_utility.action_possible():
+            status.displayed_minister.just_removed = True
+            status.displayed_minister.appoint(None)
+        else:
+            text_utility.print_to_screen(
+                "You are busy and cannot reappoint a minister."
+            )
+
+
+class fire_minister_button(button):
+    """
+    Button that fires the selected minister
+    """
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -1294,23 +1314,20 @@ class remove_minister_button(button):
         if main_loop_utility.action_possible():
             appointed_minister = status.displayed_minister
             public_opinion_penalty = appointed_minister.status_number
-            text = f"Are you sure you want to remove {appointed_minister.name} from office? If removed, they will return to the pool of available ministers and be available to reappoint until the end of the turn. /n /n"
-            text += f"Removing {appointed_minister.name} from office would incur a small public opinion penalty of {public_opinion_penalty}, even if they were reappointed. /n /n"
-            text += (
-                appointed_minister.name
-                + " expects to be reappointed to a different position by the end of the turn. If not reappointed, they will be fired permanently and incur a much larger public opinion penalty. /n /n"
-            )
-            if appointed_minister.status_number >= 3:
-                if appointed_minister.status_number == 4:
-                    text += f"{appointed_minister.name} is of extremely high social status, so firing them would cause a national outrage. /n /n"
-                else:
-                    text += f"{appointed_minister.name} is of high social status, so firing them would reflect particularly poorly on your company. /n /n"
-            elif appointed_minister.status_number == 1:
-                text += f"{appointed_minister.name} is of low social status, so firing them would have a relatively minimal impact on your company's reputation. /n /n"
+            text = f"Are you sure you want to fire {appointed_minister.name}, your {appointed_minister.current_position.name}? /n /n"
+            text += f"This will incur a public opinion penalty: "
+            if appointed_minister.status_number >= 4:
+                text += f"{appointed_minister.name} is of very high social status, so firing them would cause widespread outrage. /n /n"
+            elif appointed_minister.status_number == 3:
+                text += f"{appointed_minister.name} is of high social status, so firing them would reflect particularly poorly on public opinion. /n /n"
+            elif appointed_minister.status_number == 2:
+                text += f"{appointed_minister.name} is of moderate social status, so firing them would have a modest impact on public opinion. /n /n"
+            elif appointed_minister.status_number <= 1:
+                text += f"{appointed_minister.name} is of low social status, so firing them would have a minimal impact on public opinion. /n /n"
             constants.notification_manager.display_notification(
                 {
                     "message": text,
-                    "choices": [constants.CHOICE_CONFIRM_REMOVE_MINISTER, None],
+                    "choices": [constants.CHOICE_CONFIRM_FIRE_MINISTER_BUTTON, None],
                 }
             )
         else:

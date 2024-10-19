@@ -2086,7 +2086,7 @@ def mob_interface():
         "width": scaling.scale_width(35),
         "height": scaling.scale_height(35),
         "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-        "image_id": "buttons/remove_minister_button.png",
+        "image_id": "buttons/fire_minister_button.png",
         "init_type": constants.FIRE_UNIT_BUTTON,
         "parent_collection": status.mob_info_display,
         "member_config": {"order_exempt": True},
