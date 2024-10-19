@@ -25,6 +25,7 @@ from modules.interface_types.buttons import (
     button,
     same_tile_icon,
     reorganize_unit_button,
+    minister_portrait_image,
 )
 from modules.interface_types.inventory_interface import item_icon
 from modules.interface_types.instructions import instructions_page
@@ -121,6 +122,7 @@ reorganize_group_left_button: reorganize_unit_button = None
 reorganize_group_right_button: reorganize_unit_button = None
 reorganize_vehicle_left_button: reorganize_unit_button = None
 reorganize_vehicle_right_button: reorganize_unit_button = None
+minister_loading_image: minister_portrait_image = None
 cursor_image: pygame.image = None
 next_boarded_vehicle: pmob = None
 text_box_destination: callable = None

@@ -134,6 +134,7 @@ class minister:
         minister_utility.update_available_minister_display()
         self.stolen_already: bool = False
         self.update_tooltip()
+        status.minister_loading_image.calibrate(self)  # Load in all images on creation
 
     def get_f_lname(self, use_prefix=False):
         """

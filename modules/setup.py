@@ -1768,6 +1768,20 @@ def ministers_screen():
         cycle_input_dict
     )
 
+    status.minister_loading_image = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "width": scaling.scale_width(portrait_icon_width),
+                "height": scaling.scale_height(portrait_icon_width),
+                "modes": [],
+                "init_type": constants.MINISTER_PORTRAIT_IMAGE,
+                "color": "gray",
+                "minister_type": None,
+            }
+        )
+    )
+
 
 def trial_screen():
     """

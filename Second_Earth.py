@@ -138,12 +138,10 @@ except Exception:  # Displays error message and records error message in crash l
 # Add radio distortion versions of voice lines, either as separate files or runtime filter
 # Add terrain details tile interface panel, such that terrain details aren't always showing
 # For tiles with knowledge 1, possibly change every turn to a cloud or normal pixellated version, depending on atmosphere conditions
-# Load in all minister portraits on minister creation, not when first viewed
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
 # Add new autofill interface for vehicle passengers, and possibly building work crews
 # Modify vehicle classes to fit more with unit_type system - should not have their own permissions, especially can_swim and can_walk
-# Look into caching surface objects for faster rendering, and render during loading before needed
 # Convert actor_type ("tile", "mob", "minister") to use constant keys
 #
 # Fix this rare crash
