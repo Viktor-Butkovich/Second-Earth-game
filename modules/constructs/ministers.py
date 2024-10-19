@@ -650,8 +650,6 @@ class minister:
             if not current_minister_type_image.get_actor_type():
                 if current_minister_type_image.minister_type == new_position:
                     current_minister_type_image.calibrate(self)
-                elif current_minister_type_image.minister_type == old_position:
-                    current_minister_type_image.calibrate(None)
 
         minister_utility.update_available_minister_display()
 

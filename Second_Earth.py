@@ -108,6 +108,7 @@ except Exception:  # Displays error message and records error message in crash l
 16. Add depositing/extracting gas/unpurified water to/from environment
 17. Add randomized special resources
 """
+# Find a way to load in all minister images on creating, rather than when first viewed - causing noticeable latency - populate rendered_images on creation
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
 # Add new colors for soil mapmode - gray to dark brown

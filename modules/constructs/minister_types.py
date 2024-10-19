@@ -76,3 +76,7 @@ class minister_type:
             None
         """
         minister_utility.set_minister(self.key, None)
+        for current_minister_type_image in status.minister_image_list:
+            if not current_minister_type_image.get_actor_type():
+                if current_minister_type_image.minister_type == self:
+                    current_minister_type_image.calibrate(None)

@@ -99,6 +99,23 @@
         },
         "corruption": 1
     },
+    "lawyer": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "terran_affairs": 1,
+            "security": 2
+        }
+    },
+    "religious leader": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "random": -1,
+            "terran_affairs": 2
+        }
+    },
     "biologist": {
         "weight": 2,
         "status": 2,
