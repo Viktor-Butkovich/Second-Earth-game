@@ -128,7 +128,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Add minister deaths - may occur in assassination, attrition, freak accidents, heroic sacrifices, etc.
 
 # Upcoming work queue:
-# Add spaceships images
 # Add astronauts/cosmonauts group with corresponding officer
 # Allow vehicles to be crewed by groups instead of workers
 # Add building type classes that each instance can belong to

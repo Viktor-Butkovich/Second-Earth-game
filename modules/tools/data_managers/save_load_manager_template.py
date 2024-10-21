@@ -231,7 +231,6 @@ class save_load_manager_template:
         Output:
             None
         """
-        status.rendered_images = {}
         flags.loading_save = True
 
         text_utility.print_to_screen("")
