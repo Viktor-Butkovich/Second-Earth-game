@@ -102,40 +102,6 @@ def generate_free_image_input_dict(image_id, default_size, override_input_dict=N
     return return_dict
 
 
-def generate_minister_portrait_input_dicts(coordinates, action):
-    """
-    Description:
-        Creates and returns the input dicts of a minister portrait/background pair created at the inputted coordinates for the inputted action
-    Input:
-        int tuple coordinates: Two values representing x and y coordinates for the pixel location of the elements
-        action action: Action for which portrait is being created
-    Output:
-        dictionary list: Returns the created input dicts
-    """
-
-    portrait_background_input_dict = {
-        "coordinates": (0, 0),
-        "width": scaling.scale_width(100),
-        "height": scaling.scale_height(100),
-        "modes": [constants.current_game_mode],
-        "attached_minister": action.current_unit.controlling_minister,
-        "minister_image_type": "position",
-        "init_type": constants.DICE_ROLL_MINISTER_IMAGE,
-    }
-
-    portrait_front_input_dict = {
-        "coordinates": (0, 0),
-        "width": scaling.scale_width(100),
-        "height": scaling.scale_height(100),
-        "modes": [constants.current_game_mode],
-        "attached_minister": action.self.current_unit.controlling_minister,
-        "minister_image_type": "portrait",
-        "init_type": constants.DICE_ROLL_MINISTER_IMAGE,
-        "member_config": {"order_overlap": True},
-    }
-    return [portrait_background_input_dict, portrait_front_input_dict]
-
-
 def generate_background_image_id_list(actor=None) -> list:
     """
     Description:

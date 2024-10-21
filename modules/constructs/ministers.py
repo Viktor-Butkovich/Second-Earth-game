@@ -228,6 +228,7 @@ class minister:
             ],
             "attached_minister": self,
             "minister_image_type": "position",
+            "minister_position_type": self.current_position,
             "init_type": constants.DICE_ROLL_MINISTER_IMAGE,
             "minister_message_image": True,
             "member_config": {
@@ -245,7 +246,7 @@ class minister:
         minister_portrait_icon_dict["minister_image_type"] = "portrait"
         return [minister_position_icon_dict, minister_portrait_icon_dict]
 
-    def display_message(self, text, audio=None, transfer=False):
+    def display_message(self, text, audio=None, transfer=False, on_remove=None):
         """
         Description:
             Displays a notification message from this minister with an attached portrait
@@ -253,6 +254,7 @@ class minister:
             string text: Message to display in notification
             string audio: Any audio to play with notification
             boolean transfer: Whether the minister icon should carry on to future notifications - should set to True for actions, False for misc. messages
+            function on_remove: Function to call when notification is removed
         Output:
             None
         """
@@ -261,11 +263,11 @@ class minister:
                 "message": text + "Click to remove this notification. /n /n",
                 "notification_type": constants.ACTION_NOTIFICATION,
                 "audio": audio,
-                "attached_minister": self,
                 "attached_interface_elements": self.generate_icon_input_dicts(
                     alignment="left"
                 ),
                 "transfer_interface_elements": transfer,
+                "on_remove": on_remove,
             }
         )
 
@@ -909,7 +911,7 @@ class minister:
             if rumor_type == "loyalty":
                 message += f"{self.apparent_corruption_description} loyalty"
             else:
-                message += f"{utility.generate_article(self.apparent_skill_descriptions[rumor_type])}  {self.apparent_skill_descriptions[rumor_type]} {rumor_type} ability"
+                message += f"{utility.generate_article(self.apparent_skill_descriptions[rumor_type])} {self.apparent_skill_descriptions[rumor_type]} {rumor_type.replace('_', ' ')} ability"
             message += ". /n /n"
             self.display_message(message)
 
@@ -1087,6 +1089,7 @@ class minister:
         """
         text = ""
         audio = None
+        on_remove = None
         public_opinion_change = 0
 
         if event == "first hired":
@@ -1300,7 +1303,7 @@ class minister:
                 text += "Their position will need to be filled by a replacement as soon as possible for your colony to continue operations. /n /n"
         constants.public_opinion_tracker.change(public_opinion_change)
         if text != "":
-            self.display_message(text, audio)
+            self.display_message(text, audio=audio, on_remove=on_remove)
 
     def get_voice_line(self, type):
         """

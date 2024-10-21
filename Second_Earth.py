@@ -128,7 +128,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Add minister deaths - may occur in assassination, attrition, freak accidents, heroic sacrifices, etc.
 
 # Upcoming work queue:
-# Modify retirement notification to include minister position background - maybe generate message before appointing to None
 # Add spaceships images
 # Add astronauts/cosmonauts group with corresponding officer
 # Allow vehicles to be crewed by groups instead of workers
