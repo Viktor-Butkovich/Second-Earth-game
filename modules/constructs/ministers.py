@@ -1225,10 +1225,7 @@ class minister:
                 text = f"{self.name} no longer desires to be appointed as a minister and has left the pool of available minister appointees. /n /n"
             else:
                 if random.randrange(0, 100) < constants.evil:
-                    if random.randrange(1, 7) >= 4:
-                        tone = "weary"
-                    else:
-                        tone = "guilty"
+                    tone = "weary"
                 else:
                     tone = "content"
 
@@ -1259,61 +1256,48 @@ class minister:
                         "You've seen the others - they're all just as tired as I am, and I know you are too. Maybe it's time to go home. ",
                         "You've seen the others - they're going to take this all from you the moment they get the chance. Be careful. ",
                     ]
-                elif tone == "guilty":
-                    intro_options = [
-                        "I can't believe some of the things I saw here. ",
-                        "What gave us the right to conquer this place? ",
-                        "I see them every time I close my eyes - I can't keep doing this.",
-                        "God never would have wanted us to come here. ",
-                        "Our planet will never recover from what we've done, the changes we've made. ",
-                    ]
-                    middle_options = [
-                        "I can only hope that our people will live on, past this. ",
-                    ]
-                    middle_options = [
-                        "I hear God weeping at the crimes we commit in His name.",
-                        "We sent so many young men to die just to fill our coffers. ",
-                    ]
-                    conclusion_options = [
-                        "I pray we will be forgiven for the things we've done, and you ought to do the same. ",
-                        "Was it all worth it? ",
-                        "I promise to never again set foot on this stolen continent. ",
-                    ]
                 elif tone == "content":
                     intro_options = [
                         "I'm sorry to say it, but I've gotten too old for this. ",
                         "This has been a pleasant journey, but life has greater opportunities planned for me. ",
-                        "Unfortunately, I can no longer work in your cabinet - I am needed back home. ",
+                        f"My health as been declining as of late, and while I would like to remain your {self.current_position.name}, I must step down for the common good. ",
+                        "Unfortunately, I can no longer work in your cabinet - I am taking another position within the colony. ",
+                        "I apologize for sharing such grave news - I've just been diagnosed with a terminal illness. I never thought it would end this way, but here we are. ",
+                        "You must have seen my sorry state in recent meetings - I am not long for this world. I need to set my affairs in order, then enjoy my last days here. I'm glad I at least had the chance to say goodbye. ",
                     ]
                     middle_options = [
-                        "Can you believe it, though? We singlehandedly civilized this place. ",
-                        "I wish I could stay. The thrill of adventure, the wonders I've seen here. It's like I was made for this. ",
-                        "Never has the world seen such glory as what we have brought here. ",
+                        "Can you believe it, though? We've made this new planet ours, from the ground up - a first for humanity. ",
+                        "Has any human ever done what we have done? Nothing will ever be the same. ",
+                        "I think the generations of the future will look back on us as the pioneers of a new age. ",
+                        "One day, our descendants will breathe in the fresh air, and remember how our leadership ushered in a golden age for all. ",
+                        "Humans were born on Earth, but we were never meant to die there. This was always our destiny to claim. ",
                     ]
                     conclusion_options = [
-                        "I trust you'll continue to champion the cause of our God and our empire. ",
-                        "I hope to live many more years, but my best were spent here with you. ",
+                        "Our task is not done yet, though. I will rest soundly, knowing that, with your leadership, we will persevere through anything. ",
+                        "Never could I have hoped for such a fulfilling life as I have had here. I wish you all luck.",
                         "Promise me you'll protect what we built here. Never forget our mission, and never grow complacent. ",
                     ]
                 elif tone == "confession":
                     intro_options = [
                         f"You fool! I took {self.stolen_money} money from behind your back, and you just looked the other way. ",
-                        f"I'll have an amazing retirement with the {self.stolen_money} money you let me steal. ",
+                        f"I'll have an amazing retirement on Earth with the {self.stolen_money} money you let me steal. ",
                         "I could tell you just how much money I stole from you over the years, but I'll spare you the tears. ",
+                        "By the time you receive this message, I'll be long gone on the last shuttle to Earth, loaded with everything I've stolen from you. ",
                     ]
                     middle_options = [
-                        "We represent the empire's best, but so many of the ministers are just thieves behind your back. ",
+                        "You chose us from among humanity's best, and we're all just thieves behind your back. What does that say about you? ",
                         "Did you really believe all those setbacks and delays I invented? ",
                         "Believe it or not, I was always one of the lesser offenders. ",
                     ]
                     conclusion_options = [
-                        "We aren't so different, you and I - we're both just here to make money. Who ever cared about the empire? ",
+                        "We aren't so different, you and I - we're both just here to make money. All this terraforming business is a front, and we both know it. ",
+                        "Terraforming is a lucrative business - we're selling hope, and all these sorry fools are buying it. Now even Earth is another asset we can afford to lose. ",
                         "You'll never see me again, of course, but I wish I could see the look on your face. ",
                         "If I had the chance, I'd do it all again. ",
                     ]
                 text += f"{random.choice(intro_options)}{random.choice(middle_options)}{random.choice(conclusion_options)} /n /n /n"
                 text += f"{self.current_position.name} {self.name} has chosen to step down and retire. /n /n"
-                text += "Their position will need to be filled by a replacement as soon as possible for your company to continue operations. /n /n"
+                text += "Their position will need to be filled by a replacement as soon as possible for your colony to continue operations. /n /n"
         constants.public_opinion_tracker.change(public_opinion_change)
         if text != "":
             self.display_message(text, audio)

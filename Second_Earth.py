@@ -125,9 +125,10 @@ except Exception:  # Displays error message and records error message in crash l
 # Eventually add hydrogen fuel cells - process to convert hydrogen and oxygen into water, actually releases energy but requires facility and hydrogen/oxygen input
 # Include "advancement level" of building materials - 1 ~ stone/wood, etc. for basic shelters in atmosphere, 2 ~ for industrial steel/concrete for factories,
 #   basic planetary construction, 3 ~ for titanium, carbon fiber, advanced modern-day materials, spaceships, etc., 4+ for more advanced
+# Add minister deaths - may occur in assassination, attrition, freak accidents, heroic sacrifices, etc.
 
 # Upcoming work queue:
-# Add more retired messages for ministers
+# Modify retirement notification to include minister position background - maybe generate message before appointing to None
 # Add spaceships images
 # Add astronauts/cosmonauts group with corresponding officer
 # Allow vehicles to be crewed by groups instead of workers
