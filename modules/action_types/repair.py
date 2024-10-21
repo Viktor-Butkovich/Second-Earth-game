@@ -1,7 +1,9 @@
 # Contains all functionality for building repairs
 
+from typing import List
 from . import action
 from ..util import actor_utility, action_utility
+import modules.constructs.building_types as building_types
 import modules.constants.constants as constants
 import modules.constants.status as status
 
@@ -21,10 +23,14 @@ class repair(action.action):
             None
         """
         super().initial_setup(**kwargs)
-        self.building_type = kwargs.get("building_type", None)
-        self.requirements = status.actions[self.building_type].requirements
+        self.building_type: building_types.building_type = kwargs.get(
+            "building_type", None
+        )
+        self.requirements: List[str] = status.actions[
+            self.building_type.key
+        ].requirements
         del status.actions[self.action_type]
-        status.actions["repair_" + self.building_type] = self
+        status.actions["repair_" + self.building_type.key] = self
         self.current_building = None
 
         constants.transaction_descriptions[self.action_type] = "repairs"
@@ -65,11 +71,15 @@ class repair(action.action):
             None
         """
         initial_input_dict = super().button_setup(initial_input_dict)
-        initial_input_dict["image_id"] = (
-            "buildings/buttons/repair_" + self.building_type + ".png"
-        )
+        if self.building_type.key != constants.RESOURCE:
+            initial_input_dict["image_id"] = [
+                f"buildings/buttons/{self.building_type.key}.png",
+                "buildings/repair_hammer.png",
+            ]
+        else:
+            initial_input_dict["image_id"] = "buildings/buttons/repair_resource.png"
         initial_input_dict["keybind_id"] = status.actions[
-            self.building_type
+            self.building_type.key
         ].button.keybind_id
         return initial_input_dict
 
@@ -85,12 +95,12 @@ class repair(action.action):
         message = []
         unit = status.displayed_mob
         if unit != None:
-            self.current_building = unit.get_cell().get_building(self.building_type)
+            self.current_building = unit.get_cell().get_building(self.building_type.key)
             message.append(
                 f"Attempts to repair this tile's {self.current_building.name} for {str(self.get_price())} money"
             )
-            if self.building_type in [
-                constants.PORT,
+            if self.building_type.key in [
+                constants.SPACEPORT,
                 constants.TRAIN_STATION,
                 constants.RESOURCE,
             ]:
@@ -134,7 +144,9 @@ class repair(action.action):
         """
         building = self.current_building
         if not building:
-            building = status.displayed_mob.get_cell().get_building(self.building_type)
+            building = status.displayed_mob.get_cell().get_building(
+                self.building_type.key
+            )
         return building.get_repair_cost()
 
     def can_show(self):
@@ -146,7 +158,7 @@ class repair(action.action):
         Output:
             boolean: Returns whether a button linked to this action should be drawn
         """
-        building = status.displayed_mob.get_cell().get_building(self.building_type)
+        building = status.displayed_mob.get_cell().get_building(self.building_type.key)
         can_show = super().can_show() and building and building.damaged
         return can_show
 
@@ -172,7 +184,7 @@ class repair(action.action):
             None
         """
         super().pre_start(unit)
-        self.current_building = unit.get_cell().get_building(self.building_type)
+        self.current_building = unit.get_cell().get_building(self.building_type.key)
 
     def start(self, unit):
         """

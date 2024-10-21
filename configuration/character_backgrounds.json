@@ -1,0 +1,515 @@
+{
+    "philanthropist": {
+        "weight": 1,
+        "status": 4,
+        "skills": {
+            "random": -1,
+            "terran_affairs": 2
+        },
+        "corruption": -1
+    },
+    "business magnate": {
+        "weight": 1,
+        "status": 4,
+        "skills": {
+            "random": -1,
+            "terran_affairs": 2
+        },
+        "corruption": 1
+    },
+    "celebrity": {
+        "weight": 1,
+        "status": 4,
+        "skills": {
+            "random": -1,
+            "terran_affairs": 2
+        },
+        "prefix_chance": 0.08333333333333333,
+        "prefixes": ["Dr."]
+    },
+    "war hero": {
+        "weight": 1,
+        "status": 4,
+        "skills": {
+            "random": 1,
+            "security": 1,
+            "space": 1,
+            "transportation": 1
+        },
+        "prefix_chance": 1,
+        "prefixes": ["Gen.", "Lt. Gen.", "Maj. Gen.", "Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."],
+        "outfit_type": "military"
+    },
+    "influencer": {
+        "weight": 1,
+        "status": 3,
+        "skills": {
+            "random": -1,
+            "terran_affairs": 2
+        }
+    },
+    "politician": {
+        "weight": 6,
+        "status": 3,
+        "skills": {
+            "random": -2,
+            "terran_affairs": 2
+        },
+        "corruption": 1
+    },
+    "government official": {
+        "weight": 6,
+        "status": 3,
+        "skills": {
+            "random": 4,
+            "terran_affairs": 1
+        },
+        "corruption": 1,
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Gen.", "Lt. Gen.", "Maj. Gen.", "Adm.", "Vice Adm.", "Rear Adm."]
+    },
+    "executive": {
+        "weight": 6,
+        "status": 3,
+        "skills": {
+            "random": -1,
+            "terran_affairs": 2
+        },
+        "corruption": 1
+    },
+    "astronaut": {
+        "weight": 18,
+        "status": 3,
+        "skills": {
+            "random": 2,
+            "transportation": 1,
+            "space": 2
+        },
+        "corruption": -1,
+        "prefix_chance": 0.5,
+        "prefixes": ["Dr.", "Dr.", "Dr.", "Lt. Gen.", "Maj. Gen.", "Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."],
+        "outfit_type": "military"
+    },
+    "businessperson": {
+        "weight": 6,
+        "status": 2,
+        "skills": {
+            "random": -2,
+            "terran_affairs": 2
+        },
+        "corruption": 1
+    },
+    "lawyer": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "terran_affairs": 1,
+            "security": 2
+        }
+    },
+    "religious leader": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "random": -1,
+            "terran_affairs": 2
+        }
+    },
+    "biologist": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "science": 2,
+            "ecology": 2
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
+    },
+    "xeno-biologist": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "science": 1,
+            "ecology": 3
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
+    },
+    "chemist": {
+        "weight": 4,
+        "status": 2,
+        "skills": {
+            "science": 2,
+            "industry": 1,
+            "ecology": 1
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
+    },
+    "geologist": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "science": 2,
+            "industry": 1,
+            "ecology": 1
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
+    },
+    "exo-geologist": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "science": 1,
+            "industry": 1,
+            "ecology": 2
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
+    },
+    "physicist": {
+        "weight": 4,
+        "status": 2,
+        "skills": {
+            "science": 2,
+            "space": 1,
+            "energy": 1
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
+    },
+    "astrophysicist": {
+        "weight": 4,
+        "status": 2,
+        "skills": {
+            "science": 2,
+            "space": 2
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
+    },
+    "professor": {
+        "weight": 4,
+        "status": 2,
+        "skills": {
+            "science": 2,
+            "random": 2
+        },
+        "prefix_chance": 1,
+        "prefixes": ["Dr."]
+    },
+    "physician": {
+        "weight": 4,
+        "status": 2,
+        "skills": {
+            "science": 2,
+            "ecology": 2
+        },
+        "prefix_chance": 1,
+        "prefixes": ["Dr."]
+    },
+    "chemical engineer": {
+        "weight": 4,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "industry": 2,
+            "ecology": 1
+        },
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Dr."]
+    },
+    "civil engineer": {
+        "weight": 4,
+        "status": 2,
+        "skills": {
+            "transportation": 2,
+            "industry": 2
+        },
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Dr."]
+    },
+    "mechanical engineer": {
+        "weight": 4,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "transportation": 1,
+            "industry": 2
+        },
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Dr."]
+    },
+    "aerospace engineer": {
+        "weight": 4,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "space": 2,
+            "transportation": 1
+        },
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Dr."]
+    },
+    "computer engineer": {
+        "weight": 4,
+        "status": 2,
+        "skills": {
+            "energy": 1,
+            "industry": 1,
+            "security": 1,
+            "random": 1
+        },
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Dr."]
+    },
+    "electrical engineer": {
+        "weight": 4,
+        "status": 2,
+        "skills": {
+            "energy": 2,
+            "industry": 1,
+            "random": 1
+        },
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Dr."]
+    },
+    "nuclear engineer": {
+        "weight": 4,
+        "status": 2,
+        "skills": {
+            "energy": 2,
+            "industry": 1,
+            "random": 1
+        },
+        "prefix_chance": 0.16666666666666667,
+        "prefixes": ["Dr."]
+    },
+    "computer scientist": {
+        "weight": 4,
+        "status": 2,
+        "skills": {
+            "science": 1,
+            "security": 1,
+            "random": 2
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
+    },
+    "software developer": {
+        "weight": 4,
+        "status": 2,
+        "skills": {
+            "security": 1,
+            "random": 3
+        }
+    },
+    "economist": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "terran_affairs": 2
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
+    },
+    "soldier": {
+        "weight": 6,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "security": 1,
+            "space": 1,
+            "transportation": 1
+        },
+        "prefix_chance": 1,
+        "prefixes": ["Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."],
+        "outfit_type": "military"
+    },
+    "sailor": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "security": 1,
+            "transportation": 2
+        },
+        "prefix_chance": 1,
+        "prefixes": ["Cdre.", "Capt.", "Comm.", "Lt. Comm.", "Lt.", "Ens."],
+        "outfit_type": "military"
+    },
+    "marine": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "security": 1,
+            "space": 1,
+            "transportation": 1
+        },
+        "prefix_chance": 1,
+        "prefixes": ["Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."],
+        "outfit_type": "military"
+    },
+    "pilot": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "space": 1,
+            "transportation": 2
+        },
+        "prefix_chance": 1,
+        "prefixes": ["Col.", "Lt. Col.", "Maj.", "Capt.", "Lt.", "Sgt."],
+        "outfit_type": "military"
+    },
+    "police officer": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "security": 2,
+            "random": 1
+        }
+    },
+    "firefighter": {
+        "weight": 1,
+        "status": 2,
+        "skills": {
+            "security": 1,
+            "ecology": 1,
+            "random": 1
+        }
+    },
+    "inspector": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "security": 1,
+            "ecology": 1,
+            "random": 1
+        }
+    },
+    "teacher": {
+        "weight": 2,
+        "status": 2,
+        "skills": {
+            "random": 2,
+            "terran_affairs": 1
+        }
+    },
+    "artist": {
+        "weight": 1,
+        "status": 2,
+        "skills": {
+            "random": 2
+        }
+    },
+    "sociologist": {
+        "weight": 1,
+        "status": 2,
+        "skills": {
+            "random": 1,
+            "terran_affairs": 1
+        },
+        "prefix_chance": 0.8333333333333333,
+        "prefixes": ["Dr."]
+    },
+    "author": {
+        "weight": 1,
+        "status": 2,
+        "skills": {
+            "random": 2
+        }
+    },
+    "secret agent": {
+        "weight": 3,
+        "status": 2,
+        "skills": {
+            "security": 4,
+            "random": 2
+        },
+        "corruption": 2
+    },
+    "nurse": {
+        "weight": 1,
+        "status": 1,
+        "skills": {
+            "random": 2,
+            "ecology": 1
+        }
+    },
+    "cashier": {
+        "weight": 1,
+        "status": 1,
+        "skills": {
+            "terran_affairs": 1,
+            "random": 2
+        }
+    },
+    "janitor": {
+        "weight": 1,
+        "status": 1,
+        "skills": {
+            "security": 1,
+            "random": 2
+        }
+    },
+    "cook": {
+        "weight": 1,
+        "status": 1,
+        "skills": {
+            "random": 3
+        }
+    },
+    "waiter": {
+        "weight": 1,
+        "status": 1,
+        "skills": {
+            "random": 3
+        }
+    },
+    "farmer": {
+        "weight": 1,
+        "status": 1,
+        "skills": {
+            "random": 2,
+            "ecology": 1
+        }
+    },
+    "laborer": {
+        "weight": 1,
+        "status": 1,
+        "skills": {
+            "random": 1,
+            "industry": 2
+        }
+    },
+    "factory worker": {
+        "weight": 1,
+        "status": 1,
+        "skills": {
+            "random": 1,
+            "industry": 2
+        }
+    },
+    "secretary": {
+        "weight": 1,
+        "status": 1,
+        "skills": {
+            "random": 1,
+            "security": 2
+        }
+    },
+    "mechanic": {
+        "weight": 1,
+        "status": 1,
+        "skills": {
+            "random": 1,
+            "industry": 1,
+            "transportation": 1
+        }
+    }
+}

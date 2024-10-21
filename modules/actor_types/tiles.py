@@ -110,7 +110,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
 
             y_offset = -0.75
             has_building = False
-            for building_type in constants.building_types:
+            for building_type in status.building_types.keys():
                 if (
                     self.cell.has_building(building_type)
                     and building_type != constants.INFRASTRUCTURE
@@ -119,7 +119,6 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     break
             if has_building:
                 y_offset += 0.3
-
             self.name_icon = constants.actor_creation_manager.create(
                 False,
                 {
@@ -128,7 +127,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     "image": actor_utility.generate_label_image_id(
                         new_name, y_offset=y_offset
                     ),
-                    "modes": self.cell.grid.modes,
+                    "modes": self.grid.mini_grids[0].modes,
                     "init_type": constants.NAME_ICON,
                     "tile": self,
                 },
@@ -337,6 +336,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         "pixellated": not self.cell.terrain_handler.knowledge_available(
                             constants.TERRAIN_KNOWLEDGE
                         ),
+                        "light_pixellated": False,
                     }
                 )
                 for (
@@ -354,6 +354,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             "pixellated": not self.cell.terrain_handler.knowledge_available(
                                 constants.TERRAIN_KNOWLEDGE
                             ),
+                            "light_pixellated": False,
                         }
                     )
                 if not terrain_only:
@@ -379,8 +380,8 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             image_id_list.append(resource_icon)
                         else:
                             image_id_list += resource_icon
-                    for current_building_type in constants.building_types:
-                        current_building = self.cell.get_building(current_building_type)
+                    for building_type in status.building_types.keys():
+                        current_building = self.cell.get_building(building_type)
                         if current_building:
                             image_id_list += current_building.get_image_id_list()
             elif self.show_terrain:

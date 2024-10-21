@@ -4,10 +4,8 @@ import time
 import pygame
 from .util import (
     main_loop_utility,
-    utility,
     text_utility,
     turn_management_utility,
-    actor_utility,
 )
 import modules.constants.constants as constants
 import modules.constants.status as status

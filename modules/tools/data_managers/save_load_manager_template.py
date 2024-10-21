@@ -125,9 +125,9 @@ class save_load_manager_template:
         flags.prosecution_bribed_judge = False
 
         constants.money_tracker.reset_transaction_history()
-        constants.money_tracker.set(500)
+        constants.money_tracker.set(constants.INITIAL_MONEY)
         constants.turn_tracker.set(0)
-        constants.public_opinion_tracker.set(50)
+        constants.public_opinion_tracker.set(constants.INITIAL_PUBLIC_OPINION)
         constants.money_tracker.change(0)  # updates projected income display
         constants.evil_tracker.set(0)
         constants.fear_tracker.set(1)
@@ -231,7 +231,6 @@ class save_load_manager_template:
         Output:
             None
         """
-        status.rendered_images = {}
         flags.loading_save = True
 
         text_utility.print_to_screen("")

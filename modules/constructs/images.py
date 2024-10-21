@@ -428,6 +428,7 @@ class bundle_image:
             else:
                 self.has_color_filter = False
             self.pixellated = image_id.get("pixellated", False)
+            self.light_pixellated = image_id.get("light_pixellated", False)
             if "font" in image_id:
                 self.font = image_id["font"]
             elif type(self.image_id) == str and not self.image_id.endswith(".png"):
@@ -550,18 +551,28 @@ class bundle_image:
             else:
                 self.text = True
                 self.image = text_utility.text(self.image_id, self.font)
-            if self.is_offset and self.pixellated:
-                status.rendered_images[non_pixellated_key] = self.image
-                self.image = pygame.transform.scale(
-                    self.image, (constants.PIXELLATED_SIZE, constants.PIXELLATED_SIZE)
-                )
-                hashed_key = hash(
-                    key
-                )  # Randomly flip pixellated image in the same way every time
-                if hashed_key % 2 == 0:
-                    self.image = pygame.transform.flip(self.image, True, False)
-                if hashed_key % 4 >= 2:
-                    self.image = pygame.transform.flip(self.image, False, True)
+            if self.is_offset:
+                if self.light_pixellated:
+                    self.image = pygame.transform.scale(
+                        self.image,
+                        (
+                            constants.LIGHT_PIXELLATED_SIZE,
+                            constants.LIGHT_PIXELLATED_SIZE,
+                        ),
+                    )
+                if self.pixellated:
+                    status.rendered_images[non_pixellated_key] = self.image
+                    self.image = pygame.transform.scale(
+                        self.image,
+                        (constants.PIXELLATED_SIZE, constants.PIXELLATED_SIZE),
+                    )
+                    hashed_key = hash(
+                        key
+                    )  # Randomly flip pixellated image in the same way every time
+                    if hashed_key % 2 == 0:
+                        self.image = pygame.transform.flip(self.image, True, False)
+                    if hashed_key % 4 >= 2:
+                        self.image = pygame.transform.flip(self.image, False, True)
             if self.is_offset and self.alpha != 255:
                 self.image.set_alpha(self.alpha)
             status.rendered_images[key] = self.image
@@ -943,7 +954,9 @@ class background_image(free_image):
         Output:
             None
         """
-        input_dict["image_id"] = input_dict.get("image_id", "misc/background.png")
+        input_dict["image_id"] = input_dict.get(
+            "image_id", "misc/screen_backgrounds/background.png"
+        )
         self.default_image_id = input_dict["image_id"]
         input_dict["coordinates"] = (0, 0)
         input_dict["width"] = constants.display_width
@@ -1382,6 +1395,7 @@ class dice_roll_minister_image(tooltip_free_image):
                 'modes': string list value - Game modes during which this button can appear
                 'attached_minister': minister value - Minister attached to this image
                 'minister_image_type': string value - Type of minister information shown by this image, like 'portrait' or 'position'
+                'minister_position_type': minister_type value - Minister office whose icon should be used by this image, overrides attached_minister's current value
                 'minister_message_image' = False: boolean value - Whether this image is attached to a minister message or an action notification dice roll
         Output:
             None
@@ -1390,15 +1404,18 @@ class dice_roll_minister_image(tooltip_free_image):
         self.minister_image_type = input_dict[
             "minister_image_type"
         ]  # position or portrait
+        self.minister_position_type = input_dict.get(
+            "minister_position_type", self.attached_minister.current_position
+        )
         if self.minister_image_type == "portrait":
             input_dict["image_id"] = self.attached_minister.image_id
         elif self.minister_image_type == "position":
-            if self.attached_minister.current_position:
+            if self.minister_position_type:
                 input_dict[
                     "image_id"
-                ] = f"ministers/icons/{self.attached_minister.current_position.skill_type}.png"
+                ] = f"ministers/icons/{self.minister_position_type.skill_type}.png"
             else:
-                input_dict["image_id"] = "misc/mob_background.png"
+                input_dict["image_id"] = "misc/actor_backgrounds/mob_background.png"
         self.minister_message_image = input_dict.get("minister_message_image", False)
         super().__init__(input_dict)
         self.to_front = True
@@ -1480,9 +1497,7 @@ class minister_type_image(tooltip_free_image):
             )
         if current_minister_type:
             self.tooltip_text = current_minister_type.get_description()
-            image_id_list = [
-                "ministers/icons/" + current_minister_type.skill_type + ".png"
-            ]
+            image_id_list = [f"ministers/icons/{current_minister_type.skill_type}.png"]
             self.set_image(image_id_list)
         self.update_image_bundle()
 
@@ -1704,7 +1719,7 @@ class actor_image(image):
                 )
             else:  # if set to image path list
                 self.contains_bundle = True
-                self.image = image_bundle(self, self.image_id)  # self.image_id
+                self.image = image_bundle(self, self.image_id)
 
     def draw(self):
         """

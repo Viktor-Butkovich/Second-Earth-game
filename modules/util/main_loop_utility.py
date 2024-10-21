@@ -385,12 +385,12 @@ def manage_rmb_down(clicked_button):
                 status.displayed_mob.base_automatic_route[-1][0],
                 status.displayed_mob.base_automatic_route[-1][1],
             )
-            if (
-                status.displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and status.displayed_mob.vehicle_type == constants.TRAIN
-                and not status.strategic_map_grid.find_cell(
-                    destination_coordinates[0], destination_coordinates[1]
-                ).has_intact_building(constants.TRAIN_STATION)
+            if status.displayed_mob.all_permissions(
+                constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
+            ) and not status.strategic_map_grid.find_cell(
+                destination_coordinates[0], destination_coordinates[1]
+            ).has_intact_building(
+                constants.TRAIN_STATION
             ):
                 status.displayed_mob.clear_automatic_route()
                 text_utility.print_to_screen(
@@ -505,7 +505,7 @@ def manage_lmb_down(clicked_button):
                                                 or (
                                                     destination_y == 1
                                                     and target_cell.has_intact_building(
-                                                        constants.PORT
+                                                        constants.SPACEPORT
                                                     )
                                                 )
                                             )
@@ -592,7 +592,9 @@ def manage_lmb_down(clicked_button):
                                     displayed_mob.get_permission(
                                         constants.VEHICLE_PERMISSION
                                     )
-                                    and displayed_mob.vehicle_type == constants.TRAIN
+                                    and displayed_mob.get_permission(
+                                        constants.TRAIN_PERMISSION
+                                    )
                                     and not target_cell.has_building(constants.RAILROAD)
                                 ):
                                     text_utility.print_to_screen(
@@ -618,7 +620,7 @@ def manage_lmb_down(clicked_button):
                                     (not target_cell.terrain_handler.terrain == "water")
                                     and (not displayed_mob.can_walk)
                                     and not target_cell.has_intact_building(
-                                        constants.PORT
+                                        constants.SPACEPORT
                                     )
                                 ):
                                     text_utility.print_to_screen(

@@ -3,6 +3,7 @@ from typing import Dict, List, Any
 from modules.actor_types.tiles import tile
 from modules.actor_types.mobs import mob
 from modules.constructs.ministers import minister
+from modules.constructs.building_types import building_type
 from modules.constructs.unit_types import unit_type, worker_type
 from modules.constructs.equipment_types import equipment_type
 from modules.constructs.minister_types import minister_type
@@ -24,6 +25,7 @@ from modules.interface_types.buttons import (
     button,
     same_tile_icon,
     reorganize_unit_button,
+    minister_portrait_image,
 )
 from modules.interface_types.inventory_interface import item_icon
 from modules.interface_types.instructions import instructions_page
@@ -61,6 +63,7 @@ button_list: List[button] = []
 instructions_list: List[str] = []
 minister_list: List[minister] = []
 available_minister_list: List[minister] = []
+building_types: Dict[str, building_type] = {}
 unit_types: Dict[str, unit_type] = {}
 worker_types: Dict[str, worker_type] = {}
 recruitment_types: List[unit_type] = []
@@ -119,6 +122,7 @@ reorganize_group_left_button: reorganize_unit_button = None
 reorganize_group_right_button: reorganize_unit_button = None
 reorganize_vehicle_left_button: reorganize_unit_button = None
 reorganize_vehicle_right_button: reorganize_unit_button = None
+minister_loading_image: minister_portrait_image = None
 cursor_image: pygame.image = None
 next_boarded_vehicle: pmob = None
 text_box_destination: callable = None

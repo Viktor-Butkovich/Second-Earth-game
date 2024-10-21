@@ -2,7 +2,7 @@
 
 import pygame
 import random
-from typing import Dict
+from typing import Dict, List, Any
 from ..util import actor_utility
 from ..tools.data_managers.terrain_manager_template import terrain_handler
 import modules.constants.constants as constants
@@ -44,7 +44,7 @@ class cell:
         self.settlement = None
         self.terrain_handler: terrain_handler = None
         self.contained_mobs: list = []
-        self.reset_buildings()
+        self.contained_buildings: Dict[str, Any] = {}
         self.adjacent_cells: Dict[str, cell] = {
             "up": None,
             "down": None,
@@ -76,7 +76,7 @@ class cell:
             Changes the value of a parameter for this cell's terrain handler
         Input:
             string parameter_name: Name of the parameter to change
-            int change: Amount to change the parameter by
+            int change: Amounkt to change the parameter by
         Output:
             None
         """
@@ -185,7 +185,7 @@ class cell:
 
             if (
                 self.has_building(constants.TRAIN_STATION)
-                or self.has_building(constants.PORT)
+                or self.has_building(constants.SPACEPORT)
                 or self.has_building(constants.RESOURCE)
                 or self.has_building(constants.FORT)
             ):
@@ -199,9 +199,7 @@ class cell:
 
         return True
 
-    def has_building(
-        self, building_type
-    ):  # accepts train_station, port, fort, road, railroad, resource, slums
+    def has_building(self, building_type: str) -> bool:
         """
         Description:
             Returns whether this cell has a building of the inputted type, even if the building is damaged
@@ -211,31 +209,11 @@ class cell:
             boolean: Returns whether this cell has a building of the inputted type
         """
         if building_type in [constants.ROAD, constants.RAILROAD]:
-            if not self.contained_buildings[constants.INFRASTRUCTURE]:
-                return False
-            elif (
-                building_type == constants.ROAD
-                and self.contained_buildings[constants.INFRASTRUCTURE].is_road
-            ):
-                return True
-            elif (
-                building_type == constants.RAILROAD
-                and self.contained_buildings[constants.INFRASTRUCTURE].is_railroad
-            ):
-                return True
-            else:
-                return False
-        elif (
-            not building_type in self.contained_buildings
-        ):  # if checking for something that is not actually a building, like 'train'
-            return False
+            return self.has_building(constants.INFRASTRUCTURE)
         else:
-            if not self.contained_buildings[building_type]:
-                return False
-            else:
-                return True
+            return bool(self.contained_buildings.get(building_type, None))
 
-    def has_intact_building(self, building_type):
+    def has_intact_building(self, building_type: str) -> bool:
         """
         Description:
             Returns whether this cell has an undamaged building of the inputted type
@@ -245,38 +223,14 @@ class cell:
             boolean: Returns whether this cell has an undamaged building of the inputted type
         """
         if building_type in [constants.ROAD, constants.RAILROAD]:
-            if not self.contained_buildings[constants.INFRASTRUCTURE]:
-                return False
-            elif (
-                building_type == constants.ROAD
-                and self.contained_buildings[constants.INFRASTRUCTURE].is_road
-            ):
-                returned_building = self.contained_buildings[constants.INFRASTRUCTURE]
-            elif (
-                building_type == constants.RAILROAD
-                and self.contained_buildings[constants.INFRASTRUCTURE].is_railroad
-            ):
-                returned_building = self.contained_buildings[constants.INFRASTRUCTURE]
-            else:
-                return False
-
-        elif (
-            not building_type in self.contained_buildings
-        ):  # if checking for something that is not actually a building, like 'train'
-            return False
-
+            return self.has_intact_building(constants.INFRASTRUCTURE)
         else:
-            if not self.contained_buildings[building_type]:
-                return False
-            else:
-                returned_building = self.contained_buildings[building_type]
+            return (
+                self.contained_buildings.get(building_type, None)
+                and not self.contained_buildings[building_type].damaged
+            )
 
-        if not returned_building.damaged:
-            return True
-        else:
-            return False
-
-    def get_building(self, building_type):
+    def get_building(self, building_type: str):
         """
         Description:
             Returns this cell's building of the inputted type, or None if that building is not present
@@ -285,15 +239,12 @@ class cell:
         Output:
             building/string: Returns whether this cell's building of the inputted type, or None if that building is not present
         """
-        if self.has_building(building_type):
-            if building_type in [constants.ROAD, constants.RAILROAD]:
-                return self.contained_buildings[constants.INFRASTRUCTURE]
-            else:
-                return self.contained_buildings[building_type]
+        if building_type in [constants.ROAD, constants.RAILROAD]:
+            return self.get_building(constants.INFRASTRUCTURE)
         else:
-            return None
+            return self.contained_buildings.get(building_type, None)
 
-    def get_intact_building(self, building_type):
+    def get_intact_building(self, building_type: str):
         """
         Description:
             Returns this cell's undamaged building of the inputted type, or None if that building is damaged or not present
@@ -302,30 +253,17 @@ class cell:
         Output:
             building/string: Returns this cell's undamaged building of the inputted type, or None if that building is damaged or not present
         """
-        if self.has_intact_building(building_type):
-            if building_type in [constants.ROAD, constants.RAILROAD]:
-                return self.contained_buildings[constants.INFRASTRUCTURE]
-
-            else:
-                return self.contained_buildings[building_type]
-
+        if building_type in [constants.ROAD, constants.RAILROAD]:
+            return self.get_intact_building(constants.INFRASTRUCTURE)
+        elif (
+            self.contained_buildings.get(building_type, None)
+            and not self.contained_buildings[building_type].damaged
+        ):
+            return self.contained_buildings[building_type]
         else:
             return None
 
-    def reset_buildings(self):
-        """
-        Description:
-            Resets the values of this cell's dictionary of contained buildings to None, initializing the dictionary or removing existing buildings
-        Input:
-            None
-        Output:
-            None
-        """
-        self.contained_buildings = {}
-        for current_building_type in constants.building_types:
-            self.contained_buildings[current_building_type] = None
-
-    def get_buildings(self):
+    def get_buildings(self) -> List[Any]:
         """
         Description:
             Returns a list of the buildings contained in this cell
@@ -334,15 +272,13 @@ class cell:
         Output:
             building list contained_buildings_list: buildings contained in this cell
         """
-        contained_buildings_list = []
-        for current_building_type in constants.building_types:
-            if self.has_building(current_building_type):
-                contained_buildings_list.append(
-                    self.contained_buildings[current_building_type]
-                )
-        return contained_buildings_list
+        return [
+            contained_building
+            for contained_building in self.contained_buildings
+            if contained_building
+        ]
 
-    def get_intact_buildings(self):
+    def get_intact_buildings(self) -> List[Any]:
         """
         Description:
             Returns a list of the nondamaged buildings contained in this cell
@@ -351,13 +287,11 @@ class cell:
         Output:
             building list contained_buildings_list: nondamaged buildings contained in this cell
         """
-        contained_buildings_list = []
-        for current_building_type in constants.building_types:
-            if self.has_intact_building(current_building_type):
-                contained_buildings_list.append(
-                    self.contained_buildings[current_building_type]
-                )
-        return contained_buildings_list
+        return [
+            contained_building
+            for contained_building in self.contained_buildings
+            if contained_building and not contained_building.damaged
+        ]
 
     def has_destructible_buildings(self):
         """
@@ -368,10 +302,12 @@ class cell:
         Output:
             boolean: Returns if this cell has any buildings that can be damaged by enemies
         """
-        for current_building in self.get_intact_buildings():
-            if current_building.can_damage():
-                return True
-        return False
+        return any(
+            [
+                status.building_types[contained_building.key].can_damage
+                for contained_building in self.get_intact_buildings()
+            ]
+        )
 
     def get_warehouses_cost(self):
         """
@@ -387,14 +323,13 @@ class cell:
             warehouses_built = warehouses.warehouses_level
         else:
             warehouses_built = 0
-        if self.has_building(constants.PORT):
-            warehouses_built -= 1
-        if self.has_building(constants.TRAIN_STATION):
-            warehouses_built -= 1
-        if self.has_building(constants.RESOURCE):
-            warehouses_built -= 1
+        for key, building in self.contained_buildings.items():
+            if building.building_type.warehouse_level > 0:
+                warehouses_built -= building.building_type.warehouse_level
 
-        return constants.building_prices[constants.WAREHOUSES] * (
+        return self.get_building(constants.WAREHOUSES).upgrade_fields[
+            constants.WAREHOUSES_LEVEL
+        ]["cost"] * (
             2**warehouses_built
         )  # 5 * 2^0 = 5 if none built, 5 * 2^1 = 10 if 1 built, 20, 40...
 
@@ -427,68 +362,61 @@ class cell:
         Description:
             Returns whether this cell contains a crewed vehicle of the inputted type
         Input:
-            string vehicle_type: 'train' or 'ship', determines what kind of vehicle is searched for
+            string vehicle_type: 'train' or 'spaceship', determines what kind of vehicle is searched for
         Output:
             boolean: Returns True if this cell contains a crewed vehicle of the inputted type, otherwise returns False
         """
-        for current_mob in self.contained_mobs:
-            if (
-                current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and (
-                    current_mob.get_permission(constants.ACTIVE_PERMISSION) or is_worker
-                )
-                and current_mob.vehicle_type == vehicle_type
-            ):
-                return True
-        return False
+        return bool(self.get_vehicle(vehicle_type, is_worker))
 
-    def get_vehicle(self, vehicle_type, is_worker=False):
+    def get_vehicle(self, vehicle_type, is_worker=False, stop_on_find=True):
         """
         Description:
             Returns the first crewed vehicle of the inputted type in this cell, or None if none are present
         Input:
-            string vehicle_type: 'train' or 'ship', determines what kind of vehicle is searched for
+            string vehicle_type: 'train' or 'spaceship', determines what kind of vehicle is searched for
         Output:
             string/vehicle: Returns the first crewed vehicle of the inputted type in this cell, or None if none are present
         """
+        if not stop_on_find:
+            return_list = []
         for current_mob in self.contained_mobs:
-            if (
-                current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and (
-                    current_mob.get_permission(constants.ACTIVE_PERMISSION) or is_worker
-                )
-                and current_mob.vehicle_type == vehicle_type
-            ):
-                return current_mob
-        return None
+            if stop_on_find:
+                if current_mob.all_permissions(
+                    constants.VEHICLE_PERMISSION, vehicle_type
+                ):
+                    if is_worker or current_mob.get_permission(
+                        constants.ACTIVE_PERMISSION
+                    ):
+                        return current_mob
+            else:
+                if current_mob.all_permissions(
+                    constants.VEHICLE_PERMISSION,
+                    constants.ACTIVE_PERMISSION,
+                    vehicle_type,
+                ):
+                    return_list.append(current_mob)
+        if stop_on_find:
+            return False
+        else:
+            return return_list
 
     def get_vehicles(self, vehicle_type, is_worker=False):
         """
         Description:
             Returns each crewed vehicle of the inputted type in this cell, or None if none are present
         Input:
-            string vehicle_type: 'train' or 'ship', determines what kind of vehicle is searched for
+            string vehicle_type: 'train' or 'spaceship', determines what kind of vehicle is searched for
         Output:
             string/vehicle: Returns the first crewed vehicle of the inputted type in this cell, or None if none are present
         """
-        return_list = []
-        for current_mob in self.contained_mobs:
-            if (
-                current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and (
-                    current_mob.get_permission(constants.ACTIVE_PERMISSION) or is_worker
-                )
-                and current_mob.vehicle_type == vehicle_type
-            ):
-                return_list.append(current_mob)
-        return return_list
+        return self.get_vehicle(vehicle_type, is_worker, stop_on_find=False)
 
     def has_uncrewed_vehicle(self, vehicle_type=None, required_number=1):
         """
         Description:
             Returns whether this cell contains an uncrewed vehicle of the inputted type
         Input:
-            string vehicle_type: 'train' or 'ship', determines what kind of vehicle is searched for
+            string vehicle_type: 'train' or 'spaceship', determines what kind of vehicle is searched for
         Output:
             boolean: Returns True if this cell contains an uncrewed vehicle of the inputted type, otherwise returns False
         """
@@ -497,7 +425,7 @@ class cell:
             if (
                 current_mob.get_permission(constants.VEHICLE_PERMISSION)
                 and (not current_mob.get_permission(constants.ACTIVE_PERMISSION))
-                and (current_mob.vehicle_type == vehicle_type or (not vehicle_type))
+                and ((not vehicle_type) or current_mob.get_permission(vehicle_type))
             ):
                 num_found += 1
         return num_found >= required_number
@@ -509,7 +437,7 @@ class cell:
         Description:
             Returns the first uncrewed vehicle of the inputted type in this cell, or None if none are present
         Input:
-            string vehicle_type: 'train' or 'ship', determines what kind of vehicle is searched for
+            string vehicle_type: Permission key, determines what kind of vehicle is searched for
             string worker_type = 'default': If a worker type is inputted, only vehicles that the inputted worker type oculd crew are returned
         Output:
             string/vehicle: Returns the first uncrewed vehicle of the inputted type in this cell, or None if none are present
@@ -529,7 +457,7 @@ class cell:
             if (
                 current_mob.get_permission(constants.VEHICLE_PERMISSION)
                 and (not current_mob.get_permission(constants.ACTIVE_PERMISSION))
-                and (current_mob.vehicle_type == vehicle_type or not vehicle_type)
+                and ((not vehicle_type) or current_mob.get_permission(vehicle_type))
             ):
                 return current_mob
         return None

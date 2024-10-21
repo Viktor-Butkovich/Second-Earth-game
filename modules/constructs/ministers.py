@@ -41,24 +41,23 @@ class minister:
         self.actor_type = "minister"  # used for actor display labels and images
         status.minister_list.append(self)
         self.tooltip_text: List[str] = []
-        status_number_dict: Dict[int, str] = {
-            1: "low",
-            2: "moderate",
-            3: "high",
-            4: "very high",
-        }
         if from_save:
             self.first_name: str = input_dict["first_name"]
             self.last_name: str = input_dict["last_name"]
             self.name: str = self.first_name + " " + self.last_name
             self.ethnicity: str = input_dict["ethnicity"]
             self.masculine: bool = input_dict["masculine"]
+            self.prefix: str = input_dict["prefix"]
             self.current_position: minister_types.minister_type = (
                 status.minister_types.get(input_dict["current_position_key"], None)
             )
             self.background: str = input_dict["background"]
-            self.status_number: int = constants.background_status_dict[self.background]
-            self.status: str = status_number_dict[self.status_number]
+            self.status_number: int = constants.character_manager.get_status_number(
+                self.background
+            )
+            self.status: str = constants.social_status_description_dict[
+                self.status_number
+            ]
             self.personal_savings: float = input_dict["personal_savings"]
             self.general_skill: int = input_dict["general_skill"]
             self.specific_skills: Dict[str, int] = input_dict["specific_skills"]
@@ -89,11 +88,22 @@ class minister:
             else:
                 status.available_minister_list.append(self)
         else:
-            self.background: str = random.choice(constants.weighted_backgrounds)
+            self.background: str = (
+                constants.character_manager.generate_weighted_background()
+            )
+            self.status_number: int = constants.character_manager.get_status_number(
+                self.background
+            )
+            self.status: str = constants.social_status_description_dict[
+                self.status_number
+            ]
             self.first_name: str
             self.last_name: str
             self.ethnicity: str = constants.character_manager.generate_ethnicity()
             self.masculine: bool = random.choice([True, False])
+            self.prefix: str = constants.character_manager.generate_prefix(
+                self.background, self.masculine
+            )
             (
                 self.first_name,
                 self.last_name,
@@ -101,8 +111,6 @@ class minister:
                 self.ethnicity, self.masculine
             )
             self.name = self.first_name + " " + self.last_name
-            self.status_number: int = constants.background_status_dict[self.background]
-            self.status: str = status_number_dict[self.status_number]
             self.personal_savings: float = 5 ** (
                 self.status_number - 1
             ) + random.randrange(
@@ -126,8 +134,9 @@ class minister:
         minister_utility.update_available_minister_display()
         self.stolen_already: bool = False
         self.update_tooltip()
+        status.minister_loading_image.calibrate(self)  # Load in all images on creation
 
-    def get_f_lname(self):
+    def get_f_lname(self, use_prefix=False):
         """
         Description:
             Returns this minister's name in the form [first initial] [last name]
@@ -136,7 +145,10 @@ class minister:
         Output:
             str: Returns this minister's name in the form [first initial] [last name]
         """
-        return self.first_name[0] + ". " + self.last_name
+        if use_prefix:
+            return f"{self.prefix} {self.last_name}"
+        else:
+            return f"{self.first_name[0]}. {self.last_name}"
 
     def update_tooltip(self):
         """
@@ -150,15 +162,13 @@ class minister:
         self.tooltip_text = []
         if self.current_position:
             self.tooltip_text.append(
-                f"This is {self.name}, your {self.current_position.name}."
+                f"Name: {self.name} ({self.current_position.name})"
             )
         else:
-            self.tooltip_text.append(
-                f"This is {self.name}, an available minister candidate."
-            )
-        self.tooltip_text.append(f"Background: {self.background}")
-        self.tooltip_text.append(f"Social status: {self.status}")
+            self.tooltip_text.append(f"Name: {self.name}")
         self.tooltip_text.append(f"Ethnicity: {self.ethnicity}")
+        self.tooltip_text.append(f"Background: {self.background}")
+        self.tooltip_text.append(f"    Social status: {self.status}")
         self.tooltip_text.append(
             f"Interests: {self.interests[0].replace('_', ' ')}, {self.interests[1].replace('_', ' ')}"
         )
@@ -218,6 +228,7 @@ class minister:
             ],
             "attached_minister": self,
             "minister_image_type": "position",
+            "minister_position_type": self.current_position,
             "init_type": constants.DICE_ROLL_MINISTER_IMAGE,
             "minister_message_image": True,
             "member_config": {
@@ -235,7 +246,7 @@ class minister:
         minister_portrait_icon_dict["minister_image_type"] = "portrait"
         return [minister_position_icon_dict, minister_portrait_icon_dict]
 
-    def display_message(self, text, audio=None, transfer=False):
+    def display_message(self, text, audio=None, transfer=False, on_remove=None):
         """
         Description:
             Displays a notification message from this minister with an attached portrait
@@ -243,6 +254,7 @@ class minister:
             string text: Message to display in notification
             string audio: Any audio to play with notification
             boolean transfer: Whether the minister icon should carry on to future notifications - should set to True for actions, False for misc. messages
+            function on_remove: Function to call when notification is removed
         Output:
             None
         """
@@ -251,11 +263,11 @@ class minister:
                 "message": text + "Click to remove this notification. /n /n",
                 "notification_type": constants.ACTION_NOTIFICATION,
                 "audio": audio,
-                "attached_minister": self,
                 "attached_interface_elements": self.generate_icon_input_dicts(
                     alignment="left"
                 ),
                 "transfer_interface_elements": transfer,
+                "on_remove": on_remove,
             }
         )
 
@@ -384,6 +396,7 @@ class minister:
                 'last_name': string value - This minister's last name
                 'current_position_key': string value - Constant key corresponding to office that that this minister is currently occupying, or None if no office occupied
                 'background': string value - Career background of minister, determines social status and skills
+                'prefix': string value - Prefix used before last name, such as Dr. or Ms.
                 'personal savings': double value - How much non-stolen money this minister has based on their social status
                 'general_skill': int value - Value from 1 to 3 that changes what is added to or subtracted from dice rolls
                 'specific_skills': dictionary value - String keys corresponding to int values to record skill values for each minister office
@@ -424,6 +437,7 @@ class minister:
         save_dict["fabricated_evidence"] = self.fabricated_evidence
         save_dict["just_removed"] = self.just_removed
         save_dict["background"] = self.background
+        save_dict["prefix"] = self.prefix
         save_dict["personal_savings"] = self.personal_savings
         save_dict["image_id_list"] = self.image_id_list
         save_dict["voice_set"] = self.voice_set
@@ -599,12 +613,13 @@ class minister:
         self.stolen_already = False
         return results
 
-    def appoint(self, new_position):
+    def appoint(self, new_position, update_display=True):
         """
         Description:
             Appoints this minister to a new office, putting it in control of relevant units. If the new position is None, removes the minister from their current office
         Input:
             string new_position: Office to appoint this minister to, like 'Minister of Trade'. If this equals None, fires this minister
+            bool update_display: Whether to update the display of available ministers
         Output:
             None
         """
@@ -620,27 +635,28 @@ class minister:
             status.available_minister_list = utility.remove_from_list(
                 status.available_minister_list, self
             )
-            if (
-                constants.available_minister_left_index
-                >= len(status.available_minister_list) - 3
-            ):
-                constants.available_minister_left_index = (
-                    len(status.available_minister_list) - 3
-                )  # Move available minister display up because available minister was removed
+            if update_display:
+                if (
+                    constants.available_minister_left_index
+                    >= len(status.available_minister_list) - 3
+                ):
+                    constants.available_minister_left_index = (
+                        len(status.available_minister_list) - 3
+                    )  # Move available minister display up because available minister was removed
         else:
             status.available_minister_list.append(self)
-            constants.available_minister_left_index = (
-                len(status.available_minister_list) - 3
-            )  # Move available minister display to newly fired minister
+            if update_display:
+                constants.available_minister_left_index = (
+                    len(status.available_minister_list) - 3
+                )  # Move available minister display to newly fired minister
+        if new_position:
+            for current_minister_type_image in status.minister_image_list:
+                if not current_minister_type_image.get_actor_type():
+                    if current_minister_type_image.minister_type == new_position:
+                        current_minister_type_image.calibrate(self)
 
-        for current_minister_type_image in status.minister_image_list:
-            if not current_minister_type_image.get_actor_type():
-                if current_minister_type_image.minister_type == new_position:
-                    current_minister_type_image.calibrate(self)
-                elif current_minister_type_image.minister_type == old_position:
-                    current_minister_type_image.calibrate(None)
-
-        minister_utility.update_available_minister_display()
+        if update_display:
+            minister_utility.update_available_minister_display()
 
         minister_utility.calibrate_minister_info_display(self)  # Update minister label
 
@@ -659,24 +675,15 @@ class minister:
         self.specific_skills = {}
         self.apparent_skills = {}
         self.apparent_skill_descriptions = {}
-        background_skill = random.choice(
-            constants.background_skills_dict[self.background]
+        background_skills = constants.character_manager.generate_skill_modifiers(
+            self.background
         )
-        if background_skill == "random":
-            background_skill = random.choice(constants.skill_types)
         for key, current_minister_type in status.minister_types.items():
-            self.specific_skills[current_minister_type.skill_type] = random.randrange(
-                0, 4
-            )  # 0-3
-            if (
-                current_minister_type.skill_type == background_skill
-                and (
-                    self.specific_skills[current_minister_type.skill_type]
-                    + self.general_skill
-                )
-                < 6
-            ):
-                self.specific_skills[current_minister_type.skill_type] += 1
+            self.specific_skills[current_minister_type.skill_type] = min(
+                random.randrange(0, 4)
+                + background_skills[current_minister_type.skill_type],
+                6 - self.general_skill,
+            )
             if constants.effect_manager.effect_active("transparent_ministers"):
                 self.set_apparent_skill(
                     current_minister_type.skill_type,
@@ -774,7 +781,9 @@ class minister:
         Output:
             None
         """
-        self.corruption = random.randrange(1, 7)  # 1-6
+        self.corruption = random.randrange(
+            1, 7
+        ) + constants.character_manager.generate_corruption_modifier(self.background)
         self.corruption_threshold = (
             10 - self.corruption
         )  # minimum roll on D6 required for corruption to occur
@@ -902,7 +911,7 @@ class minister:
             if rumor_type == "loyalty":
                 message += f"{self.apparent_corruption_description} loyalty"
             else:
-                message += f"{utility.generate_article(self.apparent_skill_descriptions[rumor_type])}  {self.apparent_skill_descriptions[rumor_type]} {rumor_type} ability"
+                message += f"{utility.generate_article(self.apparent_skill_descriptions[rumor_type])} {self.apparent_skill_descriptions[rumor_type]} {rumor_type.replace('_', ' ')} ability"
             message += ". /n /n"
             self.display_message(message)
 
@@ -1065,10 +1074,9 @@ class minister:
             self.current_position.on_remove()
             self.current_position = None
         status.minister_list = utility.remove_from_list(status.minister_list, self)
-        status.available_minister_list = utility.remove_from_list(
-            status.available_minister_list, self
-        )
-        minister_utility.update_available_minister_display()
+        if self in status.available_minister_list:
+            status.available_minister_list.remove(self)
+            minister_utility.update_available_minister_display()
 
     def respond(self, event):
         """
@@ -1081,72 +1089,80 @@ class minister:
         """
         text = ""
         audio = None
+        on_remove = None
         public_opinion_change = 0
-
-        if self.status_number >= 3:
-            if self.background == "politician":
-                third_party = ["the media", "the prime minister", "Parliament"]
-            elif self.background in ["industrialist", "business magnate"]:
-                third_party = ["the business community", "my investors", "my friends"]
-            else:  # royal heir or aristocrat
-                third_party = ["my family", "my cousins", "the nobility"]
 
         if event == "first hired":
             if self.status_number >= 3:
                 public_opinion_change = self.status_number + random.randrange(-1, 2)
                 if self.status_number == 4:
                     public_opinion_change += 6
+            elif self.status_number == 1:
+                public_opinion_change = -1
             text += "From: " + self.name + " /n /n"
             intro_options = [
-                "You have my greatest thanks for appointing me to your cabinet. ",
-                "Honored governor, my gratitude knows no limits. ",
-                "Finally, a chance to bring glory to our empire! ",
+                f"It is with great pleasure that I accept your offer to be {self.current_position.name}. ",
+                f"It is with great pleasure that I accept this appointment. ",
+                f"It is with great pleasure that I accept my appointment as {self.current_position.name}. ",
             ]
-            text += random.choice(intro_options)
-
-            middle_options = [
-                "I shall ensure my duties are completed with the utmost precision and haste. ",
-                "I will never betray you, I swear. ",
-                "Nothing will keep us from completing our divine mission. ",
+            intro_options_2 = [
+                f"I consider it a privilege to be able to work with your team. ",
+                f"I consider it a privilege to be invited as {self.current_position.name}. ",
+                f"Thank you for offering me the position of {self.current_position.name}. ",
             ]
-            text += random.choice(middle_options)
-
-            if self.status_number >= 3:
-                conclusion_options = [
-                    "I'll make sure to put a good word in with "
-                    + random.choice(third_party)
-                    + " about you.",
-                    "I'm sure "
-                    + random.choice(third_party)
-                    + " would enjoy hearing about this wise decision.",
-                    "Perhaps I could pull some strings with "
-                    + random.choice(third_party)
-                    + " to help repay you?",
-                ]
-                text += random.choice(conclusion_options)
-                text += (
-                    " /n /n /nYou have gained "
-                    + str(public_opinion_change)
-                    + " public opinion. /n /n"
-                )
-
+            intro_options_3 = [
+                f"I am pleased to accept your offer, and look forward to working as soon as possible. ",
+                f"I am pleased to accept this offer, and look forward to joining as soon as possible. ",
+                f"I accept this offer, and hope to be of great assistance. ",
+            ]
+            if random.randrange(1, 7) >= 4:
+                text += random.choice(intro_options)
             else:
-                heres_to_options = ["victory", "conquest", "glory"]
-                conclusion_options = [
-                    "Please send the other ministers my regards - I look forward to working with them. ",
-                    "Here's to " + random.choice(heres_to_options) + "!",
-                    "We're going to make a lot of money together! ",
-                ]
-                text += random.choice(conclusion_options) + " /n /n /n"
+                text += random.choice(intro_options_2) + random.choice(intro_options_3)
 
-            if self.status_number == 1:
-                public_opinion_change = -1
-                text += "While lowborn can easily be removed should they prove incompetent or disloyal, it reflects poorly on the company to appoint them as ministers. /n /n"
+            extra_options = []
+            if self.background in ["philanthropist", "business magnate", "executive"]:
+                extra_options = [
+                    f"I'm sure the business community will approve of this decision. ",
+                    f"I'm sure my investors will be pleased with this appointment. ",
+                    f"As we both know, this will be a very lucrative partnership. ",
+                    f"I will leverage my connections on Earth to ensure our success. ",
+                ]
+            elif self.background in ["government official", "politician"]:
+                extra_options = [
+                    f"I'm sure I could help you with any political matters you need. ",
+                    f"You've made a good choice in appointing me to your cabinet. ",
+                    f"It will take someone with experience to navigate the political waters. ",
+                    f"It will take someone with experience to make our new society. ",
+                ]
+            elif self.background == "celebrity":
+                extra_options = [
+                    f"I'm sure my fans will be thrilled to hear about this. ",
+                    f"I'll make sure my fans on Earth support us. ",
+                    f"My followers on Earth will be thrilled to hear about this. ",
+                ]
+            if extra_options:
+                text += random.choice(extra_options)
+
+            conclusion_options = [
+                f"If you require any other information, please let me know. ",
+                f"Please let me know if you need any further information. ",
+                f"If you need any further information, please let me know. ",
+                f"If you have any other questions, feel free to reach out. ",
+                f"If you have any other questions, you can reach out to me. ",
+                f"If you have any other questions, you know how to contact me. ",
+            ]
+            if random.randrange(1, 7) >= 2:
+                text += random.choice(conclusion_options)
+            if self.status_number >= 3:
+                text += f"/n /n /nYou have gained {public_opinion_change} public opinion. /n /n"
+            elif self.status_number <= 1:
+                text += f"/n /n /nWhile less qualified candidates can still be quite capable, the public may question this appointment. "
                 text += (
-                    "You have lost "
-                    + str(-1 * public_opinion_change)
-                    + " public opinion. /n /n"
+                    f"You have lost {abs(public_opinion_change)} public opinion. /n /n"
                 )
+            else:
+                text += f"/n /n"
             audio = self.get_voice_line("hired")
 
         elif event == "fired":
@@ -1157,95 +1173,54 @@ class minister:
             constants.evil_tracker.change(1)
             text += "From: " + self.name + " /n /n"
             intro_options = [
-                "How far our empire has fallen... ",
-                "You have made a very foolish decision in firing me. ",
-                "I was just about to retire, and you had to do this? ",
-                "I was your best minister - you're all doomed without me. ",
+                f"I can't help but feel that this is completely unjustified. ",
+                f"I fail to see how this decision benefits anyone. ",
+                f"This seems to be a very poor decision on your part. ",
+                f"Terminating me would put this entire operation in jeopardy. ",
+                f"I strongly suggest that you reconsider your choice of terminating me.",
+            ]
+            middle_options = []
+            if self.background in ["philanthropist", "business magnate", "executive"]:
+                f"My investors will not be pleased with this decision. ",
+                f"My assets on Earth are no longer at your disposal. ",
+                f"I will make sure that the business community knows about this. ",
+            elif self.background in ["government official", "politician"]:
+                f"I will make sure that the public knows about this. ",
+                f"Unilateral actions like this do not go unpunished. ",
+                f"I think you may find your support waning in the coming days. ",
+                f"Think of the poor example we are setting for the people on Earth. ",
+            elif self.background == "celebrity":
+                f"I will make sure that my fans know about this. ",
+                f"I think you may find your support waning in the coming days. ",
+                f"Think of the poor example we are setting for the people on Earth. ",
+            conclusion_options = [
+                f"If you change your mind, you know where to find me. ",
+                f"This is not the last time you'll see me. ",
+                f"This is not the last time you'll hear from me. ",
+                f"I wish you luck in your future endeavors. ",
+                f"I hope that this does not negatively affect our new society. ",
             ]
             text += random.choice(intro_options)
-
-            if self.background == "royal heir":
-                family_members = [
-                    "father",
-                    "mother",
-                    "father",
-                    "mother",
-                    "uncle",
-                    "aunt",
-                    "brother",
-                    "sister",
-                ]
-                threats = [
-                    "killed",
-                    "executed",
-                    "decapitated",
-                    "thrown in jail",
-                    "banished",
-                    "exiled",
-                ]
-                text += (
-                    "My "
-                    + random.choice(family_members)
-                    + " could have you "
-                    + random.choice(threats)
-                    + " for this. "
-                )
-            elif self.status_number >= 3:
-                warnings = [
-                    "You better be careful making enemies in high places, friend. ",
-                    "Parliament will cut your funding before you can even say 'bribe'. ",
-                    "You have no place in our empire, you greedy upstart. ",
-                    "Learn how to respect your betters - we're not savages. ",
-                ]
-                text += random.choice(warnings)
-            else:
-                warnings = [
-                    "Think of what will happen to the "
-                    + random.choice(constants.commodity_types)
-                    + " prices after the media hears about this! ",
-                    "You think you can kick me down from your palace in the clouds? ",
-                    "I'll make sure to tell all about those judges you bribed. ",
-                    "So many dead... what will be left of this land by the time you're done? ",
-                    "You'll burn in hell for this. ",
-                    "Watch your back, friend. ",
-                ]
-                text += random.choice(warnings)
-            text += (
-                " /n /n /nYou have lost "
-                + str(-1 * public_opinion_change)
-                + " public opinion. /n"
-            )
+            if middle_options:
+                text += random.choice(middle_options)
+            text += random.choice(conclusion_options)
+            text += f"/n /n /nYou have lost {abs(public_opinion_change)} public opinion. /n /n"
             text += self.name + " has been fired and removed from the game. /n /n"
             audio = self.get_voice_line("fired")
 
         elif event == "prison":
             text += "From: " + self.name + " /n /n"
-            if self.status_number >= 3:
-                intro_options = [
-                    "Do you know what we used to do to upstarts like you?",
-                    "This is nothing, "
-                    + random.choice(third_party)
-                    + " will get me out within days.",
-                    "You better be careful making enemies in high places, friend. ",
-                ]
-            else:
-                intro_options = [
-                    "I would've gotten away with it, too, if it weren't for that meddling prosecutor.",
-                    "Get off your high horse - we could have done great things together.",
-                    "How much money would it take to change your mind?",
-                ]
-            intro_options.append(
-                "Do you even know how many we killed? We all deserve this."
-            )
-            intro_options.append("I'm innocent, I swear!")
-            intro_options.append("You'll join me here soon: sic semper tyrannis.")
+            intro_options = [
+                f"We could have done great things together.",
+                f"I still fail to comprehend why you would do this.",
+                f"Our society will fall apart without me.",
+                f"I hope you know what you're doing.",
+                f"This is not the last you'll see of me.",
+                f"This is just another example of your hubris for even coming here.",
+            ]
 
             text += random.choice(intro_options)
-            text += " /n /n /n"
-            text += (
-                self.name
-                + " is now in prison and has been removed from the game. /n /n"
-            )
+            text += f" /n /n /n{self.name} is now in prison and has been removed from the game. /n /n"
             audio = self.get_voice_line("fired")
 
         elif event == "retirement":
@@ -1253,66 +1228,82 @@ class minister:
                 text = f"{self.name} no longer desires to be appointed as a minister and has left the pool of available minister appointees. /n /n"
             else:
                 if random.randrange(0, 100) < constants.evil:
-                    tone = "guilty"
+                    tone = "weary"
                 else:
                     tone = "content"
 
                 if self.stolen_money >= 10.0 and random.randrange(1, 7) >= 4:
                     tone = "confession"
 
-                if tone == "guilty":
+                if tone == "weary":
                     intro_options = [
-                        "I can't believe some of the things I saw here. ",
-                        "What gave us the right to conquer this place? ",
-                        "I see them every time I close my eyes - I can't keep doing this.",
+                        "I regret to inform you that I will be returning to Earth as soon as possible, and must step down. ",
+                        "I regret to inform you that my family and I will be returning to Earth as soon as possible, and I must step down. ",
+                        "I can't stay on this planet any longer. ",
+                        "I can't keep my family on this planet any longer. ",
+                        "I miss Earth too much - I can't stay with the colony any longer. ",
+                        "We miss Earth too much - I can't keep my family here any longer. ",
+                        "This planet is driving me mad - I must go back home. ",
+                        "This planet is driving us mad - I must take my family back home. ",
                     ]
                     middle_options = [
-                        "I hear God weeping at the crimes we commit in His name.",
-                        "We sent so many young men to die just to fill our coffers. ",
+                        "I hold no ill will towards your cause, and I hope you continue to survive and thrive here. ",
+                        "Maybe I will return one day, once this planet becomes a green paradise. ",
+                        "I truly think humans were never meant to set foot here, and that we were meant to stay on Earth. It will always be our home!",
+                        "This is no home for us - it's a death trap. We've been lying to ourselves this whole time! ",
+                        "We've been looking to the stars for as long as we can remember, but there is nothing for us out here. ",
                     ]
                     conclusion_options = [
-                        "I pray we will be forgiven for the things we've done, and you ought to do the same. ",
-                        "Was it all worth it? ",
-                        "I promise to never again set foot on this stolen continent. ",
+                        "If you want to go back home too, you'll always be welcome. ",
+                        "I just can't stand making sacrifice after sacrifice to stay here. ",
+                        "You've seen the others - they're all just as tired as I am, and I know you are too. Maybe it's time to go home. ",
+                        "You've seen the others - they're going to take this all from you the moment they get the chance. Be careful. ",
                     ]
                 elif tone == "content":
                     intro_options = [
                         "I'm sorry to say it, but I've gotten too old for this. ",
                         "This has been a pleasant journey, but life has greater opportunities planned for me. ",
-                        "Unfortunately, I can no longer work in your cabinet - I am needed back home. ",
+                        f"My health as been declining as of late, and while I would like to remain your {self.current_position.name}, I must step down for the common good. ",
+                        "Unfortunately, I can no longer work in your cabinet - I am taking another position within the colony. ",
+                        "I apologize for sharing such grave news - I've just been diagnosed with a terminal illness. I never thought it would end this way, but here we are. ",
+                        "You must have seen my sorry state in recent meetings - I am not long for this world. I need to set my affairs in order, then enjoy my last days here. I'm glad I at least had the chance to say goodbye. ",
                     ]
                     middle_options = [
-                        "Can you believe it, though? We singlehandedly civilized this place. ",
-                        "I wish I could stay. The thrill of adventure, the wonders I've seen here. It's like I was made for this. ",
-                        "Never has the world seen such glory as what we have brought here. ",
+                        "Can you believe it, though? We've made this new planet ours, from the ground up - a first for humanity. ",
+                        "Has any human ever done what we have done? Nothing will ever be the same. ",
+                        "I think the generations of the future will look back on us as the pioneers of a new age. ",
+                        "One day, our descendants will breathe in the fresh air, and remember how our leadership ushered in a golden age for all. ",
+                        "Humans were born on Earth, but we were never meant to die there. This was always our destiny to claim. ",
                     ]
                     conclusion_options = [
-                        "I trust you'll continue to champion the cause of our God and our empire. ",
-                        "I hope to live many more years, but my best were spent here with you. ",
+                        "Our task is not done yet, though. I will rest soundly, knowing that, with your leadership, we will persevere through anything. ",
+                        "Never could I have hoped for such a fulfilling life as I have had here. I wish you all luck.",
                         "Promise me you'll protect what we built here. Never forget our mission, and never grow complacent. ",
                     ]
                 elif tone == "confession":
                     intro_options = [
                         f"You fool! I took {self.stolen_money} money from behind your back, and you just looked the other way. ",
-                        f"I'll have an amazing retirement with the {self.stolen_money} money you let me steal. ",
+                        f"I'll have an amazing retirement on Earth with the {self.stolen_money} money you let me steal. ",
                         "I could tell you just how much money I stole from you over the years, but I'll spare you the tears. ",
+                        "By the time you receive this message, I'll be long gone on the last shuttle to Earth, loaded with everything I've stolen from you. ",
                     ]
                     middle_options = [
-                        "We represent the empire's best, but so many of the ministers are just thieves behind your back. ",
+                        "You chose us from among humanity's best, and we're all just thieves behind your back. What does that say about you? ",
                         "Did you really believe all those setbacks and delays I invented? ",
                         "Believe it or not, I was always one of the lesser offenders. ",
                     ]
                     conclusion_options = [
-                        "We aren't so different, you and I - we're both just here to make money. Who ever cared about the empire? ",
+                        "We aren't so different, you and I - we're both just here to make money. All this terraforming business is a front, and we both know it. ",
+                        "Terraforming is a lucrative business - we're selling hope, and all these sorry fools are buying it. Now even Earth is another asset we can afford to lose. ",
                         "You'll never see me again, of course, but I wish I could see the look on your face. ",
                         "If I had the chance, I'd do it all again. ",
                     ]
                 text += f"{random.choice(intro_options)}{random.choice(middle_options)}{random.choice(conclusion_options)} /n /n /n"
                 text += f"{self.current_position.name} {self.name} has chosen to step down and retire. /n /n"
-                text += "Their position will need to be filled by a replacement as soon as possible for your company to continue operations. /n /n"
+                text += "Their position will need to be filled by a replacement as soon as possible for your colony to continue operations. /n /n"
         constants.public_opinion_tracker.change(public_opinion_change)
         if text != "":
-            self.display_message(text, audio)
+            self.display_message(text, audio=audio, on_remove=on_remove)
 
     def get_voice_line(self, type):
         """

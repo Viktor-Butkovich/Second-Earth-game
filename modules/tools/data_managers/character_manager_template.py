@@ -24,7 +24,125 @@ class character_manager_template:
             None
         """
         self.demographics_setup()
+        self.backgrounds_setup()
         self.appearances_setup()
+
+    def backgrounds_setup(self) -> None:
+        """
+        Description:
+            Reads in possible character backgrounds
+        Input:
+            None
+        Output:
+            None
+        """
+        with open("configuration/character_backgrounds.json") as active_file:
+            self.backgrounds_dict: Dict[str, any] = json.load(active_file)
+        self.outfit_types = list(
+            set(
+                [
+                    details.get("outfit_type", constants.DEFAULT_MINISTER_OUTFIT_TYPE)
+                    for details in self.backgrounds_dict.values()
+                ]
+            )
+        )
+
+    def generate_weighted_background(self) -> str:
+        """
+        Description:
+            Generates a random background for a character, weighted by background frequencty
+        Input:
+            None
+        Output:
+            string: Returns background for a character
+        """
+        return random.choices(
+            [background for background in self.backgrounds_dict],
+            [details["weight"] for details in self.backgrounds_dict.values()],
+            k=1,
+        )[0]
+
+    def get_status_number(self, background: str) -> int:
+        """
+        Description:
+            Returns the social status of a background
+        Input:
+            string background: Background to check
+        Output:
+            int: Returns social status of background
+        """
+        return self.backgrounds_dict[background]["status"]
+
+    def generate_skill_modifiers(self, background: str) -> Dict[str, int]:
+        """
+        Description:
+            Generates random skill modifiers for a character based on their background
+        Input:
+            string background: Background to generate stat modifiers for
+        Output:
+            dictionary: Returns skill modifiers for a character, in the format
+                {
+                    "space": 0,
+                    "industry": 1,
+                    ...
+                    "energy": -1,
+                }
+        """
+        stat_modifiers = {}
+        for skill in constants.skill_types:
+            stat_modifiers[skill] = 0
+        for skill, modifier in self.backgrounds_dict[background]["skills"].items():
+            num_modifiers = abs(modifier)
+            multiplier = 1
+            if modifier != num_modifiers:
+                multiplier = -1
+            if skill == "random":  # If random, apply each point to a random skill
+                for _ in range(num_modifiers):
+                    stat_modifiers[
+                        random.choice(constants.skill_types)
+                    ] += multiplier * random.randrange(0, 2)
+            else:  # If not random, apply 1 modifier for each of the background's point in the stat
+                if not skill in constants.skill_types:
+                    raise ValueError(
+                        f"Within configuration/character_backgrounds.json[{background}], {skill} is not a valid skill type."
+                    )
+                stat_modifiers[skill] += sum(
+                    [random.randrange(0, 2) * multiplier for _ in range(num_modifiers)]
+                )
+        return stat_modifiers
+
+    def generate_corruption_modifier(self, background: str) -> int:
+        """
+        Description:
+            Generates a random corruption modifier for a character based on their background
+        Input:
+            string background: Background to generate corruption modifier for
+        Output:
+            int: Returns corruption modifier for a character
+        """
+        modifier = self.backgrounds_dict[background].get("corruption", 0)
+        num_modifiers = abs(modifier)
+        multiplier = 1
+        if modifier != num_modifiers:
+            multiplier = -1
+        return sum([multiplier * random.randrange(0, 2) for _ in range(num_modifiers)])
+
+    def generate_prefix(self, background: str, masculine: bool) -> str:
+        """
+        Description:
+            Generates a random prefix, like Dr., for a character based on their background
+        Input:
+            string background: Background to generate prefix for
+            bool masculine: Whether the character is masculine or feminine
+        Output:
+            string: Returns prefix for a character
+        """
+        if random.random() < self.backgrounds_dict[background].get("prefix_chance", 0):
+            return random.choice(self.backgrounds_dict[background]["prefixes"])
+        elif masculine:
+            return "Mr."
+        else:
+            return random.choice(["Ms.", "Mrs."])
 
     def appearances_setup(self) -> None:
         """
@@ -107,9 +225,12 @@ class character_manager_template:
                 "ministers/portraits/base_skin/default.png", "feminine"
             ),
         }
-        self.hat_images: List[str] = actor_utility.get_image_variants(
-            "ministers/portraits/hat/default.png", "hat"
-        )
+
+        self.hat_images: Dict[List[str]] = {}
+        for outfit_type in self.outfit_types:
+            self.hat_images[outfit_type] = actor_utility.get_image_variants(
+                f"ministers/portraits/hat/{outfit_type}/default.png", outfit_type
+            )
 
         self.hair_images: Dict[bool, Dict[str, List[str]]] = {True: {}, False: {}}
         for hair_type in self.hair_types["types"]:
@@ -120,9 +241,12 @@ class character_manager_template:
                 f"ministers/portraits/hair/feminine/default.png", hair_type
             )
 
-        self.outfit_images: List[str] = actor_utility.get_image_variants(
-            "ministers/portraits/outfit/default.png", "outfit"
-        )
+        self.outfit_images: Dict[List[str]] = {}
+        for outfit_type in self.outfit_types:
+            self.outfit_images[outfit_type] = actor_utility.get_image_variants(
+                f"ministers/portraits/outfit/{outfit_type}/default.png", outfit_type
+            )
+
         self.facial_hair_images: List[str] = actor_utility.get_image_variants(
             f"ministers/portraits/facial_hair/default.png", "facial_hair"
         )
@@ -240,6 +364,18 @@ class character_manager_template:
             ethnicity = random.choices(
                 self.ethnic_groups, self.ethnic_group_weights, k=1
             )[0]
+
+        if not full_body:
+            if minister:
+                background = minister.background
+            else:
+                background = self.generate_weighted_background()
+            outfit_type = self.backgrounds_dict[background].get(
+                "outfit_type", constants.DEFAULT_MINISTER_OUTFIT_TYPE
+            )
+        else:  # If generating for unit - maybe determine here to use unit-specific outfit?
+            outfit_type = None
+
         if minister and hasattr(minister, "masculine"):
             masculine = minister.masculine
         else:
@@ -286,6 +422,7 @@ class character_manager_template:
                 "full_body": full_body,
                 "ethnicity": ethnicity,
                 "masculine": masculine,
+                "outfit_type": outfit_type,
             }
         )
 
@@ -344,7 +481,7 @@ class character_manager_template:
         """
         portrait_sections.append(
             {
-                "image_id": random.choice(self.outfit_images),
+                "image_id": random.choice(self.outfit_images[metadata["outfit_type"]]),
                 "green_screen": metadata["suit_colors"],
                 "metadata": {"portrait_section": "outfit"},
                 "level": constants.HAIR_LEVEL + random.choice([-1, 1]),
@@ -442,7 +579,10 @@ class character_manager_template:
                 }
             )
         if metadata["has_hat"]:
-            hat_images = self.hat_images
+            hat_images = self.hat_images.get(
+                metadata["outfit_type"],
+                self.hat_images[constants.DEFAULT_MINISTER_OUTFIT_TYPE],
+            )
         else:
             hat_images = ["misc/empty.png"]
         portrait_sections.append(

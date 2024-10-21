@@ -400,14 +400,11 @@ resource_building_dict: Dict[str, str] = {
     "ivory": "camp",
     "rubber": "plantation",
 }
-minister_limit: int = 15
+minister_limit: int = 17
 
 worker_upkeep_increment: float = 0.25
 base_upgrade_price: float = 20.0  # 20 for 1st upgrade, 40 for 2nd, 80 for 3rd, etc.
 consumer_goods_starting_price: int = 1
-
-list_descriptions: Dict[str, List[str]] = {}
-string_descriptions: Dict[str, str] = {}
 
 toggle_button_tooltips: Dict[str, Dict[str, str]] = {
     "wait_until_full": {
@@ -482,6 +479,8 @@ map_modes: List[str] = [
     "magnetic",
 ]
 
+DEFAULT_MINISTER_OUTFIT_TYPE = "business"
+
 HAT_LEVEL: int = 6
 EYES_LEVEL: int = 2
 GLASSES_LEVEL: int = 3
@@ -493,6 +492,7 @@ FRONT_LEVEL: int = 20
 BACKGROUND_LEVEL: int = -5
 
 PIXELLATED_SIZE: int = 2
+LIGHT_PIXELLATED_SIZE: int = 50
 
 TERRAIN_KNOWLEDGE: str = "terrain"
 TERRAIN_KNOWLEDGE_REQUIREMENT: int = 0
@@ -540,67 +540,13 @@ INDUSTRY_SKILL = "industry"
 TRANSPORTATION_SKILL = "transportation"
 SECURITY_SKILL = "security"
 
-weighted_backgrounds: List[str] = [
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "lowborn",
-    "banker",
-    "merchant",
-    "lawyer",
-    "industrialist",
-    "industrialist",
-    "industrialist",
-    "industrialist",
-    "industrialist",
-    "industrialist",
-    "natural scientist",
-    "doctor",
-    "politician",
-    "politician",
-    "army officer",
-    "naval officer",
-]
-background_status_dict: Dict[str, int] = {
-    "lowborn": 1,
-    "banker": 2,
-    "merchant": 2,
-    "lawyer": 2,
-    "army officer": 2,
-    "naval officer": 2,
-    "priest": 2,
-    "preacher": 2,
-    "natural scientist": 2,
-    "doctor": 2,
-    "industrialist": 3,
-    "aristocrat": 3,
-    "politician": 3,
-    "business magnate": 4,
-    "royal heir": 4,
+social_status_description_dict: Dict[int, str] = {
+    1: "low",
+    2: "moderate",
+    3: "high",
+    4: "very high",
 }
-background_skills_dict: Dict[str, List[str]] = {
-    "lowborn": [None],
-    "banker": [TERRAN_AFFAIRS_SKILL],
-    "merchant": [TERRAN_AFFAIRS_SKILL],
-    "lawyer": [SECURITY_SKILL],
-    "army officer": [SPACE_SKILL],
-    "naval officer": [TRANSPORTATION_SKILL],
-    "priest": [TERRAN_AFFAIRS_SKILL],
-    "preacher": [TERRAN_AFFAIRS_SKILL],
-    "natural scientist": [SCIENCE_SKILL],
-    "doctor": ["random"],
-    "industrialist": [INDUSTRY_SKILL, TRANSPORTATION_SKILL],
-    "aristocrat": [None, "random"],
-    "politician": [None, "random"],
-    "business magnate": [INDUSTRY_SKILL, TRANSPORTATION_SKILL],
-    "royal heir": [None, "random"],
-}
+
 skill_types: List[str] = []
 minister_skill_to_description_dict: List[List[str]] = [
     ["unknown"],
@@ -625,7 +571,8 @@ MOB: str = "mob"
 EUROPEAN_WORKERS: str = "european_workers"
 CHURCH_VOLUNTEERS: str = "church_volunteers"
 TRAIN: str = "train"
-SHIP: str = "ship"
+COLONY_SHIP: str = "colony_ship"
+SPACESHIP: str = "spaceship"
 BOAT: str = "boat"
 OFFICER: str = "officer"
 EXPLORER: str = "explorer"
@@ -651,7 +598,7 @@ FERRY: str = "ferry"
 INFRASTRUCTURE: str = "infrastructure"
 FORT: str = "fort"
 TRAIN_STATION: str = "train_station"
-PORT: str = "port"
+SPACEPORT: str = "spaceport"
 WAREHOUSES: str = "warehouses"
 WAREHOUSES_LEVEL: str = "warehouses_level"
 RESOURCE: str = "resource"
@@ -710,7 +657,7 @@ RECRUITMENT_CHOICE_BUTTON: str = "recruitment_choice_button"
 CHOICE_CONFIRM_MAIN_MENU_BUTTON: str = "choice_confirm_main_menu_button"
 CHOICE_QUIT_BUTTON: str = "choice_quit_button"
 CHOICE_END_TURN_BUTTON: str = "choice_end_turn_button"
-CHOICE_CONFIRM_REMOVE_MINISTER: str = "choice_confirm_remove_minister_button"
+CHOICE_CONFIRM_FIRE_MINISTER_BUTTON: str = "choice_confirm_fire_minister_button"
 CHOICE_FIRE_BUTTON: str = "choice_fire_button"
 
 AUTOFILL_PROCEDURE: str = "autofill_procedure"
@@ -745,7 +692,8 @@ CYCLE_WORK_CREWS_BUTTON: str = "cycle_work_crews_button"
 WORK_CREW_TO_BUILDING_BUTTON: str = "work_crew_to_building_button"
 SWITCH_THEATRE_BUTTON: str = "switch_theatre_button"
 APPOINT_MINISTER_BUTTON: str = "appoint_minister_button"
-REMOVE_MINISTER_BUTTON: str = "remove_minister_button"
+FIRE_MINISTER_BUTTON: str = "fire_minister_button"
+REAPPOINT_MINISTER_BUTTON: str = "reappoint_minister_button"
 TO_TRIAL_BUTTON: str = "to_trial_button"
 FABRICATE_EVIDENCE_BUTTON: str = "fabricate_evidence_button"
 BRIBE_JUDGE_BUTTON: str = "bribe_judge_button"
@@ -783,6 +731,7 @@ MINISTER_NAME_LABEL: str = "minister_name_label"
 MINISTER_BACKGROUND_LABEL: str = "minister_background_label"
 MINISTER_OFFICE_LABEL: str = "minister_office_label"
 MINISTER_SOCIAL_STATUS_LABEL: str = "minister_social_status_label"
+MINISTER_ETHNICITY_LABEL: str = "minister_ethnicity_label"
 MINISTER_INTERESTS_LABEL: str = "minister_interests_label"
 MINISTER_LOYALTY_LABEL: str = "minister_loyalty_label"
 MINISTER_ABILITY_LABEL: str = "minister_ability_label"
@@ -824,8 +773,6 @@ MOB_INVENTORY_CAPACITY_LABEL: str = "mob_inventory_capacity_label"
 
 FREE_IMAGE: str = "free_image"
 ACTOR_DISPLAY_FREE_IMAGE: str = "actor_display_free_image"
-MOB_BACKGROUND_IMAGE: str = "mob_background_image"
-MINISTER_BACKGROUND_IMAGE: str = "minister_background_image"
 LABEL_IMAGE: str = "label_image"
 BACKGROUND_IMAGE: str = "background_image"
 TOOLTIP_FREE_IMAGE: str = "tooltip_free_image"
@@ -847,6 +794,8 @@ OFF_TILE_EXPLORATION_NOTIFICATION: str = "off_tile_exploration_notification"
 PMOB_PERMISSION: str = "pmob"
 NPMOB_PERMISSION: str = "npmob"
 VEHICLE_PERMISSION: str = "vehicle"
+SPACESHIP_PERMISSION: str = "spaceship"
+TRAIN_PERMISSION: str = "train"
 ACTIVE_PERMISSION: str = "active_permission"
 ACTIVE_VEHICLE_PERMISSION: str = "active_vehicle"
 INACTIVE_VEHICLE_PERMISSION: str = "inactive_vehicle"
@@ -876,7 +825,7 @@ MERCHANT_PERMISSION: str = "merchant"
 EVANGELIST_PERMISSION: str = "evangelist"
 MAJOR_PERMISSION: str = "major"
 
-CREW_SHIP_PERMISSION: str = "crew_ship"
+CREW_SPACESHIP_PERMISSION: str = "crew_spaceship"
 CREW_TRAIN_PERMISSION: str = "crew_train"
 
 DEFAULT_PERMISSIONS: Dict[str, Any] = {
@@ -884,31 +833,12 @@ DEFAULT_PERMISSIONS: Dict[str, Any] = {
 }
 
 CREW_PERMISSIONS: Dict[str, Any] = {
-    SHIP: CREW_SHIP_PERMISSION,
+    SPACESHIP: CREW_SPACESHIP_PERMISSION,
+    COLONY_SHIP: CREW_SPACESHIP_PERMISSION,
     TRAIN: CREW_TRAIN_PERMISSION,
 }
 
-building_types: List[str] = [
-    RESOURCE,
-    PORT,
-    INFRASTRUCTURE,
-    TRAIN_STATION,
-    FORT,
-    SLUMS,
-    WAREHOUSES,
-]
-upgrade_types: List[str] = [RESOURCE_SCALE, RESOURCE_EFFICIENCY, WAREHOUSES_LEVEL]
+ALLOW_DISORGANIZED: bool = False
 
-building_prices: Dict[str, int] = {
-    RESOURCE: 10,
-    ROAD: 5,
-    RAILROAD: 15,
-    FERRY: 50,
-    ROAD_BRIDGE: 100,
-    RAILROAD_BRIDGE: 300,
-    PORT: 15,
-    TRAIN_STATION: 10,
-    FORT: 5,
-    WAREHOUSES: 5,
-    TRAIN: 10,
-}
+INITIAL_MONEY: int = 1000
+INITIAL_PUBLIC_OPINION: int = 50

@@ -150,9 +150,6 @@ class choice_button(buttons.button):
             case constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON:
                 self.message = "Main menu"
 
-            case constants.CHOICE_CONFIRM_REMOVE_MINISTER:
-                self.message = "Confirm"
-
             case constants.CHOICE_QUIT_BUTTON:
                 self.message = "Exit game"
 
@@ -160,6 +157,9 @@ class choice_button(buttons.button):
                 self.message = "End turn"
 
             case constants.CHOICE_FIRE_BUTTON:
+                self.message = "Fire"
+
+            case constants.CHOICE_CONFIRM_FIRE_MINISTER_BUTTON:
                 self.message = "Fire"
 
             case None:
@@ -238,9 +238,7 @@ class choice_button(buttons.button):
             self.set_tooltip(["Cancel"])
 
         else:
-            self.set_tooltip(
-                [self.button_type.capitalize()]
-            )  # stop trading -> ['Stop trading']
+            self.set_tooltip([self.message])
 
 
 class recruitment_choice_button(choice_button):

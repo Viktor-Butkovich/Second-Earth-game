@@ -1,7 +1,6 @@
 # Manages initial game setup in a semi-modular order
 
 import pygame
-import os
 import logging
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -12,6 +11,7 @@ import modules.util.game_transitions as game_transitions
 import modules.constructs.fonts as fonts
 import modules.constructs.unit_types as unit_types
 import modules.constructs.minister_types as minister_types
+import modules.constructs.building_types as building_types
 import modules.constructs.equipment_types as equipment_types
 import modules.constructs.terrain_feature_types as terrain_feature_types
 from modules.tools.data_managers import (
@@ -173,7 +173,10 @@ def misc():
 
     status.loading_image = constants.actor_creation_manager.create_interface_element(
         {
-            "image_id": ["misc/title.png", "misc/loading.png"],
+            "image_id": [
+                "misc/screen_backgrounds/title.png",
+                "misc/screen_backgrounds/loading.png",
+            ],
             "init_type": constants.LOADING_IMAGE_TEMPLATE_IMAGE,
         }
     )
@@ -187,7 +190,7 @@ def misc():
                     constants.TRIAL_MODE,
                     constants.NEW_GAME_SETUP_MODE,
                 ],
-                "image_id": "misc/background.png",
+                "image_id": "misc/screen_backgrounds/background.png",
                 "init_type": constants.BACKGROUND_IMAGE,
             }
         )
@@ -199,7 +202,7 @@ def misc():
                 "modes": [
                     constants.MINISTERS_MODE,
                 ],
-                "image_id": "misc/ministers_background.png",
+                "image_id": "misc/screen_backgrounds/ministers_background.png",
                 "init_type": constants.BACKGROUND_IMAGE,
             }
         )
@@ -210,7 +213,7 @@ def misc():
             "modes": [
                 constants.MAIN_MENU_MODE,
             ],
-            "image_id": "misc/title.png",
+            "image_id": "misc/screen_backgrounds/title.png",
             "init_type": constants.BACKGROUND_IMAGE,
         }
     )
@@ -364,13 +367,13 @@ def actions():
     Output:
         None
     """
-    for building_type in constants.building_types + [constants.TRAIN]:
-        if not building_type in [constants.WAREHOUSES, constants.SLUMS]:
+    for building_type in status.building_types.values():
+        if building_type.can_construct:
             construction.construction(building_type=building_type)
-            if not building_type in [constants.TRAIN, constants.INFRASTRUCTURE]:
-                repair.repair(building_type=building_type)
-    for upgrade_type in constants.upgrade_types:
-        upgrade.upgrade(building_type=upgrade_type)
+        if building_type.can_damage:
+            repair.repair(building_type=building_type)
+        for upgrade_type in building_type.upgrade_fields.keys():
+            upgrade.upgrade(building_type=building_type, upgrade_type=upgrade_type)
     public_relations_campaign.public_relations_campaign()
     religious_campaign.religious_campaign()
     advertising_campaign.advertising_campaign()
@@ -380,12 +383,14 @@ def actions():
     active_investigation.active_investigation()
     trial.trial()
 
-    for action_type in status.actions:
-        if status.actions[action_type].placement_type == "free":
-            button_input_dict = status.actions[action_type].button_setup({})
+    for key, action_type in status.actions.items():
+        if action_type.placement_type == "free":
+            button_input_dict = action_type.button_setup({})
             if button_input_dict:
-                constants.actor_creation_manager.create_interface_element(
-                    button_input_dict
+                action_type.button = (
+                    constants.actor_creation_manager.create_interface_element(
+                        button_input_dict
+                    )
                 )
     # action imports hardcoded here, alternative to needing to keep module files in .exe version
 
@@ -505,6 +510,162 @@ def minister_types_config():
             ],
         }
     )
+
+
+def building_types_config():
+    """
+    Description:
+        Defines building type templates
+    Input:
+        None
+    Output:
+        None
+    """
+    building_types.building_type(
+        {
+            "key": constants.SPACEPORT,
+            "name": "spaceport",
+            "description": [
+                "A spaceport allows spaceships to land and launch, and expands the tile's warehouse capacity."
+            ],
+            "warehouse_level": 1,
+            "can_construct": True,
+            "can_damage": True,
+            "cost": 15,
+            "display_coordinates": (1, -1),
+            "attached_settlement": True,
+            "build_keybind": pygame.K_p,
+        }
+    )
+    building_types.building_type(
+        {
+            "key": constants.TRAIN_STATION,
+            "name": "train station",
+            "description": [
+                "A train station allows trains to pick up or drop off cargo, and expands the tile's warehouse capacity.",
+            ],
+            "warehouse_level": 1,
+            "can_construct": True,
+            "can_damage": True,
+            "cost": 10,
+            "display_coordinates": (0, -1),
+            "attached_settlement": True,
+            "image_id_list": [
+                {"image_id": "buildings/train_station.png"},
+                {"image_id": "buildings/infrastructure/down_railroad.png"},
+            ],
+            "build_keybind": pygame.K_t,
+        }
+    )
+    # building_types.building_type(
+    #    {
+    #        "key": constants.RESOURCE,
+    #        "name": "resource production facility",
+    #        "warehouse_level": 1,
+    #        "can_construct": True,
+    #        "can_damage": True,
+    #        "cost": 10,
+    #        "description": [
+    #            "A resource production facility allows attaching work crews to attempt to produce resources each turn, and expands the tile's warehouse capacity.",
+    #            "Upgrades can increase the maximum number of attached work crews and the number of production attempts each work crew can make.",
+    #        ],
+    #        "upgrade_fields": {
+    #            constants.RESOURCE_SCALE: {
+    #                "cost": constants.base_upgrade_price,
+    #                "max": 6,
+    #                "name": "scale",
+    #            },
+    #            constants.RESOURCE_EFFICIENCY: {
+    #                "cost": constants.base_upgrade_price,
+    #                "max": 6,
+    #                "name": "efficiency",
+    #            },
+    #        },
+    #        "attached_settlement": True,
+    #        "build_keybind": pygame.K_g,
+    #    }
+    # )
+    building_types.building_type(
+        {
+            "key": constants.FORT,
+            "name": "fort",
+            "description": [
+                "A fort grants a +1 combat modifier to your units fighting in this tile."
+            ],
+            "can_construct": True,
+            "can_damage": True,
+            "cost": 5,
+            "display_coordinates": (-1, 1),
+            "attached_settlement": True,
+            "build_requirements": [
+                constants.GROUP_PERMISSION,
+                constants.BATTALION_PERMISSION,
+            ],
+            "build_keybind": pygame.K_v,
+        }
+    )
+    building_types.building_type(
+        {
+            "key": constants.TRAIN,
+            "name": "train",
+            "description": [
+                "A train can be built as a vehicle with 27 inventory capacity and 16 movement points that is restricted to moving on railroads and loading/unloading on train stations."
+            ],
+            "can_construct": True,
+            "can_damage": False,
+            "cost": 10,
+            "build_keybind": pygame.K_y,
+            "image_id_list": [{"image_id": "mobs/train/default.png"}],
+            "button_image_id_list": [
+                "buttons/default_button_alt.png",
+                {
+                    "image_id": "mobs/train/default.png",
+                    "size": 0.95,
+                    "x_offset": 0,
+                    "y_offset": 0,
+                    "level": 1,
+                },
+            ],
+        }
+    )
+
+    building_types.building_type(
+        {
+            "key": constants.WAREHOUSES,
+            "name": "warehouses",
+            "can_construct": False,
+            "can_damage": False,
+            "cost": 5,
+            "upgrade_fields": {
+                constants.WAREHOUSES_LEVEL: {
+                    "name": "warehouse capacity",
+                    "cost": constants.base_upgrade_price,
+                    "keybind": pygame.K_k,
+                },
+            },
+        }
+    )
+    building_types.building_type(
+        {
+            "key": constants.SLUMS,
+            "name": "slums",
+            "can_construct": False,
+            "can_damage": False,
+        }
+    )
+    # building_types.building_type(
+    #     {
+    #         "key": constants.INFRASTRUCTURE,
+    #         "name": "infrastructure",
+    #         "can_construct": True,
+    #         "can_damage": False,
+    #         "cost": 5, # 15 for railroad, 50 for ferry, 100 for road bridge, 300 for railroad bridge?
+    #         "build_keybind": pygame.K_r,
+    #     }
+    # )
+
+    # Add attrition modifiers
+    # add upgrade types
 
 
 def unit_types_config():
@@ -804,7 +965,7 @@ def unit_types_config():
                 constants.PMOB_PERMISSION: True,
                 constants.WORKER_PERMISSION: True,
                 constants.EUROPEAN_WORKERS_PERMISSION: True,
-                constants.CREW_SHIP_PERMISSION: True,
+                constants.CREW_SPACESHIP_PERMISSION: True,
                 constants.CREW_TRAIN_PERMISSION: True,
             },
             "upkeep": 6.0,
@@ -845,23 +1006,26 @@ def unit_types_config():
     unit_types.vehicle_type(
         False,
         {
-            "key": constants.SHIP,
-            "name": "ship",
+            "key": constants.COLONY_SHIP,
+            "name": "colony ship",
             "controlling_minister_type": status.minister_types[
-                constants.TRANSPORTATION_MINISTER
+                constants.SPACE_MINISTER
             ],
             "permissions": {
                 constants.PMOB_PERMISSION: True,
                 constants.INACTIVE_VEHICLE_PERMISSION: True,
                 constants.VEHICLE_PERMISSION: True,
                 constants.ACTIVE_PERMISSION: False,
+                constants.SPACESHIP_PERMISSION: True,
             },
+            "inventory_capacity": 81,
             "can_recruit": True,
             "recruitment_verb": "purchase",
-            "recruitment_cost": 10,
+            "recruitment_cost": 500,
             "description": [
-                "While useless by itself, a steamship crewed by workers can quickly transport units and cargo through coastal waters and between theatres.",
-                "Crewing a steamship requires an advanced level of technological training, which is generally only available to European workers in this time period.",
+                "This ship is equipped for interstellar travel, with a massive cargo hold and advanced life support systems to serve as an initial base of operations on another planet.",
+                "A colony ship contains enough space for a small city of crew and passengers, as well as modules, equipment, and supplies (not included).",
+                "Suitable for a 1-way trip.",
             ],
         },
     )
@@ -879,6 +1043,7 @@ def unit_types_config():
                 constants.INACTIVE_VEHICLE_PERMISSION: True,
                 constants.VEHICLE_PERMISSION: True,
                 constants.ACTIVE_PERMISSION: False,
+                constants.TRAIN_PERMISSION: True,
             },
             "can_recruit": False,
             "description": [
@@ -897,7 +1062,6 @@ def transactions():
     Output:
         None
     """
-    actor_utility.update_descriptions()
     actor_utility.reset_action_prices()
 
 
@@ -1604,6 +1768,20 @@ def ministers_screen():
         cycle_input_dict
     )
 
+    status.minister_loading_image = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "width": scaling.scale_width(portrait_icon_width),
+                "height": scaling.scale_height(portrait_icon_width),
+                "modes": [],
+                "init_type": constants.MINISTER_PORTRAIT_IMAGE,
+                "color": "gray",
+                "minister_type": None,
+            }
+        )
+    )
+
 
 def trial_screen():
     """
@@ -1908,7 +2086,7 @@ def mob_interface():
         "width": scaling.scale_width(35),
         "height": scaling.scale_height(35),
         "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-        "image_id": "buttons/remove_minister_button.png",
+        "image_id": "buttons/fire_minister_button.png",
         "init_type": constants.FIRE_UNIT_BUTTON,
         "parent_collection": status.mob_info_display,
         "member_config": {"order_exempt": True},
@@ -2007,7 +2185,7 @@ def mob_interface():
         if current_actor_label_type != constants.CURRENT_PASSENGER_LABEL:
             constants.actor_creation_manager.create_interface_element(input_dict)
         else:
-            input_dict["list_type"] = constants.SHIP
+            input_dict["list_type"] = constants.SPACESHIP_PERMISSION
             for i in range(0, 3):  # 0, 1, 2
                 # label for each passenger
                 input_dict["list_index"] = i
@@ -2355,6 +2533,42 @@ def inventory_interface():
         }
     )
 
+    tile_scroll_up_button = constants.actor_creation_manager.create_interface_element(
+        {
+            "width": inventory_cell_width,
+            "height": inventory_cell_height,
+            "parent_collection": status.mob_inventory_grid,
+            "image_id": "buttons/cycle_ministers_up_button.png",
+            "value_name": "inventory_page",
+            "increment": -1,
+            "member_config": {
+                "order_exempt": True,
+                "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
+                "y_offset": status.mob_inventory_grid.height
+                - ((inventory_cell_height + scaling.scale_height(5)) * 3)
+                + scaling.scale_height(5),
+            },
+            "init_type": constants.SCROLL_BUTTON,
+        }
+    )
+
+    tile_scroll_down_button = constants.actor_creation_manager.create_interface_element(
+        {
+            "width": inventory_cell_width,
+            "height": inventory_cell_height,
+            "parent_collection": status.mob_inventory_grid,
+            "image_id": "buttons/cycle_ministers_down_button.png",
+            "value_name": "inventory_page",
+            "increment": 1,
+            "member_config": {
+                "order_exempt": True,
+                "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
+                "y_offset": status.mob_inventory_grid.height - (inventory_cell_height),
+            },
+            "init_type": constants.SCROLL_BUTTON,
+        }
+    )
+
     for current_actor_label_type in [
         constants.INVENTORY_NAME_LABEL,
         constants.INVENTORY_QUANTITY_LABEL,
@@ -2558,7 +2772,7 @@ def settlement_interface():
     )
     for current_actor_label_type in [
         constants.SETTLEMENT,
-        constants.PORT,
+        constants.SPACEPORT,
         constants.TRAIN_STATION,
         constants.RESOURCE,
         constants.BUILDING_EFFICIENCY_LABEL,
@@ -2673,7 +2887,7 @@ def unit_organization_interface():
         None
     """
     image_height = 75
-    lhs_x_offset = 35
+    lhs_x_offset = 95
     rhs_x_offset = image_height + 80
 
     status.mob_reorganization_collection = (
@@ -2945,7 +3159,7 @@ def vehicle_organization_interface():
         None
     """
     image_height = 75
-    lhs_x_offset = 35
+    lhs_x_offset = 95
     rhs_x_offset = image_height + 80
     status.vehicle_reorganization_collection = (
         constants.actor_creation_manager.create_interface_element(
@@ -3207,20 +3421,20 @@ def minister_interface():
     )
 
     # minister background image
-    minister_free_image_background = (
-        constants.actor_creation_manager.create_interface_element(
-            {
-                "image_id": "misc/mob_background.png",
-                "coordinates": scaling.scale_coordinates(0, 0),
-                "width": scaling.scale_width(125),
-                "height": scaling.scale_height(125),
-                "modes": [constants.MINISTERS_MODE],
-                "init_type": constants.MINISTER_BACKGROUND_IMAGE,
-                "parent_collection": status.minister_info_display,
-                "member_config": {"order_overlap": True},
-            }
-        )
-    )
+    # minister_free_image_background = (
+    #     constants.actor_creation_manager.create_interface_element(
+    #         {
+    #             "image_id": "misc/actor_backgrounds/minister_background.png",
+    #             "coordinates": scaling.scale_coordinates(0, 0),
+    #             "width": scaling.scale_width(125),
+    #             "height": scaling.scale_height(125),
+    #             "modes": [constants.MINISTERS_MODE],
+    #             "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+    #             "parent_collection": status.minister_info_display,
+    #             "member_config": {"order_overlap": True},
+    #         }
+    #     )
+    # )
 
     # minister image
     minister_free_image = constants.actor_creation_manager.create_interface_element(
@@ -3229,7 +3443,7 @@ def minister_interface():
             "width": scaling.scale_width(115),
             "height": scaling.scale_height(115),
             "modes": [constants.MINISTERS_MODE],
-            "actor_image_type": "minister_default",
+            "actor_image_type": "default",
             "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
             "parent_collection": status.minister_info_display,
             "member_config": {
@@ -3271,8 +3485,9 @@ def minister_interface():
 
     # minister info labels setup
     for current_actor_label_type in [
-        constants.MINISTER_NAME_LABEL,
         constants.MINISTER_OFFICE_LABEL,
+        constants.MINISTER_NAME_LABEL,
+        constants.MINISTER_ETHNICITY_LABEL,
         constants.MINISTER_BACKGROUND_LABEL,
         constants.MINISTER_SOCIAL_STATUS_LABEL,
         constants.MINISTER_INTERESTS_LABEL,
@@ -3297,7 +3512,11 @@ def minister_interface():
             constants.INDUSTRY_SKILL_LABEL,
             constants.TRANSPORTATION_SKILL_LABEL,
             constants.SECURITY_SKILL_LABEL,
+            constants.MINISTER_SOCIAL_STATUS_LABEL,
         ]:
+            # try displacing everything except office?
+            x_displacement = 50
+        elif current_actor_label_type != constants.MINISTER_OFFICE_LABEL:
             x_displacement = 25
         else:
             x_displacement = 0

@@ -12,7 +12,7 @@ class cell_icon(actor):
     An actor that exists in a tile while also acting as an interface element
     """
 
-    def __init__(self, from_save, input_dict):
+    def __init__(self, from_save, input_dict, original_constructor=True):
         """
         Description:
             Initializes this object
@@ -25,7 +25,8 @@ class cell_icon(actor):
         Output:
             None
         """
-        super().__init__(from_save, input_dict)
+        super().__init__(from_save, input_dict, original_constructor=False)
+        self.actor_type = "cell_icon"
         status.independent_interface_elements.append(self)
         self.showing = False
         self.image_dict = {"default": input_dict["image"]}
@@ -39,6 +40,7 @@ class cell_icon(actor):
             )
             for current_grid in self.grids
         ]
+        self.finish_init(original_constructor, from_save, input_dict)
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -102,6 +104,10 @@ class cell_icon(actor):
 
 
 class name_icon(cell_icon):
+    """
+    Icon showing a text label on a tile
+    """
+
     def __init__(self, from_save, input_dict):
         """
         Description:

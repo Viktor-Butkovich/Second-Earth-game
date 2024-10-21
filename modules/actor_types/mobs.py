@@ -555,17 +555,6 @@ class mob(actor):
                     cost = self.movement_cost
         return cost
 
-    def can_leave(self):
-        """
-        Description:
-            Returns whether this mob is allowed to move away from its current cell. By default, mobs are always allowed to move away from their current cells, but subclasses like ship are able to return False
-        Input:
-            None
-        Output:
-            boolean: Returns True
-        """
-        return True  # different in subclasses, controls whether anything in starting tile would prevent leaving, while can_move sees if anything in destination would prevent entering
-
     def adjacent_to_water(self):
         """
         Description:
@@ -981,32 +970,31 @@ class mob(actor):
         future_x = (self.x + x_change) % self.grid.coordinate_width
         future_y = (self.y + y_change) % self.grid.coordinate_height
         if minister_utility.get_minister(constants.TRANSPORTATION_MINISTER):
-            if self.can_leave():
-                if not self.grid.is_abstract_grid:
-                    future_cell = self.grid.find_cell(future_x, future_y)
-                    if future_cell.terrain_handler.visible or self.any_permissions(
-                        constants.EXPEDITION_PERMISSION, constants.NPMOB_PERMISSION
+            if not self.grid.is_abstract_grid:
+                future_cell = self.grid.find_cell(future_x, future_y)
+                if future_cell.terrain_handler.visible or self.any_permissions(
+                    constants.EXPEDITION_PERMISSION, constants.NPMOB_PERMISSION
+                ):
+                    if (
+                        self.movement_points
+                        >= self.get_movement_cost(x_change, y_change)
+                        or self.has_infinite_movement
+                        and self.movement_points > 0
                     ):
-                        if (
-                            self.movement_points
-                            >= self.get_movement_cost(x_change, y_change)
-                            or self.has_infinite_movement
-                            and self.movement_points > 0
-                        ):
-                            return True
-                        elif can_print:
-                            text_utility.print_to_screen(
-                                "You do not have enough movement points to move."
-                            )
-                            text_utility.print_to_screen(
-                                f"You have {self.movement_points} movement points, while {self.get_movement_cost(x_change, y_change)} are required."
-                            )
+                        return True
                     elif can_print:
                         text_utility.print_to_screen(
-                            "You cannot move to an unexplored tile."
+                            "You do not have enough movement points to move."
+                        )
+                        text_utility.print_to_screen(
+                            f"You have {self.movement_points} movement points, while {self.get_movement_cost(x_change, y_change)} are required."
                         )
                 elif can_print:
-                    text_utility.print_to_screen("You cannot move while in this area.")
+                    text_utility.print_to_screen(
+                        "You cannot move to an unexplored tile."
+                    )
+            elif can_print:
+                text_utility.print_to_screen("You cannot move while in this area.")
         elif can_print:
             text_utility.print_to_screen(
                 "You cannot move units before a Minister of Transportation has been appointed."
@@ -1028,7 +1016,7 @@ class mob(actor):
                 constants.VEHICLE_PERMISSION
             ):  # Overlaps with voices if crewed
                 if self.get_permission(constants.ACTIVE_PERMISSION):
-                    if self.vehicle_type == constants.TRAIN:
+                    if self.get_permission(constants.TRAIN_PERMISSION):
                         constants.sound_manager.play_sound("effects/train_horn")
                         return
                     else:
@@ -1047,9 +1035,8 @@ class mob(actor):
                     constants.sound_manager.play_sound("effects/bolt_action_2")
 
                 possible_sounds = ["voices/sir 1", "voices/sir 2", "voices/sir 3"]
-                if (
-                    self.get_permission(constants.VEHICLE_PERMISSION)
-                    and self.vehicle_type == constants.SHIP
+                if self.all_permissions(
+                    constants.VEHICLE_PERMISSION, constants.SPACESHIP_PERMISSION
                 ):
                     possible_sounds.append("voices/steady she goes")
         if possible_sounds:
@@ -1069,7 +1056,7 @@ class mob(actor):
             if self.get_permission(constants.VEHICLE_PERMISSION):
                 if allow_fadeout and constants.sound_manager.busy():
                     constants.sound_manager.fadeout(400)
-                if self.vehicle_type == constants.TRAIN:
+                if self.get_permission(constants.TRAIN_PERMISSION):
                     possible_sounds.append("effects/train_moving")
                 else:
                     constants.sound_manager.play_sound("effects/ocean_splashing")
@@ -1097,7 +1084,7 @@ class mob(actor):
     def move(self, x_change, y_change):
         """
         Description:
-            Moves this mob x_change to the right and y_change upward. Moving to a ship in the water automatically embarks the ship
+            Moves this mob x_change to the right and y_change upward
         Input:
             int x_change: How many cells are moved to the right in the movement
             int y_change: How many cells are moved upward in the movement
@@ -1120,65 +1107,14 @@ class mob(actor):
 
         self.movement_sound()
 
-        if self.get_cell().has_vehicle(
-            constants.SHIP, is_worker=self.get_permission(constants.WORKER_PERMISSION)
-        ) and (
-            not self.get_permission(constants.VEHICLE_PERMISSION)
-        ):  # If worker, allow moving to ship to embark or crew it. Elif non-vehicle, allow moving to ship to embark it.
-            previous_infrastructure = previous_cell.get_intact_building(
-                constants.INFRASTRUCTURE
-            )
-            if self.get_cell().terrain_handler.terrain == "water" and not (
-                previous_infrastructure and previous_infrastructure.is_bridge
-            ):
-                if not self.can_swim:  # board if moving to ship in water
-                    vehicle = self.get_cell().get_vehicle(
-                        constants.SHIP,
-                        is_worker=self.get_permission(constants.WORKER_PERMISSION),
-                    )
-                    if self.get_permission(
-                        constants.WORKER_PERMISSION
-                    ) and vehicle.get_permission(constants.INACTIVE_VEHICLE_PERMISSION):
-                        self.crew_vehicle(vehicle)
-                        self.set_movement_points(0)
-                    else:
-                        self.embark_vehicle(vehicle)
-                        self.set_movement_points(0)
-                    vehicle.select()
-
         actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
 
         if self.get_permission(
             constants.PMOB_PERMISSION
         ):  # Do an inventory attrition check when moving, using the destination's terrain
             self.manage_inventory_attrition()
-            if (
-                previous_cell.terrain_handler.terrain == "water" and not self.can_swim
-            ):  # If moving in water without canoes, use all of movement points
-                previous_infrastructure = previous_cell.get_intact_building(
-                    constants.INFRASTRUCTURE
-                )
-                if not (
-                    previous_infrastructure and previous_infrastructure.is_bridge
-                ):  # If from bridge, act as if moving from land
-                    if previous_cell.y == 0 and not (
-                        self.can_swim and self.can_swim_ocean
-                    ):  # If came from ship in ocean
-                        self.set_movement_points(0)
-                    elif previous_cell.y > 0 and not (
-                        self.can_swim
-                    ):  # If came from boat in water
-                        self.set_movement_points(0)
-            if (
-                self.can_show()
-                and self.get_cell().terrain_handler.terrain == "water"
-                and not self.can_swim
-                and not previous_cell.has_walking_connection(self.get_cell())
-            ):  # If entering water w/o canoes, spend maximum movement and become disorganized
-                self.set_permission(constants.DISORGANIZED_PERMISSION, True)
             if not (
                 self.get_cell() == None
-                or self.get_cell().terrain_handler.terrain == "water"
                 or self.get_permission(constants.VEHICLE_PERMISSION)
             ):
                 constants.sound_manager.play_sound(

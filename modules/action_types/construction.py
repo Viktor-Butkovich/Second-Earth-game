@@ -3,6 +3,7 @@
 import pygame
 from . import action
 from ..util import action_utility, utility, actor_utility, text_utility
+import modules.constructs.building_types as building_types
 import modules.constants.constants as constants
 import modules.constants.status as status
 
@@ -22,18 +23,16 @@ class construction(action.action):
             None
         """
         super().initial_setup(**kwargs)
-        self.building_type = kwargs.get("building_type", None)
+        self.building_type: building_types.building_type = kwargs.get(
+            "building_type", None
+        )
         del status.actions[self.action_type]
-        status.actions[self.building_type] = self
-        self.building_name = self.building_type.replace("_", " ")
+        status.actions[self.building_type.key] = self
+        self.building_name = self.building_type.name
         if self.building_type == constants.INFRASTRUCTURE:
             self.building_name = constants.ROAD
         constants.transaction_descriptions["construction"] = "construction"
-        self.requirements.append(constants.GROUP_PERMISSION)
-        if self.building_type == constants.FORT:
-            self.requirements.append(constants.BATTALION_PERMISSION)
-        else:
-            self.requirements.append(constants.CONSTRUCTION_PERMISSION)
+        self.requirements += self.building_type.build_requirements
         if self.building_type == constants.RESOURCE:
             self.attached_resource = None
             self.building_name = "resource production facility"
@@ -65,31 +64,11 @@ class construction(action.action):
                     "y_offset": 0.2,
                 },
             ]
-        elif self.building_type == constants.INFRASTRUCTURE:
+        elif self.building_type.key == constants.INFRASTRUCTURE:
             initial_input_dict["image_id"] = "buildings/buttons/road.png"
-        elif self.building_type == constants.TRAIN:
-            initial_input_dict["image_id"] = [
-                "buttons/default_button_alt.png",
-                {
-                    "image_id": "mobs/train/default.png",
-                    "size": 0.95,
-                    "x_offset": 0,
-                    "y_offset": 0,
-                    "level": 1,
-                },
-            ]
         else:
-            initial_input_dict[
-                "image_id"
-            ] = f"buildings/buttons/{self.building_type}.png"
-        initial_input_dict["keybind_id"] = {
-            constants.RESOURCE: pygame.K_g,
-            constants.PORT: pygame.K_p,
-            constants.INFRASTRUCTURE: pygame.K_r,
-            constants.TRAIN_STATION: pygame.K_t,
-            constants.FORT: pygame.K_v,
-            constants.TRAIN: pygame.K_y,
-        }.get(self.building_type, None)
+            initial_input_dict["image_id"] = self.building_type.button_image_id_list
+        initial_input_dict["keybind_id"] = self.building_type.build_keybind
         return initial_input_dict
 
     def update_tooltip(self):
@@ -102,12 +81,9 @@ class construction(action.action):
             None
         """
         message = []
-        actor_utility.update_descriptions(self.building_type)
-        message.append("Attempts to build a " + self.building_name + " in this tile")
-        if self.building_type != constants.INFRASTRUCTURE:
-            message += constants.list_descriptions[self.building_type]
-        else:
-            message += constants.list_descriptions[self.building_name.replace(" ", "_")]
+        message.append(f"Attempts to build a {self.building_name} in this tile")
+        message += self.building_type.description
+        if self.building_type == constants.INFRASTRUCTURE:
             if self.building_name == constants.RAILROAD:
                 message += [
                     "Upgrades this tile's road into a railroad, retaining the benefits of a road"
@@ -122,13 +98,9 @@ class construction(action.action):
         if self.building_type == constants.TRAIN:
             message.append("Can only be assembled at a train station")
 
-        if self.building_type in [
-            constants.TRAIN_STATION,
-            constants.PORT,
-            constants.RESOURCE,
-        ]:
+        if self.building_type.warehouse_level > 0:
             message.append(
-                "Also upgrades this tile's warehouses by 9 inventory capacity, or creates new warehouses if none are present"
+                f"Also increases this tile's warehouse capacity by {9 * self.building_type.warehouse_level} slots"
             )
 
         base_cost = actor_utility.get_building_cost(
@@ -169,14 +141,9 @@ class construction(action.action):
             string: Returns text for the inputted subject
         """
         text = super().generate_notification_text(subject)
-        if self.building_name in [constants.TRAIN]:
-            verb = "assemble"
-            preterit_verb = "assembled"
-            noun = "assembly"
-        else:
-            verb = "construct"
-            preterit_verb = "constructed"
-            noun = "construction"
+        verb = self.building_type.grammar["verb"]
+        preterit_verb = self.building_type.grammar["preterit_verb"]
+        noun = self.building_type.grammar["noun"]
 
         if subject == "confirmation":
             text += (
@@ -186,7 +153,7 @@ class construction(action.action):
                 f"The planning and materials will cost {self.get_price()} money. /n /n"
             )
             text += "If successful, a " + self.building_name + " will be built. "
-            text += constants.string_descriptions[self.building_type]
+            text += self.building_type.get_string_description()
         elif subject == "initial":
             text += f"The {self.current_unit.name} attempts to {verb} a {self.building_name}. /n /n"
         elif subject == "success":
@@ -320,16 +287,6 @@ class construction(action.action):
                 text_utility.print_to_screen(
                     "This building can only be built in tiles with resources."
                 )
-        elif self.building_type == constants.PORT:
-            if (
-                unit.adjacent_to_water()
-                and unit.get_cell().terrain_handler.terrain != "water"
-            ):
-                return_value = True
-            else:
-                text_utility.print_to_screen(
-                    "This building can only be built in land tiles adjacent to water."
-                )
         elif self.building_type == constants.TRAIN_STATION:
             if unit.get_cell().has_intact_building(constants.RAILROAD):
                 return_value = True
@@ -415,7 +372,7 @@ class construction(action.action):
                     and not (current_building.is_road or current_building.is_railroad)
                 )
             ):
-                if self.building_type == constants.INFRASTRUCTURE:  # if railroad
+                if self.building_type == constants.INFRASTRUCTURE:
                     text_utility.print_to_screen(
                         "This tile already contains a railroad."
                     )
@@ -425,7 +382,7 @@ class construction(action.action):
                     )
             elif not status.strategic_map_grid in unit.grids:
                 text_utility.print_to_screen(
-                    "This building can only be built in Africa."
+                    "This building can only be built on the planet."
                 )
             elif not (
                 current_cell.terrain_handler.terrain != "water"
@@ -453,12 +410,12 @@ class construction(action.action):
                     "choices": [
                         {
                             "on_click": (self.middle, []),
-                            "tooltip": ["Start " + self.name],
-                            "message": "Start " + self.name,
+                            "tooltip": [f"Start {self.name}"],
+                            "message": f"Start {self.name}",
                         },
                         {
-                            "tooltip": ["Stop " + self.name],
-                            "message": "Stop " + self.name,
+                            "tooltip": [f"Stop {self.name}"],
+                            "message": f"Stop {self.name}",
                         },
                     ],
                 }
@@ -479,7 +436,7 @@ class construction(action.action):
                 "grids": self.current_unit.grids,
                 "name": self.building_name,
                 "modes": self.current_unit.grids[0].modes,
-                "init_type": self.building_type,
+                "init_type": self.building_type.key,
             }
 
             if not self.building_type in [constants.TRAIN]:
@@ -502,12 +459,6 @@ class construction(action.action):
                     building_image_id = "buildings/infrastructure/road.png"
                 input_dict["image"] = building_image_id
                 input_dict["infrastructure_type"] = self.building_name.replace(" ", "_")
-            elif self.building_type == constants.PORT:
-                input_dict["image"] = "buildings/port.png"
-            elif self.building_type == constants.TRAIN_STATION:
-                input_dict["image"] = "buildings/train_station.png"
-            elif self.building_type == constants.FORT:
-                input_dict["image"] = "buildings/fort.png"
             elif self.building_type == constants.TRAIN:
                 image_dict = {
                     "default": "mobs/train/default.png",
@@ -520,14 +471,10 @@ class construction(action.action):
                 input_dict["image"] = f"buildings/{self.building_type}.png"
             new_building = constants.actor_creation_manager.create(False, input_dict)
 
-            if self.building_type in [
-                constants.PORT,
-                constants.TRAIN_STATION,
-                constants.RESOURCE,
-            ]:
+            if self.building_type.warehouse_level > 0:
                 warehouses = self.current_unit.get_cell().get_building(
                     constants.WAREHOUSES
-                )
+                )  # Create warehouses here
                 if warehouses:
                     if warehouses.damaged:
                         warehouses.set_damaged(False)
@@ -540,11 +487,11 @@ class construction(action.action):
 
             actor_utility.calibrate_actor_info_display(
                 status.tile_info_display, self.current_unit.get_cell().tile
-            )  # update tile display to show new building
+            )  # Update tile display to show new building
             if self.building_type in [constants.TRAIN]:
                 new_building.select()
             else:
                 actor_utility.calibrate_actor_info_display(
                     status.mob_info_display, self.current_unit
-                )  # update mob display to show new upgrade possibilities
+                )  # Update mob display to show new upgrade possibilities
         super().complete()

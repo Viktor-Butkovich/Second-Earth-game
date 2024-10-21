@@ -37,7 +37,8 @@ class battalion(group):
         """
         super().__init__(from_save, input_dict)
         if not from_save:
-            self.set_permission(constants.DISORGANIZED_PERMISSION, True)
+            if constants.ALLOW_DISORGANIZED:
+                self.set_permission(constants.DISORGANIZED_PERMISSION, True)
 
     def get_movement_cost(self, x_change, y_change, post_attack=False):
         """
@@ -88,7 +89,7 @@ class battalion(group):
     def move(self, x_change, y_change, attack_confirmed=False):
         """
         Description:
-            Moves this mob x_change to the right and y_change upward. Moving to a ship in the water automatically embarks the ship. If moving into a cell with an npmob, asks for a confirmation to attack instead of moving. If the attack
+            Moves this mob x_change to the right and y_change upward. If moving into a cell with an npmob, asks for a confirmation to attack instead of moving. If the attack
                 is confirmed, move is called again to cause a combat to start
         Input:
             int x_change: How many cells are moved to the right in the movement

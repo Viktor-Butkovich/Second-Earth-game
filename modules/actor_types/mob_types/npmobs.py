@@ -103,7 +103,10 @@ class npmob(mob):
         """
         target_list = []
         for current_building in status.building_list:
-            if current_building.can_damage() and not current_building.damaged:
+            if (
+                current_building.building_type.can_damage
+                and not current_building.damaged
+            ):
                 target_list.append(current_building)
         target_list += status.pmob_list
         min_distance = -1
@@ -215,7 +218,7 @@ class npmob(mob):
             current_cell = self.get_cell()
 
         for current_building in current_cell.get_intact_buildings():
-            if current_building.can_damage():
+            if current_building.building_type.can_damage:
                 constants.notification_manager.display_notification(
                     {
                         "message": f"The undefended {current_building.name} has been damaged by {self.name} at ({self.x}, {self.y}). /n"

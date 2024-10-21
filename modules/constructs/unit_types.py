@@ -1,4 +1,4 @@
-# Contains functionality for unit type templates, such as workers, engineers, ships, etc.
+# Contains functionality for unit type templates, such as workers, engineers, spaceships, etc.
 
 import random
 from typing import Dict, List

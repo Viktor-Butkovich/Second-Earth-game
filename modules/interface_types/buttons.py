@@ -13,7 +13,7 @@ from ..util import (
     game_transitions,
     minister_utility,
 )
-from ..constructs import equipment_types
+from ..constructs import equipment_types, minister_types
 from . import interface_elements
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -201,9 +201,8 @@ class button(interface_elements.interface_element):
                         )
                     else:
                         message = ""
-                        if (
-                            current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                            and current_mob.vehicle_type == constants.TRAIN
+                        if current_mob.all_permissions(
+                            constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                         ):
                             if (
                                 adjacent_infrastructure
@@ -238,28 +237,8 @@ class button(interface_elements.interface_element):
                                     message += " and no connecting roads"
 
                             tooltip_text.append(message)
-                            if (
-                                current_mob.can_walk
-                                and adjacent_cell.terrain_handler.terrain == "water"
-                                and (not current_mob.can_swim)
-                            ) and not local_cell.has_walking_connection(adjacent_cell):
-                                tooltip_text.append(
-                                    "Moving into a water tile costs an entire turn of movement points for units without boats"
-                                )
-                            else:
-                                tooltip_text.append(
-                                    f"Moving into a {adjacent_cell.terrain_handler.terrain.replace('_', ' ')} tile costs {constants.terrain_movement_cost_dict.get(adjacent_cell.terrain_handler.terrain, 1)} movement points"
-                                )
-                    if (
-                        (not current_mob.get_permission(constants.VEHICLE_PERMISSION))
-                        and current_mob.get_cell().terrain_handler.terrain == "water"
-                        and current_mob.get_cell().has_vehicle(constants.SHIP)
-                    ):
-                        if (
-                            not current_mob.can_swim
-                        ):  # if could not naturally move into current tile, must be from vehicle
                             tooltip_text.append(
-                                "Moving from a steamship in the water after disembarking requires all remaining movement points, at least the usual amount"
+                                f"Moving into a {adjacent_cell.terrain_handler.terrain.replace('_', ' ')} tile costs {constants.terrain_movement_cost_dict.get(adjacent_cell.terrain_handler.terrain, 1)} movement points"
                             )
                     if connecting_roads:
                         tooltip_text.append(
@@ -310,58 +289,33 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.CREW_PROCEDURE:  # clicked on vehicle side
             self.set_tooltip(
                 [
-                    f"Merges this {self.vehicle_type} with a worker in the same tile to form a crewed {self.vehicle_type}",
-                    f"Requires that an uncrewed {self.vehicle_type} is selected in the same tile as a worker",
+                    f"Merges this vehicle with a worker in the same tile to form a crewed vehicle",
+                    f"Requires that an uncrewed vehicle is selected in the same tile as a worker",
                 ]
             )
 
         elif self.button_type == constants.UNCREW_PROCEDURE:
-            self.set_tooltip(
-                [
-                    f"Orders this {self.vehicle_type}'s crew to abandon the {self.vehicle_type}."
-                ]
-            )
+            self.set_tooltip([f"Orders this vehicle's crew to abandon the vehicle."])
 
         elif self.button_type == constants.EMBARK_VEHICLE_BUTTON:
             self.set_tooltip(
                 [
-                    f"Orders this unit to embark a {self.vehicle_type} in the same tile",
-                    f"Requires that a unit is selected in the same tile as a crewed {self.vehicle_type}",
+                    f"Orders this unit to embark a vehicle in the same tile",
                 ]
             )
 
         elif self.button_type == constants.DISEMBARK_VEHICLE_BUTTON:
-            if self.vehicle_type == constants.TRAIN:
-                self.set_tooltip(
-                    ["Orders this unit to disembark the " + self.vehicle_type]
-                )
-            elif self.vehicle_type:
-                self.set_tooltip(
-                    [
-                        "Orders this unit to disembark the " + self.vehicle_type,
-                        "Disembarking a unit outside of a port renders it disorganized until the next turn, decreasing its combat effectiveness",
-                    ]
-                )
+            self.set_tooltip(["Orders this unit to disembark the vehicle"])
 
         elif self.button_type == constants.EMBARK_ALL_PASSENGERS_BUTTON:
             self.set_tooltip(
                 [
-                    f"Orders this {self.vehicle_type} to take all non-vehicle units in this tile as passengers"
+                    f"Orders this vehicle to take all non-vehicle units in this tile as passengers"
                 ]
             )
 
         elif self.button_type == constants.DISEMBARK_ALL_PASSENGERS_BUTTON:
-            if self.vehicle_type == constants.TRAIN:
-                self.set_tooltip(
-                    [f"Orders this {self.vehicle_type} to disembark all passengers"]
-                )
-            else:
-                self.set_tooltip(
-                    [
-                        f"Orders this {self.vehicle_type} to disembark all passengers",
-                        "Disembarking a unit outside of a port renders it disorganized until the next turn, decreasing its combat effectiveness",
-                    ]
-                )
+            self.set_tooltip([f"Orders this vehicle to disembark all passengers"])
 
         elif self.button_type == constants.REMOVE_WORK_CREW_BUTTON:
             if self.attached_label.attached_building:
@@ -442,20 +396,20 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.SWITCH_THEATRE_BUTTON:
             self.set_tooltip(
                 [
-                    "Moves this steamship across the ocean to another theatre at the end of the turn",
+                    "Moves this steamship across space to another theatre at the end of the turn",
                     "Once clicked, the mouse pointer can be used to click on the destination",
                     "The destination, once chosen, will having a flashing yellow outline",
-                    "Requires that this steamship is able to move",
+                    "Requires that this spaceship is able to move",
                 ]
             )
 
         elif self.button_type == constants.CYCLE_PASSENGERS_BUTTON:
             if self.vehicle_type:
-                tooltip_text = [f"Cycles through this {self.vehicle_type}'s passengers"]
+                tooltip_text = [f"Cycles through this vehicle's passengers"]
                 tooltip_text.append("Passengers: ")
                 if self.showing:
                     for current_passenger in status.displayed_mob.contained_mobs:
-                        tooltip_text.append("    " + current_passenger.name)
+                        tooltip_text.append(f"    {current_passenger.name}")
                 self.set_tooltip(tooltip_text)
 
         elif self.button_type == constants.CYCLE_WORK_CREWS_BUTTON:
@@ -480,7 +434,7 @@ class button(interface_elements.interface_element):
 
         elif self.button_type == constants.BUILD_TRAIN_BUTTON:
             cost = actor_utility.get_building_cost(
-                status.displayed_mob, constants.TRAIN
+                status.displayed_mob, status.building_types[constants.TRAIN]
             )
             self.set_tooltip(
                 [
@@ -516,8 +470,19 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.APPOINT_MINISTER_BUTTON:
             self.set_tooltip(["Appoints this candidate as " + self.appoint_type.name])
 
-        elif self.button_type == constants.REMOVE_MINISTER_BUTTON:
-            self.set_tooltip(["Removes this minister from their current office"])
+        elif self.button_type == constants.FIRE_MINISTER_BUTTON:
+            self.set_tooltip(
+                [
+                    "Fires this minister, incurring a public opinion penalty based on their social status",
+                ]
+            )
+        elif self.button_type == constants.REAPPOINT_MINISTER_BUTTON:
+            self.set_tooltip(
+                [
+                    "Removes this minister from their current office, allowing them to be reappointed",
+                    "If this minister is not reappointed by the end of the turn, they will be automatically fired",
+                ]
+            )
 
         elif self.button_type == constants.TO_TRIAL_BUTTON:
             self.set_tooltip(
@@ -996,7 +961,11 @@ class button(interface_elements.interface_element):
                     if not constants.current_game_mode == constants.STRATEGIC_MODE:
                         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
 
-                    unit_types = [constants.PORTERS, constants.SHIP, constants.TRAIN]
+                    unit_types = [
+                        constants.PORTERS,
+                        constants.SPACESHIP,
+                        constants.TRAIN,
+                    ]
                     moved_units = {}
                     attempted_units = {}
                     for current_unit_type in unit_types:
@@ -1005,15 +974,7 @@ class button(interface_elements.interface_element):
                     last_moved = None
                     for current_pmob in status.pmob_list:
                         if len(current_pmob.base_automatic_route) > 0:
-                            if current_pmob.get_permission(
-                                constants.VEHICLE_PERMISSION
-                            ):
-                                if current_pmob.vehicle_type == constants.TRAIN:
-                                    unit_type = constants.TRAIN
-                                elif current_pmob.can_swim:
-                                    unit_type = constants.SHIP
-                            else:
-                                unit_type = constants.PORTERS
+                            unit_type = current_pmob.unit_type.key
                             attempted_units[unit_type] += 1
 
                             progressed = current_pmob.follow_automatic_route()
@@ -1309,12 +1270,11 @@ class button(interface_elements.interface_element):
                     "You are busy and cannot disable sentry mode."
                 )
 
-        elif self.button_type == constants.CHOICE_CONFIRM_REMOVE_MINISTER:
-            removed_minister = status.displayed_minister
-            removed_minister.just_removed = True
-            removed_minister.appoint(None)
-            public_opinion_penalty = removed_minister.status_number
-            constants.public_opinion_tracker.change(-1 * public_opinion_penalty)
+        elif self.button_type == constants.CHOICE_CONFIRM_FIRE_MINISTER_BUTTON:
+            status.displayed_minister.respond("fired")
+            status.displayed_minister.appoint(None, update_display=False)
+            status.displayed_minister.remove_complete()
+            minister_utility.calibrate_minister_info_display(None)
 
         elif self.button_type == constants.GENERATE_CRASH_BUTTON:
             if constants.effect_manager.effect_active("enable_crash_button"):
@@ -1872,24 +1832,18 @@ class fire_unit_button(button):
         if (
             main_loop_utility.action_possible()
         ):  # when clicked, calibrate minimap to attached mob and move it to the front of each stack
-            if not (
-                self.attached_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and self.attached_mob.vehicle_type == constants.SHIP
-                and not self.attached_mob.can_leave()
-            ):
-                message = "Are you sure you want to fire this unit? Firing this unit would remove it, any units attached to it, and any associated upkeep from the game. /n /n"
-                worker = self.attached_mob.get_worker()
-                if worker:
-                    message += (
-                        " /n /n".join(worker.worker_type.fired_description) + " /n /n"
-                    )
-                constants.notification_manager.display_notification(
-                    {
-                        "message": message,
-                        "choices": [constants.CHOICE_FIRE_BUTTON, "cancel"],
-                    }
+            message = "Are you sure you want to fire this unit? Firing this unit would remove it, any units attached to it, and any associated upkeep from the game. /n /n"
+            worker = self.attached_mob.get_worker()
+            if worker:
+                message += (
+                    " /n /n".join(worker.worker_type.fired_description) + " /n /n"
                 )
-
+            constants.notification_manager.display_notification(
+                {
+                    "message": message,
+                    "choices": [constants.CHOICE_FIRE_BUTTON, "cancel"],
+                }
+            )
         else:
             text_utility.print_to_screen("You are busy and cannot fire a unit")
 
@@ -2049,20 +2003,25 @@ class minister_portrait_image(button):
         Output:
             None
         """
-        self.default_image_id = "ministers/empty_portrait.png"
+        self.background_image_id = []
+        self.empty_image_id = []
         self.current_minister = None
-        input_dict["image_id"] = self.default_image_id
+        input_dict["image_id"] = self.empty_image_id
         super().__init__(input_dict)
         self.insert_collection_above()
-        self.minister_type = input_dict[
+        self.minister_type: minister_types.minister_type = input_dict[
             "minister_type"
         ]  # Position, like Minister of Space minister_type object
-        if not self.minister_type:  # If available minister portrait
+        if self.minister_type:
+            self.background_image_id.append("misc/empty.png")
+            self.empty_image_id.append("ministers/empty_portrait.png")
+            warning_x_offset = 0
+        else:  # If available minister portrait
+            self.background_image_id.append("misc/empty.png")
+            self.empty_image_id.append("ministers/empty_portrait.png")
             if constants.MINISTERS_MODE in self.modes:
                 status.available_minister_portrait_list.append(self)
             warning_x_offset = scaling.scale_width(-100)
-        else:
-            warning_x_offset = 0
         status.minister_image_list.append(self)
 
         self.warning_image = constants.actor_creation_manager.create_interface_element(
@@ -2112,19 +2071,16 @@ class minister_portrait_image(button):
             self.showing and constants.current_game_mode == constants.MINISTERS_MODE
         ):  # Draw outline around portrait if minister selected
             showing = True
-            if self.current_minister:
+            if (
+                status.displayed_minister
+                and status.displayed_minister == self.current_minister
+                and flags.show_selection_outlines
+            ):
                 pygame.draw.rect(
-                    constants.game_display, constants.color_dict["white"], self.Rect
-                )  # draw white background
-                if (
-                    status.displayed_minister == self.current_minister
-                    and flags.show_selection_outlines
-                ):
-                    pygame.draw.rect(
-                        constants.game_display,
-                        constants.color_dict["bright green"],
-                        self.outline,
-                    )
+                    constants.game_display,
+                    constants.color_dict["bright green"],
+                    self.outline,
+                )
         super().draw(
             allow_show_outline=(constants.current_game_mode == constants.MINISTERS_MODE)
         )  # Show outline for selection icons on ministers mode but not the overlapping ones on strategic mode
@@ -2193,8 +2149,11 @@ class minister_portrait_image(button):
             self.tooltip_text = new_minister.tooltip_text
             if constants.MINISTERS_MODE in self.modes:
                 self.image.set_image(
-                    new_minister.image_id
-                    + actor_utility.generate_label_image_id(new_minister.get_f_lname())
+                    self.background_image_id
+                    + new_minister.image_id
+                    + actor_utility.generate_label_image_id(
+                        new_minister.get_f_lname(use_prefix=True)
+                    )
                 )
             else:
                 self.image.set_image(new_minister.image_id)
@@ -2208,7 +2167,7 @@ class minister_portrait_image(button):
                     f"No {self.minister_type.name} is currently appointed.",
                     f"Without a {self.minister_type.name}, {self.minister_type.skill_type.replace('_', ' ')}-oriented actions are not possible",
                 ]
-            self.image.set_image(self.default_image_id)
+            self.image.set_image(self.empty_image_id)
         else:  # If minister icon on strategic mode, no need to show empty minister
             self.image.set_image("misc/empty.png")
         self.current_minister = new_minister
@@ -2613,8 +2572,8 @@ class tab_button(button):
 
 class reorganize_unit_button(button):
     """
-    Button that reorganizes 1 or more units into 1 or more other units, based on which are present - such as combining a ship and explorer to a ship with explorer as a
-        passenger, or combining a worker and explorer to an expedition
+    Button that reorganizes 1 or more units into 1 or more other units, based on which are present - such as combining a officer and worker into a group, or crew and vehicle
+        into a crewed vehicle
     """
 
     def __init__(self, input_dict):
@@ -2860,7 +2819,7 @@ class reorganize_unit_button(button):
                         ].get_held_commodities()
                     ):
                         text_utility.print_to_screen(
-                            f"You cannot remove the crew from a {procedure_actors[constants.ACTIVE_VEHICLE_PERMISSION].vehicle_type} with passengers or cargo."
+                            f"You cannot remove the crew from a {procedure_actors[constants.ACTIVE_VEHICLE_PERMISSION].name} with passengers or cargo."
                         )
                     else:
                         procedure_actors[

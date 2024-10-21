@@ -23,7 +23,7 @@ class vehicle(pmob):
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
                 'grids': grid list value - grids in which this mob's images can appear
-                'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_ship.png'
+                'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_spaceship.png'
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
                 'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
@@ -36,7 +36,6 @@ class vehicle(pmob):
         Output:
             None
         """
-        self.vehicle_type = "vehicle"
         input_dict["image"] = input_dict["image_dict"]["default"]
         self.contained_mobs = []
         self.ejected_crew = None
@@ -101,7 +100,7 @@ class vehicle(pmob):
             self.set_permission(
                 constants.INACTIVE_VEHICLE_PERMISSION, False, override=True
             )
-            self.set_inventory_capacity(27)
+            self.set_inventory_capacity(self.unit_type.inventory_capacity)
         else:
             self.set_permission(
                 constants.ACTIVE_PERMISSION, False, override=True, update_image=False
@@ -203,7 +202,7 @@ class vehicle(pmob):
     def crew_attrition_death(self, crew):
         """
         Description:
-            Resolves the vehicle's crew dying from attrition, preventing the ship from moving in the next turn and automatically recruiting a new worker
+            Resolves the vehicle's crew dying from attrition, preventing the vehicle from moving in the next turn and automatically recruiting a new worker
         Input:
             None
         Output:
@@ -345,7 +344,7 @@ class vehicle(pmob):
         Output:
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
                 Along with superclass outputs, also saves the following values:
-                'image_dict': string value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_ship.png'
+                'image_dict': string value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_spaceship.png'
                 'crew': string or dictionary value - If no crew, equals None. Otherwise, equals a dictionary of the saved information necessary to recreate the worker to serve as crew
                 'passenger_dicts': dictionary list value - List of dictionaries of saved information necessary to recreate each of this vehicle's passengers
         """
@@ -379,12 +378,10 @@ class vehicle(pmob):
                 return super().can_move(x_change, y_change, can_print)
             elif can_print:
                 print(
-                    f"This {self.vehicle_type} is still having its crew replaced and cannot move this turn."
+                    f"This {self.name} is still having its crew replaced and cannot move this turn."
                 )
         elif can_print:
-            text_utility.print_to_screen(
-                f"A {self.vehicle_type} cannot move without crew."
-            )
+            text_utility.print_to_screen(f"A {self.name} cannot move without a crew.")
         return False
 
     def go_to_grid(self, new_grid, new_coordinates):
@@ -406,7 +403,7 @@ class vehicle(pmob):
             current_mob.hide_images()
         if new_grid == status.earth_grid or self.images[
             0
-        ].current_cell.has_intact_building(constants.PORT):
+        ].current_cell.has_intact_building(constants.SPACEPORT):
             self.eject_passengers()
             self.drop_inventory()
         elif new_grid.grid_type in constants.abstract_grid_type_list:
@@ -441,7 +438,7 @@ class train(vehicle):
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
                 'grids': grid list value - grids in which this mob's images can appear
-                'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_ship.png'
+                'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_spaceship.png'
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
                 'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
@@ -456,11 +453,8 @@ class train(vehicle):
         super().__init__(from_save, input_dict)
         self.set_max_movement_points(16)
         self.has_infinite_movement = False
-        self.vehicle_type = constants.TRAIN
         self.can_swim = False
         self.can_walk = True
-        if not from_save:
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
 
     def can_move(self, x_change, y_change, can_print=True):
         """
@@ -502,9 +496,9 @@ class train(vehicle):
         return self.movement_cost
 
 
-class ship(vehicle):
+class spaceship(vehicle):
     """
-    Vehicle that can only move in ocean water and into ports, can cross the ocean, has large inventory capacity, and has infinite movement points
+    Vehicle that can enter space, has large inventory capacity, and has infinite movement points
     """
 
     def __init__(self, from_save, input_dict):
@@ -516,7 +510,7 @@ class ship(vehicle):
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
                 'grids': grid list value - grids in which this mob's images can appear
-                'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_ship.png'
+                'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_spaceship.png'
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
                 'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
@@ -531,54 +525,18 @@ class ship(vehicle):
         super().__init__(from_save, input_dict)
         self.set_max_movement_points(10)
         self.has_infinite_movement = True
-        self.vehicle_type = constants.SHIP
         self.can_swim = True
         self.can_walk = False
         self.travel_possible = True  # if this mob would ever be able to travel
-        if not from_save:
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
-
-    def can_leave(self):
-        """
-        Description:
-            Returns whether this mob is allowed to move away from its current cell. A ship cannot move away when there are any mobs in its tile that cannot move on water and are not in a ship, preventing ships from leaving behind
-                disembarking passengers
-        Input:
-            None
-        Output:
-            boolean: Returns False if this ship is in a water tile and there are any mobs in its tile that cannot move on water and are not in a ship, otherwise returns True
-        """
-        num_ships = 0
-        for current_mob in self.get_cell().contained_mobs:
-            if (
-                current_mob.all_permissions(
-                    constants.PMOB_PERMISSION, constants.VEHICLE_PERMISSION
-                )
-                and current_mob.can_swim
-            ):
-                num_ships += 1
-        if (
-            num_ships <= 1
-        ):  # can leave units behind if another steamship is present to pick them up
-            if self.get_cell().terrain_handler.terrain == "water":
-                for current_mob in self.get_cell().contained_mobs:
-                    if current_mob.get_permission(
-                        constants.PMOB_PERMISSION
-                    ) and not current_mob.can_swim_at(self.get_cell()):
-                        text_utility.print_to_screen(
-                            f"A {self.vehicle_type} cannot leave without taking unaccompanied units as passengers."
-                        )
-                        return False
-        return True
 
     def can_travel(self):
         """
         Description:
-            Returns whether this ship can cross the ocean, like going between Earth and the planet. Ships can only cross the ocean when they have a crew
+            Returns whether this spaceship can enter space
         Input:
             None
         Output:
-            boolean: Returs True if this ship has any crew, otherwise returns False
+            boolean: Returs True if this spaceship has any crew, otherwise returns False
         """
         return (
             self.travel_possible

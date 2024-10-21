@@ -18,7 +18,7 @@ class notification_manager_template:
             None
         """
         self.notification_queue = []
-        self.locked = False
+        self.lock = False
         self.default_notification_y = 500
         self.default_notification_height = 300
         self.update_notification_layout()
@@ -154,7 +154,7 @@ class notification_manager_template:
         Output:
             None
         """
-        if self.locked or self.notification_queue or status.displayed_notification:
+        if self.lock or self.notification_queue or status.displayed_notification:
             if insert_index != None:
                 self.notification_queue.insert(insert_index, input_dict)
             else:

@@ -163,7 +163,7 @@ class action:
         if subject == "roll_message":
             base_roll_message = "Click to roll. "
             full_roll_message = (
-                f"{base_roll_message}{self.current_min_success}+ required"
+                f"{base_roll_message}{self.current_min_success}+ required "
             )
             if self.actor_type == "mob" and self.current_unit.get_permission(
                 constants.VETERAN_PERMISSION
