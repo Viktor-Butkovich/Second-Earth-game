@@ -42,7 +42,7 @@ class notification(multi_line_label):
         self.notification_dice = (
             0  # by default, do not show any dice when notification shown
         )
-        constants.sound_manager.play_sound("effects/opening_letter")
+        constants.sound_manager.play_sound("effects/receiving_message")
         self.notification_type = input_dict.get(
             "notification_type", input_dict["init_type"]
         )

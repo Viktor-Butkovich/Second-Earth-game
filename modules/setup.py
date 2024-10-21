@@ -1024,7 +1024,7 @@ def unit_types_config():
             "recruitment_cost": 500,
             "description": [
                 "This ship is equipped for interstellar travel, with a massive cargo hold and advanced life support systems to serve as an initial base of operations on another planet.",
-                "A colony ship contains enough space for a small city of crew and passengers, as well as modules, equipment, and supplies (not included)",
+                "A colony ship contains enough space for a small city of crew and passengers, as well as modules, equipment, and supplies (not included).",
                 "Suitable for a 1-way trip.",
             ],
         },

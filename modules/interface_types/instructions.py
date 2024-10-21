@@ -53,7 +53,7 @@ class instructions_page(label):
         input_dict["minimum_width"] = self.ideal_width
         input_dict["height"] = self.minimum_height
         input_dict["modes"] = [constants.STRATEGIC_MODE, constants.EARTH_MODE]
-        input_dict["image_id"] = "misc/default_instructions.png"
+        input_dict["image_id"] = "misc/default_notification.png"
         super().__init__(input_dict)
 
     def on_click(self):
