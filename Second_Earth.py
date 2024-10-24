@@ -129,9 +129,10 @@ except Exception:  # Displays error message and records error message in crash l
 
 # Upcoming work queue:
 # Replace get_worker, get_officer, etc. with get_unit, and same for has_unit
+# Remove train/spaceship classes - should all be configurable
+#   Modify vehicle classes to fit more with unit_type system - should not have their own permissions, especially can_swim and can_walk
 # Add modern minister outfits
 # Add astronauts art
-# Allow vehicles to be crewed by groups instead of workers
 # Add new resource types, allowing buying on Earth, transporting, and using to build when it is in the builder's tile
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
@@ -141,7 +142,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
 # Add new autofill interface for vehicle passengers, and possibly building work crews
-# Modify vehicle classes to fit more with unit_type system - should not have their own permissions, especially can_swim and can_walk
 # Convert actor_type ("tile", "mob", "minister") to use constant keys
 #
 # Fix this rare crash

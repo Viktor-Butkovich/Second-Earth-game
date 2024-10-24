@@ -104,7 +104,7 @@ class terrain_manager_template:
                 6: "deep",
             },
         }
-        self.load_terrains("configuration/TDG.json")
+        self.load_terrains("configuration/terrain_definitions.json")
         self.load_tuning("configuration/terrain_generation_tuning.json")
 
     def load_tuning(self, file_name):
