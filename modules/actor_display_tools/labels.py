@@ -41,6 +41,7 @@ class actor_display_label(label):
         self.actor_type = input_dict[
             "actor_type"
         ]  # mob or tile, None if does not scale with shown labels, like tooltip labels
+        self.default_tooltip_text = input_dict.get("default_tooltip_text", [])
         self.image_y_displacement = 0
         input_dict["message"] = ""
         super().__init__(input_dict)
@@ -577,6 +578,8 @@ class actor_display_label(label):
                         tooltip_text.append("")
                         tooltip_text += current_building.tooltip_text
                 self.set_tooltip(tooltip_text)
+            elif self.default_tooltip_text:
+                self.set_tooltip(self.default_tooltip_text)
 
         elif self.actor_label_type in [
             constants.MOB_INVENTORY_CAPACITY_LABEL,
@@ -936,7 +939,7 @@ class actor_display_label(label):
 
             elif self.actor_label_type == constants.PASSENGERS_LABEL:
                 if not self.actor.get_permission(constants.ACTIVE_PERMISSION):
-                    self.set_label("Requires a worker crew to function")
+                    self.set_label("Must be crewed by astronauts to function")
                 elif self.actor.get_permission(constants.VEHICLE_PERMISSION):
                     if len(self.actor.contained_mobs) == 0:
                         self.set_label(self.message_start + "none")
@@ -1132,6 +1135,11 @@ class actor_display_label(label):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if not result:
             return False
+        elif (
+            self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL
+            and self.default_tooltip_text
+        ):
+            return True
         elif not self.actor:
             return False
         elif self.actor_label_type == constants.RESOURCE_LABEL and (
@@ -1347,26 +1355,27 @@ class actor_tooltip_label(actor_display_label):
                 status.tile_info_display, self.actor
             )
             actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
-        elif self.actor.get_permission(constants.DUMMY_PERMISSION):
-            if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
-                status.reorganize_vehicle_right_button.on_click()
-            elif status.displayed_mob.get_permission(
-                constants.ACTIVE_VEHICLE_PERMISSION
-            ):
-                status.reorganize_vehicle_left_button.on_click()
-            elif self.actor.any_permissions(
-                constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
-            ):
-                status.reorganize_group_left_button.on_click()
-            elif self.actor.get_permission(constants.GROUP_PERMISSION):
-                status.reorganize_group_right_button.on_click()
+        elif self.actor:
+            if self.actor.get_permission(constants.DUMMY_PERMISSION):
+                if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
+                    status.reorganize_vehicle_right_button.on_click()
+                elif status.displayed_mob.get_permission(
+                    constants.ACTIVE_VEHICLE_PERMISSION
+                ):
+                    status.reorganize_vehicle_left_button.on_click()
+                elif self.actor.any_permissions(
+                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
+                ):
+                    status.reorganize_group_left_button.on_click()
+                elif self.actor.get_permission(constants.GROUP_PERMISSION):
+                    status.reorganize_group_right_button.on_click()
 
-            if not self.actor.get_permission(
-                constants.DUMMY_PERMISSION
-            ):  # Only select if dummy unit successfully became real
+                if not self.actor.get_permission(
+                    constants.DUMMY_PERMISSION
+                ):  # Only select if dummy unit successfully became real
+                    self.actor.cycle_select()
+            else:
                 self.actor.cycle_select()
-        else:
-            self.actor.cycle_select()
 
 
 class building_work_crews_label(actor_display_label):

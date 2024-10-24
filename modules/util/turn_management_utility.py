@@ -370,7 +370,7 @@ def manage_financial_report():
 def manage_worker_price_changes():
     """
     Description:
-        Randomly changes the prices of European worker upkeep at the end of the turn, generally trending down to compensate for increases when recruited
+        Randomly changes the prices of colonist upkeep at the end of the turn, generally trending down to compensate for increases when recruited
     Input:
         None
     Output:

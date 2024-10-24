@@ -130,6 +130,64 @@ class pmob(mob):
         super().permissions_setup()
         self.set_permission(constants.PMOB_PERMISSION, True)
 
+    def crew_vehicle(self, vehicle):
+        """
+        Description:
+            Orders this worker to crew the inputted vehicle, attaching this worker to the vehicle and allowing the vehicle to function
+        Input:
+            vehicle vehicle: vehicle to which this worker is attached
+        Output:
+            None
+        """
+        self.in_vehicle = True
+        self.hide_images()
+        vehicle.set_crew(self)
+        moved_mob = vehicle
+        for current_image in moved_mob.images:  # Moves vehicle to front
+            if current_image.current_cell:
+                while not moved_mob == current_image.current_cell.contained_mobs[0]:
+                    current_image.current_cell.contained_mobs.append(
+                        current_image.current_cell.contained_mobs.pop(0)
+                    )
+        self.remove_from_turn_queue()
+        vehicle.add_to_turn_queue()
+        if (
+            not flags.loading_save
+        ):  # Don't select vehicle if loading in at start of game
+            actor_utility.calibrate_actor_info_display(
+                status.mob_info_display, None, override_exempt=True
+            )
+            vehicle.select()
+            vehicle.selection_sound()
+
+    def uncrew_vehicle(self, vehicle):
+        """
+        Description:
+            Orders this worker to stop crewing the inputted vehicle, making this worker independent from the vehicle and preventing the vehicle from functioning
+        Input:
+            vehicle vehicle: vehicle to which this worker is no longer attached
+        Output:
+            None
+        """
+        self.in_vehicle = False
+        self.x = vehicle.x
+        self.y = vehicle.y
+        self.show_images()
+        if not self.get_cell().get_intact_building(constants.SPACEPORT):
+            if constants.ALLOW_DISORGANIZED:
+                self.set_permission(constants.DISORGANIZED_PERMISSION, True)
+        vehicle.set_crew(None)
+        vehicle.end_turn_destination = None
+        vehicle.hide_images()
+        vehicle.show_images()  # bring vehicle to front of tile
+        vehicle.remove_from_turn_queue()
+        actor_utility.calibrate_actor_info_display(
+            status.mob_info_display, None, override_exempt=True
+        )
+        vehicle.select()
+        self.add_to_turn_queue()
+        self.update_image_bundle()
+
     def on_move(self):
         """
         Description:

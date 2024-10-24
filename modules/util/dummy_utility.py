@@ -24,7 +24,6 @@ required_dummy_attributes = [
     "end_turn_destination",
     "officer",
     "worker",
-    "battalion_type",
 ]
 
 
@@ -112,11 +111,11 @@ def generate_autofill_actors(
                     ] = constants.SPLIT_PROCEDURE
 
                 elif constants.CREW_PROCEDURE in allowed_procedures and target in [
-                    constants.EUROPEAN_WORKERS_PERMISSION,
+                    constants.CREW_VEHICLE_PERMISSION,
                     constants.INACTIVE_VEHICLE_PERMISSION,
                 ]:
                     return_dict[target] = status.displayed_mob
-                    if target == constants.EUROPEAN_WORKERS_PERMISSION:
+                    if target == constants.CREW_VEHICLE_PERMISSION:
                         # If a crew selected, find an uncrewed vehicle if present and make a dummy crewed vehicle
                         return_dict[
                             constants.INACTIVE_VEHICLE_PERMISSION
@@ -126,15 +125,13 @@ def generate_autofill_actors(
                     elif target == constants.INACTIVE_VEHICLE_PERMISSION:
                         # If a vehicle selected, find a crew if present and make a dummy crewed vehicle
                         return_dict[
-                            constants.EUROPEAN_WORKERS_PERMISSION
-                        ] = status.displayed_mob.get_cell().get_worker(
+                            constants.CREW_VEHICLE_PERMISSION
+                        ] = status.displayed_mob.get_cell().get_unit(
+                            [constants.CREW_VEHICLE_PERMISSION],
                             start_index=search_start_index,
-                            possible_types=[
-                                status.worker_types[constants.EUROPEAN_WORKERS]
-                            ],
                         )
                     if (
-                        return_dict[constants.EUROPEAN_WORKERS_PERMISSION]
+                        return_dict[constants.CREW_VEHICLE_PERMISSION]
                         and return_dict[constants.INACTIVE_VEHICLE_PERMISSION]
                     ):
                         # If a crew and uncrewed vehicle present
@@ -142,7 +139,7 @@ def generate_autofill_actors(
                             constants.ACTIVE_VEHICLE_PERMISSION
                         ] = simulate_crew(
                             return_dict[constants.INACTIVE_VEHICLE_PERMISSION],
-                            return_dict[constants.EUROPEAN_WORKERS_PERMISSION],
+                            return_dict[constants.CREW_VEHICLE_PERMISSION],
                             required_dummy_attributes,
                             dummy_input_dict,
                         )
@@ -156,7 +153,7 @@ def generate_autofill_actors(
                     # If a crewed vehicle selected, uncrew into dummy vehicle and worker
                     (
                         return_dict[constants.INACTIVE_VEHICLE_PERMISSION],
-                        return_dict[constants.EUROPEAN_WORKERS_PERMISSION],
+                        return_dict[constants.CREW_VEHICLE_PERMISSION],
                     ) = simulate_uncrew(
                         status.displayed_mob,
                         required_dummy_attributes,
@@ -236,10 +233,6 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
         )
         if dummy_input_dict["unit_type"] == status.unit_types[constants.BATTALION]:
             dummy_input_dict["disorganized"] = True
-            if worker.get_permission(constants.EUROPEAN_WORKERS_PERMISSION):
-                dummy_input_dict["battalion_type"] = "imperial"
-            else:
-                dummy_input_dict["battalion_type"] = "colonial"
         dummy_input_dict["name"] = actor_utility.generate_group_name(
             worker, officer, add_veteran=True
         )

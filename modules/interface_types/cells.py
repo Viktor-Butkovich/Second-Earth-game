@@ -618,6 +618,51 @@ class cell:
                 return True
         return False
 
+    def has_unit(self, permissions, required_number=1):
+        """
+        Description:
+            Returns whether this cell contains the requested amount of units with all the inputted permissions
+        Input:
+            string list permissions: List of permissions to search for
+            int required_number=1: Number of units that must be found to return True
+        Output:
+            boolean: Returns whether this cell contains the requested amount of units with all the inputted permissions
+        """
+        num_found = 0
+        for current_mob in self.contained_mobs:
+            if current_mob.all_permissions(*permissions):
+                num_found += 1
+                if num_found >= required_number:
+                    return True
+        return False
+
+    def get_unit(self, permissions, start_index=0):
+        """
+        Description:
+            Returns the first unit in this cell with all the inputted permissions, or None if none are present
+        Input:
+            string list permissions: List of permissions to search for
+            int start_index=0: Index of contained_mobs to start search from - if starting in middle, wraps around iteration to ensure all items are still checked
+                Allows finding different units with repeated calls by changing start_index
+        Output:
+            mob: Returns the first unit in this cell with all the inputted permissions, or None if none are present
+        """
+        if start_index >= len(self.contained_mobs):
+            start_index = 0
+        if (
+            start_index == 0
+        ):  # don't bother slicing/concatenating list if just iterating from index 0
+            iterated_list = self.contained_mobs
+        else:
+            iterated_list = (
+                self.contained_mobs[start_index : len(self.contained_mobs)]
+                + self.contained_mobs[0:start_index]
+            )
+        for current_mob in iterated_list:
+            if current_mob.all_permissions(*permissions):
+                return current_mob
+        return None
+
     def get_best_combatant(self, mob_type):
         """
         Description:

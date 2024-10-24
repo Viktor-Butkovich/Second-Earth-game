@@ -113,7 +113,7 @@ def attempt_worker_upkeep_change(change_type, worker_type):
         Controls the chance to increase worker upkeep when a worker leaves the labor pool or decrease worker upkeep when a worker joins the labor pool
     Input:
         string change_type: 'increase' or 'decrease' depending on whether a worker is being added to or removed from the labor pool, decides whether worker price increases or decreases
-        worker_type worker_type: Like 'European', decides which type of worker has a price change
+        worker_type worker_type: Like 'Colonists', decides which type of worker has a price change
     Output:
         None
     """

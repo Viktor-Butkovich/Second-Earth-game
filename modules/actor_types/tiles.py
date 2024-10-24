@@ -632,7 +632,7 @@ class abstract_tile(tile):
         """
         input_dict["coordinates"] = (0, 0)
         input_dict["show_terrain"] = False
-        self.grid_image_id = ["locations/earth/earth.png"]
+        self.grid_image_id = ["locations/earth.png"]
         input_dict["image"] = self.grid_image_id
         super().__init__(from_save, input_dict)
 

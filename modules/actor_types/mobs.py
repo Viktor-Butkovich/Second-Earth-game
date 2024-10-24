@@ -382,8 +382,6 @@ class mob(actor):
                 and self.unit_type == status.unit_types[constants.BATTALION]
             ):
                 modifier += 1
-                if self.worker.get_permission(constants.EUROPEAN_WORKERS_PERMISSION):
-                    modifier += 1
             else:
                 modifier -= 1
                 if self.get_permission(constants.OFFICER_PERMISSION):

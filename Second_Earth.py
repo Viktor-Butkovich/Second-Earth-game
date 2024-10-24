@@ -128,10 +128,10 @@ except Exception:  # Displays error message and records error message in crash l
 # Add minister deaths - may occur in assassination, attrition, freak accidents, heroic sacrifices, etc.
 
 # Upcoming work queue:
+# Replace get_worker, get_officer, etc. with get_unit, and same for has_unit
 # Add modern minister outfits
-# Add astronauts/cosmonauts group with corresponding officer
+# Add astronauts art
 # Allow vehicles to be crewed by groups instead of workers
-# Add building type classes that each instance can belong to
 # Add new resource types, allowing buying on Earth, transporting, and using to build when it is in the builder's tile
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface

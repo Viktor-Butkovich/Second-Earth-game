@@ -48,8 +48,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         """
         self.actor_constructors = {
             constants.MOB: mobs.mob,
-            constants.EUROPEAN_WORKERS: workers.worker,
-            constants.CHURCH_VOLUNTEERS: workers.worker,
+            constants.COLONISTS: workers.worker,
             constants.TRAIN: vehicles.train,
             constants.COLONY_SHIP: vehicles.spaceship,
             constants.EXPLORER: officers.officer,
@@ -59,6 +58,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.MERCHANT: officers.officer,
             constants.EVANGELIST: officers.officer,
             constants.MAJOR: officers.officer,
+            constants.ASTRONAUT_COMMANDER: officers.officer,
             constants.PORTERS: groups.group,
             constants.WORK_CREW: work_crews.work_crew,
             constants.CONSTRUCTION_GANG: groups.group,
@@ -66,6 +66,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.MISSIONARIES: groups.group,
             constants.EXPEDITION: expeditions.expedition,
             constants.BATTALION: battalions.battalion,
+            constants.ASTRONAUTS: groups.group,
             constants.INFRASTRUCTURE: buildings.infrastructure_building,
             constants.FORT: buildings.building,
             constants.TRAIN_STATION: buildings.building,

@@ -2695,11 +2695,11 @@ class reorganize_unit_button(button):
                         constants.INACTIVE_VEHICLE_PERMISSION
                     ]
                     and self.parent_collection.autofill_actors[
-                        constants.EUROPEAN_WORKERS_PERMISSION
+                        constants.CREW_VEHICLE_PERMISSION
                     ]
                 ):
                     self.tooltip_text.append(
-                        f"Press to combine the {self.parent_collection.autofill_actors[constants.INACTIVE_VEHICLE_PERMISSION].name} and the {self.parent_collection.autofill_actors[constants.EUROPEAN_WORKERS_PERMISSION].name} into a crewed {self.parent_collection.autofill_actors[constants.ACTIVE_VEHICLE_PERMISSION].name}"
+                        f"Press to combine the {self.parent_collection.autofill_actors[constants.INACTIVE_VEHICLE_PERMISSION].name} and the {self.parent_collection.autofill_actors[constants.CREW_VEHICLE_PERMISSION].name} into a crewed {self.parent_collection.autofill_actors[constants.ACTIVE_VEHICLE_PERMISSION].name}"
                     )
                 else:
                     self.tooltip_text += [
@@ -2711,7 +2711,7 @@ class reorganize_unit_button(button):
                 == constants.UNCREW_PROCEDURE
             ):
                 self.tooltip_text.append(
-                    f"Press to separate the {self.parent_collection.autofill_actors[constants.ACTIVE_VEHICLE_PERMISSION].name} into {self.parent_collection.autofill_actors[constants.EUROPEAN_WORKERS_PERMISSION].name} and a non-crewed {self.parent_collection.autofill_actors[constants.INACTIVE_VEHICLE_PERMISSION].name}"
+                    f"Press to separate the {self.parent_collection.autofill_actors[constants.ACTIVE_VEHICLE_PERMISSION].name} into {self.parent_collection.autofill_actors[constants.CREW_VEHICLE_PERMISSION].name} and a non-crewed {self.parent_collection.autofill_actors[constants.INACTIVE_VEHICLE_PERMISSION].name}"
                 )
         elif self.parent_collection.autofill_actors[constants.AUTOFILL_PROCEDURE]:
             self.tooltip_text.append(
@@ -2736,11 +2736,9 @@ class reorganize_unit_button(button):
         """
         if main_loop_utility.action_possible():
             procedure_actors = self.parent_collection.autofill_actors
-            if (
-                procedure_actors[constants.AUTOFILL_PROCEDURE]
-                in self.allowed_procedures
-            ):
-                procedure_type = None
+            attempted_procedure_type = procedure_actors[constants.AUTOFILL_PROCEDURE]
+            procedure_type = constants.INVALID_PROCEDURE
+            if attempted_procedure_type in self.allowed_procedures:
                 dummy_autofill_target_to_procedure_dict = {
                     constants.OFFICER_PERMISSION: constants.SPLIT_PROCEDURE,
                     constants.WORKER_PERMISSION: constants.SPLIT_PROCEDURE,
@@ -2748,7 +2746,7 @@ class reorganize_unit_button(button):
                     constants.ACTIVE_VEHICLE_PERMISSION: constants.CREW_PROCEDURE,
                     constants.INACTIVE_VEHICLE_PERMISSION: constants.UNCREW_PROCEDURE,
                 }
-                # type of procedure to do if dummy version of corresponding unit found - if a dummy officer is found, the procedure must be a split
+                # Type of procedure to execute if dummy version of corresponding unit found - if a dummy officer is found, the procedure must be a split
                 procedure_type = constants.INVALID_PROCEDURE
                 for autofill_target_type in dummy_autofill_target_to_procedure_dict:
                     if procedure_actors.get(autofill_target_type, None):
@@ -2760,35 +2758,14 @@ class reorganize_unit_button(button):
                             ]
                             break
                 if procedure_type == constants.MERGE_PROCEDURE:
-                    if procedure_actors[constants.WORKER_PERMISSION].get_permission(
-                        constants.CHURCH_VOLUNTEERS_PERMISSION
-                    ) and not procedure_actors[
-                        constants.OFFICER_PERMISSION
-                    ].get_permission(
-                        constants.EVANGELIST_PERMISSION
-                    ):
-                        text_utility.print_to_screen(
-                            "Church volunteers can only be combined with evangelists."
-                        )
-                    elif procedure_actors[constants.OFFICER_PERMISSION].get_permission(
-                        constants.EVANGELIST_PERMISSION
-                    ) and not procedure_actors[
-                        constants.WORKER_PERMISSION
-                    ].get_permission(
-                        constants.CHURCH_VOLUNTEERS_PERMISSION
-                    ):
-                        text_utility.print_to_screen(
-                            "Evangelists can only be combined with church volunteers."
-                        )
-                    else:
-                        constants.actor_creation_manager.create_group(
-                            procedure_actors[constants.WORKER_PERMISSION],
-                            procedure_actors[constants.OFFICER_PERMISSION],
-                        ).select()
+                    constants.actor_creation_manager.create_group(
+                        procedure_actors[constants.WORKER_PERMISSION],
+                        procedure_actors[constants.OFFICER_PERMISSION],
+                    ).select()
 
                 elif procedure_type == constants.CREW_PROCEDURE:
                     if procedure_actors[
-                        constants.EUROPEAN_WORKERS_PERMISSION
+                        constants.CREW_VEHICLE_PERMISSION
                     ].get_permission(
                         constants.CREW_PERMISSIONS[
                             procedure_actors[
@@ -2797,13 +2774,13 @@ class reorganize_unit_button(button):
                         ]
                     ):
                         procedure_actors[
-                            constants.EUROPEAN_WORKERS_PERMISSION
+                            constants.CREW_VEHICLE_PERMISSION
                         ].crew_vehicle(
                             procedure_actors[constants.INACTIVE_VEHICLE_PERMISSION]
                         )
                     else:
                         text_utility.print_to_screen(
-                            f"{procedure_actors[constants.EUROPEAN_WORKERS_PERMISSION].worker_type.name.capitalize()} cannot crew {procedure_actors[constants.INACTIVE_VEHICLE_PERMISSION].unit_type.name}s."
+                            f"{procedure_actors[constants.CREW_VEHICLE_PERMISSION].worker_type.name.capitalize()} cannot crew {procedure_actors[constants.INACTIVE_VEHICLE_PERMISSION].unit_type.name}s."
                         )
 
                 elif procedure_type == constants.SPLIT_PROCEDURE:
@@ -2828,22 +2805,23 @@ class reorganize_unit_button(button):
                             procedure_actors[constants.ACTIVE_VEHICLE_PERMISSION]
                         )
 
-            elif constants.MERGE_PROCEDURE in self.allowed_procedures:
-                text_utility.print_to_screen(
-                    "This button executes merge procedures, which require workers and an officer in the same tile"
-                )
-            elif constants.SPLIT_PROCEDURE in self.allowed_procedures:
-                text_utility.print_to_screen(
-                    "This button executes split procedures, which require a group to be selected"
-                )
-            elif constants.CREW_PROCEDURE in self.allowed_procedures:
-                text_utility.print_to_screen(
-                    "This button executes crew procedures, which require a worker and an uncrewed vehicle in the same tile"
-                )
-            elif constants.UNCREW_PROCEDURE in self.allowed_procedures:
-                text_utility.print_to_screen(
-                    "This button executes uncrew procedures, which require a crewed vehicle to be selected"
-                )
+            if procedure_type == constants.INVALID_PROCEDURE:
+                if constants.MERGE_PROCEDURE in self.allowed_procedures:
+                    text_utility.print_to_screen(
+                        "This button executes merge procedures, which require workers and an officer in the same tile"
+                    )
+                elif constants.SPLIT_PROCEDURE in self.allowed_procedures:
+                    text_utility.print_to_screen(
+                        "This button executes split procedures, which require a group to be selected"
+                    )
+                elif constants.CREW_PROCEDURE in self.allowed_procedures:
+                    text_utility.print_to_screen(
+                        "This button executes crew procedures, which require a worker and an uncrewed vehicle in the same tile"
+                    )
+                elif constants.UNCREW_PROCEDURE in self.allowed_procedures:
+                    text_utility.print_to_screen(
+                        "This button executes uncrew procedures, which require a crewed vehicle to be selected"
+                    )
 
 
 class cycle_autofill_button(button):
@@ -2908,13 +2886,10 @@ class cycle_autofill_button(button):
                             )
                         elif (
                             self.autofill_target_type
-                            == constants.EUROPEAN_WORKERS_PERMISSION
+                            == constants.CREW_VEHICLE_PERMISSION
                         ):
-                            return status.displayed_mob.get_cell().has_worker(
-                                required_number=2,
-                                possible_types=[
-                                    status.worker_types[constants.EUROPEAN_WORKERS]
-                                ],
+                            return status.displayed_mob.get_cell().has_unit(
+                                [constants.CREW_VEHICLE_PERMISSION], required_number=2
                             )
                         elif (
                             self.autofill_target_type
@@ -2923,8 +2898,8 @@ class cycle_autofill_button(button):
                             return status.displayed_mob.get_cell().has_uncrewed_vehicle(
                                 required_number=2
                             )
-                        # allow cycling autofill if current autofill is a real, non-selected mob and there is at least 1 alternative
-                        # it makes no sense to cycle a dummy mob for a real one in the same tile, and the selected mob is locked and can't be cycled
+                        # Allow cycling autofill if current autofill is a real, non-selected mob and there is at least 1 alternative
+                        #   It makes no sense to cycle a dummy mob for a real one in the same tile, and the selected mob is locked and can't be cycled
         return False
 
     def on_click(self):

@@ -458,7 +458,7 @@ class worker_type(unit_type):
             None
         """
         super().on_recruit()
-        if self.key != constants.CHURCH_VOLUNTEERS:
+        if self.upkeep > 0:
             market_utility.attempt_worker_upkeep_change("increase", self)
 
     def on_remove(self):
@@ -482,10 +482,10 @@ class worker_type(unit_type):
         Output:
             None
         """
-        if self.key != constants.CHURCH_VOLUNTEERS:
+        if self.upkeep > 0:
             market_utility.attempt_worker_upkeep_change("decrease", self)
 
-        if self.key in [constants.CHURCH_VOLUNTEERS, constants.EUROPEAN_WORKERS]:
+        if self.key in [constants.COLONISTS]:
             current_public_opinion = constants.public_opinion
             constants.public_opinion_tracker.change(-1)
             resulting_public_opinion = constants.public_opinion

@@ -24,7 +24,6 @@ from modules.tools.data_managers import (
 )
 from modules.action_types import (
     public_relations_campaign,
-    religious_campaign,
     advertising_campaign,
     combat,
     exploration,
@@ -375,7 +374,6 @@ def actions():
         for upgrade_type in building_type.upgrade_fields.keys():
             upgrade.upgrade(building_type=building_type, upgrade_type=upgrade_type)
     public_relations_campaign.public_relations_campaign()
-    religious_campaign.religious_campaign()
     advertising_campaign.advertising_campaign()
     combat.combat()
     exploration.exploration()
@@ -710,8 +708,8 @@ def unit_types_config():
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
             "description": [
-                f"Explorers are controlled by the {status.minister_types[constants.SCIENCE_MINISTER].name}",
-                "When combined with workers, an explorer becomes an expedition unit that can explore new tiles.",
+                f"Explorers are controlled by the {status.minister_types[constants.SCIENCE_MINISTER].name}.",
+                "An explorer combines with colonists to form an expedition, which can explore new tiles.",
             ],
         },
     ).link_group_type(status.unit_types[constants.EXPEDITION])
@@ -751,7 +749,7 @@ def unit_types_config():
             "recruitment_cost": 5,
             "description": [
                 f"Merchants are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally search for loans and conduct advertising campaigns on Earth.",
-                "When combined with workers, a merchant becomes a caravan that can build trading posts and trade.",
+                "A merchant combines with colonists to form a caravan, which can trade and build trading posts.",
             ],
         },
     ).link_group_type(status.unit_types[constants.CARAVAN])
@@ -790,7 +788,7 @@ def unit_types_config():
             "recruitment_cost": 5,
             "description": [
                 f"Evangelists are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally conduct religious campaigns and public relations campaigns on Earth.",
-                "When combined with religious volunteers, an evangelist becomes a missionaries unit that can build missions.",
+                "An evangelist combines with church volunteers to form missionaries, which can build missions.",
             ],
         },
     ).link_group_type(status.unit_types[constants.MISSIONARIES])
@@ -828,11 +826,52 @@ def unit_types_config():
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
             "description": [
-                f"Majors are controlled by the {status.minister_types[constants.SPACE_MINISTER].name}",
-                "When combined with workers, a major becomes a battalion unit that has a very high combat strength, and can build forts and attack enemies.",
+                f"Majors are controlled by the {status.minister_types[constants.SPACE_MINISTER].name}.",
+                "A major combines with colonists to form a battalion, which has a very high combat strength, and can build forts and attack enemies.",
             ],
         },
     ).link_group_type(status.unit_types[constants.BATTALION])
+
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.ASTRONAUTS,
+            "name": "astronauts",
+            "controlling_minister_type": status.minister_types[
+                constants.SPACE_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.GROUP_PERMISSION: True,
+                constants.ASTRONAUTS_PERMISSION: True,
+                constants.CREW_VEHICLE_PERMISSION: True,
+                constants.CREW_SPACESHIP_PERMISSION: True,
+            },
+            "can_recruit": False,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.ASTRONAUT_COMMANDER,
+            "name": "astronaut commander",
+            "controlling_minister_type": status.minister_types[
+                constants.SPACE_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.OFFICER_PERMISSION: True,
+                constants.ASTRONAUT_COMMANDER_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Astronaut commanders are controlled by the {status.minister_types[constants.SPACE_MINISTER].name}.",
+                "An astronaut commander combines with colonists to form astronauts, which can crew spaceships and space stations, and perform actions in orbit.",
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.ASTRONAUTS])
 
     unit_types.group_type(
         False,
@@ -869,8 +908,8 @@ def unit_types_config():
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
             "description": [
-                f"Drivers are controlled by the {status.minister_types[constants.TRANSPORTATION_MINISTER].name}",
-                "When combined with workers, a driver becomes a porters unit that can move quickly and transport commodities.",
+                f"Drivers are controlled by the {status.minister_types[constants.TRANSPORTATION_MINISTER].name}.",
+                "A driver combines with colonists to form porters, which can transport commodities and move quickly.",
             ],
         },
     ).link_group_type(status.unit_types[constants.PORTERS])
@@ -908,8 +947,8 @@ def unit_types_config():
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
             "description": [
-                f"Foremen are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}",
-                "When combined with workers, a foreman becomes a work crew unit that can produce commodities when attached to a production facility.",
+                f"Foremen are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}.",
+                "A foreman combines with colonists to form a work crew, which can produce commodities when attached to a production facility.",
             ],
         },
     ).link_group_type(status.unit_types[constants.WORK_CREW])
@@ -947,8 +986,8 @@ def unit_types_config():
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
             "description": [
-                f"Engineers are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}",
-                "When combined with workers, an engineer becomes a construction gang unit that can build buildings, roads, railroads, and trains.",
+                f"Engineers are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}.",
+                "An engineer combines with colonists to form a construction gang, which can build buildings, roads, railroads, and trains.",
             ],
         },
     ).link_group_type(status.unit_types[constants.CONSTRUCTION_GANG])
@@ -956,15 +995,14 @@ def unit_types_config():
     unit_types.worker_type(
         False,
         {
-            "key": constants.EUROPEAN_WORKERS,
-            "name": "European workers",
+            "key": constants.COLONISTS,
+            "name": "colonists",
             "controlling_minister_type": status.minister_types[
-                constants.INDUSTRY_MINISTER
+                constants.TERRAN_AFFAIRS_MINISTER
             ],
             "permissions": {
                 constants.PMOB_PERMISSION: True,
                 constants.WORKER_PERMISSION: True,
-                constants.EUROPEAN_WORKERS_PERMISSION: True,
                 constants.CREW_SPACESHIP_PERMISSION: True,
                 constants.CREW_TRAIN_PERMISSION: True,
             },
@@ -975,30 +1013,12 @@ def unit_types_config():
             "recruitment_cost": 0,
             "recruitment_verb": "hire",
             "fired_description": ["Fired description."],
-            "description": ["Placeholder"],
-            "number": 2,
-        },
-    )
-    unit_types.worker_type(
-        False,
-        {
-            "key": constants.CHURCH_VOLUNTEERS,
-            "name": "church volunteers",
-            "controlling_minister_type": status.minister_types[
-                constants.TERRAN_AFFAIRS_MINISTER
+            "description": [
+                "Colonists represent a large group of workers, and are required for most tasks. ",
+                "Colonists must work near their housing, and require upkeep each turn in food, air, water, and goods. ",
+                "Officers can be attached to colonists to form groups, which can perform actions. ",
+                "For example, an engineer combined with colonists forms a construction gang, which can construct buildings. ",
             ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.WORKER_PERMISSION: True,
-                constants.CHURCH_VOLUNTEERS_PERMISSION: True,
-            },
-            "upkeep": 0.0,
-            "can_recruit": False,
-            "fired_description": [
-                "Fired church volunteers will never settle in slums and will instead return to Europe.",
-                "Firing church volunteers reflects poorly on your company and will incur a public opinion penalty of 1.",
-            ],
-            "description": ["Placeholder"],
             "number": 2,
         },
     )
@@ -1284,12 +1304,12 @@ def buttons():
             "coordinates": scaling.scale_coordinates(
                 1125, constants.default_display_height - 55
             ),
-            "image_id": "locations/europe_button.png",
+            "image_id": actor_utility.generate_frame("locations/earth.png"),
             "to_mode": constants.EARTH_MODE,
             "keybind_id": pygame.K_2,
         }
     )
-    to_europe_button = constants.actor_creation_manager.create_interface_element(
+    to_earth_button = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
 
@@ -1300,7 +1320,7 @@ def buttons():
             ),
             "width": scaling.scale_width(50),
             "to_mode": constants.MINISTERS_MODE,
-            "image_id": "buttons/european_hq_button.png",
+            "image_id": "buttons/hq_button.png",
             "keybind_id": pygame.K_3,
         }
     )
@@ -1352,7 +1372,7 @@ def buttons():
     input_dict["coordinates"] = scaling.scale_coordinates(
         constants.default_display_width - 50, constants.default_display_height - 50
     )
-    input_dict["image_id"] = "buttons/exit_european_hq_button.png"
+    input_dict["image_id"] = "buttons/exit_earth_screen_button.png"
     input_dict["init_type"] = constants.SWITCH_GAME_MODE_BUTTON
     input_dict["width"] = scaling.scale_width(50)
     input_dict["height"] = scaling.scale_height(50)
@@ -1542,7 +1562,7 @@ def buttons():
         constants.default_display_width - 55, constants.default_display_height - 55
     )
     input_dict["modes"] = [constants.MAIN_MENU_MODE]
-    input_dict["image_id"] = ["buttons/exit_european_hq_button.png"]
+    input_dict["image_id"] = ["buttons/exit_earth_screen_button.png"]
     input_dict["init_type"] = constants.GENERATE_CRASH_BUTTON
     generate_crash_button = constants.actor_creation_manager.create_interface_element(
         input_dict
@@ -2944,6 +2964,10 @@ def unit_organization_interface():
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.group_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
+            "default_tooltip_text": [
+                "Select an officer to fill this slot",
+                "If a worker and an officer are selected, they can be merged into a group",
+            ],
         }
     )
     status.group_reorganization_collection.autofill_targets[
@@ -2982,6 +3006,10 @@ def unit_organization_interface():
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.group_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
+            "default_tooltip_text": [
+                "Select a worker to fill this slot",
+                "If a worker and an officer are selected, they can be merged into a group",
+            ],
         }
     )
     status.group_reorganization_collection.autofill_targets[
@@ -3035,6 +3063,9 @@ def unit_organization_interface():
                 "x_offset": scaling.scale_width(rhs_x_offset),
                 "y_offset": scaling.scale_height(-0.5 * (image_height)),
             },
+            "default_tooltip_text": [
+                "Select a worker and officer to fill this slot with their combined group",
+            ],
         }
     )
     status.group_reorganization_collection.autofill_targets[
@@ -3177,7 +3208,7 @@ def vehicle_organization_interface():
                 ],
                 "autofill_targets": {
                     constants.INACTIVE_VEHICLE_PERMISSION: [],
-                    constants.EUROPEAN_WORKERS_PERMISSION: [],
+                    constants.CREW_VEHICLE_PERMISSION: [],
                     constants.ACTIVE_VEHICLE_PERMISSION: [],
                 },
             }
@@ -3195,6 +3226,10 @@ def vehicle_organization_interface():
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.vehicle_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
+            "default_tooltip_text": [
+                "Select an uncrewed vehicle to fill this slot",
+                "If an uncrewed vehicle and a valid crew are selected, the vehicle can be crewed",
+            ],
         }
     )
     status.vehicle_reorganization_collection.autofill_targets[
@@ -3233,19 +3268,26 @@ def vehicle_organization_interface():
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.vehicle_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
+            "default_tooltip_text": [
+                "Select a valid crew to fill this slot",
+                "If an uncrewed vehicle and a valid crew are selected, the vehicle can be crewed",
+            ],
         }
     )
     status.vehicle_reorganization_collection.autofill_targets[
-        constants.EUROPEAN_WORKERS_PERMISSION
+        constants.CREW_VEHICLE_PERMISSION
     ].append(lhs_bottom_tooltip)
 
     # mob image
     default_image_id = [
         actor_utility.generate_unit_component_image_id(
-            "mobs/default/mock_worker.png", "left", to_front=True
+            "mobs/default/mock_worker.png", "group left", to_front=True
         ),
         actor_utility.generate_unit_component_image_id(
-            "mobs/default/mock_worker.png", "right", to_front=True
+            "mobs/default/mock_worker.png", "group right", to_front=True
+        ),
+        actor_utility.generate_unit_component_image_id(
+            "mobs/default/mock_officer.png", "center", to_front=True
         ),
     ]
     lhs_bottom_mob_free_image = (
@@ -3267,7 +3309,7 @@ def vehicle_organization_interface():
         )
     )
     status.vehicle_reorganization_collection.autofill_targets[
-        constants.EUROPEAN_WORKERS_PERMISSION
+        constants.CREW_VEHICLE_PERMISSION
     ].append(lhs_bottom_mob_free_image)
 
     # right side
@@ -3286,6 +3328,9 @@ def vehicle_organization_interface():
                 "x_offset": scaling.scale_width(rhs_x_offset),
                 "y_offset": scaling.scale_height(-0.5 * (image_height)),
             },
+            "default_tooltip_text": [
+                "Select an uncrewed vehicle and a crew to fill this slot with a crewed vehicle",
+            ],
         }
     )
     status.vehicle_reorganization_collection.autofill_targets[
@@ -3377,12 +3422,12 @@ def vehicle_organization_interface():
         "coordinates": scaling.scale_coordinates(
             35 - image_height, -1 * (image_height - 15) + 25 - 35 / 2
         ),
-        "width": input_dict["width"],  # copies most attributes from previous button
+        "width": input_dict["width"],  # Copies most attributes from previous button
         "height": input_dict["height"],
         "init_type": input_dict["init_type"],
         "parent_collection": input_dict["parent_collection"],
         "image_id": input_dict["image_id"],
-        "autofill_target_type": constants.EUROPEAN_WORKERS_PERMISSION,
+        "autofill_target_type": constants.CREW_VEHICLE_PERMISSION,
     }
     cycle_autofill_crew_button = (
         constants.actor_creation_manager.create_interface_element(input_dict)
