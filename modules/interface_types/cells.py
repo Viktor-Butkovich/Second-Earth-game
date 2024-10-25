@@ -357,267 +357,6 @@ class cell:
                 status.tile_info_display, self.tile
             )  # update tile display to show new building
 
-    def has_vehicle(self, vehicle_type, is_worker=False):
-        """
-        Description:
-            Returns whether this cell contains a crewed vehicle of the inputted type
-        Input:
-            string vehicle_type: 'train' or 'spaceship', determines what kind of vehicle is searched for
-        Output:
-            boolean: Returns True if this cell contains a crewed vehicle of the inputted type, otherwise returns False
-        """
-        return bool(self.get_vehicle(vehicle_type, is_worker))
-
-    def get_vehicle(self, vehicle_type, is_worker=False, stop_on_find=True):
-        """
-        Description:
-            Returns the first crewed vehicle of the inputted type in this cell, or None if none are present
-        Input:
-            string vehicle_type: 'train' or 'spaceship', determines what kind of vehicle is searched for
-        Output:
-            string/vehicle: Returns the first crewed vehicle of the inputted type in this cell, or None if none are present
-        """
-        if not stop_on_find:
-            return_list = []
-        for current_mob in self.contained_mobs:
-            if stop_on_find:
-                if current_mob.all_permissions(
-                    constants.VEHICLE_PERMISSION, vehicle_type
-                ):
-                    if is_worker or current_mob.get_permission(
-                        constants.ACTIVE_PERMISSION
-                    ):
-                        return current_mob
-            else:
-                if current_mob.all_permissions(
-                    constants.VEHICLE_PERMISSION,
-                    constants.ACTIVE_PERMISSION,
-                    vehicle_type,
-                ):
-                    return_list.append(current_mob)
-        if stop_on_find:
-            return False
-        else:
-            return return_list
-
-    def get_vehicles(self, vehicle_type, is_worker=False):
-        """
-        Description:
-            Returns each crewed vehicle of the inputted type in this cell, or None if none are present
-        Input:
-            string vehicle_type: 'train' or 'spaceship', determines what kind of vehicle is searched for
-        Output:
-            string/vehicle: Returns the first crewed vehicle of the inputted type in this cell, or None if none are present
-        """
-        return self.get_vehicle(vehicle_type, is_worker, stop_on_find=False)
-
-    def has_uncrewed_vehicle(self, vehicle_type=None, required_number=1):
-        """
-        Description:
-            Returns whether this cell contains an uncrewed vehicle of the inputted type
-        Input:
-            string vehicle_type: 'train' or 'spaceship', determines what kind of vehicle is searched for
-        Output:
-            boolean: Returns True if this cell contains an uncrewed vehicle of the inputted type, otherwise returns False
-        """
-        num_found = 0
-        for current_mob in self.contained_mobs:
-            if (
-                current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and (not current_mob.get_permission(constants.ACTIVE_PERMISSION))
-                and ((not vehicle_type) or current_mob.get_permission(vehicle_type))
-            ):
-                num_found += 1
-        return num_found >= required_number
-
-    def get_uncrewed_vehicle(
-        self, vehicle_type=None, worker_type="default", start_index=0
-    ):
-        """
-        Description:
-            Returns the first uncrewed vehicle of the inputted type in this cell, or None if none are present
-        Input:
-            string vehicle_type: Permission key, determines what kind of vehicle is searched for
-            string worker_type = 'default': If a worker type is inputted, only vehicles that the inputted worker type oculd crew are returned
-        Output:
-            string/vehicle: Returns the first uncrewed vehicle of the inputted type in this cell, or None if none are present
-        """
-        if start_index >= len(self.contained_mobs):
-            start_index = 0
-        if (
-            start_index == 0
-        ):  # don't bother slicing/concatenating list if just iterating from index 0
-            iterated_list = self.contained_mobs
-        else:
-            iterated_list = (
-                self.contained_mobs[start_index : len(self.contained_mobs)]
-                + self.contained_mobs[0:start_index]
-            )
-        for current_mob in iterated_list:
-            if (
-                current_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and (not current_mob.get_permission(constants.ACTIVE_PERMISSION))
-                and ((not vehicle_type) or current_mob.get_permission(vehicle_type))
-            ):
-                return current_mob
-        return None
-
-    def has_worker(self, possible_types=None, required_number=1):
-        """
-        Description:
-            Returns whether this cell contains a worker of one of the inputted types
-        Input:
-            string list possible_types: Type of worker that can be detected, includes all workers by default
-            int required_number=1: Number of workers that must be found to return True
-        Output:
-            Returns True if this cell contains the required number of workers of one of the inputted types, otherwise returns False
-        """
-        num_found = 0
-        for current_mob in self.contained_mobs:
-            if current_mob.all_permissions(
-                constants.PMOB_PERMISSION, constants.WORKER_PERMISSION
-            ) and ((not possible_types) or current_mob.worker_type in possible_types):
-                num_found += 1
-                if num_found >= required_number:
-                    return True
-        return False
-
-    def has_officer(self, allow_vehicles=True, required_number=1):
-        """
-        Description:
-            Returns whether this cell contains an officer of an allowed type
-        Input:
-            boolean allow_vehicles=True: Whether uncrewed vehicles can be returned or just officers
-            int required_number=1: Number of officers that must be found to return True
-        Output:
-            Returns True if this cell contains the required number of officers of one of the inputted types, otherwise returns False
-        """
-        num_found = 0
-        if allow_vehicles:
-            for current_mob in self.contained_mobs:
-                if current_mob.any_permissions(
-                    constants.OFFICER_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
-                ):
-                    num_found += 1
-                    if num_found >= required_number:
-                        return True
-        else:
-            for current_mob in self.contained_mobs:
-                if current_mob.get_permission(constants.OFFICER_PERMISSION):
-                    num_found += 1
-                    if num_found >= required_number:
-                        return True
-        return False
-
-    def get_worker(self, possible_types=None, start_index=0):
-        """
-        Description:
-            Finds and returns the first worker in this cell of the inputted types, or None if none are present
-        Input:
-            string list possible_types: Type of worker that can be returned, includes all workers by default
-            int start_index=0: Index of contained_mobs to start search from - if starting in middle, wraps around iteration to ensure all items are still checked
-        Output:
-            string/worker: Returns the first worker in this cell of the inputted types, or None if none are present
-        """
-        if start_index >= len(self.contained_mobs):
-            start_index = 0
-        if (
-            start_index == 0
-        ):  # don't bother slicing/concatenating list if just iterating from index 0
-            iterated_list = self.contained_mobs
-        else:
-            iterated_list = (
-                self.contained_mobs[start_index : len(self.contained_mobs)]
-                + self.contained_mobs[0:start_index]
-            )
-        for current_mob in iterated_list:
-            if current_mob.all_permissions(
-                constants.PMOB_PERMISSION, constants.WORKER_PERMISSION
-            ) and ((not possible_types) or current_mob.worker_type in possible_types):
-                return current_mob
-        return None
-
-    def get_officer(self, allow_vehicles=True, start_index=0):
-        """
-        Description:
-            Finds and returns the first officer or, optionally, uncrewed vehicle, in this cell, or None if none are present
-        Input:
-            boolean allow_vehicles=True: Whether uncrewed vehicles can be returned or just officers
-            int start_index=0: Index of contained_mobs to start search from - if starting in middle, wraps around iteration to ensure all items are still checked
-        Output:
-            string/actor: Returns the first officer, or, optionally, uncrewed vehicle in this cell, or None if none are present
-        """
-        if start_index >= len(self.contained_mobs):
-            start_index = 0
-        if (
-            start_index == 0
-        ):  # don't bother slicing/concatenating list if just iterating from index 0
-            iterated_list = self.contained_mobs
-        else:
-            iterated_list = (
-                self.contained_mobs[start_index : len(self.contained_mobs)]
-                + self.contained_mobs[0:start_index]
-            )
-        if allow_vehicles:
-            for current_mob in iterated_list:
-                if current_mob.any_permissions(
-                    constants.OFFICER_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
-                ):
-                    return current_mob
-        else:
-            for current_mob in iterated_list:
-                if current_mob.get_permission(constants.OFFICER_PERMISSION):
-                    return current_mob
-        return None
-
-    def has_pmob(self):
-        """
-        Description:
-            Returns whether this cell contains a pmob
-        Input:
-            None
-        Output:
-            boolean: Returns whether this cell contains a pmob
-        """
-        for current_mob in self.contained_mobs:
-            if current_mob.get_permission(constants.PMOB_PERMISSION):
-                return True
-        if self.has_intact_building(constants.RESOURCE):
-            if (
-                len(self.get_intact_building(constants.RESOURCE).contained_work_crews)
-                > 0
-            ):
-                return True
-        return False
-
-    def get_pmob(self):
-        """
-        Description:
-            Returns the first pmob in this cell, or None if none are present
-        Input:
-            None
-        Output:
-            string/pmob: Returns the first pmob in this cell, or None if none are present
-        """
-        for current_mob in self.contained_mobs:
-            if current_mob.get_permission(constants.PMOB_PERMISSION):
-                return current_mob
-        return None
-
-    def has_npmob(self):
-        """
-        Description:
-            Returns whether this cell contains an npmob
-        Input:
-            None
-        Output:
-            boolean: Returns whether this cell contains an npmob
-        """
-        for current_mob in self.contained_mobs:
-            if current_mob.get_permission(constants.NPMOB_PERMISSION):
-                return True
-        return False
-
     def has_unit(self, permissions, required_number=1):
         """
         Description:
@@ -636,7 +375,7 @@ class cell:
                     return True
         return False
 
-    def get_unit(self, permissions, start_index=0):
+    def get_unit(self, permissions, start_index: int = 0, get_all: bool = False):
         """
         Description:
             Returns the first unit in this cell with all the inputted permissions, or None if none are present
@@ -644,8 +383,10 @@ class cell:
             string list permissions: List of permissions to search for
             int start_index=0: Index of contained_mobs to start search from - if starting in middle, wraps around iteration to ensure all items are still checked
                 Allows finding different units with repeated calls by changing start_index
+            boolean get_all=False: If True, returns all units with the inputted permissions, otherwise returns the first
         Output:
             mob: Returns the first unit in this cell with all the inputted permissions, or None if none are present
+                If get_all, otherwise returns List[mob]: Returns all units in this cell with all the inputted permissions
         """
         if start_index >= len(self.contained_mobs):
             start_index = 0
@@ -658,10 +399,18 @@ class cell:
                 self.contained_mobs[start_index : len(self.contained_mobs)]
                 + self.contained_mobs[0:start_index]
             )
+        if get_all:
+            results = []
         for current_mob in iterated_list:
             if current_mob.all_permissions(*permissions):
-                return current_mob
-        return None
+                if get_all:
+                    results.append(current_mob)
+                else:
+                    return current_mob
+        if get_all:
+            return results
+        else:
+            return None
 
     def get_best_combatant(self, mob_type):
         """

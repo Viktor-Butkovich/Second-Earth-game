@@ -2877,12 +2877,12 @@ class cycle_autofill_button(button):
                         self.autofill_target_type
                     ].get_permission(constants.DUMMY_PERMISSION):
                         if self.autofill_target_type == constants.WORKER_PERMISSION:
-                            return status.displayed_mob.get_cell().has_worker(
-                                required_number=2
+                            return status.displayed_mob.get_cell().has_unit(
+                                [constants.WORKER_PERMISSION], required_number=2
                             )
                         elif self.autofill_target_type == constants.OFFICER_PERMISSION:
-                            return status.displayed_mob.get_cell().has_officer(
-                                required_number=2, allow_vehicles=False
+                            return status.displayed_mob.get_cell().has_unit(
+                                [constants.OFFICER_PERMISSION], required_number=2
                             )
                         elif (
                             self.autofill_target_type
@@ -2895,8 +2895,9 @@ class cycle_autofill_button(button):
                             self.autofill_target_type
                             == constants.INACTIVE_VEHICLE_PERMISSION
                         ):
-                            return status.displayed_mob.get_cell().has_uncrewed_vehicle(
-                                required_number=2
+                            return status.displayed_mob.get_cell().has_unit(
+                                [constants.INACTIVE_VEHICLE_PERMISSION],
+                                required_number=2,
                             )
                         # Allow cycling autofill if current autofill is a real, non-selected mob and there is at least 1 alternative
                         #   It makes no sense to cycle a dummy mob for a real one in the same tile, and the selected mob is locked and can't be cycled

@@ -735,8 +735,10 @@ class embark_vehicle_button(button):
             result = (
                 displayed_mob
                 and displayed_mob.get_permission(constants.PMOB_PERMISSION)
-                and displayed_mob.get_cell().has_vehicle(self.vehicle_type)
                 and not displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
+                and displayed_mob.get_cell().has_unit(
+                    [self.vehicle_type, constants.ACTIVE_VEHICLE_PERMISSION]
+                )
             )
         self.was_showing = result
         return result
@@ -751,9 +753,14 @@ class embark_vehicle_button(button):
             None
         """
         if main_loop_utility.action_possible():
-            if status.displayed_mob.get_cell().has_vehicle(self.vehicle_type):
+            if status.displayed_mob.get_cell().has_unit(
+                [self.vehicle_type, constants.ACTIVE_VEHICLE_PERMISSION]
+            ):
                 rider = status.displayed_mob
-                vehicles = rider.get_cell().get_vehicles(self.vehicle_type)
+                vehicles = rider.get_cell().get_unit(
+                    [self.vehicle_type, constants.ACTIVE_VEHICLE_PERMISSION],
+                    get_all=True,
+                )
                 can_embark = True
                 if vehicles[0].get_permission(constants.TRAIN_PERMISSION):
                     if (

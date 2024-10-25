@@ -319,7 +319,7 @@ class npmob(mob):
                     current_cell = self.grids[0].find_cell(self.x, self.y)
                 else:
                     current_cell = self.get_cell()
-                if current_cell.has_pmob() or (
+                if current_cell.has_unit([constants.PMOB_PERMISSION]) or (
                     self.can_damage_buildings
                     and current_cell.has_destructible_buildings()
                 ):

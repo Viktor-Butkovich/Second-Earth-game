@@ -444,15 +444,17 @@ class mob(actor):
             if self.hostile:
                 if not self.get_cell():
                     if (
-                        self.grids[0].find_cell(self.x, self.y).has_pmob()
-                    ):  # if hidden and in same tile as pmob
+                        self.grids[0]
+                        .find_cell(self.x, self.y)
+                        .has_unit([constants.PMOB_PERMISSION])
+                    ):  # If hidden and in same tile as pmob
                         return True
-                elif self.images[
-                    0
-                ].current_cell.has_pmob():  # if visible and in same tile as pmob
+                elif self.get_cell().has_unit(
+                    [constants.PMOB_PERMISSION]
+                ):  # If visible and in same tile as pmob
                     return True
         elif self.get_permission(constants.PMOB_PERMISSION):
-            if self.get_cell().has_npmob():
+            if self.get_cell().has_unit([constants.NPMOB_PERMISSION]):
                 return True
         return False
 

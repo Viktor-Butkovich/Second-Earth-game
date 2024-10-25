@@ -67,15 +67,17 @@ def generate_autofill_actors(
                         # If a worker selected, find an officer if present and make a dummy group
                         return_dict[
                             constants.OFFICER_PERMISSION
-                        ] = status.displayed_mob.get_cell().get_officer(
-                            start_index=search_start_index, allow_vehicles=False
+                        ] = status.displayed_mob.get_cell().get_unit(
+                            [constants.OFFICER_PERMISSION],
+                            start_index=search_start_index,
                         )
                     elif target == constants.OFFICER_PERMISSION:
                         # If an officer selected, find a worker if present and make a dummy group
                         return_dict[
                             constants.WORKER_PERMISSION
-                        ] = status.displayed_mob.get_cell().get_worker(
-                            start_index=search_start_index
+                        ] = status.displayed_mob.get_cell().get_unit(
+                            [constants.WORKER_PERMISSION],
+                            start_index=search_start_index,
                         )
                     if (
                         return_dict[constants.WORKER_PERMISSION]
@@ -119,8 +121,9 @@ def generate_autofill_actors(
                         # If a crew selected, find an uncrewed vehicle if present and make a dummy crewed vehicle
                         return_dict[
                             constants.INACTIVE_VEHICLE_PERMISSION
-                        ] = status.displayed_mob.get_cell().get_uncrewed_vehicle(
-                            start_index=search_start_index
+                        ] = status.displayed_mob.get_cell().get_unit(
+                            [constants.INACTIVE_VEHICLE_PERMISSION],
+                            start_index=search_start_index,
                         )
                     elif target == constants.INACTIVE_VEHICLE_PERMISSION:
                         # If a vehicle selected, find a crew if present and make a dummy crewed vehicle
