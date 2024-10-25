@@ -187,7 +187,7 @@ class group(pmob):
             None
         """
         constants.evil_tracker.change(1)
-        self.temp_disable_movement()
+        self.set_permission(constants.MOVEMENT_DISABLED_PERMISSION, True, override=True)
         if self.in_vehicle:
             zoom_destination = self.vehicle
             destination_message = f" from the {self.name} aboard the {zoom_destination.name} at ({self.x}, {self.y}) "

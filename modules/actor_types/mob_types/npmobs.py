@@ -33,7 +33,6 @@ class npmob(mob):
             None
         """
         super().__init__(from_save, input_dict)
-        self.can_swim = True
         self.hostile = False
         self.can_damage_buildings = False
         self.npmob_type = "npmob"

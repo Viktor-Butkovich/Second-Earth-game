@@ -670,7 +670,7 @@ class combat(action.action):
             if (
                 combat_cell.terrain_handler.terrain == "water"
                 and combat_cell.y > 0
-                and not self.current_unit.can_swim
+                and not self.current_unit.get_permission(constants.SWIM_PERMISSION)
             ):  # if attacked water and can't swim, become disorganized after combat
                 self.current_unit.set_permission(
                     constants.DISORGANIZED_PERMISSION, True

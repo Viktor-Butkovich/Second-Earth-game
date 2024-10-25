@@ -88,7 +88,11 @@ class equipment_type:
         """
         del unit.equipment[self.equipment_type]
         if self.effects.get("max_movement_points", 0) != 0:
-            unit.set_max_movement_points(4, initial_setup=False, allow_increase=False)
+            unit.set_max_movement_points(
+                unit.unit_type.movement_points,
+                initial_setup=False,
+                allow_increase=False,
+            )
 
     def check_requirement(self, unit) -> bool:
         """

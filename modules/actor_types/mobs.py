@@ -75,13 +75,9 @@ class mob(actor):
             )
         status.mob_list.append(self)
         self.set_name(input_dict["name"])
-        self.can_swim = False  # If can enter water areas without ships in them
-        self.can_walk = True  # If can enter land areas
         self.max_movement_points = 1
         self.movement_points = self.max_movement_points
         self.movement_cost = 1
-        self.has_infinite_movement = False
-        self.temp_movement_disabled = False
         self.permissions_setup()
         if from_save:
             self.set_max_movement_points(input_dict["max_movement_points"])
@@ -98,6 +94,19 @@ class mob(actor):
             else:
                 self.creation_turn = constants.turn
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def can_travel(self):
+        """
+        Description:
+            Returns whether this unit can move between grids, such as in space
+        Input:
+            None
+        Output:
+            boolean: Returs True if this unit has travel permissions (based on unit type), is active (crewed), and is not disabled this turn
+        """
+        return self.all_permissions(
+            constants.TRAVEL_PERMISSION, constants.ACTIVE_PERMISSION
+        ) and not self.get_permission(constants.MOVEMENT_DISABLED_PERMISSION)
 
     def update_controlling_minister(self):
         """
@@ -333,17 +342,6 @@ class mob(actor):
                 save_dict["second_image_variant"] = self.second_image_variant
         return save_dict
 
-    def temp_disable_movement(self):
-        """
-        Description:
-            Sets this unit's movement to 0 for the next turn, preventing it from taking its usual actions
-        Input:
-            None
-        Output:
-            None
-        """
-        self.temp_movement_disabled = True
-
     def get_image_id_list(self, override_values={}):
         """
         Description:
@@ -503,6 +501,8 @@ class mob(actor):
             double: How many movement points would be spent by moving by the inputted amount
         """
         cost = self.movement_cost
+        if self.get_permission(constants.CONSTANT_MOVEMENT_COST_PERMISSION):
+            return cost
         if not (self.get_permission(constants.NPMOB_PERMISSION) and not self.visible()):
             local_cell = self.get_cell()
         else:
@@ -546,8 +546,9 @@ class mob(actor):
                     ):
                         cost = 2
                 elif adjacent_cell.terrain_handler.terrain == "water" and (
-                    self.can_walk and not self.can_swim
-                ):  # elif water without boats
+                    self.get_permission(constants.WALK_PERMISSION)
+                    and not self.get_permission(constants.SWIM_PERMISSION)
+                ):  # Elif water without boats
                     cost = self.max_movement_points
                 if (not adjacent_cell.terrain_handler.visible) and self.get_permission(
                     constants.EXPEDITION_PERMISSION
@@ -581,7 +582,7 @@ class mob(actor):
         Output:
             None
         """
-        if not self.has_infinite_movement:
+        if not self.get_permission(constants.INFINITE_MOVEMENT_PERMISSION):
             self.movement_points += change
             if self.movement_points == round(
                 self.movement_points
@@ -629,8 +630,10 @@ class mob(actor):
         Output:
             None
         """
-        if self.temp_movement_disabled:
-            self.temp_movement_disabled = False
+        if self.get_permission(constants.MOVEMENT_DISABLED_PERMISSION):
+            self.set_permission(
+                constants.MOVEMENT_DISABLED_PERMISSION, False, override=True
+            )
             self.movement_points = 0
         else:
             self.movement_points = self.max_movement_points
@@ -830,16 +833,15 @@ class mob(actor):
                 else:
                     tooltip_list.append("    Passengers: None")
 
-            if (
-                self.get_permission(constants.ACTIVE_PERMISSION)
-                and not self.has_infinite_movement
-            ):
+            if self.get_permission(
+                constants.ACTIVE_PERMISSION
+            ) and not self.get_permission(constants.INFINITE_MOVEMENT_PERMISSION):
                 tooltip_list.append(
                     f"Movement points: {self.movement_points}/{self.max_movement_points}"
                 )
-            elif self.temp_movement_disabled or not self.get_permission(
-                constants.ACTIVE_PERMISSION
-            ):
+            elif self.get_permission(
+                constants.MOVEMENT_DISABLED_PERMISSION
+            ) or not self.get_permission(constants.ACTIVE_PERMISSION):
                 tooltip_list.append("No movement")
             else:
                 tooltip_list.append("Movement points: Infinite")
@@ -972,13 +974,29 @@ class mob(actor):
         if minister_utility.get_minister(constants.TRANSPORTATION_MINISTER):
             if not self.grid.is_abstract_grid:
                 future_cell = self.grid.find_cell(future_x, future_y)
+
+                if self.unit_type.required_infrastructure:
+                    if not (
+                        self.get_cell().has_intact_building(
+                            self.unit_type.required_infrastructure.key
+                        )
+                        and self.grids[0]
+                        .find_cell(self.x + x_change, self.y + y_change)
+                        .has_intact_building(self.unit_type.required_infrastructure.key)
+                    ):
+                        if can_print:
+                            text_utility.print_to_screen(
+                                f"{self.unit_type.name}s can only move along {self.unit_type.required_infrastructure.name}s."
+                            )
+                        return False
+
                 if future_cell.terrain_handler.visible or self.any_permissions(
                     constants.EXPEDITION_PERMISSION, constants.NPMOB_PERMISSION
                 ):
                     if (
                         self.movement_points
                         >= self.get_movement_cost(x_change, y_change)
-                        or self.has_infinite_movement
+                        or self.get_permission(constants.INFINITE_MOVEMENT_PERMISSION)
                         and self.movement_points > 0
                     ):
                         return True
@@ -1071,7 +1089,7 @@ class mob(actor):
                     and (
                         local_infrastructure.is_road or local_infrastructure.is_railroad
                     )
-                    and not self.can_swim
+                    and not self.get_permission(constants.SWIM_PERMISSION)
                 ):  # If walking on bridge
                     possible_sounds.append("effects/footsteps")
                 else:
@@ -1123,25 +1141,6 @@ class mob(actor):
 
         self.last_move_direction = (x_change, y_change)
         self.on_move()
-
-    def can_swim_at(self, current_cell):
-        """
-        Description:
-            Calculates and returns whether this unit is able to swim in the inputted cell
-        Input:
-            cell current_cell: Cell where this unit checks its ability to swim
-        Output:
-            boolean: Returns whether this unit is able to swim in the inputted cell
-        """
-        if not current_cell.terrain_handler.terrain == "water":
-            return True
-        if current_cell.y > 0:
-            return True
-        if not self.can_swim:
-            return False
-        if current_cell.y == 0 and self.can_swim_ocean:
-            return True
-        return False
 
     def retreat(self):
         """

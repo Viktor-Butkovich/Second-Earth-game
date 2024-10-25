@@ -77,7 +77,7 @@ class pmob(mob):
             self.wait_until_full = input_dict["wait_until_full"]
         else:
             self.default_name = self.name
-            self.set_max_movement_points(4)
+            self.set_max_movement_points(self.unit_type.movement_points)
             self.set_sentry_mode(False)
             self.set_automatically_replace(True)
             self.add_to_turn_queue()
@@ -667,8 +667,9 @@ class pmob(mob):
                         "zoom_destination": self,
                     }
                 )
-
-            self.temp_disable_movement()
+            self.set_permission(
+                constants.MOVEMENT_DISABLED_PERMISSION, True, override=True
+            )
             self.replace()
             self.death_sound("violent")
         else:
@@ -781,17 +782,6 @@ class pmob(mob):
             self.manage_inventory_attrition()  # do an inventory check when crossing ocean, using the destination's terrain
             self.end_turn_destination = None
 
-    def can_travel(self):  # if can move between Earth, the planet, etc.
-        """
-        Description:
-            Returns whether this mob can enter space. By default, mobs cannot enter space, but subclasses like spaceships are able to return True
-        Input:
-            None
-        Output:
-            boolean: Returns True if this mob can cross the ocean, otherwise returns False
-        """
-        return False  # different for subclasses
-
     def set_inventory(self, commodity, new_value):
         """
         Description:
@@ -816,19 +806,6 @@ class pmob(mob):
             None
         """
         self.die("fired")
-
-    def can_move(self, x_change, y_change, can_print=True):
-        """
-        Description:
-            Returns whether this mob can move to the tile x_change to the right of it and y_change above it. Movement can be prevented by not being able to move on water/land, the edge of the map, limited movement points, etc.
-        Input:
-            int x_change: How many cells would be moved to the right in the hypothetical movement
-            int y_change: How many cells would be moved upward in the hypothetical movement
-            boolean can_print = True: Whether to print messages to explain why a unit can't move in a certain direction
-        Output:
-            boolean: Returns True if this mob can move to the proposed destination, otherwise returns False
-        """
-        return super().can_move(x_change, y_change, can_print=can_print)
 
     def can_show_tooltip(self):
         """

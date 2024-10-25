@@ -603,7 +603,9 @@ def manage_lmb_down(clicked_button):
                                     return ()
                                 elif (
                                     target_cell.terrain_handler.terrain == "water"
-                                    and not displayed_mob.can_swim
+                                    and not displayed_mob.get_permission(
+                                        constants.SWIM_PERMISSION
+                                    )
                                 ) and (
                                     displayed_mob.get_permission(
                                         constants.VEHICLE_PERMISSION
@@ -618,7 +620,11 @@ def manage_lmb_down(clicked_button):
                                     return ()
                                 elif (
                                     (not target_cell.terrain_handler.terrain == "water")
-                                    and (not displayed_mob.can_walk)
+                                    and (
+                                        not displayed_mob.get_permission(
+                                            constants.WALK_PERMISSION
+                                        )
+                                    )
                                     and not target_cell.has_intact_building(
                                         constants.SPACEPORT
                                     )

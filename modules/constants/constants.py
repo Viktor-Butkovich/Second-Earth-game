@@ -797,7 +797,13 @@ NPMOB_PERMISSION: str = "npmob"
 VEHICLE_PERMISSION: str = "vehicle"
 SPACESHIP_PERMISSION: str = "spaceship"
 TRAIN_PERMISSION: str = "train"
+TRAVEL_PERMISSION: str = "travel"
+MOVEMENT_DISABLED_PERMISSION: str = "movement_disabled"
+INFINITE_MOVEMENT_PERMISSION: str = "infinite_movement"
+CONSTANT_MOVEMENT_COST_PERMISSION: str = "constant_movement_cost"
 ACTIVE_PERMISSION: str = "active_permission"
+WALK_PERMISSION: str = "walk_permission"
+SWIM_PERMISSION: str = "swim_permission"
 ACTIVE_VEHICLE_PERMISSION: str = "active_vehicle"
 INACTIVE_VEHICLE_PERMISSION: str = "inactive_vehicle"
 OFFICER_PERMISSION: str = "officer"
@@ -832,6 +838,7 @@ CREW_TRAIN_PERMISSION: str = "crew_train"
 
 DEFAULT_PERMISSIONS: Dict[str, Any] = {
     ACTIVE_PERMISSION: True,
+    WALK_PERMISSION: True,
 }
 
 CREW_PERMISSIONS: Dict[str, Any] = {

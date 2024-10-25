@@ -861,19 +861,25 @@ class actor_display_label(label):
 
             elif self.actor_label_type == constants.MOVEMENT_LABEL:
                 if self.actor.get_permission(constants.PMOB_PERMISSION):
-                    if new_actor.get_permission(constants.ACTIVE_PERMISSION) and not (
-                        new_actor.has_infinite_movement
-                        or new_actor.temp_movement_disabled
+                    if new_actor.get_permission(
+                        constants.ACTIVE_PERMISSION
+                    ) and not new_actor.any_permissions(
+                        constants.INFINITE_MOVEMENT_PERMISSION,
+                        constants.MOVEMENT_DISABLED_PERMISSION,
                     ):
                         # If train with crew or normal unit
                         self.set_label(
                             f"{self.message_start}{new_actor.movement_points}/{new_actor.max_movement_points}"
                         )
                     else:  # If spaceship or train without crew
-                        if not new_actor.has_infinite_movement:
+                        if not new_actor.get_permission(
+                            constants.INFINITE_MOVEMENT_PERMISSION
+                        ):
                             if (
                                 new_actor.movement_points == 0
-                                or new_actor.temp_movement_disabled
+                                or new_actor.get_permission(
+                                    constants.MOVEMENT_DISABLED_PERMISSION
+                                )
                                 or not new_actor.get_permission(
                                     constants.ACTIVE_PERMISSION
                                 )
@@ -882,7 +888,9 @@ class actor_display_label(label):
                         else:
                             if (
                                 new_actor.movement_points == 0
-                                or new_actor.temp_movement_disabled
+                                or new_actor.get_permission(
+                                    constants.MOVEMENT_DISABLED_PERMISSION
+                                )
                                 or not new_actor.get_permission(
                                     constants.ACTIVE_PERMISSION
                                 )

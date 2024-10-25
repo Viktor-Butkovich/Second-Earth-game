@@ -1037,6 +1037,9 @@ def unit_types_config():
                 constants.VEHICLE_PERMISSION: True,
                 constants.ACTIVE_PERMISSION: False,
                 constants.SPACESHIP_PERMISSION: True,
+                constants.INFINITE_MOVEMENT_PERMISSION: True,
+                constants.TRAVEL_PERMISSION: True,
+                constants.CONSTANT_MOVEMENT_COST_PERMISSION: True,
             },
             "inventory_capacity": 81,
             "can_recruit": True,
@@ -1064,8 +1067,12 @@ def unit_types_config():
                 constants.VEHICLE_PERMISSION: True,
                 constants.ACTIVE_PERMISSION: False,
                 constants.TRAIN_PERMISSION: True,
+                constants.CONSTANT_MOVEMENT_COST_PERMISSION: True,
             },
             "can_recruit": False,
+            "movement_points": 16,
+            # "required_infrastructure": status.building_types[constants.RAILROAD],
+            #   Re-introduce once infrastructure is re-implemented
             "description": [
                 "While useless by itself, a train crewed by workers can quickly transport units and cargo through railroads between train stations.",
             ],
@@ -2800,7 +2807,7 @@ def settlement_interface():
         constants.CURRENT_BUILDING_WORK_CREW_LABEL,
         constants.FORT,
         constants.SLUMS,
-        constants.INFRASTRUCTURE,
+        # constants.INFRASTRUCTURE,
     ]:
         if current_actor_label_type in [
             constants.SETTLEMENT,

@@ -44,22 +44,22 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
         Returns the cost of the inputted unit attempting to construct the inputted building
     Input:
         pmob/string constructor: Unit attempting to construct the building, or None if no location/unit type is needed
-        string building_type: Type of building to build, like 'infrastructure'
+        string building_type: Key of type of building to build, like 'infrastructure'
         string building_name = 'n/a': Name of building being built, used to differentiate roads from railroads
     Output:
         int: Returns the cost of the inputted unit attempting to construct the inputted building
     """
-    if building_type.key == constants.INFRASTRUCTURE:
+    if building_type == constants.INFRASTRUCTURE:
         building_type = building_name.replace(
             " ", "_"
         )  # road, railroad, road_bridge, or railroad_bridge
-    if building_type.key == constants.WAREHOUSES:
+    if building_type == constants.WAREHOUSES:
         if constructor:
             base_price = constructor.get_cell().get_warehouses_cost()
         else:
             base_price = 5
     else:
-        base_price = building_type.cost
+        base_price = status.building_types[building_type].cost
 
     if building_type in [constants.TRAIN]:
         cost_multiplier = 1

@@ -49,8 +49,8 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         self.actor_constructors = {
             constants.MOB: mobs.mob,
             constants.COLONISTS: workers.worker,
-            constants.TRAIN: vehicles.train,
-            constants.COLONY_SHIP: vehicles.spaceship,
+            constants.TRAIN: vehicles.vehicle,
+            constants.COLONY_SHIP: vehicles.vehicle,
             constants.EXPLORER: officers.officer,
             constants.ENGINEER: officers.officer,
             constants.DRIVER: officers.officer,
