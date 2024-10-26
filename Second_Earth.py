@@ -128,8 +128,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Add minister deaths - may occur in assassination, attrition, freak accidents, heroic sacrifices, etc.
 
 # Upcoming work queue:
-# Remove train/spaceship classes - should all be configurable
-#   Modify vehicle classes to fit more with unit_type system - should not have their own permissions, especially can_swim and can_walk
 # Add modern minister outfits
 # Add astronauts art
 # Add new resource types, allowing buying on Earth, transporting, and using to build when it is in the builder's tile

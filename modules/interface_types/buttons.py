@@ -2601,6 +2601,7 @@ class reorganize_unit_button(button):
         self.allowed_procedures = input_dict["allowed_procedures"]
         super().__init__(input_dict)
         self.has_button_press_override = True
+        self.default_keybind_id = self.keybind_id
 
     def button_press_override(self):
         """
@@ -2628,11 +2629,17 @@ class reorganize_unit_button(button):
         Output:
             boolean: Returns whether this button should display its shader, given that it has shader enabled
         """
-        return (
+        result = (
             super().enable_shader_condition()
             and not self.parent_collection.autofill_actors[constants.AUTOFILL_PROCEDURE]
             in self.allowed_procedures
         )
+        if result:
+            self.keybind_id = None
+            self.on_release()
+        else:
+            self.keybind_id = self.default_keybind_id
+        return result
 
     def update_tooltip(self):
         """

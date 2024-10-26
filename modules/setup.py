@@ -3382,7 +3382,7 @@ def vehicle_organization_interface():
                 "allowed_procedures": [
                     constants.CREW_PROCEDURE,
                 ],
-                "keybind_id": pygame.K_b,
+                "keybind_id": pygame.K_m,
                 "enable_shader": True,
             }
         )
@@ -3404,7 +3404,7 @@ def vehicle_organization_interface():
                 "allowed_procedures": [
                     constants.UNCREW_PROCEDURE,
                 ],
-                "keybind_id": pygame.K_v,
+                "keybind_id": pygame.K_n,
                 "enable_shader": True,
             }
         )
