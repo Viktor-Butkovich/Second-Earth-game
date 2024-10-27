@@ -270,10 +270,13 @@ class mob(actor):
         if original_constructor:
             if create_portrait:
                 if not from_save:
+                    metadata = {"body_image": self.image_dict["default"]}
+                    if self.get_permission(constants.OFFICER_PERMISSION):
+                        metadata.update(self.character_info)
                     self.image_dict[
                         "portrait"
                     ] = constants.character_manager.generate_unit_portrait(
-                        self, metadata={"body_image": self.image_dict["default"]}
+                        self, metadata
                     )
                 else:
                     self.image_dict["portrait"] = input_dict.get("portrait", [])
@@ -810,12 +813,16 @@ class mob(actor):
         tooltip_list = []
 
         tooltip_list.append(
-            "Name: " + self.name[:1].capitalize() + self.name[1:]
+            "Unit type: " + self.name[:1].capitalize() + self.name[1:]
         )  # capitalizes first letter while keeping rest the same
-
+        if self.get_permission(constants.OFFICER_PERMISSION):
+            tooltip_list.append("Name: " + self.character_info["name"])
         if self.get_permission(constants.PMOB_PERMISSION):
             if self.get_permission(constants.GROUP_PERMISSION):
                 tooltip_list.append("    Officer: " + self.officer.name.capitalize())
+                tooltip_list.append(
+                    "        Name: " + self.officer.character_info["name"]
+                )
                 tooltip_list.append("    Workers: " + self.worker.name.capitalize())
             elif self.get_permission(constants.VEHICLE_PERMISSION):
                 if self.get_permission(constants.ACTIVE_PERMISSION):

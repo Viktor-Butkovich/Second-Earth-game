@@ -358,6 +358,8 @@ class character_manager_template:
             minister, "ethnicity"
         ):  # Choose a proportionally random ethnicity if minister does not have one yet or no minister inputted
             ethnicity = minister.ethnicity
+        elif metadata.get("ethnicity", None):
+            ethnicity = metadata["ethnicity"]
         else:
             ethnicity = self.generate_ethnicity()
         while ethnicity == "diaspora":
@@ -378,6 +380,8 @@ class character_manager_template:
 
         if minister and hasattr(minister, "masculine"):
             masculine = minister.masculine
+        elif metadata.get("masculine", None) != None:
+            masculine = metadata["masculine"]
         else:
             masculine = random.choice([True, False])
 

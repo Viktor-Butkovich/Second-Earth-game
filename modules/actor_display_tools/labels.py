@@ -60,8 +60,8 @@ class actor_display_label(label):
             "modes": self.modes,
             "attached_label": self,
         }
-        if self.actor_label_type == constants.NAME_LABEL:
-            self.message_start = "Name: "
+        if self.actor_label_type == constants.UNIT_TYPE_LABEL:
+            self.message_start = "Unit type: "
 
             input_dict["init_type"] = constants.EMBARK_VEHICLE_BUTTON
             input_dict["image_id"] = "buttons/embark_spaceship_button.png"
@@ -126,6 +126,12 @@ class actor_display_label(label):
                     )
                     if button_input_dict:
                         self.add_attached_button(button_input_dict)
+
+        elif self.actor_label_type in [
+            constants.OFFICER_NAME_LABEL,
+            constants.GROUP_NAME_LABEL,
+        ]:
+            self.message_start = "Name: "
 
         elif self.actor_label_type == constants.MOVEMENT_LABEL:
             self.message_start = "Movement points: "
@@ -811,8 +817,22 @@ class actor_display_label(label):
         """
         self.actor = new_actor
         if new_actor:
-            if self.actor_label_type == constants.NAME_LABEL:
-                self.set_label(self.message_start + utility.capitalize(new_actor.name))
+            if self.actor_label_type == constants.UNIT_TYPE_LABEL:
+                self.set_label(
+                    f"{self.message_start}{utility.capitalize(new_actor.name)}"
+                )
+
+            elif self.actor_label_type == constants.OFFICER_NAME_LABEL:
+                if new_actor.get_permission(constants.OFFICER_PERMISSION):
+                    self.set_label(
+                        f"{self.message_start}{utility.capitalize(new_actor.character_info['name'])}"
+                    )
+
+            elif self.actor_label_type == constants.GROUP_NAME_LABEL:
+                if new_actor.get_permission(constants.GROUP_PERMISSION):
+                    self.set_label(
+                        f"{self.message_start}{utility.capitalize(new_actor.officer.character_info['name'])}"
+                    )
 
             elif self.actor_label_type == constants.COORDINATES_LABEL:
                 self.set_label(f"{self.message_start}({new_actor.x}, {new_actor.y})")
@@ -1227,6 +1247,10 @@ class actor_display_label(label):
             return self.actor.cell.terrain_handler.knowledge_available(
                 constants.TERRAIN_PARAMETER_KNOWLEDGE
             )
+        elif self.actor_label_type == constants.OFFICER_NAME_LABEL:
+            return self.actor.get_permission(constants.OFFICER_PERMISSION)
+        elif self.actor_label_type == constants.GROUP_NAME_LABEL:
+            return self.actor.get_permission(constants.GROUP_PERMISSION)
         else:
             return result
 

@@ -2179,9 +2179,11 @@ def mob_interface():
 
     # mob info labels setup
     for current_actor_label_type in [
-        constants.NAME_LABEL,
+        constants.UNIT_TYPE_LABEL,
+        constants.OFFICER_NAME_LABEL,
         constants.MINISTER_LABEL,
         constants.OFFICER_LABEL,
+        constants.GROUP_NAME_LABEL,
         constants.WORKERS_LABEL,
         constants.MOVEMENT_LABEL,
         constants.COMBAT_STRENGTH_LABEL,
@@ -2195,7 +2197,10 @@ def mob_interface():
             current_actor_label_type == constants.MINISTER_LABEL
         ):  # how far from edge of screen
             x_displacement = 40
-        elif current_actor_label_type == constants.CURRENT_PASSENGER_LABEL:
+        elif current_actor_label_type in [
+            constants.CURRENT_PASSENGER_LABEL,
+            constants.GROUP_NAME_LABEL,
+        ]:
             x_displacement = 30
         else:
             x_displacement = 0

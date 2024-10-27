@@ -22,6 +22,7 @@ required_dummy_attributes = [
     "end_turn_destination",
     "officer",
     "worker",
+    "character_info",
 ]
 
 
