@@ -302,7 +302,25 @@ def equipment_types_config():
     Output:
         None
     """
-    return
+    equipment_types.equipment_type(
+        {
+            "equipment_type": "spacesuits",
+            "can_purchase": True,
+            "price": 5,
+            "requirements": (
+                "any",
+                [constants.GROUP_PERMISSION, constants.WORKER_PERMISSION],
+            ),
+            "effects": {
+                "permissions": [constants.SPACESUITS_PERMISSION],
+            },
+            "description": [
+                "Spacesuits are required for humans to enter, survive, and work in uninhabitable environments",
+                "Any human units in uninhabitable environments will immediately perish if spacesuits are unequipped for any reason",
+                "By default, solitary officers are assumed to be wearing personal spacesuits",
+            ],
+        }
+    )
 
 
 def terrain_feature_types_config():
@@ -1624,10 +1642,11 @@ def earth_screen():
                 },
             }
         )
-
-    for purchase_index, purchase_item_type in enumerate(
-        ["consumer goods"]
-    ):  # Creates purchase button for items from earth
+    for purchase_item_type in ["consumer goods"] + [
+        equipment_type.key
+        for equipment_type in status.equipment_types.values()
+        if equipment_type.can_purchase
+    ]:  # Creates purchase button for items from earth
         constants.actor_creation_manager.create_interface_element(
             {
                 "width": scaling.scale_width(100),
@@ -2078,6 +2097,34 @@ def mob_interface():
         }
     )
 
+    tab_collection_relative_coordinates = (450, -30)
+    status.mob_tabbed_collection = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(
+                    tab_collection_relative_coordinates[0],
+                    tab_collection_relative_coordinates[1],
+                ),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
+                "init_type": constants.TABBED_COLLECTION,
+                "parent_collection": status.mob_info_display,
+                "member_config": {"order_exempt": True},
+                "description": "unit information tabs",
+            }
+        )
+    )
+
+
+def mob_sub_interface():
+    """
+    Description:
+        Initializes elements of mob interface, some of which are dependent on initalization of tabbed panels
+    Input:
+        None
+    Output:
+        None
+    """
     # mob background image's tooltip
     mob_free_image_background_tooltip = (
         constants.actor_creation_manager.create_interface_element(
@@ -2186,6 +2233,7 @@ def mob_interface():
         constants.GROUP_NAME_LABEL,
         constants.WORKERS_LABEL,
         constants.MOVEMENT_LABEL,
+        constants.EQUIPMENT_LABEL,
         constants.COMBAT_STRENGTH_LABEL,
         constants.ATTITUDE_LABEL,
         constants.CONTROLLABLE_LABEL,
@@ -2222,24 +2270,6 @@ def mob_interface():
                 # label for each passenger
                 input_dict["list_index"] = i
                 constants.actor_creation_manager.create_interface_element(input_dict)
-
-    tab_collection_relative_coordinates = (450, -30)
-    status.mob_tabbed_collection = (
-        constants.actor_creation_manager.create_interface_element(
-            {
-                "coordinates": scaling.scale_coordinates(
-                    tab_collection_relative_coordinates[0],
-                    tab_collection_relative_coordinates[1],
-                ),
-                "width": scaling.scale_width(0),
-                "height": scaling.scale_height(0),
-                "init_type": constants.TABBED_COLLECTION,
-                "parent_collection": status.mob_info_display,
-                "member_config": {"order_exempt": True},
-                "description": "unit information tabs",
-            }
-        )
-    )
 
 
 def tile_interface():

@@ -28,6 +28,7 @@ try:
         settlement_interface,
         terrain_interface,
         inventory_interface,
+        mob_sub_interface,
         minister_interface,
     )
     main_loop.main_loop()
@@ -126,8 +127,10 @@ except Exception:  # Displays error message and records error message in crash l
 # Include "advancement level" of building materials - 1 ~ stone/wood, etc. for basic shelters in atmosphere, 2 ~ for industrial steel/concrete for factories,
 #   basic planetary construction, 3 ~ for titanium, carbon fiber, advanced modern-day materials, spaceships, etc., 4+ for more advanced
 # Add minister deaths - may occur in assassination, attrition, freak accidents, heroic sacrifices, etc.
+# Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 
 # Upcoming work queue:
+# Add spacesuits image, as well as spacesuit overlay on units - have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art
 # Add new resource types, allowing buying on Earth, transporting, and using to build when it is in the builder's tile

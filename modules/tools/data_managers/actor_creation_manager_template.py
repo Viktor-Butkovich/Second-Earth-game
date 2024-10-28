@@ -191,6 +191,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.OFFICER_LABEL: actor_display_labels.actor_display_label,
             constants.WORKERS_LABEL: actor_display_labels.actor_display_label,
             constants.MOVEMENT_LABEL: actor_display_labels.actor_display_label,
+            constants.EQUIPMENT_LABEL: actor_display_labels.actor_display_label,
             constants.COMBAT_STRENGTH_LABEL: actor_display_labels.actor_display_label,
             constants.ATTITUDE_LABEL: actor_display_labels.actor_display_label,
             constants.CONTROLLABLE_LABEL: actor_display_labels.actor_display_label,

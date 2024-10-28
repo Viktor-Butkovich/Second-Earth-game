@@ -133,6 +133,23 @@ class actor_display_label(label):
         ]:
             self.message_start = "Name: "
 
+        elif self.actor_label_type == constants.EQUIPMENT_LABEL:
+            self.message_start = "Equipment: "
+            input_dict["init_type"] = constants.ANONYMOUS_BUTTON
+            input_dict["image_id"] = [
+                "buttons/default_button_alt2.png",
+                {"image_id": "misc/green_circle.png", "size": 0.75},
+                {"image_id": "items/consumer goods.png", "size": 0.75},
+            ]
+            input_dict["button_type"] = {
+                "on_click": (
+                    status.mob_inventory_collection.tab_button.on_click,
+                    (),
+                ),
+                "tooltip": ["Displays the unit inventory panel"],
+            }
+            self.add_attached_button(input_dict)
+
         elif self.actor_label_type == constants.MOVEMENT_LABEL:
             self.message_start = "Movement points: "
 
@@ -878,6 +895,11 @@ class actor_display_label(label):
                             constants.RESOURCE
                         ).name.capitalize()
                     )
+            elif self.actor_label_type == constants.EQUIPMENT_LABEL:
+                self.set_label(
+                    self.message_start
+                    + ", ".join(new_actor.equipment.keys()).capitalize()
+                )
 
             elif self.actor_label_type == constants.MOVEMENT_LABEL:
                 if self.actor.get_permission(constants.PMOB_PERMISSION):
@@ -1251,6 +1273,8 @@ class actor_display_label(label):
             return self.actor.get_permission(constants.OFFICER_PERMISSION)
         elif self.actor_label_type == constants.GROUP_NAME_LABEL:
             return self.actor.get_permission(constants.GROUP_PERMISSION)
+        elif self.actor_label_type == constants.EQUIPMENT_LABEL:
+            return bool(self.actor.equipment)
         else:
             return result
 

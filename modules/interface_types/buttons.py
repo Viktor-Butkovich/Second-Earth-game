@@ -386,7 +386,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.REMOVE_EQUIPMENT_BUTTON:
             if status.displayed_mob:
                 self.set_tooltip(
-                    ["Click to unequip " + self.equipment_type]
+                    [f"Click to unequip {self.equipment_type}"]
                     + status.equipment_types[self.equipment_type].description
                 )
 
@@ -1120,12 +1120,12 @@ class button(interface_elements.interface_element):
                         if status.displayed_tile.get_inventory(equipment_name) > 0:
                             if equipment.check_requirement(status.displayed_mob):
                                 if not status.displayed_mob.equipment.get(
-                                    equipment.equipment_type, False
+                                    equipment.key, False
                                 ):
                                     # If equpiment in tile, equippable by this unit, and not already equipped, equip it
                                     equipment.equip(status.displayed_mob)
                                     status.displayed_tile.change_inventory(
-                                        equipment.equipment_type, -1
+                                        equipment.key, -1
                                     )
                                     actor_utility.calibrate_actor_info_display(
                                         status.tile_info_display, status.displayed_tile
@@ -1159,13 +1159,9 @@ class button(interface_elements.interface_element):
                         self.attached_label.actor.current_item
                     ]
                     if equipment.check_requirement(status.displayed_mob):
-                        if not status.displayed_mob.equipment.get(
-                            equipment.equipment_type, False
-                        ):
+                        if not status.displayed_mob.equipment.get(equipment.key, False):
                             equipment.equip(status.displayed_mob)
-                            status.displayed_tile.change_inventory(
-                                equipment.equipment_type, -1
-                            )
+                            status.displayed_tile.change_inventory(equipment.key, -1)
                             actor_utility.calibrate_actor_info_display(
                                 status.tile_info_display, status.displayed_tile
                             )
@@ -1190,11 +1186,11 @@ class button(interface_elements.interface_element):
                                 )
                         else:
                             text_utility.print_to_screen(
-                                f"This unit already has {equipment.equipment_type} equipped."
+                                f"This unit already has {equipment.key} equipped."
                             )
                     else:
                         text_utility.print_to_screen(
-                            f"This type of unit can not equip {equipment.equipment_type}."
+                            f"This type of unit can not equip {equipment.key}."
                         )
                 else:
                     text_utility.print_to_screen(
@@ -1450,10 +1446,11 @@ class button(interface_elements.interface_element):
             elif self.button_type == constants.USE_EQUIPMENT_BUTTON:
                 return self.attached_label.actor.current_item in status.equipment_types
             elif self.button_type == constants.USE_EACH_EQUIPMENT_BUTTON:
-                for equipment_name, equipment in status.equipment_types.items():
-                    if status.displayed_tile.get_inventory(equipment_name) > 0:
-                        if equipment.check_requirement(status.displayed_mob):
-                            return True
+                if status.displayed_mob:
+                    for equipment_name, equipment in status.equipment_types.items():
+                        if status.displayed_tile.get_inventory(equipment_name) > 0:
+                            if equipment.check_requirement(status.displayed_mob):
+                                return True
                 return False
             return True
         return False
