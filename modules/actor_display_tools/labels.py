@@ -692,6 +692,7 @@ class actor_display_label(label):
             tooltip_text.append(
                 "A minister's ethnicity influences their name and appearance"
             )
+            self.set_tooltip(tooltip_text)
 
         elif self.actor_label_type == constants.MINISTER_SOCIAL_STATUS_LABEL:
             tooltip_text = [self.message]
