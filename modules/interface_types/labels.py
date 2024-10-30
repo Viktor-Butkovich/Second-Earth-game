@@ -61,7 +61,7 @@ class label(button):
     def update_tooltip(self):
         """
         Description:
-            Sets this label's tooltip to what it should be. By default, labels have tooltips matching their text
+            Sets this label's tooltip - by default, labels have tooltips matching their text
         Input:
             None
         Output:

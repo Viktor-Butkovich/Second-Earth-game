@@ -183,7 +183,7 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
                 target_tab = status.terrain_collection
         elif tabbed_collection == status.mob_tabbed_collection:
             if status.displayed_mob.get_permission(constants.PMOB_PERMISSION):
-                if status.displayed_mob.inventory or status.displayed_mob.equipment:
+                if status.displayed_mob.inventory:
                     target_tab = status.mob_inventory_collection
                 else:
                     target_tab = status.mob_reorganization_collection
@@ -339,7 +339,10 @@ def generate_unit_component_portrait(
                 edited_section["y_offset"] += 0.043
                 edited_section["x_size"] *= 0.94
                 edited_section["y_size"] *= 0.94
-            if section["metadata"]["portrait_section"] == "full_body":
+            if (
+                section["metadata"]["portrait_section"]
+                == constants.FULL_BODY_PORTRAIT_SECTION
+            ):
                 edited_section["x_offset"] += 0.008
                 edited_section["y_offset"] += 0.055
         elif component.endswith("right"):
@@ -350,10 +353,16 @@ def generate_unit_component_portrait(
                 edited_section["y_offset"] += 0.043
                 edited_section["x_size"] *= 0.94
                 edited_section["y_size"] *= 0.94
-            if section["metadata"]["portrait_section"] == "full_body":
+            if (
+                section["metadata"]["portrait_section"]
+                == constants.FULL_BODY_PORTRAIT_SECTION
+            ):
                 edited_section["x_offset"] += 0.018
                 edited_section["y_offset"] += 0.055
-        elif section["metadata"]["portrait_section"] == "full_body":
+        elif (
+            section["metadata"]["portrait_section"]
+            == constants.FULL_BODY_PORTRAIT_SECTION
+        ):
             edited_section["x_offset"] += 0.015
             edited_section["y_offset"] += 0.05
         return_list.append(edited_section)

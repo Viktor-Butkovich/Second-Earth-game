@@ -91,7 +91,8 @@ class unit_type:
         for image in image_id:
             if (
                 type(image) == dict
-                and image.get("metadata", {}).get("portrait_section", "") != "full_body"
+                and image.get("metadata", {}).get("portrait_section", "")
+                != constants.FULL_BODY_PORTRAIT_SECTION
             ):
                 image["x_offset"] = image.get("x_offset", 0) - 0.01
                 image["y_offset"] = image.get("y_offset", 0) - 0.01
@@ -398,7 +399,8 @@ class worker_type(unit_type):
         for image in image_id:
             if (
                 type(image) == dict
-                and image.get("metadata", {}).get("portrait_section", "") != "full_body"
+                and image.get("metadata", {}).get("portrait_section", "")
+                != constants.FULL_BODY_PORTRAIT_SECTION
             ):
                 image["y_offset"] = image.get("y_offset", 0) - 0.02
         return image_id

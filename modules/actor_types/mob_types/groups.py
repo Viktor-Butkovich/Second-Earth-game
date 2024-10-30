@@ -58,6 +58,9 @@ class group(pmob):
                     current_commodity, current_mob.get_inventory(current_commodity)
                 )
                 current_mob.set_inventory(current_commodity, 0)
+        for current_equipment, equipped in list(self.worker.equipment.items()):
+            if equipped:
+                status.equipment_types[current_equipment].equip(self)
         if not from_save:
             self.set_permission(
                 constants.DISORGANIZED_PERMISSION,
@@ -87,6 +90,20 @@ class group(pmob):
         """
         super().permissions_setup()
         self.set_permission(constants.GROUP_PERMISSION, True)
+
+    def update_equipment_image(self, equipment: str, equipped: bool):
+        """
+        Description:
+            Updates this unit's image to show the inputted equipment being equipped or unequipped
+                Groups do not have their own images, so their workers and officers manage equipment images
+        Input:
+            string equipment: Key of the equipment being equipped or unequipped
+            bool equipped: True if the equipment is being equipped, False if it is being unequipped
+        Output:
+            None
+        """
+        if status.equipment_types[equipment].equipment_image:
+            self.update_image_bundle()
 
     def replace_worker(self, new_worker_type):
         """
@@ -333,6 +350,10 @@ class group(pmob):
         Output:
             None
         """
+        for equipment, equipped in list(self.equipment.items()):
+            if equipped:
+                status.equipment_types[equipment].unequip(self)
+                status.equipment_types[equipment].equip(self.worker)
         self.drop_inventory()
         self.worker.leave_group(self)
 

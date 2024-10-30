@@ -319,6 +319,10 @@ def equipment_types_config():
                 "Any human units in uninhabitable environments will immediately perish if spacesuits are unequipped for any reason",
                 "By default, solitary officers are assumed to be wearing personal spacesuits",
             ],
+            "equipment_image": {
+                "image_id": "items/spacesuits.png",
+                "portrait_section": constants.FULL_BODY_PORTRAIT_SECTION,
+            },
         }
     )
 
@@ -2234,7 +2238,6 @@ def mob_sub_interface():
         constants.WORKERS_LABEL,
         constants.MOVEMENT_LABEL,
         constants.EQUIPMENT_LABEL,
-        constants.COMBAT_STRENGTH_LABEL,
         constants.ATTITUDE_LABEL,
         constants.CONTROLLABLE_LABEL,
         constants.CREW_LABEL,

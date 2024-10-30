@@ -186,10 +186,10 @@ class worker(pmob):
         if self.image_dict["default"] in image_id_list:
             image_id_list.remove(self.image_dict["default"])
         image_id_list += actor_utility.generate_unit_component_portrait(
-            self.image_dict["left portrait"], "left"
+            self.image_dict.get("left portrait", []), "left"
         )
         image_id_list += actor_utility.generate_unit_component_portrait(
-            self.image_dict["right portrait"], "right"
+            self.image_dict.get("right portrait", []), "right"
         )
         return image_id_list
 

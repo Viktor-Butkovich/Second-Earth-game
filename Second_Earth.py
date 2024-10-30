@@ -130,7 +130,8 @@ except Exception:  # Displays error message and records error message in crash l
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 
 # Upcoming work queue:
-# Add spacesuits image, as well as spacesuit overlay on units - have helmeted/helmetless versions depending on if unit is outside
+# Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
+# Add equipment field in unit tooltips
 # Add modern minister outfits
 # Add astronauts art
 # Add new resource types, allowing buying on Earth, transporting, and using to build when it is in the builder's tile
