@@ -1,7 +1,8 @@
 # Contains utility functions for setting up reorganization interface with correct dummy units for merge/split procedures
 
 from typing import List
-from . import actor_utility
+from . import actor_utility, utility
+from copy import deepcopy
 import modules.constants.constants as constants
 import modules.constants.status as status
 
@@ -23,6 +24,7 @@ required_dummy_attributes = [
     "officer",
     "worker",
     "character_info",
+    "image_dict",
 ]
 
 
@@ -224,9 +226,40 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
                     dummy_input_dict[attribute] = getattr(officer, attribute).copy()
                 else:
                     dummy_input_dict[attribute] = getattr(officer, attribute)
-        dummy_input_dict["officer"] = officer
-        dummy_input_dict["worker"] = worker
+
+        dummy_officer = create_dummy_copy(officer, {}, required_dummy_attributes)
+        dummy_input_dict["officer"] = dummy_officer
+        dummy_worker = create_dummy_copy(worker, {}, required_dummy_attributes)
+        dummy_input_dict["worker"] = dummy_worker
         dummy_input_dict["unit_type"] = officer.unit_type.group_type
+
+        dummy_input_dict["equipment"] = {}
+        dummy_officer.image_dict = deepcopy(officer.image_dict)
+        dummy_worker.image_dict = deepcopy(worker.image_dict)
+        for (
+            equipment_type,
+            equipped,
+        ) in (
+            dummy_worker.equipment.items()
+        ):  # Attempt to share worker equipment with officer
+            if equipped:
+                if status.equipment_types[equipment_type].check_requirement(
+                    dummy_officer
+                ) and not dummy_officer.equipment.get(equipment_type, False):
+                    status.equipment_types[equipment_type].equip(dummy_officer)
+
+        for (
+            equipment_type,
+            equipped,
+        ) in (
+            dummy_officer.equipment.items()
+        ):  # Attempt to share officer equipment with worker
+            if equipped:
+                if status.equipment_types[equipment_type].check_requirement(
+                    dummy_worker
+                ) and not dummy_worker.equipment.get(equipment_type, False):
+                    status.equipment_types[equipment_type].equip(dummy_worker)
+
         dummy_input_dict["disorganized"] = worker.get_permission(
             constants.DISORGANIZED_PERMISSION
         )
@@ -254,17 +287,38 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
                 constants.VETERAN_PERMISSION: dummy_input_dict["veteran"],
             }
         )
-        image_id_list = []
-        dummy_input_dict[
-            "image_id_list"
-        ] = image_id_list + actor_utility.generate_group_image_id_list(worker, officer)
-        if dummy_input_dict.get("disorganized", False):
-            dummy_input_dict["image_id_list"].append("misc/disorganized_icon.png")
-        if dummy_input_dict.get("veteran", False):
-            dummy_input_dict["image_id_list"].append("misc/veteran_icon.png")
-
-        return_value = constants.actor_creation_manager.create_dummy(dummy_input_dict)
-    return return_value
+        dummy_input_dict["image_dict"] = {
+            "default": "misc/empty.png",
+            "portrait": actor_utility.generate_group_image_id_list(
+                dummy_worker, dummy_officer
+            ),
+        }
+        dummy_group = constants.actor_creation_manager.create_dummy(dummy_input_dict)
+        for (
+            equipment_type,
+            equipped,
+        ) in (
+            worker.equipment.items()
+        ):  # Equip any equipment of the worker that the group can use
+            if equipped and status.equipment_types[equipment_type].check_requirement(
+                dummy_group
+            ):
+                status.equipment_types[equipment_type].equip(dummy_group)
+        for (
+            equipment_type,
+            equipped,
+        ) in (
+            officer.equipment.items()
+        ):  # Equip any equipment of the officer that the group can use
+            if (
+                equipped
+                and status.equipment_types[equipment_type].check_requirement(
+                    dummy_group
+                )
+                and not dummy_group.equipment.get(equipment_type, False)
+            ):
+                status.equipment_types[equipment_type].equip(dummy_group)
+    return dummy_group
 
 
 def simulate_crew(vehicle, worker, required_dummy_attributes, dummy_input_dict):
@@ -317,6 +371,21 @@ def simulate_split(unit, required_dummy_attributes, dummy_input_dict):
     dummy_officer = create_dummy_copy(
         unit.officer, dummy_officer_dict, required_dummy_attributes
     )
+    dummy_officer.image_dict = deepcopy(unit.officer.image_dict)
+    dummy_worker.image_dict = deepcopy(unit.worker.image_dict)
+    for (
+        equipment_type,
+        equipped,
+    ) in unit.equipment.items():  # Attempt to inherit equipment
+        if equipped:
+            if status.equipment_types[equipment_type].check_requirement(dummy_worker):
+                status.equipment_types[equipment_type].equip(dummy_worker)
+                status.equipment_types[equipment_type].unequip(dummy_officer)
+            elif status.equipment_types[equipment_type].check_requirement(
+                dummy_officer
+            ):
+                status.equipment_types[equipment_type].equip(dummy_officer)
+                status.equipment_types[equipment_type].unequip(dummy_worker)
     return (dummy_officer, dummy_worker)
 
 

@@ -309,7 +309,11 @@ def equipment_types_config():
             "price": 5,
             "requirements": (
                 "any",
-                [constants.GROUP_PERMISSION, constants.WORKER_PERMISSION],
+                [
+                    constants.GROUP_PERMISSION,
+                    constants.WORKER_PERMISSION,
+                    constants.OFFICER_PERMISSION,
+                ],
             ),
             "effects": {
                 "permissions": [constants.SPACESUITS_PERMISSION],

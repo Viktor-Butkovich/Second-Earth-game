@@ -194,8 +194,6 @@ class mob(actor):
         ):
             self.update_image_bundle()
             self.update_tooltip()
-            if self == status.displayed_mob:
-                self.select()
 
     def all_permissions(self, *tasks: str) -> bool:
         """
@@ -281,7 +279,7 @@ class mob(actor):
                 else:
                     self.image_dict["portrait"] = input_dict.get("portrait", [])
             if not from_save:
-                self.select()
+                self.reselect()
             self.set_permission(constants.INIT_COMPLETE_PERMISSION, True)
 
     def update_equipment_image(self, equipment: str, equipped: bool):
@@ -294,42 +292,50 @@ class mob(actor):
         Output:
             None
         """
-        equipment_image = status.equipment_types[equipment].equipment_image
-        if equipment_image:
-            for portrait_name in ["portrait", "left portrait", "right portrait"]:
-                if self.image_dict.get(portrait_name, None):
-                    portrait = self.image_dict[portrait_name]
-                    section_index = constants.character_manager.find_portrait_section(
-                        equipment_image["portrait_section"], portrait
-                    )
-                    if equipped:
-                        if section_index == None:
-                            portrait.append(
-                                {
-                                    "image_id": equipment_image["image_id"],
-                                    "metadata": {
-                                        "portrait_section": equipment_image[
-                                            "portrait_section"
-                                        ],
-                                    },
-                                }
+        if self.get_permission(constants.GROUP_PERMISSION):
+            if status.equipment_types[equipment].equipment_image:
+                self.update_image_bundle()
+        else:
+            equipment_image = status.equipment_types[equipment].equipment_image
+            if equipment_image:
+                for portrait_name in ["portrait", "left portrait", "right portrait"]:
+                    if self.image_dict.get(portrait_name, None):
+                        portrait = self.image_dict[portrait_name]
+                        section_index = (
+                            constants.character_manager.find_portrait_section(
+                                equipment_image["portrait_section"], portrait
                             )
+                        )
+                        if equipped:
+                            if section_index == None:
+                                portrait.append(
+                                    {
+                                        "image_id": equipment_image["image_id"],
+                                        "metadata": {
+                                            "portrait_section": equipment_image[
+                                                "portrait_section"
+                                            ],
+                                        },
+                                    }
+                                )
+                            else:
+                                modified_section = portrait[section_index]
+                                modified_section["metadata"][
+                                    "original_image"
+                                ] = modified_section["image_id"]
+                                modified_section["image_id"] = equipment_image[
+                                    "image_id"
+                                ]
                         else:
                             modified_section = portrait[section_index]
-                            modified_section["metadata"][
-                                "original_image"
-                            ] = modified_section["image_id"]
-                            modified_section["image_id"] = equipment_image["image_id"]
-                    else:
-                        modified_section = portrait[section_index]
-                        if modified_section["metadata"].get("original_image", None):
-                            modified_section["image_id"] = modified_section["metadata"][
-                                "original_image"
-                            ]
-                            del modified_section["metadata"]["original_image"]
-                        else:
-                            portrait.pop(section_index)
-            self.update_image_bundle()
+                            if modified_section["metadata"].get("original_image", None):
+                                modified_section["image_id"] = modified_section[
+                                    "metadata"
+                                ]["original_image"]
+                                del modified_section["metadata"]["original_image"]
+                            else:
+                                portrait.pop(section_index)
+                self.update_image_bundle()
 
     def image_variants_setup(self, from_save, input_dict):
         """
@@ -411,11 +417,12 @@ class mob(actor):
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
         image_id_list = super().get_image_id_list(override_values)
-
-        if self.image_dict.get("portrait", []) != []:
-            image_id_list += self.image_dict["portrait"]
-            if self.image_dict["default"] in image_id_list:
-                image_id_list.remove(self.image_dict["default"])
+        if any(
+            section in self.image_dict
+            for section in ["portrait", "left portrait", "right portrait"]
+        ):
+            image_id_list.remove(self.image_dict["default"])
+        image_id_list += self.image_dict.get("portrait", [])
         if override_values.get(
             "disorganized", self.get_permission(constants.DISORGANIZED_PERMISSION)
         ):
@@ -772,6 +779,21 @@ class mob(actor):
             self.images[-1].add_to_cell()
         self.on_move()
 
+    def reselect(self):
+        """
+        Description:
+            Deselects and reselects this mob if it was already selected
+        Input:
+            None
+        Output:
+            None
+        """
+        if status.displayed_mob == self:
+            actor_utility.calibrate_actor_info_display(
+                status.mob_info_display, None, override_exempt=True
+            )
+            self.select()
+
     def select(self):
         """
         Description:
@@ -911,7 +933,9 @@ class mob(actor):
         else:
             tooltip_list.append("Movement points: ???")
 
-        tooltip_list.append(f"Combat strength: {self.get_combat_strength()}")
+        if self.equipment:
+            tooltip_list.append(f"Equipment: {', '.join(self.equipment.keys())}")
+
         if self.get_permission(constants.DISORGANIZED_PERMISSION):
             tooltip_list.append(
                 "This unit is currently disorganized, giving a combat penalty until its next turn"

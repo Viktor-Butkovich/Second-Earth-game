@@ -131,7 +131,6 @@ except Exception:  # Displays error message and records error message in crash l
 
 # Upcoming work queue:
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
-# Add equipment field in unit tooltips
 # Add modern minister outfits
 # Add astronauts art
 # Add new resource types, allowing buying on Earth, transporting, and using to build when it is in the builder's tile

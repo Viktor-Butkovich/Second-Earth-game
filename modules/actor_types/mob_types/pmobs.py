@@ -117,6 +117,7 @@ class pmob(mob):
                 "select_on_creation"
             ]:
                 self.on_move()
+            self.select()
 
     def permissions_setup(self) -> None:
         """
@@ -528,6 +529,17 @@ class pmob(mob):
             image_id_list.append("misc/veteran_icon.png")
         if self.sentry_mode:
             image_id_list.append("misc/sentry_icon.png")
+        if self.get_permission(constants.GROUP_PERMISSION):
+            image_id_list += actor_utility.generate_group_image_id_list(
+                self.worker, self.officer
+            )
+        elif self.get_permission(constants.WORKER_PERMISSION):
+            image_id_list += actor_utility.generate_unit_component_portrait(
+                self.image_dict.get("left portrait", []), "left"
+            )
+            image_id_list += actor_utility.generate_unit_component_portrait(
+                self.image_dict.get("right portrait", []), "right"
+            )
         return image_id_list
 
     def set_sentry_mode(self, new_value):
@@ -548,10 +560,6 @@ class pmob(mob):
             self.update_image_bundle()
             if new_value == True:
                 self.remove_from_turn_queue()
-                if status.displayed_mob == self:
-                    actor_utility.calibrate_actor_info_display(
-                        status.mob_info_display, self
-                    )  # updates actor info display with sentry icon
             else:
                 if (
                     self.movement_points > 0

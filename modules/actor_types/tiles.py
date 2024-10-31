@@ -456,6 +456,20 @@ class tile(actor):  # to do: make terrain tiles a subclass
         if self.grid == status.strategic_map_grid:
             for equivalent_tile in self.get_equivalent_tiles():
                 equivalent_tile.update_image_bundle(override_image=override_image)
+        self.reselect()
+
+    def reselect(self):
+        """
+        Description:
+            Deselects and reselects this mob if it was already selected
+        Input:
+            None
+        Output:
+            None
+        """
+        if status.displayed_tile == self:
+            actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
+            actor_utility.calibrate_actor_info_display(status.tile_info_display, self)
 
     def set_resource(self, new_resource, update_image_bundle=True):
         """
@@ -491,8 +505,6 @@ class tile(actor):  # to do: make terrain tiles a subclass
             self.image_dict["default"] = "terrains/hidden.png"
         if update_image_bundle:
             self.update_image_bundle()
-        if self == status.displayed_tile:
-            actor_utility.calibrate_actor_info_display(status.tile_info_display, self)
 
     def update_tooltip(self):
         """

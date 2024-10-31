@@ -7,6 +7,8 @@ from ...util import actor_utility, minister_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 
+import modules.util.utility as utility
+
 
 class group(pmob):
     """
@@ -58,9 +60,19 @@ class group(pmob):
                     current_commodity, current_mob.get_inventory(current_commodity)
                 )
                 current_mob.set_inventory(current_commodity, 0)
-        for current_equipment, equipped in list(self.worker.equipment.items()):
-            if equipped:
-                status.equipment_types[current_equipment].equip(self)
+
+        for equipment in set(self.worker.equipment.keys()).union(
+            self.officer.equipment.keys()
+        ):
+            if status.equipment_types[equipment].check_requirement(self):
+                if self.worker.equipment.get(
+                    equipment, False
+                ) and self.officer.equipment.get(
+                    equipment, False
+                ):  # If both worker and officer had same equipment, drop extra
+                    self.get_cell().tile.change_inventory(equipment, 1)
+                status.equipment_types[equipment].equip(self)
+
         if not from_save:
             self.set_permission(
                 constants.DISORGANIZED_PERMISSION,
@@ -90,20 +102,6 @@ class group(pmob):
         """
         super().permissions_setup()
         self.set_permission(constants.GROUP_PERMISSION, True)
-
-    def update_equipment_image(self, equipment: str, equipped: bool):
-        """
-        Description:
-            Updates this unit's image to show the inputted equipment being equipped or unequipped
-                Groups do not have their own images, so their workers and officers manage equipment images
-        Input:
-            string equipment: Key of the equipment being equipped or unequipped
-            bool equipped: True if the equipment is being equipped, False if it is being unequipped
-        Output:
-            None
-        """
-        if status.equipment_types[equipment].equipment_image:
-            self.update_image_bundle()
 
     def replace_worker(self, new_worker_type):
         """
@@ -352,8 +350,12 @@ class group(pmob):
         """
         for equipment, equipped in list(self.equipment.items()):
             if equipped:
-                status.equipment_types[equipment].unequip(self)
-                status.equipment_types[equipment].equip(self.worker)
+                if status.equipment_types[equipment].check_requirement(self.worker):
+                    status.equipment_types[equipment].unequip(self)
+                    status.equipment_types[equipment].equip(self.worker)
+                elif status.equipment_types[equipment].check_requirement(self.officer):
+                    status.equipment_types[equipment].unequip(self)
+                    status.equipment_types[equipment].equip(self.officer)
         self.drop_inventory()
         self.worker.leave_group(self)
 
@@ -383,23 +385,6 @@ class group(pmob):
         super().die(death_type)
         self.officer.die(None)
         self.worker.die(None)
-
-    def get_image_id_list(self, override_values={}):
-        """
-        Description:
-            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
-                orientation
-        Input:
-            None
-        Output:
-            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
-        """
-        image_id_list = super().get_image_id_list(override_values)
-        image_id_list.remove(self.image_dict["default"])  # Group default image is empty
-        image_id_list += actor_utility.generate_group_image_id_list(
-            self.worker, self.officer
-        )
-        return image_id_list
 
     def get_worker(self) -> "pmob":
         """

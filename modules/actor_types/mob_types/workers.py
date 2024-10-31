@@ -172,27 +172,6 @@ class worker(pmob):
                 self.image_dict[variant_type] = random.choice(variants)
         super().image_variants_setup(from_save, input_dict)
 
-    def get_image_id_list(self, override_values={}):
-        """
-        Description:
-            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
-                orientation
-        Input:
-            None
-        Output:
-            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
-        """
-        image_id_list = super().get_image_id_list(override_values)
-        if self.image_dict["default"] in image_id_list:
-            image_id_list.remove(self.image_dict["default"])
-        image_id_list += actor_utility.generate_unit_component_portrait(
-            self.image_dict.get("left portrait", []), "left"
-        )
-        image_id_list += actor_utility.generate_unit_component_portrait(
-            self.image_dict.get("right portrait", []), "right"
-        )
-        return image_id_list
-
     def get_worker(self) -> "pmob":
         """
         Description:
