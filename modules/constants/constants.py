@@ -481,7 +481,7 @@ map_modes: List[str] = [
 
 DEFAULT_MINISTER_OUTFIT_TYPE = "business"
 
-HAT_LEVEL: int = 6
+HAT_LEVEL: int = 9
 EYES_LEVEL: int = 2
 GLASSES_LEVEL: int = 3
 HAIR_LEVEL: int = 4

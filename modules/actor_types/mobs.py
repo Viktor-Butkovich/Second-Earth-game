@@ -301,40 +301,44 @@ class mob(actor):
                 for portrait_name in ["portrait", "left portrait", "right portrait"]:
                     if self.image_dict.get(portrait_name, None):
                         portrait = self.image_dict[portrait_name]
-                        section_index = (
-                            constants.character_manager.find_portrait_section(
-                                equipment_image["portrait_section"], portrait
+                        key_indices = [
+                            (
+                                key,
+                                constants.character_manager.find_portrait_section(
+                                    key, portrait
+                                ),
                             )
-                        )
+                            for key in equipment_image.keys()
+                        ]
                         if equipped:
-                            if section_index == None:
-                                portrait.append(
-                                    {
-                                        "image_id": equipment_image["image_id"],
-                                        "metadata": {
-                                            "portrait_section": equipment_image[
-                                                "portrait_section"
-                                            ],
-                                        },
-                                    }
-                                )
-                            else:
-                                modified_section = portrait[section_index]
-                                modified_section["metadata"][
-                                    "original_image"
-                                ] = modified_section["image_id"]
-                                modified_section["image_id"] = equipment_image[
-                                    "image_id"
-                                ]
+                            for key, section_index in key_indices:
+                                if section_index == None:
+                                    portrait.append(
+                                        {
+                                            "image_id": equipment_image[key],
+                                            "metadata": {
+                                                "portrait_section": key,
+                                            },
+                                        }
+                                    )
+                                else:
+                                    modified_section = portrait[section_index]
+                                    modified_section["metadata"][
+                                        "original_image"
+                                    ] = modified_section["image_id"]
+                                    modified_section["image_id"] = equipment_image[key]
                         else:
-                            modified_section = portrait[section_index]
-                            if modified_section["metadata"].get("original_image", None):
-                                modified_section["image_id"] = modified_section[
-                                    "metadata"
-                                ]["original_image"]
-                                del modified_section["metadata"]["original_image"]
-                            else:
-                                portrait.pop(section_index)
+                            for key, section_index in key_indices:
+                                modified_section = portrait[section_index]
+                                if modified_section["metadata"].get(
+                                    "original_image", None
+                                ):
+                                    modified_section["image_id"] = modified_section[
+                                        "metadata"
+                                    ]["original_image"]
+                                    del modified_section["metadata"]["original_image"]
+                                else:
+                                    portrait.pop(section_index)
                 self.update_image_bundle()
 
     def image_variants_setup(self, from_save, input_dict):

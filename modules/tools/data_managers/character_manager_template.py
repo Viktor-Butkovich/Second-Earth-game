@@ -326,13 +326,16 @@ class character_manager_template:
             if unit.get_permission(constants.WORKER_PERMISSION):
                 hidden_sections = [
                     constants.EYES_PORTRAITS_SECTION,
-                    constants.HAT_PORTRAIT_SECTION,
                 ]
             else:
                 hidden_sections = [
                     constants.EYES_PORTRAITS_SECTION,
-                    constants.HAT_PORTRAIT_SECTION,
                 ]
+            minister_face[
+                self.find_portrait_section(
+                    constants.HAT_PORTRAIT_SECTION, minister_face
+                )
+            ]["image_id"] = "misc/empty.png"
 
             for (
                 section
@@ -473,7 +476,6 @@ class character_manager_template:
                 "y_size": 2.18,
                 "y_offset": -0.34,
                 "x_offset": -0.015,
-                "level": 1,
                 "green_screen": metadata["skin_color"],
                 "metadata": {"portrait_section": constants.FULL_BODY_PORTRAIT_SECTION},
             }
