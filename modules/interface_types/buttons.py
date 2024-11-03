@@ -2527,7 +2527,10 @@ class tab_button(button):
                     )
                 else:
                     return_value = status.displayed_mob.inventory_capacity > 0 or (
-                        status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
+                        flags.enable_equipment_panel
+                        and status.displayed_mob.get_permission(
+                            constants.PMOB_PERMISSION
+                        )
                         and status.displayed_mob.equipment
                     )
 

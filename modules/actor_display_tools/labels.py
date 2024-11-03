@@ -6,6 +6,7 @@ from ..interface_types.labels import label
 from ..util import utility, scaling, actor_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
+import modules.constants.flags as flags
 
 
 class actor_display_label(label):
@@ -135,24 +136,35 @@ class actor_display_label(label):
 
         elif self.actor_label_type == constants.EQUIPMENT_LABEL:
             self.message_start = "Equipment: "
-            input_dict["init_type"] = constants.ANONYMOUS_BUTTON
-            input_dict["image_id"] = [
-                "buttons/default_button_alt2.png",
-                {"image_id": "misc/green_circle.png", "size": 0.75},
-                {"image_id": "items/consumer goods.png", "size": 0.75},
-            ]
-            input_dict["button_type"] = {
-                "on_click": (
-                    status.mob_inventory_collection.tab_button.on_click,
-                    (),
-                ),
-                "tooltip": ["Displays the unit inventory panel"],
-            }
-            self.add_attached_button(input_dict)
+            if flags.enable_equipment_panel:
+                input_dict["init_type"] = constants.ANONYMOUS_BUTTON
+                input_dict["image_id"] = [
+                    "buttons/default_button_alt2.png",
+                    {"image_id": "misc/green_circle.png", "size": 0.75},
+                    {"image_id": "items/consumer goods.png", "size": 0.75},
+                ]
+                input_dict["button_type"] = {
+                    "on_click": (
+                        status.mob_inventory_collection.tab_button.on_click,
+                        (),
+                    ),
+                    "tooltip": ["Displays the unit inventory panel"],
+                }
+                self.add_attached_button(input_dict)
+            else:
+                input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
+                for equipment_type in status.equipment_types:
+                    input_dict["equipment_type"] = equipment_type
+                    input_dict["image_id"] = [
+                        "buttons/default_button.png",
+                        "misc/green_circle.png",
+                        f"items/{equipment_type}.png",
+                    ]
+                    self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.MOVEMENT_LABEL:
             self.message_start = "Movement points: "
-
+            """
             input_dict["init_type"] = constants.ENABLE_AUTOMATIC_REPLACEMENT_BUTTON
             input_dict["target_type"] = "unit"
             input_dict[
@@ -191,8 +203,8 @@ class actor_display_label(label):
                 "image_id"
             ] = "buttons/disable_automatic_replacement_officer_button.png"
             self.add_attached_button(input_dict)
-
             del input_dict["target_type"]
+            """
 
             input_dict["init_type"] = constants.ENABLE_SENTRY_MODE_BUTTON
             input_dict["image_id"] = "buttons/enable_sentry_mode_button.png"
@@ -279,15 +291,16 @@ class actor_display_label(label):
                 input_dict["image_id"] = "buttons/commodity_drop_each_button.png"
                 self.add_attached_button(input_dict)
 
-                input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
-                for equipment_type in status.equipment_types:
-                    input_dict["equipment_type"] = equipment_type
-                    input_dict["image_id"] = [
-                        "buttons/default_button.png",
-                        "misc/green_circle.png",
-                        f"items/{equipment_type}.png",
-                    ]
-                    self.add_attached_button(input_dict)
+                if flags.enable_equipment_panel:
+                    input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
+                    for equipment_type in status.equipment_types:
+                        input_dict["equipment_type"] = equipment_type
+                        input_dict["image_id"] = [
+                            "buttons/default_button.png",
+                            "misc/green_circle.png",
+                            f"items/{equipment_type}.png",
+                        ]
+                        self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.TERRAIN_LABEL:
             self.message_start = "Terrain: "

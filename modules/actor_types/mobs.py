@@ -422,7 +422,7 @@ class mob(actor):
         """
         image_id_list = super().get_image_id_list(override_values)
         if any(
-            section in self.image_dict
+            section in self.image_dict and len(self.image_dict[section]) > 0
             for section in ["portrait", "left portrait", "right portrait"]
         ):
             image_id_list.remove(self.image_dict["default"])
