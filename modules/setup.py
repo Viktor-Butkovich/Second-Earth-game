@@ -324,10 +324,11 @@ def equipment_types_config():
                 "By default, solitary officers are assumed to be wearing personal spacesuits",
             ],
             "equipment_image": {
-                constants.FULL_BODY_PORTRAIT_SECTION: "items/spacesuits.png",
+                constants.FULL_BODY_PORTRAIT_SECTION: "mobs/spacesuits/spacesuit_body.png",
                 constants.HAT_PORTRAIT_SECTION: "ministers/portraits/hat/spacesuit/spacesuit_helmet.png",
                 constants.HAIR_PORTRAIT_SECTION: "misc/empty.png",
                 constants.FACIAL_HAIR_PORTAIT_SECTION: "misc/empty.png",
+                constants.BACKPACK_PORTRAIT_SECTION: "mobs/spacesuits/spacesuit_backpack.png",
             },
         }
     )

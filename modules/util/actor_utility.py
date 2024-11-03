@@ -339,10 +339,10 @@ def generate_unit_component_portrait(
                 edited_section["y_offset"] += 0.043
                 edited_section["x_size"] *= 0.94
                 edited_section["y_size"] *= 0.94
-            if (
-                section["metadata"]["portrait_section"]
-                == constants.FULL_BODY_PORTRAIT_SECTION
-            ):
+            if section["metadata"]["portrait_section"] in [
+                constants.FULL_BODY_PORTRAIT_SECTION,
+                constants.BACKPACK_PORTRAIT_SECTION,
+            ]:
                 edited_section["x_offset"] += 0.008
                 edited_section["y_offset"] += 0.055
         elif component.endswith("right"):
@@ -353,16 +353,16 @@ def generate_unit_component_portrait(
                 edited_section["y_offset"] += 0.043
                 edited_section["x_size"] *= 0.94
                 edited_section["y_size"] *= 0.94
-            if (
-                section["metadata"]["portrait_section"]
-                == constants.FULL_BODY_PORTRAIT_SECTION
-            ):
+            if section["metadata"]["portrait_section"] in [
+                constants.FULL_BODY_PORTRAIT_SECTION,
+                constants.BACKPACK_PORTRAIT_SECTION,
+            ]:
                 edited_section["x_offset"] += 0.018
                 edited_section["y_offset"] += 0.055
-        elif (
-            section["metadata"]["portrait_section"]
-            == constants.FULL_BODY_PORTRAIT_SECTION
-        ):
+        elif section["metadata"]["portrait_section"] in [
+            constants.FULL_BODY_PORTRAIT_SECTION,
+            constants.BACKPACK_PORTRAIT_SECTION,
+        ]:
             edited_section["x_offset"] += 0.015
             edited_section["y_offset"] += 0.05
         return_list.append(edited_section)

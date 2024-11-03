@@ -477,6 +477,7 @@ class character_manager_template:
                 "y_offset": -0.34,
                 "x_offset": -0.015,
                 "green_screen": metadata["skin_color"],
+                "level": constants.DEFAULT_LEVEL,
                 "metadata": {"portrait_section": constants.FULL_BODY_PORTRAIT_SECTION},
             }
         )
@@ -518,6 +519,7 @@ class character_manager_template:
             {
                 "image_id": random.choice(self.skin_images[metadata["masculine"]]),
                 "green_screen": metadata["skin_color"],
+                "level": constants.DEFAULT_LEVEL,
                 "metadata": {"portrait_section": constants.SKIN_PORTRAIT_SECTION},
             }
         )
@@ -613,6 +615,17 @@ class character_manager_template:
                 "metadata": {"portrait_section": constants.HAT_PORTRAIT_SECTION},
             }
         )
+        portrait_sections.append(
+            {
+                "image_id": "misc/empty.png",
+                "x_size": 2.2,
+                "y_size": 2.18,
+                "y_offset": -0.34,
+                "x_offset": -0.015,
+                "level": constants.BACKPACK_LEVEL,
+                "metadata": {"portrait_section": constants.BACKPACK_PORTRAIT_SECTION},
+            }
+        )
 
     def generate_nose(
         self, portrait_sections: List[any], metadata: Dict[str, any]
@@ -630,6 +643,7 @@ class character_manager_template:
             {
                 "image_id": random.choice(self.nose_images),
                 "metadata": {"portrait_section": constants.NOSE_PORTRAIT_SECTION},
+                "level": constants.DEFAULT_LEVEL,
             }
         )
 
@@ -653,6 +667,7 @@ class character_manager_template:
             {
                 "image_id": image_id,
                 "metadata": {"portrait_section": constants.MOUTH_PORTRAIT_SECTION},
+                "level": constants.DEFAULT_LEVEL,
             }
         )
 
