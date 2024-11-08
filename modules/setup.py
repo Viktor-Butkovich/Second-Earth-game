@@ -1312,7 +1312,6 @@ def buttons():
     ministers_flag_icon = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
-    # status.flag_icon_list.append(ministers_flag_icon)
 
     input_dict = {
         "coordinates": scaling.scale_coordinates(
@@ -1321,7 +1320,7 @@ def buttons():
         "height": scaling.scale_height(50),
         "width": scaling.scale_width(50),
         "keybind_id": pygame.K_1,
-        "image_id": "locations/africa_button.png",
+        "image_id": actor_utility.generate_frame("locations/africa.png"),
         "modes": [
             constants.MINISTERS_MODE,
             constants.STRATEGIC_MODE,
