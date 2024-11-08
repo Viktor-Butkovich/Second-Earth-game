@@ -84,9 +84,9 @@ except Exception:  # Displays error message and records error message in crash l
         Infrastructure
             Note - to create networks, calculating a minimal spanning tree could minimize total distances required (suggest most efficient road structure?)
                 Cormen et al., Chapter 21
-3. Add new unit types, such as astronauts/cosmonauts (allow crewing spaceship)
-4. Add new minister backgrounds
-5. Add new spaceship images
+3. Add randomized special resources
+4. Add depositing/extracting gas/unpurified water to/from environment
+5. Add atmosphere mechanics
 6. Add alien vegetation
 7. Add alien animals
 8. Add star system map
@@ -105,11 +105,7 @@ except Exception:  # Displays error message and records error message in crash l
 12. Modify most actions to spend resources/time, rather than money - initially only allow ones from tile/inventory, then allow transportation networks
 13. Add energy system with energy networks
 14. Add supply networks
-15. Add atmosphere mechanics
-16. Add depositing/extracting gas/unpurified water to/from environment
-17. Add randomized special resources
 """
-# Find a way to load in all minister images on creating, rather than when first viewed - causing noticeable latency - populate rendered_images on creation
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
 # Add new colors for soil mapmode - gray to dark brown
@@ -130,6 +126,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 
 # Upcoming work queue:
+# Add atmosphere mechanics, planet class - display in global conditions panel, use in suit calculations
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art

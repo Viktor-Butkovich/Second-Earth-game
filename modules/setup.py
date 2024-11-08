@@ -219,7 +219,7 @@ def misc():
 
     status.safe_click_area = constants.actor_creation_manager.create_interface_element(
         {
-            "width": constants.display_width / 2,
+            "width": constants.display_width / 2 + 25,
             "height": constants.display_height,
             "modes": [
                 constants.STRATEGIC_MODE,
@@ -2905,7 +2905,7 @@ def terrain_interface():
     Output:
         None
     """
-    status.terrain_collection = (
+    status.local_conditions_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(0, 0),
@@ -2916,15 +2916,18 @@ def terrain_interface():
                 "member_config": {
                     "tabbed": True,
                     "button_image_id": "buttons/crew_train_button.png",
-                    "identifier": constants.TERRAIN_PANEL,
+                    "identifier": constants.LOCAL_CONDITIONS_PANEL,
                 },
-                "description": "terrain details panel",
+                "description": "local conditions panel",
             }
         )
     )
 
+    placed_local_conditions_banner = False
     for current_actor_label_type in [
         constants.KNOWLEDGE_LABEL,
+        constants.BANNER_LABEL,
+        constants.TERRAIN_LABEL,
         constants.BANNER_LABEL,
         constants.WATER_LABEL,
         constants.TEMPERATURE_LABEL,
@@ -2933,19 +2936,72 @@ def terrain_interface():
         constants.SOIL_LABEL,
         constants.ALTITUDE_LABEL,
     ]:
-        x_displacement = 0
+        if (
+            current_actor_label_type == constants.BANNER_LABEL
+            and not placed_local_conditions_banner
+        ):
+            x_displacement = 0
+        elif current_actor_label_type == constants.KNOWLEDGE_LABEL:
+            x_displacement = 0
+        else:
+            x_displacement = 25
         input_dict = {
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
             "actor_type": "tile",
-            "parent_collection": status.terrain_collection,
+            "parent_collection": status.local_conditions_collection,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
         if current_actor_label_type == constants.BANNER_LABEL:
-            input_dict["banner_type"] = "terrain details"
-            input_dict["banner_text"] = "Details unknown"
+            if not placed_local_conditions_banner:
+                placed_local_conditions_banner = True
+                input_dict["banner_type"] = "local conditions"
+                input_dict["banner_text"] = "Local Conditions:"
+            else:
+                input_dict["banner_type"] = "terrain details"
+                input_dict["banner_text"] = "Details unknown"
+        constants.actor_creation_manager.create_interface_element(input_dict)
+
+    status.global_conditions_collection = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
+                "init_type": constants.ORDERED_COLLECTION,
+                "parent_collection": status.tile_tabbed_collection,
+                "member_config": {
+                    "tabbed": True,
+                    "button_image_id": actor_utility.generate_frame(
+                        "locations/earth.png"
+                    ),
+                    "identifier": constants.GLOBAL_CONDITIONS_PANEL,
+                },
+                "description": "global conditions panel",
+            }
+        )
+    )
+
+    placed_local_conditions_banner = False
+    for current_actor_label_type in [
+        constants.BANNER_LABEL,
+    ]:
+        if current_actor_label_type == constants.BANNER_LABEL:
+            x_displacement = 0
+        input_dict = {
+            "minimum_width": scaling.scale_width(10),
+            "height": scaling.scale_height(30),
+            "image_id": "misc/default_label.png",
+            "init_type": current_actor_label_type,
+            "actor_type": "tile",
+            "parent_collection": status.global_conditions_collection,
+            "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
+        }
+        if current_actor_label_type == constants.BANNER_LABEL:
+            input_dict["banner_type"] = "global conditions"
+            input_dict["banner_text"] = "Global Conditions:"
         constants.actor_creation_manager.create_interface_element(input_dict)
 
 

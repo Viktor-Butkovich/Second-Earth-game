@@ -951,7 +951,7 @@ class ordered_collection(interface_collection):
             None
         """
         super().calibrate(new_actor, override_exempt)
-        if self == status.terrain_collection and new_actor:
+        if self == status.local_conditions_collection and new_actor:
             self.tab_button.image.set_image(
                 new_actor.get_image_id_list(terrain_only=True)
                 + [
