@@ -148,8 +148,8 @@ class disembark_all_passengers_button(button):
         if main_loop_utility.action_possible():
             vehicle = status.displayed_mob
             can_disembark = True
-            if vehicle.get_permission(self.vehicle_type):
-                if not vehicle.get_cell().contained_buildings[constants.TRAIN_STATION]:
+            if vehicle.get_permission(constants.TRAIN_PERMISSION):
+                if not vehicle.get_cell().has_building(constants.TRAIN_STATION):
                     text_utility.print_to_screen(
                         "A train can only drop off passengers at a train station."
                     )

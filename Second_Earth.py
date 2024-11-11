@@ -126,6 +126,8 @@ except Exception:  # Displays error message and records error message in crash l
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 
 # Upcoming work queue:
+# Split tile/mob interface into separate ordered collections, s.t. selecting mob won't move tile interface
+# "Select a valid crew to fill this slot" should specify types of crew that can fill the slot
 # Add atmosphere mechanics, planet class - display in global conditions panel, use in suit calculations
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
