@@ -87,6 +87,105 @@ except Exception:  # Displays error message and records error message in crash l
 3. Add randomized special resources
 4. Add depositing/extracting gas/unpurified water to/from environment
 5. Add atmosphere mechanics
+    Pressure
+        A typical planet w/ 400 tiles would require an optimal of 2400 atmosphere units (6/tile) to be 15 psi or 1 bar
+            Each "transaction" will involve about 0.1 atmosphere units - a plant may have a chance of converting 0.1 GHG to 0.1 oxygen
+            With optimal conditions:
+                78% inert gases
+                    1872 units
+                21% oxygen
+                    504 units
+                1% GHG
+                    24 units
+            Venus has 93 bar (223,200 units), Mars has 0.006 bar (10 units), Earth has 1 bar
+        Modern "atmospheric diving suits" can go down to 610 meters below sea level (61 bar)
+            Such a suit would not be able to sustain Venus' 93 bar atmosphere, but would likely be just able to at the time of this game
+            https://en.wikipedia.org/wiki/Atmospheric_diving_suit
+                Exosuit doesn't require decompression, and has 50 hours of life support w/ oxygen recycling
+        Humans cannot dive below 40 meters without equipment - (4 bar)
+            Humans could probably survive in 0.5-2 bar atmosphere with moderate attrition, 0.25-4 bar with severe attrition, instant death outside
+                Regardless of composition (although oxygen/GHG levels could be dangerous even if pressure is tolerable)
+        We could possibly have "effective pressure" that uses global pressure combined w/ altitude
+            
+    Water
+        A typical planet w/ 400 tiles would require an optimal of 4.5 water units per tile = 1800 water units
+    Temperature
+        Keep track of planet's average temperature - distance from the sun and GHG levels should change levels until suitable average reached
+            Create a function for what planet's average temperature should be
+    Inert gases
+        Any level of inert gas is safe, helps contribute to pressure without issues of oxygen and GHG
+            In the future, we could add things like cooling inert gases ()
+            Note: Venus only has 3.5% inert gases, but since pressure is 93 bar, it has 4 times as much nitrogen as Earth
+    GHG
+        0 - 0.5%: Safe, global cooling
+        .5 - 1%: Safe
+        1 - 2%: Global warming, long term exposure limit - moderate attrition and penalties
+        2 - 3%: Global warming, short term exposure limit - severe attrition and penalties
+        3% - 100%: Global warming, instant death
+            Note: Earth with no GHG would have an -18 C/0 F average, rather than 14 C/57 F
+                0 GHG would result in about -2 average temperature - each 0.5% contributes about 1 average temperature
+                def average_temperature(distance, GHG):
+                    return min(12, max(-5, 12 - distance + 2 * GHG pressure)) for random distances on some scale
+                    Note that GHG pressure is based on the absolute # GHG units / planet size, rather than proportion of current atmosphere
+                Venus has 96.5% CO2 and 3.5% inert gases
+    Oxygen
+        By OSHA guidelines:
+            0% - 10%: nauseau, unconsciousness, heart failure - essentially instant death
+            10% - 14%: Exhaustion, poor judgement - severe attrition and penalties but not instant death
+            14% - 20%: Oxygen-deficient, impaired coordination, increased pulse/breathing rate - moderate attrition and penalties
+            20% - 24%: Safe
+            24% - 60%: Hyperoxia, higher flammability, long-term health problems - moderate attrition and penalties, higher accident risk
+            60% - 100%: Oxygen toxicity, very high risk of explosion - severe attrition and penalties, very high accident risk
+                Imagine a possible "oxygen world" with very high oxygen levels and near-constant fires
+    Toxic gases
+        0% - 0.1%: Safe
+        0.1% - 0.5%: Moderate attrition and penalties
+        0.5% - 1%: Severe attrition and penalties
+        1% - 100%: Instant death
+        Venus has ~1% toxic gases from sulfur dioxide, carbon monoxide, hydrogen chloride, hydrogen fluoride being common
+
+    Radiation
+        Keep track of radiation levels received globally
+            Mitigate radiation levels with global shielding from magnetic field, atmosphere, etc.
+                Show global radiation on global conditions panel and how much is blocked by magnetic field
+            Mitigate radiation levels with local shielding from roughness
+                Show local radiation on tile conditions panel and how much it is blocked by roughness
+            Suits/buildings need to be shielded enough to block the remaining radiation not blocked by global/local shielding
+
+    Magnetic field
+        Based on magnetic field strength, 0
+        Magnetic field blocks some amount of incoming radiation
+        Any unblocked radiation reaches tiles and causes a solar wind effect
+        Solar wind removes a small amount of each gas each turn
+            Light solar winds only remove water (lightest gas)
+            Moderate solar winds remove oxygen, inert gases, water (heavier gases)
+                Note: Planets like Mars and Venus tend to lose non-solid water to solar winds, while oxygen tends to stay but react to make FeO2, CO2, etc.
+            Heavier solar winds remove all gases (heavier gases)
+
+    Summary:
+        Mars:
+            No magnetic field - all atmosphere is eventually lost, with water being removed relatively quickly and oxygen/CO2 being removed very slowly
+            0.006 bar atmsosphere
+                w/ 400 tiles, 15/2400 atmosphere units: 0.8/1872 inert gases, 0/504 O2, 14.2/24 GHG, 0/2.4 toxic gases
+                    GHG provides 9 F of warming - about 0.5 temperature units more than distance from sun would cause
+            Strong radiation, mitigated by roughness locally (especially in chaos and canyon regions)
+                240-300 mSv/year, with suggested limit of 20 mSv/year
+        Venus:
+            Light induced magnetic field - moderate amount of radiation gets through - introducing water long-term would require a magnetic field
+            93 bar atmosphere - 3.5% inert gases, 95.5% GHG, 1% toxic gases
+                w/ 400 tiles, 223,200/2400 atmosphere units: 7,812/1872 inert gases, 0/504 O2, 213,156/24 GHG, 2,232/2.4 toxic gases
+            Moderate radiation, mitigated by roughness locally
+            93 times ideal atmosphere pressure, 23x survivable atmosphere pressure
+                Has twice the insolation of Earth - with Earth's atmosphere, it would have about 8 average temperature (poles would be habitable)
+                    On Earth, doubling insolation goes from Canada temperatures to Mexico temperatures - about 60 F increase, 3 temperature steps
+                    https://en.wikipedia.org/wiki/Solar_irradiance
+        Earth:
+            Strong magnetic field - minimal radiation gets through
+            1 bar atmosphere - 78% inert gases, 21% O2, 1% GHG
+                w/ 400 tiles, 2400/2400 atmosphere units: 1,872/1872 inert gases, 504/504 O2, 24/24 GHG, 0/2.4 toxic gases
+        Create interface that conveys total pressure w/ proportions as well as quantities of O2, GHG, inert gases, toxic gases, followed by total water, radiation, and magnetic field
+            - ~8 labels
+
 6. Add alien vegetation
 7. Add alien animals
 8. Add star system map
