@@ -2994,6 +2994,7 @@ def terrain_interface():
         constants.GLOBAL_WATER_LABEL,
         constants.RADIATION_LABEL,
         constants.MAGNETIC_FIELD_LABEL,
+        constants.GRAVITY_LABEL,
     ]:
         if current_actor_label_type == constants.BANNER_LABEL:
             x_displacement = 0

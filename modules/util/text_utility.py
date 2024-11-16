@@ -19,7 +19,7 @@ def text(message, font):
         text_surface = font.pygame_font.render(message, False, font.color)
     except:
         text_surface = pygame.Surface(
-            (1, 1)
+            (1, 1), pygame.HWSURFACE | pygame.DOUBLEBUF
         )  # prevents error when trying to render very small text (of width 0) on very low resolutions
     return text_surface
 

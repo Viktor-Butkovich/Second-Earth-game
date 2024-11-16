@@ -169,7 +169,9 @@ resolution_finder = pygame.display.Info()
 if effect_manager.effect_active("fullscreen"):
     display_width: float = resolution_finder.current_w
     display_height: float = resolution_finder.current_h
-    game_display: pygame.Surface = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    game_display: pygame.Surface = pygame.display.set_mode(
+        (0, 0), pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF
+    )
 else:
     display_width: float = resolution_finder.current_w - round(
         default_display_width / 10
@@ -178,7 +180,7 @@ else:
         default_display_height / 10
     )
     game_display: pygame.Surface = pygame.display.set_mode(
-        (display_width, display_height)
+        (display_width, display_height), pygame.HWSURFACE | pygame.DOUBLEBUF
     )
 
 sound_manager: sound_manager_template = sound_manager_template()
@@ -475,6 +477,7 @@ GHG: str = "GHG"
 INERT_GASES: str = "inert_gases"
 TOXIC_GASES: str = "toxic_gases"
 GLOBAL_WATER: str = "global_water"
+GRAVITY: str = "gravity"
 RADIATION: str = "radiation"
 MAGNETIC_FIELD: str = "magnetic_field"
 global_parameters: List[str] = [
@@ -484,6 +487,7 @@ global_parameters: List[str] = [
     INERT_GASES,
     TOXIC_GASES,
     GLOBAL_WATER,
+    GRAVITY,
     RADIATION,
     MAGNETIC_FIELD,
 ]
@@ -803,6 +807,7 @@ GHG_LABEL: str = "GHG_label"
 INERT_GASES_LABEL: str = "inert_gases_label"
 TOXIC_GASES_LABEL: str = "toxic_gases_label"
 GLOBAL_WATER_LABEL: str = "global_water_label"
+GRAVITY_LABEL: str = "gravity_label"
 RADIATION_LABEL: str = "radiation_label"
 MAGNETIC_FIELD_LABEL: str = "magnetic_field_label"
 TILE_INVENTORY_CAPACITY_LABEL: str = "tile_inventory_capacity_label"

@@ -213,6 +213,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.INERT_GASES_LABEL: actor_display_labels.actor_display_label,
             constants.TOXIC_GASES_LABEL: actor_display_labels.actor_display_label,
             constants.GLOBAL_WATER_LABEL: actor_display_labels.actor_display_label,
+            constants.GRAVITY_LABEL: actor_display_labels.actor_display_label,
             constants.RADIATION_LABEL: actor_display_labels.actor_display_label,
             constants.MAGNETIC_FIELD_LABEL: actor_display_labels.actor_display_label,
             constants.MOB_INVENTORY_CAPACITY_LABEL: actor_display_labels.actor_display_label,

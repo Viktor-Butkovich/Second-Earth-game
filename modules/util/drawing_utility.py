@@ -13,7 +13,9 @@ def rect_to_surface(rect):
     Output:
         pygame.Surface: Returns a version of the inputted Rect converted to a Surface
     """
-    return pygame.Surface((rect.width, rect.height))
+    return pygame.Surface(
+        (rect.width, rect.height), pygame.HWSURFACE | pygame.DOUBLEBUF
+    )
 
 
 def display_image(image, x, y):

@@ -858,9 +858,9 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
             map_size_list = constants.terrain_manager.get_tuning("map_sizes")
         map_size = input_dict.get("map_size", random.choice(map_size_list))
         if constants.terrain_manager.get_tuning("earth_preset"):
-            map_size = map_size_list[3]
+            map_size = map_size_list[3]  # 23 by default
         elif constants.terrain_manager.get_tuning("mars_preset"):
-            map_size = map_size_list[1]
+            map_size = map_size_list[1]  # 15 by default
         input_dict.update(
             {
                 "modes": [],  # Acts as source of truth for mini grids, but this grid is not directly shown
