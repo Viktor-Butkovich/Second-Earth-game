@@ -2986,9 +2986,26 @@ def terrain_interface():
     placed_local_conditions_banner = False
     for current_actor_label_type in [
         constants.BANNER_LABEL,
+        constants.PRESSURE_LABEL,
+        constants.OXYGEN_LABEL,
+        constants.GHG_LABEL,
+        constants.INERT_GASES_LABEL,
+        constants.TOXIC_GASES_LABEL,
+        constants.GLOBAL_WATER_LABEL,
+        constants.RADIATION_LABEL,
+        constants.MAGNETIC_FIELD_LABEL,
     ]:
         if current_actor_label_type == constants.BANNER_LABEL:
             x_displacement = 0
+        elif current_actor_label_type in [
+            constants.OXYGEN_LABEL,
+            constants.GHG_LABEL,
+            constants.INERT_GASES_LABEL,
+            constants.TOXIC_GASES_LABEL,
+        ]:
+            x_displacement = 50
+        else:
+            x_displacement = 25
         input_dict = {
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),

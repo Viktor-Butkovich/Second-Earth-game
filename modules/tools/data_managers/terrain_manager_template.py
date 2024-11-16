@@ -3,6 +3,7 @@
 import random
 import json
 import os
+from math import ceil
 from typing import List, Dict, Tuple, Any
 from ...util import utility, actor_utility
 import modules.constants.constants as constants
@@ -262,6 +263,203 @@ class world_handler:
                         self.get_tuning("med_water_multiplier") + 1,
                     )
 
+            if not self.get_tuning("earth_preset") and not self.get_tuning(
+                "mars_preset"
+            ):
+                size = self.default_grid.area * 6
+                input_dict["global_parameters"] = {}
+                input_dict["global_parameters"][
+                    constants.MAGNETIC_FIELD
+                ] = random.choices([1, 2, 3, 4, 5, 6], [6, 3, 3, 3, 3, 3], k=1)[0]
+                atmosphere_type = random.choice(
+                    ["thick", "medium", "thin", "thin", "none"]
+                )
+                if input_dict["global_parameters"][constants.MAGNETIC_FIELD] >= 4:
+                    if atmosphere_type in ["thin", "none"]:
+                        atmosphere_type = "medium"
+                elif input_dict["global_parameters"][constants.MAGNETIC_FIELD] >= 2:
+                    if atmosphere_type == "none":
+                        atmosphere_type = "thin"
+
+                if atmosphere_type == "thick":
+                    input_dict["global_parameters"][constants.GHG] = random.choices(
+                        [
+                            random.randrange(0, size * 90),
+                            random.randrange(0, size * 10),
+                            random.randrange(0, size * 5),
+                            random.randrange(0, size),
+                            random.randrange(0, ceil(size * 0.1)),
+                        ],
+                        [1, 2, 2, 4, 4],
+                        k=1,
+                    )[0]
+                    input_dict["global_parameters"][constants.OXYGEN] = random.choices(
+                        [
+                            random.randrange(0, size * 10),
+                            random.randrange(0, size * 5),
+                            random.randrange(0, size * 2),
+                            random.randrange(0, ceil(size * 0.5)),
+                            random.randrange(0, ceil(size * 0.01)),
+                        ],
+                        [1, 2, 2, 4, 4],
+                        k=1,
+                    )[0]
+                    input_dict["global_parameters"][
+                        constants.INERT_GASES
+                    ] = random.choices(
+                        [
+                            random.randrange(0, size * 90),
+                            random.randrange(0, size * 10),
+                            random.randrange(0, size * 5),
+                            random.randrange(0, size),
+                            random.randrange(0, ceil(size * 0.1)),
+                        ],
+                        [1, 2, 2, 4, 4],
+                        k=1,
+                    )[
+                        0
+                    ]  # Same distribution as GHG
+                    input_dict["global_parameters"][
+                        constants.TOXIC_GASES
+                    ] = random.choices(
+                        [
+                            random.randrange(0, size * 10),
+                            random.randrange(0, size * 5),
+                            random.randrange(0, size * 2),
+                            random.randrange(0, ceil(size * 0.5)),
+                            random.randrange(0, ceil(size * 0.01)),
+                        ],
+                        [1, 2, 2, 4, 4],
+                        k=1,
+                    )[
+                        0
+                    ]  # Same distribution as oxygen
+                elif atmosphere_type == "medium":
+                    input_dict["global_parameters"][constants.GHG] = random.choices(
+                        [
+                            random.randrange(0, size),
+                            random.randrange(0, ceil(size * 0.5)),
+                            random.randrange(0, ceil(size * 0.3)),
+                            random.randrange(0, ceil(size * 0.1)),
+                            random.randrange(0, ceil(size * 0.01)),
+                        ],
+                        [3, 3, 3, 3, 3],
+                        k=1,
+                    )[0]
+                    input_dict["global_parameters"][constants.OXYGEN] = random.choices(
+                        [
+                            random.randrange(0, ceil(size * 0.6)),
+                            random.randrange(0, ceil(size * 0.3)),
+                            random.randrange(0, ceil(size * 0.15)),
+                            random.randrange(0, ceil(size * 0.05)),
+                            random.randrange(0, ceil(size * 0.01)),
+                        ],
+                        [3, 3, 3, 3, 3],
+                        k=1,
+                    )[0]
+                    input_dict["global_parameters"][
+                        constants.INERT_GASES
+                    ] = random.choices(
+                        [
+                            random.randrange(0, size),
+                            random.randrange(0, ceil(size * 0.5)),
+                            random.randrange(0, ceil(size * 0.3)),
+                            random.randrange(0, ceil(size * 0.1)),
+                            random.randrange(0, ceil(size * 0.01)),
+                        ],
+                        [3, 3, 3, 3, 3],
+                        k=1,
+                    )[
+                        0
+                    ]  # Same distribution as GHG
+                    input_dict["global_parameters"][
+                        constants.TOXIC_GASES
+                    ] = random.choices(
+                        [
+                            random.randrange(0, ceil(size * 0.6)),
+                            random.randrange(0, ceil(size * 0.3)),
+                            random.randrange(0, ceil(size * 0.15)),
+                            random.randrange(0, ceil(size * 0.05)),
+                            random.randrange(0, ceil(size * 0.01)),
+                        ],
+                        [3, 3, 3, 3, 3],
+                        k=1,
+                    )[
+                        0
+                    ]  # Same distribution as oxygen
+                elif atmosphere_type == "thin":
+                    input_dict["global_parameters"][constants.GHG] = random.choices(
+                        [
+                            random.randrange(0, ceil(size * 0.05)),
+                            random.randrange(0, ceil(size * 0.01)),
+                            random.randrange(0, ceil(size * 0.005)),
+                            random.randrange(0, ceil(size * 0.001)),
+                            0,
+                        ],
+                        [3, 3, 3, 3, 3],
+                        k=1,
+                    )[0]
+                    input_dict["global_parameters"][constants.OXYGEN] = random.choices(
+                        [
+                            random.randrange(0, ceil(size * 0.01)),
+                            random.randrange(0, ceil(size * 0.005)),
+                            random.randrange(0, ceil(size * 0.001)),
+                            0,
+                            0,
+                        ],
+                        [3, 3, 3, 3, 3],
+                        k=1,
+                    )[0]
+                    input_dict["global_parameters"][
+                        constants.INERT_GASES
+                    ] = random.choices(
+                        [
+                            random.randrange(0, ceil(size * 0.05)),
+                            random.randrange(0, ceil(size * 0.01)),
+                            random.randrange(0, ceil(size * 0.005)),
+                            random.randrange(0, ceil(size * 0.001)),
+                            0,
+                        ],
+                        [3, 3, 3, 3, 3],
+                        k=1,
+                    )[
+                        0
+                    ]  # Same distribution as GHG
+                    input_dict["global_parameters"][
+                        constants.TOXIC_GASES
+                    ] = random.choices(
+                        [
+                            random.randrange(0, ceil(size * 0.01)),
+                            random.randrange(0, ceil(size * 0.005)),
+                            random.randrange(0, ceil(size * 0.001)),
+                            0,
+                            0,
+                        ],
+                        [3, 3, 3, 3, 3],
+                        k=1,
+                    )[
+                        0
+                    ]  # Same distribution as oxygen
+                elif atmosphere_type == "none":
+                    input_dict["global_parameters"][constants.GHG] = 0
+                    input_dict["global_parameters"][constants.OXYGEN] = 0
+                    input_dict["global_parameters"][constants.INERT_GASES] = 0
+                    input_dict["global_parameters"][constants.TOXIC_GASES] = 0
+
+                if input_dict["global_parameters"][constants.MAGNETIC_FIELD] in [2, 3]:
+                    pass
+                    # Decrease water if low magnetic field, keep remaining gases (water is lightest)
+
+                elif input_dict["global_parameters"][constants.MAGNETIC_FIELD] == 1:
+                    input_dict["global_parameters"][constants.INERT_GASES] = 0
+                    input_dict["global_parameters"][constants.OXYGEN] = 0
+                    input_dict["global_parameters"][constants.TOXIC_GASES] = round(
+                        input_dict["global_parameters"][constants.TOXIC_GASES] / 2
+                    )
+                    input_dict["global_parameters"][constants.GHG] = round(
+                        input_dict["global_parameters"][constants.GHG] / 2
+                    )
+
         self.green_screen: Dict[str, Dict[str, any]] = input_dict.get(
             "green_screen", {}
         )
@@ -270,6 +468,74 @@ class world_handler:
         )
         self.default_temperature: int = input_dict.get("default_temperature", 0)
         self.water_multiplier: int = input_dict.get("water_multiplier", 0)
+        self.size: int = self.default_grid.area
+        self.global_parameters: Dict[str, int] = {}
+        for key in constants.global_parameters:
+            self.set_parameter(key, input_dict.get("global_parameters", {}).get(key, 0))
+
+    def change_parameter(self, parameter_name: str, change: int) -> None:
+        """
+        Description:
+            Changes the value of a parameter for this handler's cells
+        Input:
+            string parameter_name: Name of the parameter to change
+            int change: Amount to change the parameter by
+            boolean update_image: Whether to update the image of any attached tiles after changing the parameter
+        Output:
+            None
+        """
+        self.set_parameter(
+            parameter_name, self.terrain_parameters[parameter_name] + change
+        )
+
+    def set_parameter(self, parameter_name: str, new_value: int) -> None:
+        """
+        Description:
+            Sets the value of a parameter for this handler's cells
+        Input:
+            string parameter_name: Name of the parameter to change
+            int new_value: New value for the parameter
+            boolean update_image: Whether to update the image of any attached tiles after setting the parameter
+        Output:
+            None
+        """
+        self.global_parameters[parameter_name] = new_value
+        if parameter_name in [
+            constants.OXYGEN,
+            constants.GHG,
+            constants.INERT_GASES,
+            constants.TOXIC_GASES,
+        ]:
+            self.update_pressure()
+
+        if status.displayed_tile:
+            actor_utility.calibrate_actor_info_display(
+                status.tile_info_display, status.displayed_tile
+            )
+
+    def update_pressure(self) -> None:
+        self.global_parameters[constants.PRESSURE] = sum(
+            [
+                self.get_parameter(parameter)
+                for parameter in [
+                    constants.OXYGEN,
+                    constants.GHG,
+                    constants.INERT_GASES,
+                    constants.TOXIC_GASES,
+                ]
+            ]
+        )
+
+    def get_parameter(self, parameter_name: str) -> int:
+        """
+        Description:
+            Returns the value of the inputted parameter from this world handler
+        Input:
+            string parameter: Name of the parameter to get
+        Output:
+            None
+        """
+        return self.global_parameters.get(parameter_name, 0)
 
     def get_tuning(self, tuning_type):
         """
@@ -299,6 +565,7 @@ class world_handler:
             "green_screen": self.green_screen,
             "default_temperature": self.default_temperature,
             "water_multiplier": self.water_multiplier,
+            "global_parameters": self.global_parameters,
         }
 
     def generate_green_screen(self) -> Dict[str, Dict[str, any]]:

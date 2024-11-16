@@ -466,6 +466,27 @@ terrain_parameters: List[str] = [
     SOIL,
     ALTITUDE,
 ]
+# Create interface that conveys total pressure w/ proportions as well as quantities of O2, GHG, inert gases, toxic gases, followed by total water, radiation, and magnetic field
+#   - ~8 labels
+
+PRESSURE: str = "pressure"
+OXYGEN: str = "oxygen"
+GHG: str = "GHG"
+INERT_GASES: str = "inert_gases"
+TOXIC_GASES: str = "toxic_gases"
+GLOBAL_WATER: str = "global_water"
+RADIATION: str = "radiation"
+MAGNETIC_FIELD: str = "magnetic_field"
+global_parameters: List[str] = [
+    PRESSURE,
+    OXYGEN,
+    GHG,
+    INERT_GASES,
+    TOXIC_GASES,
+    GLOBAL_WATER,
+    RADIATION,
+    MAGNETIC_FIELD,
+]
 
 current_map_mode: str = "terrain"
 map_modes: List[str] = [
@@ -776,6 +797,14 @@ ROUGHNESS_LABEL: str = "roughness_label"
 SOIL_LABEL: str = "soil_label"
 ALTITUDE_LABEL: str = "altitude_label"
 RESOURCE_LABEL: str = "resource_label"
+PRESSURE_LABEL: str = "pressure_label"
+OXYGEN_LABEL: str = "oxygen_label"
+GHG_LABEL: str = "GHG_label"
+INERT_GASES_LABEL: str = "inert_gases_label"
+TOXIC_GASES_LABEL: str = "toxic_gases_label"
+GLOBAL_WATER_LABEL: str = "global_water_label"
+RADIATION_LABEL: str = "radiation_label"
+MAGNETIC_FIELD_LABEL: str = "magnetic_field_label"
 TILE_INVENTORY_CAPACITY_LABEL: str = "tile_inventory_capacity_label"
 MOB_INVENTORY_CAPACITY_LABEL: str = "mob_inventory_capacity_label"
 

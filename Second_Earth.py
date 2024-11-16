@@ -181,8 +181,8 @@ except Exception:  # Displays error message and records error message in crash l
                     https://en.wikipedia.org/wiki/Solar_irradiance
         Earth:
             Strong magnetic field - minimal radiation gets through
-            1 bar atmosphere - 78% inert gases, 21% O2, 1% GHG
-                w/ 400 tiles, 2400/2400 atmosphere units: 1,872/1872 inert gases, 504/504 O2, 24/24 GHG, 0/2.4 toxic gases
+            1 bar atmosphere - 78.5% inert gases, 21% O2, 0.5% GHG
+                w/ 400 tiles, 2400/2400 atmosphere units: 1,884/1884 inert gases, 504/504 O2, 12/12 GHG, 0/2.4 toxic gases
         Create interface that conveys total pressure w/ proportions as well as quantities of O2, GHG, inert gases, toxic gases, followed by total water, radiation, and magnetic field
             - ~8 labels
 

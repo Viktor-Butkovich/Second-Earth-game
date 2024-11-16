@@ -1,7 +1,7 @@
 # Contains functionality for actor display labels
 
 import pygame
-
+from math import ceil
 from ..interface_types.labels import label
 from ..util import utility, scaling, actor_utility
 import modules.constants.constants as constants
@@ -491,6 +491,21 @@ class actor_display_label(label):
                 input_dict["image_id"] = "buttons/cycle_ministers_up_button.png"
                 self.add_attached_button(input_dict)
 
+        elif (
+            self.actor_label_type.removesuffix("_label") in constants.global_parameters
+        ):
+            if self.actor_label_type.removesuffix(
+                "_label"
+            ).isupper():  # Detect acronyms
+                self.message_start = self.actor_label_type.removesuffix("_label") + ": "
+            else:
+                self.message_start = (
+                    utility.capitalize(
+                        self.actor_label_type.removesuffix("_label").replace("_", " ")
+                    )
+                    + ": "
+                )
+
         elif self.actor_label_type == constants.BANNER_LABEL:
             self.message_start = self.banner_text
 
@@ -832,6 +847,12 @@ class actor_display_label(label):
                         tooltip_text.append(
                             f"Approximately {utility.fahrenheit(self.actor.cell.get_parameter('temperature'))} degrees Fahrenheit"
                         )
+            self.set_tooltip(tooltip_text)
+
+        elif (
+            self.actor_label_type.removesuffix("_label") in constants.global_parameters
+        ):
+            tooltip_text = [self.message]
             self.set_tooltip(tooltip_text)
 
         else:
@@ -1179,6 +1200,59 @@ class actor_display_label(label):
                     )
                 else:
                     self.set_label(f"{self.message_start}unknown")
+            elif (
+                self.actor_label_type.removesuffix("_label")
+                in constants.global_parameters
+            ):
+                parameter = self.actor_label_type.removesuffix("_label")
+                value = status.strategic_map_grid.world_handler.get_parameter(parameter)
+                if parameter in [
+                    constants.PRESSURE,
+                    constants.GHG,
+                    constants.INERT_GASES,
+                    constants.OXYGEN,
+                    constants.TOXIC_GASES,
+                ]:
+                    if (
+                        parameter == constants.PRESSURE
+                    ):  # Pressure: 1200/2400 (0.5x Earth)
+                        ideal = status.strategic_map_grid.world_handler.size * 6
+                        if value == 0:
+                            self.set_label(f"{self.message_start}{value:,} (0x Earth)")
+                        else:
+                            self.set_label(
+                                f"{self.message_start}{value:,} ({max(0.01, round((value / ideal), 2)):,}x Earth)"
+                            )
+                    else:  # 42% Oxygen: 1008/2400 (2.0x Earth)
+                        pressure = (
+                            status.strategic_map_grid.world_handler.get_parameter(
+                                constants.PRESSURE
+                            )
+                        )
+                        if parameter == constants.GHG:
+                            ideal = (
+                                status.strategic_map_grid.world_handler.size * 6 * 0.005
+                            )
+                        elif parameter == constants.INERT_GASES:
+                            ideal = (
+                                status.strategic_map_grid.world_handler.size * 6 * 0.785
+                            )
+                        elif parameter == constants.OXYGEN:
+                            ideal = (
+                                status.strategic_map_grid.world_handler.size * 6 * 0.21
+                            )
+                        if value == 0:
+                            self.set_label(f"0% {self.message_start}{value:,}")
+                        elif parameter == constants.TOXIC_GASES:
+                            self.set_label(
+                                f"{round(100 * value / pressure, 1)}% {self.message_start}{value:,}"
+                            )
+                        else:
+                            self.set_label(
+                                f"{round(100 * value / pressure, 1)}% {self.message_start}{value:,} ({max(0.01, round((value / ideal), 2)):,}x Earth)"
+                            )
+                else:
+                    self.set_label(f"{self.message_start}({value})")
 
         elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
             return  # do not set text for tooltip label

@@ -180,7 +180,8 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
             elif status.displayed_tile.cell.settlement:
                 target_tab = status.settlement_collection
             else:
-                target_tab = status.local_conditions_collection
+                target_tab = None
+                # target_tab = status.local_conditions_collection
         elif tabbed_collection == status.mob_tabbed_collection:
             if status.displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 if status.displayed_mob.inventory:
