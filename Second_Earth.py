@@ -225,6 +225,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 
 # Upcoming work queue:
+# Update gravity by a random amount, rather than directly using area ratio
 # Split tile/mob interface into separate ordered collections, s.t. selecting mob won't move tile interface
 # "Select a valid crew to fill this slot" should specify types of crew that can fill the slot
 # Add atmosphere mechanics, planet class - display in global conditions panel, use in suit calculations

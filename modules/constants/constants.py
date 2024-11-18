@@ -436,6 +436,7 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
     },
 }
 
+map_size_options: List[str] = None
 current_game_mode: str = None
 STRATEGIC_MODE: str = "strategic"
 EARTH_MODE: str = "earth"
@@ -476,7 +477,6 @@ OXYGEN: str = "oxygen"
 GHG: str = "GHG"
 INERT_GASES: str = "inert_gases"
 TOXIC_GASES: str = "toxic_gases"
-GLOBAL_WATER: str = "global_water"
 GRAVITY: str = "gravity"
 RADIATION: str = "radiation"
 MAGNETIC_FIELD: str = "magnetic_field"
@@ -486,7 +486,6 @@ global_parameters: List[str] = [
     GHG,
     INERT_GASES,
     TOXIC_GASES,
-    GLOBAL_WATER,
     GRAVITY,
     RADIATION,
     MAGNETIC_FIELD,
@@ -806,7 +805,8 @@ OXYGEN_LABEL: str = "oxygen_label"
 GHG_LABEL: str = "GHG_label"
 INERT_GASES_LABEL: str = "inert_gases_label"
 TOXIC_GASES_LABEL: str = "toxic_gases_label"
-GLOBAL_WATER_LABEL: str = "global_water_label"
+AVERAGE_WATER_LABEL: str = "average_water_label"
+AVERAGE_TEMPERATURE_LABEL: str = "average_temperature_label"
 GRAVITY_LABEL: str = "gravity_label"
 RADIATION_LABEL: str = "radiation_label"
 MAGNETIC_FIELD_LABEL: str = "magnetic_field_label"

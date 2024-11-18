@@ -266,18 +266,32 @@ class world_handler:
             if not self.get_tuning("earth_preset") and not self.get_tuning(
                 "mars_preset"
             ):
-                size = self.default_grid.area * 6
+                size = (
+                    self.default_grid.area * 6
+                )  # Atmosphere units required for 1 bar pressure (like Earth)
                 input_dict["global_parameters"] = {}
+                input_dict["global_parameters"][constants.GRAVITY] = round(
+                    self.default_grid.area / (constants.map_size_options[4] ** 2), 2
+                )
+                input_dict["global_parameters"][constants.RADIATION] = max(
+                    random.randrange(1, 7), random.randrange(1, 7)
+                )
                 input_dict["global_parameters"][
                     constants.MAGNETIC_FIELD
                 ] = random.choices([1, 2, 3, 4, 5, 6], [6, 3, 3, 3, 3, 3], k=1)[0]
                 atmosphere_type = random.choice(
                     ["thick", "medium", "thin", "thin", "none"]
                 )
-                if input_dict["global_parameters"][constants.MAGNETIC_FIELD] >= 4:
+                if (
+                    input_dict["global_parameters"][constants.MAGNETIC_FIELD]
+                    >= input_dict["global_parameters"][constants.RADIATION]
+                ):
                     if atmosphere_type in ["thin", "none"]:
                         atmosphere_type = "medium"
-                elif input_dict["global_parameters"][constants.MAGNETIC_FIELD] >= 2:
+                elif (
+                    input_dict["global_parameters"][constants.MAGNETIC_FIELD]
+                    >= input_dict["global_parameters"][constants.RADIATION] - 2
+                ):
                     if atmosphere_type == "none":
                         atmosphere_type = "thin"
 
@@ -449,8 +463,12 @@ class world_handler:
                 if input_dict["global_parameters"][constants.MAGNETIC_FIELD] in [2, 3]:
                     pass
                     # Decrease water if low magnetic field, keep remaining gases (water is lightest)
+                    # Compare with radiation instead of using constant
 
-                elif input_dict["global_parameters"][constants.MAGNETIC_FIELD] == 1:
+                elif (
+                    input_dict["global_parameters"][constants.MAGNETIC_FIELD]
+                    <= input_dict["global_parameters"][constants.RADIATION] - 3
+                ):
                     input_dict["global_parameters"][constants.INERT_GASES] = 0
                     input_dict["global_parameters"][constants.OXYGEN] = 0
                     input_dict["global_parameters"][constants.TOXIC_GASES] = round(
@@ -468,6 +486,20 @@ class world_handler:
         )
         self.default_temperature: int = input_dict.get("default_temperature", 0)
         self.water_multiplier: int = input_dict.get("water_multiplier", 0)
+        self.earth_global_water = round(
+            4.5 * (constants.map_size_options[4] ** 2)
+        )  # Earth-like planet has 4.5 water per tile
+        self.earth_average_temperature = 3.1
+        self.global_water = input_dict.get(
+            "global_water", float(self.default_grid.area)
+        )  # Each tile starts with water 1, adjust whenever changed
+        self.average_water = input_dict.get("average_water", 1.0)
+        self.global_temperature = input_dict.get(
+            "global_temperature", 1.0 * self.default_grid.area
+        )
+        self.average_temperature = input_dict.get(
+            "average_temperature", self.default_temperature
+        )
         self.size: int = self.default_grid.area
         self.global_parameters: Dict[str, int] = {}
         for key in constants.global_parameters:
@@ -566,6 +598,10 @@ class world_handler:
             "default_temperature": self.default_temperature,
             "water_multiplier": self.water_multiplier,
             "global_parameters": self.global_parameters,
+            "average_water": self.average_water,
+            "average_temperature": self.average_temperature,
+            "global_water": self.global_water,
+            "global_temperature": self.global_temperature,
         }
 
     def generate_green_screen(self) -> Dict[str, Dict[str, any]]:
@@ -847,12 +883,28 @@ class terrain_handler:
             None
         """
         overlay_images = self.get_overlay_images()
-
+        if parameter_name in [constants.WATER, constants.TEMPERATURE]:
+            old_value = self.terrain_parameters[parameter_name]
         self.terrain_parameters[parameter_name] = max(
             self.minima.get(parameter_name, 1),
             min(new_value, self.maxima.get(parameter_name, 6)),
         )
-
+        if parameter_name == constants.WATER:
+            self.get_world_handler().global_water += (
+                self.terrain_parameters[parameter_name] - old_value
+            )
+            self.get_world_handler().average_water = round(
+                self.get_world_handler().global_water / self.get_world_handler().size, 2
+            )
+        elif parameter_name == constants.TEMPERATURE:
+            self.get_world_handler().global_temperature += (
+                self.terrain_parameters[parameter_name] - old_value
+            )
+            self.get_world_handler().average_temperature = round(
+                self.get_world_handler().global_temperature
+                / self.get_world_handler().size,
+                2,
+            )
         new_terrain = constants.terrain_manager.classify(self.terrain_parameters)
 
         if (

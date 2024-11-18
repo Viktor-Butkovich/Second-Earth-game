@@ -2991,10 +2991,11 @@ def terrain_interface():
         constants.GHG_LABEL,
         constants.INERT_GASES_LABEL,
         constants.TOXIC_GASES_LABEL,
-        constants.GLOBAL_WATER_LABEL,
+        constants.AVERAGE_WATER_LABEL,
+        constants.AVERAGE_TEMPERATURE_LABEL,
+        constants.GRAVITY_LABEL,
         constants.RADIATION_LABEL,
         constants.MAGNETIC_FIELD_LABEL,
-        constants.GRAVITY_LABEL,
     ]:
         if current_actor_label_type == constants.BANNER_LABEL:
             x_displacement = 0

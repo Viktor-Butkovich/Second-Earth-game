@@ -491,9 +491,12 @@ class actor_display_label(label):
                 input_dict["image_id"] = "buttons/cycle_ministers_up_button.png"
                 self.add_attached_button(input_dict)
 
-        elif (
-            self.actor_label_type.removesuffix("_label") in constants.global_parameters
-        ):
+        elif self.actor_label_type.removesuffix(
+            "_label"
+        ) in constants.global_parameters or self.actor_label_type in [
+            constants.AVERAGE_WATER_LABEL,
+            constants.AVERAGE_TEMPERATURE_LABEL,
+        ]:
             if self.actor_label_type.removesuffix(
                 "_label"
             ).isupper():  # Detect acronyms
@@ -849,11 +852,24 @@ class actor_display_label(label):
                         )
             self.set_tooltip(tooltip_text)
 
-        elif (
-            self.actor_label_type.removesuffix("_label") in constants.global_parameters
-        ):
+        elif self.actor_label_type.removesuffix(
+            "_label"
+        ) in constants.global_parameters or self.actor_label_type in [
+            constants.AVERAGE_WATER_LABEL
+        ]:
             tooltip_text = [self.message]
             self.set_tooltip(tooltip_text)
+
+        elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
+            if status.strategic_map_grid:
+                tooltip_text = [self.message]
+                tooltip_text.append(
+                    f"Approximately {utility.fahrenheit(status.strategic_map_grid.world_handler.average_temperature)} degrees Fahrenheit"
+                )
+                tooltip_text.append(
+                    f"Earth is approximately 58 degrees Fahrenheit, corresponding to ~{status.strategic_map_grid.world_handler.earth_average_temperature} temperature"
+                )
+                self.set_tooltip(tooltip_text)
 
         else:
             super().update_tooltip()
@@ -1251,9 +1267,36 @@ class actor_display_label(label):
                             self.set_label(
                                 f"{round(100 * value / pressure, 1)}% {self.message_start}{value:,} ({max(0.01, round((value / ideal), 2)):,}x Earth)"
                             )
+                elif parameter == constants.GRAVITY:
+                    self.set_label(f"{self.message_start}{value}x Earth")
                 else:
-                    self.set_label(f"{self.message_start}({value})")
-
+                    self.set_label(f"{self.message_start}{value}/6")
+            elif self.actor_label_type == constants.AVERAGE_WATER_LABEL:
+                self.set_label(
+                    f"{self.message_start}{status.strategic_map_grid.world_handler.average_water} ({round((status.strategic_map_grid.world_handler.average_water - 1) / 3.5, 2):,}x Earth)"
+                )
+            elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
+                average_temperature = (
+                    status.strategic_map_grid.world_handler.average_temperature
+                )
+                if (
+                    round(average_temperature, 2)
+                    == status.strategic_map_grid.world_handler.earth_average_temperature
+                ):
+                    self.set_label(
+                        f"{self.message_start}{average_temperature} (1x Earth)"
+                    )
+                elif (
+                    average_temperature
+                    < status.strategic_map_grid.world_handler.earth_average_temperature
+                ):
+                    self.set_label(
+                        f"{self.message_start}{average_temperature} (-{round(status.strategic_map_grid.world_handler.earth_average_temperature - average_temperature, 2):,} Earth)"
+                    )
+                else:
+                    self.set_label(
+                        f"{self.message_start}{average_temperature} (+{round(average_temperature - status.strategic_map_grid.world_handler.earth_average_temperature, 2):,} Earth)"
+                    )
         elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
             return  # do not set text for tooltip label
         elif self.actor_label_type == constants.BANNER_LABEL:
