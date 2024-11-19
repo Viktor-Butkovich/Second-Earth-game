@@ -855,21 +855,26 @@ class actor_display_label(label):
         elif self.actor_label_type.removesuffix(
             "_label"
         ) in constants.global_parameters or self.actor_label_type in [
-            constants.AVERAGE_WATER_LABEL
+            constants.AVERAGE_WATER_LABEL,
+            constants.AVERAGE_TEMPERATURE_LABEL,
         ]:
             tooltip_text = [self.message]
-            self.set_tooltip(tooltip_text)
-
-        elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
             if status.strategic_map_grid:
-                tooltip_text = [self.message]
-                tooltip_text.append(
-                    f"Approximately {utility.fahrenheit(status.strategic_map_grid.world_handler.average_temperature)} degrees Fahrenheit"
-                )
-                tooltip_text.append(
-                    f"Earth is approximately 58 degrees Fahrenheit, corresponding to ~{status.strategic_map_grid.world_handler.earth_average_temperature} temperature"
-                )
-                self.set_tooltip(tooltip_text)
+                if self.actor_label_type == constants.GRAVITY_LABEL:
+                    tooltip_text.append(
+                        f"Approximately {status.strategic_map_grid.world_handler.get_parameter(constants.GRAVITY)}x Earth's gravity"
+                    )
+                    tooltip_text.append(
+                        f"Approximately {round(status.strategic_map_grid.world_handler.size / status.strategic_map_grid.world_handler.earth_size, 2)}x Earth's size"
+                    )
+                elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
+                    tooltip_text.append(
+                        f"Approximately {utility.fahrenheit(status.strategic_map_grid.world_handler.average_temperature)} degrees Fahrenheit"
+                    )
+                    tooltip_text.append(
+                        f"Earth is approximately 58 degrees Fahrenheit, corresponding to ~{status.strategic_map_grid.world_handler.earth_average_temperature} temperature"
+                    )
+            self.set_tooltip(tooltip_text)
 
         else:
             super().update_tooltip()

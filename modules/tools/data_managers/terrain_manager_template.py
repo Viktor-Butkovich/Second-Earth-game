@@ -271,7 +271,9 @@ class world_handler:
                 )  # Atmosphere units required for 1 bar pressure (like Earth)
                 input_dict["global_parameters"] = {}
                 input_dict["global_parameters"][constants.GRAVITY] = round(
-                    self.default_grid.area / (constants.map_size_options[4] ** 2), 2
+                    (self.default_grid.area / (constants.map_size_options[4] ** 2))
+                    * random.uniform(0.7, 1.3),
+                    2,
                 )
                 input_dict["global_parameters"][constants.RADIATION] = max(
                     random.randrange(1, 7), random.randrange(1, 7)
@@ -490,6 +492,7 @@ class world_handler:
             4.5 * (constants.map_size_options[4] ** 2)
         )  # Earth-like planet has 4.5 water per tile
         self.earth_average_temperature = 3.1
+        self.earth_size = constants.map_size_options[4] ** 2
         self.global_water = input_dict.get(
             "global_water", float(self.default_grid.area)
         )  # Each tile starts with water 1, adjust whenever changed
