@@ -41,7 +41,9 @@ class world_grid(grid):
         super().__init__(from_save, input_dict)
         self.world_handler: terrain_manager_template.world_handler = (
             terrain_manager_template.world_handler(
-                self, from_save, input_dict.get("world_handler", {})
+                self,
+                from_save,
+                input_dict.get("world_handler", {"grid_type": input_dict["grid_type"]}),
             )
         )
 

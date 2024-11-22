@@ -2538,6 +2538,10 @@ class tab_button(button):
                 return_value = status.displayed_mob.get_permission(
                     constants.PMOB_PERMISSION
                 )
+            elif self.identifier == constants.LOCAL_CONDITIONS_PANEL:
+                return_value = not status.displayed_tile.grid.is_abstract_grid
+            elif self.identifier == constants.GLOBAL_CONDITIONS_PANEL:
+                return_value = True
 
         if (
             self.linked_element

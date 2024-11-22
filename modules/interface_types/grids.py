@@ -754,7 +754,9 @@ class abstract_grid(grid):
         super().__init__(from_save, input_dict)
         self.is_abstract_grid = True
         self.world_handler = terrain_manager_template.world_handler(
-            self, from_save, input_dict.get("world_handler", {})
+            self,
+            from_save,
+            input_dict.get("world_handler", {"grid_type": input_dict["grid_type"]}),
         )
         self.name = input_dict["name"]
         self.cell_list[0][0].terrain_handler.set_visibility(True)

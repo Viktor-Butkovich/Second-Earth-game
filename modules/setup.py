@@ -2924,8 +2924,8 @@ def terrain_interface():
 
     placed_local_conditions_banner = False
     for current_actor_label_type in [
-        constants.KNOWLEDGE_LABEL,
         constants.BANNER_LABEL,
+        constants.KNOWLEDGE_LABEL,
         constants.TERRAIN_LABEL,
         constants.BANNER_LABEL,
         constants.WATER_LABEL,
@@ -2957,7 +2957,7 @@ def terrain_interface():
             if not placed_local_conditions_banner:
                 placed_local_conditions_banner = True
                 input_dict["banner_type"] = "local conditions"
-                input_dict["banner_text"] = "Local Conditions:"
+                input_dict["banner_text"] = "Local Conditions"
             else:
                 input_dict["banner_type"] = "terrain details"
                 input_dict["banner_text"] = "Details unknown"
@@ -3005,9 +3005,9 @@ def terrain_interface():
             constants.INERT_GASES_LABEL,
             constants.TOXIC_GASES_LABEL,
         ]:
-            x_displacement = 50
-        else:
             x_displacement = 25
+        else:
+            x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
@@ -3019,7 +3019,7 @@ def terrain_interface():
         }
         if current_actor_label_type == constants.BANNER_LABEL:
             input_dict["banner_type"] = "global conditions"
-            input_dict["banner_text"] = "Global Conditions:"
+            input_dict["banner_text"] = "Global Conditions"
         constants.actor_creation_manager.create_interface_element(input_dict)
 
 
