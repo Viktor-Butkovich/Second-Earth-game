@@ -26,8 +26,8 @@ try:
         organization_interface,
         vehicle_organization_interface,
         unit_organization_interface,
-        settlement_interface,
         terrain_interface,
+        settlement_interface,
         inventory_interface,
         mob_sub_interface,
         minister_interface,
@@ -228,9 +228,9 @@ except Exception:  # Displays error message and records error message in crash l
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 
 # Upcoming work queue:
-# Add banners to RHS of tab buttons
 # Set 1-6 parameters to 0-5
-# Fix Italian first name lists
+# Add rename prompt when creating settlement, defaulting to randomly generated - port back to SFA
+# Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
 # Replace "earth_grid" and similar with grid type constants
 # Split tile/mob interface into separate ordered collections, s.t. selecting mob won't move tile interface
 # "Select a valid crew to fill this slot" should specify types of crew that can fill the slot

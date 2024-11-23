@@ -1161,14 +1161,13 @@ class switch_theatre_button(button):
                     current_mob.set_sentry_mode(False)
                 if not constants.current_game_mode == constants.STRATEGIC_MODE:
                     game_transitions.set_game_mode(constants.STRATEGIC_MODE)
-                    current_mob.select()
                 current_mob.clear_automatic_route()
                 current_mob.end_turn_destination = None
                 current_mob.add_to_turn_queue()
                 flags.choosing_destination = True
             else:
                 text_utility.print_to_screen(
-                    "Crossing the ocean requires all remaining movement points, at least 1."
+                    "Traveling through space requires all remaining movement points, at least 1."
                 )
         else:
             text_utility.print_to_screen("You are busy and cannot move.")

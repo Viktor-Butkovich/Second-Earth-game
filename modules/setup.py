@@ -2293,7 +2293,7 @@ def tile_interface():
     status.tile_info_display = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "coordinates": scaling.scale_coordinates(0, 0),
+                "coordinates": scaling.scale_coordinates(0, -400),
                 "width": scaling.scale_width(775),
                 "height": scaling.scale_height(10),
                 "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
@@ -2302,6 +2302,9 @@ def tile_interface():
                 "actor_type": "tile",
                 "description": "tile information panel",
                 "parent_collection": status.info_displays_collection,
+                "member_config": {
+                    "order_exempt": True,
+                },
             }
         )
     )
@@ -2419,10 +2422,6 @@ def tile_interface():
                     constants.actor_creation_manager.create_interface_element(
                         input_dict
                     )
-        elif current_actor_label_type == constants.BANNER_LABEL:
-            input_dict["banner_type"] = "terrain details"
-            input_dict["banner_text"] = "Details unknown"
-            constants.actor_creation_manager.create_interface_element(input_dict)
         else:
             constants.actor_creation_manager.create_interface_element(input_dict)
 
@@ -2511,8 +2510,8 @@ def inventory_interface():
                         {"image_id": "items/consumer goods.png", "size": 0.75},
                     ],
                     "identifier": constants.INVENTORY_PANEL,
+                    "tab_name": "cargo",
                 },
-                "description": "unit inventory panel",
             }
         )
     )
@@ -2671,8 +2670,8 @@ def inventory_interface():
                         {"image_id": "items/consumer goods.png", "size": 0.75},
                     ],
                     "identifier": constants.INVENTORY_PANEL,
+                    "tab_name": "warehouses",
                 },
-                "description": "tile inventory panel",
             }
         )
     )
@@ -2836,8 +2835,8 @@ def settlement_interface():
                     "tabbed": True,
                     "button_image_id": "buttons/crew_train_button.png",
                     "identifier": constants.SETTLEMENT_PANEL,
+                    "tab_name": "settlement",
                 },
-                "description": "settlement panel",
             }
         )
     )
@@ -2918,15 +2917,14 @@ def terrain_interface():
                         "locations/earth.png"
                     ),
                     "identifier": constants.GLOBAL_CONDITIONS_PANEL,
+                    "tab_name": "global conditions",
                 },
-                "description": "global conditions panel",
             }
         )
     )
 
     placed_local_conditions_banner = False
     for current_actor_label_type in [
-        constants.BANNER_LABEL,
         constants.PRESSURE_LABEL,
         constants.OXYGEN_LABEL,
         constants.GHG_LABEL,
@@ -2938,9 +2936,7 @@ def terrain_interface():
         constants.RADIATION_LABEL,
         constants.MAGNETIC_FIELD_LABEL,
     ]:
-        if current_actor_label_type == constants.BANNER_LABEL:
-            x_displacement = 0
-        elif current_actor_label_type in [
+        if current_actor_label_type in [
             constants.OXYGEN_LABEL,
             constants.GHG_LABEL,
             constants.INERT_GASES_LABEL,
@@ -2958,9 +2954,6 @@ def terrain_interface():
             "parent_collection": status.global_conditions_collection,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
-        if current_actor_label_type == constants.BANNER_LABEL:
-            input_dict["banner_type"] = "global conditions"
-            input_dict["banner_text"] = "Global Conditions"
         constants.actor_creation_manager.create_interface_element(input_dict)
 
     status.local_conditions_collection = (
@@ -2975,15 +2968,14 @@ def terrain_interface():
                     "tabbed": True,
                     "button_image_id": "buttons/crew_train_button.png",
                     "identifier": constants.LOCAL_CONDITIONS_PANEL,
+                    "tab_name": "local conditions",
                 },
-                "description": "local conditions panel",
             }
         )
     )
 
     placed_local_conditions_banner = False
     for current_actor_label_type in [
-        constants.BANNER_LABEL,
         constants.KNOWLEDGE_LABEL,
         constants.TERRAIN_LABEL,
         constants.BANNER_LABEL,
@@ -2994,12 +2986,7 @@ def terrain_interface():
         constants.SOIL_LABEL,
         constants.ALTITUDE_LABEL,
     ]:
-        if (
-            current_actor_label_type == constants.BANNER_LABEL
-            and not placed_local_conditions_banner
-        ):
-            x_displacement = 0
-        elif current_actor_label_type == constants.KNOWLEDGE_LABEL:
+        if current_actor_label_type == constants.KNOWLEDGE_LABEL:
             x_displacement = 0
         else:
             x_displacement = 25
@@ -3013,13 +3000,8 @@ def terrain_interface():
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
         if current_actor_label_type == constants.BANNER_LABEL:
-            if not placed_local_conditions_banner:
-                placed_local_conditions_banner = True
-                input_dict["banner_type"] = "local conditions"
-                input_dict["banner_text"] = "Local Conditions"
-            else:
-                input_dict["banner_type"] = "terrain details"
-                input_dict["banner_text"] = "Details unknown"
+            input_dict["banner_type"] = "terrain details"
+            input_dict["banner_text"] = "Details unknown"
         constants.actor_creation_manager.create_interface_element(input_dict)
 
 
@@ -3045,6 +3027,7 @@ def organization_interface():
                     "tabbed": True,
                     "button_image_id": "buttons/merge_button.png",
                     "identifier": constants.REORGANIZATION_PANEL,
+                    "tab_name": "reorganization",
                 },
                 "description": "unit organization panel",
                 "direction": "vertical",
@@ -3071,7 +3054,7 @@ def unit_organization_interface():
             {
                 "coordinates": scaling.scale_coordinates(0, 0),
                 "width": scaling.scale_width(10),
-                "height": scaling.scale_height(3 * image_height),
+                "height": scaling.scale_height(2 * image_height),
                 "init_type": constants.AUTOFILL_COLLECTION,
                 "parent_collection": status.mob_reorganization_collection,
                 "direction": "horizontal",
@@ -3334,7 +3317,7 @@ def vehicle_organization_interface():
             {
                 "coordinates": scaling.scale_coordinates(0, 0),
                 "width": scaling.scale_width(0),
-                "height": scaling.scale_height(3 * image_height),
+                "height": scaling.scale_height(2 * image_height),
                 "init_type": constants.AUTOFILL_COLLECTION,
                 "parent_collection": status.mob_reorganization_collection,
                 "direction": "horizontal",

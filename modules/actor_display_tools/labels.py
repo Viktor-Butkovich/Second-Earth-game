@@ -271,7 +271,7 @@ class actor_display_label(label):
             constants.MOB_INVENTORY_CAPACITY_LABEL,
             constants.TILE_INVENTORY_CAPACITY_LABEL,
         ]:
-            self.message_start = "Inventory: "
+            self.message_start = "Capacity: "
             input_dict["width"], input_dict["height"] = (m_size, m_size)
             if self.actor_label_type == constants.TILE_INVENTORY_CAPACITY_LABEL:
                 input_dict["init_type"] = constants.USE_EACH_EQUIPMENT_BUTTON
@@ -465,7 +465,7 @@ class actor_display_label(label):
                 self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.SETTLEMENT:
-            self.message_start = "Settlement: "
+            self.message_start = "Name: "
             input_dict["init_type"] = constants.RENAME_SETTLEMENT_BUTTON
             input_dict["image_id"] = "buttons/rename.png"
             self.add_attached_button(input_dict)
@@ -1466,6 +1466,7 @@ class banner(actor_display_label):
         """
         self.banner_type = input_dict["banner_type"]
         self.banner_text = input_dict["banner_text"]
+        self.member_config = input_dict.get("member_config", {})
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -1489,6 +1490,21 @@ class banner(actor_display_label):
             )
         else:
             return super().can_show(skip_parent_collection=skip_parent_collection)
+
+    def calibrate(self, new_actor):
+        """
+        Description:
+            Attaches this label to the inputted actor and updates this label's information based on the inputted actor
+        Input:
+            string/actor new_actor: The displayed actor whose information is matched by this label. If this equals None, the label does not match any actors.
+        Output:
+            None
+        """
+        super().calibrate(new_actor)
+        if new_actor and self.banner_type == "tab name":
+            self.set_label(
+                f"{self.parent_collection.parent_collection.current_tabbed_member.tab_button.tab_name.capitalize()}"
+            )
 
 
 class list_item_label(actor_display_label):

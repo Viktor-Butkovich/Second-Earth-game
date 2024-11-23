@@ -810,10 +810,10 @@ class mob(actor):
         self.move_to_front()
         flags.show_selection_outlines = True
         constants.last_selection_outline_switch = constants.current_time
-        actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
         actor_utility.calibrate_actor_info_display(
             status.tile_info_display, self.get_cell().tile
         )
+        actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
         if self.grids[0].mini_grids:
             for mini_grid in self.grid.mini_grids:
                 mini_grid.calibrate(self.x, self.y)

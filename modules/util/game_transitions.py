@@ -106,48 +106,39 @@ def set_game_mode(new_game_mode):
             status.table_map_image.set_image(
                 status.strategic_map_grid.create_map_image()
             )
-            actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, status.earth_grid.cell_list[0][0].tile
-            )  # calibrate tile info to Earth
         elif not new_game_mode in [constants.TRIAL_MODE, constants.NEW_GAME_SETUP_MODE]:
             constants.default_text_box_height = constants.font_size * 5.5
             constants.text_box_height = constants.default_text_box_height
 
     if previous_game_mode in [
         constants.STRATEGIC_MODE,
-        constants.EARTH_MODE,
         constants.NEW_GAME_SETUP_MODE,
+        constants.EARTH_MODE,
         constants.MINISTERS_MODE,
     ]:
-        actor_utility.calibrate_actor_info_display(
-            status.mob_info_display, None, override_exempt=True
-        )  # deselect actors/ministers and remove any actor info from display when switching screens
-        actor_utility.calibrate_actor_info_display(
-            status.tile_info_display, None, override_exempt=True
-        )
-        minister_utility.calibrate_minister_info_display(None)
-        if new_game_mode == constants.EARTH_MODE:
-            if status.earth_grid.cell_list[0][0].contained_mobs:
-                status.earth_grid.cell_list[0][0].contained_mobs[0].cycle_select()
+        if not (
+            status.displayed_tile and status.displayed_tile.grid == status.earth_grid
+        ):
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, status.earth_grid.cell_list[0][0].tile
-            )  # calibrate tile info to Earth
-        elif new_game_mode == constants.STRATEGIC_MODE:
-            centered_cell = status.strategic_map_grid.find_cell(
-                status.minimap_grid.center_x, status.minimap_grid.center_y
+                status.mob_info_display, None, override_exempt=True
+            )  # Deselect actors/ministers and remove any actor info from display when switching screens
+            actor_utility.calibrate_actor_info_display(
+                status.tile_info_display, None, override_exempt=True
             )
-            if centered_cell.tile:
+            minister_utility.calibrate_minister_info_display(None)
+            if new_game_mode == constants.EARTH_MODE:
                 actor_utility.calibrate_actor_info_display(
-                    status.tile_info_display, centered_cell.tile
+                    status.tile_info_display, status.earth_grid.cell_list[0][0].tile
+                )  # Calibrate tile info to Earth
+            elif new_game_mode == constants.STRATEGIC_MODE:
+                centered_cell = status.strategic_map_grid.find_cell(
+                    status.minimap_grid.center_x, status.minimap_grid.center_y
                 )
-                if (
-                    centered_cell.terrain_handler.visible
-                    and centered_cell.contained_mobs
-                ):
+                if centered_cell.tile:
                     actor_utility.calibrate_actor_info_display(
-                        status.mob_info_display, centered_cell.contained_mobs[0]
+                        status.tile_info_display, centered_cell.tile
                     )
-                # calibrate tile info to minimap center
+                    # Calibrate tile info to minimap center
     if new_game_mode == constants.MINISTERS_MODE:
         constants.available_minister_left_index = -2
         minister_utility.update_available_minister_display()

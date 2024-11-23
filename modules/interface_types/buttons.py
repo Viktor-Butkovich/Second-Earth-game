@@ -623,7 +623,7 @@ class button(interface_elements.interface_element):
 
         elif self.button_type == constants.TAB_BUTTON:
             if hasattr(self.linked_element, "description"):
-                description = self.linked_element.description
+                description = f"{self.linked_element.tab_button.tab_name} panel"
             else:
                 description = "attached panel"
             self.set_tooltip(["Displays the " + description])
@@ -1339,6 +1339,26 @@ class button(interface_elements.interface_element):
                         linked_tab_button.parent_collection.parent_collection.current_tabbed_member = (
                             linked_tab_button.linked_element
                         )
+                if (
+                    alternate_collection == status.mob_tabbed_collection
+                ):  # Manually calibrate tab name banner label to new tab name
+                    alternate_collection.tabs_collection.members[-1].calibrate(
+                        status.displayed_mob
+                    )
+                elif alternate_collection == status.tile_tabbed_collection:
+                    alternate_collection.tabs_collection.members[-1].calibrate(
+                        status.displayed_tile
+                    )
+            if (
+                tabbed_collection == status.mob_tabbed_collection
+            ):  # Manually calibrate tab name banner label to new tab name
+                tabbed_collection.tabs_collection.members[-1].calibrate(
+                    status.displayed_mob
+                )
+            elif tabbed_collection == status.tile_tabbed_collection:
+                tabbed_collection.tabs_collection.members[-1].calibrate(
+                    status.displayed_tile
+                )
 
         elif self.button_type == constants.RENAME_SETTLEMENT_BUTTON:
             if main_loop_utility.action_possible():
@@ -2501,6 +2521,7 @@ class tab_button(button):
         self.linked_element = input_dict["linked_element"]
         self.linked_element.linked_tab_button = self
         self.identifier = input_dict["identifier"]
+        self.tab_name = input_dict["tab_name"]
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):

@@ -148,10 +148,7 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
             calibrate_actor_info_display(status.mob_inventory_info_display, None)
             switched = True
         status.displayed_mob = new_actor
-        if switched and (
-            not flags.choosing_destination
-        ):  # Don't change tabs while choosing destination
-            select_default_tab(status.mob_tabbed_collection, new_actor)
+        select_default_tab(status.mob_tabbed_collection, new_actor)
         if new_actor and new_actor.get_cell().tile == status.displayed_tile:
             for current_same_tile_icon in status.same_tile_icon_list:
                 current_same_tile_icon.reset()
@@ -178,7 +175,7 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
             target_tab = status.global_conditions_collection
             if (
                 status.displayed_tile.inventory
-                and status.displayed_tile.get_inventory_used() > 0
+                and status.tile_inventory_collection.showing
             ):
                 target_tab = status.tile_inventory_collection
             elif status.displayed_tile.cell.settlement:
@@ -195,7 +192,7 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
                     target_tab = status.mob_inventory_collection
                 else:
                     target_tab = status.mob_reorganization_collection
-    if target_tab:
+    if target_tab and not target_tab.showing:
         select_interface_tab(tabbed_collection, target_tab)
 
 
@@ -471,7 +468,10 @@ def select_interface_tab(tabbed_collection, target_tab):
     """
     if not target_tab.showing:
         for tab_button in tabbed_collection.tabs_collection.members:
-            if tab_button.linked_element == target_tab:
+            if (
+                hasattr(tab_button, "linked_element")
+                and tab_button.linked_element == target_tab
+            ):
                 tab_button.on_click()
                 continue
 

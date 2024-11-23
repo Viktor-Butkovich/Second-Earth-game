@@ -36,14 +36,14 @@ def main_loop():
                 case pygame.KEYDOWN:
                     for current_button in status.button_list:
                         if (
-                            (
+                            event.key == current_button.keybind_id
+                            and (
                                 current_button.showing
                                 or (
                                     current_button.has_button_press_override
                                     and current_button.button_press_override()
                                 )
                             )
-                            and event.key == current_button.keybind_id
                             and not flags.typing
                         ):
                             if (

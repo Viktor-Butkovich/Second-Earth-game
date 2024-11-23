@@ -229,6 +229,10 @@ def transfer(item_type: str, amount, source_type: str) -> None:
                     actor_utility.select_interface_tab(
                         status.tile_tabbed_collection, status.tile_inventory_collection
                     )
+                    if not status.displayed_mob.inventory:
+                        actor_utility.select_default_tab(
+                            status.mob_tabbed_collection, status.displayed_mob
+                        )
                     actor_utility.calibrate_actor_info_display(
                         status.mob_info_display, displayed_mob
                     )
