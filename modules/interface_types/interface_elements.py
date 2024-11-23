@@ -306,7 +306,7 @@ class interface_collection(interface_element):
                 'initial_members' = None: members initially created with this collection
                 'is_info_display' = False: boolean value - Whether this collection is an info display that should automatically maintain a status variable
                 'block_height_offset' = False: boolean value - Whether to ignore this collection's height in calculating member y offsets
-                    This should be used when a collection needs height to determine the placement of elements after it withotu displacing its own members
+                    This should be used when a collection needs height to determine the placement of elements after it without displacing its own members
         Output:
             None
         """

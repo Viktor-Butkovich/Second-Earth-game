@@ -185,7 +185,7 @@ class pmob(mob):
         actor_utility.calibrate_actor_info_display(
             status.mob_info_display, None, override_exempt=True
         )
-        vehicle.select()
+        self.select()
         self.add_to_turn_queue()
         self.update_image_bundle()
 

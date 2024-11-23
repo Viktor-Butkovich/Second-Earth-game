@@ -286,12 +286,12 @@ class save_load_manager_template:
             unit_types.worker_type(True, current_worker_type)
 
         # Load actors
-        for current_actor_dict in saved_actor_dicts:
-            constants.actor_creation_manager.create(True, current_actor_dict)
         for current_minister_dict in saved_minister_dicts:
             constants.actor_creation_manager.create_minister(
                 True, current_minister_dict
             )
+        for current_actor_dict in saved_actor_dicts:
+            constants.actor_creation_manager.create(True, current_actor_dict)
         constants.available_minister_left_index = -2
         minister_utility.update_available_minister_display()
         status.commodity_prices_label.update_label()

@@ -2904,65 +2904,6 @@ def terrain_interface():
     Output:
         None
     """
-    status.local_conditions_collection = (
-        constants.actor_creation_manager.create_interface_element(
-            {
-                "coordinates": scaling.scale_coordinates(0, 0),
-                "width": scaling.scale_width(0),
-                "height": scaling.scale_height(0),
-                "init_type": constants.ORDERED_COLLECTION,
-                "parent_collection": status.tile_tabbed_collection,
-                "member_config": {
-                    "tabbed": True,
-                    "button_image_id": "buttons/crew_train_button.png",
-                    "identifier": constants.LOCAL_CONDITIONS_PANEL,
-                },
-                "description": "local conditions panel",
-            }
-        )
-    )
-
-    placed_local_conditions_banner = False
-    for current_actor_label_type in [
-        constants.BANNER_LABEL,
-        constants.KNOWLEDGE_LABEL,
-        constants.TERRAIN_LABEL,
-        constants.BANNER_LABEL,
-        constants.WATER_LABEL,
-        constants.TEMPERATURE_LABEL,
-        constants.VEGETATION_LABEL,
-        constants.ROUGHNESS_LABEL,
-        constants.SOIL_LABEL,
-        constants.ALTITUDE_LABEL,
-    ]:
-        if (
-            current_actor_label_type == constants.BANNER_LABEL
-            and not placed_local_conditions_banner
-        ):
-            x_displacement = 0
-        elif current_actor_label_type == constants.KNOWLEDGE_LABEL:
-            x_displacement = 0
-        else:
-            x_displacement = 25
-        input_dict = {
-            "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
-            "image_id": "misc/default_label.png",
-            "init_type": current_actor_label_type,
-            "actor_type": "tile",
-            "parent_collection": status.local_conditions_collection,
-            "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
-        }
-        if current_actor_label_type == constants.BANNER_LABEL:
-            if not placed_local_conditions_banner:
-                placed_local_conditions_banner = True
-                input_dict["banner_type"] = "local conditions"
-                input_dict["banner_text"] = "Local Conditions"
-            else:
-                input_dict["banner_type"] = "terrain details"
-                input_dict["banner_text"] = "Details unknown"
-        constants.actor_creation_manager.create_interface_element(input_dict)
-
     status.global_conditions_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
@@ -3022,8 +2963,67 @@ def terrain_interface():
             input_dict["banner_text"] = "Global Conditions"
         constants.actor_creation_manager.create_interface_element(input_dict)
 
+    status.local_conditions_collection = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
+                "init_type": constants.ORDERED_COLLECTION,
+                "parent_collection": status.tile_tabbed_collection,
+                "member_config": {
+                    "tabbed": True,
+                    "button_image_id": "buttons/crew_train_button.png",
+                    "identifier": constants.LOCAL_CONDITIONS_PANEL,
+                },
+                "description": "local conditions panel",
+            }
+        )
+    )
 
-def unit_organization_interface():
+    placed_local_conditions_banner = False
+    for current_actor_label_type in [
+        constants.BANNER_LABEL,
+        constants.KNOWLEDGE_LABEL,
+        constants.TERRAIN_LABEL,
+        constants.BANNER_LABEL,
+        constants.WATER_LABEL,
+        constants.TEMPERATURE_LABEL,
+        constants.VEGETATION_LABEL,
+        constants.ROUGHNESS_LABEL,
+        constants.SOIL_LABEL,
+        constants.ALTITUDE_LABEL,
+    ]:
+        if (
+            current_actor_label_type == constants.BANNER_LABEL
+            and not placed_local_conditions_banner
+        ):
+            x_displacement = 0
+        elif current_actor_label_type == constants.KNOWLEDGE_LABEL:
+            x_displacement = 0
+        else:
+            x_displacement = 25
+        input_dict = {
+            "minimum_width": scaling.scale_width(10),
+            "height": scaling.scale_height(30),
+            "image_id": "misc/default_label.png",
+            "init_type": current_actor_label_type,
+            "actor_type": "tile",
+            "parent_collection": status.local_conditions_collection,
+            "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
+        }
+        if current_actor_label_type == constants.BANNER_LABEL:
+            if not placed_local_conditions_banner:
+                placed_local_conditions_banner = True
+                input_dict["banner_type"] = "local conditions"
+                input_dict["banner_text"] = "Local Conditions"
+            else:
+                input_dict["banner_type"] = "terrain details"
+                input_dict["banner_text"] = "Details unknown"
+        constants.actor_creation_manager.create_interface_element(input_dict)
+
+
+def organization_interface():
     """
     Description:
         Initializes the unit organization interface as part of the mob tabbed collection
@@ -3033,9 +3033,6 @@ def unit_organization_interface():
         None
     """
     image_height = 75
-    lhs_x_offset = 95
-    rhs_x_offset = image_height + 80
-
     status.mob_reorganization_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
@@ -3054,6 +3051,20 @@ def unit_organization_interface():
             }
         )
     )
+
+
+def unit_organization_interface():
+    """
+    Description:
+        Initializes the group organization interface as a subsection of the mob reorganization collection
+    Input:
+        None
+    Output:
+        None
+    """
+    image_height = 75
+    lhs_x_offset = 95
+    rhs_x_offset = image_height + 80
 
     status.group_reorganization_collection = (
         constants.actor_creation_manager.create_interface_element(
@@ -3323,10 +3334,11 @@ def vehicle_organization_interface():
             {
                 "coordinates": scaling.scale_coordinates(0, 0),
                 "width": scaling.scale_width(0),
-                "height": scaling.scale_height(0),
+                "height": scaling.scale_height(3 * image_height),
                 "init_type": constants.AUTOFILL_COLLECTION,
                 "parent_collection": status.mob_reorganization_collection,
                 "direction": "horizontal",
+                "block_height_offset": True,
                 "member_config": {"order_x_offset": lhs_x_offset},
                 "allowed_procedures": [
                     constants.CREW_PROCEDURE,

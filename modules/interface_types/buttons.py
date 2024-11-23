@@ -1832,6 +1832,8 @@ class fire_unit_button(button):
             message = "Are you sure you want to fire this unit? Firing this unit would remove it, any units attached to it, and any associated upkeep from the game. /n /n"
             worker = self.attached_mob.get_worker()
             if worker:
+                if constants.get_permission(constants.GROUP_PERMISSION):
+                    worker = worker.worker
                 message += (
                     " /n /n".join(worker.worker_type.fired_description) + " /n /n"
                 )

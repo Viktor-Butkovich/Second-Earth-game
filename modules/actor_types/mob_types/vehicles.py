@@ -413,6 +413,7 @@ class vehicle(pmob):
             self.drop_inventory()
         elif new_grid.grid_type in constants.abstract_grid_type_list:
             self.eject_passengers()
+        self.on_move()
 
     def get_worker(self) -> "pmob":
         """

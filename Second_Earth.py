@@ -23,8 +23,9 @@ try:
         trial_screen,
         mob_interface,
         tile_interface,
-        unit_organization_interface,
+        organization_interface,
         vehicle_organization_interface,
+        unit_organization_interface,
         settlement_interface,
         terrain_interface,
         inventory_interface,
@@ -188,6 +189,8 @@ except Exception:  # Displays error message and records error message in crash l
 
 6. Add alien vegetation
 7. Add alien animals
+    Add ancillary system - similar to equipment, but a person - attached to unit to enhance capabilities
+    Could include "alien hunter" ancillary attached to marines to improve alien combat abilities
 8. Add star system map
     Populate star system map with star in center and random planets/moons, where colonies can be founded
     Designate terraforming candidate
@@ -225,6 +228,8 @@ except Exception:  # Displays error message and records error message in crash l
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 
 # Upcoming work queue:
+# Add banners to RHS of tab buttons
+# Set 1-6 parameters to 0-5
 # Fix Italian first name lists
 # Replace "earth_grid" and similar with grid type constants
 # Split tile/mob interface into separate ordered collections, s.t. selecting mob won't move tile interface
