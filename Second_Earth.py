@@ -232,9 +232,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Add rename prompt when creating settlement, defaulting to randomly generated - port back to SFA
 # Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
 # Replace "earth_grid" and similar with grid type constants
-# Split tile/mob interface into separate ordered collections, s.t. selecting mob won't move tile interface
-# "Select a valid crew to fill this slot" should specify types of crew that can fill the slot
-# Add atmosphere mechanics, planet class - display in global conditions panel, use in suit calculations
+# "Select a valid crew to fill this slot" tooltip should specify types of crew that can fill the slot
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art
@@ -243,11 +241,9 @@ except Exception:  # Displays error message and records error message in crash l
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
 # Add radio distortion versions of voice lines, either as separate files or runtime filter
-# Add terrain details tile interface panel, such that terrain details aren't always showing
 # For tiles with knowledge 1, possibly change every turn to a cloud or normal pixellated version, depending on atmosphere conditions
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
-# Add new autofill interface for vehicle passengers, and possibly building work crews
 # Convert actor_type ("tile", "mob", "minister") to use constant keys
 #
 # Fix this rare crash

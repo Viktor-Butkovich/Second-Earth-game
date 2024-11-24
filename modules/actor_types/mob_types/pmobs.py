@@ -66,7 +66,6 @@ class pmob(mob):
                 ).tile
             self.default_name = input_dict["default_name"]
             self.set_name(self.default_name)
-            self.set_sentry_mode(input_dict["sentry_mode"])
             self.set_automatically_replace(input_dict["automatically_replace"])
             if input_dict["in_turn_queue"] and not input_dict["end_turn_destination"]:
                 self.add_to_turn_queue()
@@ -78,7 +77,6 @@ class pmob(mob):
         else:
             self.default_name = self.name
             self.set_max_movement_points(self.unit_type.movement_points)
-            self.set_sentry_mode(False)
             self.set_automatically_replace(True)
             self.add_to_turn_queue()
             self.base_automatic_route = (
@@ -117,6 +115,7 @@ class pmob(mob):
                 "select_on_creation"
             ]:
                 self.on_move()
+            self.set_sentry_mode(input_dict.get("sentry_mode", False))
             self.select()
 
     def permissions_setup(self) -> None:
