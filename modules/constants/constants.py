@@ -529,10 +529,10 @@ TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT: int = 0
 def update_terrain_knowledge_requirements():
     global TERRAIN_KNOWLEDGE_REQUIREMENT, TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
     TERRAIN_KNOWLEDGE_REQUIREMENT = (
-        1 if effect_manager.effect_active("remove_fog_of_war") else 2
+        0 if effect_manager.effect_active("remove_fog_of_war") else 1
     )
     TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT = (
-        1 if effect_manager.effect_active("remove_fog_of_war") else 3
+        0 if effect_manager.effect_active("remove_fog_of_war") else 2
     )
 
 

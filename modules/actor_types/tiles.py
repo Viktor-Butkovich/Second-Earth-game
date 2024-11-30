@@ -516,7 +516,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
-        if self.show_terrain:  # if is terrain, show tooltip
+        if self.show_terrain:  # If is terrain, show tooltip
             tooltip_message = []
             coordinates = self.get_main_grid_coordinates()
             tooltip_message.append(f"Coordinates: ({coordinates[0]}, {coordinates[1]})")
@@ -530,7 +530,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     ][knowledge_value]
                 )
                 knowledge_maximum = maximum = self.cell.terrain_handler.maxima.get(
-                    constants.KNOWLEDGE, 6
+                    constants.KNOWLEDGE, 5
                 )
                 tooltip_message.append(
                     f"Knowledge: {knowledge_keyword} ({knowledge_value}/{knowledge_maximum})"
@@ -548,7 +548,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         for terrain_parameter in constants.terrain_parameters:
                             if terrain_parameter != constants.KNOWLEDGE:
                                 maximum = self.cell.terrain_handler.maxima.get(
-                                    terrain_parameter, 6
+                                    terrain_parameter, 5
                                 )
                                 value = self.cell.get_parameter(terrain_parameter)
                                 keyword = constants.terrain_manager.terrain_parameter_keywords[

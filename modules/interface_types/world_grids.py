@@ -84,7 +84,7 @@ class world_grid(grid):
         Output:
             None
         """
-        default_altitude = 1
+        default_altitude = 0
         for cell in self.get_flat_cell_list():
             cell.set_parameter(constants.ALTITUDE, default_altitude)
 
@@ -288,7 +288,7 @@ class world_grid(grid):
         for water in range(total_water):
             self.place_water()
 
-    def place_water(self, frozen_bound=1) -> None:
+    def place_water(self, frozen_bound=0) -> None:
         """
         Description:
             Places 1 unit of water on the map, depending on altitude and temperature
@@ -306,7 +306,7 @@ class world_grid(grid):
                 / (25**2)
             )
         ):
-            if candidate.get_parameter(constants.WATER) < 6:
+            if candidate.get_parameter(constants.WATER) < 5:
                 if (
                     candidate.get_parameter(constants.TEMPERATURE) <= frozen_bound
                 ):  # Water can go to coldest freezing location
@@ -328,7 +328,7 @@ class world_grid(grid):
                         (2 - best_frozen.get_parameter(constants.TEMPERATURE))
                     ),  # Weight frozen placement for low temperature
                     abs(
-                        10 - best_liquid.get_parameter(constants.ALTITUDE)
+                        11 - best_liquid.get_parameter(constants.ALTITUDE)
                     ),  # Weight liquid placement for low altitude
                 ],
                 k=1,
@@ -355,10 +355,10 @@ class world_grid(grid):
         """
         if self.get_tuning("earth_preset"):
             for cell in self.get_flat_cell_list():
-                cell.set_parameter(constants.SOIL, random.randrange(1, 7))
+                cell.set_parameter(constants.SOIL, random.randrange(0, 6))
         else:
             for cell in self.get_flat_cell_list():
-                cell.set_parameter(constants.SOIL, random.randrange(1, 4))
+                cell.set_parameter(constants.SOIL, random.randrange(0, 3))
 
         num_worms = random.randrange(
             self.get_tuning("min_soil_multiplier"),
@@ -389,8 +389,8 @@ class world_grid(grid):
 
         self.bound(
             constants.SOIL,
-            1,
-            3,
+            0,
+            2,
         )
 
     def generate_vegetation(self) -> None:
@@ -404,21 +404,21 @@ class world_grid(grid):
         """
         if self.get_tuning("earth_preset"):
             for cell in self.get_flat_cell_list():
-                if cell.get_parameter(constants.TEMPERATURE) > 1:
-                    if cell.get_parameter(constants.WATER) < 5:
+                if cell.get_parameter(constants.TEMPERATURE) > 0:
+                    if cell.get_parameter(constants.WATER) < 4:
                         cell.set_parameter(
                             constants.VEGETATION,
-                            cell.get_parameter(constants.WATER) * 3 - 1,
+                            cell.get_parameter(constants.WATER) * 3 + 2,
                         )
                     else:
                         cell.set_parameter(
                             constants.VEGETATION,
-                            cell.get_parameter(constants.ALTITUDE) + 1,
+                            cell.get_parameter(constants.ALTITUDE) + 2,
                         )
             self.smooth(constants.VEGETATION)
         else:
             for cell in self.get_flat_cell_list():
-                cell.set_parameter(constants.VEGETATION, 1)
+                cell.set_parameter(constants.VEGETATION, 0)
 
     def generate_terrain_parameters(self):
         """

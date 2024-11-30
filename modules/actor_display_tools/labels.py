@@ -842,7 +842,7 @@ class actor_display_label(label):
                     )
                 elif self.actor_label_type == constants.TEMPERATURE_LABEL:
                     tooltip_text.append(
-                        "Represents the average temperature in this tile, on a scale from -5 to 12"
+                        "Represents the average temperature in this tile, on a scale from -6 to 11"
                     )
                     if self.actor.cell.terrain_handler.knowledge_available(
                         constants.TERRAIN_PARAMETER_KNOWLEDGE
@@ -1221,7 +1221,7 @@ class actor_display_label(label):
                     parameter = self.actor_label_type.removesuffix("_label")
                     value = new_actor.cell.get_parameter(parameter)
                     self.set_label(
-                        f"{self.message_start}{constants.terrain_manager.terrain_parameter_keywords[parameter][value]} ({value}/{new_actor.cell.terrain_handler.maxima.get(parameter, 6)})"
+                        f"{self.message_start}{constants.terrain_manager.terrain_parameter_keywords[parameter][value]} ({value}/{new_actor.cell.terrain_handler.maxima.get(parameter, 5)})"
                     )
                 else:
                     self.set_label(f"{self.message_start}unknown")
@@ -1281,18 +1281,18 @@ class actor_display_label(label):
                         self.set_label(f"{self.message_start}{value}x Earth")
                 else:
                     if self.actor.grid == status.earth_grid:
-                        self.set_label(f"{self.message_start}{value}/6")
+                        self.set_label(f"{self.message_start}{value}/5")
                     else:
                         ideal = status.earth_grid.world_handler.get_parameter(
                             self.actor_label_type.removesuffix("_label")
                         )
-                        if value - 1 == 0:
+                        if value == 0:
                             self.set_label(
-                                f"{self.message_start}{value:,}/6 (0x Earth)"
+                                f"{self.message_start}{value:,}/5 (0x Earth)"
                             )
                         else:
                             self.set_label(
-                                f"{self.message_start}{value:,}/6 ({max(0.01, round((float(value - 1) / ideal), 2)):,}x Earth)"
+                                f"{self.message_start}{value:,}/5 ({max(0.01, round((float(value) / ideal), 2)):,}x Earth)"
                             )
             elif self.actor_label_type == constants.AVERAGE_WATER_LABEL:
                 if self.actor.grid == status.earth_grid:
@@ -1301,7 +1301,7 @@ class actor_display_label(label):
                     )
                 else:
                     self.set_label(
-                        f"{self.message_start}{self.actor.grid.world_handler.average_water} ({round((self.actor.grid.world_handler.average_water - 1) / 3.5, 2):,}x Earth)"
+                        f"{self.message_start}{self.actor.grid.world_handler.average_water} ({round((self.actor.grid.world_handler.average_water) / 3.7, 2):,}x Earth)"
                     )
             elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
                 average_temperature = self.actor.grid.world_handler.average_temperature

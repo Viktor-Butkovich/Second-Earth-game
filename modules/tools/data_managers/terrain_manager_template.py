@@ -37,72 +37,72 @@ class terrain_manager_template:
         self.terrain_list: List[str] = []  # List of all terrain names
         self.terrain_parameter_keywords = {
             constants.KNOWLEDGE: {
-                1: "orbital view",
-                2: "scouted",
-                3: "visited",
-                4: "surveyed",
-                5: "sampled",
-                6: "studied",
+                0: "orbital view",
+                1: "scouted",
+                2: "visited",
+                3: "surveyed",
+                4: "sampled",
+                5: "studied",
             },
             constants.ALTITUDE: {
-                1: "very low",
-                2: "low",
-                3: "medium",
-                4: "high",
-                5: "very high",
-                6: "stratospheric",
+                0: "very low",
+                1: "low",
+                2: "medium",
+                3: "high",
+                4: "very high",
+                5: "stratospheric",
             },
             constants.TEMPERATURE: {
+                -6: "frozen",
                 -5: "frozen",
                 -4: "frozen",
                 -3: "frozen",
                 -2: "frozen",
                 -1: "frozen",
                 0: "frozen",
-                1: "frozen",
-                2: "cold",
-                3: "cool",
-                4: "warm",
-                5: "hot",
+                1: "cold",
+                2: "cool",
+                3: "warm",
+                4: "hot",
+                5: "scorching",
                 6: "scorching",
                 7: "scorching",
                 8: "scorching",
                 9: "scorching",
                 10: "scorching",
                 11: "scorching",
-                12: "scorching",
             },
             constants.ROUGHNESS: {
-                1: "flat",
-                2: "rolling",
-                3: "hilly",
-                4: "rugged",
-                5: "mountainous",
-                6: "extreme",
+                0: "flat",
+                1: "rolling",
+                2: "hilly",
+                3: "rugged",
+                4: "mountainous",
+                5: "extreme",
             },
             constants.VEGETATION: {
-                1: "barren",
-                2: "sparse",
-                3: "light",
-                4: "medium",
-                5: "heavy",
-                6: "lush",
+                0: "barren",
+                1: "sparse",
+                2: "light",
+                3: "medium",
+                4: "heavy",
+                5: "lush",
             },
             constants.SOIL: {
-                1: "rock",
-                2: "sand",
-                3: "clay",
-                4: "silt",
-                5: "peat",
-                6: "loam",
+                0: "rock",
+                1: "sand",
+                2: "clay",
+                3: "silt",
+                4: "peat",
+                5: "loam",
             },
             constants.WATER: {
-                1: "parched",
-                2: "dry",
-                3: "wet",
-                4: "soaked",
-                5: "shallow",
-                6: "deep",
+                0: "parched",
+                1: "dry",
+                2: "wet",
+                3: "soaked",
+                4: "shallow",
+                5: "deep",
             },
         }
         self.load_terrains("configuration/terrain_definitions.json")
@@ -183,8 +183,8 @@ class terrain_manager_template:
         Output:
             string: Returns the terrain type that the inputted parameters classify as
         """
-        unbounded_temperature = f"{terrain_parameters['temperature']}{terrain_parameters['roughness']}{terrain_parameters['vegetation']}{terrain_parameters['soil']}{terrain_parameters['water']}"
-        default = f"{max(min(terrain_parameters['temperature'], 6), 1)}{terrain_parameters['roughness']}{terrain_parameters['vegetation']}{terrain_parameters['soil']}{terrain_parameters['water']}"
+        unbounded_temperature = f"{terrain_parameters['temperature'] + 1}{terrain_parameters['roughness'] + 1}{terrain_parameters['vegetation'] + 1}{terrain_parameters['soil'] + 1}{terrain_parameters['water'] + 1}"
+        default = f"{max(min(terrain_parameters['temperature'] + 1, 6), 1)}{terrain_parameters['roughness'] + 1}{terrain_parameters['vegetation'] + 1}{terrain_parameters['soil'] + 1}{terrain_parameters['water'] + 1}"
         # Check -5 to 12 for temperature but use 1-6 if not defined
         # Terrain hypercube is fully defined within 1-6, but temperature terrains can exist outside of this range
         return self.parameter_to_terrain.get(
@@ -225,7 +225,7 @@ class world_handler:
                 if self.get_tuning("weighted_temperature_bounds"):
                     input_dict["default_temperature"] = min(
                         max(
-                            random.randrange(-5, 13),
+                            random.randrange(-6, 12),
                             self.get_tuning("base_temperature_lower_bound"),
                         ),
                         self.get_tuning("base_temperature_upper_bound"),
@@ -277,11 +277,11 @@ class world_handler:
                         2,
                     )
                     input_dict["global_parameters"][constants.RADIATION] = max(
-                        random.randrange(1, 7), random.randrange(1, 7)
+                        random.randrange(0, 5), random.randrange(0, 5)
                     )
                     input_dict["global_parameters"][
                         constants.MAGNETIC_FIELD
-                    ] = random.choices([1, 2, 3, 4, 5, 6], [6, 3, 3, 3, 3, 3], k=1)[0]
+                    ] = random.choices([0, 1, 2, 3, 4, 5], [5, 2, 2, 2, 2, 2], k=1)[0]
                     atmosphere_type = random.choice(
                         ["thick", "medium", "thin", "thin", "none"]
                     )
@@ -501,20 +501,20 @@ class world_handler:
                 earth_area = constants.map_size_options[4] ** 2
                 input_dict["global_parameters"] = {
                     constants.GRAVITY: 1,
-                    constants.RADIATION: 4,
-                    constants.MAGNETIC_FIELD: 6,
+                    constants.RADIATION: 3,
+                    constants.MAGNETIC_FIELD: 5,
                     constants.INERT_GASES: round(0.785 * (earth_area * 6)),
                     constants.OXYGEN: round(0.21 * (earth_area * 6)),
                     constants.GHG: round(0.005 * (earth_area * 6)),
                     constants.TOXIC_GASES: 0,
                 }
-                input_dict["average_water"] = 4.5
-                input_dict["global_water"] = 4.5 * earth_area
+                input_dict["average_water"] = 3.7
+                input_dict["global_water"] = 3.7 * earth_area
                 input_dict["default_temperature"] = self.get_tuning(
                     "earth_base_temperature"
                 )
-                input_dict["average_temperature"] = 3.1
-                input_dict["global_temperature"] = 3.1 * self.default_grid.area
+                input_dict["average_temperature"] = 2.1
+                input_dict["global_temperature"] = 2.1 * self.default_grid.area
                 input_dict["size"] = earth_area
 
         self.green_screen: Dict[str, Dict[str, any]] = input_dict.get(
@@ -526,14 +526,14 @@ class world_handler:
         self.default_temperature: int = input_dict.get("default_temperature", 0)
         self.water_multiplier: int = input_dict.get("water_multiplier", 0)
         self.earth_global_water = round(
-            4.5 * (constants.map_size_options[4] ** 2)
-        )  # Earth-like planet has 4.5 water per tile
-        self.earth_average_temperature = 3.1
+            3.7 * (constants.map_size_options[4] ** 2)
+        )  # Earth-like planet has 3.7 water per tile
+        self.earth_average_temperature = 2.1
         self.earth_size = constants.map_size_options[4] ** 2
         self.global_water = input_dict.get(
             "global_water", float(self.default_grid.area)
-        )  # Each tile starts with water 1, adjust whenever changed
-        self.average_water = input_dict.get("average_water", 1.0)
+        )  # Each tile starts with water 0, adjust whenever changed
+        self.average_water = input_dict.get("average_water", 0.0)
         self.global_temperature = input_dict.get(
             "global_temperature", float(self.default_grid.area)
         )
@@ -807,39 +807,22 @@ class terrain_handler:
         self.terrain_parameters: Dict[str, int] = input_dict.get(
             "terrain_parameters",
             {
-                constants.KNOWLEDGE: 1,
-                constants.ALTITUDE: 1,
-                constants.TEMPERATURE: 1,
-                constants.ROUGHNESS: 1,
-                constants.VEGETATION: 1,
-                constants.SOIL: 1,
-                constants.WATER: 1,
+                constants.KNOWLEDGE: 0,
+                constants.ALTITUDE: 0,
+                constants.TEMPERATURE: 0,
+                constants.ROUGHNESS: 0,
+                constants.VEGETATION: 0,
+                constants.SOIL: 0,
+                constants.WATER: 0,
             },
         )
-        # self.apparent_terrain_parameters: Dict[str, int] = input_dict.get(
-        #     "apparent_terrain_parameters",
-        #     {
-        #         "altitude_min": 1,
-        #         "altitude_max": 6,
-        #         "temperature_min": -5,
-        #         "temperature_max": 12,
-        #         "roughness_min": 1,
-        #         "roughness_max": 6,
-        #         "vegetation_min": 1,
-        #         "vegetation_max": 6,
-        #         "soil_min": 1,
-        #         "soil_max": 6,
-        #         "water_min": 1,
-        #         "water_max": 6,
-        #     },
-        # )
         self.terrain_variant: int = input_dict.get("terrain_variant", 0)
         self.pole_distance_multiplier: float = (
             1.0  # 0.1 for polar cells, 1.0 for equatorial cells
         )
         self.inverse_pole_distance_multiplier: float = 1.0
-        self.minima = {constants.TEMPERATURE: -5}
-        self.maxima = {constants.TEMPERATURE: 12}
+        self.minima = {constants.TEMPERATURE: -6}
+        self.maxima = {constants.TEMPERATURE: 11}
         self.terrain: str = constants.terrain_manager.classify(self.terrain_parameters)
         self.resource: str = input_dict.get("resource", None)
         self.visible: bool = input_dict.get("visible", True)
@@ -926,8 +909,8 @@ class terrain_handler:
         if parameter_name in [constants.WATER, constants.TEMPERATURE]:
             old_value = self.terrain_parameters[parameter_name]
         self.terrain_parameters[parameter_name] = max(
-            self.minima.get(parameter_name, 1),
-            min(new_value, self.maxima.get(parameter_name, 6)),
+            self.minima.get(parameter_name, 0),
+            min(new_value, self.maxima.get(parameter_name, 5)),
         )
         if (
             parameter_name == constants.WATER
@@ -998,7 +981,7 @@ class terrain_handler:
         return (
             self.get_parameter(constants.TEMPERATURE)
             >= constants.terrain_manager.get_tuning("water_boiling_point") - 4
-            and self.get_parameter(constants.WATER) >= 2
+            and self.get_parameter(constants.WATER) >= 1
         )
 
     def get_overlay_images(self) -> List[str]:
@@ -1015,14 +998,14 @@ class terrain_handler:
             return_list.append(f"terrains/snow_{self.terrain_variant % 4}.png")
         elif self.boiling():  # If 4 below boiling, add steam
             return_list.append(f"terrains/boiling_{self.terrain_variant % 4}.png")
-            if self.get_parameter(constants.WATER) >= 3 and self.get_parameter(
+            if self.get_parameter(constants.WATER) >= 2 and self.get_parameter(
                 constants.TEMPERATURE
             ) >= constants.terrain_manager.get_tuning("water_boiling_point"):
                 # If boiling, add more steam as water increases
                 return_list.append(
                     f"terrains/boiling_{(self.terrain_variant + 1) % 4}.png"
                 )
-                if self.get_parameter(constants.WATER) >= 5:
+                if self.get_parameter(constants.WATER) >= 4:
                     return_list.append(
                         f"terrains/boiling_{(self.terrain_variant + 2) % 4}.png"
                     )
@@ -1170,7 +1153,7 @@ class terrain_handler:
             None
         """
         flowed = False
-        if self.terrain_parameters[constants.WATER] >= 5 and self.terrain_parameters[
+        if self.terrain_parameters[constants.WATER] >= 4 and self.terrain_parameters[
             constants.TEMPERATURE
         ] > constants.terrain_manager.get_tuning(
             "water_freezing_point"

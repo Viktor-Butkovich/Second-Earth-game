@@ -162,6 +162,8 @@ except Exception:  # Displays error message and records error message in crash l
             Moderate solar winds remove oxygen, inert gases, water (heavier gases)
                 Note: Planets like Mars and Venus tend to lose non-solid water to solar winds, while oxygen tends to stay but react to make FeO2, CO2, etc.
             Heavier solar winds remove all gases (heavier gases)
+            On Mars, solar wind removes 100 grams (~0.25 pounds) of atmosphere per second
+            Solar wind/radiation is slightly mitigated by distance from the sun - more than 50,000 AU/2 light years from the sun, it can no longer repel 
 
     Summary:
         Mars:
@@ -219,6 +221,9 @@ except Exception:  # Displays error message and records error message in crash l
     Various buildings could be built on the colony, but it is never directly colonized
     It would require a fully equipped colony ship like that on the main planet to colonize one of these
     Need to decide level of detail to require for colony management
+17. Temperature rework
+    Local tile temperature could be a function of solation (distance from poles * distance from sun), GHG, random "weather modifier", albedo
+        Avoid loops where temperature determines terrain, which determines albedo, which determines temperature
 """
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
@@ -240,7 +245,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 
 # Upcoming work queue:
-# Set 1-6 parameters to 0-5
+# Rework water generation - depending on radiation/temperature, have randomly generated target average and add until target reached (replace water multiplier)
 # Add rename prompt when creating settlement, defaulting to randomly generated - port back to SFA
 # Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
 # Replace "earth_grid" and similar with grid type constants

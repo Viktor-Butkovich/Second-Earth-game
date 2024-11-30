@@ -93,14 +93,14 @@ def get_fabricated_evidence_cost(current_fabricated_evidence, calculate_total=Fa
         Returns the cost of fabricating another piece of evidence or how much the existing fabricated evidence cost
     """
     base_cost = 5
-    if not calculate_total:  # gets cost of next evidence
+    if not calculate_total:  # Gets cost of next evidence
         multiplier = (
             2**current_fabricated_evidence
         )  # 1 if 0 evidence previously created, 2 if 1 previous, 4 if 2 previous, 8 if 3 previous
         return (
             base_cost * multiplier
         )  # 5 if 0 evidence previously created, 10 if 1 previous, 20 if 2 previous, 40 if 3 previous
-    else:  # gets cost of previously created evidence
+    else:  # Gets cost of previously created evidence
         total = 0
         for i in range(0, current_fabricated_evidence):
             multiplier = 2**i
