@@ -10,7 +10,7 @@ import modules.constants.status as status
 
 class active_investigation(action.campaign):
     """
-    Action for merchant on Earth to search for a loan offer
+    Action for prosecutor to investigate another minister for information
     """
 
     def initial_setup(self):
@@ -95,11 +95,13 @@ class active_investigation(action.campaign):
         Output:
             boolean: Returns whether a button linked to this action should be drawn
         """
-        return (
-            status.displayed_minister
-            and status.displayed_minister.current_position
-            and status.displayed_minister.current_position.key
-            != constants.SECURITY_MINISTER
+        return status.displayed_minister and (
+            (not status.displayed_minister.current_position)
+            or (
+                status.displayed_minister.current_position
+                and status.displayed_minister.current_position.key
+                != constants.SECURITY_MINISTER
+            )
         )
 
     def on_click(self, unit):
@@ -164,7 +166,10 @@ class active_investigation(action.campaign):
                 for key, minister_type in status.minister_types.items()
             ] + ["loyalty", "evidence"]
             for category in categories:
-                if category == target.current_position.skill_type:
+                if (
+                    target.current_position
+                    and category == target.current_position.skill_type
+                ):
                     difficulty = 4
                 elif category in ["loyalty", "evidence"]:
                     difficulty = 5

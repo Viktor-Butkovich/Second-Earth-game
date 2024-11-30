@@ -1033,20 +1033,21 @@ class minister:
                     print(f"Minister gave modifier of +{modifier} to {roll_type} roll.")
                 else:
                     print(f"Minister gave modifier of {modifier} to {roll_type} roll.")
-        if constants.effect_manager.effect_active(roll_type + "_plus_modifier"):
-            if random.randrange(1, 7) >= 4:
-                modifier += 1
-                if constants.effect_manager.effect_active("show_modifiers"):
-                    print("Generic modifier of +1 to " + roll_type + " roll.")
-            elif constants.effect_manager.effect_active("show_modifiers"):
-                print(f"Attempted to give generic +1 modifier to {roll_type} roll.")
-        elif constants.effect_manager.effect_active(roll_type + "_minus_modifier"):
-            if random.randrange(1, 7) >= 4:
-                modifier -= 1
-                if constants.effect_manager.effect_active("show_modifiers"):
-                    print("Gneric modifier of of -1 to " + roll_type + " roll.")
-            elif constants.effect_manager.effect_active("show_modifiers"):
-                print(f"Attempted to give generic -1 modifier to {roll_type} roll.")
+        if roll_type:
+            if constants.effect_manager.effect_active(roll_type + "_plus_modifier"):
+                if random.randrange(1, 7) >= 4:
+                    modifier += 1
+                    if constants.effect_manager.effect_active("show_modifiers"):
+                        print("Generic modifier of +1 to " + roll_type + " roll.")
+                elif constants.effect_manager.effect_active("show_modifiers"):
+                    print(f"Attempted to give generic +1 modifier to {roll_type} roll.")
+            elif constants.effect_manager.effect_active(roll_type + "_minus_modifier"):
+                if random.randrange(1, 7) >= 4:
+                    modifier -= 1
+                    if constants.effect_manager.effect_active("show_modifiers"):
+                        print("Gneric modifier of of -1 to " + roll_type + " roll.")
+                elif constants.effect_manager.effect_active("show_modifiers"):
+                    print(f"Attempted to give generic -1 modifier to {roll_type} roll.")
         return modifier
 
     def remove_complete(self):

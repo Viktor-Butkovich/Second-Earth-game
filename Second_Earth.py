@@ -207,6 +207,18 @@ except Exception:  # Displays error message and records error message in crash l
 12. Modify most actions to spend resources/time, rather than money - initially only allow ones from tile/inventory, then allow transportation networks
 13. Add energy system with energy networks
 14. Add supply networks
+15. Add volcanic activity
+    Volcanic activity strength/being present is a function of planet age and size, but there are exceptions
+    Volcanic activity tends to output GHG and toxic gases, as well as temporarily increase the temperature
+    Plate tectonics tend to cause lines of volcanoes on edges of plates, while planets w/o plate tectonics have larger volcanoes at arbitrary locations
+        Plate tectonics allow deposition of GHG and toxic gases back out of the atmosphere, while planets w/o plate tectonics tend to accumulate them in the atmosphere
+    Volcanic activity is generally (but not always) associated with a magnetic field, with both caused by a molten core
+16. Add colonies
+    Allow colonies on other planets/moons in the system - abstracted single tile that can produce resources not found on the planet
+    Water import from Europa, ice/metals from Ceres, GHG/inert gases from Venus, etc., solid nitrogen/water from Pluto
+    Various buildings could be built on the colony, but it is never directly colonized
+    It would require a fully equipped colony ship like that on the main planet to colonize one of these
+    Need to decide level of detail to require for colony management
 """
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
