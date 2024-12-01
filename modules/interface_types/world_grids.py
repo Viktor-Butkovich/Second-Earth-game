@@ -277,15 +277,16 @@ class world_grid(grid):
     def generate_water(self) -> None:
         """
         Description:
-            Randomly generates water
+            Randomly generates water, placing enough water to reach the generated target average
+                Total water may be less than target average if repeatedly attempting to place in full tiles, or if radiation removes some of the placed water
         Input:
             None
         Output:
             None
         """
-        total_water = (self.world_handler.water_multiplier * self.area) // 10
-
-        for water in range(total_water):
+        for _ in range(
+            round(self.world_handler.average_water_target * self.world_handler.size)
+        ):
             self.place_water()
 
     def place_water(self, frozen_bound=0) -> None:
@@ -299,6 +300,7 @@ class world_grid(grid):
         """
         best_frozen = None
         best_liquid = None
+        best_gas = None
         for candidate in self.sample(
             k=round(
                 self.get_tuning("water_placement_candidates")
@@ -314,35 +316,71 @@ class world_grid(grid):
                         constants.TEMPERATURE
                     ) < best_frozen.get_parameter(constants.TEMPERATURE):
                         best_frozen = candidate
+                elif candidate.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
+                    "water_boiling_point"
+                ):
+                    best_gas = candidate
                 else:
                     if best_liquid == None or candidate.get_parameter(
                         constants.ALTITUDE
                     ) < best_liquid.get_parameter(constants.ALTITUDE):
                         best_liquid = candidate
+        if best_frozen == None and best_liquid == None and best_gas == None:
+            return
+        choice = random.choices(
+            [best_frozen, best_liquid, best_gas],
+            weights=[
+                abs((1 - best_frozen.get_parameter(constants.TEMPERATURE)))
+                if best_frozen
+                else 0,  # Weight frozen placement for low temperature
+                abs(10 - best_liquid.get_parameter(constants.ALTITUDE))
+                if best_liquid
+                else 0,  # Weight liquid placement for low altitude
+                7.5 if best_gas else 0,
+            ],
+            k=1,
+        )[0]
 
-        if best_frozen and best_liquid:
-            choice = random.choices(
-                [best_frozen, best_liquid],
-                weights=[
-                    abs(
-                        (2 - best_frozen.get_parameter(constants.TEMPERATURE))
-                    ),  # Weight frozen placement for low temperature
-                    abs(
-                        11 - best_liquid.get_parameter(constants.ALTITUDE)
-                    ),  # Weight liquid placement for low altitude
-                ],
-                k=1,
-            )[0]
-            if choice == best_frozen:
-                best_liquid = None
-            else:
-                best_frozen = None
+        radiation_effect = max(
+            0,
+            self.world_handler.get_parameter(constants.RADIATION)
+            - self.world_handler.get_parameter(constants.MAGNETIC_FIELD),
+        )
 
-        if best_frozen:
-            best_frozen.change_parameter(constants.WATER, 1)
-        elif best_liquid:
-            best_liquid.change_parameter(constants.WATER, 1)
-            best_liquid.terrain_handler.flow()
+        if choice.get_parameter(constants.TEMPERATURE) <= frozen_bound:
+            change = 1
+            # If during setup
+            if (
+                choice.get_parameter(constants.TEMPERATURE)
+                >= self.get_tuning("water_freezing_point") - 1
+            ):  # Lose most water if sometimes above freezing
+                if radiation_effect >= 3:
+                    if random.randrange(1, 13) >= 4:
+                        choice.change_parameter(constants.WATER, -1)
+                        change = 0
+                elif radiation_effect >= 1:
+                    if random.randrange(1, 13) >= 6:
+                        choice.change_parameter(constants.WATER, -1)
+                        change = 0
+            # If far below freezing, retain water regardless of radiation
+            if change != 0:
+                choice.change_parameter(constants.WATER, change)
+        else:
+            change = 1
+            # If during setup
+            if (
+                radiation_effect >= 3
+            ):  # Lose almost all water if consistently above freezing
+                if random.randrange(1, 13) >= 2:
+                    change = 0
+            elif (
+                radiation_effect >= 1
+            ):  # Lose most water if consistently above freezing
+                if random.randrange(1, 13) >= 4:
+                    change = 0
+            if change != 0:
+                choice.change_parameter(constants.WATER, change)
+                choice.terrain_handler.flow()
 
     def generate_soil(self) -> None:
         """
@@ -867,7 +905,9 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
         input_dict.update(
             {
                 "modes": [],  # Acts as source of truth for mini grids, but this grid is not directly shown
-                "coordinates": scaling.scale_coordinates(320, 0),
+                "coordinates": scaling.scale_coordinates(
+                    constants.strategic_map_x_offset, constants.strategic_map_y_offset
+                ),
                 "width": scaling.scale_width(constants.strategic_map_pixel_width),
                 "height": scaling.scale_height(constants.strategic_map_pixel_height),
                 "coordinate_width": map_size,
@@ -880,7 +920,9 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
     elif grid_type == "scrolling_strategic_map_grid":
         input_dict.update(
             {
-                "coordinates": scaling.scale_coordinates(320, 0),
+                "coordinates": scaling.scale_coordinates(
+                    constants.strategic_map_x_offset, constants.strategic_map_y_offset
+                ),
                 "width": scaling.scale_width(constants.strategic_map_pixel_width),
                 "height": scaling.scale_height(constants.strategic_map_pixel_height),
                 "coordinate_size": status.strategic_map_grid.coordinate_width,
@@ -894,7 +936,9 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
         input_dict.update(
             {
                 "coordinates": scaling.scale_coordinates(
-                    0, -1 * (constants.minimap_grid_pixel_height + 25)
+                    constants.minimap_grid_x_offset,
+                    -1 * (constants.minimap_grid_pixel_height + 25)
+                    + constants.minimap_grid_y_offset,
                 ),
                 "width": scaling.scale_width(constants.minimap_grid_pixel_width),
                 "height": scaling.scale_height(constants.minimap_grid_pixel_height),
@@ -913,8 +957,8 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
                     getattr(constants, grid_type + "_y_offset"),
                 ),
                 # Like (earth_grid_x_offset, earth_grid_y_offset)
-                "width": scaling.scale_width(120),
-                "height": scaling.scale_height(120),
+                "width": getattr(constants, grid_type + "_width"),
+                "height": getattr(constants, grid_type + "_height"),
             }
         )
         if grid_type == "earth_grid":

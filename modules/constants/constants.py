@@ -256,14 +256,21 @@ abstract_grid_type_list: List[str] = ["earth_grid"]
 grids_collection_x: int = default_display_width - 740
 grids_collection_y: int = default_display_height - 325
 
-strategic_map_pixel_width: int = 320
-strategic_map_pixel_height: int = 300
-earth_grid_x_offset: int = 30
-earth_grid_y_offset: int = 145
+earth_grid_x_offset: int = -75  # 130 - 60
+earth_grid_y_offset: int = 140
+earth_grid_width: int = 108  # 180
+earth_grid_height: int = 108  # 180
 
-minimap_grid_pixel_width: int = strategic_map_pixel_width * 2
-minimap_grid_pixel_height: int = strategic_map_pixel_height * 2
-minimap_grid_coordinate_size: int = 5
+strategic_map_x_offset: int = earth_grid_x_offset + earth_grid_width + 15  # 60
+strategic_map_y_offset: int = earth_grid_y_offset
+strategic_map_pixel_width: int = 180  # 320 * 0.75
+strategic_map_pixel_height: int = 180  # 320 * 0.75
+
+minimap_grid_x_offset: int = -75
+minimap_grid_y_offset: int = 150
+minimap_grid_pixel_width: int = 750  # strategic_map_pixel_width * 2
+minimap_grid_pixel_height: int = 750  # strategic_map_pixel_height * 2
+minimap_grid_coordinate_size: int = 7
 
 default_text_box_height: int = 0
 text_box_height: int = 0

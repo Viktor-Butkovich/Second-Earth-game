@@ -244,26 +244,6 @@ class world_handler:
                         "mars_base_temperature"
                     )
 
-                if self.get_tuning("earth_preset"):
-                    input_dict["water_multiplier"] = self.get_tuning(
-                        "earth_water_multiplier"
-                    )
-                elif self.get_tuning("mars_preset"):
-                    input_dict["water_multiplier"] = self.get_tuning(
-                        "mars_water_multiplier"
-                    )
-                else:
-                    if random.randrange(1, 7) >= 5:
-                        input_dict["water_multiplier"] = random.randrange(
-                            self.get_tuning("min_water_multiplier"),
-                            self.get_tuning("max_water_multiplier") + 1,
-                        )
-                    else:
-                        input_dict["water_multiplier"] = random.randrange(
-                            self.get_tuning("min_water_multiplier"),
-                            self.get_tuning("med_water_multiplier") + 1,
-                        )
-
                 if not self.get_tuning("earth_preset") and not self.get_tuning(
                     "mars_preset"
                 ):
@@ -475,18 +455,18 @@ class world_handler:
                         input_dict["global_parameters"][constants.INERT_GASES] = 0
                         input_dict["global_parameters"][constants.TOXIC_GASES] = 0
 
-                    if input_dict["global_parameters"][constants.MAGNETIC_FIELD] in [
-                        2,
-                        3,
-                    ]:
+                    if self.get_tuning("earth_preset"):
                         pass
-                        # Decrease water if low magnetic field, keep remaining gases (water is lightest)
-                        # Compare with radiation instead of using constant
+                    elif self.get_tuning("mars_preset"):
+                        pass
+                    else:
+                        input_dict["average_water_target"] = random.uniform(0.0, 5.0)
 
-                    elif (
-                        input_dict["global_parameters"][constants.MAGNETIC_FIELD]
-                        <= input_dict["global_parameters"][constants.RADIATION] - 3
-                    ):
+                    radiation_effect = (
+                        input_dict["global_parameters"][constants.RADIATION]
+                        - input_dict["global_parameters"][constants.MAGNETIC_FIELD]
+                    )
+                    if radiation_effect >= 3:
                         input_dict["global_parameters"][constants.INERT_GASES] = 0
                         input_dict["global_parameters"][constants.OXYGEN] = 0
                         input_dict["global_parameters"][constants.TOXIC_GASES] = round(
@@ -494,6 +474,13 @@ class world_handler:
                         )
                         input_dict["global_parameters"][constants.GHG] = round(
                             input_dict["global_parameters"][constants.GHG] / 2
+                        )
+                    elif radiation_effect >= 1:
+                        input_dict["global_parameters"][constants.INERT_GASES] = round(
+                            input_dict["global_parameters"][constants.INERT_GASES] / 2
+                        )
+                        input_dict["global_parameters"][constants.OXYGEN] = round(
+                            input_dict["global_parameters"][constants.OXYGEN] / 2
                         )
             elif (
                 input_dict["grid_type"] == "earth_grid"
@@ -524,14 +511,14 @@ class world_handler:
             "color_filter", {"red": 1, "green": 1, "blue": 1}
         )
         self.default_temperature: int = input_dict.get("default_temperature", 0)
-        self.water_multiplier: int = input_dict.get("water_multiplier", 0)
+        self.average_water_target: float = input_dict.get("average_water_target", 0.0)
         self.earth_global_water = round(
             3.7 * (constants.map_size_options[4] ** 2)
         )  # Earth-like planet has 3.7 water per tile
         self.earth_average_temperature = 2.1
         self.earth_size = constants.map_size_options[4] ** 2
         self.global_water = input_dict.get(
-            "global_water", float(self.default_grid.area)
+            "global_water", 0
         )  # Each tile starts with water 0, adjust whenever changed
         self.average_water = input_dict.get("average_water", 0.0)
         self.global_temperature = input_dict.get(
@@ -636,7 +623,6 @@ class world_handler:
             "color_filter": self.color_filter,
             "green_screen": self.green_screen,
             "default_temperature": self.default_temperature,
-            "water_multiplier": self.water_multiplier,
             "global_parameters": self.global_parameters,
             "average_water": self.average_water,
             "average_temperature": self.average_temperature,

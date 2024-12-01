@@ -21,8 +21,8 @@ try:
         earth_screen,
         ministers_screen,
         trial_screen,
-        mob_interface,
         tile_interface,
+        mob_interface,
         organization_interface,
         vehicle_organization_interface,
         unit_organization_interface,
@@ -203,6 +203,7 @@ except Exception:  # Displays error message and records error message in crash l
     Add new "solar" game mode, with most interface overlapping between "solar" and "strategic" maps
     While on "solar", display miniature planet map, which transitions to "strategic" when clicked, and vice versa (such that clicking "zooms in")
     Unit can instantly (as an action) switch from "solar" to "strategic" map by landing/launching - only exists on 1 at a time - no hovering above a tile
+    Star system map should be next to the planet map, between Earth and the planet
 9. Add fuel resource, with vehicle fuel mechanics
 10. Add research screen
 11. Add ideology system
@@ -245,7 +246,8 @@ except Exception:  # Displays error message and records error message in crash l
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 
 # Upcoming work queue:
-# Rework water generation - depending on radiation/temperature, have randomly generated target average and add until target reached (replace water multiplier)
+# Add global parameter tuning for Mars and Earth, as well as storing atmosphere ranges as parameters
+#   Change presets to effects, since these should be able to occur during a game
 # Add rename prompt when creating settlement, defaulting to randomly generated - port back to SFA
 # Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
 # Replace "earth_grid" and similar with grid type constants
@@ -262,6 +264,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
 # Convert actor_type ("tile", "mob", "minister") to use constant keys
+# Add new notes from Second Earth notes folder
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>

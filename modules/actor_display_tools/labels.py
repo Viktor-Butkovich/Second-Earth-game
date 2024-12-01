@@ -279,7 +279,7 @@ class actor_display_label(label):
                 self.add_attached_button(input_dict)
 
                 input_dict["init_type"] = constants.PICK_UP_EACH_COMMODITY_BUTTON
-                input_dict["image_id"] = "buttons/commodity_pick_up_each_button.png"
+                input_dict["image_id"] = "buttons/commodity_drop_each_button.png"
                 self.add_attached_button(input_dict)
 
                 input_dict["init_type"] = constants.SELL_EACH_COMMODITY_BUTTON
@@ -288,7 +288,7 @@ class actor_display_label(label):
 
             elif self.actor_label_type == constants.MOB_INVENTORY_CAPACITY_LABEL:
                 input_dict["init_type"] = constants.DROP_EACH_COMMODITY_BUTTON
-                input_dict["image_id"] = "buttons/commodity_drop_each_button.png"
+                input_dict["image_id"] = "buttons/commodity_pick_up_each_button.png"
                 self.add_attached_button(input_dict)
 
                 if flags.enable_equipment_panel:
@@ -406,7 +406,7 @@ class actor_display_label(label):
             self.message_start = "Quantity: "
             if self.actor_type == "mob":
                 input_dict["init_type"] = constants.ANONYMOUS_BUTTON
-                input_dict["image_id"] = "buttons/commodity_drop_button.png"
+                input_dict["image_id"] = "buttons/commodity_pick_up_button.png"
                 input_dict["button_type"] = {
                     "on_click": (
                         actor_utility.callback,
@@ -416,7 +416,7 @@ class actor_display_label(label):
                 }
                 self.add_attached_button(input_dict)
 
-                input_dict["image_id"] = "buttons/commodity_drop_all_button.png"
+                input_dict["image_id"] = "buttons/commodity_pick_up_all_button.png"
                 input_dict["button_type"] = {
                     "on_click": (
                         actor_utility.callback,
@@ -429,7 +429,7 @@ class actor_display_label(label):
             elif self.actor_type == "tile":
                 original_input_dict = input_dict.copy()
                 input_dict["init_type"] = constants.ANONYMOUS_BUTTON
-                input_dict["image_id"] = "buttons/commodity_pick_up_button.png"
+                input_dict["image_id"] = "buttons/commodity_drop_button.png"
                 input_dict["button_type"] = {
                     "on_click": (
                         actor_utility.callback,
@@ -439,7 +439,7 @@ class actor_display_label(label):
                 }
                 self.add_attached_button(input_dict)
 
-                input_dict["image_id"] = "buttons/commodity_pick_up_all_button.png"
+                input_dict["image_id"] = "buttons/commodity_drop_all_button.png"
                 input_dict["button_type"] = {
                     "on_click": (
                         actor_utility.callback,
@@ -877,6 +877,18 @@ class actor_display_label(label):
                         )
                     tooltip_text.append(
                         f"Earth is approximately 58 degrees Fahrenheit, corresponding to ~{self.actor.grid.world_handler.earth_average_temperature} temperature"
+                    )
+                elif self.actor_label_type == constants.RADIATION_LABEL:
+                    tooltip_text.append(f"Represents cosmic radiation and solar winds")
+                    tooltip_text.append(
+                        f"Any radiation exceeding magnetic field strength can harm life and slowly strip away atmosphere, particularly oxygen, inert gases, and non-frozen water"
+                    )
+                elif self.actor_label_type == constants.MAGNETIC_FIELD_LABEL:
+                    tooltip_text.append(
+                        f"Represents the strength of the magnetic field, which diverts cosmic radiation and solar winds"
+                    )
+                    tooltip_text.append(
+                        f"Any radiation exceeding magnetic field strength can harm life and slowly strip away atmosphere, particularly oxygen, inert gases, and non-frozen water"
                     )
             self.set_tooltip(tooltip_text)
 

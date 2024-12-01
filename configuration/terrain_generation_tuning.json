@@ -34,9 +34,6 @@
     "med_soil_worm_multiplier": 60,
     "max_soil_worm_multiplier": 80,
 
-    "min_water_multiplier": 0,
-    "med_water_multiplier": 15,
-    "max_water_multiplier": 50,
     "water_placement_candidates": 15,
 
     "water_freezing_point": 0,
@@ -52,12 +49,10 @@
 
     "earth_base_temperature": 2,
     "earth_roughness_multiplier": 60,
-    "earth_water_multiplier": 40,
     "earth_color_filter": {"red": 1, "green": 1, "blue": 1},
 
     "mars_base_temperature": -2,
     "mars_roughness_multiplier": 20,
-    "mars_water_multiplier": 5,
     "mars_color_filter": {"red": 1.1, "green": 0.95, "blue": 0.95},
 
     "map_sizes": [11, 13, 15, 17, 19, 21, 23, 25],

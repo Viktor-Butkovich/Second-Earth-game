@@ -1277,7 +1277,9 @@ def buttons():
     """
     status.planet_view_mask = constants.actor_creation_manager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(320, 0),
+            "coordinates": scaling.scale_coordinates(
+                constants.strategic_map_x_offset, constants.strategic_map_y_offset
+            ),
             "width": scaling.scale_width(constants.strategic_map_pixel_width),
             "height": scaling.scale_height(constants.strategic_map_pixel_height),
             "parent_collection": status.grids_collection,
@@ -1313,9 +1315,15 @@ def buttons():
         input_dict
     )
 
+    switch_game_mode_buttons_x = (
+        constants.strategic_map_x_offset
+        + constants.grids_collection_x
+        + constants.strategic_map_pixel_width
+        + 15
+    )  # 1265 # 1065
     input_dict = {
         "coordinates": scaling.scale_coordinates(
-            1065, constants.default_display_height - 55
+            switch_game_mode_buttons_x, constants.default_display_height - 55
         ),
         "height": scaling.scale_height(50),
         "width": scaling.scale_width(50),
@@ -1337,7 +1345,7 @@ def buttons():
     input_dict.update(
         {
             "coordinates": scaling.scale_coordinates(
-                1125, constants.default_display_height - 55
+                switch_game_mode_buttons_x + 60, constants.default_display_height - 55
             ),
             "image_id": actor_utility.generate_frame("locations/earth.png"),
             "to_mode": constants.EARTH_MODE,
@@ -1351,7 +1359,7 @@ def buttons():
     input_dict.update(
         {
             "coordinates": scaling.scale_coordinates(
-                1185, constants.default_display_height - 55
+                switch_game_mode_buttons_x + 120, constants.default_display_height - 55
             ),
             "width": scaling.scale_width(50),
             "to_mode": constants.MINISTERS_MODE,
@@ -1436,7 +1444,7 @@ def buttons():
 
     input_dict = {
         "coordinates": scaling.scale_coordinates(
-            round(constants.default_display_width * 0.4),
+            round(constants.default_display_width * 0.4) - 15,
             constants.default_display_height - 55,
         ),
         "width": scaling.scale_width(round(constants.default_display_width * 0.2)),
@@ -2095,7 +2103,7 @@ def mob_interface():
 
     status.mob_info_display = constants.actor_creation_manager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(0, 0),
+            "coordinates": scaling.scale_coordinates(0, -400),
             "width": scaling.scale_width(400),
             "height": scaling.scale_height(430),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
@@ -2104,6 +2112,9 @@ def mob_interface():
             "actor_type": "mob",
             "description": "unit information panel",
             "parent_collection": status.info_displays_collection,
+            "member_config": {
+                "order_exempt": True,
+            },
         }
     )
 
@@ -2290,23 +2301,21 @@ def tile_interface():
     Output:
         None
     """
-    status.tile_info_display = (
-        constants.actor_creation_manager.create_interface_element(
-            {
-                "coordinates": scaling.scale_coordinates(0, -400),
-                "width": scaling.scale_width(775),
-                "height": scaling.scale_height(10),
-                "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-                "init_type": constants.ORDERED_COLLECTION,
-                "is_info_display": True,
-                "actor_type": "tile",
-                "description": "tile information panel",
-                "parent_collection": status.info_displays_collection,
-                "member_config": {
-                    "order_exempt": True,
-                },
-            }
-        )
+    status.tile_info_display = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),  # (0, -400),
+            "width": scaling.scale_width(775),
+            "height": scaling.scale_height(10),
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            "init_type": constants.ORDERED_COLLECTION,
+            "is_info_display": True,
+            "actor_type": "tile",
+            "description": "tile information panel",
+            "parent_collection": status.info_displays_collection,
+            # "member_config": {
+            #     "order_exempt": True,
+            # },
+        }
     )
 
     separation = scaling.scale_height(3)
