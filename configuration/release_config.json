@@ -39,6 +39,9 @@
       "large_map",
       "tiny_map",
       "god_mode",
-      "allow_toggle_fog_of_war"
+      "allow_toggle_fog_of_war",
+      "earth_preset",
+      "mars_preset",
+      "venus_preset"
    ]
 }

@@ -64,17 +64,6 @@ class world_grid(grid):
             self.generate_terrain_parameters()
             self.generate_terrain_features()
 
-    def get_tuning(self, tuning_type: str) -> any:
-        """
-        Description:
-            Returns the tuning value for the inputted tuning type
-        Input:
-            string tuning_type: Tuning type to return the value of
-        Output:
-            any: Returns the tuning value
-        """
-        return constants.terrain_manager.get_tuning(tuning_type)
-
     def generate_altitude(self) -> None:
         """
         Description:
@@ -157,12 +146,6 @@ class world_grid(grid):
                 )
                 if temperature_source == status.north_pole:
                     weight_parameter = "north_pole_distance_multiplier"
-                    if constants.effect_manager.effect_active(
-                        "mars_preset"
-                    ):  # Causes warmer north pole than south - ice caps at north pole, dry ice caps at south pole
-                        temperature_source.set_parameter(
-                            constants.TEMPERATURE, default_temperature + 1
-                        )
                 else:
                     weight_parameter = "south_pole_distance_multiplier"
                 min_length = (
@@ -184,8 +167,8 @@ class world_grid(grid):
                     "pole_worm_length_multipliers"
                 ):
                     self.make_random_terrain_parameter_worm(
-                        min_length * pole_worm_length_multiplier,
-                        max_length * pole_worm_length_multiplier,
+                        round(min_length * pole_worm_length_multiplier),
+                        round(max_length * pole_worm_length_multiplier),
                         constants.TEMPERATURE,
                         -1,
                         bound=1,
@@ -241,10 +224,12 @@ class world_grid(grid):
         Output:
             None
         """
-        if self.get_tuning("earth_preset"):
+        if constants.effect_manager.effect_active("earth_preset"):
             num_worms = self.get_tuning("earth_roughness_multiplier")
-        elif self.get_tuning("mars_preset"):
+        elif constants.effect_manager.effect_active("mars_preset"):
             num_worms = self.get_tuning("mars_roughness_multiplier")
+        elif constants.effect_manager.effect_active("venus_preset"):
+            num_worms = self.get_tuning("venus_roughness_multiplier")
         else:
             num_worms = random.randrange(
                 self.get_tuning("min_roughness_multiplier"),
@@ -305,7 +290,7 @@ class world_grid(grid):
             k=round(
                 self.get_tuning("water_placement_candidates")
                 * (self.coordinate_width**2)
-                / (25**2)
+                / (20**2)
             )
         ):
             if candidate.get_parameter(constants.WATER) < 5:
@@ -391,7 +376,7 @@ class world_grid(grid):
         Output:
             None
         """
-        if self.get_tuning("earth_preset"):
+        if constants.effect_manager.effect_active("earth_preset"):
             for cell in self.get_flat_cell_list():
                 cell.set_parameter(constants.SOIL, random.randrange(0, 6))
         else:
@@ -440,7 +425,7 @@ class world_grid(grid):
         Output:
             None
         """
-        if self.get_tuning("earth_preset"):
+        if constants.effect_manager.effect_active("earth_preset"):
             for cell in self.get_flat_cell_list():
                 if cell.get_parameter(constants.TEMPERATURE) > 0:
                     if cell.get_parameter(constants.WATER) < 4:
@@ -898,10 +883,12 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
             map_size_list = constants.terrain_manager.get_tuning("map_sizes")
         constants.map_size_options = map_size_list
         map_size = input_dict.get("map_size", random.choice(map_size_list))
-        if constants.terrain_manager.get_tuning("earth_preset"):
+        if constants.effect_manager.effect_active(
+            "earth_preset"
+        ) or constants.effect_manager.effect_active("venus_preset"):
             map_size = map_size_list[4]
-        elif constants.terrain_manager.get_tuning("mars_preset"):
-            map_size = map_size_list[2]
+        elif constants.effect_manager.effect_active("mars_preset"):
+            map_size = map_size_list[1]
         input_dict.update(
             {
                 "modes": [],  # Acts as source of truth for mini grids, but this grid is not directly shown

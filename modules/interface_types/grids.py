@@ -83,6 +83,17 @@ class grid(interface_elements.interface_element):
         for current_cell in self.get_flat_cell_list():
             current_cell.find_adjacent_cells()
 
+    def get_tuning(self, tuning_type: str) -> any:
+        """
+        Description:
+            Returns the tuning value for the inputted tuning type
+        Input:
+            string tuning_type: Tuning type to return the value of
+        Output:
+            any: Returns the tuning value
+        """
+        return constants.terrain_manager.get_tuning(tuning_type)
+
     def create_map_image(self):
         """
         Description:

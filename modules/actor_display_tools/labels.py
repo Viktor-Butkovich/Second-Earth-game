@@ -1253,31 +1253,53 @@ class actor_display_label(label):
                     if (
                         parameter == constants.PRESSURE
                     ):  # Pressure: 1200/2400 (0.5x Earth)
-                        ideal = self.actor.grid.world_handler.size * 6
+                        ideal = round(
+                            self.actor.grid.world_handler.size
+                            * 6
+                            * self.actor.grid.world_handler.get_tuning("earth_pressure")
+                        )
                         if self.actor.grid == status.earth_grid:
-                            self.set_label(f"{self.message_start}{value:,}")
+                            self.set_label(f"{self.message_start}{round(value, 1):,}")
                         elif value == 0:
-                            self.set_label(f"{self.message_start}{value:,} (0x Earth)")
+                            self.set_label(
+                                f"{self.message_start}{round(value, 1):,} (0x Earth)"
+                            )
                         else:
                             self.set_label(
-                                f"{self.message_start}{value:,} ({max(0.01, round((value / ideal), 2)):,}x Earth)"
+                                f"{self.message_start}{round(value, 1):,} ({max(0.01, round((value / ideal), 2)):,}x Earth)"
                             )
                     else:  # 42% Oxygen: 1008/2400 (2.0x Earth)
                         pressure = self.actor.grid.world_handler.get_parameter(
                             constants.PRESSURE
                         )
                         if parameter == constants.GHG:
-                            ideal = self.actor.grid.world_handler.size * 6 * 0.005
+                            ideal = round(
+                                self.actor.grid.world_handler.size
+                                * 6
+                                * self.actor.grid.world_handler.get_tuning("earth_GHG")
+                            )
                         elif parameter == constants.INERT_GASES:
-                            ideal = self.actor.grid.world_handler.size * 6 * 0.785
+                            ideal = round(
+                                self.actor.grid.world_handler.size
+                                * 6
+                                * self.actor.grid.world_handler.get_tuning(
+                                    "earth_inert_gases"
+                                )
+                            )
                         elif parameter == constants.OXYGEN:
-                            ideal = self.actor.grid.world_handler.size * 6 * 0.21
+                            ideal = round(
+                                self.actor.grid.world_handler.size
+                                * 6
+                                * self.actor.grid.world_handler.get_tuning(
+                                    "earth_oxygen"
+                                )
+                            )
                         if self.actor.grid == status.earth_grid:
                             self.set_label(
                                 f"{round(100 * value / pressure, 1)}% {self.message_start}{value:,}"
                             )
                         elif value == 0:
-                            self.set_label(f"0% {self.message_start}{value:,}")
+                            self.set_label(f"0.0% {self.message_start}{value:,}")
                         elif parameter == constants.TOXIC_GASES:
                             self.set_label(
                                 f"{round(100 * value / pressure, 1)}% {self.message_start}{value:,}"
