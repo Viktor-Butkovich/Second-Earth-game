@@ -17,6 +17,7 @@ choosing_advertised_commodity: bool = False
 drawing_automatic_route: bool = False
 prosecution_bribed_judge: bool = False
 loading: bool = True
+finished_loading: bool = False
 show_selection_outlines: bool = False
 show_minimap_outlines: bool = True
 startup_complete: bool = False

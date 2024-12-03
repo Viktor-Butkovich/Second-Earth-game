@@ -93,7 +93,9 @@ def set_game_mode(new_game_mode):
             new_game_mode == constants.MAIN_MENU_MODE
             or previous_game_mode == constants.NEW_GAME_SETUP_MODE
         ):
-            start_loading()
+            start_loading(
+                previous_game_mode=previous_game_mode, new_game_mode=new_game_mode
+            )
         constants.current_game_mode = new_game_mode
         if new_game_mode == constants.STRATEGIC_MODE:
             constants.default_text_box_height = constants.font_size * 5.5
@@ -194,17 +196,28 @@ def create_strategic_map(from_save=False):
                 current_grid.create_world(from_save)
 
 
-def start_loading():
+def start_loading(previous_game_mode: str = None, new_game_mode: str = None):
     """
     Description:
         Records when loading started and displays a loading screen when the program is launching or switching between game modes
     Input:
-        None
+        string previous_game_mode = None: Game mode that loading is transitioning from
+        string new_game_mode = None: Game mode that loading is transitioning to
     Output:
         None
     """
+    if new_game_mode in [
+        constants.STRATEGIC_MODE,
+        constants.EARTH_MODE,
+        constants.MINISTERS_MODE,
+    ]:  # If loading into game
+        status.loading_screen_quote_banner.set_label(
+            constants.flavor_text_manager.generate_flavor_text("loading_screen_quotes")
+        )
+    else:
+        status.loading_screen_quote_banner.set_label("")
     flags.loading = True
-    flags.loading_start_time = time.time()
+    constants.loading_loops = 0
     main_loop_utility.update_display()
 
 

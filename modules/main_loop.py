@@ -98,8 +98,6 @@ def main_loop():
                             if current_button.has_keybind:
                                 if event.key == current_button.keybind_id:
                                     current_button.on_release()
-                                    current_button.has_released = True
-                                    current_button.being_pressed = False
                     match event.key:
                         case pygame.K_RSHIFT:
                             flags.r_shift = False

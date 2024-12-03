@@ -22,6 +22,7 @@ class flavor_text_manager_template:
         self.set_flavor_text("exploration", "text/explorer.csv")
         self.set_flavor_text("advertising_campaign", "text/advertising.csv")
         self.set_flavor_text("settlement_names", "text/default.csv")
+        self.set_flavor_text("loading_screen_quotes", "text/loading_screen_quotes.csv")
 
     def set_flavor_text(self, topic, file):
         """

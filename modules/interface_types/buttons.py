@@ -1393,6 +1393,7 @@ class button(interface_elements.interface_element):
         """
         self.showing_outline = False
         self.has_released = True
+        self.being_pressed = False
 
     def remove(self):
         """

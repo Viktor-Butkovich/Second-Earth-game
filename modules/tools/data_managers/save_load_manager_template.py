@@ -235,7 +235,10 @@ class save_load_manager_template:
 
         text_utility.print_to_screen("")
         text_utility.print_to_screen("Loading " + file_path)
-        game_transitions.start_loading()
+        game_transitions.start_loading(
+            previous_game_mode=constants.MAIN_MENU_MODE,
+            new_game_mode=constants.STRATEGIC_MODE,
+        )
         # Load file
         try:
             file_path = "save_games/" + file_path

@@ -38,10 +38,12 @@ effect_manager: effect_manager_template = effect_manager_template()
 pygame.init()
 pygame.mixer.init()
 pygame.display.set_icon(pygame.image.load("graphics/misc/SE.png"))
-pygame.display.set_caption("SFA")
+pygame.display.set_caption("SE")
 pygame.key.set_repeat(300, 200)
 pygame.mixer.music.set_endevent(pygame.USEREVENT + 1)
 music_endevent: int = pygame.mixer.music.get_endevent()
+
+loading_loops: int = 0
 
 key_codes: List[int] = [
     pygame.K_a,
@@ -221,7 +223,6 @@ fps_tracker: value_tracker_template = None
 frames_this_second: int = 0
 last_fps_update: float = 0.0
 
-loading_start_time: float = 0.0
 previous_turn_time: float = 0.0
 current_time: float = 0.0
 last_selection_outline_switch: float = 0.0

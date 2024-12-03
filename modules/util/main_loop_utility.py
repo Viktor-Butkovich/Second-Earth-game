@@ -25,9 +25,6 @@ def update_display():
         None
     """
     if flags.loading:
-        flags.loading_start_time -= (
-            1  # end load timer faster once program starts repeating this part
-        )
         draw_loading_screen()
     else:
         possible_tooltip_drawers = []
@@ -143,10 +140,25 @@ def draw_loading_screen():
         None
     """
     status.loading_image.draw()
-    if (
-        flags.loading_start_time + 1.01 < time.time()
-    ):  # max of 1 second, subtracts 1 in update_display to lower loading screen showing time
+    status.loading_screen_quote_banner.showing = True
+    status.loading_screen_quote_banner.draw()
+    constants.loading_loops += 1
+    if constants.loading_loops > 2:
         flags.loading = False
+        if status.loading_screen_quote_banner.message != [""]:  # If loading into game
+            status.loading_screen_continue_banner.showing = True
+            status.loading_screen_continue_banner.draw()
+            pygame.event.get()
+            for current_button in status.button_list:
+                current_button.on_release()
+            while True:
+                for event in pygame.event.get():
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                        return
+                    elif event.type == pygame.QUIT:
+                        pygame.quit()
+                        return
+                pygame.display.update()
 
 
 def manage_tooltip_drawing(possible_tooltip_drawers):

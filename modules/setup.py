@@ -179,6 +179,46 @@ def misc():
             "init_type": constants.LOADING_IMAGE_TEMPLATE_IMAGE,
         }
     )
+    status.loading_screen_quote_banner = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(
+                    constants.display_width / 2 - 650,
+                    constants.display_height / 2 - 500,
+                ),
+                "ideal_width": scaling.scale_width(1300),
+                "minimum_height": 50,
+                "image_id": "misc/empty.png",
+                "init_type": constants.MULTI_LINE_LABEL,
+                "message": "Loading screen quote",
+                "font": constants.fonts["large_white_notification"],
+                "modes": [],
+                "center_lines": True,
+            }
+        )
+    )
+    loading_screen_continue_message = "Press ENTER to continue"
+    loading_screen_continue_message_width = constants.fonts[
+        "large_white_notification"
+    ].pygame_font.size(loading_screen_continue_message)[0]
+    status.loading_screen_continue_banner = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": (
+                    scaling.scale_width(constants.display_width / 2)
+                    - loading_screen_continue_message_width / 2,
+                    scaling.scale_height(constants.display_height / 2 - 500),
+                ),
+                "minimum_width": loading_screen_continue_message_width,
+                "height": 50,
+                "image_id": "misc/empty.png",
+                "init_type": constants.LABEL,
+                "message": loading_screen_continue_message,
+                "font": constants.fonts["large_white_notification"],
+                "modes": [],
+            }
+        )
+    )
 
     strategic_background_image = (
         constants.actor_creation_manager.create_interface_element(
@@ -2932,7 +2972,6 @@ def terrain_interface():
         )
     )
 
-    placed_local_conditions_banner = False
     for current_actor_label_type in [
         constants.PRESSURE_LABEL,
         constants.OXYGEN_LABEL,
