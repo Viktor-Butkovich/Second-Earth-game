@@ -183,8 +183,8 @@ def misc():
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(
-                    constants.display_width / 2 - 650,
-                    constants.display_height / 2 - 500,
+                    constants.default_display_width / 2 - 650,
+                    constants.default_display_height / 2 - 500,
                 ),
                 "ideal_width": scaling.scale_width(1300),
                 "minimum_height": 50,
@@ -205,9 +205,9 @@ def misc():
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": (
-                    scaling.scale_width(constants.display_width / 2)
+                    scaling.scale_width(constants.default_display_width / 2)
                     - loading_screen_continue_message_width / 2,
-                    scaling.scale_height(constants.display_height / 2 - 500),
+                    scaling.scale_height(constants.default_display_height / 2 - 500),
                 ),
                 "minimum_width": loading_screen_continue_message_width,
                 "height": 50,
@@ -1661,6 +1661,26 @@ def buttons():
                 f"misc/map_modes/{map_mode}.png"
             )
             constants.actor_creation_manager.create_interface_element(input_dict)
+
+    if constants.effect_manager.effect_active("allow_presets"):
+        input_dict["init_type"] = constants.TOGGLE_BUTTON
+        input_dict["toggle_variable"] = "mars_preset"
+        input_dict["attached_to_actor"] = False
+        input_dict["modes"] = [constants.NEW_GAME_SETUP_MODE]
+        input_dict["image_id"] = actor_utility.generate_frame("locations/mars.png")
+        input_dict["width"] = scaling.scale_width(100)
+        input_dict["height"] = scaling.scale_height(100)
+        input_dict["parent_collection"] = rhs_menu_collection
+        input_dict["member_config"] = {"order_x_offset": scaling.scale_width(-50)}
+        constants.actor_creation_manager.create_interface_element(input_dict)
+
+        input_dict["toggle_variable"] = "earth_preset"
+        input_dict["image_id"] = actor_utility.generate_frame("locations/earth.png")
+        constants.actor_creation_manager.create_interface_element(input_dict)
+
+        input_dict["toggle_variable"] = "venus_preset"
+        input_dict["image_id"] = actor_utility.generate_frame("locations/venus.png")
+        constants.actor_creation_manager.create_interface_element(input_dict)
 
 
 def earth_screen():

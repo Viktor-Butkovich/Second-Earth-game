@@ -304,7 +304,10 @@ class world_grid(grid):
                 / (20**2)
             )
         ):
-            if candidate.get_parameter(constants.WATER) < 5:
+            if (
+                candidate.get_parameter(constants.WATER) < 5
+                and candidate.get_parameter(constants.TEMPERATURE) > frozen_bound
+            ):
                 if candidate.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
                     "water_boiling_point"
                 ):

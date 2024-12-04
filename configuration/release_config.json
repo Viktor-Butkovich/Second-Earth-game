@@ -5,9 +5,11 @@
       "map_modes",
       "god_mode",
       "link_inventory_tabs",
+      "allow_presets",
       "allow_toggle_fog_of_war"
    ],
    "effects": [
+      "allow_presets",
       "boost_attrition",
       "damaged_buildings", 
       "show_corruption_on_save", 

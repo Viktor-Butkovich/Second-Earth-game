@@ -246,7 +246,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 
 # Upcoming work queue:
-# Add terrain color sets to preset options - consistent Mars sand color, Earth mountaintop color, etc.
 # Add rename prompt when creating settlement, defaulting to randomly generated - port back to SFA
 # Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
 # Replace "earth_grid" and similar with grid type constants

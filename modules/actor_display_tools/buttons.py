@@ -1735,6 +1735,14 @@ class toggle_button(button):
                     actor_utility.calibrate_actor_info_display(
                         status.tile_info_display, status.displayed_tile
                     )
+            elif self.toggle_variable in [
+                "earth_preset",
+                "mars_preset",
+                "venus_preset",
+            ]:
+                for variable in ["earth_preset", "mars_preset", "venus_preset"]:
+                    if variable != self.toggle_variable:
+                        constants.effect_manager.set_effect(variable, False)
         else:
             setattr(flags, self.toggle_variable, not self.get_value())
 

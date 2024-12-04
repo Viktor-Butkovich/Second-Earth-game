@@ -76,7 +76,7 @@ def set_game_mode(new_game_mode):
         ] and not new_game_mode in [
             constants.MAIN_MENU_MODE,
             constants.NEW_GAME_SETUP_MODE,
-        ]:  # new_game_mode in ['strategic', 'ministers', 'earth']:
+        ]:
             constants.event_manager.clear()
             constants.sound_manager.play_random_music("earth")
         elif (
@@ -103,7 +103,13 @@ def set_game_mode(new_game_mode):
         elif new_game_mode == constants.MAIN_MENU_MODE:
             constants.default_text_box_height = constants.font_size * 5.5
             constants.text_box_height = constants.default_text_box_height
-            status.text_list = []  # clear text box when going to main menu
+            status.text_list = []  # Clear text box when going to main menu
+            for effect in [
+                "mars_preset",
+                "earth_preset",
+                "venus_preset",
+            ]:  # Clear new game configurations when going to main menu
+                constants.effect_manager.set_effect(effect, False)
         elif new_game_mode == constants.MINISTERS_MODE:
             status.table_map_image.set_image(
                 status.strategic_map_grid.create_map_image()

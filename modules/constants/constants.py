@@ -442,6 +442,21 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
         "True": "Fog of war disabled - no knowledge required to view tiles",
         "False": "Fog of war active - knowledge required to view tiles",
     },
+    "earth_preset": {
+        "default": "Creates an Earth-like planet",
+        "True": "Earth-like planet creation enabled",
+        "False": "Earth-like planet creation disabled",
+    },
+    "mars_preset": {
+        "default": "Creates a Mars-like planet",
+        "True": "Mars-like planet creation enabled",
+        "False": "Mars-like planet creation disabled",
+    },
+    "venus_preset": {
+        "default": "Creates a Venus-like planet",
+        "True": "Venus-like planet creation enabled",
+        "False": "Venus-like planet creation disabled",
+    },
 }
 
 map_size_options: List[str] = None

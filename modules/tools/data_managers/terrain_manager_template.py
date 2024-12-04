@@ -783,8 +783,21 @@ class world_handler:
         Output:
             None
         """
-        if constants.effect_manager.effect_active("mars_preset"):
-            sand_color = (170, 107, 60)
+        if constants.effect_manager.effect_active("earth_preset"):
+            water_color = self.get_tuning("earth_water_color")
+            ice_color = self.get_tuning("earth_ice_color")
+            sand_color = self.get_tuning("earth_sand_color")
+            rock_color = self.get_tuning("earth_rock_color")
+        elif constants.effect_manager.effect_active("mars_preset"):
+            water_color = self.get_tuning("mars_water_color")
+            ice_color = self.get_tuning("mars_ice_color")
+            sand_color = self.get_tuning("mars_sand_color")
+            rock_color = self.get_tuning("mars_rock_color")
+        elif constants.effect_manager.effect_active("venus_preset"):
+            water_color = self.get_tuning("venus_water_color")
+            ice_color = self.get_tuning("venus_ice_color")
+            sand_color = self.get_tuning("venus_sand_color")
+            rock_color = self.get_tuning("venus_rock_color")
         else:
             sand_type = random.randrange(1, 7)
             if sand_type >= 5:
@@ -796,38 +809,43 @@ class world_handler:
             elif sand_type >= 3:
                 base_sand_color = random.randrange(50, 200)
                 sand_color = (
-                    base_sand_color * random.randrange(80, 121) / 100,
-                    base_sand_color * random.randrange(80, 121) / 100,
-                    base_sand_color * random.randrange(80, 121) / 100,
+                    base_sand_color * random.uniform(0.8, 1.2),
+                    base_sand_color * random.uniform(0.8, 1.2),
+                    base_sand_color * random.uniform(0.8, 1.2),
                 )
             else:
                 sand_color = (
-                    random.randrange(20, 236),
-                    random.randrange(20, 236),
-                    random.randrange(20, 236),
+                    random.randrange(3, 236),
+                    random.randrange(3, 236),
+                    random.randrange(3, 236),
                 )
 
-        rock_multiplier = random.randrange(80, 141) / 100
-        rock_color = (
-            sand_color[0] * 0.45 * rock_multiplier,
-            sand_color[1] * 0.5 * rock_multiplier,
-            max(50, sand_color[2] * 0.6) * rock_multiplier,
-        )
+            rock_multiplier = random.uniform(0.8, 1.4)
+            rock_color = (
+                sand_color[0] * 0.45 * rock_multiplier,
+                sand_color[1] * 0.5 * rock_multiplier,
+                max(50, sand_color[2] * 0.6) * rock_multiplier,
+            )
 
-        water_color = (
-            random.randrange(7, 25),
-            random.randrange(15, 96),
-            random.randrange(150, 221),
-        )
-
+            water_color = (
+                random.randrange(7, 25),
+                random.randrange(15, 96),
+                random.randrange(150, 221),
+            )
+            ice_color = (
+                random.randrange(140, 181),
+                random.randrange(190, 231),
+                random.randrange(220, 261),
+            )
+        # Tuning should include water, ice, rock, sand RGB values, replacing any randomly generated values
         return {
             "ice": {
                 "base_colors": [(150, 203, 230)],
                 "tolerance": 180,
                 "replacement_color": (
-                    round(random.randrange(140, 181)),
-                    round(random.randrange(190, 231)),
-                    round(random.randrange(220, 261)),
+                    round(ice_color[0]),
+                    round(ice_color[1]),
+                    round(ice_color[2]),
                 ),
             },
             "dirt": {
