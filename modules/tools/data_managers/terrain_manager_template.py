@@ -234,11 +234,19 @@ class world_handler:
                         ),
                         self.get_tuning("base_temperature_upper_bound"),
                     )
+
                 else:
                     input_dict["default_temperature"] = random.randrange(
                         self.get_tuning("base_temperature_lower_bound"),
                         self.get_tuning("base_temperature_upper_bound") + 1,
                     )
+                input_dict["expected_temperature_target"] = max(
+                    min(
+                        input_dict["default_temperature"] + random.uniform(-0.5, 0.5),
+                        10.95,
+                    ),
+                    -5.95,
+                )
                 if constants.effect_manager.effect_active("earth_preset"):
                     input_dict["global_parameters"] = {
                         constants.GRAVITY: self.get_tuning("earth_gravity"),
@@ -269,6 +277,9 @@ class world_handler:
                     }
                     input_dict["default_temperature"] = self.get_tuning(
                         "earth_base_temperature"
+                    )
+                    input_dict["expected_temperature_target"] = self.get_tuning(
+                        "earth_expected_temperature_target"
                     )
                     input_dict["average_water_target"] = self.get_tuning(
                         "earth_average_water_target"
@@ -309,6 +320,9 @@ class world_handler:
                     input_dict["default_temperature"] = self.get_tuning(
                         "mars_base_temperature"
                     )
+                    input_dict["expected_temperature_target"] = self.get_tuning(
+                        "mars_expected_temperature_target"
+                    )
                     input_dict["average_water_target"] = self.get_tuning(
                         "mars_average_water_target"
                     )
@@ -346,6 +360,9 @@ class world_handler:
                     }
                     input_dict["default_temperature"] = self.get_tuning(
                         "venus_base_temperature"
+                    )
+                    input_dict["expected_temperature_target"] = self.get_tuning(
+                        "venus_expected_temperature_target"
                     )
                     input_dict["average_water_target"] = self.get_tuning(
                         "venus_average_water_target"
@@ -639,6 +656,9 @@ class world_handler:
         )
         self.color_filter: Dict[str, float] = input_dict.get(
             "color_filter", {"red": 1, "green": 1, "blue": 1}
+        )
+        self.expected_temperature_target: float = input_dict.get(
+            "expected_temperature_target", 0.0
         )
         self.default_temperature: int = input_dict.get("default_temperature", 0)
         self.average_water_target: float = input_dict.get("average_water_target", 0.0)
@@ -939,9 +959,26 @@ class terrain_handler:
         self.default_cell = attached_cell
         self.attached_cells: list = []
         self.add_cell(attached_cell)
+        self.expected_temperature_offset: float = 0.0
         self.terrain_features: Dict[str, bool] = {}
         for key, value in input_dict.get("terrain_features", {}).items():
             self.add_terrain_feature(value)
+
+    def get_expected_temperature(self) -> float:
+        """
+        Description:
+            Returns the expected temperature of this terrain based on the world's average temperature and the cell's pole distance
+                When selecting a tile to change temperature, the most outlier tiles should be selected (farthest from expected)
+        Input:
+            None
+        Output:
+            float: Expected temperature of this terrain
+        """
+        if self.get_world_handler():
+            average_temperature = self.get_world_handler().average_temperature
+            return average_temperature - 3.5 + (5 * self.pole_distance_multiplier)
+        else:
+            return 0.0
 
     def add_terrain_feature(self, terrain_feature_dict: Dict[str, Any]) -> None:
         """
@@ -1043,6 +1080,10 @@ class terrain_handler:
                 self.get_world_handler().global_temperature
                 / self.get_world_handler().size,
                 2,
+            )
+            self.expected_temperature_offset = (
+                self.terrain_parameters[parameter_name]
+                - self.get_expected_temperature()
             )
         new_terrain = constants.terrain_manager.classify(self.terrain_parameters)
 

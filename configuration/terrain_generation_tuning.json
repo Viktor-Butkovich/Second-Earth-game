@@ -34,7 +34,8 @@
     "med_soil_worm_multiplier": 60,
     "max_soil_worm_multiplier": 80,
 
-    "water_placement_candidates": 45,
+    "water_placement_candidates": 6,
+    "ice_placement_candidates": 45,
 
     "water_freezing_point": 0,
     "water_boiling_point": 9,
@@ -48,20 +49,22 @@
     "earth_tile_altitude": 2,
 
     "earth_base_temperature": 2,
+    "earth_expected_temperature_target": 2.15,
     "earth_pressure": 1.0,
     "earth_inert_gases": 0.785,
     "earth_oxygen": 0.21,
     "earth_GHG": 0.005,
     "earth_toxic_gases": 0.0,
     "earth_average_water_target": 3.7,
-    "earth_average_temperature": 2.1,
+    "earth_average_temperature": 2.15,
     "earth_radiation": 3,
     "earth_magnetic_field": 5,
     "earth_gravity": 1.0,
     "earth_roughness_multiplier": 60,
     "earth_color_filter": {"red": 1, "green": 1, "blue": 1},
 
-    "mars_base_temperature": -2,
+    "mars_base_temperature": -3,
+    "mars_expected_temperature_target": -2.6,
     "mars_pressure": 0.006,
     "mars_inert_gases": 0.049,
     "mars_oxygen": 0.0,
@@ -75,6 +78,7 @@
     "mars_color_filter": {"red": 1.1, "green": 0.95, "blue": 0.95},
 
     "venus_base_temperature": 12,
+    "venus_expected_temperature_target": 10.95,
     "venus_pressure": 93,
     "venus_inert_gases": 0.035,
     "venus_oxygen": 0.0,

@@ -215,6 +215,17 @@ class world_grid(grid):
             default_temperature + self.get_tuning("final_temperature_variations")[1],
         )
 
+        while (
+            self.world_handler.average_temperature
+            > self.world_handler.expected_temperature_target
+        ):
+            self.cool()
+        while (
+            self.world_handler.average_temperature
+            < self.world_handler.expected_temperature_target
+        ):
+            self.warm()
+
     def generate_roughness(self) -> None:
         """
         Description:
@@ -294,14 +305,7 @@ class world_grid(grid):
             )
         ):
             if candidate.get_parameter(constants.WATER) < 5:
-                if (
-                    candidate.get_parameter(constants.TEMPERATURE) <= frozen_bound
-                ):  # Water can go to coldest freezing location
-                    if best_frozen == None or candidate.get_parameter(
-                        constants.TEMPERATURE
-                    ) < best_frozen.get_parameter(constants.TEMPERATURE):
-                        best_frozen = candidate
-                elif candidate.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
+                if candidate.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
                     "water_boiling_point"
                 ):
                     best_gas = candidate
@@ -310,6 +314,21 @@ class world_grid(grid):
                         constants.ALTITUDE
                     ) < best_liquid.get_parameter(constants.ALTITUDE):
                         best_liquid = candidate
+        for candidate in self.sample(
+            k=round(
+                self.get_tuning("ice_placement_candidates")
+                * (self.coordinate_width**2)
+                / (20**2)
+            )
+        ):
+            if candidate.get_parameter(constants.WATER) < 5:
+                if (
+                    candidate.get_parameter(constants.TEMPERATURE) <= frozen_bound
+                ):  # Water can go to coldest freezing location
+                    if best_frozen == None or candidate.get_parameter(
+                        constants.TEMPERATURE
+                    ) < best_frozen.get_parameter(constants.TEMPERATURE):
+                        best_frozen = candidate
         if best_frozen == None and best_liquid == None and best_gas == None:
             return
         choice = random.choices(
@@ -318,10 +337,10 @@ class world_grid(grid):
                 abs((1 - best_frozen.get_parameter(constants.TEMPERATURE)))
                 if best_frozen
                 else 0,  # Weight frozen placement for low temperature
-                abs(10 - best_liquid.get_parameter(constants.ALTITUDE))
+                abs(16 - best_liquid.get_parameter(constants.ALTITUDE))
                 if best_liquid
                 else 0,  # Weight liquid placement for low altitude
-                7.5 if best_gas else 0,
+                13.5 if best_gas else 0,
             ],
             k=1,
         )[0]
@@ -524,6 +543,52 @@ class world_grid(grid):
         return sum(
             [cell.get_parameter(parameter) for cell in self.get_flat_cell_list()]
         ) / (self.coordinate_width * self.coordinate_height)
+
+    def warm(self) -> None:
+        """
+        Description:
+            Warms the grid, increasing temperature
+                Selects the cell with the furthest temperature below its expected temperature
+        Input:
+            None
+        Output:
+            None
+        """
+        offsets = [
+            (
+                cell,
+                cell.terrain_handler.expected_temperature_offset
+                + random.uniform(-0.2, 0.2),
+            )
+            for cell in self.get_flat_cell_list()
+            if not cell.get_parameter(constants.TEMPERATURE) == 11
+        ]
+        if offsets:
+            cold_outlier = min(offsets, key=lambda x: x[1])[0]
+            cold_outlier.change_parameter(constants.TEMPERATURE, 1)
+
+    def cool(self) -> None:
+        """
+        Description:
+            Cools the grid, decreasing temperature
+                Selects the cell with the furthest temperature above its expected temperature
+        Input:
+            None
+        Output:
+            None
+        """
+        offsets = [
+            (
+                cell,
+                cell.terrain_handler.expected_temperature_offset
+                + random.uniform(-0.6, 0.6),
+            )
+            for cell in self.get_flat_cell_list()
+            if not cell.get_parameter(constants.TEMPERATURE) == -6
+        ]
+        if offsets:
+            hot_outlier = max(offsets, key=lambda x: x[1])[0]
+            hot_outlier.change_parameter(constants.TEMPERATURE, -1)
 
     def make_random_terrain_parameter_worm(
         self,
