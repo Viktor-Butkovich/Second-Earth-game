@@ -38,10 +38,12 @@ effect_manager: effect_manager_template = effect_manager_template()
 pygame.init()
 pygame.mixer.init()
 pygame.display.set_icon(pygame.image.load("graphics/misc/SE.png"))
-pygame.display.set_caption("SFA")
+pygame.display.set_caption("SE")
 pygame.key.set_repeat(300, 200)
 pygame.mixer.music.set_endevent(pygame.USEREVENT + 1)
 music_endevent: int = pygame.mixer.music.get_endevent()
+
+loading_loops: int = 0
 
 key_codes: List[int] = [
     pygame.K_a,
@@ -169,7 +171,9 @@ resolution_finder = pygame.display.Info()
 if effect_manager.effect_active("fullscreen"):
     display_width: float = resolution_finder.current_w
     display_height: float = resolution_finder.current_h
-    game_display: pygame.Surface = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    game_display: pygame.Surface = pygame.display.set_mode(
+        (0, 0), pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF
+    )
 else:
     display_width: float = resolution_finder.current_w - round(
         default_display_width / 10
@@ -178,7 +182,7 @@ else:
         default_display_height / 10
     )
     game_display: pygame.Surface = pygame.display.set_mode(
-        (display_width, display_height)
+        (display_width, display_height), pygame.HWSURFACE | pygame.DOUBLEBUF
     )
 
 sound_manager: sound_manager_template = sound_manager_template()
@@ -219,7 +223,6 @@ fps_tracker: value_tracker_template = None
 frames_this_second: int = 0
 last_fps_update: float = 0.0
 
-loading_start_time: float = 0.0
 previous_turn_time: float = 0.0
 current_time: float = 0.0
 last_selection_outline_switch: float = 0.0
@@ -254,14 +257,21 @@ abstract_grid_type_list: List[str] = ["earth_grid"]
 grids_collection_x: int = default_display_width - 740
 grids_collection_y: int = default_display_height - 325
 
-strategic_map_pixel_width: int = 320
-strategic_map_pixel_height: int = 300
-earth_grid_x_offset: int = 30
-earth_grid_y_offset: int = 145
+earth_grid_x_offset: int = -75  # 130 - 60
+earth_grid_y_offset: int = 140
+earth_grid_width: int = 108  # 180
+earth_grid_height: int = 108  # 180
 
-minimap_grid_pixel_width: int = strategic_map_pixel_width * 2
-minimap_grid_pixel_height: int = strategic_map_pixel_height * 2
-minimap_grid_coordinate_size: int = 5
+strategic_map_x_offset: int = earth_grid_x_offset + earth_grid_width + 15  # 60
+strategic_map_y_offset: int = earth_grid_y_offset
+strategic_map_pixel_width: int = 180  # 320 * 0.75
+strategic_map_pixel_height: int = 180  # 320 * 0.75
+
+minimap_grid_x_offset: int = -75
+minimap_grid_y_offset: int = 150
+minimap_grid_pixel_width: int = 750  # strategic_map_pixel_width * 2
+minimap_grid_pixel_height: int = 750  # strategic_map_pixel_height * 2
+minimap_grid_coordinate_size: int = 7
 
 default_text_box_height: int = 0
 text_box_height: int = 0
@@ -432,8 +442,24 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
         "True": "Fog of war disabled - no knowledge required to view tiles",
         "False": "Fog of war active - knowledge required to view tiles",
     },
+    "earth_preset": {
+        "default": "Creates an Earth-like planet",
+        "True": "Earth-like planet creation enabled",
+        "False": "Earth-like planet creation disabled",
+    },
+    "mars_preset": {
+        "default": "Creates a Mars-like planet",
+        "True": "Mars-like planet creation enabled",
+        "False": "Mars-like planet creation disabled",
+    },
+    "venus_preset": {
+        "default": "Creates a Venus-like planet",
+        "True": "Venus-like planet creation enabled",
+        "False": "Venus-like planet creation disabled",
+    },
 }
 
+map_size_options: List[str] = None
 current_game_mode: str = None
 STRATEGIC_MODE: str = "strategic"
 EARTH_MODE: str = "earth"
@@ -466,6 +492,27 @@ terrain_parameters: List[str] = [
     SOIL,
     ALTITUDE,
 ]
+# Create interface that conveys total pressure w/ proportions as well as quantities of O2, GHG, inert gases, toxic gases, followed by total water, radiation, and magnetic field
+#   - ~8 labels
+
+PRESSURE: str = "pressure"
+OXYGEN: str = "oxygen"
+GHG: str = "GHG"
+INERT_GASES: str = "inert_gases"
+TOXIC_GASES: str = "toxic_gases"
+GRAVITY: str = "gravity"
+RADIATION: str = "radiation"
+MAGNETIC_FIELD: str = "magnetic_field"
+global_parameters: List[str] = [
+    PRESSURE,
+    OXYGEN,
+    GHG,
+    INERT_GASES,
+    TOXIC_GASES,
+    GRAVITY,
+    RADIATION,
+    MAGNETIC_FIELD,
+]
 
 current_map_mode: str = "terrain"
 map_modes: List[str] = [
@@ -481,15 +528,17 @@ map_modes: List[str] = [
 
 DEFAULT_MINISTER_OUTFIT_TYPE = "business"
 
-HAT_LEVEL: int = 6
-EYES_LEVEL: int = 2
-GLASSES_LEVEL: int = 3
-HAIR_LEVEL: int = 4
+HAT_LEVEL: int = 9
+EYES_LEVEL: int = 3
+GLASSES_LEVEL: int = 4
+HAIR_LEVEL: int = 5
 FACIAL_HAIR_LEVEL: int = 8
 PORTRAIT_LEVEL: int = 10
 LABEL_LEVEL: int = 11
 FRONT_LEVEL: int = 20
 BACKGROUND_LEVEL: int = -5
+DEFAULT_LEVEL: int = 2
+BACKPACK_LEVEL: int = 1
 
 PIXELLATED_SIZE: int = 2
 LIGHT_PIXELLATED_SIZE: int = 50
@@ -503,10 +552,10 @@ TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT: int = 0
 def update_terrain_knowledge_requirements():
     global TERRAIN_KNOWLEDGE_REQUIREMENT, TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
     TERRAIN_KNOWLEDGE_REQUIREMENT = (
-        1 if effect_manager.effect_active("remove_fog_of_war") else 2
+        0 if effect_manager.effect_active("remove_fog_of_war") else 1
     )
     TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT = (
-        1 if effect_manager.effect_active("remove_fog_of_war") else 3
+        0 if effect_manager.effect_active("remove_fog_of_war") else 2
     )
 
 
@@ -518,7 +567,9 @@ LIST_FEATURE_TRACKING: str = "list"
 MAP_MODE_ALPHA: int = 170
 
 SETTLEMENT_PANEL: str = "settlement_panel"
-TERRAIN_PANEL: str = "terrain_panel"
+LOCAL_CONDITIONS_PANEL: str = "local_conditions_panel"
+GLOBAL_CONDITIONS_PANEL: str = "global_conditions_panel"
+
 INVENTORY_PANEL: str = "inventory_panel"
 REORGANIZATION_PANEL: str = "reorganization_panel"
 
@@ -568,8 +619,7 @@ minister_corruption_to_description_dict: List[List[str]] = [
 ]  # not literally a dict, but index of corruption number can be used like a dictionary
 
 MOB: str = "mob"
-EUROPEAN_WORKERS: str = "european_workers"
-CHURCH_VOLUNTEERS: str = "church_volunteers"
+COLONISTS: str = "colonists"
 TRAIN: str = "train"
 COLONY_SHIP: str = "colony_ship"
 SPACESHIP: str = "spaceship"
@@ -582,6 +632,7 @@ FOREMAN: str = "foreman"
 MERCHANT: str = "merchant"
 EVANGELIST: str = "evangelist"
 MAJOR: str = "major"
+ASTRONAUT_COMMANDER: str = "astronaut_commander"
 PORTERS: str = "porters"
 WORK_CREW: str = "work_crew"
 CONSTRUCTION_GANG: str = "construction_gang"
@@ -589,6 +640,7 @@ CARAVAN: str = "caravan"
 MISSIONARIES: str = "missionaries"
 EXPEDITION: str = "expedition"
 BATTALION: str = "battalion"
+ASTRONAUTS: str = "astronauts"
 
 RAILROAD: str = "railroad"
 ROAD: str = "road"
@@ -745,11 +797,14 @@ TRANSPORTATION_SKILL_LABEL: str = "transportation_skill_label"
 SECURITY_SKILL_LABEL: str = "security_skill_label"
 
 EVIDENCE_LABEL: str = "evidence_label"
-NAME_LABEL: str = "name_label"
+UNIT_TYPE_LABEL: str = "unit_type_label"
+OFFICER_NAME_LABEL: str = "officer_name_label"
+GROUP_NAME_LABEL: str = "group_name_label"
 MINISTER_LABEL: str = "minister_label"
 OFFICER_LABEL: str = "officer_label"
 WORKERS_LABEL: str = "workers_label"
 MOVEMENT_LABEL: str = "movement_label"
+EQUIPMENT_LABEL: str = "equipment_label"
 COMBAT_STRENGTH_LABEL: str = "combat_strength_label"
 ATTITUDE_LABEL: str = "attitude_label"
 CONTROLLABLE_LABEL: str = "controllable_label"
@@ -768,6 +823,16 @@ ROUGHNESS_LABEL: str = "roughness_label"
 SOIL_LABEL: str = "soil_label"
 ALTITUDE_LABEL: str = "altitude_label"
 RESOURCE_LABEL: str = "resource_label"
+PRESSURE_LABEL: str = "pressure_label"
+OXYGEN_LABEL: str = "oxygen_label"
+GHG_LABEL: str = "GHG_label"
+INERT_GASES_LABEL: str = "inert_gases_label"
+TOXIC_GASES_LABEL: str = "toxic_gases_label"
+AVERAGE_WATER_LABEL: str = "average_water_label"
+AVERAGE_TEMPERATURE_LABEL: str = "average_temperature_label"
+GRAVITY_LABEL: str = "gravity_label"
+RADIATION_LABEL: str = "radiation_label"
+MAGNETIC_FIELD_LABEL: str = "magnetic_field_label"
 TILE_INVENTORY_CAPACITY_LABEL: str = "tile_inventory_capacity_label"
 MOB_INVENTORY_CAPACITY_LABEL: str = "mob_inventory_capacity_label"
 
@@ -796,18 +861,23 @@ NPMOB_PERMISSION: str = "npmob"
 VEHICLE_PERMISSION: str = "vehicle"
 SPACESHIP_PERMISSION: str = "spaceship"
 TRAIN_PERMISSION: str = "train"
+TRAVEL_PERMISSION: str = "travel"
+MOVEMENT_DISABLED_PERMISSION: str = "movement_disabled"
+INFINITE_MOVEMENT_PERMISSION: str = "infinite_movement"
+CONSTANT_MOVEMENT_COST_PERMISSION: str = "constant_movement_cost"
 ACTIVE_PERMISSION: str = "active_permission"
+WALK_PERMISSION: str = "walk_permission"
+SWIM_PERMISSION: str = "swim_permission"
 ACTIVE_VEHICLE_PERMISSION: str = "active_vehicle"
 INACTIVE_VEHICLE_PERMISSION: str = "inactive_vehicle"
 OFFICER_PERMISSION: str = "officer"
 WORKER_PERMISSION: str = "worker"
-CHURCH_VOLUNTEERS_PERMISSION: str = "church_volunteers"
-EUROPEAN_WORKERS_PERMISSION: str = "european_workers"
 GROUP_PERMISSION: str = "group"
 INIT_COMPLETE_PERMISSION: str = "init_complete"
 DISORGANIZED_PERMISSION: str = "disorganized"
 VETERAN_PERMISSION: str = "veteran"
 DUMMY_PERMISSION: str = "dummy"
+SPACESUITS_PERMISSION: str = "spacesuits"
 
 EXPEDITION_PERMISSION: str = "expedition"
 CONSTRUCTION_PERMISSION: str = "construction"
@@ -815,6 +885,7 @@ WORK_CREW_PERMISSION: str = "work_crew"
 CARAVAN_PERMISSION: str = "caravan"
 MISSIONARIES_PERMISSION: str = "missionaries"
 BATTALION_PERMISSION: str = "battalion"
+ASTRONAUTS_PERMISSION: str = "astronauts"
 PORTERS_PERMISSION: str = "porters"
 
 EXPLORER_PERMISSION: str = "explorer"
@@ -824,12 +895,15 @@ FOREMAN_PERMISSION: str = "foreman"
 MERCHANT_PERMISSION: str = "merchant"
 EVANGELIST_PERMISSION: str = "evangelist"
 MAJOR_PERMISSION: str = "major"
+ASTRONAUT_COMMANDER_PERMISSION: str = "astronaut_commander"
 
+CREW_VEHICLE_PERMISSION: str = "crew_vehicle"
 CREW_SPACESHIP_PERMISSION: str = "crew_spaceship"
 CREW_TRAIN_PERMISSION: str = "crew_train"
 
 DEFAULT_PERMISSIONS: Dict[str, Any] = {
     ACTIVE_PERMISSION: True,
+    WALK_PERMISSION: True,
 }
 
 CREW_PERMISSIONS: Dict[str, Any] = {
@@ -842,3 +916,16 @@ ALLOW_DISORGANIZED: bool = False
 
 INITIAL_MONEY: int = 1000
 INITIAL_PUBLIC_OPINION: int = 50
+
+FULL_BODY_PORTRAIT_SECTION: str = "full_body"
+OUTFIT_PORTRAIT_SECTION: str = "outfit"
+SKIN_PORTRAIT_SECTION: str = "skin"
+HAIR_PORTRAIT_SECTION: str = "hair"
+FACIAL_HAIR_PORTAIT_SECTION: str = "facial_hair"
+GLASSES_PORTRAIT_SECTION: str = "glasses"
+BACKPACK_PORTRAIT_SECTION: str = "backpack"
+HAT_PORTRAIT_SECTION: str = "hat"
+NOSE_PORTRAIT_SECTION: str = "nose"
+MOUTH_PORTRAIT_SECTION: str = "mouth"
+EYES_PORTRAITS_SECTION: str = "eyes"
+FRAME_PORTRAIT_SECTION: str = "frame"

@@ -44,22 +44,22 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
         Returns the cost of the inputted unit attempting to construct the inputted building
     Input:
         pmob/string constructor: Unit attempting to construct the building, or None if no location/unit type is needed
-        string building_type: Type of building to build, like 'infrastructure'
+        string building_type: Key of type of building to build, like 'infrastructure'
         string building_name = 'n/a': Name of building being built, used to differentiate roads from railroads
     Output:
         int: Returns the cost of the inputted unit attempting to construct the inputted building
     """
-    if building_type.key == constants.INFRASTRUCTURE:
+    if building_type == constants.INFRASTRUCTURE:
         building_type = building_name.replace(
             " ", "_"
         )  # road, railroad, road_bridge, or railroad_bridge
-    if building_type.key == constants.WAREHOUSES:
+    if building_type == constants.WAREHOUSES:
         if constructor:
             base_price = constructor.get_cell().get_warehouses_cost()
         else:
             base_price = 5
     else:
-        base_price = building_type.cost
+        base_price = status.building_types[building_type].cost
 
     if building_type in [constants.TRAIN]:
         cost_multiplier = 1
@@ -148,10 +148,7 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
             calibrate_actor_info_display(status.mob_inventory_info_display, None)
             switched = True
         status.displayed_mob = new_actor
-        if switched and (
-            not flags.choosing_destination
-        ):  # Don't change tabs while choosing destination
-            select_default_tab(status.mob_tabbed_collection, new_actor)
+        select_default_tab(status.mob_tabbed_collection, new_actor)
         if new_actor and new_actor.get_cell().tile == status.displayed_tile:
             for current_same_tile_icon in status.same_tile_icon_list:
                 current_same_tile_icon.reset()
@@ -175,19 +172,27 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
     target_tab = None
     if displayed_actor:
         if tabbed_collection == status.tile_tabbed_collection:
-            if status.displayed_tile.inventory:
+            target_tab = status.global_conditions_collection
+            if (
+                status.displayed_tile.inventory
+                and status.tile_inventory_collection.showing
+            ):
                 target_tab = status.tile_inventory_collection
             elif status.displayed_tile.cell.settlement:
                 target_tab = status.settlement_collection
-            else:
-                target_tab = status.terrain_collection
+            elif (
+                status.tile_tabbed_collection.current_tabbed_member
+                == status.local_conditions_collection
+                and status.local_conditions_collection.tab_button.can_show()
+            ):
+                target_tab = status.local_conditions_collection
         elif tabbed_collection == status.mob_tabbed_collection:
             if status.displayed_mob.get_permission(constants.PMOB_PERMISSION):
-                if status.displayed_mob.inventory or status.displayed_mob.equipment:
+                if status.displayed_mob.inventory:
                     target_tab = status.mob_inventory_collection
                 else:
                     target_tab = status.mob_reorganization_collection
-    if target_tab:
+    if target_tab and not target_tab.showing:
         select_interface_tab(tabbed_collection, target_tab)
 
 
@@ -339,7 +344,10 @@ def generate_unit_component_portrait(
                 edited_section["y_offset"] += 0.043
                 edited_section["x_size"] *= 0.94
                 edited_section["y_size"] *= 0.94
-            if section["metadata"]["portrait_section"] == "full_body":
+            if section["metadata"]["portrait_section"] in [
+                constants.FULL_BODY_PORTRAIT_SECTION,
+                constants.BACKPACK_PORTRAIT_SECTION,
+            ]:
                 edited_section["x_offset"] += 0.008
                 edited_section["y_offset"] += 0.055
         elif component.endswith("right"):
@@ -350,10 +358,16 @@ def generate_unit_component_portrait(
                 edited_section["y_offset"] += 0.043
                 edited_section["x_size"] *= 0.94
                 edited_section["y_size"] *= 0.94
-            if section["metadata"]["portrait_section"] == "full_body":
+            if section["metadata"]["portrait_section"] in [
+                constants.FULL_BODY_PORTRAIT_SECTION,
+                constants.BACKPACK_PORTRAIT_SECTION,
+            ]:
                 edited_section["x_offset"] += 0.018
                 edited_section["y_offset"] += 0.055
-        elif section["metadata"]["portrait_section"] == "full_body":
+        elif section["metadata"]["portrait_section"] in [
+            constants.FULL_BODY_PORTRAIT_SECTION,
+            constants.BACKPACK_PORTRAIT_SECTION,
+        ]:
             edited_section["x_offset"] += 0.015
             edited_section["y_offset"] += 0.05
         return_list.append(edited_section)
@@ -401,11 +415,8 @@ def generate_group_name(worker, officer, add_veteran=False):
                 name += character
             else:
                 name += " "
-    else:  # battalions have special naming convention based on worker type
-        if worker.get_permission(constants.EUROPEAN_WORKERS_PERMISSION):
-            name = "imperial battalion"
-        else:
-            name = "colonial battalion"
+    else:
+        name = "battalion"
     if add_veteran and officer.get_permission(constants.VETERAN_PERMISSION):
         name = "veteran " + name
     return name
@@ -457,7 +468,10 @@ def select_interface_tab(tabbed_collection, target_tab):
     """
     if not target_tab.showing:
         for tab_button in tabbed_collection.tabs_collection.members:
-            if tab_button.linked_element == target_tab:
+            if (
+                hasattr(tab_button, "linked_element")
+                and tab_button.linked_element == target_tab
+            ):
                 tab_button.on_click()
                 continue
 

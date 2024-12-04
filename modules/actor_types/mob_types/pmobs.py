@@ -66,7 +66,6 @@ class pmob(mob):
                 ).tile
             self.default_name = input_dict["default_name"]
             self.set_name(self.default_name)
-            self.set_sentry_mode(input_dict["sentry_mode"])
             self.set_automatically_replace(input_dict["automatically_replace"])
             if input_dict["in_turn_queue"] and not input_dict["end_turn_destination"]:
                 self.add_to_turn_queue()
@@ -77,8 +76,7 @@ class pmob(mob):
             self.wait_until_full = input_dict["wait_until_full"]
         else:
             self.default_name = self.name
-            self.set_max_movement_points(4)
-            self.set_sentry_mode(False)
+            self.set_max_movement_points(self.unit_type.movement_points)
             self.set_automatically_replace(True)
             self.add_to_turn_queue()
             self.base_automatic_route = (
@@ -117,6 +115,8 @@ class pmob(mob):
                 "select_on_creation"
             ]:
                 self.on_move()
+            self.set_sentry_mode(input_dict.get("sentry_mode", False))
+            self.select()
 
     def permissions_setup(self) -> None:
         """
@@ -129,6 +129,64 @@ class pmob(mob):
         """
         super().permissions_setup()
         self.set_permission(constants.PMOB_PERMISSION, True)
+
+    def crew_vehicle(self, vehicle):
+        """
+        Description:
+            Orders this worker to crew the inputted vehicle, attaching this worker to the vehicle and allowing the vehicle to function
+        Input:
+            vehicle vehicle: vehicle to which this worker is attached
+        Output:
+            None
+        """
+        self.in_vehicle = True
+        self.hide_images()
+        vehicle.set_crew(self)
+        moved_mob = vehicle
+        for current_image in moved_mob.images:  # Moves vehicle to front
+            if current_image.current_cell:
+                while not moved_mob == current_image.current_cell.contained_mobs[0]:
+                    current_image.current_cell.contained_mobs.append(
+                        current_image.current_cell.contained_mobs.pop(0)
+                    )
+        self.remove_from_turn_queue()
+        vehicle.add_to_turn_queue()
+        if (
+            not flags.loading_save
+        ):  # Don't select vehicle if loading in at start of game
+            actor_utility.calibrate_actor_info_display(
+                status.mob_info_display, None, override_exempt=True
+            )
+            vehicle.select()
+            vehicle.selection_sound()
+
+    def uncrew_vehicle(self, vehicle):
+        """
+        Description:
+            Orders this worker to stop crewing the inputted vehicle, making this worker independent from the vehicle and preventing the vehicle from functioning
+        Input:
+            vehicle vehicle: vehicle to which this worker is no longer attached
+        Output:
+            None
+        """
+        self.in_vehicle = False
+        self.x = vehicle.x
+        self.y = vehicle.y
+        self.show_images()
+        if not self.get_cell().get_intact_building(constants.SPACEPORT):
+            if constants.ALLOW_DISORGANIZED:
+                self.set_permission(constants.DISORGANIZED_PERMISSION, True)
+        vehicle.set_crew(None)
+        vehicle.end_turn_destination = None
+        vehicle.hide_images()
+        vehicle.show_images()  # bring vehicle to front of tile
+        vehicle.remove_from_turn_queue()
+        actor_utility.calibrate_actor_info_display(
+            status.mob_info_display, None, override_exempt=True
+        )
+        self.select()
+        self.add_to_turn_queue()
+        self.update_image_bundle()
 
     def on_move(self):
         """
@@ -470,6 +528,17 @@ class pmob(mob):
             image_id_list.append("misc/veteran_icon.png")
         if self.sentry_mode:
             image_id_list.append("misc/sentry_icon.png")
+        if self.get_permission(constants.GROUP_PERMISSION):
+            image_id_list += actor_utility.generate_group_image_id_list(
+                self.worker, self.officer
+            )
+        elif self.get_permission(constants.WORKER_PERMISSION):
+            image_id_list += actor_utility.generate_unit_component_portrait(
+                self.image_dict.get("left portrait", []), "left"
+            )
+            image_id_list += actor_utility.generate_unit_component_portrait(
+                self.image_dict.get("right portrait", []), "right"
+            )
         return image_id_list
 
     def set_sentry_mode(self, new_value):
@@ -490,10 +559,6 @@ class pmob(mob):
             self.update_image_bundle()
             if new_value == True:
                 self.remove_from_turn_queue()
-                if status.displayed_mob == self:
-                    actor_utility.calibrate_actor_info_display(
-                        status.mob_info_display, self
-                    )  # updates actor info display with sentry icon
             else:
                 if (
                     self.movement_points > 0
@@ -609,8 +674,9 @@ class pmob(mob):
                         "zoom_destination": self,
                     }
                 )
-
-            self.temp_disable_movement()
+            self.set_permission(
+                constants.MOVEMENT_DISABLED_PERMISSION, True, override=True
+            )
             self.replace()
             self.death_sound("violent")
         else:
@@ -723,17 +789,6 @@ class pmob(mob):
             self.manage_inventory_attrition()  # do an inventory check when crossing ocean, using the destination's terrain
             self.end_turn_destination = None
 
-    def can_travel(self):  # if can move between Earth, the planet, etc.
-        """
-        Description:
-            Returns whether this mob can enter space. By default, mobs cannot enter space, but subclasses like spaceships are able to return True
-        Input:
-            None
-        Output:
-            boolean: Returns True if this mob can cross the ocean, otherwise returns False
-        """
-        return False  # different for subclasses
-
     def set_inventory(self, commodity, new_value):
         """
         Description:
@@ -758,19 +813,6 @@ class pmob(mob):
             None
         """
         self.die("fired")
-
-    def can_move(self, x_change, y_change, can_print=True):
-        """
-        Description:
-            Returns whether this mob can move to the tile x_change to the right of it and y_change above it. Movement can be prevented by not being able to move on water/land, the edge of the map, limited movement points, etc.
-        Input:
-            int x_change: How many cells would be moved to the right in the hypothetical movement
-            int y_change: How many cells would be moved upward in the hypothetical movement
-            boolean can_print = True: Whether to print messages to explain why a unit can't move in a certain direction
-        Output:
-            boolean: Returns True if this mob can move to the proposed destination, otherwise returns False
-        """
-        return super().can_move(x_change, y_change, can_print=can_print)
 
     def can_show_tooltip(self):
         """

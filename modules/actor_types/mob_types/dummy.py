@@ -1,11 +1,11 @@
 # Contains functionality for dummies, which replicate other objects or act as models of hypothetical objects with fake attribute values and tooltips
 
 from typing import Dict, Any
-from .. import mobs
+import modules.actor_types.mob_types.pmobs as pmobs
 import modules.constants.constants as constants
 
 
-class dummy(mobs.mob):
+class dummy(pmobs.pmob):
     """
     Mock mob that can take any attribute values needed to get certain image or tooltip outputs without affecting rest of program
     """
@@ -41,4 +41,15 @@ class dummy(mobs.mob):
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        return self.image_id_list
+        return super().get_image_id_list()
+
+    def update_image_bundle(self):
+        """
+        Description:
+            Updates this actor's images with its current image id list
+        Input:
+            None
+        Output:
+            None
+        """
+        return

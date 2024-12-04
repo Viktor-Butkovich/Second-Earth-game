@@ -1,7 +1,7 @@
 # Contains functionality for officer units
 
+import random
 from .pmobs import pmob
-from ...util import actor_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 
@@ -33,6 +33,19 @@ class officer(pmob):
         Output:
             None
         """
+        if not from_save:
+            self.character_info = {}
+            self.character_info[
+                "ethnicity"
+            ] = constants.character_manager.generate_ethnicity()
+            self.character_info["masculine"] = random.choice([True, False])
+            self.character_info["name"] = " ".join(
+                constants.character_manager.generate_name(
+                    self.character_info["ethnicity"], self.character_info["masculine"]
+                )
+            )
+        else:
+            self.character_info = input_dict["character_info"]
         super().__init__(from_save, input_dict, original_constructor=False)
         if not from_save:
             self.selection_sound()
@@ -72,6 +85,7 @@ class officer(pmob):
         """
         save_dict = super().to_save_dict()
         save_dict["veteran"] = self.get_permission(constants.VETERAN_PERMISSION)
+        save_dict["character_info"] = self.character_info
         return save_dict
 
     def promote(self):

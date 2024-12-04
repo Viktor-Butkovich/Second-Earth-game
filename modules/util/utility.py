@@ -1,6 +1,7 @@
 # Contains miscellaneous functions, like removing an item from a list or finding the distance between 2 points
 
 from typing import List
+from copy import deepcopy
 
 
 def find_object_distance(first, second):
@@ -144,6 +145,55 @@ def generate_capitalized_article(word):
         return "A "
 
 
+def pretty_print_image_dict(image_dict: dict):
+    """
+    Description:
+        Pretty-prints an image_dict, displaying indented image_id and metadata for each component
+    Input:
+        dict image_dict: image_dict in following format:
+        {
+            "default": "unit.png",
+            "portrait": [
+                {
+                    "image_id": "unit_hat.png",
+                    "size": 0.95,
+                    "x_offset": 0,
+                    "y_offset": 0,
+                    "level": 1,
+                    "green_screen": False
+                }
+                ...
+            ],
+            "left portrait": [
+                ...
+            ],
+            ...
+        }
+    Output:
+        None
+    """
+    printed_dict = deepcopy(image_dict)
+    for key, portrait in printed_dict.items():
+        print(f"{key}:")
+        if type(portrait) == str:
+            print(f"    {portrait}")
+        else:
+            for item in portrait:
+                if "x_size" in item:
+                    del item["x_size"]
+                if "y_size" in item:
+                    del item["y_size"]
+                if "x_offset" in item:
+                    del item["x_offset"]
+                if "y_offset" in item:
+                    del item["y_offset"]
+                if "level" in item:
+                    del item["level"]
+                if "green_screen" in item:
+                    del item["green_screen"]
+                print(f"    {item}")
+
+
 def conjugate(infinitive, amount, tense="present"):
     """
     Description:
@@ -219,9 +269,9 @@ def fahrenheit(temperature: int):
     Output:
         int: Returns temperature in fahrenheit
     """
-    if temperature < 1:
-        return temperature * 30 - 20
-    elif temperature > 6:
-        return temperature * 30 - 70
+    if temperature < 0:
+        return temperature * 30 + 10
+    elif temperature > 5:
+        return temperature * 30 - 40
     else:
-        return temperature * 20 - 5
+        return temperature * 20 + 15

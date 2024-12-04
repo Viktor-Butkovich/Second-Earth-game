@@ -1,5 +1,15 @@
 {
+   "active_effects": [
+      "fullscreen",
+      "allow_planet_mask",
+      "map_modes",
+      "god_mode",
+      "link_inventory_tabs",
+      "allow_presets",
+      "allow_toggle_fog_of_war"
+   ],
    "effects": [
+      "allow_presets",
       "boost_attrition",
       "damaged_buildings", 
       "show_corruption_on_save", 
@@ -31,13 +41,9 @@
       "large_map",
       "tiny_map",
       "god_mode",
-      "allow_toggle_fog_of_war"
-   ],
-   "active_effects": [
-      "fullscreen",
-      "allow_planet_mask",
-      "map_modes",
-      "god_mode",
-      "allow_toggle_fog_of_war"
+      "allow_toggle_fog_of_war",
+      "earth_preset",
+      "mars_preset",
+      "venus_preset"
    ]
 }

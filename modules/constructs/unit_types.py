@@ -9,6 +9,7 @@ import modules.util.text_utility as text_utility
 import modules.util.utility as utility
 import modules.util.actor_utility as actor_utility
 import modules.constructs.minister_types as minister_types
+import modules.constructs.building_types as building_types
 
 
 class unit_type:
@@ -33,6 +34,8 @@ class unit_type:
                 'controlling_minister_type': minister_type value - Minister type that controls this unit type
                 'number': int value - Number of entities referenced by this unit's name, used in plural declension
                 'name': string value - Default name of this unit type
+                'movement_points': int value - Maximum number of movement points this unit starts with, default of 4
+                'required_infrastructure': building_type value - Building type required for this unit to move (like railroad), default of None
         Output:
             None
         """
@@ -65,6 +68,10 @@ class unit_type:
             self.num_instances: int = 0
             self.image_id = f"mobs/{self.key}/default.png"
             self.name: str = input_dict.get("name", "default")
+            self.movement_points: int = input_dict.get("movement_points", 4)
+            self.required_infrastructure: building_types.building_type = input_dict.get(
+                "required_infrastructure", None
+            )
 
             status.unit_types[self.key] = self
         return
@@ -84,7 +91,8 @@ class unit_type:
         for image in image_id:
             if (
                 type(image) == dict
-                and image.get("metadata", {}).get("portrait_section", "") != "full_body"
+                and image.get("metadata", {}).get("portrait_section", "")
+                != constants.FULL_BODY_PORTRAIT_SECTION
             ):
                 image["x_offset"] = image.get("x_offset", 0) - 0.01
                 image["y_offset"] = image.get("y_offset", 0) - 0.01
@@ -391,7 +399,8 @@ class worker_type(unit_type):
         for image in image_id:
             if (
                 type(image) == dict
-                and image.get("metadata", {}).get("portrait_section", "") != "full_body"
+                and image.get("metadata", {}).get("portrait_section", "")
+                != constants.FULL_BODY_PORTRAIT_SECTION
             ):
                 image["y_offset"] = image.get("y_offset", 0) - 0.02
         return image_id
@@ -458,7 +467,7 @@ class worker_type(unit_type):
             None
         """
         super().on_recruit()
-        if self.key != constants.CHURCH_VOLUNTEERS:
+        if self.upkeep > 0:
             market_utility.attempt_worker_upkeep_change("increase", self)
 
     def on_remove(self):
@@ -482,10 +491,10 @@ class worker_type(unit_type):
         Output:
             None
         """
-        if self.key != constants.CHURCH_VOLUNTEERS:
+        if self.upkeep > 0:
             market_utility.attempt_worker_upkeep_change("decrease", self)
 
-        if self.key in [constants.CHURCH_VOLUNTEERS, constants.EUROPEAN_WORKERS]:
+        if self.key in [constants.COLONISTS]:
             current_public_opinion = constants.public_opinion
             constants.public_opinion_tracker.change(-1)
             resulting_public_opinion = constants.public_opinion

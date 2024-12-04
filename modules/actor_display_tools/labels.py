@@ -1,11 +1,12 @@
 # Contains functionality for actor display labels
 
 import pygame
-
+from math import ceil
 from ..interface_types.labels import label
 from ..util import utility, scaling, actor_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
+import modules.constants.flags as flags
 
 
 class actor_display_label(label):
@@ -41,6 +42,7 @@ class actor_display_label(label):
         self.actor_type = input_dict[
             "actor_type"
         ]  # mob or tile, None if does not scale with shown labels, like tooltip labels
+        self.default_tooltip_text = input_dict.get("default_tooltip_text", [])
         self.image_y_displacement = 0
         input_dict["message"] = ""
         super().__init__(input_dict)
@@ -59,8 +61,8 @@ class actor_display_label(label):
             "modes": self.modes,
             "attached_label": self,
         }
-        if self.actor_label_type == constants.NAME_LABEL:
-            self.message_start = "Name: "
+        if self.actor_label_type == constants.UNIT_TYPE_LABEL:
+            self.message_start = "Unit type: "
 
             input_dict["init_type"] = constants.EMBARK_VEHICLE_BUTTON
             input_dict["image_id"] = "buttons/embark_spaceship_button.png"
@@ -126,9 +128,43 @@ class actor_display_label(label):
                     if button_input_dict:
                         self.add_attached_button(button_input_dict)
 
+        elif self.actor_label_type in [
+            constants.OFFICER_NAME_LABEL,
+            constants.GROUP_NAME_LABEL,
+        ]:
+            self.message_start = "Name: "
+
+        elif self.actor_label_type == constants.EQUIPMENT_LABEL:
+            self.message_start = "Equipment: "
+            if flags.enable_equipment_panel:
+                input_dict["init_type"] = constants.ANONYMOUS_BUTTON
+                input_dict["image_id"] = [
+                    "buttons/default_button_alt2.png",
+                    {"image_id": "misc/green_circle.png", "size": 0.75},
+                    {"image_id": "items/consumer goods.png", "size": 0.75},
+                ]
+                input_dict["button_type"] = {
+                    "on_click": (
+                        status.mob_inventory_collection.tab_button.on_click,
+                        (),
+                    ),
+                    "tooltip": ["Displays the unit inventory panel"],
+                }
+                self.add_attached_button(input_dict)
+            else:
+                input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
+                for equipment_type in status.equipment_types:
+                    input_dict["equipment_type"] = equipment_type
+                    input_dict["image_id"] = [
+                        "buttons/default_button.png",
+                        "misc/green_circle.png",
+                        f"items/{equipment_type}.png",
+                    ]
+                    self.add_attached_button(input_dict)
+
         elif self.actor_label_type == constants.MOVEMENT_LABEL:
             self.message_start = "Movement points: "
-
+            """
             input_dict["init_type"] = constants.ENABLE_AUTOMATIC_REPLACEMENT_BUTTON
             input_dict["target_type"] = "unit"
             input_dict[
@@ -167,8 +203,8 @@ class actor_display_label(label):
                 "image_id"
             ] = "buttons/disable_automatic_replacement_officer_button.png"
             self.add_attached_button(input_dict)
-
             del input_dict["target_type"]
+            """
 
             input_dict["init_type"] = constants.ENABLE_SENTRY_MODE_BUTTON
             input_dict["image_id"] = "buttons/enable_sentry_mode_button.png"
@@ -235,7 +271,7 @@ class actor_display_label(label):
             constants.MOB_INVENTORY_CAPACITY_LABEL,
             constants.TILE_INVENTORY_CAPACITY_LABEL,
         ]:
-            self.message_start = "Inventory: "
+            self.message_start = "Capacity: "
             input_dict["width"], input_dict["height"] = (m_size, m_size)
             if self.actor_label_type == constants.TILE_INVENTORY_CAPACITY_LABEL:
                 input_dict["init_type"] = constants.USE_EACH_EQUIPMENT_BUTTON
@@ -243,7 +279,7 @@ class actor_display_label(label):
                 self.add_attached_button(input_dict)
 
                 input_dict["init_type"] = constants.PICK_UP_EACH_COMMODITY_BUTTON
-                input_dict["image_id"] = "buttons/commodity_pick_up_each_button.png"
+                input_dict["image_id"] = "buttons/commodity_drop_each_button.png"
                 self.add_attached_button(input_dict)
 
                 input_dict["init_type"] = constants.SELL_EACH_COMMODITY_BUTTON
@@ -252,18 +288,19 @@ class actor_display_label(label):
 
             elif self.actor_label_type == constants.MOB_INVENTORY_CAPACITY_LABEL:
                 input_dict["init_type"] = constants.DROP_EACH_COMMODITY_BUTTON
-                input_dict["image_id"] = "buttons/commodity_drop_each_button.png"
+                input_dict["image_id"] = "buttons/commodity_pick_up_each_button.png"
                 self.add_attached_button(input_dict)
 
-                input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
-                for equipment_type in status.equipment_types:
-                    input_dict["equipment_type"] = equipment_type
-                    input_dict["image_id"] = [
-                        "buttons/default_button.png",
-                        "misc/green_circle.png",
-                        f"items/{equipment_type}.png",
-                    ]
-                    self.add_attached_button(input_dict)
+                if flags.enable_equipment_panel:
+                    input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
+                    for equipment_type in status.equipment_types:
+                        input_dict["equipment_type"] = equipment_type
+                        input_dict["image_id"] = [
+                            "buttons/default_button.png",
+                            "misc/green_circle.png",
+                            f"items/{equipment_type}.png",
+                        ]
+                        self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.TERRAIN_LABEL:
             self.message_start = "Terrain: "
@@ -369,7 +406,7 @@ class actor_display_label(label):
             self.message_start = "Quantity: "
             if self.actor_type == "mob":
                 input_dict["init_type"] = constants.ANONYMOUS_BUTTON
-                input_dict["image_id"] = "buttons/commodity_drop_button.png"
+                input_dict["image_id"] = "buttons/commodity_pick_up_button.png"
                 input_dict["button_type"] = {
                     "on_click": (
                         actor_utility.callback,
@@ -379,7 +416,7 @@ class actor_display_label(label):
                 }
                 self.add_attached_button(input_dict)
 
-                input_dict["image_id"] = "buttons/commodity_drop_all_button.png"
+                input_dict["image_id"] = "buttons/commodity_pick_up_all_button.png"
                 input_dict["button_type"] = {
                     "on_click": (
                         actor_utility.callback,
@@ -392,7 +429,7 @@ class actor_display_label(label):
             elif self.actor_type == "tile":
                 original_input_dict = input_dict.copy()
                 input_dict["init_type"] = constants.ANONYMOUS_BUTTON
-                input_dict["image_id"] = "buttons/commodity_pick_up_button.png"
+                input_dict["image_id"] = "buttons/commodity_drop_button.png"
                 input_dict["button_type"] = {
                     "on_click": (
                         actor_utility.callback,
@@ -402,7 +439,7 @@ class actor_display_label(label):
                 }
                 self.add_attached_button(input_dict)
 
-                input_dict["image_id"] = "buttons/commodity_pick_up_all_button.png"
+                input_dict["image_id"] = "buttons/commodity_drop_all_button.png"
                 input_dict["button_type"] = {
                     "on_click": (
                         actor_utility.callback,
@@ -428,7 +465,7 @@ class actor_display_label(label):
                 self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.SETTLEMENT:
-            self.message_start = "Settlement: "
+            self.message_start = "Name: "
             input_dict["init_type"] = constants.RENAME_SETTLEMENT_BUTTON
             input_dict["image_id"] = "buttons/rename.png"
             self.add_attached_button(input_dict)
@@ -453,6 +490,24 @@ class actor_display_label(label):
                 input_dict["change"] = 1
                 input_dict["image_id"] = "buttons/cycle_ministers_up_button.png"
                 self.add_attached_button(input_dict)
+
+        elif self.actor_label_type.removesuffix(
+            "_label"
+        ) in constants.global_parameters or self.actor_label_type in [
+            constants.AVERAGE_WATER_LABEL,
+            constants.AVERAGE_TEMPERATURE_LABEL,
+        ]:
+            if self.actor_label_type.removesuffix(
+                "_label"
+            ).isupper():  # Detect acronyms
+                self.message_start = self.actor_label_type.removesuffix("_label") + ": "
+            else:
+                self.message_start = (
+                    utility.capitalize(
+                        self.actor_label_type.removesuffix("_label").replace("_", " ")
+                    )
+                    + ": "
+                )
 
         elif self.actor_label_type == constants.BANNER_LABEL:
             self.message_start = self.banner_text
@@ -577,6 +632,8 @@ class actor_display_label(label):
                         tooltip_text.append("")
                         tooltip_text += current_building.tooltip_text
                 self.set_tooltip(tooltip_text)
+            elif self.default_tooltip_text:
+                self.set_tooltip(self.default_tooltip_text)
 
         elif self.actor_label_type in [
             constants.MOB_INVENTORY_CAPACITY_LABEL,
@@ -666,6 +723,7 @@ class actor_display_label(label):
             tooltip_text.append(
                 "A minister's ethnicity influences their name and appearance"
             )
+            self.set_tooltip(tooltip_text)
 
         elif self.actor_label_type == constants.MINISTER_SOCIAL_STATUS_LABEL:
             tooltip_text = [self.message]
@@ -784,7 +842,7 @@ class actor_display_label(label):
                     )
                 elif self.actor_label_type == constants.TEMPERATURE_LABEL:
                     tooltip_text.append(
-                        "Represents the average temperature in this tile, on a scale from -5 to 12"
+                        "Represents the average temperature in this tile, on a scale from -6 to 11"
                     )
                     if self.actor.cell.terrain_handler.knowledge_available(
                         constants.TERRAIN_PARAMETER_KNOWLEDGE
@@ -792,6 +850,46 @@ class actor_display_label(label):
                         tooltip_text.append(
                             f"Approximately {utility.fahrenheit(self.actor.cell.get_parameter('temperature'))} degrees Fahrenheit"
                         )
+            self.set_tooltip(tooltip_text)
+
+        elif self.actor_label_type.removesuffix(
+            "_label"
+        ) in constants.global_parameters or self.actor_label_type in [
+            constants.AVERAGE_WATER_LABEL,
+            constants.AVERAGE_TEMPERATURE_LABEL,
+        ]:
+            tooltip_text = [self.message]
+            if self.actor:
+                if (
+                    self.actor_label_type == constants.GRAVITY_LABEL
+                    and not self.actor.grid == status.earth_grid
+                ):
+                    tooltip_text.append(
+                        f"Approximately {self.actor.grid.world_handler.get_parameter(constants.GRAVITY)}x Earth's gravity"
+                    )
+                    tooltip_text.append(
+                        f"Approximately {round(self.actor.grid.world_handler.size / self.actor.grid.world_handler.earth_size, 2)}x Earth's size"
+                    )
+                elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
+                    if not self.actor.grid == status.earth_grid:
+                        tooltip_text.append(
+                            f"Approximately {round(utility.fahrenheit(self.actor.grid.world_handler.average_temperature), 2)} degrees Fahrenheit"
+                        )
+                    tooltip_text.append(
+                        f"Earth is approximately 58 degrees Fahrenheit, corresponding to ~{self.actor.grid.world_handler.earth_average_temperature} temperature"
+                    )
+                elif self.actor_label_type == constants.RADIATION_LABEL:
+                    tooltip_text.append(f"Represents cosmic radiation and solar winds")
+                    tooltip_text.append(
+                        f"Any radiation exceeding magnetic field strength can harm life and slowly strip away atmosphere, particularly oxygen, inert gases, and non-frozen water"
+                    )
+                elif self.actor_label_type == constants.MAGNETIC_FIELD_LABEL:
+                    tooltip_text.append(
+                        f"Represents the strength of the magnetic field, which diverts cosmic radiation and solar winds"
+                    )
+                    tooltip_text.append(
+                        f"Any radiation exceeding magnetic field strength can harm life and slowly strip away atmosphere, particularly oxygen, inert gases, and non-frozen water"
+                    )
             self.set_tooltip(tooltip_text)
 
         else:
@@ -808,8 +906,22 @@ class actor_display_label(label):
         """
         self.actor = new_actor
         if new_actor:
-            if self.actor_label_type == constants.NAME_LABEL:
-                self.set_label(self.message_start + utility.capitalize(new_actor.name))
+            if self.actor_label_type == constants.UNIT_TYPE_LABEL:
+                self.set_label(
+                    f"{self.message_start}{utility.capitalize(new_actor.name)}"
+                )
+
+            elif self.actor_label_type == constants.OFFICER_NAME_LABEL:
+                if new_actor.get_permission(constants.OFFICER_PERMISSION):
+                    self.set_label(
+                        f"{self.message_start}{utility.capitalize(new_actor.character_info['name'])}"
+                    )
+
+            elif self.actor_label_type == constants.GROUP_NAME_LABEL:
+                if new_actor.get_permission(constants.GROUP_PERMISSION):
+                    self.set_label(
+                        f"{self.message_start}{utility.capitalize(new_actor.officer.character_info['name'])}"
+                    )
 
             elif self.actor_label_type == constants.COORDINATES_LABEL:
                 self.set_label(f"{self.message_start}({new_actor.x}, {new_actor.y})")
@@ -855,22 +967,33 @@ class actor_display_label(label):
                             constants.RESOURCE
                         ).name.capitalize()
                     )
+            elif self.actor_label_type == constants.EQUIPMENT_LABEL:
+                self.set_label(
+                    self.message_start
+                    + ", ".join(new_actor.equipment.keys()).capitalize()
+                )
 
             elif self.actor_label_type == constants.MOVEMENT_LABEL:
                 if self.actor.get_permission(constants.PMOB_PERMISSION):
-                    if new_actor.get_permission(constants.ACTIVE_PERMISSION) and not (
-                        new_actor.has_infinite_movement
-                        or new_actor.temp_movement_disabled
+                    if new_actor.get_permission(
+                        constants.ACTIVE_PERMISSION
+                    ) and not new_actor.any_permissions(
+                        constants.INFINITE_MOVEMENT_PERMISSION,
+                        constants.MOVEMENT_DISABLED_PERMISSION,
                     ):
                         # If train with crew or normal unit
                         self.set_label(
                             f"{self.message_start}{new_actor.movement_points}/{new_actor.max_movement_points}"
                         )
                     else:  # If spaceship or train without crew
-                        if not new_actor.has_infinite_movement:
+                        if not new_actor.get_permission(
+                            constants.INFINITE_MOVEMENT_PERMISSION
+                        ):
                             if (
                                 new_actor.movement_points == 0
-                                or new_actor.temp_movement_disabled
+                                or new_actor.get_permission(
+                                    constants.MOVEMENT_DISABLED_PERMISSION
+                                )
                                 or not new_actor.get_permission(
                                     constants.ACTIVE_PERMISSION
                                 )
@@ -879,7 +1002,9 @@ class actor_display_label(label):
                         else:
                             if (
                                 new_actor.movement_points == 0
-                                or new_actor.temp_movement_disabled
+                                or new_actor.get_permission(
+                                    constants.MOVEMENT_DISABLED_PERMISSION
+                                )
                                 or not new_actor.get_permission(
                                     constants.ACTIVE_PERMISSION
                                 )
@@ -936,7 +1061,7 @@ class actor_display_label(label):
 
             elif self.actor_label_type == constants.PASSENGERS_LABEL:
                 if not self.actor.get_permission(constants.ACTIVE_PERMISSION):
-                    self.set_label("Requires a worker crew to function")
+                    self.set_label("Must be crewed by astronauts to function")
                 elif self.actor.get_permission(constants.VEHICLE_PERMISSION):
                     if len(self.actor.contained_mobs) == 0:
                         self.set_label(self.message_start + "none")
@@ -1108,11 +1233,132 @@ class actor_display_label(label):
                     parameter = self.actor_label_type.removesuffix("_label")
                     value = new_actor.cell.get_parameter(parameter)
                     self.set_label(
-                        f"{self.message_start}{constants.terrain_manager.terrain_parameter_keywords[parameter][value]} ({value}/{new_actor.cell.terrain_handler.maxima.get(parameter, 6)})"
+                        f"{self.message_start}{constants.terrain_manager.terrain_parameter_keywords[parameter][value]} ({value}/{new_actor.cell.terrain_handler.maxima.get(parameter, 5)})"
                     )
                 else:
                     self.set_label(f"{self.message_start}unknown")
-
+            elif (
+                self.actor_label_type.removesuffix("_label")
+                in constants.global_parameters
+            ):
+                parameter = self.actor_label_type.removesuffix("_label")
+                value = self.actor.grid.world_handler.get_parameter(parameter)
+                if parameter in [
+                    constants.PRESSURE,
+                    constants.GHG,
+                    constants.INERT_GASES,
+                    constants.OXYGEN,
+                    constants.TOXIC_GASES,
+                ]:
+                    if (
+                        parameter == constants.PRESSURE
+                    ):  # Pressure: 1200/2400 (0.5x Earth)
+                        ideal = round(
+                            self.actor.grid.world_handler.size
+                            * 6
+                            * self.actor.grid.world_handler.get_tuning("earth_pressure")
+                        )
+                        if self.actor.grid == status.earth_grid:
+                            self.set_label(f"{self.message_start}{round(value, 1):,}")
+                        elif value == 0:
+                            self.set_label(
+                                f"{self.message_start}{round(value, 1):,} (0x Earth)"
+                            )
+                        else:
+                            self.set_label(
+                                f"{self.message_start}{round(value, 1):,} ({max(0.01, round((value / ideal), 2)):,}x Earth)"
+                            )
+                    else:  # 42% Oxygen: 1008/2400 (2.0x Earth)
+                        pressure = self.actor.grid.world_handler.get_parameter(
+                            constants.PRESSURE
+                        )
+                        if parameter == constants.GHG:
+                            ideal = round(
+                                self.actor.grid.world_handler.size
+                                * 6
+                                * self.actor.grid.world_handler.get_tuning("earth_GHG")
+                            )
+                        elif parameter == constants.INERT_GASES:
+                            ideal = round(
+                                self.actor.grid.world_handler.size
+                                * 6
+                                * self.actor.grid.world_handler.get_tuning(
+                                    "earth_inert_gases"
+                                )
+                            )
+                        elif parameter == constants.OXYGEN:
+                            ideal = round(
+                                self.actor.grid.world_handler.size
+                                * 6
+                                * self.actor.grid.world_handler.get_tuning(
+                                    "earth_oxygen"
+                                )
+                            )
+                        if self.actor.grid == status.earth_grid:
+                            self.set_label(
+                                f"{round(100 * value / pressure, 1)}% {self.message_start}{value:,}"
+                            )
+                        elif value == 0:
+                            self.set_label(f"0.0% {self.message_start}{value:,}")
+                        elif parameter == constants.TOXIC_GASES:
+                            self.set_label(
+                                f"{round(100 * value / pressure, 1)}% {self.message_start}{value:,}"
+                            )
+                        else:
+                            self.set_label(
+                                f"{round(100 * value / pressure, 1)}% {self.message_start}{value:,} ({max(0.01, round((value / ideal), 2)):,}x Earth)"
+                            )
+                elif parameter == constants.GRAVITY:
+                    if self.actor.grid == status.earth_grid:
+                        self.set_label(f"{self.message_start}{value}")
+                    else:
+                        self.set_label(f"{self.message_start}{value}x Earth")
+                else:
+                    if self.actor.grid == status.earth_grid:
+                        self.set_label(f"{self.message_start}{value}/5")
+                    else:
+                        ideal = status.earth_grid.world_handler.get_parameter(
+                            self.actor_label_type.removesuffix("_label")
+                        )
+                        if value == 0:
+                            self.set_label(
+                                f"{self.message_start}{value:,}/5 (0x Earth)"
+                            )
+                        else:
+                            self.set_label(
+                                f"{self.message_start}{value:,}/5 ({max(0.01, round((float(value) / ideal), 2)):,}x Earth)"
+                            )
+            elif self.actor_label_type == constants.AVERAGE_WATER_LABEL:
+                if self.actor.grid == status.earth_grid:
+                    self.set_label(
+                        f"{self.message_start}{self.actor.grid.world_handler.average_water}"
+                    )
+                else:
+                    self.set_label(
+                        f"{self.message_start}{self.actor.grid.world_handler.average_water} ({round((self.actor.grid.world_handler.average_water) / 3.7, 2):,}x Earth)"
+                    )
+            elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
+                average_temperature = self.actor.grid.world_handler.average_temperature
+                if self.actor.grid == status.earth_grid:
+                    self.set_label(f"{self.message_start}{average_temperature}")
+                elif (
+                    round(average_temperature, 2)
+                    == self.actor.grid.world_handler.earth_average_temperature
+                ):
+                    self.set_label(
+                        f"{self.message_start}{average_temperature} (1x Earth)"
+                    )
+                elif (
+                    average_temperature
+                    < self.actor.grid.world_handler.earth_average_temperature
+                ):
+                    self.set_label(
+                        f"{self.message_start}{average_temperature} (-{round(self.actor.grid.world_handler.earth_average_temperature - average_temperature, 2):,} Earth)"
+                    )
+                else:
+                    self.set_label(
+                        f"{self.message_start}{average_temperature} (+{round(average_temperature - self.actor.grid.world_handler.earth_average_temperature, 2):,} Earth)"
+                    )
         elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
             return  # do not set text for tooltip label
         elif self.actor_label_type == constants.BANNER_LABEL:
@@ -1132,6 +1378,11 @@ class actor_display_label(label):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if not result:
             return False
+        elif (
+            self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL
+            and self.default_tooltip_text
+        ):
+            return True
         elif not self.actor:
             return False
         elif self.actor_label_type == constants.RESOURCE_LABEL and (
@@ -1211,6 +1462,12 @@ class actor_display_label(label):
             return self.actor.cell.terrain_handler.knowledge_available(
                 constants.TERRAIN_PARAMETER_KNOWLEDGE
             )
+        elif self.actor_label_type == constants.OFFICER_NAME_LABEL:
+            return self.actor.get_permission(constants.OFFICER_PERMISSION)
+        elif self.actor_label_type == constants.GROUP_NAME_LABEL:
+            return self.actor.get_permission(constants.GROUP_PERMISSION)
+        elif self.actor_label_type == constants.EQUIPMENT_LABEL:
+            return bool(self.actor.equipment)
         else:
             return result
 
@@ -1243,6 +1500,7 @@ class banner(actor_display_label):
         """
         self.banner_type = input_dict["banner_type"]
         self.banner_text = input_dict["banner_text"]
+        self.member_config = input_dict.get("member_config", {})
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -1266,6 +1524,21 @@ class banner(actor_display_label):
             )
         else:
             return super().can_show(skip_parent_collection=skip_parent_collection)
+
+    def calibrate(self, new_actor):
+        """
+        Description:
+            Attaches this label to the inputted actor and updates this label's information based on the inputted actor
+        Input:
+            string/actor new_actor: The displayed actor whose information is matched by this label. If this equals None, the label does not match any actors.
+        Output:
+            None
+        """
+        super().calibrate(new_actor)
+        if new_actor and self.banner_type == "tab name":
+            self.set_label(
+                f"{self.parent_collection.parent_collection.current_tabbed_member.tab_button.tab_name.capitalize()}"
+            )
 
 
 class list_item_label(actor_display_label):
@@ -1347,26 +1620,27 @@ class actor_tooltip_label(actor_display_label):
                 status.tile_info_display, self.actor
             )
             actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
-        elif self.actor.get_permission(constants.DUMMY_PERMISSION):
-            if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
-                status.reorganize_vehicle_right_button.on_click()
-            elif status.displayed_mob.get_permission(
-                constants.ACTIVE_VEHICLE_PERMISSION
-            ):
-                status.reorganize_vehicle_left_button.on_click()
-            elif self.actor.any_permissions(
-                constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
-            ):
-                status.reorganize_group_left_button.on_click()
-            elif self.actor.get_permission(constants.GROUP_PERMISSION):
-                status.reorganize_group_right_button.on_click()
+        elif self.actor:
+            if self.actor.get_permission(constants.DUMMY_PERMISSION):
+                if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
+                    status.reorganize_vehicle_right_button.on_click()
+                elif status.displayed_mob.get_permission(
+                    constants.ACTIVE_VEHICLE_PERMISSION
+                ):
+                    status.reorganize_vehicle_left_button.on_click()
+                elif self.actor.any_permissions(
+                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
+                ):
+                    status.reorganize_group_left_button.on_click()
+                elif self.actor.get_permission(constants.GROUP_PERMISSION):
+                    status.reorganize_group_right_button.on_click()
 
-            if not self.actor.get_permission(
-                constants.DUMMY_PERMISSION
-            ):  # Only select if dummy unit successfully became real
+                if not self.actor.get_permission(
+                    constants.DUMMY_PERMISSION
+                ):  # Only select if dummy unit successfully became real
+                    self.actor.cycle_select()
+            else:
                 self.actor.cycle_select()
-        else:
-            self.actor.cycle_select()
 
 
 class building_work_crews_label(actor_display_label):

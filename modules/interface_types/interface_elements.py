@@ -306,7 +306,7 @@ class interface_collection(interface_element):
                 'initial_members' = None: members initially created with this collection
                 'is_info_display' = False: boolean value - Whether this collection is an info display that should automatically maintain a status variable
                 'block_height_offset' = False: boolean value - Whether to ignore this collection's height in calculating member y offsets
-                    This should be used when a collection needs height to determine the placement of elements after it withotu displacing its own members
+                    This should be used when a collection needs height to determine the placement of elements after it without displacing its own members
         Output:
             None
         """
@@ -680,6 +680,23 @@ class tabbed_collection(interface_collection):
             )
         )
 
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "minimum_width": scaling.scale_width(10),
+                "height": scaling.scale_height(30),
+                "parent_collection": self.tabs_collection,
+                "init_type": constants.BANNER_LABEL,
+                "image_id": "misc/default_label.png",
+                "actor_type": self.parent_collection.actor_type,
+                "banner_type": "tab name",
+                "banner_text": "",
+                "member_config": {
+                    "order_x_offset": scaling.scale_width(45),
+                    "order_y_offset": scaling.scale_height(3),
+                },
+            }
+        )
+
     def allow_show(self, member):
         """
         Description:
@@ -710,8 +727,9 @@ class tabbed_collection(interface_collection):
         if member_config["tabbed"] and not "button_image_id" in member_config:
             member_config["button_image_id"] = "buttons/default_button.png"
         super().add_member(new_member, member_config)
-
         if member_config["tabbed"]:
+            banner_label = self.tabs_collection.members[-1]
+            self.tabs_collection.remove_member(banner_label)
             new_member.tab_button = (
                 constants.actor_creation_manager.create_interface_element(
                     {
@@ -721,11 +739,16 @@ class tabbed_collection(interface_collection):
                         "parent_collection": self.tabs_collection,
                         "image_id": member_config["button_image_id"],
                         "identifier": member_config.get("identifier", None),
+                        "tab_name": member_config["tab_name"],
                         "linked_element": new_member,
                     }
                 )
             )
-            self.tabbed_members.append(new_member)
+
+            self.tabs_collection.add_member(banner_label, banner_label.member_config)
+            self.tabbed_members.append(
+                new_member
+            )  # Keep tab name label at the end of the list to stay on RHS
             if len(self.tabbed_members) == 1:
                 self.current_tabbed_member = new_member
             if "identifier" in member_config:
@@ -951,7 +974,7 @@ class ordered_collection(interface_collection):
             None
         """
         super().calibrate(new_actor, override_exempt)
-        if self == status.terrain_collection and new_actor:
+        if self == status.local_conditions_collection and new_actor:
             self.tab_button.image.set_image(
                 new_actor.get_image_id_list(terrain_only=True)
                 + [

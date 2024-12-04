@@ -24,7 +24,6 @@ from modules.tools.data_managers import (
 )
 from modules.action_types import (
     public_relations_campaign,
-    religious_campaign,
     advertising_campaign,
     combat,
     exploration,
@@ -180,6 +179,46 @@ def misc():
             "init_type": constants.LOADING_IMAGE_TEMPLATE_IMAGE,
         }
     )
+    status.loading_screen_quote_banner = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(
+                    constants.default_display_width / 2 - 650,
+                    constants.default_display_height / 2 - 500,
+                ),
+                "ideal_width": scaling.scale_width(1300),
+                "minimum_height": 50,
+                "image_id": "misc/empty.png",
+                "init_type": constants.MULTI_LINE_LABEL,
+                "message": "Loading screen quote",
+                "font": constants.fonts["large_white_notification"],
+                "modes": [],
+                "center_lines": True,
+            }
+        )
+    )
+    loading_screen_continue_message = "Press ENTER to continue"
+    loading_screen_continue_message_width = constants.fonts[
+        "large_white_notification"
+    ].pygame_font.size(loading_screen_continue_message)[0]
+    status.loading_screen_continue_banner = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": (
+                    scaling.scale_width(constants.default_display_width / 2)
+                    - loading_screen_continue_message_width / 2,
+                    scaling.scale_height(constants.default_display_height / 2 - 500),
+                ),
+                "minimum_width": loading_screen_continue_message_width,
+                "height": 50,
+                "image_id": "misc/empty.png",
+                "init_type": constants.LABEL,
+                "message": loading_screen_continue_message,
+                "font": constants.fonts["large_white_notification"],
+                "modes": [],
+            }
+        )
+    )
 
     strategic_background_image = (
         constants.actor_creation_manager.create_interface_element(
@@ -220,7 +259,7 @@ def misc():
 
     status.safe_click_area = constants.actor_creation_manager.create_interface_element(
         {
-            "width": constants.display_width / 2,
+            "width": constants.display_width / 2 + 25,
             "height": constants.display_height,
             "modes": [
                 constants.STRATEGIC_MODE,
@@ -303,7 +342,36 @@ def equipment_types_config():
     Output:
         None
     """
-    return
+    equipment_types.equipment_type(
+        {
+            "equipment_type": "spacesuits",
+            "can_purchase": True,
+            "price": 5,
+            "requirements": (
+                "any",
+                [
+                    constants.GROUP_PERMISSION,
+                    constants.WORKER_PERMISSION,
+                    constants.OFFICER_PERMISSION,
+                ],
+            ),
+            "effects": {
+                "permissions": [constants.SPACESUITS_PERMISSION],
+            },
+            "description": [
+                "Spacesuits are required for humans to enter, survive, and work in uninhabitable environments",
+                "Any human units in uninhabitable environments will immediately perish if spacesuits are unequipped for any reason",
+                "By default, solitary officers are assumed to be wearing personal spacesuits",
+            ],
+            "equipment_image": {
+                constants.FULL_BODY_PORTRAIT_SECTION: "mobs/spacesuits/spacesuit_body.png",
+                constants.HAT_PORTRAIT_SECTION: "ministers/portraits/hat/spacesuit/spacesuit_helmet.png",
+                constants.HAIR_PORTRAIT_SECTION: "misc/empty.png",
+                constants.FACIAL_HAIR_PORTAIT_SECTION: "misc/empty.png",
+                constants.BACKPACK_PORTRAIT_SECTION: "mobs/spacesuits/spacesuit_backpack.png",
+            },
+        }
+    )
 
 
 def terrain_feature_types_config():
@@ -375,7 +443,6 @@ def actions():
         for upgrade_type in building_type.upgrade_fields.keys():
             upgrade.upgrade(building_type=building_type, upgrade_type=upgrade_type)
     public_relations_campaign.public_relations_campaign()
-    religious_campaign.religious_campaign()
     advertising_campaign.advertising_campaign()
     combat.combat()
     exploration.exploration()
@@ -710,8 +777,8 @@ def unit_types_config():
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
             "description": [
-                f"Explorers are controlled by the {status.minister_types[constants.SCIENCE_MINISTER].name}",
-                "When combined with workers, an explorer becomes an expedition unit that can explore new tiles.",
+                f"Explorers are controlled by the {status.minister_types[constants.SCIENCE_MINISTER].name}.",
+                "An explorer combines with colonists to form an expedition, which can explore new tiles.",
             ],
         },
     ).link_group_type(status.unit_types[constants.EXPEDITION])
@@ -751,7 +818,7 @@ def unit_types_config():
             "recruitment_cost": 5,
             "description": [
                 f"Merchants are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally search for loans and conduct advertising campaigns on Earth.",
-                "When combined with workers, a merchant becomes a caravan that can build trading posts and trade.",
+                "A merchant combines with colonists to form a caravan, which can trade and build trading posts.",
             ],
         },
     ).link_group_type(status.unit_types[constants.CARAVAN])
@@ -790,7 +857,7 @@ def unit_types_config():
             "recruitment_cost": 5,
             "description": [
                 f"Evangelists are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally conduct religious campaigns and public relations campaigns on Earth.",
-                "When combined with religious volunteers, an evangelist becomes a missionaries unit that can build missions.",
+                "An evangelist combines with church volunteers to form missionaries, which can build missions.",
             ],
         },
     ).link_group_type(status.unit_types[constants.MISSIONARIES])
@@ -828,11 +895,52 @@ def unit_types_config():
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
             "description": [
-                f"Majors are controlled by the {status.minister_types[constants.SPACE_MINISTER].name}",
-                "When combined with workers, a major becomes a battalion unit that has a very high combat strength, and can build forts and attack enemies.",
+                f"Majors are controlled by the {status.minister_types[constants.SPACE_MINISTER].name}.",
+                "A major combines with colonists to form a battalion, which has a very high combat strength, and can build forts and attack enemies.",
             ],
         },
     ).link_group_type(status.unit_types[constants.BATTALION])
+
+    unit_types.group_type(
+        False,
+        {
+            "key": constants.ASTRONAUTS,
+            "name": "astronauts",
+            "controlling_minister_type": status.minister_types[
+                constants.SPACE_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.GROUP_PERMISSION: True,
+                constants.ASTRONAUTS_PERMISSION: True,
+                constants.CREW_VEHICLE_PERMISSION: True,
+                constants.CREW_SPACESHIP_PERMISSION: True,
+            },
+            "can_recruit": False,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.ASTRONAUT_COMMANDER,
+            "name": "astronaut commander",
+            "controlling_minister_type": status.minister_types[
+                constants.SPACE_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.OFFICER_PERMISSION: True,
+                constants.ASTRONAUT_COMMANDER_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Astronaut commanders are controlled by the {status.minister_types[constants.SPACE_MINISTER].name}.",
+                "An astronaut commander combines with colonists to form astronauts, which can crew spaceships and space stations, and perform actions in orbit.",
+            ],
+        },
+    ).link_group_type(status.unit_types[constants.ASTRONAUTS])
 
     unit_types.group_type(
         False,
@@ -869,8 +977,8 @@ def unit_types_config():
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
             "description": [
-                f"Drivers are controlled by the {status.minister_types[constants.TRANSPORTATION_MINISTER].name}",
-                "When combined with workers, a driver becomes a porters unit that can move quickly and transport commodities.",
+                f"Drivers are controlled by the {status.minister_types[constants.TRANSPORTATION_MINISTER].name}.",
+                "A driver combines with colonists to form porters, which can transport commodities and move quickly.",
             ],
         },
     ).link_group_type(status.unit_types[constants.PORTERS])
@@ -908,8 +1016,8 @@ def unit_types_config():
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
             "description": [
-                f"Foremen are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}",
-                "When combined with workers, a foreman becomes a work crew unit that can produce commodities when attached to a production facility.",
+                f"Foremen are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}.",
+                "A foreman combines with colonists to form a work crew, which can produce commodities when attached to a production facility.",
             ],
         },
     ).link_group_type(status.unit_types[constants.WORK_CREW])
@@ -947,8 +1055,8 @@ def unit_types_config():
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
             "description": [
-                f"Engineers are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}",
-                "When combined with workers, an engineer becomes a construction gang unit that can build buildings, roads, railroads, and trains.",
+                f"Engineers are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}.",
+                "An engineer combines with colonists to form a construction gang, which can build buildings, roads, railroads, and trains.",
             ],
         },
     ).link_group_type(status.unit_types[constants.CONSTRUCTION_GANG])
@@ -956,15 +1064,14 @@ def unit_types_config():
     unit_types.worker_type(
         False,
         {
-            "key": constants.EUROPEAN_WORKERS,
-            "name": "European workers",
+            "key": constants.COLONISTS,
+            "name": "colonists",
             "controlling_minister_type": status.minister_types[
-                constants.INDUSTRY_MINISTER
+                constants.TERRAN_AFFAIRS_MINISTER
             ],
             "permissions": {
                 constants.PMOB_PERMISSION: True,
                 constants.WORKER_PERMISSION: True,
-                constants.EUROPEAN_WORKERS_PERMISSION: True,
                 constants.CREW_SPACESHIP_PERMISSION: True,
                 constants.CREW_TRAIN_PERMISSION: True,
             },
@@ -975,30 +1082,12 @@ def unit_types_config():
             "recruitment_cost": 0,
             "recruitment_verb": "hire",
             "fired_description": ["Fired description."],
-            "description": ["Placeholder"],
-            "number": 2,
-        },
-    )
-    unit_types.worker_type(
-        False,
-        {
-            "key": constants.CHURCH_VOLUNTEERS,
-            "name": "church volunteers",
-            "controlling_minister_type": status.minister_types[
-                constants.TERRAN_AFFAIRS_MINISTER
+            "description": [
+                "Colonists represent a large group of workers, and are required for most tasks. ",
+                "Colonists must work near their housing, and require upkeep each turn in food, air, water, and goods. ",
+                "Officers can be attached to colonists to form groups, which can perform actions. ",
+                "For example, an engineer combined with colonists forms a construction gang, which can construct buildings. ",
             ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.WORKER_PERMISSION: True,
-                constants.CHURCH_VOLUNTEERS_PERMISSION: True,
-            },
-            "upkeep": 0.0,
-            "can_recruit": False,
-            "fired_description": [
-                "Fired church volunteers will never settle in slums and will instead return to Europe.",
-                "Firing church volunteers reflects poorly on your company and will incur a public opinion penalty of 1.",
-            ],
-            "description": ["Placeholder"],
             "number": 2,
         },
     )
@@ -1017,6 +1106,9 @@ def unit_types_config():
                 constants.VEHICLE_PERMISSION: True,
                 constants.ACTIVE_PERMISSION: False,
                 constants.SPACESHIP_PERMISSION: True,
+                constants.INFINITE_MOVEMENT_PERMISSION: True,
+                constants.TRAVEL_PERMISSION: True,
+                constants.CONSTANT_MOVEMENT_COST_PERMISSION: True,
             },
             "inventory_capacity": 81,
             "can_recruit": True,
@@ -1044,8 +1136,12 @@ def unit_types_config():
                 constants.VEHICLE_PERMISSION: True,
                 constants.ACTIVE_PERMISSION: False,
                 constants.TRAIN_PERMISSION: True,
+                constants.CONSTANT_MOVEMENT_COST_PERMISSION: True,
             },
             "can_recruit": False,
+            "movement_points": 16,
+            # "required_infrastructure": status.building_types[constants.RAILROAD],
+            #   Re-introduce once infrastructure is re-implemented
             "description": [
                 "While useless by itself, a train crewed by workers can quickly transport units and cargo through railroads between train stations.",
             ],
@@ -1221,7 +1317,9 @@ def buttons():
     """
     status.planet_view_mask = constants.actor_creation_manager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(320, 0),
+            "coordinates": scaling.scale_coordinates(
+                constants.strategic_map_x_offset, constants.strategic_map_y_offset
+            ),
             "width": scaling.scale_width(constants.strategic_map_pixel_width),
             "height": scaling.scale_height(constants.strategic_map_pixel_height),
             "parent_collection": status.grids_collection,
@@ -1256,16 +1354,21 @@ def buttons():
     ministers_flag_icon = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
-    # status.flag_icon_list.append(ministers_flag_icon)
 
+    switch_game_mode_buttons_x = (
+        constants.strategic_map_x_offset
+        + constants.grids_collection_x
+        + constants.strategic_map_pixel_width
+        + 15
+    )  # 1265 # 1065
     input_dict = {
         "coordinates": scaling.scale_coordinates(
-            1065, constants.default_display_height - 55
+            switch_game_mode_buttons_x, constants.default_display_height - 55
         ),
         "height": scaling.scale_height(50),
         "width": scaling.scale_width(50),
         "keybind_id": pygame.K_1,
-        "image_id": "locations/africa_button.png",
+        "image_id": actor_utility.generate_frame("locations/africa.png"),
         "modes": [
             constants.MINISTERS_MODE,
             constants.STRATEGIC_MODE,
@@ -1282,25 +1385,25 @@ def buttons():
     input_dict.update(
         {
             "coordinates": scaling.scale_coordinates(
-                1125, constants.default_display_height - 55
+                switch_game_mode_buttons_x + 60, constants.default_display_height - 55
             ),
-            "image_id": "locations/europe_button.png",
+            "image_id": actor_utility.generate_frame("locations/earth.png"),
             "to_mode": constants.EARTH_MODE,
             "keybind_id": pygame.K_2,
         }
     )
-    to_europe_button = constants.actor_creation_manager.create_interface_element(
+    to_earth_button = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
 
     input_dict.update(
         {
             "coordinates": scaling.scale_coordinates(
-                1185, constants.default_display_height - 55
+                switch_game_mode_buttons_x + 120, constants.default_display_height - 55
             ),
             "width": scaling.scale_width(50),
             "to_mode": constants.MINISTERS_MODE,
-            "image_id": "buttons/european_hq_button.png",
+            "image_id": "buttons/hq_button.png",
             "keybind_id": pygame.K_3,
         }
     )
@@ -1352,7 +1455,7 @@ def buttons():
     input_dict["coordinates"] = scaling.scale_coordinates(
         constants.default_display_width - 50, constants.default_display_height - 50
     )
-    input_dict["image_id"] = "buttons/exit_european_hq_button.png"
+    input_dict["image_id"] = "buttons/exit_earth_screen_button.png"
     input_dict["init_type"] = constants.SWITCH_GAME_MODE_BUTTON
     input_dict["width"] = scaling.scale_width(50)
     input_dict["height"] = scaling.scale_height(50)
@@ -1381,7 +1484,7 @@ def buttons():
 
     input_dict = {
         "coordinates": scaling.scale_coordinates(
-            round(constants.default_display_width * 0.4),
+            round(constants.default_display_width * 0.4) - 15,
             constants.default_display_height - 55,
         ),
         "width": scaling.scale_width(round(constants.default_display_width * 0.2)),
@@ -1542,7 +1645,7 @@ def buttons():
         constants.default_display_width - 55, constants.default_display_height - 55
     )
     input_dict["modes"] = [constants.MAIN_MENU_MODE]
-    input_dict["image_id"] = ["buttons/exit_european_hq_button.png"]
+    input_dict["image_id"] = ["buttons/exit_earth_screen_button.png"]
     input_dict["init_type"] = constants.GENERATE_CRASH_BUTTON
     generate_crash_button = constants.actor_creation_manager.create_interface_element(
         input_dict
@@ -1558,6 +1661,26 @@ def buttons():
                 f"misc/map_modes/{map_mode}.png"
             )
             constants.actor_creation_manager.create_interface_element(input_dict)
+
+    if constants.effect_manager.effect_active("allow_presets"):
+        input_dict["init_type"] = constants.TOGGLE_BUTTON
+        input_dict["toggle_variable"] = "mars_preset"
+        input_dict["attached_to_actor"] = False
+        input_dict["modes"] = [constants.NEW_GAME_SETUP_MODE]
+        input_dict["image_id"] = actor_utility.generate_frame("locations/mars.png")
+        input_dict["width"] = scaling.scale_width(100)
+        input_dict["height"] = scaling.scale_height(100)
+        input_dict["parent_collection"] = rhs_menu_collection
+        input_dict["member_config"] = {"order_x_offset": scaling.scale_width(-50)}
+        constants.actor_creation_manager.create_interface_element(input_dict)
+
+        input_dict["toggle_variable"] = "earth_preset"
+        input_dict["image_id"] = actor_utility.generate_frame("locations/earth.png")
+        constants.actor_creation_manager.create_interface_element(input_dict)
+
+        input_dict["toggle_variable"] = "venus_preset"
+        input_dict["image_id"] = actor_utility.generate_frame("locations/venus.png")
+        constants.actor_creation_manager.create_interface_element(input_dict)
 
 
 def earth_screen():
@@ -1597,10 +1720,11 @@ def earth_screen():
                 },
             }
         )
-
-    for purchase_index, purchase_item_type in enumerate(
-        ["consumer goods"]
-    ):  # Creates purchase button for items from earth
+    for purchase_item_type in ["consumer goods"] + [
+        equipment_type.key
+        for equipment_type in status.equipment_types.values()
+        if equipment_type.can_purchase
+    ]:  # Creates purchase button for items from earth
         constants.actor_creation_manager.create_interface_element(
             {
                 "width": scaling.scale_width(100),
@@ -2039,7 +2163,7 @@ def mob_interface():
 
     status.mob_info_display = constants.actor_creation_manager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(0, 0),
+            "coordinates": scaling.scale_coordinates(0, -400),
             "width": scaling.scale_width(400),
             "height": scaling.scale_height(430),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
@@ -2048,9 +2172,40 @@ def mob_interface():
             "actor_type": "mob",
             "description": "unit information panel",
             "parent_collection": status.info_displays_collection,
+            "member_config": {
+                "order_exempt": True,
+            },
         }
     )
 
+    tab_collection_relative_coordinates = (450, -30)
+    status.mob_tabbed_collection = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(
+                    tab_collection_relative_coordinates[0],
+                    tab_collection_relative_coordinates[1],
+                ),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
+                "init_type": constants.TABBED_COLLECTION,
+                "parent_collection": status.mob_info_display,
+                "member_config": {"order_exempt": True},
+                "description": "unit information tabs",
+            }
+        )
+    )
+
+
+def mob_sub_interface():
+    """
+    Description:
+        Initializes elements of mob interface, some of which are dependent on initalization of tabbed panels
+    Input:
+        None
+    Output:
+        None
+    """
     # mob background image's tooltip
     mob_free_image_background_tooltip = (
         constants.actor_creation_manager.create_interface_element(
@@ -2152,12 +2307,14 @@ def mob_interface():
 
     # mob info labels setup
     for current_actor_label_type in [
-        constants.NAME_LABEL,
+        constants.UNIT_TYPE_LABEL,
+        constants.OFFICER_NAME_LABEL,
         constants.MINISTER_LABEL,
         constants.OFFICER_LABEL,
+        constants.GROUP_NAME_LABEL,
         constants.WORKERS_LABEL,
         constants.MOVEMENT_LABEL,
-        constants.COMBAT_STRENGTH_LABEL,
+        constants.EQUIPMENT_LABEL,
         constants.ATTITUDE_LABEL,
         constants.CONTROLLABLE_LABEL,
         constants.CREW_LABEL,
@@ -2168,7 +2325,10 @@ def mob_interface():
             current_actor_label_type == constants.MINISTER_LABEL
         ):  # how far from edge of screen
             x_displacement = 40
-        elif current_actor_label_type == constants.CURRENT_PASSENGER_LABEL:
+        elif current_actor_label_type in [
+            constants.CURRENT_PASSENGER_LABEL,
+            constants.GROUP_NAME_LABEL,
+        ]:
             x_displacement = 30
         else:
             x_displacement = 0
@@ -2191,24 +2351,6 @@ def mob_interface():
                 input_dict["list_index"] = i
                 constants.actor_creation_manager.create_interface_element(input_dict)
 
-    tab_collection_relative_coordinates = (450, -30)
-    status.mob_tabbed_collection = (
-        constants.actor_creation_manager.create_interface_element(
-            {
-                "coordinates": scaling.scale_coordinates(
-                    tab_collection_relative_coordinates[0],
-                    tab_collection_relative_coordinates[1],
-                ),
-                "width": scaling.scale_width(0),
-                "height": scaling.scale_height(0),
-                "init_type": constants.TABBED_COLLECTION,
-                "parent_collection": status.mob_info_display,
-                "member_config": {"order_exempt": True},
-                "description": "unit information tabs",
-            }
-        )
-    )
-
 
 def tile_interface():
     """
@@ -2219,20 +2361,21 @@ def tile_interface():
     Output:
         None
     """
-    status.tile_info_display = (
-        constants.actor_creation_manager.create_interface_element(
-            {
-                "coordinates": scaling.scale_coordinates(0, 0),
-                "width": scaling.scale_width(775),
-                "height": scaling.scale_height(10),
-                "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-                "init_type": constants.ORDERED_COLLECTION,
-                "is_info_display": True,
-                "actor_type": "tile",
-                "description": "tile information panel",
-                "parent_collection": status.info_displays_collection,
-            }
-        )
+    status.tile_info_display = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),  # (0, -400),
+            "width": scaling.scale_width(775),
+            "height": scaling.scale_height(10),
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            "init_type": constants.ORDERED_COLLECTION,
+            "is_info_display": True,
+            "actor_type": "tile",
+            "description": "tile information panel",
+            "parent_collection": status.info_displays_collection,
+            # "member_config": {
+            #     "order_exempt": True,
+            # },
+        }
     )
 
     separation = scaling.scale_height(3)
@@ -2348,10 +2491,6 @@ def tile_interface():
                     constants.actor_creation_manager.create_interface_element(
                         input_dict
                     )
-        elif current_actor_label_type == constants.BANNER_LABEL:
-            input_dict["banner_type"] = "terrain details"
-            input_dict["banner_text"] = "Details unknown"
-            constants.actor_creation_manager.create_interface_element(input_dict)
         else:
             constants.actor_creation_manager.create_interface_element(input_dict)
 
@@ -2440,8 +2579,8 @@ def inventory_interface():
                         {"image_id": "items/consumer goods.png", "size": 0.75},
                     ],
                     "identifier": constants.INVENTORY_PANEL,
+                    "tab_name": "cargo",
                 },
-                "description": "unit inventory panel",
             }
         )
     )
@@ -2600,8 +2739,8 @@ def inventory_interface():
                         {"image_id": "items/consumer goods.png", "size": 0.75},
                     ],
                     "identifier": constants.INVENTORY_PANEL,
+                    "tab_name": "warehouses",
                 },
-                "description": "tile inventory panel",
             }
         )
     )
@@ -2765,8 +2904,8 @@ def settlement_interface():
                     "tabbed": True,
                     "button_image_id": "buttons/crew_train_button.png",
                     "identifier": constants.SETTLEMENT_PANEL,
+                    "tab_name": "settlement",
                 },
-                "description": "settlement panel",
             }
         )
     )
@@ -2780,7 +2919,7 @@ def settlement_interface():
         constants.CURRENT_BUILDING_WORK_CREW_LABEL,
         constants.FORT,
         constants.SLUMS,
-        constants.INFRASTRUCTURE,
+        # constants.INFRASTRUCTURE,
     ]:
         if current_actor_label_type in [
             constants.SETTLEMENT,
@@ -2833,7 +2972,59 @@ def terrain_interface():
     Output:
         None
     """
-    status.terrain_collection = (
+    status.global_conditions_collection = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
+                "init_type": constants.ORDERED_COLLECTION,
+                "parent_collection": status.tile_tabbed_collection,
+                "member_config": {
+                    "tabbed": True,
+                    "button_image_id": actor_utility.generate_frame(
+                        "locations/earth.png"
+                    ),
+                    "identifier": constants.GLOBAL_CONDITIONS_PANEL,
+                    "tab_name": "global conditions",
+                },
+            }
+        )
+    )
+
+    for current_actor_label_type in [
+        constants.PRESSURE_LABEL,
+        constants.OXYGEN_LABEL,
+        constants.GHG_LABEL,
+        constants.INERT_GASES_LABEL,
+        constants.TOXIC_GASES_LABEL,
+        constants.AVERAGE_WATER_LABEL,
+        constants.AVERAGE_TEMPERATURE_LABEL,
+        constants.GRAVITY_LABEL,
+        constants.RADIATION_LABEL,
+        constants.MAGNETIC_FIELD_LABEL,
+    ]:
+        if current_actor_label_type in [
+            constants.OXYGEN_LABEL,
+            constants.GHG_LABEL,
+            constants.INERT_GASES_LABEL,
+            constants.TOXIC_GASES_LABEL,
+        ]:
+            x_displacement = 25
+        else:
+            x_displacement = 0
+        input_dict = {
+            "minimum_width": scaling.scale_width(10),
+            "height": scaling.scale_height(30),
+            "image_id": "misc/default_label.png",
+            "init_type": current_actor_label_type,
+            "actor_type": "tile",
+            "parent_collection": status.global_conditions_collection,
+            "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
+        }
+        constants.actor_creation_manager.create_interface_element(input_dict)
+
+    status.local_conditions_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(0, 0),
@@ -2844,15 +3035,17 @@ def terrain_interface():
                 "member_config": {
                     "tabbed": True,
                     "button_image_id": "buttons/crew_train_button.png",
-                    "identifier": constants.TERRAIN_PANEL,
+                    "identifier": constants.LOCAL_CONDITIONS_PANEL,
+                    "tab_name": "local conditions",
                 },
-                "description": "terrain details panel",
             }
         )
     )
 
+    placed_local_conditions_banner = False
     for current_actor_label_type in [
         constants.KNOWLEDGE_LABEL,
+        constants.TERRAIN_LABEL,
         constants.BANNER_LABEL,
         constants.WATER_LABEL,
         constants.TEMPERATURE_LABEL,
@@ -2861,14 +3054,17 @@ def terrain_interface():
         constants.SOIL_LABEL,
         constants.ALTITUDE_LABEL,
     ]:
-        x_displacement = 0
+        if current_actor_label_type == constants.KNOWLEDGE_LABEL:
+            x_displacement = 0
+        else:
+            x_displacement = 25
         input_dict = {
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
             "actor_type": "tile",
-            "parent_collection": status.terrain_collection,
+            "parent_collection": status.local_conditions_collection,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
         if current_actor_label_type == constants.BANNER_LABEL:
@@ -2877,7 +3073,7 @@ def terrain_interface():
         constants.actor_creation_manager.create_interface_element(input_dict)
 
 
-def unit_organization_interface():
+def organization_interface():
     """
     Description:
         Initializes the unit organization interface as part of the mob tabbed collection
@@ -2887,9 +3083,6 @@ def unit_organization_interface():
         None
     """
     image_height = 75
-    lhs_x_offset = 95
-    rhs_x_offset = image_height + 80
-
     status.mob_reorganization_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
@@ -2902,6 +3095,7 @@ def unit_organization_interface():
                     "tabbed": True,
                     "button_image_id": "buttons/merge_button.png",
                     "identifier": constants.REORGANIZATION_PANEL,
+                    "tab_name": "reorganization",
                 },
                 "description": "unit organization panel",
                 "direction": "vertical",
@@ -2909,12 +3103,26 @@ def unit_organization_interface():
         )
     )
 
+
+def unit_organization_interface():
+    """
+    Description:
+        Initializes the group organization interface as a subsection of the mob reorganization collection
+    Input:
+        None
+    Output:
+        None
+    """
+    image_height = 75
+    lhs_x_offset = 95
+    rhs_x_offset = image_height + 80
+
     status.group_reorganization_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(0, 0),
                 "width": scaling.scale_width(10),
-                "height": scaling.scale_height(3 * image_height),
+                "height": scaling.scale_height(2 * image_height),
                 "init_type": constants.AUTOFILL_COLLECTION,
                 "parent_collection": status.mob_reorganization_collection,
                 "direction": "horizontal",
@@ -2944,6 +3152,10 @@ def unit_organization_interface():
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.group_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
+            "default_tooltip_text": [
+                "Select an officer to fill this slot",
+                "If a worker and an officer are selected, they can be merged into a group",
+            ],
         }
     )
     status.group_reorganization_collection.autofill_targets[
@@ -2982,6 +3194,10 @@ def unit_organization_interface():
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.group_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
+            "default_tooltip_text": [
+                "Select a worker to fill this slot",
+                "If a worker and an officer are selected, they can be merged into a group",
+            ],
         }
     )
     status.group_reorganization_collection.autofill_targets[
@@ -3035,6 +3251,9 @@ def unit_organization_interface():
                 "x_offset": scaling.scale_width(rhs_x_offset),
                 "y_offset": scaling.scale_height(-0.5 * (image_height)),
             },
+            "default_tooltip_text": [
+                "Select a worker and officer to fill this slot with their combined group",
+            ],
         }
     )
     status.group_reorganization_collection.autofill_targets[
@@ -3166,10 +3385,11 @@ def vehicle_organization_interface():
             {
                 "coordinates": scaling.scale_coordinates(0, 0),
                 "width": scaling.scale_width(0),
-                "height": scaling.scale_height(0),
+                "height": scaling.scale_height(2 * image_height),
                 "init_type": constants.AUTOFILL_COLLECTION,
                 "parent_collection": status.mob_reorganization_collection,
                 "direction": "horizontal",
+                "block_height_offset": True,
                 "member_config": {"order_x_offset": lhs_x_offset},
                 "allowed_procedures": [
                     constants.CREW_PROCEDURE,
@@ -3177,7 +3397,7 @@ def vehicle_organization_interface():
                 ],
                 "autofill_targets": {
                     constants.INACTIVE_VEHICLE_PERMISSION: [],
-                    constants.EUROPEAN_WORKERS_PERMISSION: [],
+                    constants.CREW_VEHICLE_PERMISSION: [],
                     constants.ACTIVE_VEHICLE_PERMISSION: [],
                 },
             }
@@ -3195,6 +3415,10 @@ def vehicle_organization_interface():
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.vehicle_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
+            "default_tooltip_text": [
+                "Select an uncrewed vehicle to fill this slot",
+                "If an uncrewed vehicle and a valid crew are selected, the vehicle can be crewed",
+            ],
         }
     )
     status.vehicle_reorganization_collection.autofill_targets[
@@ -3233,19 +3457,26 @@ def vehicle_organization_interface():
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.vehicle_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
+            "default_tooltip_text": [
+                "Select a valid crew to fill this slot",
+                "If an uncrewed vehicle and a valid crew are selected, the vehicle can be crewed",
+            ],
         }
     )
     status.vehicle_reorganization_collection.autofill_targets[
-        constants.EUROPEAN_WORKERS_PERMISSION
+        constants.CREW_VEHICLE_PERMISSION
     ].append(lhs_bottom_tooltip)
 
     # mob image
     default_image_id = [
         actor_utility.generate_unit_component_image_id(
-            "mobs/default/mock_worker.png", "left", to_front=True
+            "mobs/default/mock_worker.png", "group left", to_front=True
         ),
         actor_utility.generate_unit_component_image_id(
-            "mobs/default/mock_worker.png", "right", to_front=True
+            "mobs/default/mock_worker.png", "group right", to_front=True
+        ),
+        actor_utility.generate_unit_component_image_id(
+            "mobs/default/mock_officer.png", "center", to_front=True
         ),
     ]
     lhs_bottom_mob_free_image = (
@@ -3267,7 +3498,7 @@ def vehicle_organization_interface():
         )
     )
     status.vehicle_reorganization_collection.autofill_targets[
-        constants.EUROPEAN_WORKERS_PERMISSION
+        constants.CREW_VEHICLE_PERMISSION
     ].append(lhs_bottom_mob_free_image)
 
     # right side
@@ -3286,6 +3517,9 @@ def vehicle_organization_interface():
                 "x_offset": scaling.scale_width(rhs_x_offset),
                 "y_offset": scaling.scale_height(-0.5 * (image_height)),
             },
+            "default_tooltip_text": [
+                "Select an uncrewed vehicle and a crew to fill this slot with a crewed vehicle",
+            ],
         }
     )
     status.vehicle_reorganization_collection.autofill_targets[
@@ -3330,7 +3564,7 @@ def vehicle_organization_interface():
                 "allowed_procedures": [
                     constants.CREW_PROCEDURE,
                 ],
-                "keybind_id": pygame.K_b,
+                "keybind_id": pygame.K_m,
                 "enable_shader": True,
             }
         )
@@ -3352,7 +3586,7 @@ def vehicle_organization_interface():
                 "allowed_procedures": [
                     constants.UNCREW_PROCEDURE,
                 ],
-                "keybind_id": pygame.K_v,
+                "keybind_id": pygame.K_n,
                 "enable_shader": True,
             }
         )
@@ -3377,12 +3611,12 @@ def vehicle_organization_interface():
         "coordinates": scaling.scale_coordinates(
             35 - image_height, -1 * (image_height - 15) + 25 - 35 / 2
         ),
-        "width": input_dict["width"],  # copies most attributes from previous button
+        "width": input_dict["width"],  # Copies most attributes from previous button
         "height": input_dict["height"],
         "init_type": input_dict["init_type"],
         "parent_collection": input_dict["parent_collection"],
         "image_id": input_dict["image_id"],
-        "autofill_target_type": constants.EUROPEAN_WORKERS_PERMISSION,
+        "autofill_target_type": constants.CREW_VEHICLE_PERMISSION,
     }
     cycle_autofill_crew_button = (
         constants.actor_creation_manager.create_interface_element(input_dict)

@@ -1,7 +1,8 @@
 # Contains utility functions for setting up reorganization interface with correct dummy units for merge/split procedures
 
 from typing import List
-from . import actor_utility
+from . import actor_utility, utility
+from copy import deepcopy
 import modules.constants.constants as constants
 import modules.constants.status as status
 
@@ -10,7 +11,6 @@ required_dummy_attributes = [
     "name",
     "default_permissions",
     "override_permissions",
-    "has_infinite_movement",
     "crew",
     "movement_points",
     "max_movement_points",
@@ -18,13 +18,13 @@ required_dummy_attributes = [
     "inventory",
     "equipment",
     "contained_mobs",
-    "temp_movement_disabled",
     "sentry_mode",
     "base_automatic_route",
     "end_turn_destination",
     "officer",
     "worker",
-    "battalion_type",
+    "character_info",
+    "image_dict",
 ]
 
 
@@ -68,15 +68,17 @@ def generate_autofill_actors(
                         # If a worker selected, find an officer if present and make a dummy group
                         return_dict[
                             constants.OFFICER_PERMISSION
-                        ] = status.displayed_mob.get_cell().get_officer(
-                            start_index=search_start_index, allow_vehicles=False
+                        ] = status.displayed_mob.get_cell().get_unit(
+                            [constants.OFFICER_PERMISSION],
+                            start_index=search_start_index,
                         )
                     elif target == constants.OFFICER_PERMISSION:
                         # If an officer selected, find a worker if present and make a dummy group
                         return_dict[
                             constants.WORKER_PERMISSION
-                        ] = status.displayed_mob.get_cell().get_worker(
-                            start_index=search_start_index
+                        ] = status.displayed_mob.get_cell().get_unit(
+                            [constants.WORKER_PERMISSION],
+                            start_index=search_start_index,
                         )
                     if (
                         return_dict[constants.WORKER_PERMISSION]
@@ -112,29 +114,28 @@ def generate_autofill_actors(
                     ] = constants.SPLIT_PROCEDURE
 
                 elif constants.CREW_PROCEDURE in allowed_procedures and target in [
-                    constants.EUROPEAN_WORKERS_PERMISSION,
+                    constants.CREW_VEHICLE_PERMISSION,
                     constants.INACTIVE_VEHICLE_PERMISSION,
                 ]:
                     return_dict[target] = status.displayed_mob
-                    if target == constants.EUROPEAN_WORKERS_PERMISSION:
+                    if target == constants.CREW_VEHICLE_PERMISSION:
                         # If a crew selected, find an uncrewed vehicle if present and make a dummy crewed vehicle
                         return_dict[
                             constants.INACTIVE_VEHICLE_PERMISSION
-                        ] = status.displayed_mob.get_cell().get_uncrewed_vehicle(
-                            start_index=search_start_index
+                        ] = status.displayed_mob.get_cell().get_unit(
+                            [constants.INACTIVE_VEHICLE_PERMISSION],
+                            start_index=search_start_index,
                         )
                     elif target == constants.INACTIVE_VEHICLE_PERMISSION:
                         # If a vehicle selected, find a crew if present and make a dummy crewed vehicle
                         return_dict[
-                            constants.EUROPEAN_WORKERS_PERMISSION
-                        ] = status.displayed_mob.get_cell().get_worker(
+                            constants.CREW_VEHICLE_PERMISSION
+                        ] = status.displayed_mob.get_cell().get_unit(
+                            [constants.CREW_VEHICLE_PERMISSION],
                             start_index=search_start_index,
-                            possible_types=[
-                                status.worker_types[constants.EUROPEAN_WORKERS]
-                            ],
                         )
                     if (
-                        return_dict[constants.EUROPEAN_WORKERS_PERMISSION]
+                        return_dict[constants.CREW_VEHICLE_PERMISSION]
                         and return_dict[constants.INACTIVE_VEHICLE_PERMISSION]
                     ):
                         # If a crew and uncrewed vehicle present
@@ -142,7 +143,7 @@ def generate_autofill_actors(
                             constants.ACTIVE_VEHICLE_PERMISSION
                         ] = simulate_crew(
                             return_dict[constants.INACTIVE_VEHICLE_PERMISSION],
-                            return_dict[constants.EUROPEAN_WORKERS_PERMISSION],
+                            return_dict[constants.CREW_VEHICLE_PERMISSION],
                             required_dummy_attributes,
                             dummy_input_dict,
                         )
@@ -156,7 +157,7 @@ def generate_autofill_actors(
                     # If a crewed vehicle selected, uncrew into dummy vehicle and worker
                     (
                         return_dict[constants.INACTIVE_VEHICLE_PERMISSION],
-                        return_dict[constants.EUROPEAN_WORKERS_PERMISSION],
+                        return_dict[constants.CREW_VEHICLE_PERMISSION],
                     ) = simulate_uncrew(
                         status.displayed_mob,
                         required_dummy_attributes,
@@ -225,9 +226,40 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
                     dummy_input_dict[attribute] = getattr(officer, attribute).copy()
                 else:
                     dummy_input_dict[attribute] = getattr(officer, attribute)
-        dummy_input_dict["officer"] = officer
-        dummy_input_dict["worker"] = worker
+
+        dummy_officer = create_dummy_copy(officer, {}, required_dummy_attributes)
+        dummy_input_dict["officer"] = dummy_officer
+        dummy_worker = create_dummy_copy(worker, {}, required_dummy_attributes)
+        dummy_input_dict["worker"] = dummy_worker
         dummy_input_dict["unit_type"] = officer.unit_type.group_type
+
+        dummy_input_dict["equipment"] = {}
+        dummy_officer.image_dict = deepcopy(officer.image_dict)
+        dummy_worker.image_dict = deepcopy(worker.image_dict)
+        for (
+            equipment_type,
+            equipped,
+        ) in (
+            dummy_worker.equipment.items()
+        ):  # Attempt to share worker equipment with officer
+            if equipped:
+                if status.equipment_types[equipment_type].check_requirement(
+                    dummy_officer
+                ) and not dummy_officer.equipment.get(equipment_type, False):
+                    status.equipment_types[equipment_type].equip(dummy_officer)
+
+        for (
+            equipment_type,
+            equipped,
+        ) in (
+            dummy_officer.equipment.items()
+        ):  # Attempt to share officer equipment with worker
+            if equipped:
+                if status.equipment_types[equipment_type].check_requirement(
+                    dummy_worker
+                ) and not dummy_worker.equipment.get(equipment_type, False):
+                    status.equipment_types[equipment_type].equip(dummy_worker)
+
         dummy_input_dict["disorganized"] = worker.get_permission(
             constants.DISORGANIZED_PERMISSION
         )
@@ -236,10 +268,6 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
         )
         if dummy_input_dict["unit_type"] == status.unit_types[constants.BATTALION]:
             dummy_input_dict["disorganized"] = True
-            if worker.get_permission(constants.EUROPEAN_WORKERS_PERMISSION):
-                dummy_input_dict["battalion_type"] = "imperial"
-            else:
-                dummy_input_dict["battalion_type"] = "colonial"
         dummy_input_dict["name"] = actor_utility.generate_group_name(
             worker, officer, add_veteran=True
         )
@@ -259,17 +287,38 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
                 constants.VETERAN_PERMISSION: dummy_input_dict["veteran"],
             }
         )
-        image_id_list = []
-        dummy_input_dict[
-            "image_id_list"
-        ] = image_id_list + actor_utility.generate_group_image_id_list(worker, officer)
-        if dummy_input_dict.get("disorganized", False):
-            dummy_input_dict["image_id_list"].append("misc/disorganized_icon.png")
-        if dummy_input_dict.get("veteran", False):
-            dummy_input_dict["image_id_list"].append("misc/veteran_icon.png")
-
-        return_value = constants.actor_creation_manager.create_dummy(dummy_input_dict)
-    return return_value
+        dummy_input_dict["image_dict"] = {
+            "default": "misc/empty.png",
+            "portrait": actor_utility.generate_group_image_id_list(
+                dummy_worker, dummy_officer
+            ),
+        }
+        dummy_group = constants.actor_creation_manager.create_dummy(dummy_input_dict)
+        for (
+            equipment_type,
+            equipped,
+        ) in (
+            worker.equipment.items()
+        ):  # Equip any equipment of the worker that the group can use
+            if equipped and status.equipment_types[equipment_type].check_requirement(
+                dummy_group
+            ):
+                status.equipment_types[equipment_type].equip(dummy_group)
+        for (
+            equipment_type,
+            equipped,
+        ) in (
+            officer.equipment.items()
+        ):  # Equip any equipment of the officer that the group can use
+            if (
+                equipped
+                and status.equipment_types[equipment_type].check_requirement(
+                    dummy_group
+                )
+                and not dummy_group.equipment.get(equipment_type, False)
+            ):
+                status.equipment_types[equipment_type].equip(dummy_group)
+    return dummy_group
 
 
 def simulate_crew(vehicle, worker, required_dummy_attributes, dummy_input_dict):
@@ -322,6 +371,21 @@ def simulate_split(unit, required_dummy_attributes, dummy_input_dict):
     dummy_officer = create_dummy_copy(
         unit.officer, dummy_officer_dict, required_dummy_attributes
     )
+    dummy_officer.image_dict = deepcopy(unit.officer.image_dict)
+    dummy_worker.image_dict = deepcopy(unit.worker.image_dict)
+    for (
+        equipment_type,
+        equipped,
+    ) in unit.equipment.items():  # Attempt to inherit equipment
+        if equipped:
+            if status.equipment_types[equipment_type].check_requirement(dummy_worker):
+                status.equipment_types[equipment_type].equip(dummy_worker)
+                status.equipment_types[equipment_type].unequip(dummy_officer)
+            elif status.equipment_types[equipment_type].check_requirement(
+                dummy_officer
+            ):
+                status.equipment_types[equipment_type].equip(dummy_officer)
+                status.equipment_types[equipment_type].unequip(dummy_worker)
     return (dummy_officer, dummy_worker)
 
 

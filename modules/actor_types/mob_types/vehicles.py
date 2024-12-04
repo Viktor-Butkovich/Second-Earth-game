@@ -40,7 +40,6 @@ class vehicle(pmob):
         self.contained_mobs = []
         self.ejected_crew = None
         self.ejected_passengers = []
-        self.travel_possible = False
         super().__init__(from_save, input_dict, original_constructor=False)
         self.image_dict = input_dict["image_dict"]  # should have default and uncrewed
         if not from_save:
@@ -185,7 +184,11 @@ class vehicle(pmob):
                                     current_sub_mob.generate_attrition_replacement_text()
                                 )  # 'The ' + current_sub_mob.name + ' will remain inactive for the next turn as replacements are found.'
                                 current_sub_mob.replace()
-                                current_sub_mob.temp_disable_movement()
+                                current_sub_mob.set_permission(
+                                    constants.MOVEMENT_DISABLED_PERMISSION,
+                                    True,
+                                    override=True,
+                                )
                                 current_sub_mob.death_sound("violent")
                             else:
                                 non_replaced_attrition.append(current_sub_mob)
@@ -195,7 +198,7 @@ class vehicle(pmob):
                                     "zoom_destination": self,
                                 }
                             )
-        for current_mob in non_replaced_attrition:
+        for current_sub_mob in non_replaced_attrition:
             current_sub_mob.disembark_vehicle(self)
             current_sub_mob.attrition_death(False)
 
@@ -213,7 +216,9 @@ class vehicle(pmob):
         if crew.automatically_replace:
             text += f"The {self.name} will remain inactive for the next turn as replacements are found. /n /n"
             crew.replace(self)
-            self.temp_disable_movement()
+            self.set_permission(
+                constants.MOVEMENT_DISABLED_PERMISSION, True, override=True
+            )
         else:
             crew.attrition_death(False)
         constants.notification_manager.display_notification(
@@ -374,7 +379,7 @@ class vehicle(pmob):
             boolean: Returns True if this mob can move to the proposed destination, otherwise returns False
         """
         if self.get_permission(constants.ACTIVE_PERMISSION):
-            if not self.temp_movement_disabled:
+            if not self.get_permission(constants.MOVEMENT_DISABLED_PERMISSION):
                 return super().can_move(x_change, y_change, can_print)
             elif can_print:
                 print(
@@ -408,6 +413,7 @@ class vehicle(pmob):
             self.drop_inventory()
         elif new_grid.grid_type in constants.abstract_grid_type_list:
             self.eject_passengers()
+        self.on_move()
 
     def get_worker(self) -> "pmob":
         """
@@ -422,124 +428,3 @@ class vehicle(pmob):
             return self.crew
         else:
             return super().get_worker()
-
-
-class train(vehicle):
-    """
-    Vehicle that can only move along railroads, has large inventory capacity, and has 10 movement points
-    """
-
-    def __init__(self, from_save, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
-                'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_spaceship.png'
-                'name': string value - Required if from save, this mob's name
-                'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
-                'movement_points': int value - Required if from save, how many movement points this actor currently has
-                'crew': worker, string, or dictionary value - If no crew, equals None. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
-                    recreate the worker to serve as crew
-                'passenger_dicts': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each of this vehicle's passengers
-        Output:
-            None
-        """
-        super().__init__(from_save, input_dict)
-        self.set_max_movement_points(16)
-        self.has_infinite_movement = False
-        self.can_swim = False
-        self.can_walk = True
-
-    def can_move(self, x_change, y_change, can_print=True):
-        """
-        Description:
-            Returns whether this mob can move to the tile x_change to the right of it and y_change above it. Movement can be prevented by not being able to move on water/land, the edge of the map, limited movement points, etc. Vehicles
-                are not able to move without a crew. Trains can only move along railroads
-        Input:
-            int x_change: How many cells would be moved to the right in the hypothetical movement
-            int y_change: How many cells would be moved upward in the hypothetical movement
-            boolean can_print = True: Whether to print messages to explain why a unit can't move in a certain direction
-        Output:
-            boolean: Returns True if this mob can move to the proposed destination, otherwise returns False
-        """
-        result = super().can_move(x_change, y_change, can_print)
-        if result:
-            if not (
-                self.get_cell().has_intact_building(constants.RAILROAD)
-                and self.grids[0]
-                .find_cell(self.x + x_change, self.y + y_change)
-                .has_intact_building(constants.RAILROAD)
-            ):
-                if can_print:
-                    text_utility.print_to_screen(
-                        "Trains can only move along railroads."
-                    )
-                return False
-        return result
-
-    def get_movement_cost(self, x_change, y_change):
-        """
-        Description:
-            Returns the cost in movement points of moving by the inputted amounts. Unlike most pmobs, trains use their default movement cost to move to all railroad tiles
-        Input:
-            int x_change: How many cells would be moved to the right in the hypothetical movement
-            int y_change: How many cells would be moved upward in the hypothetical movement
-        Output:
-            double: How many movement points would be spent by moving by the inputted amount
-        """
-        return self.movement_cost
-
-
-class spaceship(vehicle):
-    """
-    Vehicle that can enter space, has large inventory capacity, and has infinite movement points
-    """
-
-    def __init__(self, from_save, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
-                'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_spaceship.png'
-                'name': string value - Required if from save, this mob's name
-                'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
-                'movement_points': int value - Required if from save, how many movement points this actor currently has
-                'crew': worker, string, or dictionary value - If no crew, equals None. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
-                    recreate the worker to serve as crew
-                'passenger_dicts': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each of this vehicle's passengers
-        Output:
-            None
-        """
-        super().__init__(from_save, input_dict)
-        self.set_max_movement_points(10)
-        self.has_infinite_movement = True
-        self.can_swim = True
-        self.can_walk = False
-        self.travel_possible = True  # if this mob would ever be able to travel
-
-    def can_travel(self):
-        """
-        Description:
-            Returns whether this spaceship can enter space
-        Input:
-            None
-        Output:
-            boolean: Returs True if this spaceship has any crew, otherwise returns False
-        """
-        return (
-            self.travel_possible
-            and self.get_permission(constants.ACTIVE_PERMISSION)
-            and not self.temp_movement_disabled
-        )

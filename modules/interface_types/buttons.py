@@ -386,7 +386,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.REMOVE_EQUIPMENT_BUTTON:
             if status.displayed_mob:
                 self.set_tooltip(
-                    ["Click to unequip " + self.equipment_type]
+                    [f"Click to unequip {self.equipment_type}"]
                     + status.equipment_types[self.equipment_type].description
                 )
 
@@ -623,7 +623,7 @@ class button(interface_elements.interface_element):
 
         elif self.button_type == constants.TAB_BUTTON:
             if hasattr(self.linked_element, "description"):
-                description = self.linked_element.description
+                description = f"{self.linked_element.tab_button.tab_name} panel"
             else:
                 description = "attached panel"
             self.set_tooltip(["Displays the " + description])
@@ -1120,12 +1120,12 @@ class button(interface_elements.interface_element):
                         if status.displayed_tile.get_inventory(equipment_name) > 0:
                             if equipment.check_requirement(status.displayed_mob):
                                 if not status.displayed_mob.equipment.get(
-                                    equipment.equipment_type, False
+                                    equipment.key, False
                                 ):
                                     # If equpiment in tile, equippable by this unit, and not already equipped, equip it
                                     equipment.equip(status.displayed_mob)
                                     status.displayed_tile.change_inventory(
-                                        equipment.equipment_type, -1
+                                        equipment.key, -1
                                     )
                                     actor_utility.calibrate_actor_info_display(
                                         status.tile_info_display, status.displayed_tile
@@ -1159,13 +1159,9 @@ class button(interface_elements.interface_element):
                         self.attached_label.actor.current_item
                     ]
                     if equipment.check_requirement(status.displayed_mob):
-                        if not status.displayed_mob.equipment.get(
-                            equipment.equipment_type, False
-                        ):
+                        if not status.displayed_mob.equipment.get(equipment.key, False):
                             equipment.equip(status.displayed_mob)
-                            status.displayed_tile.change_inventory(
-                                equipment.equipment_type, -1
-                            )
+                            status.displayed_tile.change_inventory(equipment.key, -1)
                             actor_utility.calibrate_actor_info_display(
                                 status.tile_info_display, status.displayed_tile
                             )
@@ -1190,11 +1186,11 @@ class button(interface_elements.interface_element):
                                 )
                         else:
                             text_utility.print_to_screen(
-                                f"This unit already has {equipment.equipment_type} equipped."
+                                f"This unit already has {equipment.key} equipped."
                             )
                     else:
                         text_utility.print_to_screen(
-                            f"This type of unit can not equip {equipment.equipment_type}."
+                            f"This type of unit can not equip {equipment.key}."
                         )
                 else:
                     text_utility.print_to_screen(
@@ -1343,6 +1339,26 @@ class button(interface_elements.interface_element):
                         linked_tab_button.parent_collection.parent_collection.current_tabbed_member = (
                             linked_tab_button.linked_element
                         )
+                if (
+                    alternate_collection == status.mob_tabbed_collection
+                ):  # Manually calibrate tab name banner label to new tab name
+                    alternate_collection.tabs_collection.members[-1].calibrate(
+                        status.displayed_mob
+                    )
+                elif alternate_collection == status.tile_tabbed_collection:
+                    alternate_collection.tabs_collection.members[-1].calibrate(
+                        status.displayed_tile
+                    )
+            if (
+                tabbed_collection == status.mob_tabbed_collection
+            ):  # Manually calibrate tab name banner label to new tab name
+                tabbed_collection.tabs_collection.members[-1].calibrate(
+                    status.displayed_mob
+                )
+            elif tabbed_collection == status.tile_tabbed_collection:
+                tabbed_collection.tabs_collection.members[-1].calibrate(
+                    status.displayed_tile
+                )
 
         elif self.button_type == constants.RENAME_SETTLEMENT_BUTTON:
             if main_loop_utility.action_possible():
@@ -1377,6 +1393,7 @@ class button(interface_elements.interface_element):
         """
         self.showing_outline = False
         self.has_released = True
+        self.being_pressed = False
 
     def remove(self):
         """
@@ -1450,10 +1467,11 @@ class button(interface_elements.interface_element):
             elif self.button_type == constants.USE_EQUIPMENT_BUTTON:
                 return self.attached_label.actor.current_item in status.equipment_types
             elif self.button_type == constants.USE_EACH_EQUIPMENT_BUTTON:
-                for equipment_name, equipment in status.equipment_types.items():
-                    if status.displayed_tile.get_inventory(equipment_name) > 0:
-                        if equipment.check_requirement(status.displayed_mob):
-                            return True
+                if status.displayed_mob:
+                    for equipment_name, equipment in status.equipment_types.items():
+                        if status.displayed_tile.get_inventory(equipment_name) > 0:
+                            if equipment.check_requirement(status.displayed_mob):
+                                return True
                 return False
             return True
         return False
@@ -1835,6 +1853,8 @@ class fire_unit_button(button):
             message = "Are you sure you want to fire this unit? Firing this unit would remove it, any units attached to it, and any associated upkeep from the game. /n /n"
             worker = self.attached_mob.get_worker()
             if worker:
+                if constants.get_permission(constants.GROUP_PERMISSION):
+                    worker = worker.worker
                 message += (
                     " /n /n".join(worker.worker_type.fired_description) + " /n /n"
                 )
@@ -2502,6 +2522,7 @@ class tab_button(button):
         self.linked_element = input_dict["linked_element"]
         self.linked_element.linked_tab_button = self
         self.identifier = input_dict["identifier"]
+        self.tab_name = input_dict["tab_name"]
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -2530,7 +2551,10 @@ class tab_button(button):
                     )
                 else:
                     return_value = status.displayed_mob.inventory_capacity > 0 or (
-                        status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
+                        flags.enable_equipment_panel
+                        and status.displayed_mob.get_permission(
+                            constants.PMOB_PERMISSION
+                        )
                         and status.displayed_mob.equipment
                     )
 
@@ -2538,6 +2562,10 @@ class tab_button(button):
                 return_value = status.displayed_mob.get_permission(
                     constants.PMOB_PERMISSION
                 )
+            elif self.identifier == constants.LOCAL_CONDITIONS_PANEL:
+                return_value = not status.displayed_tile.grid.is_abstract_grid
+            elif self.identifier == constants.GLOBAL_CONDITIONS_PANEL:
+                return_value = True
 
         if (
             self.linked_element
@@ -2601,6 +2629,7 @@ class reorganize_unit_button(button):
         self.allowed_procedures = input_dict["allowed_procedures"]
         super().__init__(input_dict)
         self.has_button_press_override = True
+        self.default_keybind_id = self.keybind_id
 
     def button_press_override(self):
         """
@@ -2628,11 +2657,17 @@ class reorganize_unit_button(button):
         Output:
             boolean: Returns whether this button should display its shader, given that it has shader enabled
         """
-        return (
+        result = (
             super().enable_shader_condition()
             and not self.parent_collection.autofill_actors[constants.AUTOFILL_PROCEDURE]
             in self.allowed_procedures
         )
+        if result:
+            self.keybind_id = None
+            self.on_release()
+        else:
+            self.keybind_id = self.default_keybind_id
+        return result
 
     def update_tooltip(self):
         """
@@ -2695,11 +2730,11 @@ class reorganize_unit_button(button):
                         constants.INACTIVE_VEHICLE_PERMISSION
                     ]
                     and self.parent_collection.autofill_actors[
-                        constants.EUROPEAN_WORKERS_PERMISSION
+                        constants.CREW_VEHICLE_PERMISSION
                     ]
                 ):
                     self.tooltip_text.append(
-                        f"Press to combine the {self.parent_collection.autofill_actors[constants.INACTIVE_VEHICLE_PERMISSION].name} and the {self.parent_collection.autofill_actors[constants.EUROPEAN_WORKERS_PERMISSION].name} into a crewed {self.parent_collection.autofill_actors[constants.ACTIVE_VEHICLE_PERMISSION].name}"
+                        f"Press to combine the {self.parent_collection.autofill_actors[constants.INACTIVE_VEHICLE_PERMISSION].name} and the {self.parent_collection.autofill_actors[constants.CREW_VEHICLE_PERMISSION].name} into a crewed {self.parent_collection.autofill_actors[constants.ACTIVE_VEHICLE_PERMISSION].name}"
                     )
                 else:
                     self.tooltip_text += [
@@ -2711,7 +2746,7 @@ class reorganize_unit_button(button):
                 == constants.UNCREW_PROCEDURE
             ):
                 self.tooltip_text.append(
-                    f"Press to separate the {self.parent_collection.autofill_actors[constants.ACTIVE_VEHICLE_PERMISSION].name} into {self.parent_collection.autofill_actors[constants.EUROPEAN_WORKERS_PERMISSION].name} and a non-crewed {self.parent_collection.autofill_actors[constants.INACTIVE_VEHICLE_PERMISSION].name}"
+                    f"Press to separate the {self.parent_collection.autofill_actors[constants.ACTIVE_VEHICLE_PERMISSION].name} into {self.parent_collection.autofill_actors[constants.CREW_VEHICLE_PERMISSION].name} and a non-crewed {self.parent_collection.autofill_actors[constants.INACTIVE_VEHICLE_PERMISSION].name}"
                 )
         elif self.parent_collection.autofill_actors[constants.AUTOFILL_PROCEDURE]:
             self.tooltip_text.append(
@@ -2736,11 +2771,9 @@ class reorganize_unit_button(button):
         """
         if main_loop_utility.action_possible():
             procedure_actors = self.parent_collection.autofill_actors
-            if (
-                procedure_actors[constants.AUTOFILL_PROCEDURE]
-                in self.allowed_procedures
-            ):
-                procedure_type = None
+            attempted_procedure_type = procedure_actors[constants.AUTOFILL_PROCEDURE]
+            procedure_type = constants.INVALID_PROCEDURE
+            if attempted_procedure_type in self.allowed_procedures:
                 dummy_autofill_target_to_procedure_dict = {
                     constants.OFFICER_PERMISSION: constants.SPLIT_PROCEDURE,
                     constants.WORKER_PERMISSION: constants.SPLIT_PROCEDURE,
@@ -2748,7 +2781,7 @@ class reorganize_unit_button(button):
                     constants.ACTIVE_VEHICLE_PERMISSION: constants.CREW_PROCEDURE,
                     constants.INACTIVE_VEHICLE_PERMISSION: constants.UNCREW_PROCEDURE,
                 }
-                # type of procedure to do if dummy version of corresponding unit found - if a dummy officer is found, the procedure must be a split
+                # Type of procedure to execute if dummy version of corresponding unit found - if a dummy officer is found, the procedure must be a split
                 procedure_type = constants.INVALID_PROCEDURE
                 for autofill_target_type in dummy_autofill_target_to_procedure_dict:
                     if procedure_actors.get(autofill_target_type, None):
@@ -2760,35 +2793,14 @@ class reorganize_unit_button(button):
                             ]
                             break
                 if procedure_type == constants.MERGE_PROCEDURE:
-                    if procedure_actors[constants.WORKER_PERMISSION].get_permission(
-                        constants.CHURCH_VOLUNTEERS_PERMISSION
-                    ) and not procedure_actors[
-                        constants.OFFICER_PERMISSION
-                    ].get_permission(
-                        constants.EVANGELIST_PERMISSION
-                    ):
-                        text_utility.print_to_screen(
-                            "Church volunteers can only be combined with evangelists."
-                        )
-                    elif procedure_actors[constants.OFFICER_PERMISSION].get_permission(
-                        constants.EVANGELIST_PERMISSION
-                    ) and not procedure_actors[
-                        constants.WORKER_PERMISSION
-                    ].get_permission(
-                        constants.CHURCH_VOLUNTEERS_PERMISSION
-                    ):
-                        text_utility.print_to_screen(
-                            "Evangelists can only be combined with church volunteers."
-                        )
-                    else:
-                        constants.actor_creation_manager.create_group(
-                            procedure_actors[constants.WORKER_PERMISSION],
-                            procedure_actors[constants.OFFICER_PERMISSION],
-                        ).select()
+                    constants.actor_creation_manager.create_group(
+                        procedure_actors[constants.WORKER_PERMISSION],
+                        procedure_actors[constants.OFFICER_PERMISSION],
+                    ).select()
 
                 elif procedure_type == constants.CREW_PROCEDURE:
                     if procedure_actors[
-                        constants.EUROPEAN_WORKERS_PERMISSION
+                        constants.CREW_VEHICLE_PERMISSION
                     ].get_permission(
                         constants.CREW_PERMISSIONS[
                             procedure_actors[
@@ -2797,13 +2809,13 @@ class reorganize_unit_button(button):
                         ]
                     ):
                         procedure_actors[
-                            constants.EUROPEAN_WORKERS_PERMISSION
+                            constants.CREW_VEHICLE_PERMISSION
                         ].crew_vehicle(
                             procedure_actors[constants.INACTIVE_VEHICLE_PERMISSION]
                         )
                     else:
                         text_utility.print_to_screen(
-                            f"{procedure_actors[constants.EUROPEAN_WORKERS_PERMISSION].worker_type.name.capitalize()} cannot crew {procedure_actors[constants.INACTIVE_VEHICLE_PERMISSION].unit_type.name}s."
+                            f"{procedure_actors[constants.CREW_VEHICLE_PERMISSION].worker_type.name.capitalize()} cannot crew {procedure_actors[constants.INACTIVE_VEHICLE_PERMISSION].unit_type.name}s."
                         )
 
                 elif procedure_type == constants.SPLIT_PROCEDURE:
@@ -2828,22 +2840,23 @@ class reorganize_unit_button(button):
                             procedure_actors[constants.ACTIVE_VEHICLE_PERMISSION]
                         )
 
-            elif constants.MERGE_PROCEDURE in self.allowed_procedures:
-                text_utility.print_to_screen(
-                    "This button executes merge procedures, which require workers and an officer in the same tile"
-                )
-            elif constants.SPLIT_PROCEDURE in self.allowed_procedures:
-                text_utility.print_to_screen(
-                    "This button executes split procedures, which require a group to be selected"
-                )
-            elif constants.CREW_PROCEDURE in self.allowed_procedures:
-                text_utility.print_to_screen(
-                    "This button executes crew procedures, which require a worker and an uncrewed vehicle in the same tile"
-                )
-            elif constants.UNCREW_PROCEDURE in self.allowed_procedures:
-                text_utility.print_to_screen(
-                    "This button executes uncrew procedures, which require a crewed vehicle to be selected"
-                )
+            if procedure_type == constants.INVALID_PROCEDURE:
+                if constants.MERGE_PROCEDURE in self.allowed_procedures:
+                    text_utility.print_to_screen(
+                        "This button executes merge procedures, which require workers and an officer in the same tile"
+                    )
+                elif constants.SPLIT_PROCEDURE in self.allowed_procedures:
+                    text_utility.print_to_screen(
+                        "This button executes split procedures, which require a group to be selected"
+                    )
+                elif constants.CREW_PROCEDURE in self.allowed_procedures:
+                    text_utility.print_to_screen(
+                        "This button executes crew procedures, which require a worker and an uncrewed vehicle in the same tile"
+                    )
+                elif constants.UNCREW_PROCEDURE in self.allowed_procedures:
+                    text_utility.print_to_screen(
+                        "This button executes uncrew procedures, which require a crewed vehicle to be selected"
+                    )
 
 
 class cycle_autofill_button(button):
@@ -2899,32 +2912,30 @@ class cycle_autofill_button(button):
                         self.autofill_target_type
                     ].get_permission(constants.DUMMY_PERMISSION):
                         if self.autofill_target_type == constants.WORKER_PERMISSION:
-                            return status.displayed_mob.get_cell().has_worker(
-                                required_number=2
+                            return status.displayed_mob.get_cell().has_unit(
+                                [constants.WORKER_PERMISSION], required_number=2
                             )
                         elif self.autofill_target_type == constants.OFFICER_PERMISSION:
-                            return status.displayed_mob.get_cell().has_officer(
-                                required_number=2, allow_vehicles=False
+                            return status.displayed_mob.get_cell().has_unit(
+                                [constants.OFFICER_PERMISSION], required_number=2
                             )
                         elif (
                             self.autofill_target_type
-                            == constants.EUROPEAN_WORKERS_PERMISSION
+                            == constants.CREW_VEHICLE_PERMISSION
                         ):
-                            return status.displayed_mob.get_cell().has_worker(
-                                required_number=2,
-                                possible_types=[
-                                    status.worker_types[constants.EUROPEAN_WORKERS]
-                                ],
+                            return status.displayed_mob.get_cell().has_unit(
+                                [constants.CREW_VEHICLE_PERMISSION], required_number=2
                             )
                         elif (
                             self.autofill_target_type
                             == constants.INACTIVE_VEHICLE_PERMISSION
                         ):
-                            return status.displayed_mob.get_cell().has_uncrewed_vehicle(
-                                required_number=2
+                            return status.displayed_mob.get_cell().has_unit(
+                                [constants.INACTIVE_VEHICLE_PERMISSION],
+                                required_number=2,
                             )
-                        # allow cycling autofill if current autofill is a real, non-selected mob and there is at least 1 alternative
-                        # it makes no sense to cycle a dummy mob for a real one in the same tile, and the selected mob is locked and can't be cycled
+                        # Allow cycling autofill if current autofill is a real, non-selected mob and there is at least 1 alternative
+                        #   It makes no sense to cycle a dummy mob for a real one in the same tile, and the selected mob is locked and can't be cycled
         return False
 
     def on_click(self):

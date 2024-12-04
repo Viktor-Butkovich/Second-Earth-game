@@ -588,6 +588,7 @@ class actor:
             None
         """
         self.set_image(self.get_image_id_list())
+        self.reselect()
 
     def set_inventory_capacity(self, new_value):
         """

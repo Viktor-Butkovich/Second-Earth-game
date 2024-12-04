@@ -456,6 +456,20 @@ class tile(actor):  # to do: make terrain tiles a subclass
         if self.grid == status.strategic_map_grid:
             for equivalent_tile in self.get_equivalent_tiles():
                 equivalent_tile.update_image_bundle(override_image=override_image)
+        self.reselect()
+
+    def reselect(self):
+        """
+        Description:
+            Deselects and reselects this mob if it was already selected
+        Input:
+            None
+        Output:
+            None
+        """
+        if status.displayed_tile == self:
+            actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
+            actor_utility.calibrate_actor_info_display(status.tile_info_display, self)
 
     def set_resource(self, new_resource, update_image_bundle=True):
         """
@@ -491,8 +505,6 @@ class tile(actor):  # to do: make terrain tiles a subclass
             self.image_dict["default"] = "terrains/hidden.png"
         if update_image_bundle:
             self.update_image_bundle()
-        if self == status.displayed_tile:
-            actor_utility.calibrate_actor_info_display(status.tile_info_display, self)
 
     def update_tooltip(self):
         """
@@ -504,7 +516,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
-        if self.show_terrain:  # if is terrain, show tooltip
+        if self.show_terrain:  # If is terrain, show tooltip
             tooltip_message = []
             coordinates = self.get_main_grid_coordinates()
             tooltip_message.append(f"Coordinates: ({coordinates[0]}, {coordinates[1]})")
@@ -518,7 +530,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     ][knowledge_value]
                 )
                 knowledge_maximum = maximum = self.cell.terrain_handler.maxima.get(
-                    constants.KNOWLEDGE, 6
+                    constants.KNOWLEDGE, 5
                 )
                 tooltip_message.append(
                     f"Knowledge: {knowledge_keyword} ({knowledge_value}/{knowledge_maximum})"
@@ -536,7 +548,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         for terrain_parameter in constants.terrain_parameters:
                             if terrain_parameter != constants.KNOWLEDGE:
                                 maximum = self.cell.terrain_handler.maxima.get(
-                                    terrain_parameter, 6
+                                    terrain_parameter, 5
                                 )
                                 value = self.cell.get_parameter(terrain_parameter)
                                 keyword = constants.terrain_manager.terrain_parameter_keywords[
@@ -632,7 +644,7 @@ class abstract_tile(tile):
         """
         input_dict["coordinates"] = (0, 0)
         input_dict["show_terrain"] = False
-        self.grid_image_id = ["locations/earth/earth.png"]
+        self.grid_image_id = ["locations/earth.png"]
         input_dict["image"] = self.grid_image_id
         super().__init__(from_save, input_dict)
 

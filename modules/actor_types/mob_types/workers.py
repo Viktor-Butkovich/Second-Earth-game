@@ -34,13 +34,13 @@ class worker(pmob):
                 'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
-                'worker_type': worker_type value - Type of worker this is, like 'European'. Each type of worker has a separate upkeep, labor pool, and abilities
+                'worker_type': worker_type value - Type of worker this is, like 'Colonist'. Each type of worker has a separate upkeep, labor pool, and abilities
         Output:
             None
         """
         self.worker_type: unit_types.worker_type = input_dict.get(
             "worker_type", status.worker_types.get(input_dict.get("init_type"))
-        )  # European, religious etc. worker_type object
+        )  # Colonist, etc. worker_type object
         super().__init__(from_save, input_dict, original_constructor=False)
 
         if not from_save:
@@ -99,14 +99,9 @@ class worker(pmob):
             f" for the {destination.name} at ({destination.x}, {destination.y})"
         )
         self.worker_type.on_recruit(purchased=True)
-        if not self.get_permission(constants.CHURCH_VOLUNTEERS_PERMISSION):
-            text_utility.print_to_screen(
-                f"Replacement {self.worker_type.name} have been automatically hired{destination_message}."
-            )
-        else:
-            text_utility.print_to_screen(
-                "Replacement church volunteers have been automatically found among nearby colonists."
-            )
+        text_utility.print_to_screen(
+            f"Replacement {self.worker_type.name} have been automatically hired{destination_message}."
+        )
 
     def fire(self, wander=True):
         """
@@ -120,78 +115,6 @@ class worker(pmob):
         """
         super().fire()
         self.worker_type.on_fire(wander=wander)
-
-    def can_show_tooltip(self):
-        """
-        Description:
-            Returns whether this worker's tooltip can be shown. Along with the superclass' requirements, worker tooltips cannot be shown when attached to another actor, such as when part of a group
-        Input:
-            None
-        Output:
-            None
-        """
-        if not (self.in_group or self.in_vehicle):
-            return super().can_show_tooltip()
-        else:
-            return False
-
-    def crew_vehicle(self, vehicle):  # to do: make vehicle go to front of info display
-        """
-        Description:
-            Orders this worker to crew the inputted vehicle, attaching this worker to the vehicle and allowing the vehicle to function
-        Input:
-            vehicle vehicle: vehicle to which this worker is attached
-        Output:
-            None
-        """
-        self.in_vehicle = True
-        self.hide_images()
-        vehicle.set_crew(self)
-        moved_mob = vehicle
-        for current_image in moved_mob.images:  # moves vehicle to front
-            if current_image.current_cell:
-                while not moved_mob == current_image.current_cell.contained_mobs[0]:
-                    current_image.current_cell.contained_mobs.append(
-                        current_image.current_cell.contained_mobs.pop(0)
-                    )
-        self.remove_from_turn_queue()
-        vehicle.add_to_turn_queue()
-        if (
-            not flags.loading_save
-        ):  # Don't select vehicle if loading in at start of game
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, None, override_exempt=True
-            )
-            vehicle.select()
-            vehicle.selection_sound()
-
-    def uncrew_vehicle(self, vehicle):
-        """
-        Description:
-            Orders this worker to stop crewing the inputted vehicle, making this worker independent from the vehicle and preventing the vehicle from functioning
-        Input:
-            vehicle vehicle: vehicle to which this worker is no longer attached
-        Output:
-            None
-        """
-        self.in_vehicle = False
-        self.x = vehicle.x
-        self.y = vehicle.y
-        self.show_images()
-        if not self.get_cell().get_intact_building(constants.SPACEPORT):
-            if constants.ALLOW_DISORGANIZED:
-                self.set_permission(constants.DISORGANIZED_PERMISSION, True)
-        vehicle.set_crew(None)
-        vehicle.end_turn_destination = None
-        vehicle.hide_images()
-        vehicle.show_images()  # bring vehicle to front of tile
-        vehicle.remove_from_turn_queue()
-        actor_utility.calibrate_actor_info_display(
-            status.mob_info_display, None, override_exempt=True
-        )
-        vehicle.select()
-        self.add_to_turn_queue()
-        self.update_image_bundle()
 
     def join_group(self):
         """
@@ -238,38 +161,16 @@ class worker(pmob):
         Output:
             None
         """
-        if not self.get_permission(constants.CHURCH_VOLUNTEERS_PERMISSION):
-            for variant_type in [
-                "soldier",
-                "porter",
-            ]:  # adds image_dict['soldier']: '.../soldier.png' and image_dict['porter']: '.../porter.png' if any are present in folders
-                variants = actor_utility.get_image_variants(
-                    self.image_dict["default"], keyword=variant_type
-                )
-                if len(variants) > 0:
-                    self.image_dict[variant_type] = random.choice(variants)
+        for variant_type in [
+            "soldier",
+            "porter",
+        ]:  # adds image_dict['soldier']: '.../soldier.png' and image_dict['porter']: '.../porter.png' if any are present in folders
+            variants = actor_utility.get_image_variants(
+                self.image_dict["default"], keyword=variant_type
+            )
+            if len(variants) > 0:
+                self.image_dict[variant_type] = random.choice(variants)
         super().image_variants_setup(from_save, input_dict)
-
-    def get_image_id_list(self, override_values={}):
-        """
-        Description:
-            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
-                orientation
-        Input:
-            None
-        Output:
-            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
-        """
-        image_id_list = super().get_image_id_list(override_values)
-        if self.image_dict["default"] in image_id_list:
-            image_id_list.remove(self.image_dict["default"])
-        image_id_list += actor_utility.generate_unit_component_portrait(
-            self.image_dict["left portrait"], "left"
-        )
-        image_id_list += actor_utility.generate_unit_component_portrait(
-            self.image_dict["right portrait"], "right"
-        )
-        return image_id_list
 
     def get_worker(self) -> "pmob":
         """

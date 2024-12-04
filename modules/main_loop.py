@@ -36,14 +36,14 @@ def main_loop():
                 case pygame.KEYDOWN:
                     for current_button in status.button_list:
                         if (
-                            (
+                            event.key == current_button.keybind_id
+                            and (
                                 current_button.showing
                                 or (
                                     current_button.has_button_press_override
                                     and current_button.button_press_override()
                                 )
                             )
-                            and event.key == current_button.keybind_id
                             and not flags.typing
                         ):
                             if (
@@ -98,8 +98,6 @@ def main_loop():
                             if current_button.has_keybind:
                                 if event.key == current_button.keybind_id:
                                     current_button.on_release()
-                                    current_button.has_released = True
-                                    current_button.being_pressed = False
                     match event.key:
                         case pygame.K_RSHIFT:
                             flags.r_shift = False

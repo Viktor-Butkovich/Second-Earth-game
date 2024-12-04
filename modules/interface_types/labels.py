@@ -30,7 +30,7 @@ class label(button):
         Output:
             None
         """
-        self.font = constants.fonts["default_notification"]
+        self.font = input_dict.get("font", constants.fonts["default_notification"])
         self.current_character = None
         self.message = input_dict["message"]
         self.minimum_width = input_dict["minimum_width"]
@@ -61,7 +61,7 @@ class label(button):
     def update_tooltip(self):
         """
         Description:
-            Sets this label's tooltip to what it should be. By default, labels have tooltips matching their text
+            Sets this label's tooltip - by default, labels have tooltips matching their text
         Input:
             None
         Output:
@@ -455,6 +455,7 @@ class multi_line_label(label):
         self.ideal_width = input_dict["ideal_width"]
         self.minimum_height = input_dict["minimum_height"]
         self.original_y = input_dict["coordinates"][1]
+        self.center_lines = input_dict.get("center_lines", False)
         input_dict["minimum_width"] = input_dict["ideal_width"]
         input_dict["height"] = self.minimum_height
         super().__init__(input_dict)
@@ -468,14 +469,23 @@ class multi_line_label(label):
         Output:
             None
         """
-        if constants.current_game_mode in self.modes:
+        if self.showing:
             self.image.draw()
             for text_line_index in range(len(self.message)):
                 text_line = self.message[text_line_index]
+                if self.center_lines:
+                    x = (
+                        self.x
+                        + scaling.scale_width(10)
+                        + self.width / 2
+                        - self.font.pygame_font.size(text_line)[0] / 2
+                    )
+                else:
+                    x = self.x + scaling.scale_width(10)
                 constants.game_display.blit(
                     text_utility.text(text_line, self.font),
                     (
-                        self.x + scaling.scale_width(10),
+                        x,
                         constants.display_height
                         - (self.y + self.height - (text_line_index * self.font.size)),
                     ),

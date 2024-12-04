@@ -30,7 +30,11 @@ from modules.interface_types.buttons import (
 from modules.interface_types.inventory_interface import item_icon
 from modules.interface_types.instructions import instructions_page
 from modules.interface_types.dice import die
-from modules.interface_types.labels import commodity_prices_label_template
+from modules.interface_types.labels import (
+    commodity_prices_label_template,
+    multi_line_label,
+    label,
+)
 from modules.actor_types.actors import actor
 from modules.actor_types.buildings import building, slums, resource_building
 from modules.actor_types.mobs import mob
@@ -96,6 +100,8 @@ same_tile_icon_list: List[same_tile_icon] = []
 directional_indicator_image_list: List[directional_indicator_image] = []
 
 loading_image: image = None
+loading_screen_quote_banner: multi_line_label = None
+loading_screen_continue_banner: label = None
 safe_click_area: safe_click_panel = None
 info_displays_collection: interface_collection = None
 grids_collection: interface_collection = None
@@ -116,7 +122,8 @@ mob_reorganization_collection: ordered_collection = None
 group_reorganization_collection: autofill_collection = None
 vehicle_reorganization_collection: autofill_collection = None
 settlement_collection: ordered_collection = None
-terrain_collection: ordered_collection = None
+local_conditions_collection: ordered_collection = None
+global_conditions_collection: ordered_collection = None
 commodity_prices_label: commodity_prices_label_template = None
 reorganize_group_left_button: reorganize_unit_button = None
 reorganize_group_right_button: reorganize_unit_button = None

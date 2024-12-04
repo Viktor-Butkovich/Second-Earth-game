@@ -19,7 +19,7 @@ class equipment_type:
             Initializes this object
         Input:
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'equipment_type': string value - Name of this equipment type
+                'key': string value - Key of this equipment type
                 'description': string list value - Description tooltip for this equipment type
                 'effects': string list value - List of types of actions this equipment provides a positive modifier on
                 'price': float value - Purchase price of this equipment type
@@ -27,12 +27,16 @@ class equipment_type:
         Output:
             None
         """
-        self.equipment_type: str = input_dict["equipment_type"]
+        self.key: str = input_dict["equipment_type"]
         self.description: List[str] = input_dict.get("description", [])
         self.effects: Dict[str, any] = input_dict.get("effects", {})
-        status.equipment_types[self.equipment_type] = self
+        status.equipment_types[self.key] = self
+        self.can_purchase: bool = input_dict.get("can_purchase", False)
         self.price: float = input_dict.get("price", 5.0)
-        self.requirement: str = input_dict.get("requirement", None)
+        requirements_type, requirements = input_dict.get("requirements", [None])
+        self.requirements_type: str = requirements_type
+        self.requirements: List[str] = requirements
+        self.equipment_image: dict = input_dict.get("equipment_image", None)
 
     def apply_modifier(self, action_type: str) -> int:
         """
@@ -51,44 +55,60 @@ class equipment_type:
 
         if modifier != 0 and constants.effect_manager.effect_active("show_modifiers"):
             if modifier > 0:
-                print(
-                    f"{self.equipment_type} gave modifier of +{modifier} to {action_type} roll"
-                )
+                print(f"{self.key} gave modifier of +{modifier} to {action_type} roll")
             else:
-                print(
-                    f"{self.equipment_type} gave modifier of {modifier} to {action_type} roll"
-                )
+                print(f"{self.key} gave modifier of {modifier} to {action_type} roll")
         return modifier
 
     def equip(self, unit) -> None:
         """
         Description:
-            Orders the inputted unit to equip this type of item, assuming it does not have one equipped
+            Orders the inputted unit to equip this type of item
         Input:
             pmob unit: Unit to equip item to
         Output:
             None
         """
-        unit.equipment[self.equipment_type] = True
-        if self.effects.get("max_movement_points", 0) != 0:
-            unit.set_max_movement_points(
-                4 + self.effects["max_movement_points"],
-                initial_setup=False,
-                allow_increase=False,
-            )
+        if not unit.equipment.get(self.key, False):
+            unit.equipment[self.key] = True
+            if self.effects.get("max_movement_points", 0) != 0:
+                unit.set_max_movement_points(
+                    4 + self.effects["max_movement_points"],
+                    initial_setup=False,
+                    allow_increase=False,
+                )
+            for permission in self.effects.get("permissions", []):
+                unit.set_permission(permission, True, override=True)
+            if unit.get_permission(constants.GROUP_PERMISSION):
+                if self.check_requirement(unit.officer):
+                    self.equip(unit.officer)
+                if self.check_requirement(unit.worker):
+                    self.equip(unit.worker)
+            unit.update_equipment_image(self.key, True)
 
     def unequip(self, unit) -> None:
         """
         Description:
-            Orders the inputted unit to unequip this type of item, assuming it has one equipped
+            Orders the inputted unit to unequip this type of item
         Input:
             pmob unit: Unit to unequip item from
         Output:
             None
         """
-        del unit.equipment[self.equipment_type]
-        if self.effects.get("max_movement_points", 0) != 0:
-            unit.set_max_movement_points(4, initial_setup=False, allow_increase=False)
+        if unit.equipment.get(self.key, False):
+            del unit.equipment[self.key]
+            if self.effects.get("max_movement_points", 0) != 0:
+                unit.set_max_movement_points(
+                    unit.unit_type.movement_points,
+                    initial_setup=False,
+                    allow_increase=False,
+                )
+            for permission in self.effects.get("permissions", []):
+                unit.set_permission(permission, False, override=True)
+            if unit.get_permission(constants.GROUP_PERMISSION):
+                self.unequip(unit.officer)
+                self.unequip(unit.worker)
+            unit.update_equipment_image(self.key, False)
 
     def check_requirement(self, unit) -> bool:
         """
@@ -99,18 +119,11 @@ class equipment_type:
         Output:
             bool: Returns whether the inputted unit fulfills the requirements to equip this item
         """
-        if type(self.requirement) == str:
-            return (
-                self.requirement
-                and hasattr(unit, self.requirement)
-                and getattr(unit, self.requirement)
-            )
-        elif self.requirement:  # Treat list of requirements as a chained or condition
-            for current_requirement in self.requirement:
-                if hasattr(unit, current_requirement) and getattr(
-                    unit, current_requirement
-                ):
-                    return True
+        if self.requirements_type:
+            if self.requirements_type == "any":
+                return unit.any_permissions(*self.requirements)
+            elif self.requirements_type == "all":
+                return unit.all_permissions(*self.requirements)
         return False
 
 
@@ -145,7 +158,7 @@ def transfer(item_type: str, amount, source_type: str) -> None:
                     and amount > displayed_mob.get_inventory(item_type)
                 ):
                     text_utility.print_to_screen(
-                        "This unit does not have enough " + item_type + " to transfer."
+                        f"This unit does not have enough {item_type} to transfer."
                     )
                     return
                 elif (
@@ -153,7 +166,7 @@ def transfer(item_type: str, amount, source_type: str) -> None:
                     and amount > displayed_tile.get_inventory(item_type)
                 ):
                     text_utility.print_to_screen(
-                        "This tile does not have enough " + item_type + " to transfer."
+                        f"This tile does not have enough {item_type} to transfer."
                     )
                     return
 
@@ -177,7 +190,7 @@ def transfer(item_type: str, amount, source_type: str) -> None:
                                 )
                             else:
                                 text_utility.print_to_screen(
-                                    "This unit can not pick up " + item_type + "."
+                                    f"This unit can not pick up {item_type}."
                                 )
                             return
 
@@ -216,6 +229,10 @@ def transfer(item_type: str, amount, source_type: str) -> None:
                     actor_utility.select_interface_tab(
                         status.tile_tabbed_collection, status.tile_inventory_collection
                     )
+                    if not status.displayed_mob.inventory:
+                        actor_utility.select_default_tab(
+                            status.mob_tabbed_collection, status.displayed_mob
+                        )
                     actor_utility.calibrate_actor_info_display(
                         status.mob_info_display, displayed_mob
                     )

@@ -163,10 +163,11 @@ class buy_item_button(button):
                         text_utility.print_to_screen(
                             f"The price of {self.item_type} has increased from {cost} to {cost + 1}."
                         )
-                    actor_utility.calibrate_actor_info_display(
-                        status.tile_inventory_info_display,
-                        status.displayed_tile_inventory,
-                    )
+                    for linked_tab in status.tile_tabbed_collection.tabbed_members:
+                        linked_tab_button = linked_tab.linked_tab_button
+                        if linked_tab_button.identifier == constants.INVENTORY_PANEL:
+                            linked_tab_button.on_click()
+                            pass
             else:
                 text_utility.print_to_screen(
                     "You do not have enough money to purchase this commodity"

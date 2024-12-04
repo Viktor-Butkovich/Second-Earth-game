@@ -148,8 +148,8 @@ class disembark_all_passengers_button(button):
         if main_loop_utility.action_possible():
             vehicle = status.displayed_mob
             can_disembark = True
-            if vehicle.get_permission(self.vehicle_type):
-                if not vehicle.get_cell().contained_buildings[constants.TRAIN_STATION]:
+            if vehicle.get_permission(constants.TRAIN_PERMISSION):
+                if not vehicle.get_cell().has_building(constants.TRAIN_STATION):
                     text_utility.print_to_screen(
                         "A train can only drop off passengers at a train station."
                     )
@@ -735,8 +735,10 @@ class embark_vehicle_button(button):
             result = (
                 displayed_mob
                 and displayed_mob.get_permission(constants.PMOB_PERMISSION)
-                and displayed_mob.get_cell().has_vehicle(self.vehicle_type)
                 and not displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
+                and displayed_mob.get_cell().has_unit(
+                    [self.vehicle_type, constants.ACTIVE_VEHICLE_PERMISSION]
+                )
             )
         self.was_showing = result
         return result
@@ -751,9 +753,14 @@ class embark_vehicle_button(button):
             None
         """
         if main_loop_utility.action_possible():
-            if status.displayed_mob.get_cell().has_vehicle(self.vehicle_type):
+            if status.displayed_mob.get_cell().has_unit(
+                [self.vehicle_type, constants.ACTIVE_VEHICLE_PERMISSION]
+            ):
                 rider = status.displayed_mob
-                vehicles = rider.get_cell().get_vehicles(self.vehicle_type)
+                vehicles = rider.get_cell().get_unit(
+                    [self.vehicle_type, constants.ACTIVE_VEHICLE_PERMISSION],
+                    get_all=True,
+                )
                 can_embark = True
                 if vehicles[0].get_permission(constants.TRAIN_PERMISSION):
                     if (
@@ -1154,14 +1161,13 @@ class switch_theatre_button(button):
                     current_mob.set_sentry_mode(False)
                 if not constants.current_game_mode == constants.STRATEGIC_MODE:
                     game_transitions.set_game_mode(constants.STRATEGIC_MODE)
-                    current_mob.select()
                 current_mob.clear_automatic_route()
                 current_mob.end_turn_destination = None
                 current_mob.add_to_turn_queue()
                 flags.choosing_destination = True
             else:
                 text_utility.print_to_screen(
-                    "Crossing the ocean requires all remaining movement points, at least 1."
+                    "Traveling through space requires all remaining movement points, at least 1."
                 )
         else:
             text_utility.print_to_screen("You are busy and cannot move.")
@@ -1729,6 +1735,14 @@ class toggle_button(button):
                     actor_utility.calibrate_actor_info_display(
                         status.tile_info_display, status.displayed_tile
                     )
+            elif self.toggle_variable in [
+                "earth_preset",
+                "mars_preset",
+                "venus_preset",
+            ]:
+                for variable in ["earth_preset", "mars_preset", "venus_preset"]:
+                    if variable != self.toggle_variable:
+                        constants.effect_manager.set_effect(variable, False)
         else:
             setattr(flags, self.toggle_variable, not self.get_value())
 

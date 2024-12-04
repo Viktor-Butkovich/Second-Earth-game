@@ -76,7 +76,7 @@ def set_game_mode(new_game_mode):
         ] and not new_game_mode in [
             constants.MAIN_MENU_MODE,
             constants.NEW_GAME_SETUP_MODE,
-        ]:  # new_game_mode in ['strategic', 'ministers', 'earth']:
+        ]:
             constants.event_manager.clear()
             constants.sound_manager.play_random_music("earth")
         elif (
@@ -93,7 +93,9 @@ def set_game_mode(new_game_mode):
             new_game_mode == constants.MAIN_MENU_MODE
             or previous_game_mode == constants.NEW_GAME_SETUP_MODE
         ):
-            start_loading()
+            start_loading(
+                previous_game_mode=previous_game_mode, new_game_mode=new_game_mode
+            )
         constants.current_game_mode = new_game_mode
         if new_game_mode == constants.STRATEGIC_MODE:
             constants.default_text_box_height = constants.font_size * 5.5
@@ -101,53 +103,50 @@ def set_game_mode(new_game_mode):
         elif new_game_mode == constants.MAIN_MENU_MODE:
             constants.default_text_box_height = constants.font_size * 5.5
             constants.text_box_height = constants.default_text_box_height
-            status.text_list = []  # clear text box when going to main menu
+            status.text_list = []  # Clear text box when going to main menu
+            for effect in [
+                "mars_preset",
+                "earth_preset",
+                "venus_preset",
+            ]:  # Clear new game configurations when going to main menu
+                constants.effect_manager.set_effect(effect, False)
         elif new_game_mode == constants.MINISTERS_MODE:
             status.table_map_image.set_image(
                 status.strategic_map_grid.create_map_image()
             )
-            actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, status.earth_grid.cell_list[0][0].tile
-            )  # calibrate tile info to Earth
         elif not new_game_mode in [constants.TRIAL_MODE, constants.NEW_GAME_SETUP_MODE]:
             constants.default_text_box_height = constants.font_size * 5.5
             constants.text_box_height = constants.default_text_box_height
 
     if previous_game_mode in [
         constants.STRATEGIC_MODE,
-        constants.EARTH_MODE,
         constants.NEW_GAME_SETUP_MODE,
+        constants.EARTH_MODE,
         constants.MINISTERS_MODE,
     ]:
-        actor_utility.calibrate_actor_info_display(
-            status.mob_info_display, None, override_exempt=True
-        )  # deselect actors/ministers and remove any actor info from display when switching screens
-        actor_utility.calibrate_actor_info_display(
-            status.tile_info_display, None, override_exempt=True
-        )
-        minister_utility.calibrate_minister_info_display(None)
-        if new_game_mode == constants.EARTH_MODE:
-            if status.earth_grid.cell_list[0][0].contained_mobs:
-                status.earth_grid.cell_list[0][0].contained_mobs[0].cycle_select()
+        if not (
+            status.displayed_tile and status.displayed_tile.grid == status.earth_grid
+        ):
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, status.earth_grid.cell_list[0][0].tile
-            )  # calibrate tile info to Earth
-        elif new_game_mode == constants.STRATEGIC_MODE:
-            centered_cell = status.strategic_map_grid.find_cell(
-                status.minimap_grid.center_x, status.minimap_grid.center_y
+                status.mob_info_display, None, override_exempt=True
+            )  # Deselect actors/ministers and remove any actor info from display when switching screens
+            actor_utility.calibrate_actor_info_display(
+                status.tile_info_display, None, override_exempt=True
             )
-            if centered_cell.tile:
+            minister_utility.calibrate_minister_info_display(None)
+            if new_game_mode == constants.EARTH_MODE:
                 actor_utility.calibrate_actor_info_display(
-                    status.tile_info_display, centered_cell.tile
+                    status.tile_info_display, status.earth_grid.cell_list[0][0].tile
+                )  # Calibrate tile info to Earth
+            elif new_game_mode == constants.STRATEGIC_MODE:
+                centered_cell = status.strategic_map_grid.find_cell(
+                    status.minimap_grid.center_x, status.minimap_grid.center_y
                 )
-                if (
-                    centered_cell.terrain_handler.visible
-                    and centered_cell.contained_mobs
-                ):
+                if centered_cell.tile:
                     actor_utility.calibrate_actor_info_display(
-                        status.mob_info_display, centered_cell.contained_mobs[0]
+                        status.tile_info_display, centered_cell.tile
                     )
-                # calibrate tile info to minimap center
+                    # Calibrate tile info to minimap center
     if new_game_mode == constants.MINISTERS_MODE:
         constants.available_minister_left_index = -2
         minister_utility.update_available_minister_display()
@@ -203,17 +202,28 @@ def create_strategic_map(from_save=False):
                 current_grid.create_world(from_save)
 
 
-def start_loading():
+def start_loading(previous_game_mode: str = None, new_game_mode: str = None):
     """
     Description:
         Records when loading started and displays a loading screen when the program is launching or switching between game modes
     Input:
-        None
+        string previous_game_mode = None: Game mode that loading is transitioning from
+        string new_game_mode = None: Game mode that loading is transitioning to
     Output:
         None
     """
+    if new_game_mode in [
+        constants.STRATEGIC_MODE,
+        constants.EARTH_MODE,
+        constants.MINISTERS_MODE,
+    ]:  # If loading into game
+        status.loading_screen_quote_banner.set_label(
+            constants.flavor_text_manager.generate_flavor_text("loading_screen_quotes")
+        )
+    else:
+        status.loading_screen_quote_banner.set_label("")
     flags.loading = True
-    flags.loading_start_time = time.time()
+    constants.loading_loops = 0
     main_loop_utility.update_display()
 
 

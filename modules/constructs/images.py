@@ -251,7 +251,7 @@ class image_bundle(image):
         """
         # this is running whenever image is set, even if being set to same image as another bundle
         combined_surface = pygame.Surface(
-            (self.width, self.height)
+            (self.width, self.height), pygame.HWSURFACE | pygame.DOUBLEBUF
         )  # has strange interaction with smoke effects
         combined_surface.fill(constants.color_dict["transparent"])
         combined_surface.set_colorkey(

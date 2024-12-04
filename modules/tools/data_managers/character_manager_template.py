@@ -156,16 +156,16 @@ class character_manager_template:
         with open("configuration/character_appearances.json") as active_file:
             appearances_dict: Dict[str, any] = json.load(active_file)
         self.portrait_section_types: List[str] = [
-            "base_skin",
-            "mouth",
-            "nose",
-            "eyes",
-            "hair",
-            "outfit",
-            "facial_hair",
+            constants.SKIN_PORTRAIT_SECTION,
+            constants.MOUTH_PORTRAIT_SECTION,
+            constants.NOSE_PORTRAIT_SECTION,
+            constants.EYES_PORTRAITS_SECTION,
+            constants.HAIR_PORTRAIT_SECTION,
+            constants.OUTFIT_PORTRAIT_SECTION,
+            constants.FACIAL_HAIR_PORTAIT_SECTION,
             "accessories",
-            "hat",
-            "portrait",
+            constants.HAT_PORTRAIT_SECTION,
+            constants.FRAME_PORTRAIT_SECTION,
         ]
         self.skin_colors: Dict[str, List[Tuple[int, int, int]]] = {}
         for ethnicity, color_list in appearances_dict["skin_color"].items():
@@ -248,21 +248,23 @@ class character_manager_template:
             )
 
         self.facial_hair_images: List[str] = actor_utility.get_image_variants(
-            f"ministers/portraits/facial_hair/default.png", "facial_hair"
+            f"ministers/portraits/facial_hair/default.png",
+            constants.FACIAL_HAIR_PORTAIT_SECTION,
         )
         self.accessories_images: Dict[str, List[str]] = {
-            "glasses": actor_utility.get_image_variants(
-                f"ministers/portraits/accessories/default.png", "glasses"
+            constants.GLASSES_PORTRAIT_SECTION: actor_utility.get_image_variants(
+                f"ministers/portraits/accessories/default.png",
+                constants.GLASSES_PORTRAIT_SECTION,
             ),
         }
         self.mouth_images: List[str] = actor_utility.get_image_variants(
-            f"ministers/portraits/mouth/default.png", "mouth"
+            f"ministers/portraits/mouth/default.png", constants.MOUTH_PORTRAIT_SECTION
         )
         self.exaggerated_mouth_images: List[str] = actor_utility.get_image_variants(
             f"ministers/portraits/mouth/default.png", "exaggerated"
         )
         self.nose_images: List[str] = actor_utility.get_image_variants(
-            f"ministers/portraits/nose/default.png", "nose"
+            f"ministers/portraits/nose/default.png", constants.NOSE_PORTRAIT_SECTION
         )
         self.eyes_images: Dict[bool, List[str]] = {
             True: actor_utility.get_image_variants(
@@ -273,7 +275,7 @@ class character_manager_template:
             ),
         }
         self.portrait_images: List[str] = actor_utility.get_image_variants(
-            f"ministers/portraits/portrait/default.png", "portrait"
+            f"ministers/portraits/frame/default.png", constants.FRAME_PORTRAIT_SECTION
         )
 
     def find_portrait_section(self, section: str, portrait_image_id: List[any]) -> int:
@@ -322,9 +324,18 @@ class character_manager_template:
                 part["level"] = part.get("level", 1) - 5
 
             if unit.get_permission(constants.WORKER_PERMISSION):
-                hidden_sections = ["eyes", "hat"]
+                hidden_sections = [
+                    constants.EYES_PORTRAITS_SECTION,
+                ]
             else:
-                hidden_sections = ["eyes", "hat"]
+                hidden_sections = [
+                    constants.EYES_PORTRAITS_SECTION,
+                ]
+            minister_face[
+                self.find_portrait_section(
+                    constants.HAT_PORTRAIT_SECTION, minister_face
+                )
+            ]["image_id"] = "misc/empty.png"
 
             for (
                 section
@@ -358,6 +369,8 @@ class character_manager_template:
             minister, "ethnicity"
         ):  # Choose a proportionally random ethnicity if minister does not have one yet or no minister inputted
             ethnicity = minister.ethnicity
+        elif metadata.get("ethnicity", None):
+            ethnicity = metadata["ethnicity"]
         else:
             ethnicity = self.generate_ethnicity()
         while ethnicity == "diaspora":
@@ -378,6 +391,8 @@ class character_manager_template:
 
         if minister and hasattr(minister, "masculine"):
             masculine = minister.masculine
+        elif metadata.get("masculine", None) != None:
+            masculine = metadata["masculine"]
         else:
             masculine = random.choice([True, False])
 
@@ -461,9 +476,9 @@ class character_manager_template:
                 "y_size": 2.18,
                 "y_offset": -0.34,
                 "x_offset": -0.015,
-                "level": 1,
                 "green_screen": metadata["skin_color"],
-                "metadata": {"portrait_section": "full_body"},
+                "level": constants.DEFAULT_LEVEL,
+                "metadata": {"portrait_section": constants.FULL_BODY_PORTRAIT_SECTION},
             }
         )
 
@@ -483,7 +498,7 @@ class character_manager_template:
             {
                 "image_id": random.choice(self.outfit_images[metadata["outfit_type"]]),
                 "green_screen": metadata["suit_colors"],
-                "metadata": {"portrait_section": "outfit"},
+                "metadata": {"portrait_section": constants.OUTFIT_PORTRAIT_SECTION},
                 "level": constants.HAIR_LEVEL + random.choice([-1, 1]),
             }
         )
@@ -504,7 +519,8 @@ class character_manager_template:
             {
                 "image_id": random.choice(self.skin_images[metadata["masculine"]]),
                 "green_screen": metadata["skin_color"],
-                "metadata": {"portrait_section": "skin"},
+                "level": constants.DEFAULT_LEVEL,
+                "metadata": {"portrait_section": constants.SKIN_PORTRAIT_SECTION},
             }
         )
 
@@ -531,7 +547,7 @@ class character_manager_template:
                 "image_id": random.choice(possible_hair_images),
                 "green_screen": metadata["hair_color"],
                 "level": constants.HAIR_LEVEL,
-                "metadata": {"portrait_section": "hair"},
+                "metadata": {"portrait_section": constants.HAIR_PORTRAIT_SECTION},
             }
         )
 
@@ -552,7 +568,9 @@ class character_manager_template:
                 {
                     "image_id": random.choice(self.facial_hair_images),
                     "green_screen": metadata["hair_color"],
-                    "metadata": {"portrait_section": "facial_hair"},
+                    "metadata": {
+                        "portrait_section": constants.FACIAL_HAIR_PORTAIT_SECTION
+                    },
                     "level": constants.FACIAL_HAIR_LEVEL,
                 }
             )
@@ -572,10 +590,14 @@ class character_manager_template:
         if random.randrange(1, 7) >= 4:
             portrait_sections.append(
                 {
-                    "image_id": random.choice(self.accessories_images["glasses"]),
+                    "image_id": random.choice(
+                        self.accessories_images[constants.GLASSES_PORTRAIT_SECTION]
+                    ),
                     "green_screen": random.choice(self.clothing_colors),
                     "level": constants.GLASSES_LEVEL,
-                    "metadata": {"portrait_section": "glasses"},
+                    "metadata": {
+                        "portrait_section": constants.GLASSES_PORTRAIT_SECTION
+                    },
                 }
             )
         if metadata["has_hat"]:
@@ -590,7 +612,18 @@ class character_manager_template:
                 "image_id": random.choice(hat_images),
                 "green_screen": metadata["suit_colors"],
                 "level": constants.HAT_LEVEL,
-                "metadata": {"portrait_section": "hat"},
+                "metadata": {"portrait_section": constants.HAT_PORTRAIT_SECTION},
+            }
+        )
+        portrait_sections.append(
+            {
+                "image_id": "misc/empty.png",
+                "x_size": 2.2,
+                "y_size": 2.18,
+                "y_offset": -0.34,
+                "x_offset": -0.015,
+                "level": constants.BACKPACK_LEVEL,
+                "metadata": {"portrait_section": constants.BACKPACK_PORTRAIT_SECTION},
             }
         )
 
@@ -609,7 +642,8 @@ class character_manager_template:
         portrait_sections.append(
             {
                 "image_id": random.choice(self.nose_images),
-                "metadata": {"portrait_section": "nose"},
+                "metadata": {"portrait_section": constants.NOSE_PORTRAIT_SECTION},
+                "level": constants.DEFAULT_LEVEL,
             }
         )
 
@@ -632,7 +666,8 @@ class character_manager_template:
         portrait_sections.append(
             {
                 "image_id": image_id,
-                "metadata": {"portrait_section": "mouth"},
+                "metadata": {"portrait_section": constants.MOUTH_PORTRAIT_SECTION},
+                "level": constants.DEFAULT_LEVEL,
             }
         )
 
@@ -652,7 +687,7 @@ class character_manager_template:
             {
                 "image_id": random.choice(self.eyes_images[metadata["masculine"]]),
                 "green_screen": [metadata["eye_color"], metadata["hair_color"]],
-                "metadata": {"portrait_section": "eyes"},
+                "metadata": {"portrait_section": constants.EYES_PORTRAITS_SECTION},
                 "level": constants.EYES_LEVEL,
             }
         )
@@ -673,7 +708,7 @@ class character_manager_template:
             portrait_sections.append(
                 {
                     "image_id": random.choice(self.portrait_images),
-                    "metadata": {"portrait_section": "portrait"},
+                    "metadata": {"portrait_section": constants.FRAME_PORTRAIT_SECTION},
                     "level": constants.PORTRAIT_LEVEL,
                 }
             )

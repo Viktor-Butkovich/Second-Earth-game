@@ -235,7 +235,10 @@ class save_load_manager_template:
 
         text_utility.print_to_screen("")
         text_utility.print_to_screen("Loading " + file_path)
-        game_transitions.start_loading()
+        game_transitions.start_loading(
+            previous_game_mode=constants.MAIN_MENU_MODE,
+            new_game_mode=constants.STRATEGIC_MODE,
+        )
         # Load file
         try:
             file_path = "save_games/" + file_path
@@ -286,12 +289,12 @@ class save_load_manager_template:
             unit_types.worker_type(True, current_worker_type)
 
         # Load actors
-        for current_actor_dict in saved_actor_dicts:
-            constants.actor_creation_manager.create(True, current_actor_dict)
         for current_minister_dict in saved_minister_dicts:
             constants.actor_creation_manager.create_minister(
                 True, current_minister_dict
             )
+        for current_actor_dict in saved_actor_dicts:
+            constants.actor_creation_manager.create(True, current_actor_dict)
         constants.available_minister_left_index = -2
         minister_utility.update_available_minister_display()
         status.commodity_prices_label.update_label()
@@ -300,6 +303,16 @@ class save_load_manager_template:
             round(0.75 * status.strategic_map_grid.coordinate_width),
             round(0.75 * status.strategic_map_grid.coordinate_height),
         )
+        actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
+        actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
+        (
+            status.displayed_defense,
+            status.displayed_minister,
+            status.displayed_mob,
+            status.displayed_tile_inventory,
+            status.displayed_tile,
+            status.displayed_mob_inventory,
+        ) = [None] * 6
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
 
         tutorial_utility.show_tutorial_notifications()
