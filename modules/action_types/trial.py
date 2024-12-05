@@ -347,7 +347,7 @@ class trial(action.campaign):
                     "message": text + "Click to remove this notification. /n /n",
                     "notification_type": constants.ACTION_NOTIFICATION,
                     "transfer_interface_elements": True,
-                    "on_remove": self.complete,
+                    "on_remove": [(self.complete, [])],
                     "audio": self.generate_audio("roll_finished"),
                 }
             )
@@ -356,7 +356,7 @@ class trial(action.campaign):
                 {
                     "message": "As you have no evidence rolls remaining, you automatically lose the trial. /n /n",
                     "notification_type": constants.ACTION_NOTIFICATION,
-                    "on_remove": self.complete,
+                    "on_remove": [(self.complete, [])],
                 }
             )
 
@@ -408,7 +408,7 @@ class trial(action.campaign):
                 {
                     "message": text,
                     "notification_type": constants.ACTION_NOTIFICATION,
-                    "on_remove": self.leave_trial_screen,
+                    "on_remove": [(self.leave_trial_screen, [])],
                 }
             )
             constants.achievement_manager.achieve("Guilty")
@@ -448,7 +448,7 @@ class trial(action.campaign):
                     "message": text,
                     "notification_type": constants.ACTION_NOTIFICATION,
                     "audio": "voices/not guilty",
-                    "on_remove": self.leave_trial_screen,
+                    "on_remove": [(self.leave_trial_screen, [])],
                 }
             )
             minister_utility.calibrate_minister_info_display(defense)

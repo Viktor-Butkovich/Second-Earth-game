@@ -320,15 +320,15 @@ class cell:
         """
         warehouses = self.get_building(constants.WAREHOUSES)
         if warehouses:
-            warehouses_built = warehouses.warehouses_level
+            warehouses_built = warehouses.upgrade_fields[constants.WAREHOUSE_LEVEL]
         else:
             warehouses_built = 0
         for key, building in self.contained_buildings.items():
             if building.building_type.warehouse_level > 0:
                 warehouses_built -= building.building_type.warehouse_level
 
-        return self.get_building(constants.WAREHOUSES).upgrade_fields[
-            constants.WAREHOUSES_LEVEL
+        return self.get_building(constants.WAREHOUSES).building_type.upgrade_fields[
+            constants.WAREHOUSE_LEVEL
         ]["cost"] * (
             2**warehouses_built
         )  # 5 * 2^0 = 5 if none built, 5 * 2^1 = 10 if 1 built, 20, 40...

@@ -581,7 +581,7 @@ class combat(action.action):
                 "message": text + "Click to remove this notification. /n /n",
                 "notification_type": constants.ACTION_NOTIFICATION,
                 "transfer_interface_elements": True,
-                "on_remove": self.complete,
+                "on_remove": [(self.complete, [])],
                 "audio": self.generate_audio("roll_finished"),
             }
         )

@@ -7,8 +7,6 @@ from ...util import actor_utility, minister_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 
-import modules.util.utility as utility
-
 
 class group(pmob):
     """

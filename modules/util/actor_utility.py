@@ -11,6 +11,21 @@ import modules.constants.status as status
 import modules.constants.flags as flags
 
 
+def press_button(button_type: str) -> None:
+    """
+    Description:
+        Presses the first button of the inputted type
+    Input:
+        string button_type: Type of button to press
+    Output:
+        None
+    """
+    for current_button in status.button_list:
+        if current_button.button_type == button_type:
+            current_button.on_click(override_action_possible=True)
+            break
+
+
 def reset_action_prices():
     """
     Description:

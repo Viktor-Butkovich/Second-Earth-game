@@ -246,22 +246,22 @@ except Exception:  # Displays error message and records error message in crash l
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 
 # Upcoming work queue:
-# Add rename prompt when creating settlement, defaulting to randomly generated - port back to SFA
-# Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
 # Replace "earth_grid" and similar with grid type constants
 # "Select a valid crew to fill this slot" tooltip should specify types of crew that can fill the slot
+# Add outside detection and habitability function
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art
-# Add radio voice lines for units in spacesuits
 # Add new resource types, allowing buying on Earth, transporting, and using to build when it is in the builder's tile
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
 # Add radio distortion versions of voice lines, either as separate files or runtime filter
+# Add radio voice lines for units in spacesuits
 # For tiles with knowledge 1, possibly change every turn to a cloud or normal pixellated version, depending on atmosphere conditions
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
 # Convert actor_type ("tile", "mob", "minister") to use constant keys
+# Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
 # Add new notes from Second Earth notes folder
 #
 # Fix this rare crash

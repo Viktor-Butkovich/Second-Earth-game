@@ -882,6 +882,18 @@ class mob(actor):
                         current_image.outline_width,
                     )
 
+    def update_image_bundle(self):
+        """
+        Description:
+            Updates this actor's images with its current image id list
+        Input:
+            None
+        Output:
+            None
+        """
+        super().update_image_bundle()
+        self.reselect()
+
     def update_tooltip(self):
         """
         Description:

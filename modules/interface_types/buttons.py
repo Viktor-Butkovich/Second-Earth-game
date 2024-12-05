@@ -860,12 +860,12 @@ class button(interface_elements.interface_element):
         """
         self.on_click()
 
-    def on_click(self):
+    def on_click(self, override_action_possible: bool = False):
         """
         Description:
             Controls this button's behavior when left clicked. This behavior depends on the button's button_type
         Input:
-            None
+            boolean override_action_possible: Whether to ignore the action_possible check, used in special on_click calls
         Output:
             None
         """
@@ -1361,10 +1361,11 @@ class button(interface_elements.interface_element):
                 )
 
         elif self.button_type == constants.RENAME_SETTLEMENT_BUTTON:
-            if main_loop_utility.action_possible():
+            if override_action_possible or main_loop_utility.action_possible():
+                constants.message = status.displayed_tile.cell.settlement.name
                 constants.input_manager.start_receiving_input(
                     status.displayed_tile.cell.settlement.rename,
-                    prompt="Type new settlement name: ",
+                    prompt="Type a new name for your settlement: ",
                 )
             else:
                 text_utility.print_to_screen(

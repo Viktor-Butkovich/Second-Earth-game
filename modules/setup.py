@@ -641,11 +641,17 @@ def building_types_config():
     #                "cost": constants.base_upgrade_price,
     #                "max": 6,
     #                "name": "scale",
+    #                "description": [
+    #                   "Each increase to scale allows another work crew to work here."
+    #                ]"
     #            },
     #            constants.RESOURCE_EFFICIENCY: {
     #                "cost": constants.base_upgrade_price,
     #                "max": 6,
     #                "name": "efficiency",
+    #                "description": [
+    #                    "Each increase to efficiency allows each work crew to make an additional production attempt each turn."
+    #                ],
     #            },
     #        },
     #        "attached_settlement": True,
@@ -704,10 +710,13 @@ def building_types_config():
             "can_damage": False,
             "cost": 5,
             "upgrade_fields": {
-                constants.WAREHOUSES_LEVEL: {
+                constants.WAREHOUSE_LEVEL: {
                     "name": "warehouse capacity",
                     "cost": constants.base_upgrade_price,
                     "keybind": pygame.K_k,
+                    "description": [
+                        "Each increase to warehouse capacity increases this tile's inventory capacity by 9."
+                    ],
                 },
             },
         }

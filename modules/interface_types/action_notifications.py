@@ -32,7 +32,7 @@ class action_notification(notification):
                     sibling ordered collection
                 'transfer_interface_elements' = False: boolean value - Whether this notification's sibling ordered collection's member should be transferred
                     to that of the next action notification on removal
-                'on_remove' = None: function value - Function to run after this notification is removed
+                'on_remove' = []: List value - Functions to run after this notification is removed, in format [(function, [args]), ...]
         Output:
             None
         """
@@ -140,14 +140,14 @@ class action_notification(notification):
                 self.notification_ordered_collection.remove_member(interface_element)
                 transferred_interface_elements.append(interface_element)
 
-        constants.notification_manager.handle_next_notification(
-            transferred_interface_elements=transferred_interface_elements
-        )
-
         if self.has_parent_collection:
             self.parent_collection.remove_recursive(complete=False)
         else:
             self.remove()
+
+        constants.notification_manager.handle_next_notification(
+            transferred_interface_elements=transferred_interface_elements
+        )
 
     def format_message(self):
         """

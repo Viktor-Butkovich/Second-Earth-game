@@ -344,9 +344,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                 "grids": officer.grids,
                 "worker": worker,
                 "officer": officer,
-                "modes": officer.grids[
-                    0
-                ].modes,  # if created in Africa grid, should be ['strategic']. If created on Earth, should be ['strategic', 'earth']
+                "modes": officer.modes,
                 "init_type": officer.unit_type.group_type.key,
                 "image": "misc/empty.png",
                 "name": actor_utility.generate_group_name(worker, officer),
