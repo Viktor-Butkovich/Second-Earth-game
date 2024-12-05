@@ -702,7 +702,7 @@ def end_turn_warnings():
     ) in (
         constants.abstract_grid_type_list
     ):  # Warn for leaving units behind in non-Earth grids
-        if grid_type != "earth_grid":
+        if grid_type != constants.EARTH_GRID_TYPE:
             current_cell = getattr(status, grid_type).find_cell(0, 0)
             num_leaving, num_reserve = (
                 00,

@@ -69,7 +69,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             if self.cell.grid.from_save:
                 self.inventory = self.cell.save_dict["inventory"]
             if (
-                self.grid.grid_type == "earth_grid"
+                self.grid.grid_type == constants.EARTH_GRID_TYPE
             ):  # Earth should be able to hold commodities despite not being terrain
                 self.infinite_inventory_capacity = True
                 if constants.effect_manager.effect_active("infinite_commodities"):

@@ -279,8 +279,10 @@ class save_load_manager_template:
                 grid_type=current_grid_dict["grid_type"],
                 input_dict=current_grid_dict,
             )
-        world_grids.create(from_save=False, grid_type="scrolling_strategic_map_grid")
-        world_grids.create(from_save=False, grid_type="minimap_grid")
+        world_grids.create(
+            from_save=False, grid_type=constants.SCROLLING_STRATEGIC_MAP_GRID_TYPE
+        )
+        world_grids.create(from_save=False, grid_type=constants.MINIMAP_GRID_TYPE)
 
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
         game_transitions.create_strategic_map(from_save=True)

@@ -213,7 +213,7 @@ class world_handler:
             self.default_grid.area * 6
         )  # Atmosphere units required for 1 bar pressure (like Earth)
         if not from_save:
-            if input_dict["grid_type"] == "strategic_map_grid":
+            if input_dict["grid_type"] == constants.STRATEGIC_MAP_GRID_TYPE:
                 if constants.effect_manager.effect_active("earth_preset"):
                     input_dict["color_filter"] = self.get_tuning("earth_color_filter")
                 elif constants.effect_manager.effect_active("mars_preset"):
@@ -576,8 +576,8 @@ class world_handler:
                     input_dict["average_water_target"] = random.choice(
                         [
                             random.uniform(0.0, 5.0),
-                            random.uniform(0.0, 0.2),
-                            random.uniform(0.0, 2.5),
+                            random.uniform(0.0, 1.0),
+                            random.uniform(0.0, 4.0),
                         ]
                     )
 
@@ -602,7 +602,7 @@ class world_handler:
                             input_dict["global_parameters"][constants.OXYGEN] / 2
                         )
             elif (
-                input_dict["grid_type"] == "earth_grid"
+                input_dict["grid_type"] == constants.EARTH_GRID_TYPE
             ):  # Replace with a series of grid_type constants
                 input_dict["global_parameters"] = {
                     constants.GRAVITY: self.get_tuning("earth_gravity"),

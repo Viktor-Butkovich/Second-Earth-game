@@ -942,7 +942,7 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
         }
     )
 
-    if grid_type == "strategic_map_grid":
+    if grid_type == constants.STRATEGIC_MAP_GRID_TYPE:
         if constants.effect_manager.effect_active("large_map"):
             map_size_list = constants.terrain_manager.get_tuning("large_map_sizes")
         elif constants.effect_manager.effect_active("tiny_map"):
@@ -972,7 +972,7 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
         )
         return_grid = world_grid(from_save, input_dict)
 
-    elif grid_type == "scrolling_strategic_map_grid":
+    elif grid_type == constants.SCROLLING_STRATEGIC_MAP_GRID_TYPE:
         input_dict.update(
             {
                 "coordinates": scaling.scale_coordinates(
@@ -987,7 +987,7 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
         )
         return_grid = mini_grid(from_save, input_dict)
 
-    elif grid_type == "minimap_grid":
+    elif grid_type == constants.MINIMAP_GRID_TYPE:
         input_dict.update(
             {
                 "coordinates": scaling.scale_coordinates(
@@ -1016,7 +1016,7 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
                 "height": getattr(constants, grid_type + "_height"),
             }
         )
-        if grid_type == "earth_grid":
+        if grid_type == constants.EARTH_GRID_TYPE:
             input_dict["modes"].append(constants.EARTH_MODE)
 
         input_dict["name"] = (
