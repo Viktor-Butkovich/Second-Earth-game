@@ -826,6 +826,7 @@ TEMPERATURE_LABEL: str = "temperature_label"
 VEGETATION_LABEL: str = "vegetation_label"
 ROUGHNESS_LABEL: str = "roughness_label"
 SOIL_LABEL: str = "soil_label"
+HABITABILITY_LABEL: str = "habitability_label"
 ALTITUDE_LABEL: str = "altitude_label"
 RESOURCE_LABEL: str = "resource_label"
 PRESSURE_LABEL: str = "pressure_label"
@@ -934,3 +935,18 @@ NOSE_PORTRAIT_SECTION: str = "nose"
 MOUTH_PORTRAIT_SECTION: str = "mouth"
 EYES_PORTRAITS_SECTION: str = "eyes"
 FRAME_PORTRAIT_SECTION: str = "frame"
+
+HABITABILITY_PERFECT: int = 5
+HABITABILITY_TOLERABLE: int = 4
+HABITABILITY_UNPLEASANT: int = 3
+HABITABILITY_HOSTILE: int = 2
+HABITABILITY_DANGEROUS: int = 1
+HABITABILITY_DEADLY: int = 0
+HABITABILITY_DESCRIPTIONS: Dict[int, str] = {
+    HABITABILITY_PERFECT: "perfect",
+    HABITABILITY_TOLERABLE: "tolerable",
+    HABITABILITY_UNPLEASANT: "unpleasant",
+    HABITABILITY_HOSTILE: "hostile",
+    HABITABILITY_DANGEROUS: "dangerous",
+    HABITABILITY_DEADLY: "deadly",
+}

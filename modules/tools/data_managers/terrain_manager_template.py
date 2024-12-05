@@ -935,6 +935,170 @@ class world_handler:
 
         return self.green_screen
 
+    def get_ideal_parameter(self, parameter_name: str) -> float:
+        """
+        Description:
+            Gets the ideal value of the inputted terrain parameter
+        Input:
+            string parameter_name: Name of the parameter to get the ideal value of
+        Output:
+            float: Ideal value of the inputted parameter, like 1.0 gravity or 21% of atmosphere's pressure for oxygen
+        """
+        if parameter_name in [
+            constants.OXYGEN,
+            constants.GHG,
+            constants.INERT_GASES,
+            constants.TOXIC_GASES,
+        ]:
+            return round(
+                self.default_grid.area * 6 * self.get_tuning(f"earth_{parameter_name}"),
+                2,
+            )
+        elif parameter_name == constants.RADIATION:
+            return 0.0
+        elif parameter_name == constants.PRESSURE:
+            return self.default_grid.area * 6 * self.get_tuning("earth_pressure")
+        else:
+            return self.get_tuning(f"earth_{parameter_name}")
+
+    def calculate_parameter_habitability(self, parameter_name: str) -> int:
+        """
+        Description:
+            Calculates and returns the habitability effect of a particular global parameter
+        Input:
+            string parameter_name: Name of the parameter to calculate habitability for
+        Output:
+            int: Returns the habitability effect of the inputted parameter, from 0 to 5 (5 is perfect, 0 is deadly)
+        """
+        value = self.get_parameter(parameter_name)
+        ideal = self.get_ideal_parameter(parameter_name)
+        if parameter_name == constants.PRESSURE:
+            ratio = round(value / ideal, 2)
+            if ratio >= 30:
+                return constants.HABITABILITY_DEADLY
+            elif ratio >= 10:
+                return constants.HABITABILITY_DANGEROUS
+            elif ratio >= 4:
+                return constants.HABITABILITY_HOSTILE
+            elif ratio >= 2.5:
+                return constants.HABITABILITY_UNPLEASANT
+            elif ratio >= 1.1:
+                return constants.HABITABILITY_TOLERABLE
+            elif ratio >= 0.9:
+                return constants.HABITABILITY_PERFECT
+            elif ratio >= 0.75:
+                return constants.HABITABILITY_TOLERABLE
+            elif ratio >= 0.55:
+                return constants.HABITABILITY_UNPLEASANT
+            elif ratio >= 0.21:
+                return constants.HABITABILITY_HOSTILE
+            elif ratio >= 0.12:
+                return constants.HABITABILITY_DANGEROUS
+            else:
+                return constants.HABITABILITY_DEADLY
+        elif parameter_name == constants.OXYGEN:
+            if self.get_parameter(constants.PRESSURE) == 0:
+                return constants.HABITABILITY_PERFECT
+            composition = round(value / self.get_parameter(constants.PRESSURE), 2)
+            if composition >= 0.6:
+                return (constants.HABITABILITY_HOSTILE,)
+            elif composition >= 0.24:
+                return constants.HABITABILITY_UNPLEASANT
+            elif composition >= 0.22:
+                return constants.HABITABILITY_TOLERABLE
+            elif composition >= 0.2:
+                return constants.HABITABILITY_PERFECT
+            elif composition >= 0.19:
+                return constants.HABITABILITY_TOLERABLE
+            elif composition >= 0.17:
+                return constants.HABITABILITY_UNPLEASANT
+            elif composition >= 0.14:
+                return constants.HABITABILITY_HOSTILE
+            elif composition >= 0.1:
+                return constants.HABITABILITY_DANGEROUS
+            else:
+                return constants.HABITABILITY_DEADLY
+        elif parameter_name == constants.GHG:
+            if self.get_parameter(constants.PRESSURE) == 0:
+                return constants.HABITABILITY_PERFECT
+            composition = round(value / self.get_parameter(constants.PRESSURE), 3)
+            if composition >= 0.03:
+                return constants.HABITABILITY_DEADLY
+            elif composition >= 0.02:
+                return constants.HABITABILITY_DANGEROUS
+            elif composition >= 0.015:
+                return constants.HABITABILITY_HOSTILE
+            elif composition >= 0.01:
+                return constants.HABITABILITY_UNPLEASANT
+            elif composition >= 0.006:
+                return constants.HABITABILITY_TOLERABLE
+            else:
+                return constants.HABITABILITY_PERFECT
+
+        elif parameter_name == constants.INERT_GASES:
+            if self.get_parameter(constants.PRESSURE) == 0:
+                return constants.HABITABILITY_PERFECT
+            composition = round(value / self.get_parameter(constants.PRESSURE), 2)
+            if composition >= 0.80:
+                return constants.HABITABILITY_TOLERABLE
+            elif composition >= 0.76:
+                return constants.HABITABILITY_PERFECT
+            elif composition >= 0.5:
+                return constants.HABITABILITY_TOLERABLE
+            else:
+                return constants.HABITABILITY_UNPLEASANT
+
+        elif parameter_name == constants.TOXIC_GASES:
+            if self.get_parameter(constants.PRESSURE) == 0:
+                return constants.HABITABILITY_PERFECT
+            composition = round(value / self.get_parameter(constants.PRESSURE), 3)
+            if composition >= 0.01:
+                return constants.HABITABILITY_DEADLY
+            elif composition >= 0.008:
+                return constants.HABITABILITY_DANGEROUS
+            elif composition >= 0.005:
+                return constants.HABITABILITY_HOSTILE
+            elif composition >= 0.002:
+                return constants.HABITABILITY_UNPLEASANT
+            elif composition > 0:
+                return constants.HABITABILITY_TOLERABLE
+            else:
+                return constants.HABITABILITY_PERFECT
+
+        elif parameter_name == constants.GRAVITY:
+            ratio = round(value / ideal, 2)
+            if ratio >= 5:
+                return constants.HABITABILITY_DEADLY
+            elif ratio >= 4:
+                return constants.HABITABILITY_DANGEROUS
+            elif ratio >= 2:
+                return constants.HABITABILITY_HOSTILE
+            elif ratio >= 1.41:
+                return constants.HABITABILITY_UNPLEASANT
+            elif ratio >= 1.21:
+                return constants.HABITABILITY_TOLERABLE
+            elif ratio >= 0.8:
+                return constants.HABITABILITY_PERFECT
+            elif ratio >= 0.6:
+                return constants.HABITABILITY_TOLERABLE
+            elif ratio >= 0.3:
+                return constants.HABITABILITY_UNPLEASANT
+            else:
+                return constants.HABITABILITY_HOSTILE
+
+        elif parameter_name == constants.RADIATION:
+            radiation_effect = value - self.get_parameter(constants.MAGNETIC_FIELD)
+            if radiation_effect >= 4:
+                return constants.HABITABILITY_DEADLY
+            elif radiation_effect >= 2:
+                return constants.HABITABILITY_DANGEROUS
+            elif radiation_effect >= 1:
+                return constants.HABITABILITY_HOSTILE
+            else:
+                return constants.HABITABILITY_PERFECT
+        elif parameter_name == constants.MAGNETIC_FIELD:
+            return constants.HABITABILITY_PERFECT
+
 
 class terrain_handler:
     """
@@ -981,6 +1145,60 @@ class terrain_handler:
         self.terrain_features: Dict[str, bool] = {}
         for key, value in input_dict.get("terrain_features", {}).items():
             self.add_terrain_feature(value)
+
+    def calculate_parameter_habitability(self, parameter_name: str) -> int:
+        """
+        Description:
+            Calculates and returns the habitability effect of a particular parameter
+        Input:
+            string parameter_name: Name of the parameter to calculate habitability for
+        Output:
+            int: Returns the habitability effect of the inputted parameter, from 0 to 5 (5 is perfect, 0 is deadly)
+        """
+        if parameter_name in constants.global_parameters:
+            return self.get_world_handler().calculate_parameter_habitability(
+                parameter_name
+            )
+        elif parameter_name == constants.TEMPERATURE:
+            value = self.get_parameter(parameter_name)
+            if value >= 6:
+                return constants.HABITABILITY_DEADLY
+            elif value >= 5:
+                return constants.HABITABILITY_DANGEROUS
+            elif value >= 4:
+                return constants.HABITABILITY_UNPLEASANT
+            elif value >= 1:
+                return constants.HABITABILITY_PERFECT
+            elif value >= 0:
+                return constants.HABITABILITY_UNPLEASANT
+            elif value >= -1:
+                return constants.HABITABILITY_HOSTILE
+            elif value >= -2:
+                return constants.HABITABILITY_DANGEROUS
+            else:
+                return constants.HABITABILITY_DEADLY
+        else:
+            return constants.HABITABILITY_PERFECT
+
+    def get_habitability_dict(self) -> Dict[str, int]:
+        """
+        Description:
+            Returns a dictionary of the habitability of each parameter of this terrain, with perfect values omitted
+        Input:
+            None
+        Output:
+            dictionary: Dictionary with key/value pairs of parameter type and parameter habitability, with perfect values omitted
+        """
+        habitability_dict = {}
+        for terrain_parameter in (
+            constants.terrain_parameters + constants.global_parameters
+        ):
+            habitability = self.calculate_parameter_habitability(terrain_parameter)
+            if habitability != constants.HABITABILITY_PERFECT:
+                habitability_dict[
+                    terrain_parameter
+                ] = self.calculate_parameter_habitability(terrain_parameter)
+        return habitability_dict
 
     def get_expected_temperature(self) -> float:
         """

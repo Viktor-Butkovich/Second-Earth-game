@@ -246,8 +246,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 
 # Upcoming work queue:
-# "Select a valid crew to fill this slot" tooltip should specify types of crew that can fill the slot
-# Add outside detection and habitability function
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art
@@ -261,6 +259,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Possibly add permissions for ministers, if relevant
 # Convert actor_type ("tile", "mob", "minister") to use constant keys
 # Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
+# Add altitude effect to local pressure
 # Add new notes from Second Earth notes folder
 #
 # Fix this rare crash

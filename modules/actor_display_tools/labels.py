@@ -491,6 +491,9 @@ class actor_display_label(label):
                 input_dict["image_id"] = "buttons/cycle_ministers_up_button.png"
                 self.add_attached_button(input_dict)
 
+        elif self.actor_label_type == constants.HABITABILITY_LABEL:
+            self.message_start = "Habitability: "
+
         elif self.actor_label_type.removesuffix(
             "_label"
         ) in constants.global_parameters or self.actor_label_type in [
@@ -891,7 +894,32 @@ class actor_display_label(label):
                         f"Any radiation exceeding magnetic field strength can harm life and slowly strip away atmosphere, particularly oxygen, inert gases, and non-frozen water"
                     )
             self.set_tooltip(tooltip_text)
-
+        elif self.actor_label_type == constants.HABITABILITY_LABEL:
+            tooltip_text = [self.message]
+            if self.actor:
+                habitability_dict = (
+                    self.actor.cell.terrain_handler.get_habitability_dict()
+                )
+                tooltip_text.append(
+                    f"    Overall habitability is the minimum of all parts of the local conditions"
+                )
+                tooltip_text.append(
+                    f"Represents the habitability for humans to live and work here"
+                )
+                if (
+                    self.actor.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
+                    < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
+                ):
+                    if constants.TEMPERATURE in habitability_dict:
+                        del habitability_dict[constants.TEMPERATURE]
+                    tooltip_text.append(f"    Temperature: unknown")
+                for key, value in reversed(
+                    sorted(habitability_dict.items(), key=lambda item: item[1])
+                ):
+                    tooltip_text.append(
+                        f"    {utility.capitalize(key.replace('_', ' '))}: {constants.HABITABILITY_DESCRIPTIONS[value]}"
+                    )
+            self.set_tooltip(tooltip_text)
         else:
             super().update_tooltip()
 
@@ -1358,6 +1386,31 @@ class actor_display_label(label):
                 else:
                     self.set_label(
                         f"{self.message_start}{average_temperature} (+{round(average_temperature - self.actor.grid.world_handler.earth_average_temperature, 2):,} Earth)"
+                    )
+            elif self.actor_label_type == constants.HABITABILITY_LABEL:
+                habitability_dict = (
+                    self.actor.cell.terrain_handler.get_habitability_dict()
+                )
+                if (
+                    self.actor.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
+                    < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
+                ):
+                    if constants.TEMPERATURE in habitability_dict:
+                        del habitability_dict[constants.TEMPERATURE]
+                    if not habitability_dict:
+                        overall_habitability = constants.HABITABILITY_PERFECT
+                    else:
+                        overall_habitability = min(habitability_dict.values())
+                    self.set_label(
+                        f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]} (estimated)"
+                    )
+                else:
+                    if not habitability_dict:
+                        overall_habitability = constants.HABITABILITY_PERFECT
+                    else:
+                        overall_habitability = min(habitability_dict.values())
+                    self.set_label(
+                        f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]}"
                     )
         elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
             return  # do not set text for tooltip label

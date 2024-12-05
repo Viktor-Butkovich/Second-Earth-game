@@ -3062,8 +3062,12 @@ def terrain_interface():
         constants.ROUGHNESS_LABEL,
         constants.SOIL_LABEL,
         constants.ALTITUDE_LABEL,
+        constants.HABITABILITY_LABEL,
     ]:
-        if current_actor_label_type == constants.KNOWLEDGE_LABEL:
+        if current_actor_label_type in [
+            constants.KNOWLEDGE_LABEL,
+            constants.HABITABILITY_LABEL,
+        ]:
             x_displacement = 0
         else:
             x_displacement = 25

@@ -205,6 +205,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.VEGETATION_LABEL: actor_display_labels.actor_display_label,
             constants.ROUGHNESS_LABEL: actor_display_labels.actor_display_label,
             constants.SOIL_LABEL: actor_display_labels.actor_display_label,
+            constants.HABITABILITY_LABEL: actor_display_labels.actor_display_label,
             constants.ALTITUDE_LABEL: actor_display_labels.actor_display_label,
             constants.RESOURCE_LABEL: actor_display_labels.actor_display_label,
             constants.PRESSURE_LABEL: actor_display_labels.actor_display_label,
