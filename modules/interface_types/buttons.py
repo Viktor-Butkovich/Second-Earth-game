@@ -886,72 +886,77 @@ class button(interface_elements.interface_element):
             elif self.button_type == constants.MOVE_DOWN_BUTTON:
                 y_change = -1
             if main_loop_utility.action_possible():
-                if minister_utility.positions_filled():
-                    current_mob = status.displayed_mob
-                    if current_mob:
-                        if constants.current_game_mode == constants.STRATEGIC_MODE:
-                            if current_mob.can_move(
-                                x_change, y_change, can_print=False
-                            ):
-                                current_mob.move(x_change, y_change)
-                                flags.show_selection_outlines = True
-                                constants.last_selection_outline_switch = (
-                                    constants.current_time
-                                )
-                                if current_mob.sentry_mode:
-                                    current_mob.set_sentry_mode(False)
-                                current_mob.clear_automatic_route()
-
-                            elif current_mob.get_permission(
-                                constants.VEHICLE_PERMISSION
-                            ):  # If moving into unreachable land, have each passenger attempt to move
-                                if current_mob.contained_mobs:
-                                    passengers = current_mob.contained_mobs.copy()
-                                    current_mob.eject_passengers()
-                                    last_moved = None
-                                    for current_passenger in passengers:
-                                        if (
-                                            not status.displayed_notification
-                                        ) and current_passenger.can_move(
-                                            x_change, y_change, can_print=True
-                                        ):
-                                            current_passenger.move(x_change, y_change)
-                                            last_moved = current_passenger
-                                    if (
-                                        not status.displayed_notification
-                                    ):  # If attacking, don't reembark
-                                        for current_passenger in passengers:
-                                            if (
-                                                current_passenger.x,
-                                                current_passenger.y,
-                                            ) == (
-                                                current_mob.x,
-                                                current_mob.y,
-                                            ):  # Re-embark any units that couldn't move
-                                                current_passenger.embark_vehicle(
-                                                    current_mob
-                                                )
-                                    if last_moved and not last_moved.in_vehicle:
-                                        last_moved.select()
+                if status.displayed_mob.check_action_survivability(notify=True):
+                    if minister_utility.positions_filled():
+                        current_mob = status.displayed_mob
+                        if current_mob:
+                            if constants.current_game_mode == constants.STRATEGIC_MODE:
+                                if current_mob.can_move(
+                                    x_change, y_change, can_print=False
+                                ):
+                                    current_mob.move(x_change, y_change)
                                     flags.show_selection_outlines = True
                                     constants.last_selection_outline_switch = (
                                         constants.current_time
                                     )
-                                else:
-                                    text_utility.print_to_screen(
-                                        "This vehicle has no passengers to send onto land"
-                                    )
+                                    if current_mob.sentry_mode:
+                                        current_mob.set_sentry_mode(False)
+                                    current_mob.clear_automatic_route()
 
+                                elif current_mob.get_permission(
+                                    constants.VEHICLE_PERMISSION
+                                ):  # If moving into unreachable land, have each passenger attempt to move
+                                    if current_mob.contained_mobs:
+                                        passengers = current_mob.contained_mobs.copy()
+                                        current_mob.eject_passengers()
+                                        last_moved = None
+                                        for current_passenger in passengers:
+                                            if (
+                                                not status.displayed_notification
+                                            ) and current_passenger.can_move(
+                                                x_change, y_change, can_print=True
+                                            ):
+                                                current_passenger.move(
+                                                    x_change, y_change
+                                                )
+                                                last_moved = current_passenger
+                                        if (
+                                            not status.displayed_notification
+                                        ):  # If attacking, don't reembark
+                                            for current_passenger in passengers:
+                                                if (
+                                                    current_passenger.x,
+                                                    current_passenger.y,
+                                                ) == (
+                                                    current_mob.x,
+                                                    current_mob.y,
+                                                ):  # Re-embark any units that couldn't move
+                                                    current_passenger.embark_vehicle(
+                                                        current_mob
+                                                    )
+                                        if last_moved and not last_moved.in_vehicle:
+                                            last_moved.select()
+                                        flags.show_selection_outlines = True
+                                        constants.last_selection_outline_switch = (
+                                            constants.current_time
+                                        )
+                                    else:
+                                        text_utility.print_to_screen(
+                                            "This vehicle has no passengers to send onto land"
+                                        )
+
+                                else:
+                                    current_mob.can_move(
+                                        x_change, y_change, can_print=True
+                                    )
                             else:
-                                current_mob.can_move(x_change, y_change, can_print=True)
+                                text_utility.print_to_screen(
+                                    "You cannot move while in the Earth HQ screen."
+                                )
                         else:
                             text_utility.print_to_screen(
-                                "You cannot move while in the Earth HQ screen."
+                                "There are no selected units to move."
                             )
-                    else:
-                        text_utility.print_to_screen(
-                            "There are no selected units to move."
-                        )
             else:
                 text_utility.print_to_screen("You are busy and cannot move.")
 
@@ -1850,21 +1855,22 @@ class fire_unit_button(button):
         """
         if (
             main_loop_utility.action_possible()
-        ):  # when clicked, calibrate minimap to attached mob and move it to the front of each stack
-            message = "Are you sure you want to fire this unit? Firing this unit would remove it, any units attached to it, and any associated upkeep from the game. /n /n"
-            worker = self.attached_mob.get_worker()
-            if worker:
-                if constants.get_permission(constants.GROUP_PERMISSION):
-                    worker = worker.worker
-                message += (
-                    " /n /n".join(worker.worker_type.fired_description) + " /n /n"
+        ):  # When clicked, calibrate minimap to attached mob and move it to the front of each stack
+            if self.attached_mob.check_action_survivability(notify=True):
+                message = "Are you sure you want to fire this unit? Firing this unit would remove it, any units attached to it, and any associated upkeep from the game. /n /n"
+                worker = self.attached_mob.get_worker()
+                if worker:
+                    if worker.get_permission(constants.GROUP_PERMISSION):
+                        worker = worker.worker
+                    message += (
+                        " /n /n".join(worker.worker_type.fired_description) + " /n /n"
+                    )
+                constants.notification_manager.display_notification(
+                    {
+                        "message": message,
+                        "choices": [constants.CHOICE_FIRE_BUTTON, "cancel"],
+                    }
                 )
-            constants.notification_manager.display_notification(
-                {
-                    "message": message,
-                    "choices": [constants.CHOICE_FIRE_BUTTON, "cancel"],
-                }
-            )
         else:
             text_utility.print_to_screen("You are busy and cannot fire a unit")
 

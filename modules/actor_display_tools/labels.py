@@ -1575,6 +1575,10 @@ class banner(actor_display_label):
                     constants.TERRAIN_PARAMETER_KNOWLEDGE
                 )
             )
+        elif self.banner_type == "deadly conditions":
+            return super().can_show(
+                skip_parent_collection=skip_parent_collection
+            ) and not self.actor.get_permission(constants.SURVIVABLE_PERMISSION)
         else:
             return super().can_show(skip_parent_collection=skip_parent_collection)
 

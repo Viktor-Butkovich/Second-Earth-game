@@ -344,7 +344,7 @@ def equipment_types_config():
     """
     equipment_types.equipment_type(
         {
-            "equipment_type": "spacesuits",
+            "equipment_type": constants.SPACESUITS_EQUIPMENT,
             "can_purchase": True,
             "price": 5,
             "requirements": (
@@ -359,9 +359,9 @@ def equipment_types_config():
                 "permissions": [constants.SPACESUITS_PERMISSION],
             },
             "description": [
-                "Spacesuits are required for humans to enter, survive, and work in uninhabitable environments",
-                "Any human units in uninhabitable environments will immediately perish if spacesuits are unequipped for any reason",
-                "By default, solitary officers are assumed to be wearing personal spacesuits",
+                "Spacesuits are required for humans to survive in deadly conditions",
+                "Human units without spacesuits in deadly conditions cannot perform actions and will die at the end of the turn",
+                # "By default, solitary officers are assumed to be wearing personal spacesuits",
             ],
             "equipment_image": {
                 constants.FULL_BODY_PORTRAIT_SECTION: "mobs/spacesuits/spacesuit_body.png",
@@ -2324,6 +2324,7 @@ def mob_sub_interface():
         constants.WORKERS_LABEL,
         constants.MOVEMENT_LABEL,
         constants.EQUIPMENT_LABEL,
+        constants.BANNER_LABEL,
         constants.ATTITUDE_LABEL,
         constants.CONTROLLABLE_LABEL,
         constants.CREW_LABEL,
@@ -2342,7 +2343,6 @@ def mob_sub_interface():
         else:
             x_displacement = 0
         input_dict = {  # should declare here to reinitialize dict and prevent extra parameters from being incorrectly retained between iterations
-            "coordinates": scaling.scale_coordinates(0, 0),
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
             "image_id": "misc/default_label.png",
@@ -2351,6 +2351,10 @@ def mob_sub_interface():
             "parent_collection": status.mob_info_display,
             "member_config": {"order_x_offset": x_displacement},
         }
+        if current_actor_label_type == constants.BANNER_LABEL:
+            input_dict["banner_type"] = "deadly conditions"
+            input_dict["banner_text"] = "Deadly conditions - will die at end of turn"
+
         if current_actor_label_type != constants.CURRENT_PASSENGER_LABEL:
             constants.actor_creation_manager.create_interface_element(input_dict)
         else:
@@ -2482,6 +2486,7 @@ def tile_interface():
         constants.TERRAIN_LABEL,
         constants.RESOURCE_LABEL,
         constants.TERRAIN_FEATURE_LABEL,
+        constants.HABITABILITY_LABEL,
     ]:
         x_displacement = 0
         input_dict = {

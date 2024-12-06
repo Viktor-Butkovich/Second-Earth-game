@@ -140,6 +140,8 @@ class pmob(mob):
             None
         """
         self.in_vehicle = True
+        self.vehicle = vehicle
+        self.set_permission(constants.PASSENGER_PERMISSION, True)
         self.hide_images()
         vehicle.set_crew(self)
         moved_mob = vehicle
@@ -170,9 +172,11 @@ class pmob(mob):
             None
         """
         self.in_vehicle = False
+        self.vehicle = None
         self.x = vehicle.x
         self.y = vehicle.y
         self.show_images()
+        self.set_permission(constants.PASSENGER_PERMISSION, False)
         if not self.get_cell().get_intact_building(constants.SPACEPORT):
             if constants.ALLOW_DISORGANIZED:
                 self.set_permission(constants.DISORGANIZED_PERMISSION, True)
@@ -865,6 +869,7 @@ class pmob(mob):
         if not flags.loading_save:
             self.movement_sound()
         self.clear_automatic_route()
+        self.set_permission(constants.PASSENGER_PERMISSION, True)
 
     def disembark_vehicle(self, vehicle, focus=True):
         """
@@ -900,6 +905,7 @@ class pmob(mob):
                     f"{utility.capitalize(self.name)} automatically took {consumer_goods_transferred} consumer goods from {vehicle.name}'s cargo."
                 )
 
+        self.set_permission(constants.PASSENGER_PERMISSION, False)
         self.add_to_turn_queue()
         if focus:
             actor_utility.calibrate_actor_info_display(

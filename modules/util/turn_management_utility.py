@@ -26,6 +26,7 @@ def end_turn():
         None
     """
     remove_excess_inventory()
+    manage_environmental_conditions()
     for current_pmob in status.pmob_list:
         current_pmob.end_turn_move()
     flags.player_turn = False
@@ -193,6 +194,26 @@ def remove_excess_inventory():
             current_tile = current_cell.tile
             if current_tile.inventory:
                 current_tile.remove_excess_inventory()
+
+
+def manage_environmental_conditions():
+    """
+    Description:
+        Kills any units in deadly environmental conditions
+    Input:
+        None
+    Output:
+        None
+    """
+    for current_pmob in status.pmob_list.copy():
+        if not current_pmob.get_permission(constants.SURVIVABLE_PERMISSION):
+            if not (
+                current_pmob.any_permissions(
+                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
+                )
+                and current_pmob.in_group
+            ):
+                current_pmob.die()
 
 
 def manage_production():
@@ -747,3 +768,20 @@ def end_turn_warnings():
                 "message": text,
             }
         )
+
+    for pmob in status.pmob_list:
+        if not pmob.get_permission(constants.SURVIVABLE_PERMISSION):
+            if not (
+                pmob.any_permissions(
+                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
+                )
+                and pmob.in_group
+            ):
+                text = "WARNING: At least 1 unit is in deadly environmental conditions and will die at the end of the turn. /n /n"
+                constants.notification_manager.display_notification(
+                    {
+                        "message": text,
+                        "zoom_destination": pmob,
+                    }
+                )
+                break

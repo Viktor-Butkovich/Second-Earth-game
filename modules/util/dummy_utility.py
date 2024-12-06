@@ -318,6 +318,10 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
                 and not dummy_group.equipment.get(equipment_type, False)
             ):
                 status.equipment_types[equipment_type].equip(dummy_group)
+    dummy_group.set_permission(
+        constants.SURVIVABLE_PERMISSION,
+        officer.get_cell().terrain_handler.get_unit_habitability(dummy_group),
+    )
     return dummy_group
 
 
@@ -386,6 +390,14 @@ def simulate_split(unit, required_dummy_attributes, dummy_input_dict):
             ):
                 status.equipment_types[equipment_type].equip(dummy_officer)
                 status.equipment_types[equipment_type].unequip(dummy_worker)
+    dummy_officer.set_permission(
+        constants.SURVIVABLE_PERMISSION,
+        unit.get_cell().terrain_handler.get_unit_habitability(dummy_officer),
+    )
+    dummy_worker.set_permission(
+        constants.SURVIVABLE_PERMISSION,
+        unit.get_cell().terrain_handler.get_unit_habitability(dummy_worker),
+    )
     return (dummy_officer, dummy_worker)
 
 
@@ -402,7 +414,16 @@ def simulate_uncrew(unit, required_dummy_attributes, dummy_input_dict):
         dummy, dummy tuple: Returns tuple of dummy objects representing output vehicle and worker resulting from split
     """
     dummy_worker = create_dummy_copy(
-        unit.crew, dummy_input_dict.copy(), required_dummy_attributes
+        unit.crew,
+        dummy_input_dict.copy(),
+        required_dummy_attributes,
+        override_permissions={
+            constants.PASSENGER_PERMISSION: False,
+        },
+    )
+    dummy_worker.set_permission(
+        constants.SURVIVABLE_PERMISSION,
+        unit.get_cell().terrain_handler.get_unit_habitability(dummy_worker),
     )
     dummy_vehicle = create_dummy_copy(
         unit,

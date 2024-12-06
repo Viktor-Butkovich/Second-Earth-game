@@ -55,6 +55,7 @@ class mob(actor):
         self.in_building = False
         self.actor_type = "mob"
         self.end_turn_destination = None
+        self.habitability = constants.HABITABILITY_PERFECT
         super().__init__(from_save, input_dict, original_constructor=False)
         if isinstance(input_dict["image"], str):
             self.image_dict = {"default": input_dict["image"]}
@@ -94,6 +95,39 @@ class mob(actor):
             else:
                 self.creation_turn = constants.turn
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def check_action_survivability(self, notify: bool = True) -> bool:
+        """
+        Description:
+            Checks whether this unit can survive doing an action in its current tile - no certain death actions are allowed
+        Input:
+            bool notify: Whether to notify the player if it is not survivable
+        Output:
+            bool: Returns True if this unit can survive doing an action in its current tile, False otherwise
+        """
+        survivable = self.get_permission(constants.SURVIVABLE_PERMISSION)
+        if notify and not survivable:
+            constants.notification_manager.display_notification(
+                {
+                    "message": "Due to the deadly local environmental conditions, this unit can perform no actions except equipping spacesuits or finding shelter locally. /n /n",
+                },
+            )
+        return survivable
+
+    def update_habitability(self):
+        """
+        Description:
+            Updates this unit's habitability based on the tile it is in
+        Input:
+            None
+        Output:
+            None
+        """
+        self.habitability = self.get_cell().terrain_handler.get_unit_habitability(self)
+        self.set_permission(
+            constants.SURVIVABLE_PERMISSION,
+            self.habitability != constants.HABITABILITY_DEADLY,
+        )
 
     def can_travel(self):
         """
@@ -136,6 +170,8 @@ class mob(actor):
         Output:
             cell: Returns the cell this mob is currently in
         """
+        if self.get_permission(constants.PASSENGER_PERMISSION):
+            return self.vehicle.get_cell()
         return self.images[0].current_cell
 
     def on_move(self):
@@ -147,7 +183,9 @@ class mob(actor):
         Output:
             None
         """
-        return
+        current_cell = self.get_cell()
+        if current_cell:
+            self.update_habitability()
 
     def permissions_setup(self) -> None:
         """
@@ -194,6 +232,12 @@ class mob(actor):
         ):
             self.update_image_bundle()
             self.update_tooltip()
+        if task == constants.PASSENGER_PERMISSION or (
+            task in [constants.VEHICLE_PERMISSION, constants.SPACESUITS_PERMISSION]
+            and (not self.get_permission(constants.DUMMY_PERMISSION))
+            and self.get_cell()
+        ):
+            self.update_habitability()
 
     def all_permissions(self, *tasks: str) -> bool:
         """
@@ -281,6 +325,7 @@ class mob(actor):
             if not from_save:
                 self.reselect()
             self.set_permission(constants.INIT_COMPLETE_PERMISSION, True)
+            self.update_habitability()
 
     def update_equipment_image(self, equipment: str, equipped: bool):
         """
@@ -431,6 +476,10 @@ class mob(actor):
             "disorganized", self.get_permission(constants.DISORGANIZED_PERMISSION)
         ):
             image_id_list.append("misc/disorganized_icon.png")
+        if not override_values.get(
+            "survivable", self.get_permission(constants.SURVIVABLE_PERMISSION)
+        ):
+            image_id_list.append("misc/deadly_icon.png")
         return image_id_list
 
     def get_combat_modifier(self, opponent=None, include_tile=False):
@@ -907,7 +956,7 @@ class mob(actor):
 
         tooltip_list.append(
             "Unit type: " + self.name[:1].capitalize() + self.name[1:]
-        )  # capitalizes first letter while keeping rest the same
+        )  # Capitalizes first letter while keeping rest the same
         if self.get_permission(constants.OFFICER_PERMISSION):
             tooltip_list.append("Name: " + self.character_info["name"])
         if self.get_permission(constants.PMOB_PERMISSION):
@@ -955,6 +1004,10 @@ class mob(actor):
         if self.get_permission(constants.DISORGANIZED_PERMISSION):
             tooltip_list.append(
                 "This unit is currently disorganized, giving a combat penalty until its next turn"
+            )
+        if not self.get_permission(constants.SURVIVABLE_PERMISSION):
+            tooltip_list.append(
+                "This unit is in deadly environmental conditions and will die if remaining there at the end of the turn"
             )
 
         if self.end_turn_destination:
@@ -1076,6 +1129,18 @@ class mob(actor):
         if minister_utility.get_minister(constants.TRANSPORTATION_MINISTER):
             if not self.grid.is_abstract_grid:
                 future_cell = self.grid.find_cell(future_x, future_y)
+
+                if (
+                    future_cell.terrain_handler.get_unit_habitability(self)
+                    == constants.HABITABILITY_DEADLY
+                ):
+                    if can_print:
+                        constants.notification_manager.display_notification(
+                            {
+                                "message": "This unit cannot move into a tile with deadly environmental conditions without spacesuits. /n /n",
+                            }
+                        )
+                    return False
 
                 if self.unit_type.required_infrastructure:
                     if not (

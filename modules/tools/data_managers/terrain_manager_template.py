@@ -957,7 +957,10 @@ class world_handler:
         elif parameter_name == constants.RADIATION:
             return 0.0
         elif parameter_name == constants.PRESSURE:
-            return self.default_grid.area * 6 * self.get_tuning("earth_pressure")
+            if self.default_grid.area == 1:
+                return self.earth_size * 6 * self.get_tuning("earth_pressure")
+            else:
+                return self.default_grid.area * 6 * self.get_tuning("earth_pressure")
         else:
             return self.get_tuning(f"earth_{parameter_name}")
 
@@ -1180,7 +1183,7 @@ class terrain_handler:
         else:
             return constants.HABITABILITY_PERFECT
 
-    def get_habitability_dict(self) -> Dict[str, int]:
+    def get_habitability_dict(self, omit_perfect: bool = True) -> Dict[str, int]:
         """
         Description:
             Returns a dictionary of the habitability of each parameter of this terrain, with perfect values omitted
@@ -1194,11 +1197,31 @@ class terrain_handler:
             constants.terrain_parameters + constants.global_parameters
         ):
             habitability = self.calculate_parameter_habitability(terrain_parameter)
-            if habitability != constants.HABITABILITY_PERFECT:
+            if (not omit_perfect) or habitability != constants.HABITABILITY_PERFECT:
                 habitability_dict[
                     terrain_parameter
                 ] = self.calculate_parameter_habitability(terrain_parameter)
         return habitability_dict
+
+    def get_unit_habitability(self, unit) -> int:
+        """
+        Description:
+            Returns the habitability of this tile for the inputted units
+        Input:
+            Mob unit: Unit to check the habitability of this tile for
+        Output:
+            int: Returns habitability of this tile for the inputted unit
+        """
+        default_habitability = min(
+            self.get_habitability_dict(omit_perfect=False).values()
+        )
+        if unit.any_permissions(
+            constants.SPACESUITS_PERMISSION,
+            constants.VEHICLE_PERMISSION,
+            constants.PASSENGER_PERMISSION,
+        ):
+            default_habitability = constants.HABITABILITY_PERFECT
+        return default_habitability
 
     def get_expected_temperature(self) -> float:
         """

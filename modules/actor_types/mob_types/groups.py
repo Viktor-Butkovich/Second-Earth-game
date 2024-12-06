@@ -59,17 +59,18 @@ class group(pmob):
                 )
                 current_mob.set_inventory(current_commodity, 0)
 
-        for equipment in set(self.worker.equipment.keys()).union(
-            self.officer.equipment.keys()
-        ):
-            if status.equipment_types[equipment].check_requirement(self):
-                if self.worker.equipment.get(
-                    equipment, False
-                ) and self.officer.equipment.get(
-                    equipment, False
-                ):  # If both worker and officer had same equipment, drop extra
-                    self.get_cell().tile.change_inventory(equipment, 1)
-                status.equipment_types[equipment].equip(self)
+        if not from_save:
+            for equipment in set(self.worker.equipment.keys()).union(
+                self.officer.equipment.keys()
+            ):
+                if status.equipment_types[equipment].check_requirement(self):
+                    if self.worker.equipment.get(
+                        equipment, False
+                    ) and self.officer.equipment.get(
+                        equipment, False
+                    ):  # If both worker and officer had same equipment, drop extra
+                        self.get_cell().tile.change_inventory(equipment, 1)
+                    status.equipment_types[equipment].equip(self)
 
         if not from_save:
             self.set_permission(
