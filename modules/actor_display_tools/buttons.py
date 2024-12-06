@@ -570,7 +570,7 @@ class remove_work_crew_button(button):
         if result:
             if not self.attached_label.attached_list[
                 self.attached_label.list_index
-            ].in_building:
+            ].get_permission(constants.IN_BUILDING_PERMISSION):
                 return False
         return result
 
@@ -636,7 +636,7 @@ class disembark_vehicle_button(button):
         if result:
             if not self.attached_label.attached_list[
                 self.attached_label.list_index
-            ].in_vehicle:
+            ].get_permission(constants.IN_VEHICLE_PERMISSION):
                 return False
             if (
                 self.attached_label.actor.get_permission(constants.SPACESHIP_PERMISSION)

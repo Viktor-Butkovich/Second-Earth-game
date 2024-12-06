@@ -1867,9 +1867,11 @@ class mob_image(actor_image):
                     old_cell != self.current_cell
                     and not self.actor in self.current_cell.contained_mobs
                     and not (
-                        self.actor.in_group
-                        or self.actor.in_vehicle
-                        or self.actor.in_building
+                        self.actor.any_permissions(
+                            constants.IN_GROUP_PERMISSION,
+                            constants.IN_VEHICLE_PERMISSION,
+                            constants.IN_BUILDING_PERMISSION,
+                        )
                     )
                 ):
                     self.current_cell.contained_mobs.insert(0, self.actor)
@@ -1880,7 +1882,11 @@ class mob_image(actor_image):
             self.remove_from_cell()
             self.current_cell = self.grid.find_cell(self.actor.x, self.actor.y)
             if not self.actor in self.current_cell.contained_mobs and not (
-                self.actor.in_group or self.actor.in_vehicle or self.actor.in_building
+                self.actor.any_permissions(
+                    constants.IN_GROUP_PERMISSION,
+                    constants.IN_VEHICLE_PERMISSION,
+                    constants.IN_BUILDING_PERMISSION,
+                )
             ):
                 self.current_cell.contained_mobs.insert(0, self.actor)
             self.go_to_cell((self.current_cell.x, self.current_cell.y))

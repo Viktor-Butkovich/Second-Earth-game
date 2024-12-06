@@ -50,9 +50,6 @@ class mob(actor):
         self.unit_type.num_instances += 1
         self.controlling_minister: ministers.minister = None
         self.update_controlling_minister()
-        self.in_group = False
-        self.in_vehicle = False
-        self.in_building = False
         self.actor_type = "mob"
         self.end_turn_destination = None
         self.habitability = constants.HABITABILITY_PERFECT
@@ -123,11 +120,14 @@ class mob(actor):
         Output:
             None
         """
-        self.habitability = self.get_cell().terrain_handler.get_unit_habitability(self)
-        self.set_permission(
-            constants.SURVIVABLE_PERMISSION,
-            self.habitability != constants.HABITABILITY_DEADLY,
-        )
+        if self.get_cell():
+            self.habitability = self.get_cell().terrain_handler.get_unit_habitability(
+                self
+            )
+            self.set_permission(
+                constants.SURVIVABLE_PERMISSION,
+                self.habitability != constants.HABITABILITY_DEADLY,
+            )
 
     def can_travel(self):
         """
@@ -170,7 +170,7 @@ class mob(actor):
         Output:
             cell: Returns the cell this mob is currently in
         """
-        if self.get_permission(constants.PASSENGER_PERMISSION):
+        if self.get_permission(constants.IN_VEHICLE_PERMISSION):
             return self.vehicle.get_cell()
         return self.images[0].current_cell
 
@@ -232,7 +232,7 @@ class mob(actor):
         ):
             self.update_image_bundle()
             self.update_tooltip()
-        if task == constants.PASSENGER_PERMISSION or (
+        if task == constants.IN_VEHICLE_PERMISSION or (
             task in [constants.VEHICLE_PERMISSION, constants.SPACESUITS_PERMISSION]
             and (not self.get_permission(constants.DUMMY_PERMISSION))
             and self.get_cell()
@@ -583,7 +583,11 @@ class mob(actor):
         Output:
             boolean: Returns True if this image can appear during the current game mode, otherwise returns False
         """
-        if not (self.in_vehicle or self.in_group or self.in_building):
+        if not self.any_permissions(
+            constants.IN_VEHICLE_PERMISSION,
+            constants.IN_GROUP_PERMISSION,
+            constants.IN_BUILDING_PERMISSION,
+        ):
             if (
                 self.get_cell()
                 and self.get_cell().contained_mobs[0] == self

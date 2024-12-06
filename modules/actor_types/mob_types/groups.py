@@ -202,10 +202,10 @@ class group(pmob):
         """
         constants.evil_tracker.change(1)
         self.set_permission(constants.MOVEMENT_DISABLED_PERMISSION, True, override=True)
-        if self.in_vehicle:
+        if self.get_permission(constants.IN_VEHICLE_PERMISSION):
             zoom_destination = self.vehicle
             destination_message = f" from the {self.name} aboard the {zoom_destination.name} at ({self.x}, {self.y}) "
-        elif self.in_building:
+        elif self.get_permission(constants.IN_BUILDING_PERMISSION):
             zoom_destination = self.building.cell.get_intact_building(
                 constants.RESOURCE
             )
@@ -223,15 +223,15 @@ class group(pmob):
                 self.officer.replace(self)
                 self.officer.death_sound()
             else:
-                if self.in_vehicle:
+                if self.get_permission(constants.IN_VEHICLE_PERMISSION):
                     self.disembark_vehicle(zoom_destination)
-                if self.in_building:
+                elif self.get_permission(constants.IN_BUILDING_PERMISSION):
                     self.leave_building(zoom_destination)
                 officer = self.officer
                 worker = self.worker
                 self.disband()
                 officer.attrition_death(False)
-                if self.in_vehicle:
+                if self.get_permission(constants.IN_VEHICLE_PERMISSION):
                     worker.embark_vehicle(zoom_destination)
 
             constants.notification_manager.display_notification(
@@ -250,15 +250,15 @@ class group(pmob):
                 self.worker.replace(self)
                 self.worker.death_sound()
             else:
-                if self.in_vehicle:
+                if self.get_permission(constants.IN_VEHICLE_PERMISSION):
                     self.disembark_vehicle(zoom_destination)
-                if self.in_building:
+                elif self.get_permission(constants.IN_BUILDING_PERMISSION):
                     self.leave_building(zoom_destination)
                 officer = self.officer
                 worker = self.worker
                 self.disband()
                 worker.attrition_death(False)
-                if self.in_vehicle:
+                if self.get_permission(constants.IN_VEHICLE_PERMISSION):
                     officer.embark_vehicle(zoom_destination)
 
             constants.notification_manager.display_notification(
@@ -316,7 +316,10 @@ class group(pmob):
         if not self.get_permission(constants.VETERAN_PERMISSION):
             self.set_name("veteran " + self.name)
         self.set_permission(constants.VETERAN_PERMISSION, True)
-        if self.in_vehicle and status.displayed_mob == self.vehicle:
+        if (
+            self.get_permission(constants.IN_VEHICLE_PERMISSION)
+            and status.displayed_mob == self.vehicle
+        ):
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, self.vehicle
             )

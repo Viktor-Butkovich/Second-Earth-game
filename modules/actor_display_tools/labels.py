@@ -1462,7 +1462,11 @@ class actor_display_label(label):
         ] and not self.actor.get_permission(constants.GROUP_PERMISSION):
             return False
         elif self.actor.actor_type == "mob" and (
-            self.actor.in_vehicle or self.actor.in_group or self.actor.in_building
+            self.actor.any_permissions(
+                constants.IN_VEHICLE_PERMISSION,
+                constants.IN_GROUP_PERMISSION,
+                constants.IN_BUILDING_PERMISSION,
+            )
         ):  # Do not show mobs that are attached to another unit/building
             return False
         elif (

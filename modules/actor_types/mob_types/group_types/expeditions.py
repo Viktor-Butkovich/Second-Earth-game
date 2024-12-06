@@ -83,7 +83,7 @@ class expedition(group):
             "right": "east",
             "left": "west",
         }
-        if self.in_vehicle:
+        if self.get_permission(constants.IN_VEHICLE_PERMISSION):
             current_cell = self.vehicle.get_cell()
         else:
             current_cell = self.get_cell()

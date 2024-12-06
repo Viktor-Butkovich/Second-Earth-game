@@ -22,7 +22,7 @@ class work_crew(group):
         Output:
             None
         """
-        self.in_building = True
+        self.set_permission(constants.IN_BUILDING_PERMISSION, True)
         self.building = building
         self.hide_images()
         self.remove_from_turn_queue()
@@ -44,7 +44,7 @@ class work_crew(group):
         Output:
             None
         """
-        self.in_building = False
+        self.set_permission(constants.IN_BUILDING_PERMISSION, False)
         self.building = None
         self.show_images()
         self.add_to_turn_queue()

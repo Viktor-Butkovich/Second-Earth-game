@@ -402,9 +402,9 @@ class vehicle(pmob):
         super().go_to_grid(new_grid, new_coordinates)
         for current_mob in self.contained_mobs + [
             self.crew
-        ]:  # make list of all mobs in vehicle
+        ]:  # Make list of all mobs in vehicle
             current_mob.go_to_grid(new_grid, new_coordinates)
-            current_mob.in_vehicle = True
+            current_mob.set_permission(constants.IN_VEHICLE_PERMISSION, True)
             current_mob.hide_images()
         if new_grid == status.earth_grid or self.images[
             0

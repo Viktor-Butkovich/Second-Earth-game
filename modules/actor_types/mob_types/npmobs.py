@@ -113,31 +113,34 @@ class npmob(mob):
         for possible_target in target_list:
             if (
                 not possible_target.y == 0
-            ):  # ignore units in the ocean if can't swim in ocean
-                if possible_target.actor_type == "building" or not (
-                    possible_target.in_vehicle
-                    or possible_target.in_group
-                    or possible_target.in_building
+            ):  # Ignore units in the ocean if can't swim in ocean
+                if (
+                    possible_target.actor_type == "building"
+                    or not possible_target.any_permissions(
+                        constants.IN_VEHICLE_PERMISSION,
+                        constants.IN_GROUP_PERMISSION,
+                        constants.IN_BUILDING_PERMISSION,
+                    )
                 ):
                     distance = utility.find_grid_distance(self, possible_target)
                     if (
                         distance <= self.aggro_distance
-                    ):  # will ignore player's units more than 6 tiles away
+                    ):  # Ignore player's units more than 6 tiles away
                         if min_distance == -1 and (
                             not distance == -1
-                        ):  # automatically choose first one to replace initial value
+                        ):  # Automatically choose first one to replace initial value
                             min_distance = distance
                             closest_targets = [possible_target]
                         else:
-                            if not distance == -1:  # if on same grid
+                            if not distance == -1:  # If on same grid
                                 if (
                                     distance < min_distance
-                                ):  # if closer than any previous, replace all previous
+                                ):  # If closer than any previous, replace all previous
                                     min_distance = distance
                                     closest_targets = [possible_target]
                                 elif (
                                     distance == min_distance
-                                ):  # if as close as previous, add as alternative to previous
+                                ):  # If as close as previous, add as alternative to previous
                                     closest_targets.append(possible_target)
         return random.choice(
             closest_targets

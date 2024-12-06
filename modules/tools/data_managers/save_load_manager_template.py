@@ -184,11 +184,11 @@ class save_load_manager_template:
 
         saved_actor_dicts = []
         for current_pmob in status.pmob_list:
-            if not (
-                current_pmob.in_group
-                or current_pmob.in_vehicle
-                or current_pmob.in_building
-            ):  # containers save their contents and load them in, contents don't need to be saved/loaded separately
+            if not current_pmob.any_permissions(
+                constants.IN_GROUP_PERMISSION,
+                constants.IN_VEHICLE_PERMISSION,
+                constants.IN_BUILDING_PERMISSION,
+            ):  # Containers save their contents and load them in, contents don't need to be saved/loaded separately
                 saved_actor_dicts.append(current_pmob.to_save_dict())
 
         for current_npmob in status.npmob_list:

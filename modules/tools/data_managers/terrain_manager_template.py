@@ -1218,7 +1218,7 @@ class terrain_handler:
         if unit.any_permissions(
             constants.SPACESUITS_PERMISSION,
             constants.VEHICLE_PERMISSION,
-            constants.PASSENGER_PERMISSION,
+            constants.IN_VEHICLE_PERMISSION,
         ):
             default_habitability = constants.HABITABILITY_PERFECT
         return default_habitability

@@ -154,9 +154,11 @@ def manage_attrition():
         None
     """
     for current_pmob in status.pmob_list:
-        if not (
-            current_pmob.in_vehicle or current_pmob.in_group or current_pmob.in_building
-        ):  # vehicles, groups, and buildings handle attrition for their submobs
+        if not current_pmob.any_permissions(
+            constants.IN_VEHICLE_PERMISSION,
+            constants.IN_GROUP_PERMISSION,
+            constants.IN_BUILDING_PERMISSION,
+        ):  # Vehicles, groups, and buildings handle attrition for their submobs
             current_pmob.manage_health_attrition()
     for current_building in status.building_list:
         if current_building.building_type == constants.RESOURCE:
@@ -211,7 +213,7 @@ def manage_environmental_conditions():
                 current_pmob.any_permissions(
                     constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
                 )
-                and current_pmob.in_group
+                and current_pmob.get_permission(constants.IN_GROUP_PERMISSION)
             ):
                 current_pmob.die()
 
@@ -770,18 +772,14 @@ def end_turn_warnings():
         )
 
     for pmob in status.pmob_list:
-        if not pmob.get_permission(constants.SURVIVABLE_PERMISSION):
-            if not (
-                pmob.any_permissions(
-                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
-                )
-                and pmob.in_group
-            ):
-                text = "WARNING: At least 1 unit is in deadly environmental conditions and will die at the end of the turn. /n /n"
-                constants.notification_manager.display_notification(
-                    {
-                        "message": text,
-                        "zoom_destination": pmob,
-                    }
-                )
-                break
+        if (not pmob.get_permission(constants.SURVIVABLE_PERMISSION)) and (
+            not pmob.get_permission(constants.IN_GROUP_PERMISSION)
+        ):
+            text = "WARNING: At least 1 unit is in deadly environmental conditions and will die at the end of the turn. /n /n"
+            constants.notification_manager.display_notification(
+                {
+                    "message": text,
+                    "zoom_destination": pmob,
+                }
+            )
+            break

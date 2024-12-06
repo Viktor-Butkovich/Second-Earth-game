@@ -125,7 +125,7 @@ class worker(pmob):
         Output:
             None
         """
-        self.in_group = True
+        self.set_permission(constants.IN_GROUP_PERMISSION, True)
         self.hide_images()
         self.remove_from_turn_queue()
 
@@ -138,10 +138,10 @@ class worker(pmob):
         Output:
             None
         """
-        self.in_group = False
         self.x = group.x
         self.y = group.y
         self.show_images()
+        self.set_permission(constants.IN_GROUP_PERMISSION, False)
         self.set_permission(
             constants.DISORGANIZED_PERMISSION,
             group.get_permission(constants.DISORGANIZED_PERMISSION),

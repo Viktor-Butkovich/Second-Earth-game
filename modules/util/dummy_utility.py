@@ -49,9 +49,6 @@ def generate_autofill_actors(
     ):
         dummy_input_dict = {
             "actor_type": "mob",
-            "in_vehicle": False,
-            "in_group": False,
-            "in_building": False,
             "images": [
                 constants.actor_creation_manager.create_dummy({"image_id": None})
             ],
@@ -418,7 +415,7 @@ def simulate_uncrew(unit, required_dummy_attributes, dummy_input_dict):
         dummy_input_dict.copy(),
         required_dummy_attributes,
         override_permissions={
-            constants.PASSENGER_PERMISSION: False,
+            constants.IN_VEHICLE_PERMISSION: False,
         },
     )
     dummy_worker.set_permission(
