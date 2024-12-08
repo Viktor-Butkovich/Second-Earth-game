@@ -396,7 +396,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.SWITCH_THEATRE_BUTTON:
             self.set_tooltip(
                 [
-                    "Moves this steamship across space to another theatre at the end of the turn",
+                    "Moves this ship across space to another theatre at the end of the turn",
                     "Once clicked, the mouse pointer can be used to click on the destination",
                     "The destination, once chosen, will having a flashing yellow outline",
                     "Requires that this spaceship is able to move",

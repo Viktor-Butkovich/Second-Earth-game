@@ -909,8 +909,13 @@ class mob(actor):
         """
         for current_image in self.images:
             current_cell = self.get_cell()
-            while not current_cell.contained_mobs[0] == self:  # move to front of tile
-                current_cell.contained_mobs.append(current_cell.contained_mobs.pop(0))
+            if self in current_cell.contained_mobs:
+                while (
+                    not current_cell.contained_mobs[0] == self
+                ):  # Move to front of tile
+                    current_cell.contained_mobs.append(
+                        current_cell.contained_mobs.pop(0)
+                    )
 
     def draw_outline(self):
         """

@@ -1004,7 +1004,7 @@ class world_handler:
                 return constants.HABITABILITY_PERFECT
             composition = round(value / self.get_parameter(constants.PRESSURE), 2)
             if composition >= 0.6:
-                return (constants.HABITABILITY_HOSTILE,)
+                return constants.HABITABILITY_HOSTILE
             elif composition >= 0.24:
                 return constants.HABITABILITY_UNPLEASANT
             elif composition >= 0.22:
@@ -1054,14 +1054,14 @@ class world_handler:
         elif parameter_name == constants.TOXIC_GASES:
             if self.get_parameter(constants.PRESSURE) == 0:
                 return constants.HABITABILITY_PERFECT
-            composition = round(value / self.get_parameter(constants.PRESSURE), 3)
-            if composition >= 0.01:
+            composition = round(value / self.get_parameter(constants.PRESSURE), 4)
+            if composition >= 0.004:
                 return constants.HABITABILITY_DEADLY
-            elif composition >= 0.008:
+            elif composition >= 0.003:
                 return constants.HABITABILITY_DANGEROUS
-            elif composition >= 0.005:
-                return constants.HABITABILITY_HOSTILE
             elif composition >= 0.002:
+                return constants.HABITABILITY_HOSTILE
+            elif composition >= 0.001:
                 return constants.HABITABILITY_UNPLEASANT
             elif composition > 0:
                 return constants.HABITABILITY_TOLERABLE
