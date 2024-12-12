@@ -97,22 +97,45 @@ class grid(interface_elements.interface_element):
     def draw_latitude_line(
         self,
         latitude_line,
+        max_latitude_line_length: int,
         longitude_bulge_factor: float = 0.0,
         level: int = 0,
         min_width: bool = False,
     ):
         return_list = []
-        top_position = 0.3
+        center_position = 0.2
         total_height = 0.5
         x_marker_size = 0.1
         x_offset_position = 0.2
         tile_width = 0.03
         tile_height = 1.5
-        drew_x = True  # bulge_factor == 0.0 # False
-        print("set")
-        radius = len(latitude_line)
+        drew_x = True
+
+        # Force latitude lines to be of the same length as the largest line
+        latitude_line = latitude_line.copy()  # Don't modify original
+        while len(latitude_line) > max_latitude_line_length:
+            latitude_line.pop(len(latitude_line) // 4)
+            if len(latitude_line) > max_latitude_line_length:
+                latitude_line.pop(3 * len(latitude_line) // 4)
+        while len(latitude_line) < max_latitude_line_length:
+            latitude_line.insert(
+                len(latitude_line) // 4, latitude_line[len(latitude_line) // 4]
+            )
+            if len(latitude_line) < max_latitude_line_length:
+                latitude_line.insert(
+                    3 * len(latitude_line) // 4,
+                    latitude_line[3 * len(latitude_line) // 4],
+                )
+
+        y_step_size = 1.4 * total_height / max_latitude_line_length
+        y_step_size *= (max_latitude_line_length**0.5) / (
+            constants.map_size_options[4] ** 0.5
+        )
+
         for idx, coordinates in enumerate(latitude_line):
-            # y_multiplier = 1.0 #0.2 + 0.8 * (1 - abs((idx - len(latitude_line) / 2) / (len(latitude_line) / 2)))
+            pole_distance_factor = 1.0 - abs(
+                (idx - len(latitude_line) // 2) / (len(latitude_line) // 2)
+            )
             """
             The ellipse equation (x - h)^2 / a + (y - k)^2 / b = r^2 give an ellipse
                 With parameters r = 0.5, h = 0.5, k = 0, a = 1, and b = bulge_effect, we can get a stretched ellipse with a configurable bulge effect
@@ -129,72 +152,55 @@ class grid(interface_elements.interface_element):
             a = 1
             x = idx / (len(latitude_line) - 1)
             b = abs(longitude_bulge_factor**3) * 5
-            latitude_bulge_factor = k + (b * (r**2 - ((x - h) ** 2) / a)) ** 0.5
+            ellipse_weight = 0.3
+            linear_weight = 0.18
+            if abs(longitude_bulge_factor) > 0.5:
+                linear_weight *= 2.0  # Linearly bulge outwards more farther from center
+            latitude_bulge_factor = (
+                k + (b * (r**2 - ((x - h) ** 2) / a)) ** 0.5
+            ) * ellipse_weight
+            latitude_bulge_factor += pole_distance_factor * linear_weight
+            if (
+                longitude_bulge_factor == 0
+            ):  # If center line, don't bulge outwards, even if near equator
+                latitude_bulge_factor = 0
             maximum_latitude_bulge_factor = k + (b**0.5 * r)
             if longitude_bulge_factor < 0:
                 latitude_bulge_factor *= -1
                 maximum_latitude_bulge_factor *= -1
-            pole_distance_factor = 1.0 - abs(
-                (idx - len(latitude_line) / 2) / (len(latitude_line) / 2)
-            )
-            # y = sqrt(b(r^2 - (x-h)^2 / a)) + k
-            # x = idx / len(latitude_line)
-            # x_bulge_effect = (bulge_factor * ((radius ** 2 - ((x - radius) ** 2) / radius)) ** 0.5) + 0
-
-            # radius = len(latitude_line) / 2
-            # idx acts as x
-            # bulge_factor acts as b
-            # x_bulge_effect = abs((bulge_factor * 10 * ((radius ** 2) - ((idx - radius) ** 2) / radius))) ** 0.5 + 0
-            # print(longitude_bulge_factor, x, latitude_bulge_factor)
-            print(
-                f"{longitude_bulge_factor:.2f}, {latitude_bulge_factor:.2f}, {pole_distance_factor:.2f}"
-            )
-            # index_multiplier = 1.0 - abs((idx - len(latitude_line) / 2) / (len(latitude_line) / 2))
-            # print(index_multiplier)
-            # index_multiplier = index_multiplier ** 2
-
-            # print(index_multiplier)
-            # index_multiplier = 1.0 - (index_multiplier ** 2)
-
-            # y_multiplier = index_multiplier + 0.5
             y_multiplier = 1.0
-            y_offset_position = top_position - (
-                (total_height * idx / len(latitude_line))
-            )
+            steps_from_center = abs(idx - len(latitude_line) // 2)
+            y_offset_position = center_position
+            for i in range(steps_from_center):
+                change = y_step_size * (0.85**i)
+                if idx < len(latitude_line) // 2:
+                    y_offset_position += change
+                else:
+                    y_offset_position -= change
             current_cell = self.find_cell(coordinates[0], coordinates[1])
-            # if constants.current_map_mode == "terrain":
             image_id = current_cell.tile.get_image_id_list()[0]
-            # else:
-            #    image_id = current_cell.tile.get_image_id_list()[-1]
             if type(image_id) == str:
                 image_id = {
                     "image_id": image_id,
                 }
 
-            # tile_width, tile_height = ((0.5 - abs(bulge_factor)) * abs(x_bulge_effect), 0.1)
-            # tile_width = 0.05 + (0.05 * abs(x_bulge_effect)) - (0.02 * abs(bulge_factor))
             x_penalty = 0.015 * (abs(longitude_bulge_factor))
             y_penalty = (
                 0.10 * (1.0 - abs(pole_distance_factor)) ** 2
             )  # Possible square these factors
             tile_width, tile_height = (
-                0.08 - x_penalty,
+                0.10 - x_penalty,
                 0.12 - y_penalty,
-                # 0.03 + (0.2 * (abs(latitude_bulge_factor)))
             )
-            tile_width *= 1.0  # 0.7
+            tile_width *= 0.8
             if (
                 min_width
-            ):  # Since rightmost (highest level) latitude line is not covered by any others, it should be thinner to avoid an obvious size difference
+            ) and pole_distance_factor > 0.1:  # Since rightmost (highest level) latitude line is not covered by any others, it should be thinner to avoid an obvious size difference
                 tile_width = 0.015
-            # Possibly apply some effect to mitigate the effect of different-length latitude lines
-            # if idx > len(latitude_line) / 2:
-            #     y_offset_position += y_penalty / 2
-            # else:
-            #     y_offset_position -= y_penalty / 2
-            # tile_width, tile_height = (0.2 + (0.25 * abs(latitude_bulge_factor)) - (0.85 * abs(longitude_bulge_factor)), 0.1)
-            # print(longitude_bulge_factor, tile_width)
-            # tile_width = 0.05
+            tile_height = 0.08  # 2.5 * total_height / len(latitude_line)
+            tile_height -= y_penalty
+            if tile_height < 0.02:
+                tile_height = 0.02
             image_id.update(
                 {
                     "x_offset": x_offset_position + (latitude_bulge_factor / 4.0),
@@ -375,10 +381,19 @@ class grid(interface_elements.interface_element):
 
         planet_width = len(latitude_lines)
         offset_width = round(planet_width / 2)
+        largest_size = len(
+            max(
+                self.world_handler.latitude_lines
+                + self.world_handler.alternate_latitude_lines,
+                key=len,
+            )
+        )
         for offset in range(offset_width):
             if offset == 0:
                 current_line = latitude_lines[index]
-                return_list += self.draw_latitude_line(current_line)
+                return_list += self.draw_latitude_line(
+                    current_line, largest_size, level=0
+                )
             else:
                 longitude_bulge_factor = (
                     offset / offset_width
@@ -388,9 +403,10 @@ class grid(interface_elements.interface_element):
                 level = offset_width * 2 - offset
                 level = offset
                 right_line = latitude_lines[(index + offset) % planet_width]
-                if offset == offset_width - 1:
+                if offset >= offset_width - 1:
                     return_list += self.draw_latitude_line(
                         right_line,
+                        largest_size,
                         longitude_bulge_factor=longitude_bulge_factor,
                         level=level,
                         min_width=True,
@@ -398,14 +414,16 @@ class grid(interface_elements.interface_element):
                 else:
                     return_list += self.draw_latitude_line(
                         right_line,
+                        largest_size,
                         longitude_bulge_factor=longitude_bulge_factor,
                         level=level,
                     )
                 level *= -1
                 left_line = latitude_lines[(index - offset) % planet_width]
-                if offset == offset_width - 1:
+                if offset >= offset_width - 1:
                     return_list += self.draw_latitude_line(
                         left_line,
+                        largest_size,
                         longitude_bulge_factor=-1 * longitude_bulge_factor,
                         level=level,
                         min_width=True,
@@ -413,6 +431,7 @@ class grid(interface_elements.interface_element):
                 else:
                     return_list += self.draw_latitude_line(
                         left_line,
+                        largest_size,
                         longitude_bulge_factor=-1 * longitude_bulge_factor,
                         level=level,
                     )
