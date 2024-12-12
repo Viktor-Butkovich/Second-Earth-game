@@ -679,6 +679,129 @@ class world_handler:
         for key in constants.global_parameters:
             self.set_parameter(key, input_dict.get("global_parameters", {}).get(key, 0))
 
+        """
+        15 x 15 grid has north pole 0, 0 and south pole 7, 7
+        If centered at (11, 11), latitude line should include (0, 0), (14, 14), (13, 13), (12, 12), (11, 11), (10, 10), (9, 9), (8, 8), (7, 7)
+            The above line should be used if centered at any of the above coordinates
+        If centered at (3, 11), latitude line should include (0, 0), (1, 14), (1, 13), (2, 12), (3, 11), (4, 10), (5, 9), (6, 8), (7, 7)
+
+        Need to draw latitude lines using the above method, centered on (0, 7), (1, 6), (2, 5), (3, 4), (4, 3), (5, 2), (6, 1), (7, 0), (8, 14), (9, 13), (10, 12), (11, 11), (12, 10), (13, 9), (14, 8)
+            ^ Forms diagonal line
+        Also need to draw latitude lines on other cross: (0, 8), (1, 9), (2, 10), (3, 11), (4, 12), (5, 13), (6, 14), (7, 0), (8, 1), (9, 2), (10, 3), (11, 4), (12, 5), (13, 6), (14, 7)
+        """
+        self.latitude_lines = []
+        self.alternate_latitude_lines = []
+        self.latitude_lines_types = [
+            [None for _ in range(self.default_grid.coordinate_height)]
+            for _ in range(self.default_grid.coordinate_width)
+        ]
+        north_pole = (0, 0)
+        south_pole = (
+            self.default_grid.coordinate_width // 2,
+            self.default_grid.coordinate_height // 2,
+        )
+        for equatorial_x in range(self.default_grid.coordinate_width):
+            equatorial_y = (
+                (self.default_grid.coordinate_width // 2) - equatorial_x
+            ) % self.default_grid.coordinate_height
+            current_line = self.draw_coordinate_line(
+                north_pole, (equatorial_x, equatorial_y)
+            ) + self.draw_coordinate_line(
+                (equatorial_x, equatorial_y), south_pole, omit_origin=True
+            )
+            for coordinate in current_line:
+                self.latitude_lines_types[coordinate[0]][coordinate[1]] = True
+            self.latitude_lines.append(current_line)
+
+            equatorial_y = (
+                (self.default_grid.coordinate_height // 2) + equatorial_x + 1
+            ) % self.default_grid.coordinate_height
+            current_line = self.draw_coordinate_line(
+                north_pole, (equatorial_x, equatorial_y)
+            ) + self.draw_coordinate_line(
+                (equatorial_x, equatorial_y), south_pole, omit_origin=True
+            )
+            for coordinate in current_line:
+                self.latitude_lines_types[coordinate[0]][coordinate[1]] = False
+            self.alternate_latitude_lines.append(current_line)
+        # print(self.latitude_lines_types)
+
+    def get_latitude_line(
+        self, coordinates: Tuple[int, int]
+    ) -> Tuple[int, List[List[Tuple[int, int]]]]:
+        latitude_line_type = self.latitude_lines_types[coordinates[0]][coordinates[1]]
+        if latitude_line_type == None:
+            for offset in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                latitude_line_type = self.latitude_lines_types[
+                    (coordinates[0] + offset[0]) % self.default_grid.coordinate_width
+                ][(coordinates[1] + offset[1]) % self.default_grid.coordinate_height]
+                if latitude_line_type != None:
+                    coordinates = (
+                        (coordinates[0] + offset[0])
+                        % self.default_grid.coordinate_width,
+                        (coordinates[1] + offset[1])
+                        % self.default_grid.coordinate_height,
+                    )
+                    break
+        if latitude_line_type == True:
+            for idx, latitude_line in enumerate(self.latitude_lines):
+                if coordinates in latitude_line:
+                    return idx, self.latitude_lines
+        else:
+            for idx, latitude_line in enumerate(self.alternate_latitude_lines):
+                if coordinates in latitude_line:
+                    return idx, self.alternate_latitude_lines
+
+    def draw_coordinate_line(
+        self,
+        origin: Tuple[int, int],
+        destination: Tuple[int, int],
+        omit_origin: bool = False,
+    ) -> List[Tuple[int, int]]:
+        line = []
+        if not omit_origin:
+            line.append(origin)
+        x, y = origin
+        while (x, y) != destination:
+            x_distance = self.default_grid.x_distance_coords(x, destination[0])
+            y_distance = self.default_grid.y_distance_coords(y, destination[1])
+            if x_distance != 0:
+                slope = y_distance / x_distance
+
+            if x_distance == 0:
+                traverse = ["Y"]
+            elif y_distance == 0:
+                traverse = ["X"]
+            elif slope > 2:
+                traverse = ["Y"]
+            elif slope < 0.5:
+                traverse = ["X"]
+            else:
+                traverse = ["X", "Y"]
+
+            if "X" in traverse:
+                if (
+                    self.default_grid.x_distance_coords(
+                        (x + 1) % self.default_grid.coordinate_width, destination[0]
+                    )
+                    < x_distance
+                ):
+                    x = (x + 1) % self.default_grid.coordinate_width
+                else:
+                    x = (x - 1) % self.default_grid.coordinate_width
+            if "Y" in traverse:
+                if (
+                    self.default_grid.y_distance_coords(
+                        (y + 1) % self.default_grid.coordinate_height, destination[1]
+                    )
+                    < y_distance
+                ):
+                    y = (y + 1) % self.default_grid.coordinate_height
+                else:
+                    y = (y - 1) % self.default_grid.coordinate_height
+            line.append((x, y))
+        return line
+
     def change_parameter(self, parameter_name: str, change: int) -> None:
         """
         Description:
@@ -1135,6 +1258,9 @@ class terrain_handler:
         self.pole_distance_multiplier: float = (
             1.0  # 0.1 for polar cells, 1.0 for equatorial cells
         )
+        self.north_pole_distance_multiplier: float = input_dict.get(
+            "north_pole_distance_multiplier", 1.0
+        )
         self.inverse_pole_distance_multiplier: float = 1.0
         self.minima = {constants.TEMPERATURE: -6}
         self.maxima = {constants.TEMPERATURE: 11}
@@ -1443,6 +1569,7 @@ class terrain_handler:
         # save_dict["apparent_terrain_parameters"] = self.apparent_terrain_parameters
         save_dict["terrain"] = self.terrain
         save_dict["resource"] = self.resource
+        save_dict["north_pole_distance_multiplier"] = self.pole_distance_multiplier
         return save_dict
 
     def get_parameter(self, parameter_name: str) -> int:

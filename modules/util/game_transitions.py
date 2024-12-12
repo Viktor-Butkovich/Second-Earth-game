@@ -112,7 +112,7 @@ def set_game_mode(new_game_mode):
                 constants.effect_manager.set_effect(effect, False)
         elif new_game_mode == constants.MINISTERS_MODE:
             status.table_map_image.set_image(
-                status.strategic_map_grid.create_map_image()
+                status.strategic_map_grid.create_planet_image()
             )
         elif not new_game_mode in [constants.TRIAL_MODE, constants.NEW_GAME_SETUP_MODE]:
             constants.default_text_box_height = constants.font_size * 5.5

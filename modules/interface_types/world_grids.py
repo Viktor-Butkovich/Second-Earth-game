@@ -695,6 +695,22 @@ class world_grid(grid):
             abs(cell1.x - (cell2.x - self.coordinate_width)),
         )
 
+    def x_distance_coords(self, x1, x2):
+        """
+        Description:
+            Calculates and returns the x distance between two x coordinates
+        Input:
+            int x1: First x coordinate
+            int x2: Second x coordinate
+        Output:
+            int: Returns the x distance between the two x coordinates
+        """
+        return min(
+            abs(x1 - x2),
+            abs(x1 - (x2 + self.coordinate_width)),
+            abs(x1 - (x2 - self.coordinate_width)),
+        )
+
     def y_distance(self, cell1, cell2):
         """
         Description:
@@ -709,6 +725,22 @@ class world_grid(grid):
             abs(cell1.y - cell2.y),
             abs(cell1.y - (cell2.y + self.coordinate_height)),
             abs(cell1.y - (cell2.y - self.coordinate_height)),
+        )
+
+    def y_distance_coords(self, y1, y2):
+        """
+        Description:
+            Calculates and returns the y distance between two y coordinates
+        Input:
+            int y1: First y coordinate
+            int y2: Second y coordinate
+        Output:
+            int: Returns the y distance between the two y coordinates
+        """
+        return min(
+            abs(y1 - y2),
+            abs(y1 - (y2 + self.coordinate_height)),
+            abs(y1 - (y2 - self.coordinate_height)),
         )
 
     def distance(self, cell1, cell2):

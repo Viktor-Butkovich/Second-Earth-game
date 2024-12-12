@@ -175,7 +175,7 @@ def pretty_print_image_dict(image_dict: dict):
     printed_dict = deepcopy(image_dict)
     for key, portrait in printed_dict.items():
         print(f"{key}:")
-        if type(portrait) == str:
+        if type(portrait) != list:
             print(f"    {portrait}")
         else:
             for item in portrait:

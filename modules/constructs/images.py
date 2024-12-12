@@ -134,7 +134,7 @@ class image_bundle(image):
     An image can be set to an image bundle rather than a string image path
     """
 
-    def __init__(self, parent_image, image_id_list):
+    def __init__(self, parent_image, image_id_list, pixellate_bundle: bool = False):
         """
         Description:
             Initializes this object
@@ -148,6 +148,7 @@ class image_bundle(image):
                     'y_offset': float value - y-axis offset of image, with 1 being shifted a full height upward
                     'level': int value - Layer for image to appear on, with 0 being the default layer, positive levels being above it, and negative levels being below it
             boolean to_front = False: If True, allows this image to appear in front of most other objects instead of being behind them
+            pixellated = False: If True, renders this image with a small number of pixels
         Output:
             None
         """
@@ -158,7 +159,10 @@ class image_bundle(image):
         self.members = []
         if isinstance(image_id_list, list):
             for current_image_id in image_id_list:
-                self.add_member(current_image_id)
+                self.add_member(current_image_id, generate_combined_surface=False)
+            self.combined_surface = (
+                self.generate_combined_surface()
+            )  # Avoid calling generate_combined_surface on each component
         else:
             if image_id_list.contains_bundle:
                 image_id_list = image_id_list.image
@@ -193,7 +197,9 @@ class image_bundle(image):
         for member in self.members:
             member.scale()
 
-    def add_member(self, image_id, member_type="default"):
+    def add_member(
+        self, image_id, member_type="default", generate_combined_surface: bool = False
+    ):
         """
         Description:
             Adds a new member image to this bundle
@@ -203,7 +209,7 @@ class image_bundle(image):
         """
         if isinstance(image_id, str):
             new_member = bundle_image(self, image_id, member_type)
-        else:  # if image id is dictionary with extra information
+        else:  # If image id is dictionary with extra information
             new_member = bundle_image(self, image_id, member_type, is_offset=True)
         index = 0
         while (
@@ -211,7 +217,8 @@ class image_bundle(image):
         ):  # inserts at back of same level
             index += 1
         self.members.insert(index, new_member)
-        self.combined_surface = self.generate_combined_surface()
+        if generate_combined_surface:
+            self.combined_surface = self.generate_combined_surface()
 
     def get_blit_sequence(self):
         """
@@ -538,7 +545,7 @@ class bundle_image:
                 key += "pixellated"
         if key in status.rendered_images:  # if image already loaded, use it
             self.image = status.rendered_images[key]
-        else:  # if image not loaded, load it and add it to the loaded images
+        else:  # If image not loaded, load it and add it to the loaded images
             if full_image_id.endswith(".png"):
                 self.text = False
                 try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
@@ -754,6 +761,7 @@ class free_image(image):
         self.parent_collection = input_dict.get("parent_collection", None)
         self.color_key = input_dict.get("color_key", None)
         self.has_parent_collection = self.parent_collection
+        self.pixellate_image: bool = input_dict.get("pixellate_image", False)
         if not self.has_parent_collection:
             status.independent_interface_elements.append(self)
 
@@ -910,6 +918,19 @@ class free_image(image):
                 else:  # if set to image path list
                     self.contains_bundle = True
                     self.image = image_bundle(self, self.image_id)
+        if (
+            self.pixellate_image and type(self.image) != pygame.Surface
+        ):  # If image is an image bundle, convert it to a sufficiently pixellated Surface
+            self.image = self.image.generate_combined_surface()
+            self.contains_bundle = False
+            self.image = pygame.transform.scale(
+                self.image,
+                (constants.LIGHT_PIXELLATED_SIZE, constants.LIGHT_PIXELLATED_SIZE),
+            )
+            self.image = pygame.transform.scale(
+                self.image,
+                (self.width, self.height),
+            )
 
     def can_show_tooltip(self):
         """

@@ -94,6 +94,341 @@ class grid(interface_elements.interface_element):
         """
         return constants.terrain_manager.get_tuning(tuning_type)
 
+    def draw_latitude_line(
+        self,
+        latitude_line,
+        longitude_bulge_factor: float = 0.0,
+        level: int = 0,
+        min_width: bool = False,
+    ):
+        return_list = []
+        top_position = 0.3
+        total_height = 0.5
+        x_marker_size = 0.1
+        x_offset_position = 0.2
+        tile_width = 0.03
+        tile_height = 1.5
+        drew_x = True  # bulge_factor == 0.0 # False
+        print("set")
+        radius = len(latitude_line)
+        for idx, coordinates in enumerate(latitude_line):
+            # y_multiplier = 1.0 #0.2 + 0.8 * (1 - abs((idx - len(latitude_line) / 2) / (len(latitude_line) / 2)))
+            """
+            The ellipse equation (x - h)^2 / a + (y - k)^2 / b = r^2 give an ellipse
+                With parameters r = 0.5, h = 0.5, k = 0, a = 1, and b = bulge_effect, we can get a stretched ellipse with a configurable bulge effect
+            # Solving (x - h)^2 / a + (y - k)^2 / b = r^2 for y
+            # (y - k)^2 / b = r^2 - (x - h)^2 / a
+            # (y - k)^2 = b * (r^2 - (x - h)^2 / a)
+            # y - k = ±sqrt(b * (r^2 - (x - h)^2 / a))
+            # y = k ± sqrt(b * (r^2 - (x - h)^2 / a))
+            y = k + (b * (r**2 - ((x - h)**2) / a))**0.5
+            """
+            r = 0.5
+            h = 0.5
+            k = 0
+            a = 1
+            x = idx / (len(latitude_line) - 1)
+            b = abs(longitude_bulge_factor**3) * 5
+            latitude_bulge_factor = k + (b * (r**2 - ((x - h) ** 2) / a)) ** 0.5
+            maximum_latitude_bulge_factor = k + (b**0.5 * r)
+            if longitude_bulge_factor < 0:
+                latitude_bulge_factor *= -1
+                maximum_latitude_bulge_factor *= -1
+            pole_distance_factor = 1.0 - abs(
+                (idx - len(latitude_line) / 2) / (len(latitude_line) / 2)
+            )
+            # y = sqrt(b(r^2 - (x-h)^2 / a)) + k
+            # x = idx / len(latitude_line)
+            # x_bulge_effect = (bulge_factor * ((radius ** 2 - ((x - radius) ** 2) / radius)) ** 0.5) + 0
+
+            # radius = len(latitude_line) / 2
+            # idx acts as x
+            # bulge_factor acts as b
+            # x_bulge_effect = abs((bulge_factor * 10 * ((radius ** 2) - ((idx - radius) ** 2) / radius))) ** 0.5 + 0
+            # print(longitude_bulge_factor, x, latitude_bulge_factor)
+            print(
+                f"{longitude_bulge_factor:.2f}, {latitude_bulge_factor:.2f}, {pole_distance_factor:.2f}"
+            )
+            # index_multiplier = 1.0 - abs((idx - len(latitude_line) / 2) / (len(latitude_line) / 2))
+            # print(index_multiplier)
+            # index_multiplier = index_multiplier ** 2
+
+            # print(index_multiplier)
+            # index_multiplier = 1.0 - (index_multiplier ** 2)
+
+            # y_multiplier = index_multiplier + 0.5
+            y_multiplier = 1.0
+            y_offset_position = top_position - (
+                (total_height * idx / len(latitude_line))
+            )
+            current_cell = self.find_cell(coordinates[0], coordinates[1])
+            # if constants.current_map_mode == "terrain":
+            image_id = current_cell.tile.get_image_id_list()[0]
+            # else:
+            #    image_id = current_cell.tile.get_image_id_list()[-1]
+            if type(image_id) == str:
+                image_id = {
+                    "image_id": image_id,
+                }
+
+            # tile_width, tile_height = ((0.5 - abs(bulge_factor)) * abs(x_bulge_effect), 0.1)
+            # tile_width = 0.05 + (0.05 * abs(x_bulge_effect)) - (0.02 * abs(bulge_factor))
+            x_penalty = 0.015 * (abs(longitude_bulge_factor))
+            y_penalty = (
+                0.10 * (1.0 - abs(pole_distance_factor)) ** 2
+            )  # Possible square these factors
+            tile_width, tile_height = (
+                0.08 - x_penalty,
+                0.12 - y_penalty,
+                # 0.03 + (0.2 * (abs(latitude_bulge_factor)))
+            )
+            tile_width *= 1.0  # 0.7
+            if (
+                min_width
+            ):  # Since rightmost (highest level) latitude line is not covered by any others, it should be thinner to avoid an obvious size difference
+                tile_width = 0.015
+            # Possibly apply some effect to mitigate the effect of different-length latitude lines
+            # if idx > len(latitude_line) / 2:
+            #     y_offset_position += y_penalty / 2
+            # else:
+            #     y_offset_position -= y_penalty / 2
+            # tile_width, tile_height = (0.2 + (0.25 * abs(latitude_bulge_factor)) - (0.85 * abs(longitude_bulge_factor)), 0.1)
+            # print(longitude_bulge_factor, tile_width)
+            # tile_width = 0.05
+            image_id.update(
+                {
+                    "x_offset": x_offset_position + (latitude_bulge_factor / 4.0),
+                    "y_offset": y_offset_position,  # 0.2 - (0.3 * idx / len(latitude_line)),
+                    "x_size": tile_width,  # .805 / self.coordinate_width,
+                    "y_size": tile_height,  # * y_multiplier * total_height / len(latitude_line), # .805 / self.coordinate_height,
+                    "level": level,
+                }
+            )
+            image_id[
+                "y_size"
+            ] *= y_multiplier  # Squishing effect to be more sphere-like
+
+            return_list.append(image_id)
+            continue
+            if (
+                coordinates
+                == (
+                    status.scrolling_strategic_map_grid.center_x,
+                    status.scrolling_strategic_map_grid.center_y,
+                )
+                and not drew_x
+            ):
+                return_list.append(
+                    {
+                        "image_id": "misc/x.png",
+                        "x_offset": x_offset_position
+                        + (index_multiplier * bulge_factor),
+                        "y_offset": y_offset_position,  # 0.2 - (0.3 * idx / len(latitude_line)),
+                        "x_size": x_marker_size,  # .805 / self.coordinate_width,
+                        "y_size": x_marker_size,  # .805 / self.coordinate_height,
+                        "level": level + 1,
+                    }
+                )
+                drew_x = True
+
+            adjacent_cell_info = []
+            for offset in [(-1, 0), (0, 1), (1, 0), (0, -1)]:
+                adjacent_coordinates = (
+                    (coordinates[0] + offset[0]) % self.coordinate_width,
+                    (coordinates[1] + offset[1]) % self.coordinate_height,
+                )
+                adjacent_cell = self.find_cell(
+                    adjacent_coordinates[0], adjacent_coordinates[1]
+                )
+                (
+                    adjacent_latitude_index,
+                    adjacent_latitude_line,
+                ) = self.world_handler.get_latitude_line(adjacent_coordinates)
+                adjacent_cell_info.append(
+                    (
+                        adjacent_coordinates,
+                        adjacent_cell,
+                        adjacent_latitude_index,
+                        offset,
+                    )
+                )
+
+            north_cell = None
+            lowest_north_pole_distance = float("inf")
+            south_cell = None
+            highest_north_pole_distance = 0
+            for _, adjacent_cell, _, _ in adjacent_cell_info:
+                if (
+                    adjacent_cell.terrain_handler.north_pole_distance_multiplier
+                    < lowest_north_pole_distance
+                ):
+                    lowest_north_pole_distance = (
+                        adjacent_cell.terrain_handler.north_pole_distance_multiplier
+                    )
+                    north_cell = adjacent_cell
+                if (
+                    adjacent_cell.terrain_handler.north_pole_distance_multiplier
+                    > highest_north_pole_distance
+                ):
+                    highest_north_pole_distance = (
+                        adjacent_cell.terrain_handler.north_pole_distance_multiplier
+                    )
+                    south_cell = adjacent_cell
+            east_west_candidates = [
+                info
+                for info in adjacent_cell_info
+                if info[1] != north_cell and info[1] != south_cell
+            ]
+            if east_west_candidates[0][2] > east_west_candidates[1][2] or (
+                east_west_candidates[0][2] == 0
+            ):
+                # East if higher latitude, or if wrapped around to 0 longitude
+                east_cell = east_west_candidates[0][1]
+                west_cell = east_west_candidates[1][1]
+            else:
+                east_cell = east_west_candidates[1][1]
+                west_cell = east_west_candidates[0][1]
+            if idx == 0:  # If north pole
+                north_cell = None
+            elif idx == len(latitude_line) - 1:  # If south pole
+                south_cell = None
+            for adjacent_cell_info in [
+                (north_cell, (0, 1)),
+                (east_cell, (1, 0)),
+                (south_cell, (0, -1)),
+                (west_cell, (-1, 0)),
+            ]:
+                adjacent_cell = adjacent_cell_info[0]
+                adjacent_coordinates = (
+                    coordinates[0] + adjacent_cell_info[1][0],
+                    coordinates[1] + adjacent_cell_info[1][1],
+                )
+                if adjacent_cell:
+                    if constants.current_map_mode == "terrain":
+                        image_id = adjacent_cell.tile.get_image_id_list()[0]
+                    else:
+                        image_id = adjacent_cell.tile.get_image_id_list()[-1]
+                    if type(image_id) == str:
+                        image_id = {
+                            "image_id": image_id,
+                        }
+                    image_id.update(
+                        {
+                            "x_offset": x_offset_position + x_bulge_effect,
+                            "y_offset": y_offset_position,  # 0.2 - (0.3 * idx / len(latitude_line)),
+                            "x_size": tile_width,  # .805 / self.coordinate_width,
+                            "y_size": tile_height
+                            * y_multiplier
+                            * total_height
+                            / len(latitude_line),  # .805 / self.coordinate_height,
+                            "level": level - 1,
+                        }
+                    )
+                    if adjacent_cell == east_cell:
+                        image_id["x_offset"] += image_id["x_size"] * 0.5  # 0.1
+                    elif adjacent_cell == west_cell:
+                        image_id["x_offset"] -= image_id["x_size"] * 0.5  # 0.1
+                    if adjacent_cell == north_cell:
+                        image_id["y_offset"] += image_id["y_size"] * 0.5  # 0.1
+                    elif adjacent_cell == south_cell:
+                        image_id["y_offset"] -= image_id["y_offset"] * 0.5  # 0.1
+                    # image_id["y_offset"] += adjacent_cell_info[1][1] * 0.05
+
+                    image_id[
+                        "y_size"
+                    ] *= y_multiplier  # Squishing effect to be more spherical
+
+                    return_list.append(image_id)
+
+                if (
+                    adjacent_coordinates
+                    == (
+                        status.scrolling_strategic_map_grid.center_x,
+                        status.scrolling_strategic_map_grid.center_y,
+                    )
+                    and (not drew_x)
+                    and (not adjacent_coordinates in latitude_line)
+                ):
+                    return_list.append(
+                        {
+                            "image_id": "misc/x.png",
+                            # "x_offset": x_offset_position + (index_multiplier * bulge_factor),
+                            "y_offset": y_offset_position,  # 0.2 - (0.3 * idx / len(latitude_line)),
+                            "x_size": x_marker_size,  # .805 / self.coordinate_width,
+                            "y_size": x_marker_size,  # .805 / self.coordinate_height,
+                            "level": level + 1,
+                        }
+                    )
+                    drew_x = True
+
+        return return_list
+
+    def create_planet_image(self):
+        centered_coordinates = (
+            status.scrolling_strategic_map_grid.center_x,
+            status.scrolling_strategic_map_grid.center_y,
+        )
+        index, latitude_lines = self.world_handler.get_latitude_line(
+            centered_coordinates
+        )
+        return_list = []
+
+        planet_width = len(latitude_lines)
+        offset_width = round(planet_width / 2)
+        for offset in range(offset_width):
+            if offset == 0:
+                current_line = latitude_lines[index]
+                return_list += self.draw_latitude_line(current_line)
+            else:
+                longitude_bulge_factor = (
+                    offset / offset_width
+                ) ** 0.5  # (offset / offset_width) ** 3
+                # if longitude_bulge_factor < 0.5:
+                #     longitude_bulge_factor /= 2
+                level = offset_width * 2 - offset
+                level = offset
+                right_line = latitude_lines[(index + offset) % planet_width]
+                if offset == offset_width - 1:
+                    return_list += self.draw_latitude_line(
+                        right_line,
+                        longitude_bulge_factor=longitude_bulge_factor,
+                        level=level,
+                        min_width=True,
+                    )  # 0.03 * offset
+                else:
+                    return_list += self.draw_latitude_line(
+                        right_line,
+                        longitude_bulge_factor=longitude_bulge_factor,
+                        level=level,
+                    )
+                level *= -1
+                left_line = latitude_lines[(index - offset) % planet_width]
+                if offset == offset_width - 1:
+                    return_list += self.draw_latitude_line(
+                        left_line,
+                        longitude_bulge_factor=-1 * longitude_bulge_factor,
+                        level=level,
+                        min_width=True,
+                    )
+                else:
+                    return_list += self.draw_latitude_line(
+                        left_line,
+                        longitude_bulge_factor=-1 * longitude_bulge_factor,
+                        level=level,
+                    )
+
+        # central_line = latitude_lines[index]
+        # return_list += self.draw_latitude_line(central_line)
+
+        # right_line = latitude_lines[(index + 1) % len(latitude_lines)]
+        # return_list += self.draw_latitude_line(right_line, bulge_factor=0.1)
+
+        # left_line = latitude_lines[(index - 1) % len(latitude_lines)]
+        # return_list += self.draw_latitude_line(left_line, bulge_factor=-0.1)
+        # Decent approximation of middle strip of planet - now repeat on adjacent latitude lines, with bulging effect to sides based on latitude index difference
+        # Keep the total height constant, regardless of the number of cells in the latitude line
+        return return_list
+
     def create_map_image(self):
         """
         Description:
@@ -103,25 +438,41 @@ class grid(interface_elements.interface_element):
         Output:
             List: List of images representing this grid - approximation of very zoomed out grid
         """
-        return "misc/empty.png"
-        return_list = [{"image_id": "misc/lines.png", "level": 10}]
+        return_list = []
         for current_cell in self.get_flat_cell_list():
-            image_id = current_cell.tile.get_image_id_list()
-            if type(image_id) == dict:
-                image_id = image_id["image_id"]
-            return_list.append(
-                {
+            if constants.current_map_mode == "terrain":
+                image_id = current_cell.tile.get_image_id_list()[0]
+            else:
+                image_id = current_cell.tile.get_image_id_list()[-1]
+            if type(image_id) == str:
+                image_id = {
                     "image_id": image_id,
-                    "x_offset": (current_cell.x) / self.coordinate_width
+                }
+            origin = (
+                status.scrolling_strategic_map_grid.center_x
+                - self.coordinate_width // 2,
+                status.scrolling_strategic_map_grid.center_y
+                - self.coordinate_height // 2,
+            )
+            effective_x = (
+                current_cell.x - origin[0]
+            ) % status.scrolling_strategic_map_grid.coordinate_width
+            effective_y = (
+                current_cell.y - origin[1]
+            ) % status.scrolling_strategic_map_grid.coordinate_height
+            image_id.update(
+                {
+                    "x_offset": effective_x / self.coordinate_width
                     - 0.5
                     + (0.7 / self.coordinate_width),
-                    "y_offset": (current_cell.y) / self.coordinate_height
+                    "y_offset": effective_y / self.coordinate_height
                     - 0.5
                     + (0.4 / self.coordinate_height),
                     "x_size": 1.05 / self.coordinate_width,
                     "y_size": 1.05 / self.coordinate_height,
                 }
             )
+            return_list.append(image_id)
         return return_list
 
     def to_save_dict(self):
@@ -582,6 +933,12 @@ class mini_grid(grid):
                     directional_indicator_image
                 ) in status.directional_indicator_image_list:
                     directional_indicator_image.calibrate()
+        if self == status.scrolling_strategic_map_grid:
+            status.table_map_image.set_image(
+                status.strategic_map_grid.create_planet_image()
+            )
+            # print(status.table_map_image.image)
+            # print(status.table_map_image.image.generate_combined_surface())
 
     def get_main_grid_coordinates(self, mini_x, mini_y):
         """

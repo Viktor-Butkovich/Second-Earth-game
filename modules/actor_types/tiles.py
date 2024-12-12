@@ -365,13 +365,14 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             "image_id",
                             status.terrain_feature_types[terrain_feature].image_id,
                         )
-                        if type(new_image_id) == str and not new_image_id.endswith(
-                            ".png"
-                        ):
-                            new_image_id = actor_utility.generate_label_image_id(
-                                new_image_id, y_offset=-0.75
-                            )
-                        image_id_list = utility.combine(image_id_list, new_image_id)
+                        if new_image_id != "misc/empty.png":
+                            if type(new_image_id) == str and not new_image_id.endswith(
+                                ".png"
+                            ):
+                                new_image_id = actor_utility.generate_label_image_id(
+                                    new_image_id, y_offset=-0.75
+                                )
+                            image_id_list = utility.combine(image_id_list, new_image_id)
                     if (
                         self.cell.terrain_handler.resource
                     ):  # If resource visible based on current knowledge
@@ -385,9 +386,11 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         if current_building:
                             image_id_list += current_building.get_image_id_list()
             elif self.show_terrain:
-                image_id_list.append(self.image_dict["hidden"])
+                pass
+                # image_id_list.append(self.image_dict["hidden"])
             else:
-                image_id_list.append(self.image_dict["default"])
+                pass
+                # image_id_list.append(self.image_dict["default"])
             for current_image in self.hosted_images:
                 if (
                     not current_image.anchor_key in ["south_pole", "north_pole"]
@@ -424,12 +427,19 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     "south pole", False
                 ):
                     map_mode_image = "misc/map_modes/south_pole.png"
-            image_id_list.append(
-                {
-                    "image_id": map_mode_image,
-                    "alpha": constants.MAP_MODE_ALPHA,
-                }
-            )
+            if constants.MAP_MODE_ALPHA:
+                image_id_list.append(
+                    {
+                        "image_id": map_mode_image,
+                        "alpha": constants.MAP_MODE_ALPHA,
+                    }
+                )
+            else:
+                image_id_list = [
+                    {
+                        "image_id": map_mode_image,
+                    }
+                ]
         for current_image in self.hosted_images:
             if (
                 current_image.anchor_key in ["south_pole", "north_pole"]

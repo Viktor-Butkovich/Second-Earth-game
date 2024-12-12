@@ -125,6 +125,7 @@ except Exception:  # Displays error message and records error message in crash l
         3% - 100%: Global warming, instant death
             Note: Earth with no GHG would have an -18 C/0 F average, rather than 14 C/57 F
                 0 GHG would result in about -2 average temperature - each 0.5% contributes about 1 average temperature
+                Earth with 6x GHG would increase by about 10 C average, as in permian extinction
                 def average_temperature(distance, GHG):
                     return min(12, max(-5, 12 - distance + 2 * GHG pressure)) for random distances on some scale
                     Note that GHG pressure is based on the absolute # GHG units / planet size, rather than proportion of current atmosphere
@@ -246,6 +247,9 @@ except Exception:  # Displays error message and records error message in crash l
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 
 # Upcoming work queue:
+# Write docstrings for draw_latitude_line, create_planet_image
+# Continue polishing, make stronger spherical effect (bulge corners out less relative to center)
+# Figure out why poles are drawn farther out on spherical map
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art

@@ -1758,7 +1758,7 @@ def ministers_screen():
     Output:
         None
     """
-    # minister table setup
+    # Minister table setup
     table_width = 400
     table_height = 750
     constants.actor_creation_manager.create_interface_element(
@@ -1773,16 +1773,29 @@ def ministers_screen():
             "init_type": constants.FREE_IMAGE,
         }
     )
+    # status.table_map_image = constants.actor_creation_manager.create_interface_element(
+    #    {
+    #        "coordinates": scaling.scale_coordinates(
+    #            (constants.default_display_width / 2) - 100, 400
+    #        ),
+    #        "init_type": constants.FREE_IMAGE,
+    #        "modes": [constants.MINISTERS_MODE],
+    #        "width": scaling.scale_width(200),
+    #        "height": scaling.scale_height(200),
+    #        "image_id": "misc/empty.png",
+    #    }
+    # )
     status.table_map_image = constants.actor_creation_manager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(
-                (constants.default_display_width / 2) - 100, 400
+                (constants.default_display_width / 2) - 500, 400
             ),
             "init_type": constants.FREE_IMAGE,
-            "modes": [constants.MINISTERS_MODE],
-            "width": scaling.scale_width(200),
-            "height": scaling.scale_height(200),
+            "modes": [constants.STRATEGIC_MODE],
+            "width": scaling.scale_width(400),
+            "height": scaling.scale_height(400),
             "image_id": "misc/empty.png",
+            "pixellate_image": True,
         }
     )
     position_icon_width = 75
