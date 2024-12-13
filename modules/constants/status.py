@@ -26,6 +26,7 @@ from modules.interface_types.buttons import (
     same_tile_icon,
     reorganize_unit_button,
     minister_portrait_image,
+    switch_game_mode_button,
 )
 from modules.interface_types.inventory_interface import item_icon
 from modules.interface_types.instructions import instructions_page
@@ -63,6 +64,10 @@ displayed_prosecution: minister = None
 displayed_notification: notification = None
 
 rendered_images: Dict[str, pygame.Surface] = {}
+globe_projection_image: free_image = None
+globe_projection_surface: pygame.Surface = None
+to_strategic_button: switch_game_mode_button = None
+
 button_list: List[button] = []
 instructions_list: List[str] = []
 minister_list: List[minister] = []
@@ -111,6 +116,7 @@ mob_inventory_grid: inventory_grid = None
 tile_info_display: ordered_collection = None
 tile_inventory_info_display: ordered_collection = None
 tile_inventory_grid: inventory_grid = None
+global_info_display: ordered_collection = None
 minister_info_display: ordered_collection = None
 prosecution_info_display: ordered_collection = None
 defense_info_display: ordered_collection = None

@@ -1387,8 +1387,8 @@ def buttons():
         "to_mode": constants.STRATEGIC_MODE,
         "init_type": constants.SWITCH_GAME_MODE_BUTTON,
     }
-    to_strategic_button = constants.actor_creation_manager.create_interface_element(
-        input_dict
+    status.to_strategic_button = (
+        constants.actor_creation_manager.create_interface_element(input_dict)
     )
 
     input_dict.update(
@@ -1396,7 +1396,15 @@ def buttons():
             "coordinates": scaling.scale_coordinates(
                 switch_game_mode_buttons_x + 60, constants.default_display_height - 55
             ),
-            "image_id": actor_utility.generate_frame("locations/earth.png"),
+            "image_id": actor_utility.generate_frame(
+                "misc/space.png",
+            )
+            + [
+                {
+                    "image_id": "locations/earth.png",
+                    "size": 0.6,
+                }
+            ],
             "to_mode": constants.EARTH_MODE,
             "keybind_id": pygame.K_2,
         }
@@ -1676,7 +1684,12 @@ def buttons():
         input_dict["toggle_variable"] = "mars_preset"
         input_dict["attached_to_actor"] = False
         input_dict["modes"] = [constants.NEW_GAME_SETUP_MODE]
-        input_dict["image_id"] = actor_utility.generate_frame("locations/mars.png")
+        input_dict["image_id"] = actor_utility.generate_frame("misc/space.png") + [
+            {
+                "image_id": "locations/mars.png",
+                "size": 0.6,
+            }
+        ]
         input_dict["width"] = scaling.scale_width(100)
         input_dict["height"] = scaling.scale_height(100)
         input_dict["parent_collection"] = rhs_menu_collection
@@ -1684,11 +1697,21 @@ def buttons():
         constants.actor_creation_manager.create_interface_element(input_dict)
 
         input_dict["toggle_variable"] = "earth_preset"
-        input_dict["image_id"] = actor_utility.generate_frame("locations/earth.png")
+        input_dict["image_id"] = actor_utility.generate_frame("misc/space.png") + [
+            {
+                "image_id": "locations/earth.png",
+                "size": 0.6,
+            }
+        ]
         constants.actor_creation_manager.create_interface_element(input_dict)
 
         input_dict["toggle_variable"] = "venus_preset"
-        input_dict["image_id"] = actor_utility.generate_frame("locations/venus.png")
+        input_dict["image_id"] = actor_utility.generate_frame("misc/space.png") + [
+            {
+                "image_id": "locations/venus.png",
+                "size": 0.6,
+            }
+        ]
         constants.actor_creation_manager.create_interface_element(input_dict)
 
 
@@ -1785,18 +1808,20 @@ def ministers_screen():
     #        "image_id": "misc/empty.png",
     #    }
     # )
-    status.table_map_image = constants.actor_creation_manager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(
-                (constants.default_display_width / 2) - 500, 400
-            ),
-            "init_type": constants.FREE_IMAGE,
-            "modes": [constants.STRATEGIC_MODE],
-            "width": scaling.scale_width(400),
-            "height": scaling.scale_height(400),
-            "image_id": "misc/empty.png",
-            "pixellate_image": True,
-        }
+    status.globe_projection_image = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(
+                    (constants.default_display_width / 2) - 500, 400
+                ),
+                "init_type": constants.FREE_IMAGE,
+                "modes": [constants.STRATEGIC_MODE],
+                "width": scaling.scale_width(400),
+                "height": scaling.scale_height(400),
+                "image_id": "misc/empty.png",
+                "pixellate_image": True,
+            }
+        )
     )
     position_icon_width = 75
     portrait_icon_width = 125
@@ -2541,6 +2566,54 @@ def tile_interface():
     )
 
 
+def global_interface():
+    return
+    status.global_info_display = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),  # (0, -400),
+                "width": scaling.scale_width(775),
+                "height": scaling.scale_height(10),
+                "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+                "init_type": constants.ORDERED_COLLECTION,
+                "is_info_display": True,
+                "actor_type": "planet",
+                "description": "planet information panel",
+                "parent_collection": status.info_displays_collection,
+            }
+        )
+    )
+
+    # global background image's tooltip
+    global_free_image_background_tooltip = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "minimum_width": scaling.scale_width(115),
+                "height": scaling.scale_height(115),
+                "image_id": "misc/empty.png",
+                "actor_type": "planet",
+                "init_type": constants.ACTOR_TOOLTIP_LABEL,
+                "parent_collection": status.global_info_display,
+                "member_config": {"order_overlap": True},
+            }
+        )
+    )
+
+    global_image = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(5, 5),
+            "width": scaling.scale_width(115),
+            "height": scaling.scale_height(115),
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            "actor_image_type": "default",
+            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+            "parent_collection": status.global_info_display,
+            "member_config": {"order_overlap": False},
+        }
+    )
+
+
 def inventory_interface():
     """
     Description:
@@ -3009,9 +3082,7 @@ def terrain_interface():
                 "parent_collection": status.tile_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
-                    "button_image_id": actor_utility.generate_frame(
-                        "locations/earth.png"
-                    ),
+                    "button_image_id": "misc/empty.png",  # Filled by other functions
                     "identifier": constants.GLOBAL_CONDITIONS_PANEL,
                     "tab_name": "global conditions",
                 },
@@ -3069,7 +3140,6 @@ def terrain_interface():
         )
     )
 
-    placed_local_conditions_banner = False
     for current_actor_label_type in [
         constants.KNOWLEDGE_LABEL,
         constants.TERRAIN_LABEL,

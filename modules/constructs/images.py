@@ -885,6 +885,9 @@ class free_image(image):
         if isinstance(new_image, image_bundle):
             self.contains_bundle = True
             self.image = new_image.copy()
+        elif isinstance(new_image, pygame.Surface):
+            self.image = new_image
+            self.contains_bundle = False
         else:
             if (not hasattr(self, "image_id")) or new_image != self.image_id:
                 self.image_id = new_image
@@ -1710,6 +1713,9 @@ class actor_image(image):
             self.contains_bundle = True
             self.image = new_image_description.copy()
             self.image_id = self.image.image_id
+        elif isinstance(new_image_description, pygame.Surface):
+            self.image = new_image_description
+            self.contains_bundle = False
         else:
             self.image_description = "default"
             self.image_id = new_image_description
@@ -2005,6 +2011,9 @@ class button_image(actor_image):
                     self.image = pygame.image.load(full_image_id)
                 status.rendered_images[full_image_id] = self.image
             self.image = pygame.transform.scale(self.image, (self.width, self.height))
+        elif isinstance(new_image_id, pygame.Surface):
+            self.image = new_image_id
+            self.contains_bundle = False
         else:  # If set to image path list
             self.contains_bundle = True
             self.image = image_bundle(self, self.image_id)

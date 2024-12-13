@@ -323,7 +323,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         else:
             if (
                 self.cell.terrain_handler.visible or force_visibility
-            ):  # force visibility shows full tile even if tile is not yet visible
+            ):  # Force visibility shows full tile even if tile is not yet visible
                 image_id_list.append(
                     {
                         "image_id": self.image_dict["default"],
@@ -398,7 +398,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 ):
                     image_id_list += current_image.get_image_id_list()
 
-        if constants.current_map_mode != "terrain" and not terrain_only:
+        if constants.current_map_mode != "terrain":
             map_mode_image = "misc/map_modes/none.png"
             if constants.current_map_mode in constants.terrain_parameters:
                 if self.cell.terrain_handler.knowledge_available(
@@ -654,7 +654,13 @@ class abstract_tile(tile):
         """
         input_dict["coordinates"] = (0, 0)
         input_dict["show_terrain"] = False
-        self.grid_image_id = ["locations/earth.png"]
+        self.grid_image_id = [
+            "misc/space.png",
+            {
+                "image_id": "locations/earth.png",
+                "size": 0.8,
+            },
+        ]
         input_dict["image"] = self.grid_image_id
         super().__init__(from_save, input_dict)
 

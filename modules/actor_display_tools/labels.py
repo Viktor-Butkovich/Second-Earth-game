@@ -1449,6 +1449,11 @@ class actor_display_label(label):
             or (not self.actor.cell.has_building(constants.RESOURCE))
         ):
             return False
+        elif (
+            self.actor_label_type == constants.COORDINATES_LABEL
+            and self.actor.cell.grid.is_abstract_grid
+        ):
+            return False
         elif self.actor_label_type in [
             constants.CREW_LABEL,
             constants.PASSENGERS_LABEL,

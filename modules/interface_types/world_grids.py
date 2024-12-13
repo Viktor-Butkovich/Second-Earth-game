@@ -2,10 +2,10 @@
 
 import random
 import json
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from .grids import grid, mini_grid, abstract_grid
 from .cells import cell
-from ..util import scaling, utility
+from ..util import scaling, utility, actor_utility
 from ..tools.data_managers import terrain_manager_template
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -957,6 +957,304 @@ class world_grid(grid):
                         "feature_type": "northern tropic",
                     }
                 )
+
+    def update_globe_projection(self):
+        status.globe_projection_image.set_image(
+            status.strategic_map_grid.create_planet_image()
+        )
+        status.globe_projection_surface = status.globe_projection_image.image
+        status.to_strategic_button.image.set_image(
+            actor_utility.generate_frame(
+                "misc/space.png",
+            )
+            + [
+                {
+                    "image_id": status.globe_projection_surface,
+                    "size": 0.6,
+                }
+            ]
+        )
+
+    def create_map_image(self):
+        """
+        Description:
+            Creates and returns a map image of this grid
+        Input:
+            None
+        Output:
+            List: List of images representing this grid - approximation of very zoomed out grid
+        """
+        return_list = []
+        for current_cell in self.get_flat_cell_list():
+            if constants.current_map_mode == "terrain":
+                image_id = current_cell.tile.get_image_id_list()[0]
+            else:
+                image_id = current_cell.tile.get_image_id_list()[-1]
+            if type(image_id) == str:
+                image_id = {
+                    "image_id": image_id,
+                }
+            origin = (
+                status.scrolling_strategic_map_grid.center_x
+                - self.coordinate_width // 2,
+                status.scrolling_strategic_map_grid.center_y
+                - self.coordinate_height // 2,
+            )
+            effective_x = (
+                current_cell.x - origin[0]
+            ) % status.scrolling_strategic_map_grid.coordinate_width
+            effective_y = (
+                current_cell.y - origin[1]
+            ) % status.scrolling_strategic_map_grid.coordinate_height
+            image_id.update(
+                {
+                    "x_offset": effective_x / self.coordinate_width
+                    - 0.5
+                    + (0.7 / self.coordinate_width),
+                    "y_offset": effective_y / self.coordinate_height
+                    - 0.5
+                    + (0.4 / self.coordinate_height),
+                    "x_size": 1.05 / self.coordinate_width,
+                    "y_size": 1.05 / self.coordinate_height,
+                }
+            )
+            return_list.append(image_id)
+        return return_list
+
+    def create_planet_image(self):
+        """
+        Description:
+            Creates and returns a global projection of the planet on this grid, centered at the scrolling map grid's calibration point
+        Input:
+            None
+        Output:
+            list: Image ID list of each point of the global projection of the planet
+        """
+        index, latitude_lines = self.world_handler.get_latitude_line(
+            (
+                status.scrolling_strategic_map_grid.center_x,
+                status.scrolling_strategic_map_grid.center_y,
+            )
+        )
+
+        planet_width = len(latitude_lines)
+        offset_width = planet_width // 2
+        largest_size = len(
+            max(
+                self.world_handler.latitude_lines
+                + self.world_handler.alternate_latitude_lines,
+                key=len,
+            )
+        )
+        return_list = []
+        for offset in range(offset_width):
+            min_width = (
+                offset >= offset_width - 1
+            )  # If leftmost or rightmost latitude line, use minimum width to avoid edge tiles looking too wide
+            if (
+                offset == 0
+            ):  # For center offset, just draw a straight vertical latitude line
+                current_line = latitude_lines[index]
+                return_list += self.draw_latitude_line(
+                    current_line, largest_size, level=offset + 20
+                )
+            else:  # For non-center offsets, draw symmetrical curved latitude lines, progressively farther from center
+                longitude_bulge_factor = (offset / offset_width) ** 0.5
+
+                return_list += self.draw_latitude_line(
+                    latitude_lines[(index + offset) % planet_width],
+                    largest_size,
+                    longitude_bulge_factor=longitude_bulge_factor,
+                    level=offset + 20,
+                    min_width=min_width,
+                )
+
+                return_list += self.draw_latitude_line(
+                    latitude_lines[(index - offset) % planet_width],
+                    largest_size,
+                    longitude_bulge_factor=-1 * longitude_bulge_factor,
+                    level=(-1 * offset) + 20,
+                    min_width=min_width,
+                )
+        return return_list
+
+    def draw_latitude_line(
+        self,
+        latitude_line,
+        max_latitude_line_length: int,
+        longitude_bulge_factor: float = 0.0,
+        level: int = 0,
+        min_width: bool = False,
+    ):
+        """
+        Description:
+            Returns an image ID list for a latitude line of a global map projection, creating a curve between poles that bulges at the equator
+        Input:
+            tuple list latitude_line: List of coordinates for each point in the latitude line
+            int max_latitude_line_length: Length of the longest latitude line - to minimize size warping, latitude lines are extended to all be the same size,
+                duplicating coordinates or inserting nearby coordinates that are not in latitude lines
+            float longitude_bulge_factor: Factor to determine how much the latitude line bulges outwards at the equator
+                Lines at longitudes farther from the center of the projection bulge further outwards and are thinner
+            int level: Image ID level of the latitude line - further right latitude lines have higher levels
+            boolean min_width: Whether the latitude line should use the minimum width instead of the calculated one
+                Latitude lines on the edge of the projection look more evenly sized if using the minimum width
+        Output:
+            list: List of image IDs for the points of the latitude line
+        """
+        return_list = []
+        center_position = (0.0, 0.0)
+        total_height = 0.5  # Multiplier for y offset step sizes between each latitude
+        size_multiplier = 2.4
+        base_tile_width = 0.10
+        base_tile_height = 0.12
+
+        # Force latitude lines to be of the same length as the largest line
+        latitude_line = latitude_line.copy()  # Don't modify original
+        while len(latitude_line) > max_latitude_line_length:
+            latitude_line.pop(len(latitude_line) // 4)
+            if len(latitude_line) > max_latitude_line_length:
+                latitude_line.pop(3 * len(latitude_line) // 4)
+        while len(latitude_line) < max_latitude_line_length:
+            latitude_line.insert(
+                *self.get_next_unaccounted_coordinates(
+                    latitude_line, latitude_line[len(latitude_line) // 4]
+                )
+            )
+            if len(latitude_line) < max_latitude_line_length:
+                latitude_line.insert(
+                    *self.get_next_unaccounted_coordinates(
+                        latitude_line, latitude_line[3 * len(latitude_line) // 4]
+                    )
+                )
+
+        y_step_size = (
+            1.4 * total_height / max_latitude_line_length
+        )  # Y step size between each coordinate of the latitude line
+        y_step_size *= (max_latitude_line_length**0.5) / (
+            constants.map_size_options[4] ** 0.5
+        )
+
+        for idx, coordinates in enumerate(
+            latitude_line
+        ):  # Calculate position and size of each coordinate in the latitude line
+            pole_distance_factor = 1.0 - abs(
+                (idx - len(latitude_line) // 2) / (len(latitude_line) // 2)
+            )
+            """
+            The ellipse equation (x - h)^2 / a + (y - k)^2 / b = r^2 give an ellipse
+                With parameters r = 0.5, h = 0.5, k = 0, a = 1, and b = bulge_effect, we can get a stretched ellipse with a configurable bulge effect
+            # Solving (x - h)^2 / a + (y - k)^2 / b = r^2 for y
+            # (y - k)^2 / b = r^2 - (x - h)^2 / a
+            # (y - k)^2 = b * (r^2 - (x - h)^2 / a)
+            # y - k = sqrt(b * (r^2 - (x - h)^2 / a))
+            # y = k + sqrt(b * (r^2 - (x - h)^2 / a))
+            y = k + (b * (r**2 - ((x - h)**2) / a))**0.5
+            """
+            r = 0.5
+            h = 0.5
+            k = 0
+            a = 1
+            x = idx / (len(latitude_line) - 1)
+            b = abs(longitude_bulge_factor**3) * 5
+            ellipse_weight = 0.3  # Extent to which x position is determined by ellipse function based on longitude bulge factor
+            linear_weight = 0.18  # Extent to which x position is determined by linear function based on distance from center index
+            if abs(longitude_bulge_factor) > 0.5:
+                linear_weight *= 2.0  # Have stronger linear effect for edge latitude lines to minimize blocky corners
+            latitude_bulge_factor = (
+                k + (b * (r**2 - ((x - h) ** 2) / a)) ** 0.5
+            ) * ellipse_weight
+            latitude_bulge_factor += pole_distance_factor * linear_weight
+            if (
+                longitude_bulge_factor == 0
+            ):  # If center line, don't bulge outwards, even if near equator
+                latitude_bulge_factor = 0
+            maximum_latitude_bulge_factor = k + (b**0.5 * r)
+            if longitude_bulge_factor < 0:
+                latitude_bulge_factor *= -1
+                maximum_latitude_bulge_factor *= -1
+
+            x_offset = latitude_bulge_factor / 4.0
+            y_offset = 0
+            for i in range(
+                abs(idx - len(latitude_line) // 2)
+            ):  # Move up or down for each index away from center
+                change = y_step_size * (
+                    0.85**i
+                )  # Since each latitude is shorter than the last, the step size should also decrease
+                if idx < len(latitude_line) // 2:
+                    y_offset += change
+                else:
+                    y_offset -= change
+
+            width_penalty = 0.015 * (
+                abs(longitude_bulge_factor)
+            )  # Decrease width of lines horizontally farther from the center
+            height_penalty = (
+                0.10 * (1.0 - abs(pole_distance_factor)) ** 2
+            )  # Decrease height of lines vertically farther from the center
+            if (
+                max_latitude_line_length <= constants.map_size_options[1]
+            ):  # Increase height for smaller maps to avoid empty space near poles
+                height_penalty *= 0.7
+            tile_width, tile_height = (
+                base_tile_width - width_penalty,
+                base_tile_height - height_penalty,
+            )
+            tile_width *= 0.8
+            if (
+                min_width
+            ) and pole_distance_factor > 0.1:  # Since rightmost (highest level) latitude line is not covered by any others, it should be thinner to avoid an obvious size difference
+                tile_width = 0.015
+            tile_height = max(0.02, 0.08 - height_penalty)
+            projection = {
+                "x_offset": (center_position[0] + x_offset) * size_multiplier,
+                "y_offset": (center_position[1] + y_offset) * size_multiplier,
+                "x_size": tile_width * size_multiplier,
+                "y_size": tile_height * size_multiplier,
+                "level": level,
+            }
+            for image_id in self.find_cell(
+                coordinates[0], coordinates[1]
+            ).tile.get_image_id_list(terrain_only=True):
+                # Apply projection offsets to each image in the tile's terrain
+                if type(image_id) == str:
+                    image_id = {"image_id": image_id}
+                image_id.update(projection)
+                return_list.append(image_id)
+        return return_list
+
+    def get_next_unaccounted_coordinates(
+        self, latitude_line: List[Tuple[int, int]], default_coordinates: Tuple[int, int]
+    ):
+        """
+        Description:
+            Scans a latitude line for any nearby coordinates that have no latitude line, allowing extending a latitude line's length while also missing fewer cells
+        Input:
+            list latitude_line: List of coordinates for each point in the latitude line
+            tuple default_coordinates: Coordinates to insert if no other coordinates are found
+        Output:
+            int: Index of latitude line to insert coordinates at
+            tuple: Coordinates to insert
+        """
+        inserted_coordinates = default_coordinates
+        inserted_idx = latitude_line.index(default_coordinates)
+        for idx, coordinates in enumerate(latitude_line):
+            for offset in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+                adjacent_coordinates = (
+                    (coordinates[0] + offset[0]) % self.coordinate_width,
+                    (coordinates[1] + offset[1]) % self.coordinate_height,
+                )
+                if (
+                    self.world_handler.latitude_lines_types[adjacent_coordinates[0]][
+                        adjacent_coordinates[1]
+                    ]
+                    == None
+                    and not adjacent_coordinates in latitude_line
+                ):
+                    # If wouldn't be shown in any latitude lines, show here
+                    inserted_coordinates = adjacent_coordinates
+                    inserted_idx = idx
+        return inserted_idx, inserted_coordinates
 
 
 def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -> grid:

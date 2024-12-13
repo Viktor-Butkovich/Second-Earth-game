@@ -236,7 +236,6 @@ except Exception:  # Displays error message and records error message in crash l
 #   Create new program to analyze series of inputs and extract letter/syllable frequencies - possibly combine with an ML method to output words of the same style
 # Strange issue - in non-ordered collections, height of collection incorrectly affects y positions of elements, and without any apparent modification to their y values
 # Continue adding hairstyles
-# Minister table_map_image not using smart green screens, probably because it directly uses tile image ID
 # Add new unit art
 # Add new minister appointing system - selecting an unappointed minister should highlight all available positions, and clicking on one appoint w/ a confirmation check
 # Add more variety to water/ice colors
@@ -247,9 +246,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 
 # Upcoming work queue:
-# Write docstrings for draw_latitude_line, create_planet_image
-# Continue polishing, make stronger spherical effect (bulge corners out less relative to center)
-# Figure out why poles are drawn farther out on spherical map
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art

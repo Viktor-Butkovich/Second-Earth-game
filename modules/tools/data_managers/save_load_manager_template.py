@@ -2,6 +2,7 @@
 
 import random
 import pickle
+import pygame
 from ...util import (
     game_transitions,
     turn_management_utility,
@@ -158,6 +159,12 @@ class save_load_manager_template:
             None
         """
         file_path = "save_games/" + file_path
+
+        if constants.effect_manager.effect_active("save_global_projection"):
+            pygame.image.save(
+                status.globe_projection_surface, "save_games/globe_projection.png"
+            )
+
         status.transaction_history = constants.money_tracker.transaction_history
         saved_constants = {}
         for current_element in self.copied_constants:

@@ -9,6 +9,7 @@
       "allow_toggle_fog_of_war"
    ],
    "effects": [
+      "save_global_projection",
       "allow_presets",
       "boost_attrition",
       "damaged_buildings", 
