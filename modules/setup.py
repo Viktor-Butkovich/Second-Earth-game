@@ -1363,18 +1363,21 @@ def buttons():
     ministers_flag_icon = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
-    globe_projection_size = constants.earth_grid_width * 0.9
+    globe_projection_size = constants.earth_grid_width * 0.85
     status.globe_projection_image = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "coordinates": scaling.scale_coordinates(
-                    constants.strategic_map_x_offset
-                    + constants.grids_collection_x
-                    + constants.strategic_map_pixel_width
-                    + 15,
-                    status.grids_collection.y
-                    + constants.earth_grid_y_offset
-                    - 5,  # constants.default_display_height - 190
+                "coordinates": (
+                    scaling.scale_width(
+                        constants.strategic_map_x_offset
+                        + constants.grids_collection_x
+                        + constants.strategic_map_pixel_width
+                        + 15,
+                    ),
+                    scaling.scale_height(
+                        constants.earth_grid_y_offset,
+                    )
+                    + status.grids_collection.y,
                 ),
                 "init_type": constants.FREE_IMAGE,
                 "modes": [constants.STRATEGIC_MODE],
@@ -1772,7 +1775,7 @@ def earth_screen():
                 "parent_collection": earth_purchase_buttons,
                 "recruitment_type": recruitment_type,
                 "member_config": {
-                    "second_dimension_coordinate": -1 * (recruitment_index // 8)
+                    "second_dimension_coordinate": -1 * (recruitment_index // 7)
                 },
             }
         )
