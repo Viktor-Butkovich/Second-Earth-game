@@ -178,9 +178,13 @@ else:
     display_width: float = resolution_finder.current_w - round(
         default_display_width / 10
     )
+    if effect_manager.effect_active("skinny_screen"):
+        display_width /= 2
     display_height: float = resolution_finder.current_h - round(
         default_display_height / 10
     )
+    if effect_manager.effect_active("short_screen"):
+        display_height /= 2
     game_display: pygame.Surface = pygame.display.set_mode(
         (display_width, display_height), pygame.HWSURFACE | pygame.DOUBLEBUF
     )
@@ -546,7 +550,7 @@ DEFAULT_LEVEL: int = 2
 BACKPACK_LEVEL: int = 1
 
 PIXELLATED_SIZE: int = 2
-LIGHT_PIXELLATED_SIZE: int = 100
+LIGHT_PIXELLATED_SIZE: int = 70
 
 TERRAIN_KNOWLEDGE: str = "terrain"
 TERRAIN_KNOWLEDGE_REQUIREMENT: int = 0

@@ -3192,10 +3192,19 @@ class map_mode_button(button):
         return super().can_show()
 
     def on_click(self):
+        """
+        Description:
+            Sets the current map mode to this button's map mode
+        Input:
+            None
+        Output:
+            None
+        """
         constants.current_map_mode = self.map_mode
         for grid in status.grid_list:
             for cell in grid.get_flat_cell_list():
                 cell.tile.update_image_bundle()
+        status.strategic_map_grid.update_globe_projection()
 
     def update_tooltip(self):
         """

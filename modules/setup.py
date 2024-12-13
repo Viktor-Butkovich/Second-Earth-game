@@ -1363,13 +1363,37 @@ def buttons():
     ministers_flag_icon = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
+    globe_projection_size = constants.earth_grid_width * 0.9
+    status.globe_projection_image = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(
+                    constants.strategic_map_x_offset
+                    + constants.grids_collection_x
+                    + constants.strategic_map_pixel_width
+                    + 15,
+                    status.grids_collection.y
+                    + constants.earth_grid_y_offset
+                    - 5,  # constants.default_display_height - 190
+                ),
+                "init_type": constants.FREE_IMAGE,
+                "modes": [constants.STRATEGIC_MODE],
+                "width": scaling.scale_width(globe_projection_size),
+                "height": scaling.scale_height(globe_projection_size),
+                "image_id": "misc/empty.png",
+                "pixellate_image": True,
+            }
+        )
+    )
 
     switch_game_mode_buttons_x = (
         constants.strategic_map_x_offset
         + constants.grids_collection_x
         + constants.strategic_map_pixel_width
         + 15
-    )  # 1265 # 1065
+        + globe_projection_size
+        + 15
+    )
     input_dict = {
         "coordinates": scaling.scale_coordinates(
             switch_game_mode_buttons_x, constants.default_display_height - 55
@@ -1796,33 +1820,7 @@ def ministers_screen():
             "init_type": constants.FREE_IMAGE,
         }
     )
-    # status.table_map_image = constants.actor_creation_manager.create_interface_element(
-    #    {
-    #        "coordinates": scaling.scale_coordinates(
-    #            (constants.default_display_width / 2) - 100, 400
-    #        ),
-    #        "init_type": constants.FREE_IMAGE,
-    #        "modes": [constants.MINISTERS_MODE],
-    #        "width": scaling.scale_width(200),
-    #        "height": scaling.scale_height(200),
-    #        "image_id": "misc/empty.png",
-    #    }
-    # )
-    status.globe_projection_image = (
-        constants.actor_creation_manager.create_interface_element(
-            {
-                "coordinates": scaling.scale_coordinates(
-                    (constants.default_display_width / 2) - 500, 400
-                ),
-                "init_type": constants.FREE_IMAGE,
-                "modes": [constants.STRATEGIC_MODE],
-                "width": scaling.scale_width(400),
-                "height": scaling.scale_height(400),
-                "image_id": "misc/empty.png",
-                "pixellate_image": True,
-            }
-        )
-    )
+
     position_icon_width = 75
     portrait_icon_width = 125
     input_dict = {
