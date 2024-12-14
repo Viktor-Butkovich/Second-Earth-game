@@ -985,13 +985,17 @@ class ordered_collection(interface_collection):
                 ]
             )
         elif self == status.global_conditions_collection and new_actor:
+            if new_actor.cell.grid.is_abstract_grid:
+                globe_image = "locations/earth.png"
+            else:
+                globe_image = status.globe_projection_surface
             self.tab_button.image.set_image(
                 actor_utility.generate_frame(
                     "misc/space.png",
                 )
                 + [
                     {
-                        "image_id": status.globe_projection_surface,
+                        "image_id": globe_image,
                         "size": 0.6,
                     }
                 ]

@@ -1104,7 +1104,9 @@ class world_grid(grid):
         return_list = []
         center_position = (0.0, 0.0)
         total_height = 0.5  # Multiplier for y offset step sizes between each latitude
-        size_multiplier = 2.4
+        size_multiplier = [1.5, 1.7, 1.8, 2.0, 2.2, 2.4, 2.6, 2.65][
+            constants.map_size_options.index(max_latitude_line_length)
+        ]
         base_tile_width = 0.10
         base_tile_height = 0.12
 
@@ -1156,10 +1158,15 @@ class world_grid(grid):
             a = 1
             x = idx / (len(latitude_line) - 1)
             b = abs(longitude_bulge_factor**3) * 5
-            ellipse_weight = 0.3  # Extent to which x position is determined by ellipse function based on longitude bulge factor
-            linear_weight = 0.18  # Extent to which x position is determined by linear function based on distance from center index
+            ellipse_weight = 0.32  # Extent to which x position is determined by ellipse function based on longitude bulge factor
+            linear_weight = 0.15  # Extent to which x position is determined by linear function based on distance from center index
             if abs(longitude_bulge_factor) > 0.5:
-                linear_weight *= 2.0  # Have stronger linear effect for edge latitude lines to minimize blocky corners
+                linear_weight *= 2.5  # Have stronger linear effect for edge latitude lines to minimize blocky corners
+            elif abs(longitude_bulge_factor) > 0.35:
+                linear_weight *= 1.3
+            if max_latitude_line_length >= constants.map_size_options[-2]:
+                ellipse_weight *= 1 / 3
+                linear_weight *= 1.5
             latitude_bulge_factor = (
                 k + (b * (r**2 - ((x - h) ** 2) / a)) ** 0.5
             ) * ellipse_weight
@@ -1195,7 +1202,7 @@ class world_grid(grid):
             if (
                 max_latitude_line_length <= constants.map_size_options[1]
             ):  # Increase height for smaller maps to avoid empty space near poles
-                height_penalty *= 0.7
+                height_penalty *= 0.6
             tile_width, tile_height = (
                 base_tile_width - width_penalty,
                 base_tile_height - height_penalty,
