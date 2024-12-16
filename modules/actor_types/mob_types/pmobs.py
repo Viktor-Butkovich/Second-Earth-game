@@ -188,6 +188,7 @@ class pmob(mob):
         )
         self.select()
         self.add_to_turn_queue()
+        self.update_habitability()
         self.update_image_bundle()
 
     def on_move(self):
@@ -912,6 +913,7 @@ class pmob(mob):
             self.select()
             self.movement_sound()
         self.on_move()
+        self.update_habitability()
 
     def get_worker(self) -> "pmob":
         """

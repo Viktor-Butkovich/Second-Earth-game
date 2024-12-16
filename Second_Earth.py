@@ -244,6 +244,7 @@ except Exception:  # Displays error message and records error message in crash l
 #   basic planetary construction, 3 ~ for titanium, carbon fiber, advanced modern-day materials, spaceships, etc., 4+ for more advanced
 # Add minister deaths - may occur in assassination, attrition, freak accidents, heroic sacrifices, etc.
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
+# Various resolution issues, particularly with tall resolutions
 
 # Upcoming work queue:
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside

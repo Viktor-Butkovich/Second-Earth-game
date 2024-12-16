@@ -1363,22 +1363,20 @@ def buttons():
     ministers_flag_icon = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
+    globe_projection_x = scaling.scale_width(
+        constants.strategic_map_x_offset
+        + constants.grids_collection_x
+        + constants.strategic_map_pixel_width
+        + 15
+    )
+    globe_projection_y = (
+        scaling.scale_height(constants.earth_grid_y_offset) + status.grids_collection.y
+    )
     globe_projection_size = constants.earth_grid_width * 0.85
     status.globe_projection_image = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "coordinates": (
-                    scaling.scale_width(
-                        constants.strategic_map_x_offset
-                        + constants.grids_collection_x
-                        + constants.strategic_map_pixel_width
-                        + 15,
-                    ),
-                    scaling.scale_height(
-                        constants.earth_grid_y_offset,
-                    )
-                    + status.grids_collection.y,
-                ),
+                "coordinates": (globe_projection_x, globe_projection_y),
                 "init_type": constants.FREE_IMAGE,
                 "modes": [constants.STRATEGIC_MODE],
                 "width": scaling.scale_width(globe_projection_size),
@@ -1387,6 +1385,42 @@ def buttons():
                 "pixellate_image": True,
             }
         )
+    )
+    compass_overlay_size = 15
+    north_overlay = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": (
+                globe_projection_x
+                + scaling.scale_width(
+                    globe_projection_size / 2 - compass_overlay_size / 2
+                ),
+                globe_projection_y
+                + scaling.scale_height(
+                    globe_projection_size - (compass_overlay_size * 0.25)
+                ),
+            ),
+            "init_type": constants.FREE_IMAGE,
+            "modes": status.globe_projection_image.modes,
+            "width": scaling.scale_width(compass_overlay_size),
+            "height": scaling.scale_width(compass_overlay_size),
+            "image_id": "misc/north_indicator.png",
+        }
+    )
+    south_overlay = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": (
+                globe_projection_x
+                + scaling.scale_width(
+                    globe_projection_size / 2 - compass_overlay_size / 2
+                ),
+                globe_projection_y - scaling.scale_height(compass_overlay_size * 0.75),
+            ),
+            "init_type": constants.FREE_IMAGE,
+            "modes": status.globe_projection_image.modes,
+            "width": scaling.scale_width(compass_overlay_size),
+            "height": scaling.scale_width(compass_overlay_size),
+            "image_id": "misc/south_indicator.png",
+        }
     )
 
     switch_game_mode_buttons_x = (

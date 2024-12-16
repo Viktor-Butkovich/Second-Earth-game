@@ -1682,10 +1682,15 @@ class actor_tooltip_label(actor_display_label):
         if self.actor_type == "minister":
             return
         if self.actor_type == "tile":
-            actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, self.actor
-            )
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
+            if self.actor.actor_type == "tile":  # If not tile_inventory
+                actor_utility.calibrate_actor_info_display(
+                    status.tile_info_display, self.actor
+                )
+                actor_utility.calibrate_actor_info_display(
+                    status.mob_info_display, None
+                )
+            else:
+                return
         elif self.actor:
             if self.actor.get_permission(constants.DUMMY_PERMISSION):
                 if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):

@@ -532,6 +532,8 @@ class bundle_image:
         """
         if type(self.image_id) == str and self.image_id.endswith(".png"):
             full_image_id = "graphics/" + self.image_id
+        elif self.image_id == None:
+            full_image_id = "graphics/misc/empty.png"
         else:
             full_image_id = self.image_id
         key = str(full_image_id)
