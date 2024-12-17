@@ -2,6 +2,7 @@
 
 import time
 import pygame
+import os
 from .util import (
     main_loop_utility,
     text_utility,
@@ -241,19 +242,36 @@ def main_loop():
                 abs(constants.TIME_PASSING_ROTATION)
                 < planet_size * constants.TIME_PASSING_TARGET_ROTATIONS
             ):  # Time passing logic
+                current_coordinates = equatorial_coordinates[
+                    (
+                        constants.TIME_PASSING_ROTATION
+                        + constants.TIME_PASSING_INITIAL_ORIENTATION
+                    )
+                    % planet_size
+                ]
                 planet_image = status.strategic_map_grid.create_planet_image(
-                    equatorial_coordinates[
-                        (
-                            constants.TIME_PASSING_ROTATION
-                            + constants.TIME_PASSING_INITIAL_ORIENTATION
-                        )
-                        % planet_size
+                    current_coordinates
+                )
+                status.globe_projection_image.set_image(planet_image)
+                if constants.effect_manager.effect_active("save_global_projection"):
+                    pygame.image.save(
+                        status.globe_projection_image.image,
+                        f"save_games/globe_rotations/{constants.TIME_PASSING_EARTH_ROTATIONS}.png",
+                    )
+                num_earth_images = len(os.listdir("graphics/locations/earth_rotations"))
+                status.earth_grid.find_cell(0, 0).tile.set_image(
+                    [
+                        "misc/space.png",
+                        {
+                            "image_id": f"locations/earth_rotations/{(constants.TIME_PASSING_EARTH_ROTATIONS % num_earth_images)}.png",
+                            "size": 0.8,
+                        },
                     ]
                 )
                 constants.TIME_PASSING_ROTATION -= max(2, planet_size // 6)
-                status.globe_projection_image.set_image(planet_image)
+                constants.TIME_PASSING_EARTH_ROTATIONS += 1
 
-            elif True:  # Finish time passing logic
+            elif True:  # End time passing logic
                 equatorial_coordinates = constants.TIME_PASSING_EQUATORIAL_COORDINATES
                 planet_size = len(equatorial_coordinates)
                 constants.TIME_PASSING_ROTATION = 0
@@ -267,6 +285,16 @@ def main_loop():
                     ]
                 )
                 status.globe_projection_image.set_image(planet_image)
+
+                status.earth_grid.find_cell(0, 0).tile.set_image(
+                    [
+                        "misc/space.png",
+                        {
+                            "image_id": f"locations/earth.png",
+                            "size": 0.8,
+                        },
+                    ]
+                )
 
                 flags.enemy_combat_phase = True
                 flags.player_turn = True

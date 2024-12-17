@@ -1,6 +1,7 @@
 # Contains functions that manage what happens at the end of each turn, like worker upkeep and price changes
 
 import random
+import os
 from . import (
     text_utility,
     actor_utility,
@@ -44,6 +45,14 @@ def prepare_planet_rotation():
     Output:
         None
     """
+    if constants.effect_manager.effect_active("save_global_projection"):
+        folder_path = "save_games/globe_rotations"
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
     center_coordinates = (
         status.scrolling_strategic_map_grid.center_x,
         status.scrolling_strategic_map_grid.center_y,
@@ -63,6 +72,7 @@ def prepare_planet_rotation():
         constants.TIME_PASSING_EQUATORIAL_COORDINATES = (
             status.strategic_map_grid.world_handler.alternate_equatorial_coordinates
         )
+    constants.TIME_PASSING_EARTH_ROTATIONS = 0
     constants.TIME_PASSING_ROTATION = 0
     for index, coordinates in enumerate(latitude_lines[center_index]):
         if coordinates in constants.TIME_PASSING_EQUATORIAL_COORDINATES:
