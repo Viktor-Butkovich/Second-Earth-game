@@ -700,6 +700,8 @@ class world_handler:
             self.default_grid.coordinate_width // 2,
             self.default_grid.coordinate_height // 2,
         )
+        self.equatorial_coordinates = []
+        self.alternate_equatorial_coordinates = []
         for equatorial_x in range(self.default_grid.coordinate_width):
             equatorial_y = (
                 (self.default_grid.coordinate_width // 2) - equatorial_x
@@ -712,6 +714,7 @@ class world_handler:
             for coordinate in current_line:
                 self.latitude_lines_types[coordinate[0]][coordinate[1]] = True
             self.latitude_lines.append(current_line)
+            self.equatorial_coordinates.append((equatorial_x, equatorial_y))
 
             equatorial_y = (
                 (self.default_grid.coordinate_height // 2) + equatorial_x + 1
@@ -724,7 +727,7 @@ class world_handler:
             for coordinate in current_line:
                 self.latitude_lines_types[coordinate[0]][coordinate[1]] = False
             self.alternate_latitude_lines.append(current_line)
-        # print(self.latitude_lines_types)
+            self.alternate_equatorial_coordinates.append((equatorial_x, equatorial_y))
 
     def get_latitude_line(
         self, coordinates: Tuple[int, int]
@@ -1045,7 +1048,7 @@ class world_handler:
             },
         }
 
-    def get_green_screen(self, terrain: str) -> Dict[str, Dict[str, any]]:
+    def get_green_screen(self, terrain: str = None) -> Dict[str, Dict[str, any]]:
         """
         Description:
             Returns the green screen for the inputted terrain type on this world
@@ -1774,4 +1777,5 @@ class terrain_handler:
 
         # Make any per-tile modifications
 
-        return world_green_screen
+        return constants.WORLD_GREEN_SCREEN_DEFAULTS
+        # return world_green_screen

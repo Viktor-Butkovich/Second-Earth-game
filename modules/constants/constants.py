@@ -1,5 +1,5 @@
 import pygame
-from typing import Dict, List, Any
+from typing import Dict, List, Tuple, Any
 from modules.tools.data_managers.sound_manager_template import sound_manager_template
 from modules.tools.data_managers.save_load_manager_template import (
     save_load_manager_template,
@@ -231,7 +231,7 @@ previous_turn_time: float = 0.0
 current_time: float = 0.0
 last_selection_outline_switch: float = 0.0
 mouse_moved_time: float = 0.0
-end_turn_wait_time: float = 0.8
+end_turn_wait_time: float = 0.1
 
 old_mouse_x: int = pygame.mouse.get_pos()[0]
 old_mouse_y: int = pygame.mouse.get_pos()[1]
@@ -556,6 +556,12 @@ TERRAIN_KNOWLEDGE: str = "terrain"
 TERRAIN_KNOWLEDGE_REQUIREMENT: int = 0
 TERRAIN_PARAMETER_KNOWLEDGE: str = "terrain_parameter"
 TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT: int = 0
+
+WORLD_GREEN_SCREEN_DEFAULTS: str = "world_green_screen_defaults"
+TIME_PASSING_ROTATION: int = 0
+TIME_PASSING_INITIAL_ORIENTATION: int = 0
+TIME_PASSING_EQUATORIAL_COORDINATES: List[Tuple[int, int]] = []
+TIME_PASSING_TARGET_ROTATIONS: int = 3
 
 
 def update_terrain_knowledge_requirements():

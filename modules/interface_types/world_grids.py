@@ -1021,7 +1021,7 @@ class world_grid(grid):
             return_list.append(image_id)
         return return_list
 
-    def create_planet_image(self):
+    def create_planet_image(self, center_coordinates: Tuple[int, int] = None):
         """
         Description:
             Creates and returns a global projection of the planet on this grid, centered at the scrolling map grid's calibration point
@@ -1030,12 +1030,12 @@ class world_grid(grid):
         Output:
             list: Image ID list of each point of the global projection of the planet
         """
-        index, latitude_lines = self.world_handler.get_latitude_line(
-            (
+        if not center_coordinates:
+            center_coordinates = (
                 status.scrolling_strategic_map_grid.center_x,
                 status.scrolling_strategic_map_grid.center_y,
             )
-        )
+        index, latitude_lines = self.world_handler.get_latitude_line(center_coordinates)
 
         planet_width = len(latitude_lines)
         offset_width = planet_width // 2

@@ -245,6 +245,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Add minister deaths - may occur in assassination, attrition, freak accidents, heroic sacrifices, etc.
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 # Various resolution issues, particularly with tall resolutions
+# Add manually created Earth map - should look similar to the UN flag, with a north pole projection
 
 # Upcoming work queue:
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside

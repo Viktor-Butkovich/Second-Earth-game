@@ -235,132 +235,173 @@ def main_loop():
             and constants.previous_turn_time + constants.end_turn_wait_time
             <= constants.current_time
         ):  # if enough time has passed based on delay from previous movement
-            enemy_turn_done = True
-            for enemy in status.npmob_list:
-                if not enemy.turn_done:
-                    enemy_turn_done = False
-                    break
-            if enemy_turn_done:
-                flags.player_turn = True
+            equatorial_coordinates = constants.TIME_PASSING_EQUATORIAL_COORDINATES
+            planet_size = len(equatorial_coordinates)
+            if (
+                abs(constants.TIME_PASSING_ROTATION)
+                < planet_size * constants.TIME_PASSING_TARGET_ROTATIONS
+            ):  # Time passing logic
+                planet_image = status.strategic_map_grid.create_planet_image(
+                    equatorial_coordinates[
+                        (
+                            constants.TIME_PASSING_ROTATION
+                            + constants.TIME_PASSING_INITIAL_ORIENTATION
+                        )
+                        % planet_size
+                    ]
+                )
+                constants.TIME_PASSING_ROTATION -= max(2, planet_size // 6)
+                status.globe_projection_image.set_image(planet_image)
+
+            elif True:  # Finish time passing logic
+                equatorial_coordinates = constants.TIME_PASSING_EQUATORIAL_COORDINATES
+                planet_size = len(equatorial_coordinates)
+                constants.TIME_PASSING_ROTATION = 0
+                planet_image = status.strategic_map_grid.create_planet_image(
+                    equatorial_coordinates[
+                        (
+                            constants.TIME_PASSING_ROTATION
+                            + constants.TIME_PASSING_INITIAL_ORIENTATION
+                        )
+                        % planet_size
+                    ]
+                )
+                status.globe_projection_image.set_image(planet_image)
+
                 flags.enemy_combat_phase = True
+                flags.player_turn = True
                 turn_management_utility.manage_combat()
-            else:
-                current_enemy = status.enemy_turn_queue[0]
-                removed = False
-                spawning = False
-                did_nothing = False
-                moving = False
-                if current_enemy.despawning:
-                    if (
-                        current_enemy == status.displayed_mob
-                        or not current_enemy.visible()
-                    ):
-                        current_enemy.remove_complete()
-                        removed = True
 
-                elif (
-                    current_enemy.creation_turn == constants.turn
-                ):  # if unit just created
-                    spawn_cell = current_enemy.grids[0].find_cell(
-                        current_enemy.x, current_enemy.y
-                    )
-                    if (status.minimap_grid.center_x, status.minimap_grid.center_y) == (
-                        current_enemy.x,
-                        current_enemy.y,
-                    ) and spawn_cell.terrain_handler.visible:  # if camera just moved to spawn location to show spawning
-                        spawning = True
-                        current_enemy.show_images()
-                        current_enemy.select()
-                        current_enemy.attack_on_spawn()
-                        current_enemy.turn_done = True
-                    else:  # if camera did not move to spawn location
-                        spawning = True
+            else:  # Enemy movement logic
+                enemy_turn_done = True
+                for enemy in status.npmob_list:
+                    if not enemy.turn_done:
+                        enemy_turn_done = False
+                        break
+                if enemy_turn_done:
+                    flags.player_turn = True
+                    flags.enemy_combat_phase = True
+                    turn_management_utility.manage_combat()
+                else:
+                    current_enemy = status.enemy_turn_queue[0]
+                    removed = False
+                    spawning = False
+                    did_nothing = False
+                    moving = False
+                    if current_enemy.despawning:
                         if (
-                            spawn_cell.terrain_handler.visible
-                        ):  # if spawn location visible but camera hasn't moved there yet, move camera there
-                            status.minimap_grid.calibrate(
-                                current_enemy.x, current_enemy.y
-                            )
-                        else:  # if spawn location not visible, end turn
+                            current_enemy == status.displayed_mob
+                            or not current_enemy.visible()
+                        ):
+                            current_enemy.remove_complete()
+                            removed = True
+
+                    elif (
+                        current_enemy.creation_turn == constants.turn
+                    ):  # if unit just created
+                        spawn_cell = current_enemy.grids[0].find_cell(
+                            current_enemy.x, current_enemy.y
+                        )
+                        if (
+                            status.minimap_grid.center_x,
+                            status.minimap_grid.center_y,
+                        ) == (
+                            current_enemy.x,
+                            current_enemy.y,
+                        ) and spawn_cell.terrain_handler.visible:  # if camera just moved to spawn location to show spawning
+                            spawning = True
                             current_enemy.show_images()
+                            current_enemy.select()
+                            current_enemy.attack_on_spawn()
                             current_enemy.turn_done = True
-
-                elif (
-                    not current_enemy.visible()
-                ):  # if not just spawned and hidden, do action without displaying
-                    current_enemy.end_turn_move()
-                    moving = True
-
-                elif (
-                    current_enemy == status.displayed_mob
-                ):  # if enemy is selected and did not just spawn, move it while minimap follows
-                    if (
-                        not current_enemy.creation_turn == constants.turn
-                    ):  # don't do anything on first turn, but still move camera to spawn location if visible
-                        current_enemy.end_turn_move()  # do_turn()
-                        moving = True
-                        if current_enemy.visible():
-                            if current_enemy != status.displayed_mob:
-                                current_enemy.select()
-                            else:
+                        else:  # if camera did not move to spawn location
+                            spawning = True
+                            if (
+                                spawn_cell.terrain_handler.visible
+                            ):  # if spawn location visible but camera hasn't moved there yet, move camera there
                                 status.minimap_grid.calibrate(
                                     current_enemy.x, current_enemy.y
                                 )
-                    else:
-                        current_enemy.turn_done = True
+                            else:  # if spawn location not visible, end turn
+                                current_enemy.show_images()
+                                current_enemy.turn_done = True
 
-                if (
-                    (not (removed or spawning))
-                    and (not current_enemy.creation_turn == constants.turn)
-                    and current_enemy.visible()
-                ):  # if unit visible and not selected, start its turn
+                    elif (
+                        not current_enemy.visible()
+                    ):  # if not just spawned and hidden, do action without displaying
+                        current_enemy.end_turn_move()
+                        moving = True
+
+                    elif (
+                        current_enemy == status.displayed_mob
+                    ):  # if enemy is selected and did not just spawn, move it while minimap follows
+                        if (
+                            not current_enemy.creation_turn == constants.turn
+                        ):  # don't do anything on first turn, but still move camera to spawn location if visible
+                            current_enemy.end_turn_move()  # do_turn()
+                            moving = True
+                            if current_enemy.visible():
+                                if current_enemy != status.displayed_mob:
+                                    current_enemy.select()
+                                else:
+                                    status.minimap_grid.calibrate(
+                                        current_enemy.x, current_enemy.y
+                                    )
+                        else:
+                            current_enemy.turn_done = True
+
                     if (
-                        not current_enemy.find_closest_target()
-                    ) and not current_enemy.despawning:
-                        # If enemies have no target, they stand still and no movement is shown
+                        (not (removed or spawning))
+                        and (not current_enemy.creation_turn == constants.turn)
+                        and current_enemy.visible()
+                    ):  # if unit visible and not selected, start its turn
+                        if (
+                            not current_enemy.find_closest_target()
+                        ) and not current_enemy.despawning:
+                            # If enemies have no target, they stand still and no movement is shown
+                            did_nothing = True
+                            current_enemy.turn_done = True
+                        elif (
+                            current_enemy.visible()
+                        ):  # If unit will do an action, move the camera to it and select it
+                            current_enemy.select()
+
+                    elif (
+                        current_enemy.creation_turn == constants.turn and not spawning
+                    ):  # If enemy visible but just spawned, end turn
                         did_nothing = True
                         current_enemy.turn_done = True
-                    elif (
-                        current_enemy.visible()
-                    ):  # If unit will do an action, move the camera to it and select it
-                        current_enemy.select()
 
-                elif (
-                    current_enemy.creation_turn == constants.turn and not spawning
-                ):  # If enemy visible but just spawned, end turn
-                    did_nothing = True
-                    current_enemy.turn_done = True
-
-                if removed:  # show unit despawning if visible
-                    current_enemy.turn_done = True
-                    if not current_enemy.visible():
-                        constants.end_turn_wait_time = 0
-                    else:
-                        constants.end_turn_wait_time = 1
-                    status.enemy_turn_queue.pop(0)
-
-                else:  # If unit visible, have short delay depending on action taken to let user see it
-                    if (not spawning) and (
-                        did_nothing or not current_enemy.visible()
-                    ):  # do not wait if not visible or nothing to show, exception for spawning units, which may not be visible as user watches them spawn
-                        constants.end_turn_wait_time = 0
-                    elif (
-                        spawning
-                        and not current_enemy.grids[0]
-                        .find_cell(current_enemy.x, current_enemy.y)
-                        .terrain_handler.visible
-                    ):  # do not wait if spawning unit won't be visible even after it spawns
-                        constants.end_turn_wait_time = 0
-                    elif (
-                        moving and not enemy.turn_done
-                    ):  # if will move again after this
-                        constants.end_turn_wait_time = 0.25
-                    else:  # if done with turn
-                        constants.end_turn_wait_time = 0.5
-
-                    if current_enemy.turn_done:
+                    if removed:  # show unit despawning if visible
+                        current_enemy.turn_done = True
+                        if not current_enemy.visible():
+                            constants.end_turn_wait_time = 0
+                        else:
+                            constants.end_turn_wait_time = 1
                         status.enemy_turn_queue.pop(0)
+
+                    else:  # If unit visible, have short delay depending on action taken to let user see it
+                        if (not spawning) and (
+                            did_nothing or not current_enemy.visible()
+                        ):  # do not wait if not visible or nothing to show, exception for spawning units, which may not be visible as user watches them spawn
+                            constants.end_turn_wait_time = 0
+                        elif (
+                            spawning
+                            and not current_enemy.grids[0]
+                            .find_cell(current_enemy.x, current_enemy.y)
+                            .terrain_handler.visible
+                        ):  # do not wait if spawning unit won't be visible even after it spawns
+                            constants.end_turn_wait_time = 0
+                        elif (
+                            moving and not enemy.turn_done
+                        ):  # if will move again after this
+                            constants.end_turn_wait_time = 0.25
+                        else:  # if done with turn
+                            constants.end_turn_wait_time = 0.5
+
+                        if current_enemy.turn_done:
+                            status.enemy_turn_queue.pop(0)
             if constants.effect_manager.effect_active("fast_turn"):
                 constants.end_turn_wait_time = 0
-            constants.previous_turn_time = time.time()
+            constants.previous_turn_time = constants.current_time
     pygame.quit()

@@ -31,7 +31,45 @@ def end_turn():
         current_pmob.end_turn_move()
     flags.player_turn = False
     status.player_turn_queue = []
+    prepare_planet_rotation()
     start_enemy_turn()
+
+
+def prepare_planet_rotation():
+    """
+    Description:
+        Sets up constant values for planet rotation starting from currently selected tile
+    Input:
+        None
+    Output:
+        None
+    """
+    center_coordinates = (
+        status.scrolling_strategic_map_grid.center_x,
+        status.scrolling_strategic_map_grid.center_y,
+    )
+    (
+        center_index,
+        latitude_lines,
+    ) = status.strategic_map_grid.world_handler.get_latitude_line(center_coordinates)
+    if latitude_lines == status.strategic_map_grid.world_handler.latitude_lines:
+        constants.TIME_PASSING_EQUATORIAL_COORDINATES = (
+            status.strategic_map_grid.world_handler.equatorial_coordinates
+        )
+    elif (
+        latitude_lines
+        == status.strategic_map_grid.world_handler.alternate_latitude_lines
+    ):
+        constants.TIME_PASSING_EQUATORIAL_COORDINATES = (
+            status.strategic_map_grid.world_handler.alternate_equatorial_coordinates
+        )
+    constants.TIME_PASSING_ROTATION = 0
+    for index, coordinates in enumerate(latitude_lines[center_index]):
+        if coordinates in constants.TIME_PASSING_EQUATORIAL_COORDINATES:
+            constants.TIME_PASSING_INITIAL_ORIENTATION = (
+                constants.TIME_PASSING_EQUATORIAL_COORDINATES.index(coordinates)
+            )
+            break
 
 
 def start_enemy_turn():

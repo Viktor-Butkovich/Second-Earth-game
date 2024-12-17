@@ -327,16 +327,12 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 image_id_list.append(
                     {
                         "image_id": self.image_dict["default"],
-                        "size": 1,
-                        "x_offset": 0,
-                        "y_offset": 0,
                         "level": -9,
                         "color_filter": self.cell.terrain_handler.get_color_filter(),
                         "green_screen": self.cell.terrain_handler.get_green_screen(),
                         "pixellated": not self.cell.terrain_handler.knowledge_available(
                             constants.TERRAIN_KNOWLEDGE
                         ),
-                        "light_pixellated": False,
                     }
                 )
                 for (
@@ -345,16 +341,12 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     image_id_list.append(
                         {
                             "image_id": terrain_overlay_image,
-                            "size": 1,
-                            "x_offset": 0,
-                            "y_offset": 0,
                             "level": -8,
                             "color_filter": self.cell.terrain_handler.get_color_filter(),
                             "green_screen": self.cell.terrain_handler.get_green_screen(),
                             "pixellated": not self.cell.terrain_handler.knowledge_available(
                                 constants.TERRAIN_KNOWLEDGE
                             ),
-                            "light_pixellated": False,
                         }
                     )
                 if not terrain_only:

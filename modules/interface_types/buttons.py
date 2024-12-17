@@ -1571,7 +1571,7 @@ class end_turn_button(button):
             image_input_dict
         )
 
-        self.warning_image.set_image("misc/enemy_turn_icon.png")
+        self.warning_image.set_image("misc/time_passing.png")
         self.warning_image.to_front = True
 
     def set_origin(self, new_x, new_y):

@@ -420,6 +420,10 @@ class bundle_image:
             if "green_screen" in image_id:
                 self.has_green_screen = True
                 self.green_screen_colors = []
+                if image_id["green_screen"] == constants.WORLD_GREEN_SCREEN_DEFAULTS:
+                    image_id[
+                        "green_screen"
+                    ] = status.strategic_map_grid.world_handler.get_green_screen()
                 if type(image_id["green_screen"]) == list:
                     for index in range(0, len(image_id["green_screen"])):
                         self.green_screen_colors.append(image_id["green_screen"][index])
