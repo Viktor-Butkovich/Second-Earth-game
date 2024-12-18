@@ -235,43 +235,57 @@ def main_loop():
             not flags.player_turn
             and constants.previous_turn_time + constants.end_turn_wait_time
             <= constants.current_time
-        ):  # if enough time has passed based on delay from previous movement
+        ):  # If enough time has passed based on delay from previous movement
             equatorial_coordinates = constants.TIME_PASSING_EQUATORIAL_COORDINATES
             planet_size = len(equatorial_coordinates)
-            if (
-                abs(constants.TIME_PASSING_ROTATION)
-                < planet_size * constants.TIME_PASSING_TARGET_ROTATIONS
-            ):  # Time passing logic
-                current_coordinates = equatorial_coordinates[
-                    (
-                        constants.TIME_PASSING_ROTATION
-                        + constants.TIME_PASSING_INITIAL_ORIENTATION
-                    )
-                    % planet_size
-                ]
-                planet_image = status.strategic_map_grid.create_planet_image(
-                    current_coordinates
-                )
-                status.globe_projection_image.set_image(planet_image)
-                if constants.effect_manager.effect_active("save_global_projection"):
-                    pygame.image.save(
-                        status.globe_projection_image.image,
-                        f"save_games/globe_rotations/{constants.TIME_PASSING_EARTH_ROTATIONS}.png",
-                    )
-                num_earth_images = len(os.listdir("graphics/locations/earth_rotations"))
-                status.earth_grid.find_cell(0, 0).tile.set_image(
-                    [
-                        "misc/space.png",
-                        {
-                            "image_id": f"locations/earth_rotations/{(constants.TIME_PASSING_EARTH_ROTATIONS % num_earth_images)}.png",
-                            "size": 0.8,
-                        },
+            num_earth_images = len(os.listdir("graphics/locations/earth_rotations"))
+            if constants.TIME_PASSING_ITERATIONS < len(
+                constants.TIME_PASSING_PLANET_SCHEDULE
+            ):
+                if constants.TIME_PASSING_PLANET_SCHEDULE[
+                    constants.TIME_PASSING_ITERATIONS
+                ]:  # If scheduled to rotate planet at this iteration
+                    current_coordinates = equatorial_coordinates[
+                        (
+                            constants.TIME_PASSING_ROTATION
+                            + constants.TIME_PASSING_INITIAL_ORIENTATION
+                        )
+                        % planet_size
                     ]
-                )
-                constants.TIME_PASSING_ROTATION -= max(2, planet_size // 6)
-                constants.TIME_PASSING_EARTH_ROTATIONS += 1
+                    planet_image = status.strategic_map_grid.create_planet_image(
+                        current_coordinates
+                    )
+                    status.globe_projection_image.set_image(planet_image)
+                    if constants.effect_manager.effect_active("save_global_projection"):
+                        pygame.image.save(
+                            status.globe_projection_image.image,
+                            f"save_games/globe_rotations/{constants.TIME_PASSING_EARTH_ROTATIONS}.png",
+                        )
+                    if status.strategic_map_grid.world_handler.rotation_speed > 2:
+                        frame_interval = 3
+                    else:
+                        frame_interval = 2
+                    constants.TIME_PASSING_ROTATION += (
+                        frame_interval
+                        * status.strategic_map_grid.world_handler.rotation_direction
+                    )
 
-            elif True:  # End time passing logic
+                if constants.TIME_PASSING_EARTH_SCHEDULE[
+                    constants.TIME_PASSING_ITERATIONS
+                ]:  # If scheduled to rotate Earth at this iteration
+                    status.earth_grid.find_cell(0, 0).tile.set_image(
+                        [
+                            "misc/space.png",
+                            {
+                                "image_id": f"locations/earth_rotations/{(constants.TIME_PASSING_EARTH_ROTATIONS % num_earth_images)}.png",
+                                "size": 0.8,
+                            },
+                        ]
+                    )
+                    constants.TIME_PASSING_EARTH_ROTATIONS += 1
+
+                constants.TIME_PASSING_ITERATIONS += 1
+            else:  # End time passing logic
                 equatorial_coordinates = constants.TIME_PASSING_EQUATORIAL_COORDINATES
                 planet_size = len(equatorial_coordinates)
                 constants.TIME_PASSING_ROTATION = 0
@@ -295,12 +309,12 @@ def main_loop():
                         },
                     ]
                 )
-
+                main_loop_utility.update_display()
                 flags.enemy_combat_phase = True
                 flags.player_turn = True
                 turn_management_utility.manage_combat()
 
-            else:  # Enemy movement logic
+            if False:  # Enemy movement logic
                 enemy_turn_done = True
                 for enemy in status.npmob_list:
                     if not enemy.turn_done:

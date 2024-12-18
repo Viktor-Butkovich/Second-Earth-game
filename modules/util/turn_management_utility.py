@@ -74,12 +74,42 @@ def prepare_planet_rotation():
         )
     constants.TIME_PASSING_EARTH_ROTATIONS = 0
     constants.TIME_PASSING_ROTATION = 0
+    constants.TIME_PASSING_ITERATIONS = 0
     for index, coordinates in enumerate(latitude_lines[center_index]):
         if coordinates in constants.TIME_PASSING_EQUATORIAL_COORDINATES:
             constants.TIME_PASSING_INITIAL_ORIENTATION = (
                 constants.TIME_PASSING_EQUATORIAL_COORDINATES.index(coordinates)
             )
             break
+
+    if status.strategic_map_grid.world_handler.rotation_speed > 2:
+        frame_interval = (
+            3  # Long interval causes more visible choppiness on slower rotations
+        )
+    else:
+        frame_interval = (
+            2  # Short interval causes more visible distortion on faster rotations
+        )
+    planet_frames = len(constants.TIME_PASSING_EQUATORIAL_COORDINATES) // frame_interval
+    earth_frames = len(os.listdir("graphics/locations/earth_rotations")) // 3
+    rotation_seconds = 2.5 * 0.92  # Ends up taking more than allocated time
+    total_timesteps = round(
+        rotation_seconds / (constants.end_turn_wait_time)
+    )  # 4 seconds of rotation with rotation_speed rotations for each planet
+    # There should be sufficient timesteps for Earth to rotate earth_rotation_speed times
+    # Each full rotation requires # transitions equal to # frames
+
+    constants.TIME_PASSING_EARTH_SCHEDULE = [False] * total_timesteps
+    num_earth_rotations = status.strategic_map_grid.get_tuning("earth_rotation_speed")
+    earth_step_interval = total_timesteps / (earth_frames * num_earth_rotations)
+    for i in range(round(earth_frames * num_earth_rotations)):
+        constants.TIME_PASSING_EARTH_SCHEDULE[round(i * earth_step_interval)] = True
+
+    constants.TIME_PASSING_PLANET_SCHEDULE = [False] * total_timesteps
+    num_planet_rotations = status.strategic_map_grid.world_handler.rotation_speed
+    planet_step_interval = total_timesteps / (planet_frames * num_planet_rotations)
+    for i in range(round(planet_frames * num_planet_rotations)):
+        constants.TIME_PASSING_PLANET_SCHEDULE[round(i * planet_step_interval)] = True
 
 
 def start_enemy_turn():

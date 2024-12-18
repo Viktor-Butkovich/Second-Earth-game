@@ -248,6 +248,12 @@ class world_handler:
                     -5.95,
                 )
                 if constants.effect_manager.effect_active("earth_preset"):
+                    input_dict["rotation_direction"] = self.get_tuning(
+                        "earth_rotation_direction"
+                    )
+                    input_dict["rotation_speed"] = self.get_tuning(
+                        "earth_rotation_speed"
+                    )
                     input_dict["global_parameters"] = {
                         constants.GRAVITY: self.get_tuning("earth_gravity"),
                         constants.RADIATION: self.get_tuning("earth_radiation"),
@@ -286,6 +292,12 @@ class world_handler:
                     )
 
                 elif constants.effect_manager.effect_active("mars_preset"):
+                    input_dict["rotation_direction"] = self.get_tuning(
+                        "mars_rotation_direction"
+                    )
+                    input_dict["rotation_speed"] = self.get_tuning(
+                        "mars_rotation_speed"
+                    )
                     input_dict["global_parameters"] = {
                         constants.GRAVITY: self.get_tuning("mars_gravity"),
                         constants.RADIATION: self.get_tuning("mars_radiation"),
@@ -327,6 +339,12 @@ class world_handler:
                         "mars_average_water_target"
                     )
                 elif constants.effect_manager.effect_active("venus_preset"):
+                    input_dict["rotation_direction"] = self.get_tuning(
+                        "venus_rotation_direction"
+                    )
+                    input_dict["rotation_speed"] = self.get_tuning(
+                        "venus_rotation_speed"
+                    )
                     input_dict["global_parameters"] = {
                         constants.GRAVITY: self.get_tuning("venus_gravity"),
                         constants.RADIATION: self.get_tuning("venus_radiation"),
@@ -368,6 +386,8 @@ class world_handler:
                         "venus_average_water_target"
                     )
                 else:
+                    input_dict["rotation_direction"] = random.choice([1, -1])
+                    input_dict["rotation_speed"] = random.choice([1, 2, 2, 3, 4, 5])
                     input_dict["global_parameters"] = {}
                     input_dict["global_parameters"][constants.GRAVITY] = round(
                         (self.default_grid.area / (constants.map_size_options[4] ** 2))
@@ -604,6 +624,10 @@ class world_handler:
             elif (
                 input_dict["grid_type"] == constants.EARTH_GRID_TYPE
             ):  # Replace with a series of grid_type constants
+                input_dict["rotation_direction"] = self.get_tuning(
+                    "earth_rotation_direction"
+                )
+                input_dict["rotation_speed"] = self.get_tuning("earth_rotation_speed")
                 input_dict["global_parameters"] = {
                     constants.GRAVITY: self.get_tuning("earth_gravity"),
                     constants.RADIATION: self.get_tuning("earth_radiation"),
@@ -651,6 +675,8 @@ class world_handler:
             input_dict["global_parameters"][constants.TOXIC_GASES], 1
         )
 
+        self.rotation_direction = input_dict["rotation_direction"]
+        self.rotation_speed = input_dict["rotation_speed"]
         self.green_screen: Dict[str, Dict[str, any]] = input_dict.get(
             "green_screen", {}
         )
@@ -898,6 +924,8 @@ class world_handler:
             "average_temperature": self.average_temperature,
             "global_water": self.global_water,
             "global_temperature": self.global_temperature,
+            "rotation_direction": self.rotation_direction,
+            "rotation_speed": self.rotation_speed,
         }
 
     def generate_green_screen(self) -> Dict[str, Dict[str, any]]:

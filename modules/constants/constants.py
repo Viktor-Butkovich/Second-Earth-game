@@ -231,7 +231,7 @@ previous_turn_time: float = 0.0
 current_time: float = 0.0
 last_selection_outline_switch: float = 0.0
 mouse_moved_time: float = 0.0
-end_turn_wait_time: float = 0.1
+end_turn_wait_time: float = 0.05
 
 old_mouse_x: int = pygame.mouse.get_pos()[0]
 old_mouse_y: int = pygame.mouse.get_pos()[1]
@@ -563,6 +563,9 @@ TIME_PASSING_INITIAL_ORIENTATION: int = 0
 TIME_PASSING_EQUATORIAL_COORDINATES: List[Tuple[int, int]] = []
 TIME_PASSING_TARGET_ROTATIONS: int = 3
 TIME_PASSING_EARTH_ROTATIONS: int = 0
+TIME_PASSING_ITERATIONS: int = 0
+TIME_PASSING_EARTH_SCHEDULE: List[bool] = []
+TIME_PASSING_PLANET_SCHEDULE: List[bool] = []
 
 
 def update_terrain_knowledge_requirements():
