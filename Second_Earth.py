@@ -248,9 +248,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Add manually created Earth map - should look similar to the UN flag, with a north pole projection
 
 # Upcoming work queue:
-# Trigger end turn movement, attrition, etc. after time passing instead of before
-# Update globe projection when tile terrain changes, but only when projection is visible
-#   Possibly change when detected changes in tile image ID and projection is visible (not loading)
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art

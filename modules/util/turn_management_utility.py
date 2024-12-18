@@ -28,8 +28,6 @@ def end_turn():
     """
     remove_excess_inventory()
     manage_environmental_conditions()
-    for current_pmob in status.pmob_list:
-        current_pmob.end_turn_move()
     flags.player_turn = False
     status.player_turn_queue = []
     prepare_planet_rotation()
@@ -141,6 +139,8 @@ def start_player_turn(first_turn=False):
         status.previous_sales_report,
         status.previous_financial_report,
     ) = (None, None, None)
+    for current_pmob in status.pmob_list:
+        current_pmob.end_turn_move()  # Make sure no units that suffered attrition move when they shouldn't have
     text_utility.print_to_screen("")
     text_utility.print_to_screen("Turn " + str(constants.turn + 1))
     if not first_turn:

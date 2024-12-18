@@ -1513,6 +1513,8 @@ class terrain_handler:
             for cell in self.attached_cells:
                 if cell.tile:
                     cell.tile.set_terrain(self.terrain, update_image_bundle=True)
+            if not flags.loading:
+                status.strategic_map_grid.update_globe_projection()
 
         if status.displayed_tile:
             for cell in self.attached_cells:
