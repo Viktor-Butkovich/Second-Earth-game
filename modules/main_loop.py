@@ -7,6 +7,7 @@ from .util import (
     main_loop_utility,
     text_utility,
     turn_management_utility,
+    actor_utility,
 )
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -252,13 +253,15 @@ def main_loop():
                         )
                         % planet_size
                     ]
-                    planet_image = status.strategic_map_grid.create_planet_image(
-                        current_coordinates
+                    status.strategic_map_grid.update_globe_projection(
+                        center_coordinates=current_coordinates,
+                        update_button=constants.effect_manager.effect_active(
+                            "rotate_game_mode_buttons"
+                        ),
                     )
-                    status.globe_projection_image.set_image(planet_image)
                     if constants.effect_manager.effect_active("save_global_projection"):
                         pygame.image.save(
-                            status.globe_projection_image.image,
+                            status.globe_projection_grid.find_cell(0, 0).tile.image,
                             f"save_games/globe_rotations/{constants.TIME_PASSING_EARTH_ROTATIONS}.png",
                         )
                     if status.strategic_map_grid.world_handler.rotation_speed > 2:
@@ -282,6 +285,20 @@ def main_loop():
                             },
                         ]
                     )
+                    if constants.effect_manager.effect_active(
+                        "rotate_game_mode_buttons"
+                    ):
+                        status.to_earth_button.image.set_image(
+                            actor_utility.generate_frame(
+                                "misc/space.png",
+                            )
+                            + [
+                                {
+                                    "image_id": f"locations/earth_rotations/{(constants.TIME_PASSING_EARTH_ROTATIONS % num_earth_images)}.png",
+                                    "size": 0.6,
+                                }
+                            ]
+                        )
                     constants.TIME_PASSING_EARTH_ROTATIONS += 1
 
                 constants.TIME_PASSING_ITERATIONS += 1
@@ -289,8 +306,8 @@ def main_loop():
                 equatorial_coordinates = constants.TIME_PASSING_EQUATORIAL_COORDINATES
                 planet_size = len(equatorial_coordinates)
                 constants.TIME_PASSING_ROTATION = 0
-                planet_image = status.strategic_map_grid.create_planet_image(
-                    equatorial_coordinates[
+                status.strategic_map_grid.update_globe_projection(
+                    center_coordinates=equatorial_coordinates[
                         (
                             constants.TIME_PASSING_ROTATION
                             + constants.TIME_PASSING_INITIAL_ORIENTATION
@@ -298,7 +315,6 @@ def main_loop():
                         % planet_size
                     ]
                 )
-                status.globe_projection_image.set_image(planet_image)
 
                 status.earth_grid.find_cell(0, 0).tile.set_image(
                     [
@@ -309,6 +325,18 @@ def main_loop():
                         },
                     ]
                 )
+                if constants.effect_manager.effect_active("rotate_game_mode_buttons"):
+                    status.to_earth_button.image.set_image(
+                        actor_utility.generate_frame(
+                            "misc/space.png",
+                        )
+                        + [
+                            {
+                                "image_id": f"locations/earth.png",
+                                "size": 0.6,
+                            }
+                        ]
+                    )
                 main_loop_utility.update_display()
                 flags.enemy_combat_phase = True
                 flags.player_turn = True

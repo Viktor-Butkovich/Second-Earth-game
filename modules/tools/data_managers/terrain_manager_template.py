@@ -248,6 +248,7 @@ class world_handler:
                     -5.95,
                 )
                 if constants.effect_manager.effect_active("earth_preset"):
+                    input_dict["name"] = "Earth"
                     input_dict["rotation_direction"] = self.get_tuning(
                         "earth_rotation_direction"
                     )
@@ -292,6 +293,7 @@ class world_handler:
                     )
 
                 elif constants.effect_manager.effect_active("mars_preset"):
+                    input_dict["name"] = "Mars"
                     input_dict["rotation_direction"] = self.get_tuning(
                         "mars_rotation_direction"
                     )
@@ -339,6 +341,7 @@ class world_handler:
                         "mars_average_water_target"
                     )
                 elif constants.effect_manager.effect_active("venus_preset"):
+                    input_dict["name"] = "Venus"
                     input_dict["rotation_direction"] = self.get_tuning(
                         "venus_rotation_direction"
                     )
@@ -386,6 +389,11 @@ class world_handler:
                         "venus_average_water_target"
                     )
                 else:
+                    input_dict[
+                        "name"
+                    ] = constants.flavor_text_manager.generate_flavor_text(
+                        "planet_names"
+                    )
                     input_dict["rotation_direction"] = random.choice([1, -1])
                     input_dict["rotation_speed"] = random.choice([1, 2, 2, 3, 4, 5])
                     input_dict["global_parameters"] = {}
@@ -624,6 +632,7 @@ class world_handler:
             elif (
                 input_dict["grid_type"] == constants.EARTH_GRID_TYPE
             ):  # Replace with a series of grid_type constants
+                input_dict["name"] = "Earth"
                 input_dict["rotation_direction"] = self.get_tuning(
                     "earth_rotation_direction"
                 )
@@ -675,6 +684,7 @@ class world_handler:
             input_dict["global_parameters"][constants.TOXIC_GASES], 1
         )
 
+        self.name = input_dict["name"]
         self.rotation_direction = input_dict["rotation_direction"]
         self.rotation_speed = input_dict["rotation_speed"]
         self.green_screen: Dict[str, Dict[str, any]] = input_dict.get(
@@ -926,6 +936,7 @@ class world_handler:
             "global_temperature": self.global_temperature,
             "rotation_direction": self.rotation_direction,
             "rotation_speed": self.rotation_speed,
+            "name": self.name,
         }
 
     def generate_green_screen(self) -> Dict[str, Dict[str, any]]:
@@ -1320,23 +1331,9 @@ class terrain_handler:
                 parameter_name
             )
         elif parameter_name == constants.TEMPERATURE:
-            value = self.get_parameter(parameter_name)
-            if value >= 6:
-                return constants.HABITABILITY_DEADLY
-            elif value >= 5:
-                return constants.HABITABILITY_DANGEROUS
-            elif value >= 4:
-                return constants.HABITABILITY_UNPLEASANT
-            elif value >= 1:
-                return constants.HABITABILITY_PERFECT
-            elif value >= 0:
-                return constants.HABITABILITY_UNPLEASANT
-            elif value >= -1:
-                return constants.HABITABILITY_HOSTILE
-            elif value >= -2:
-                return constants.HABITABILITY_DANGEROUS
-            else:
-                return constants.HABITABILITY_DEADLY
+            return actor_utility.calculate_temperature_habitability(
+                self.get_parameter(parameter_name)
+            )
         else:
             return constants.HABITABILITY_PERFECT
 
@@ -1369,9 +1366,14 @@ class terrain_handler:
         Output:
             int: Returns habitability of this tile for the inputted unit
         """
-        default_habitability = min(
-            self.get_habitability_dict(omit_perfect=False).values()
-        )
+        if (
+            self.get_world_handler() == status.globe_projection_grid.world_handler
+        ):  # If in orbit of planet
+            default_habitability = constants.HABITABILITY_DEADLY
+        else:
+            default_habitability = min(
+                self.get_habitability_dict(omit_perfect=False).values()
+            )
         if unit.any_permissions(
             constants.SPACESUITS_PERMISSION,
             constants.VEHICLE_PERMISSION,

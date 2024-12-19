@@ -144,6 +144,8 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
     Output:
         None
     """
+    if flags.loading:
+        return
     if info_display == status.tile_info_display:
         for current_same_tile_icon in status.same_tile_icon_list:
             current_same_tile_icon.reset()
@@ -158,10 +160,8 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
             select_default_tab(status.tile_tabbed_collection, status.displayed_tile)
 
     elif info_display == status.mob_info_display:
-        switched = False
         if new_actor != status.displayed_mob:
             calibrate_actor_info_display(status.mob_inventory_info_display, None)
-            switched = True
         status.displayed_mob = new_actor
         select_default_tab(status.mob_tabbed_collection, new_actor)
         if new_actor and new_actor.get_cell().tile == status.displayed_tile:
@@ -187,27 +187,47 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
     target_tab = None
     if displayed_actor:
         if tabbed_collection == status.tile_tabbed_collection:
-            target_tab = status.global_conditions_collection
             if (
-                status.displayed_tile.inventory
-                and status.tile_inventory_collection.showing
+                status.tile_tabbed_collection.current_tabbed_member.tab_button.can_show()
+                and status.tile_tabbed_collection.current_tabbed_member
+                != status.local_conditions_collection
             ):
-                target_tab = status.tile_inventory_collection
+                target_tab = status.tile_tabbed_collection.current_tabbed_member
+            elif (
+                constants.effect_manager.effect_active("link_inventory_tabs")
+                and status.mob_tabbed_collection.current_tabbed_member
+                == status.mob_inventory_collection
+            ):
+                target_tab = status.mob_inventory_collection
             elif status.displayed_tile.cell.settlement:
                 target_tab = status.settlement_collection
-            elif (
-                status.tile_tabbed_collection.current_tabbed_member
-                == status.local_conditions_collection
-                and status.local_conditions_collection.tab_button.can_show()
-            ):
+            elif status.local_conditions_collection.tab_button.can_show():
                 target_tab = status.local_conditions_collection
+            else:
+                target_tab = status.global_conditions_collection
+            # Except for local conditions, try to keep the current tab selected
+            # If mob inventory tab, select inventory tab
+            # If can't keep local tile selected, select settlement, if present
+            # Otherwise, default to local or global conditions, based on tile type
+
         elif tabbed_collection == status.mob_tabbed_collection:
             if status.displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 if status.displayed_mob.inventory:
                     target_tab = status.mob_inventory_collection
+                elif (
+                    constants.effect_manager.effect_active("link_inventory_tabs")
+                    and status.tile_tabbed_collection.current_tabbed_member
+                    == status.tile_inventory_collection
+                ):
+                    target_tab = status.mob_inventory_collection
                 else:
                     target_tab = status.mob_reorganization_collection
-    if target_tab and not target_tab.showing:
+            # If unit has inventory and at least 1 item held, select inventory tab
+            # If tile inventory tab is selected, select inventory tab
+            # Otherwise, select reorganization tab
+    if target_tab and (
+        target_tab == status.tile_inventory_collection or not target_tab.showing
+    ):
         select_interface_tab(tabbed_collection, target_tab)
 
 
@@ -481,7 +501,11 @@ def select_interface_tab(tabbed_collection, target_tab):
     Output:
         None
     """
-    if not target_tab.showing:
+    if (
+        tabbed_collection
+        in [status.tile_inventory_collection, status.mob_inventory_collection]
+        or not target_tab.showing
+    ):
         for tab_button in tabbed_collection.tabs_collection.members:
             if (
                 hasattr(tab_button, "linked_element")
@@ -590,3 +614,30 @@ def generate_frame(
             image["x_offset"] = image.get("x_offset", 0) + x_offset
             image["y_offset"] = image.get("y_offset", 0) + y_offset
         return utility.combine(frame, image_id)
+
+
+def calculate_temperature_habitability(temperature: int) -> int:
+    """
+    Description:
+        Calculates and returns the habitability effect of a particular temperature value
+    Input:
+        int temperature: Temperature value to calculate habitability for
+    Output:
+        int: Returns the habitability effect of the inputted temperature, from 0 to 5 (5 is perfect, 0 is deadly)
+    """
+    if temperature >= 6:
+        return constants.HABITABILITY_DEADLY
+    elif temperature >= 5:
+        return constants.HABITABILITY_DANGEROUS
+    elif temperature >= 4:
+        return constants.HABITABILITY_UNPLEASANT
+    elif temperature >= 1:
+        return constants.HABITABILITY_PERFECT
+    elif temperature >= 0:
+        return constants.HABITABILITY_UNPLEASANT
+    elif temperature >= -1:
+        return constants.HABITABILITY_HOSTILE
+    elif temperature >= -2:
+        return constants.HABITABILITY_DANGEROUS
+    else:
+        return constants.HABITABILITY_DEADLY

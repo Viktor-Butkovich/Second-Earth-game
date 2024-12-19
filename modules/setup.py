@@ -1378,7 +1378,7 @@ def buttons():
             {
                 "coordinates": (globe_projection_x, globe_projection_y),
                 "init_type": constants.FREE_IMAGE,
-                "modes": [constants.STRATEGIC_MODE],
+                "modes": [],
                 "width": scaling.scale_width(globe_projection_size),
                 "height": scaling.scale_height(globe_projection_size),
                 "image_id": "misc/empty.png",
@@ -1390,33 +1390,44 @@ def buttons():
     north_overlay = constants.actor_creation_manager.create_interface_element(
         {
             "coordinates": (
-                globe_projection_x
+                status.grids_collection.x
                 + scaling.scale_width(
-                    globe_projection_size / 2 - compass_overlay_size / 2
+                    constants.globe_projection_grid_x_offset
+                    + constants.globe_projection_grid_width / 2
+                    - compass_overlay_size / 2
                 ),
-                globe_projection_y
+                status.grids_collection.y
                 + scaling.scale_height(
-                    globe_projection_size - (compass_overlay_size * 0.25)
+                    constants.globe_projection_grid_y_offset
+                    + constants.globe_projection_grid_height
+                    - (compass_overlay_size * 0.25)
                 ),
             ),
             "init_type": constants.FREE_IMAGE,
-            "modes": status.globe_projection_image.modes,
+            "modes": [constants.STRATEGIC_MODE],  # status.globe_projection_image.modes,
             "width": scaling.scale_width(compass_overlay_size),
             "height": scaling.scale_width(compass_overlay_size),
             "image_id": "misc/north_indicator.png",
+            "to_front": True,
         }
     )
     south_overlay = constants.actor_creation_manager.create_interface_element(
         {
             "coordinates": (
-                globe_projection_x
+                status.grids_collection.x
                 + scaling.scale_width(
-                    globe_projection_size / 2 - compass_overlay_size / 2
+                    constants.globe_projection_grid_x_offset
+                    + constants.globe_projection_grid_width / 2
+                    - compass_overlay_size / 2
                 ),
-                globe_projection_y - scaling.scale_height(compass_overlay_size * 0.75),
+                status.grids_collection.y
+                + scaling.scale_height(
+                    constants.globe_projection_grid_y_offset
+                    + compass_overlay_size * -0.75
+                ),
             ),
             "init_type": constants.FREE_IMAGE,
-            "modes": status.globe_projection_image.modes,
+            "modes": north_overlay.modes,
             "width": scaling.scale_width(compass_overlay_size),
             "height": scaling.scale_width(compass_overlay_size),
             "image_id": "misc/south_indicator.png",
@@ -1470,7 +1481,7 @@ def buttons():
             "keybind_id": pygame.K_2,
         }
     )
-    to_earth_button = constants.actor_creation_manager.create_interface_element(
+    status.to_earth_button = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
 
@@ -2557,6 +2568,7 @@ def tile_interface():
     for current_actor_label_type in [
         constants.COORDINATES_LABEL,
         constants.TERRAIN_LABEL,
+        constants.PLANET_NAME_LABEL,
         constants.RESOURCE_LABEL,
         constants.TERRAIN_FEATURE_LABEL,
         constants.HABITABILITY_LABEL,
@@ -2598,54 +2610,6 @@ def tile_interface():
                 "description": "tile information tabs",
             }
         )
-    )
-
-
-def global_interface():
-    return
-    status.global_info_display = (
-        constants.actor_creation_manager.create_interface_element(
-            {
-                "coordinates": scaling.scale_coordinates(0, 0),  # (0, -400),
-                "width": scaling.scale_width(775),
-                "height": scaling.scale_height(10),
-                "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-                "init_type": constants.ORDERED_COLLECTION,
-                "is_info_display": True,
-                "actor_type": "planet",
-                "description": "planet information panel",
-                "parent_collection": status.info_displays_collection,
-            }
-        )
-    )
-
-    # global background image's tooltip
-    global_free_image_background_tooltip = (
-        constants.actor_creation_manager.create_interface_element(
-            {
-                "coordinates": scaling.scale_coordinates(0, 0),
-                "minimum_width": scaling.scale_width(115),
-                "height": scaling.scale_height(115),
-                "image_id": "misc/empty.png",
-                "actor_type": "planet",
-                "init_type": constants.ACTOR_TOOLTIP_LABEL,
-                "parent_collection": status.global_info_display,
-                "member_config": {"order_overlap": True},
-            }
-        )
-    )
-
-    global_image = constants.actor_creation_manager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(5, 5),
-            "width": scaling.scale_width(115),
-            "height": scaling.scale_height(115),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-            "actor_image_type": "default",
-            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
-            "parent_collection": status.global_info_display,
-            "member_config": {"order_overlap": False},
-        }
     )
 
 

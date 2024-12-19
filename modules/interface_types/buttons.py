@@ -515,7 +515,10 @@ class button(interface_elements.interface_element):
             )
 
         elif self.button_type == constants.RENAME_SETTLEMENT_BUTTON:
-            self.set_tooltip(["Displays a typing prompt to rename this settlement"])
+            self.set_tooltip(["Renames this settlement"])
+
+        elif self.button_type == constants.RENAME_PLANET_BUTTON:
+            self.set_tooltip(["Renames this planet"])
 
         elif self.button_type == constants.SHOW_PREVIOUS_REPORTS_BUTTON:
             self.set_tooltip(
@@ -994,7 +997,6 @@ class button(interface_elements.interface_element):
                             current_pmob.remove_from_turn_queue()
                     if last_moved:
                         last_moved.select()  # updates mob info display if automatic route changed anything
-                    # actor_utility.calibrate_actor_info_display(status.mob_info_display, status.displayed_mob)
                     types_moved = 0
                     text = ""
                     for current_unit_type in unit_types:
@@ -1382,6 +1384,18 @@ class button(interface_elements.interface_element):
                     "You are busy and cannot rename this settlement."
                 )
 
+        elif self.button_type == constants.RENAME_PLANET_BUTTON:
+            if override_action_possible or main_loop_utility.action_possible():
+                constants.message = status.displayed_tile.cell.grid.world_handler.name
+                constants.input_manager.start_receiving_input(
+                    status.displayed_tile.cell.grid.rename,
+                    prompt="Type a new name for this planet: ",
+                )
+            else:
+                text_utility.print_to_screen(
+                    "You are busy and cannot rename this planet."
+                )
+
     def on_rmb_release(self):
         """
         Description:
@@ -1483,6 +1497,14 @@ class button(interface_elements.interface_element):
                         if status.displayed_tile.get_inventory(equipment_name) > 0:
                             if equipment.check_requirement(status.displayed_mob):
                                 return True
+                return False
+            elif self.button_type == constants.RENAME_PLANET_BUTTON:
+                if (
+                    status.displayed_tile
+                    and status.displayed_tile.cell.grid.is_abstract_grid
+                    and status.displayed_tile.cell.grid != status.earth_grid
+                ):
+                    return True
                 return False
             return True
         return False
@@ -2577,7 +2599,7 @@ class tab_button(button):
             elif self.identifier == constants.LOCAL_CONDITIONS_PANEL:
                 return_value = not status.displayed_tile.grid.is_abstract_grid
             elif self.identifier == constants.GLOBAL_CONDITIONS_PANEL:
-                return_value = True
+                return_value = status.displayed_tile.grid.is_abstract_grid
 
         if (
             self.linked_element

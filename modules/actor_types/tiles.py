@@ -646,13 +646,20 @@ class abstract_tile(tile):
         """
         input_dict["coordinates"] = (0, 0)
         input_dict["show_terrain"] = False
-        self.grid_image_id = [
-            "misc/space.png",
-            {
-                "image_id": "locations/earth.png",
-                "size": 0.8,
-            },
-        ]
+        if input_dict["grid"] == status.earth_grid:
+            self.grid_image_id = [
+                "misc/space.png",
+                {
+                    "image_id": "locations/earth.png",
+                    "size": 0.8,
+                },
+            ]
+        elif input_dict["grid"] == status.globe_projection_grid:
+            self.grid_image_id = [
+                {
+                    "image_id": "misc/empty.png",
+                }
+            ]
         input_dict["image"] = self.grid_image_id
         super().__init__(from_save, input_dict)
 

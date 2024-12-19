@@ -50,6 +50,7 @@ strategic_map_grid: world_grid = None
 scrolling_strategic_map_grid: mini_grid = None
 minimap_grid: mini_grid = None
 earth_grid: abstract_grid = None
+globe_projection_grid: abstract_grid = None
 planet_view_mask: free_image = None
 
 actions: Dict[str, action] = {}
@@ -67,6 +68,7 @@ rendered_images: Dict[str, pygame.Surface] = {}
 globe_projection_image: free_image = None
 globe_projection_surface: pygame.Surface = None
 to_strategic_button: switch_game_mode_button = None
+to_earth_button: switch_game_mode_button = None
 
 button_list: List[button] = []
 instructions_list: List[str] = []
@@ -116,7 +118,6 @@ mob_inventory_grid: inventory_grid = None
 tile_info_display: ordered_collection = None
 tile_inventory_info_display: ordered_collection = None
 tile_inventory_grid: inventory_grid = None
-global_info_display: ordered_collection = None
 minister_info_display: ordered_collection = None
 prosecution_info_display: ordered_collection = None
 defense_info_display: ordered_collection = None

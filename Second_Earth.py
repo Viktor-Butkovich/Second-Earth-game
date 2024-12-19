@@ -248,6 +248,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Add manually created Earth map - should look similar to the UN flag, with a north pole projection
 
 # Upcoming work queue:
+# Add more planet names
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art

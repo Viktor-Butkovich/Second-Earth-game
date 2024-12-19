@@ -305,6 +305,12 @@ class actor_display_label(label):
         elif self.actor_label_type == constants.TERRAIN_LABEL:
             self.message_start = "Terrain: "
 
+        elif self.actor_label_type == constants.PLANET_NAME_LABEL:
+            self.message_start = ""
+            input_dict["init_type"] = constants.RENAME_PLANET_BUTTON
+            input_dict["image_id"] = "buttons/rename.png"
+            self.add_attached_button(input_dict)
+
         elif self.actor_label_type == constants.MINISTER_LABEL:
             self.message_start = "Minister: "
             input_dict["width"], input_dict["height"] = (m_size, m_size)
@@ -900,13 +906,26 @@ class actor_display_label(label):
                 habitability_dict = (
                     self.actor.cell.terrain_handler.get_habitability_dict()
                 )
-                tooltip_text.append(
-                    f"    Overall habitability is the minimum of all parts of the local conditions"
-                )
+
+                if not self.actor.cell.grid.is_abstract_grid:
+                    tooltip_text.append(
+                        f"    Overall habitability is the minimum of all parts of the local conditions"
+                    )
+                else:
+                    habitability_dict[
+                        constants.TEMPERATURE
+                    ] = actor_utility.calculate_temperature_habitability(
+                        round(self.actor.cell.grid.world_handler.average_temperature)
+                    )
+                    if (
+                        habitability_dict[constants.TEMPERATURE]
+                        == constants.HABITABILITY_PERFECT
+                    ):
+                        del habitability_dict[constants.TEMPERATURE]
                 tooltip_text.append(
                     f"Represents the habitability for humans to live and work here"
                 )
-                if (
+                if (not self.actor.cell.grid.is_abstract_grid) and (
                     self.actor.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
                     < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
                 ):
@@ -955,19 +974,27 @@ class actor_display_label(label):
                 self.set_label(f"{self.message_start}({new_actor.x}, {new_actor.y})")
 
             elif self.actor_label_type == constants.TERRAIN_LABEL:
+                if not new_actor.grid.is_abstract_grid:
+                    if (
+                        self.actor.cell.terrain_handler.visible
+                        and self.actor.cell.terrain_handler.knowledge_available(
+                            constants.TERRAIN_KNOWLEDGE
+                        )
+                    ):
+                        self.set_label(
+                            f"{self.message_start}{new_actor.cell.terrain_handler.terrain.replace('_', ' ')}"
+                        )
+                    else:
+                        self.set_label(self.message_start + "unknown")
+
+            elif self.actor_label_type == constants.PLANET_NAME_LABEL:
                 if new_actor.grid.is_abstract_grid:
-                    self.set_label(utility.capitalize(new_actor.grid.name))
-                elif (
-                    self.actor.cell.terrain_handler.visible
-                    and self.actor.cell.terrain_handler.knowledge_available(
-                        constants.TERRAIN_KNOWLEDGE
-                    )
-                ):
-                    self.set_label(
-                        f"{self.message_start}{new_actor.cell.terrain_handler.terrain.replace('_', ' ')}"
-                    )
-                else:
-                    self.set_label(self.message_start + "unknown")
+                    if new_actor.grid != status.earth_grid:
+                        self.set_label(
+                            f"{utility.capitalize(new_actor.grid.name)} (in orbit)"
+                        )
+                    else:
+                        self.set_label(utility.capitalize(new_actor.grid.name))
 
             elif self.actor_label_type == constants.RESOURCE_LABEL:
                 if new_actor.grid.is_abstract_grid:
@@ -1391,10 +1418,20 @@ class actor_display_label(label):
                 habitability_dict = (
                     self.actor.cell.terrain_handler.get_habitability_dict()
                 )
-                if (
+                if self.actor.cell.grid.is_abstract_grid:  # If global habitability
+                    habitability_dict[
+                        constants.TEMPERATURE
+                    ] = actor_utility.calculate_temperature_habitability(
+                        round(self.actor.cell.grid.world_handler.average_temperature)
+                    )
+                    overall_habitability = min(habitability_dict.values())
+                    self.set_label(
+                        f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]}"
+                    )
+                elif (
                     self.actor.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
                     < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
-                ):
+                ):  # If no temperature knowledge
                     if constants.TEMPERATURE in habitability_dict:
                         del habitability_dict[constants.TEMPERATURE]
                     if not habitability_dict:
@@ -1404,7 +1441,7 @@ class actor_display_label(label):
                     self.set_label(
                         f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]} (estimated)"
                     )
-                else:
+                else:  # If full knowledge
                     if not habitability_dict:
                         overall_habitability = constants.HABITABILITY_PERFECT
                     else:
@@ -1530,6 +1567,10 @@ class actor_display_label(label):
             return self.actor.get_permission(constants.GROUP_PERMISSION)
         elif self.actor_label_type == constants.EQUIPMENT_LABEL:
             return bool(self.actor.equipment)
+        elif self.actor_label_type == constants.PLANET_NAME_LABEL:
+            return self.actor.grid.is_abstract_grid
+        elif self.actor_label_type == constants.TERRAIN_LABEL:
+            return not self.actor.grid.is_abstract_grid
         else:
             return result
 

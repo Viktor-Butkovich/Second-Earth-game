@@ -383,7 +383,7 @@ class vehicle(pmob):
             if not self.get_permission(constants.MOVEMENT_DISABLED_PERMISSION):
                 return super().can_move(x_change, y_change, can_print)
             elif can_print:
-                print(
+                text_utility.print_to_screen(
                     f"This {self.name} is still having its crew replaced and cannot move this turn."
                 )
         elif can_print:

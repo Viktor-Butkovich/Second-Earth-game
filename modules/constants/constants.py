@@ -252,29 +252,38 @@ message: str = ""
 
 STRATEGIC_MAP_GRID_TYPE: str = "strategic_map_grid"
 EARTH_GRID_TYPE: str = "earth_grid"
+GLOBE_PROJECTION_GRID_TYPE: str = "globe_projection_grid"
 SCROLLING_STRATEGIC_MAP_GRID_TYPE: str = "scrolling_strategic_map_grid"
 MINIMAP_GRID_TYPE: str = "minimap_grid"
 
 grid_types_list: List[str] = [
     STRATEGIC_MAP_GRID_TYPE,
     EARTH_GRID_TYPE,
+    GLOBE_PROJECTION_GRID_TYPE,
     SCROLLING_STRATEGIC_MAP_GRID_TYPE,
     MINIMAP_GRID_TYPE,
 ]
-abstract_grid_type_list: List[str] = [EARTH_GRID_TYPE]
+abstract_grid_type_list: List[str] = [EARTH_GRID_TYPE, GLOBE_PROJECTION_GRID_TYPE]
 
 grids_collection_x: int = default_display_width - 740
 grids_collection_y: int = default_display_height - 325
 
-earth_grid_x_offset: int = -75  # 130 - 60
+earth_grid_x_offset: int = -75
 earth_grid_y_offset: int = 140
-earth_grid_width: int = 108  # 180
-earth_grid_height: int = 108  # 180
+earth_grid_width: int = 108
+earth_grid_height: int = 108
 
-strategic_map_x_offset: int = earth_grid_x_offset + earth_grid_width + 15  # 60
+strategic_map_x_offset: int = earth_grid_x_offset + earth_grid_width + 15
 strategic_map_y_offset: int = earth_grid_y_offset
-strategic_map_pixel_width: int = 180  # 320 * 0.75
-strategic_map_pixel_height: int = 180  # 320 * 0.75
+strategic_map_pixel_width: int = 180
+strategic_map_pixel_height: int = 180
+
+globe_projection_grid_x_offset: int = (
+    strategic_map_x_offset + strategic_map_pixel_width + 15
+)
+globe_projection_grid_y_offset: int = earth_grid_y_offset
+globe_projection_grid_width: int = 108
+globe_projection_grid_height: int = 108
 
 minimap_grid_x_offset: int = -75
 minimap_grid_y_offset: int = 150
@@ -720,6 +729,7 @@ SELL_ALL_COMMODITY_BUTTON: str = "sell_all_commodity_button"
 USE_EQUIPMENT_BUTTON: str = "use_equipment_button"
 REMOVE_EQUIPMENT_BUTTON: str = "remove_equipment_button"
 RENAME_SETTLEMENT_BUTTON: str = "rename_settlement_button"
+RENAME_PLANET_BUTTON: str = "rename_planet_button"
 MINIMIZE_INTERFACE_COLLECTION_BUTTON: str = "minimize_interface_collection_button"
 MOVE_INTERFACE_COLLECTION_BUTTON: str = "move_interface_collection_button"
 RESET_INTERFACE_COLLECTION_BUTTON: str = "reset_interface_collection_button"
@@ -835,6 +845,7 @@ INVENTORY_QUANTITY_LABEL: str = "inventory_quantity_label"
 COORDINATES_LABEL: str = "coordinates_label"
 KNOWLEDGE_LABEL: str = "knowledge_label"
 TERRAIN_LABEL: str = "terrain_label"
+PLANET_NAME_LABEL: str = "planet_name_label"
 WATER_LABEL: str = "water_label"
 TEMPERATURE_LABEL: str = "temperature_label"
 VEGETATION_LABEL: str = "vegetation_label"

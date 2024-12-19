@@ -958,22 +958,47 @@ class world_grid(grid):
                     }
                 )
 
-    def update_globe_projection(self):
+    def update_globe_projection(
+        self, center_coordinates: Tuple[int, int] = None, update_button: bool = True
+    ):
+        """
+        Description:
+            Updates the globe projection to the current state of the world grid
+        Input:
+            int tuple center_coordinates: Coordinates to center the globe projection on - defaults to currently centered location
+            bool update_button: True if the strategic mode button should also be updated
+        Output:
+            None
+        """
         status.globe_projection_image.set_image(
-            status.strategic_map_grid.create_planet_image()
+            status.strategic_map_grid.create_planet_image(
+                center_coordinates=center_coordinates
+            )
         )
         status.globe_projection_surface = status.globe_projection_image.image
-        status.to_strategic_button.image.set_image(
-            actor_utility.generate_frame(
-                "misc/space.png",
+        globe_projection_tile = status.globe_projection_grid.find_cell(0, 0).tile
+        globe_projection_image_id = [
+            "misc/space.png",
+            {
+                "image_id": status.globe_projection_surface,
+                "size": 0.8,
+            },
+        ]
+        globe_projection_tile.image.set_image(globe_projection_image_id)
+        globe_projection_tile.grid_image_id = globe_projection_image_id
+
+        if update_button:
+            status.to_strategic_button.image.set_image(
+                actor_utility.generate_frame(
+                    "misc/space.png",
+                )
+                + [
+                    {
+                        "image_id": status.globe_projection_surface,
+                        "size": 0.6,
+                    }
+                ]
             )
-            + [
-                {
-                    "image_id": status.globe_projection_surface,
-                    "size": 0.6,
-                }
-            ]
-        )
 
     def create_map_image(self):
         """
@@ -1264,9 +1289,18 @@ class world_grid(grid):
         return inserted_idx, inserted_coordinates
 
 
-def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -> grid:
+def create_grid(
+    from_save: bool, grid_type: str, input_dict: Dict[str, any] = None
+) -> grid:
     """
     Description:
+        Creates a grid of the inputted type
+    Input:
+        boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
+        grid_type: str value - Type of grid, like 'strategic_map_grid' or 'earth_grid'
+        dictionary input_dict: Keys corresponding to the values needed to initialize this object
+    Output:
+        grid: Returns the newly created grid
     """
     if not input_dict:
         input_dict = {}
@@ -1308,6 +1342,7 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
             }
         )
         return_grid = world_grid(from_save, input_dict)
+        status.strategic_map_grid = return_grid
 
     elif grid_type == constants.SCROLLING_STRATEGIC_MAP_GRID_TYPE:
         input_dict.update(
@@ -1323,6 +1358,7 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
             }
         )
         return_grid = mini_grid(from_save, input_dict)
+        status.scrolling_strategic_map_grid = return_grid
 
     elif grid_type == constants.MINIMAP_GRID_TYPE:
         input_dict.update(
@@ -1340,6 +1376,7 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
             }
         )
         return_grid = mini_grid(from_save, input_dict)
+        status.minimap_grid = return_grid
 
     elif grid_type in constants.abstract_grid_type_list:
         input_dict.update(
@@ -1349,17 +1386,17 @@ def create(from_save: bool, grid_type: str, input_dict: Dict[str, any] = None) -
                     getattr(constants, grid_type + "_y_offset"),
                 ),
                 # Like (earth_grid_x_offset, earth_grid_y_offset)
-                "width": getattr(constants, grid_type + "_width"),
-                "height": getattr(constants, grid_type + "_height"),
+                "width": scaling.scale_width(getattr(constants, grid_type + "_width")),
+                "height": scaling.scale_height(
+                    getattr(constants, grid_type + "_height")
+                ),
             }
         )
         if grid_type == constants.EARTH_GRID_TYPE:
             input_dict["modes"].append(constants.EARTH_MODE)
-
-        input_dict["name"] = (
-            grid_type[:-5].replace("_", " ").capitalize()
-        )  # Replaces earth_grid with Earth
         return_grid = abstract_grid(from_save, input_dict)
-
-    setattr(status, grid_type, return_grid)
+        if grid_type == constants.EARTH_GRID_TYPE:
+            status.earth_grid = return_grid
+        elif grid_type == constants.GLOBE_PROJECTION_GRID_TYPE:
+            status.globe_projection_grid = return_grid
     return return_grid

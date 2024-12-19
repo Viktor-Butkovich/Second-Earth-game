@@ -82,7 +82,7 @@ class save_load_manager_template:
         flags.victories_this_game = []
 
         for grid_type in constants.grid_types_list:
-            world_grids.create(from_save=False, grid_type=grid_type)
+            world_grids.create_grid(from_save=False, grid_type=grid_type)
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
         game_transitions.create_strategic_map(from_save=False)
         for terrain_parameter in constants.terrain_parameters:
@@ -281,15 +281,15 @@ class save_load_manager_template:
 
         # Load grids
         for current_grid_dict in saved_grid_dicts:
-            world_grids.create(
+            world_grids.create_grid(
                 from_save=True,
                 grid_type=current_grid_dict["grid_type"],
                 input_dict=current_grid_dict,
             )
-        world_grids.create(
+        world_grids.create_grid(
             from_save=False, grid_type=constants.SCROLLING_STRATEGIC_MAP_GRID_TYPE
         )
-        world_grids.create(from_save=False, grid_type=constants.MINIMAP_GRID_TYPE)
+        world_grids.create_grid(from_save=False, grid_type=constants.MINIMAP_GRID_TYPE)
 
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
         game_transitions.create_strategic_map(from_save=True)

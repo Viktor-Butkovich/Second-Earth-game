@@ -113,6 +113,7 @@ class grid(interface_elements.interface_element):
                 current_cell.to_save_dict()
                 for current_cell in self.get_flat_cell_list()
             ],
+            "name": self.world_handler.name,
         }
 
     def draw(self):
@@ -735,11 +736,31 @@ class abstract_grid(grid):
         input_dict["coordinate_width"] = 1
         input_dict["coordinate_height"] = 1
         super().__init__(from_save, input_dict)
+        if input_dict["grid_type"] == constants.EARTH_GRID_TYPE:
+            self.world_handler = terrain_manager_template.world_handler(
+                self,
+                from_save,
+                input_dict.get("world_handler", {"grid_type": input_dict["grid_type"]}),
+            )
+        elif input_dict["grid_type"] == constants.GLOBE_PROJECTION_GRID_TYPE:
+            self.world_handler = status.strategic_map_grid.world_handler
         self.is_abstract_grid = True
-        self.world_handler = terrain_manager_template.world_handler(
-            self,
-            from_save,
-            input_dict.get("world_handler", {"grid_type": input_dict["grid_type"]}),
-        )
-        self.name = input_dict["name"]
+        self.name = self.world_handler.name
         self.cell_list[0][0].terrain_handler.set_visibility(True)
+
+    def rename(self, new_name: str) -> None:
+        """
+        Description:
+            Renames this grid
+        Input:
+            string new_name: New name for this grid
+        Output:
+            None
+        """
+        self.name = new_name
+        self.world_handler.name = new_name
+        self.cell_list[0][0].tile.name = new_name
+        if status.displayed_tile == self.cell_list[0][0].tile:
+            actor_utility.calibrate_actor_info_display(
+                status.tile_info_display, status.displayed_tile
+            )
