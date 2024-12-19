@@ -249,6 +249,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Transcribe Super-Earth planet names from https://science.nasa.gov/exoplanets/exoplanet-catalog/?pageno=1&planet_type=Super+Earth&content_list=true
 
 # Upcoming work queue:
+# Try recursive image caching - cache each portion of an image rather than the whole thing
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art
