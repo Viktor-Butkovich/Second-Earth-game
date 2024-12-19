@@ -475,7 +475,7 @@ def manage_lmb_down(clicked_button):
                 if constants.current_game_mode == constants.MINISTERS_MODE:
                     minister_utility.calibrate_minister_info_display(None)
                 elif constants.current_game_mode == constants.NEW_GAME_SETUP_MODE:
-                    nothing = 0
+                    pass
                 else:
                     actor_utility.calibrate_actor_info_display(
                         status.mob_info_display, None, override_exempt=True

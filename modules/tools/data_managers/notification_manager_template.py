@@ -236,8 +236,9 @@ class notification_manager_template:
         }
 
         input_dict["on_reveal"] = notification_dict.get("on_reveal", None)
-        input_dict["on_remove"] = notification_dict.get("on_remove", None)
-
+        input_dict["on_remove"] = notification_dict.get("on_remove", [])
+        if input_dict["on_remove"] == None:
+            input_dict["on_remove"] = []
         if notification_type == constants.CHOICE_NOTIFICATION:
             del input_dict["notification_dice"]
             input_dict["button_types"] = notification_dict["choices"]

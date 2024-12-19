@@ -2,7 +2,7 @@
 
 import pygame
 from ..constructs import images
-from ..util import scaling, utility, dummy_utility
+from ..util import scaling, utility, dummy_utility, actor_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
 
@@ -981,6 +981,22 @@ class ordered_collection(interface_collection):
                     {
                         "image_id": "buttons/default_button_frame.png",
                         "level": constants.BACKGROUND_LEVEL,
+                    }
+                ]
+            )
+        elif self == status.global_conditions_collection and new_actor:
+            if new_actor.cell.grid == status.earth_grid:
+                globe_image = "locations/earth.png"
+            else:
+                globe_image = status.globe_projection_surface
+            self.tab_button.image.set_image(
+                actor_utility.generate_frame(
+                    "misc/space.png",
+                )
+                + [
+                    {
+                        "image_id": globe_image,
+                        "size": 0.6,
                     }
                 ]
             )

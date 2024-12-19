@@ -1,0 +1,1 @@
+powershell.exe -noprofile -executionpolicy Bypass -file .\scripts/build.ps1

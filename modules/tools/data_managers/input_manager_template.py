@@ -18,10 +18,8 @@ class input_manager_template:
         Output:
             None
         """
-        self.previous_input = ""
         self.taking_input = False
         self.old_taking_input = self.taking_input
-        self.stored_input = ""
         self.send_input_to: callable = None
 
     def check_for_input(self):

@@ -2,6 +2,7 @@
 
 import random
 import pickle
+import pygame
 from ...util import (
     game_transitions,
     turn_management_utility,
@@ -81,7 +82,7 @@ class save_load_manager_template:
         flags.victories_this_game = []
 
         for grid_type in constants.grid_types_list:
-            world_grids.create(from_save=False, grid_type=grid_type)
+            world_grids.create_grid(from_save=False, grid_type=grid_type)
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
         game_transitions.create_strategic_map(from_save=False)
         for terrain_parameter in constants.terrain_parameters:
@@ -158,6 +159,12 @@ class save_load_manager_template:
             None
         """
         file_path = "save_games/" + file_path
+
+        if constants.effect_manager.effect_active("save_global_projection"):
+            pygame.image.save(
+                status.globe_projection_surface, "save_games/globe_projection.png"
+            )
+
         status.transaction_history = constants.money_tracker.transaction_history
         saved_constants = {}
         for current_element in self.copied_constants:
@@ -184,11 +191,11 @@ class save_load_manager_template:
 
         saved_actor_dicts = []
         for current_pmob in status.pmob_list:
-            if not (
-                current_pmob.in_group
-                or current_pmob.in_vehicle
-                or current_pmob.in_building
-            ):  # containers save their contents and load them in, contents don't need to be saved/loaded separately
+            if not current_pmob.any_permissions(
+                constants.IN_GROUP_PERMISSION,
+                constants.IN_VEHICLE_PERMISSION,
+                constants.IN_BUILDING_PERMISSION,
+            ):  # Containers save their contents and load them in, contents don't need to be saved/loaded separately
                 saved_actor_dicts.append(current_pmob.to_save_dict())
 
         for current_npmob in status.npmob_list:
@@ -274,13 +281,15 @@ class save_load_manager_template:
 
         # Load grids
         for current_grid_dict in saved_grid_dicts:
-            world_grids.create(
+            world_grids.create_grid(
                 from_save=True,
                 grid_type=current_grid_dict["grid_type"],
                 input_dict=current_grid_dict,
             )
-        world_grids.create(from_save=False, grid_type="scrolling_strategic_map_grid")
-        world_grids.create(from_save=False, grid_type="minimap_grid")
+        world_grids.create_grid(
+            from_save=False, grid_type=constants.SCROLLING_STRATEGIC_MAP_GRID_TYPE
+        )
+        world_grids.create_grid(from_save=False, grid_type=constants.MINIMAP_GRID_TYPE)
 
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
         game_transitions.create_strategic_map(from_save=True)

@@ -1,6 +1,7 @@
 # Contains functions that manage what happens at the end of each turn, like worker upkeep and price changes
 
 import random
+import os
 from . import (
     text_utility,
     actor_utility,
@@ -26,11 +27,87 @@ def end_turn():
         None
     """
     remove_excess_inventory()
-    for current_pmob in status.pmob_list:
-        current_pmob.end_turn_move()
+    manage_environmental_conditions()
     flags.player_turn = False
     status.player_turn_queue = []
+    prepare_planet_rotation()
     start_enemy_turn()
+
+
+def prepare_planet_rotation():
+    """
+    Description:
+        Sets up constant values for planet rotation starting from currently selected tile
+    Input:
+        None
+    Output:
+        None
+    """
+    if constants.effect_manager.effect_active("save_global_projection"):
+        folder_path = "save_games/globe_rotations"
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+    center_coordinates = (
+        status.scrolling_strategic_map_grid.center_x,
+        status.scrolling_strategic_map_grid.center_y,
+    )
+    (
+        center_index,
+        latitude_lines,
+    ) = status.strategic_map_grid.world_handler.get_latitude_line(center_coordinates)
+    if latitude_lines == status.strategic_map_grid.world_handler.latitude_lines:
+        constants.TIME_PASSING_EQUATORIAL_COORDINATES = (
+            status.strategic_map_grid.world_handler.equatorial_coordinates
+        )
+    elif (
+        latitude_lines
+        == status.strategic_map_grid.world_handler.alternate_latitude_lines
+    ):
+        constants.TIME_PASSING_EQUATORIAL_COORDINATES = (
+            status.strategic_map_grid.world_handler.alternate_equatorial_coordinates
+        )
+    constants.TIME_PASSING_EARTH_ROTATIONS = 0
+    constants.TIME_PASSING_ROTATION = 0
+    constants.TIME_PASSING_ITERATIONS = 0
+    for index, coordinates in enumerate(latitude_lines[center_index]):
+        if coordinates in constants.TIME_PASSING_EQUATORIAL_COORDINATES:
+            constants.TIME_PASSING_INITIAL_ORIENTATION = (
+                constants.TIME_PASSING_EQUATORIAL_COORDINATES.index(coordinates)
+            )
+            break
+
+    if status.strategic_map_grid.world_handler.rotation_speed > 2:
+        frame_interval = (
+            3  # Long interval causes more visible choppiness on slower rotations
+        )
+    else:
+        frame_interval = (
+            2  # Short interval causes more visible distortion on faster rotations
+        )
+    planet_frames = len(constants.TIME_PASSING_EQUATORIAL_COORDINATES) // frame_interval
+    earth_frames = len(os.listdir("graphics/locations/earth_rotations")) // 3
+    rotation_seconds = 2.5 * 0.92  # Ends up taking more than allocated time
+    total_timesteps = round(
+        rotation_seconds / (constants.end_turn_wait_time)
+    )  # 4 seconds of rotation with rotation_speed rotations for each planet
+    # There should be sufficient timesteps for Earth to rotate earth_rotation_speed times
+    # Each full rotation requires # transitions equal to # frames
+
+    constants.TIME_PASSING_EARTH_SCHEDULE = [False] * total_timesteps
+    num_earth_rotations = status.strategic_map_grid.get_tuning("earth_rotation_speed")
+    earth_step_interval = total_timesteps / (earth_frames * num_earth_rotations)
+    for i in range(round(earth_frames * num_earth_rotations)):
+        constants.TIME_PASSING_EARTH_SCHEDULE[round(i * earth_step_interval)] = True
+
+    constants.TIME_PASSING_PLANET_SCHEDULE = [False] * total_timesteps
+    num_planet_rotations = status.strategic_map_grid.world_handler.rotation_speed
+    planet_step_interval = total_timesteps / (planet_frames * num_planet_rotations)
+    for i in range(round(planet_frames * num_planet_rotations)):
+        constants.TIME_PASSING_PLANET_SCHEDULE[round(i * planet_step_interval)] = True
 
 
 def start_enemy_turn():
@@ -62,6 +139,8 @@ def start_player_turn(first_turn=False):
         status.previous_sales_report,
         status.previous_financial_report,
     ) = (None, None, None)
+    for current_pmob in status.pmob_list:
+        current_pmob.end_turn_move()  # Make sure no units that suffered attrition move when they shouldn't have
     text_utility.print_to_screen("")
     text_utility.print_to_screen("Turn " + str(constants.turn + 1))
     if not first_turn:
@@ -153,9 +232,11 @@ def manage_attrition():
         None
     """
     for current_pmob in status.pmob_list:
-        if not (
-            current_pmob.in_vehicle or current_pmob.in_group or current_pmob.in_building
-        ):  # vehicles, groups, and buildings handle attrition for their submobs
+        if not current_pmob.any_permissions(
+            constants.IN_VEHICLE_PERMISSION,
+            constants.IN_GROUP_PERMISSION,
+            constants.IN_BUILDING_PERMISSION,
+        ):  # Vehicles, groups, and buildings handle attrition for their submobs
             current_pmob.manage_health_attrition()
     for current_building in status.building_list:
         if current_building.building_type == constants.RESOURCE:
@@ -193,6 +274,26 @@ def remove_excess_inventory():
             current_tile = current_cell.tile
             if current_tile.inventory:
                 current_tile.remove_excess_inventory()
+
+
+def manage_environmental_conditions():
+    """
+    Description:
+        Kills any units in deadly environmental conditions
+    Input:
+        None
+    Output:
+        None
+    """
+    for current_pmob in status.pmob_list.copy():
+        if not current_pmob.get_permission(constants.SURVIVABLE_PERMISSION):
+            if not (
+                current_pmob.any_permissions(
+                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
+                )
+                and current_pmob.get_permission(constants.IN_GROUP_PERMISSION)
+            ):
+                current_pmob.die()
 
 
 def manage_production():
@@ -702,7 +803,7 @@ def end_turn_warnings():
     ) in (
         constants.abstract_grid_type_list
     ):  # Warn for leaving units behind in non-Earth grids
-        if grid_type != "earth_grid":
+        if grid_type != constants.EARTH_GRID_TYPE:
             current_cell = getattr(status, grid_type).find_cell(0, 0)
             num_leaving, num_reserve = (
                 00,
@@ -747,3 +848,16 @@ def end_turn_warnings():
                 "message": text,
             }
         )
+
+    for pmob in status.pmob_list:
+        if (not pmob.get_permission(constants.SURVIVABLE_PERMISSION)) and (
+            not pmob.get_permission(constants.IN_GROUP_PERMISSION)
+        ):
+            text = "WARNING: At least 1 unit is in deadly environmental conditions and will die at the end of the turn. /n /n"
+            constants.notification_manager.display_notification(
+                {
+                    "message": text,
+                    "zoom_destination": pmob,
+                }
+            )
+            break

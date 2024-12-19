@@ -78,7 +78,7 @@ class upgrade(action.action):
             self.current_building = unit.get_cell().get_intact_building(
                 self.building_type.key
             )
-            if self.upgrade_type == constants.WAREHOUSES_LEVEL:
+            if self.upgrade_type == constants.WAREHOUSE_LEVEL:
                 noun = "tile"
             else:
                 noun = self.current_building.name
@@ -107,7 +107,7 @@ class upgrade(action.action):
         """
         text = super().generate_notification_text(subject)
 
-        if self.building_type == constants.WAREHOUSES_LEVEL:
+        if self.building_type == constants.WAREHOUSE_LEVEL:
             noun = "tile"
         elif self.building_type in [
             constants.RESOURCE_EFFICIENCY,

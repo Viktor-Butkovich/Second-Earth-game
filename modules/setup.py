@@ -344,7 +344,7 @@ def equipment_types_config():
     """
     equipment_types.equipment_type(
         {
-            "equipment_type": "spacesuits",
+            "equipment_type": constants.SPACESUITS_EQUIPMENT,
             "can_purchase": True,
             "price": 5,
             "requirements": (
@@ -359,9 +359,9 @@ def equipment_types_config():
                 "permissions": [constants.SPACESUITS_PERMISSION],
             },
             "description": [
-                "Spacesuits are required for humans to enter, survive, and work in uninhabitable environments",
-                "Any human units in uninhabitable environments will immediately perish if spacesuits are unequipped for any reason",
-                "By default, solitary officers are assumed to be wearing personal spacesuits",
+                "Spacesuits are required for humans to survive in deadly conditions",
+                "Human units without spacesuits in deadly conditions cannot perform actions and will die at the end of the turn",
+                # "By default, solitary officers are assumed to be wearing personal spacesuits",
             ],
             "equipment_image": {
                 constants.FULL_BODY_PORTRAIT_SECTION: "mobs/spacesuits/spacesuit_body.png",
@@ -641,11 +641,17 @@ def building_types_config():
     #                "cost": constants.base_upgrade_price,
     #                "max": 6,
     #                "name": "scale",
+    #                "description": [
+    #                   "Each increase to scale allows another work crew to work here."
+    #                ]"
     #            },
     #            constants.RESOURCE_EFFICIENCY: {
     #                "cost": constants.base_upgrade_price,
     #                "max": 6,
     #                "name": "efficiency",
+    #                "description": [
+    #                    "Each increase to efficiency allows each work crew to make an additional production attempt each turn."
+    #                ],
     #            },
     #        },
     #        "attached_settlement": True,
@@ -704,10 +710,13 @@ def building_types_config():
             "can_damage": False,
             "cost": 5,
             "upgrade_fields": {
-                constants.WAREHOUSES_LEVEL: {
+                constants.WAREHOUSE_LEVEL: {
                     "name": "warehouse capacity",
                     "cost": constants.base_upgrade_price,
                     "keybind": pygame.K_k,
+                    "description": [
+                        "Each increase to warehouse capacity increases this tile's inventory capacity by 9."
+                    ],
                 },
             },
         }
@@ -1354,13 +1363,85 @@ def buttons():
     ministers_flag_icon = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
+    globe_projection_x = scaling.scale_width(
+        constants.strategic_map_x_offset
+        + constants.grids_collection_x
+        + constants.strategic_map_pixel_width
+        + 15
+    )
+    globe_projection_y = (
+        scaling.scale_height(constants.earth_grid_y_offset) + status.grids_collection.y
+    )
+    globe_projection_size = constants.earth_grid_width * 0.85
+    status.globe_projection_image = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": (globe_projection_x, globe_projection_y),
+                "init_type": constants.FREE_IMAGE,
+                "modes": [],
+                "width": scaling.scale_width(globe_projection_size),
+                "height": scaling.scale_height(globe_projection_size),
+                "image_id": "misc/empty.png",
+                "pixellate_image": True,
+            }
+        )
+    )
+    compass_overlay_size = 15
+    north_overlay = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": (
+                status.grids_collection.x
+                + scaling.scale_width(
+                    constants.globe_projection_grid_x_offset
+                    + constants.globe_projection_grid_width / 2
+                    - compass_overlay_size / 2
+                ),
+                status.grids_collection.y
+                + scaling.scale_height(
+                    constants.globe_projection_grid_y_offset
+                    + constants.globe_projection_grid_height
+                    - (compass_overlay_size * 0.25)
+                ),
+            ),
+            "init_type": constants.FREE_IMAGE,
+            "modes": [constants.STRATEGIC_MODE],  # status.globe_projection_image.modes,
+            "width": scaling.scale_width(compass_overlay_size),
+            "height": scaling.scale_width(compass_overlay_size),
+            "image_id": "misc/north_indicator.png",
+            "to_front": True,
+        }
+    )
+    south_overlay = constants.actor_creation_manager.create_interface_element(
+        {
+            "coordinates": (
+                status.grids_collection.x
+                + scaling.scale_width(
+                    constants.globe_projection_grid_x_offset
+                    + constants.globe_projection_grid_width / 2
+                    - compass_overlay_size / 2
+                ),
+                status.grids_collection.y
+                + scaling.scale_height(
+                    constants.globe_projection_grid_y_offset
+                    + compass_overlay_size * -0.75
+                ),
+            ),
+            "init_type": constants.FREE_IMAGE,
+            "modes": north_overlay.modes,
+            "width": scaling.scale_width(compass_overlay_size),
+            "height": scaling.scale_width(compass_overlay_size),
+            "image_id": "misc/south_indicator.png",
+        }
+    )
 
     switch_game_mode_buttons_x = (
         constants.strategic_map_x_offset
         + constants.grids_collection_x
         + constants.strategic_map_pixel_width
         + 15
-    )  # 1265 # 1065
+        + globe_projection_size
+        + 15
+    )
     input_dict = {
         "coordinates": scaling.scale_coordinates(
             switch_game_mode_buttons_x, constants.default_display_height - 55
@@ -1378,8 +1459,8 @@ def buttons():
         "to_mode": constants.STRATEGIC_MODE,
         "init_type": constants.SWITCH_GAME_MODE_BUTTON,
     }
-    to_strategic_button = constants.actor_creation_manager.create_interface_element(
-        input_dict
+    status.to_strategic_button = (
+        constants.actor_creation_manager.create_interface_element(input_dict)
     )
 
     input_dict.update(
@@ -1387,12 +1468,20 @@ def buttons():
             "coordinates": scaling.scale_coordinates(
                 switch_game_mode_buttons_x + 60, constants.default_display_height - 55
             ),
-            "image_id": actor_utility.generate_frame("locations/earth.png"),
+            "image_id": actor_utility.generate_frame(
+                "misc/space.png",
+            )
+            + [
+                {
+                    "image_id": "locations/earth.png",
+                    "size": 0.6,
+                }
+            ],
             "to_mode": constants.EARTH_MODE,
             "keybind_id": pygame.K_2,
         }
     )
-    to_earth_button = constants.actor_creation_manager.create_interface_element(
+    status.to_earth_button = constants.actor_creation_manager.create_interface_element(
         input_dict
     )
 
@@ -1667,7 +1756,12 @@ def buttons():
         input_dict["toggle_variable"] = "mars_preset"
         input_dict["attached_to_actor"] = False
         input_dict["modes"] = [constants.NEW_GAME_SETUP_MODE]
-        input_dict["image_id"] = actor_utility.generate_frame("locations/mars.png")
+        input_dict["image_id"] = actor_utility.generate_frame("misc/space.png") + [
+            {
+                "image_id": "locations/mars.png",
+                "size": 0.6,
+            }
+        ]
         input_dict["width"] = scaling.scale_width(100)
         input_dict["height"] = scaling.scale_height(100)
         input_dict["parent_collection"] = rhs_menu_collection
@@ -1675,11 +1769,21 @@ def buttons():
         constants.actor_creation_manager.create_interface_element(input_dict)
 
         input_dict["toggle_variable"] = "earth_preset"
-        input_dict["image_id"] = actor_utility.generate_frame("locations/earth.png")
+        input_dict["image_id"] = actor_utility.generate_frame("misc/space.png") + [
+            {
+                "image_id": "locations/earth.png",
+                "size": 0.6,
+            }
+        ]
         constants.actor_creation_manager.create_interface_element(input_dict)
 
         input_dict["toggle_variable"] = "venus_preset"
-        input_dict["image_id"] = actor_utility.generate_frame("locations/venus.png")
+        input_dict["image_id"] = actor_utility.generate_frame("misc/space.png") + [
+            {
+                "image_id": "locations/venus.png",
+                "size": 0.6,
+            }
+        ]
         constants.actor_creation_manager.create_interface_element(input_dict)
 
 
@@ -1716,7 +1820,7 @@ def earth_screen():
                 "parent_collection": earth_purchase_buttons,
                 "recruitment_type": recruitment_type,
                 "member_config": {
-                    "second_dimension_coordinate": -1 * (recruitment_index // 8)
+                    "second_dimension_coordinate": -1 * (recruitment_index // 7)
                 },
             }
         )
@@ -1749,7 +1853,7 @@ def ministers_screen():
     Output:
         None
     """
-    # minister table setup
+    # Minister table setup
     table_width = 400
     table_height = 750
     constants.actor_creation_manager.create_interface_element(
@@ -1764,18 +1868,7 @@ def ministers_screen():
             "init_type": constants.FREE_IMAGE,
         }
     )
-    status.table_map_image = constants.actor_creation_manager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(
-                (constants.default_display_width / 2) - 100, 400
-            ),
-            "init_type": constants.FREE_IMAGE,
-            "modes": [constants.MINISTERS_MODE],
-            "width": scaling.scale_width(200),
-            "height": scaling.scale_height(200),
-            "image_id": "misc/empty.png",
-        }
-    )
+
     position_icon_width = 75
     portrait_icon_width = 125
     input_dict = {
@@ -2315,6 +2408,7 @@ def mob_sub_interface():
         constants.WORKERS_LABEL,
         constants.MOVEMENT_LABEL,
         constants.EQUIPMENT_LABEL,
+        constants.BANNER_LABEL,
         constants.ATTITUDE_LABEL,
         constants.CONTROLLABLE_LABEL,
         constants.CREW_LABEL,
@@ -2333,7 +2427,6 @@ def mob_sub_interface():
         else:
             x_displacement = 0
         input_dict = {  # should declare here to reinitialize dict and prevent extra parameters from being incorrectly retained between iterations
-            "coordinates": scaling.scale_coordinates(0, 0),
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(30),
             "image_id": "misc/default_label.png",
@@ -2342,6 +2435,10 @@ def mob_sub_interface():
             "parent_collection": status.mob_info_display,
             "member_config": {"order_x_offset": x_displacement},
         }
+        if current_actor_label_type == constants.BANNER_LABEL:
+            input_dict["banner_type"] = "deadly conditions"
+            input_dict["banner_text"] = "Deadly conditions - will die at end of turn"
+
         if current_actor_label_type != constants.CURRENT_PASSENGER_LABEL:
             constants.actor_creation_manager.create_interface_element(input_dict)
         else:
@@ -2471,8 +2568,10 @@ def tile_interface():
     for current_actor_label_type in [
         constants.COORDINATES_LABEL,
         constants.TERRAIN_LABEL,
+        constants.PLANET_NAME_LABEL,
         constants.RESOURCE_LABEL,
         constants.TERRAIN_FEATURE_LABEL,
+        constants.HABITABILITY_LABEL,
     ]:
         x_displacement = 0
         input_dict = {
@@ -2982,9 +3081,7 @@ def terrain_interface():
                 "parent_collection": status.tile_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
-                    "button_image_id": actor_utility.generate_frame(
-                        "locations/earth.png"
-                    ),
+                    "button_image_id": "misc/empty.png",  # Filled by other functions
                     "identifier": constants.GLOBAL_CONDITIONS_PANEL,
                     "tab_name": "global conditions",
                 },
@@ -3042,7 +3139,6 @@ def terrain_interface():
         )
     )
 
-    placed_local_conditions_banner = False
     for current_actor_label_type in [
         constants.KNOWLEDGE_LABEL,
         constants.TERRAIN_LABEL,
@@ -3053,8 +3149,12 @@ def terrain_interface():
         constants.ROUGHNESS_LABEL,
         constants.SOIL_LABEL,
         constants.ALTITUDE_LABEL,
+        constants.HABITABILITY_LABEL,
     ]:
-        if current_actor_label_type == constants.KNOWLEDGE_LABEL:
+        if current_actor_label_type in [
+            constants.KNOWLEDGE_LABEL,
+            constants.HABITABILITY_LABEL,
+        ]:
             x_displacement = 0
         else:
             x_displacement = 25

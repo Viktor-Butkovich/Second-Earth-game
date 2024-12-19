@@ -112,6 +112,8 @@ class action:
                 f"You are busy and cannot start a {self.name}."
             )
             return False
+        elif not status.displayed_mob.check_action_survivability(notify=True):
+            return False
         elif self.actor_type == "mob" and not (unit.movement_points >= 1):
             text_utility.print_to_screen(
                 f"{utility.generate_article(self.name).capitalize()} {self.name} requires all remaining movement points, at least 1."
@@ -474,7 +476,7 @@ class action:
                 "message": text + "Click to remove this notification. /n /n",
                 "notification_type": constants.ACTION_NOTIFICATION,
                 "transfer_interface_elements": True,
-                "on_remove": self.complete,
+                "on_remove": [(self.complete, [])],
                 "audio": self.generate_audio("roll_finished"),
             }
         )

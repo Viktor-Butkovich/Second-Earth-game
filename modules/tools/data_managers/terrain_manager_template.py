@@ -213,7 +213,7 @@ class world_handler:
             self.default_grid.area * 6
         )  # Atmosphere units required for 1 bar pressure (like Earth)
         if not from_save:
-            if input_dict["grid_type"] == "strategic_map_grid":
+            if input_dict["grid_type"] == constants.STRATEGIC_MAP_GRID_TYPE:
                 if constants.effect_manager.effect_active("earth_preset"):
                     input_dict["color_filter"] = self.get_tuning("earth_color_filter")
                 elif constants.effect_manager.effect_active("mars_preset"):
@@ -248,6 +248,13 @@ class world_handler:
                     -5.95,
                 )
                 if constants.effect_manager.effect_active("earth_preset"):
+                    input_dict["name"] = "Earth"
+                    input_dict["rotation_direction"] = self.get_tuning(
+                        "earth_rotation_direction"
+                    )
+                    input_dict["rotation_speed"] = self.get_tuning(
+                        "earth_rotation_speed"
+                    )
                     input_dict["global_parameters"] = {
                         constants.GRAVITY: self.get_tuning("earth_gravity"),
                         constants.RADIATION: self.get_tuning("earth_radiation"),
@@ -286,6 +293,13 @@ class world_handler:
                     )
 
                 elif constants.effect_manager.effect_active("mars_preset"):
+                    input_dict["name"] = "Mars"
+                    input_dict["rotation_direction"] = self.get_tuning(
+                        "mars_rotation_direction"
+                    )
+                    input_dict["rotation_speed"] = self.get_tuning(
+                        "mars_rotation_speed"
+                    )
                     input_dict["global_parameters"] = {
                         constants.GRAVITY: self.get_tuning("mars_gravity"),
                         constants.RADIATION: self.get_tuning("mars_radiation"),
@@ -327,6 +341,13 @@ class world_handler:
                         "mars_average_water_target"
                     )
                 elif constants.effect_manager.effect_active("venus_preset"):
+                    input_dict["name"] = "Venus"
+                    input_dict["rotation_direction"] = self.get_tuning(
+                        "venus_rotation_direction"
+                    )
+                    input_dict["rotation_speed"] = self.get_tuning(
+                        "venus_rotation_speed"
+                    )
                     input_dict["global_parameters"] = {
                         constants.GRAVITY: self.get_tuning("venus_gravity"),
                         constants.RADIATION: self.get_tuning("venus_radiation"),
@@ -368,6 +389,13 @@ class world_handler:
                         "venus_average_water_target"
                     )
                 else:
+                    input_dict[
+                        "name"
+                    ] = constants.flavor_text_manager.generate_flavor_text(
+                        "planet_names"
+                    )
+                    input_dict["rotation_direction"] = random.choice([1, -1])
+                    input_dict["rotation_speed"] = random.choice([1, 2, 2, 3, 4, 5])
                     input_dict["global_parameters"] = {}
                     input_dict["global_parameters"][constants.GRAVITY] = round(
                         (self.default_grid.area / (constants.map_size_options[4] ** 2))
@@ -576,8 +604,8 @@ class world_handler:
                     input_dict["average_water_target"] = random.choice(
                         [
                             random.uniform(0.0, 5.0),
-                            random.uniform(0.0, 0.2),
-                            random.uniform(0.0, 2.5),
+                            random.uniform(0.0, 1.0),
+                            random.uniform(0.0, 4.0),
                         ]
                     )
 
@@ -602,8 +630,13 @@ class world_handler:
                             input_dict["global_parameters"][constants.OXYGEN] / 2
                         )
             elif (
-                input_dict["grid_type"] == "earth_grid"
+                input_dict["grid_type"] == constants.EARTH_GRID_TYPE
             ):  # Replace with a series of grid_type constants
+                input_dict["name"] = "Earth"
+                input_dict["rotation_direction"] = self.get_tuning(
+                    "earth_rotation_direction"
+                )
+                input_dict["rotation_speed"] = self.get_tuning("earth_rotation_speed")
                 input_dict["global_parameters"] = {
                     constants.GRAVITY: self.get_tuning("earth_gravity"),
                     constants.RADIATION: self.get_tuning("earth_radiation"),
@@ -651,6 +684,9 @@ class world_handler:
             input_dict["global_parameters"][constants.TOXIC_GASES], 1
         )
 
+        self.name = input_dict["name"]
+        self.rotation_direction = input_dict["rotation_direction"]
+        self.rotation_speed = input_dict["rotation_speed"]
         self.green_screen: Dict[str, Dict[str, any]] = input_dict.get(
             "green_screen", {}
         )
@@ -678,6 +714,132 @@ class world_handler:
         self.global_parameters: Dict[str, int] = {}
         for key in constants.global_parameters:
             self.set_parameter(key, input_dict.get("global_parameters", {}).get(key, 0))
+
+        """
+        15 x 15 grid has north pole 0, 0 and south pole 7, 7
+        If centered at (11, 11), latitude line should include (0, 0), (14, 14), (13, 13), (12, 12), (11, 11), (10, 10), (9, 9), (8, 8), (7, 7)
+            The above line should be used if centered at any of the above coordinates
+        If centered at (3, 11), latitude line should include (0, 0), (1, 14), (1, 13), (2, 12), (3, 11), (4, 10), (5, 9), (6, 8), (7, 7)
+
+        Need to draw latitude lines using the above method, centered on (0, 7), (1, 6), (2, 5), (3, 4), (4, 3), (5, 2), (6, 1), (7, 0), (8, 14), (9, 13), (10, 12), (11, 11), (12, 10), (13, 9), (14, 8)
+            ^ Forms diagonal line
+        Also need to draw latitude lines on other cross: (0, 8), (1, 9), (2, 10), (3, 11), (4, 12), (5, 13), (6, 14), (7, 0), (8, 1), (9, 2), (10, 3), (11, 4), (12, 5), (13, 6), (14, 7)
+        """
+        self.latitude_lines = []
+        self.alternate_latitude_lines = []
+        self.latitude_lines_types = [
+            [None for _ in range(self.default_grid.coordinate_height)]
+            for _ in range(self.default_grid.coordinate_width)
+        ]
+        north_pole = (0, 0)
+        south_pole = (
+            self.default_grid.coordinate_width // 2,
+            self.default_grid.coordinate_height // 2,
+        )
+        self.equatorial_coordinates = []
+        self.alternate_equatorial_coordinates = []
+        for equatorial_x in range(self.default_grid.coordinate_width):
+            equatorial_y = (
+                (self.default_grid.coordinate_width // 2) - equatorial_x
+            ) % self.default_grid.coordinate_height
+            current_line = self.draw_coordinate_line(
+                north_pole, (equatorial_x, equatorial_y)
+            ) + self.draw_coordinate_line(
+                (equatorial_x, equatorial_y), south_pole, omit_origin=True
+            )
+            for coordinate in current_line:
+                self.latitude_lines_types[coordinate[0]][coordinate[1]] = True
+            self.latitude_lines.append(current_line)
+            self.equatorial_coordinates.append((equatorial_x, equatorial_y))
+
+            equatorial_y = (
+                (self.default_grid.coordinate_height // 2) + equatorial_x + 1
+            ) % self.default_grid.coordinate_height
+            current_line = self.draw_coordinate_line(
+                north_pole, (equatorial_x, equatorial_y)
+            ) + self.draw_coordinate_line(
+                (equatorial_x, equatorial_y), south_pole, omit_origin=True
+            )
+            for coordinate in current_line:
+                self.latitude_lines_types[coordinate[0]][coordinate[1]] = False
+            self.alternate_latitude_lines.append(current_line)
+            self.alternate_equatorial_coordinates.append((equatorial_x, equatorial_y))
+
+    def get_latitude_line(
+        self, coordinates: Tuple[int, int]
+    ) -> Tuple[int, List[List[Tuple[int, int]]]]:
+        latitude_line_type = self.latitude_lines_types[coordinates[0]][coordinates[1]]
+        if latitude_line_type == None:
+            for offset in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                latitude_line_type = self.latitude_lines_types[
+                    (coordinates[0] + offset[0]) % self.default_grid.coordinate_width
+                ][(coordinates[1] + offset[1]) % self.default_grid.coordinate_height]
+                if latitude_line_type != None:
+                    coordinates = (
+                        (coordinates[0] + offset[0])
+                        % self.default_grid.coordinate_width,
+                        (coordinates[1] + offset[1])
+                        % self.default_grid.coordinate_height,
+                    )
+                    break
+        if latitude_line_type == True:
+            for idx, latitude_line in enumerate(self.latitude_lines):
+                if coordinates in latitude_line:
+                    return idx, self.latitude_lines
+        else:
+            for idx, latitude_line in enumerate(self.alternate_latitude_lines):
+                if coordinates in latitude_line:
+                    return idx, self.alternate_latitude_lines
+
+    def draw_coordinate_line(
+        self,
+        origin: Tuple[int, int],
+        destination: Tuple[int, int],
+        omit_origin: bool = False,
+    ) -> List[Tuple[int, int]]:
+        line = []
+        if not omit_origin:
+            line.append(origin)
+        x, y = origin
+        while (x, y) != destination:
+            x_distance = self.default_grid.x_distance_coords(x, destination[0])
+            y_distance = self.default_grid.y_distance_coords(y, destination[1])
+            if x_distance != 0:
+                slope = y_distance / x_distance
+
+            if x_distance == 0:
+                traverse = ["Y"]
+            elif y_distance == 0:
+                traverse = ["X"]
+            elif slope > 2:
+                traverse = ["Y"]
+            elif slope < 0.5:
+                traverse = ["X"]
+            else:
+                traverse = ["X", "Y"]
+
+            if "X" in traverse:
+                if (
+                    self.default_grid.x_distance_coords(
+                        (x + 1) % self.default_grid.coordinate_width, destination[0]
+                    )
+                    < x_distance
+                ):
+                    x = (x + 1) % self.default_grid.coordinate_width
+                else:
+                    x = (x - 1) % self.default_grid.coordinate_width
+            if "Y" in traverse:
+                if (
+                    self.default_grid.y_distance_coords(
+                        (y + 1) % self.default_grid.coordinate_height, destination[1]
+                    )
+                    < y_distance
+                ):
+                    y = (y + 1) % self.default_grid.coordinate_height
+                else:
+                    y = (y - 1) % self.default_grid.coordinate_height
+            line.append((x, y))
+        return line
 
     def change_parameter(self, parameter_name: str, change: int) -> None:
         """
@@ -772,6 +934,9 @@ class world_handler:
             "average_temperature": self.average_temperature,
             "global_water": self.global_water,
             "global_temperature": self.global_temperature,
+            "rotation_direction": self.rotation_direction,
+            "rotation_speed": self.rotation_speed,
+            "name": self.name,
         }
 
     def generate_green_screen(self) -> Dict[str, Dict[str, any]]:
@@ -922,7 +1087,7 @@ class world_handler:
             },
         }
 
-    def get_green_screen(self, terrain: str) -> Dict[str, Dict[str, any]]:
+    def get_green_screen(self, terrain: str = None) -> Dict[str, Dict[str, any]]:
         """
         Description:
             Returns the green screen for the inputted terrain type on this world
@@ -934,6 +1099,173 @@ class world_handler:
         # Make any per-terrain modifications
 
         return self.green_screen
+
+    def get_ideal_parameter(self, parameter_name: str) -> float:
+        """
+        Description:
+            Gets the ideal value of the inputted terrain parameter
+        Input:
+            string parameter_name: Name of the parameter to get the ideal value of
+        Output:
+            float: Ideal value of the inputted parameter, like 1.0 gravity or 21% of atmosphere's pressure for oxygen
+        """
+        if parameter_name in [
+            constants.OXYGEN,
+            constants.GHG,
+            constants.INERT_GASES,
+            constants.TOXIC_GASES,
+        ]:
+            return round(
+                self.default_grid.area * 6 * self.get_tuning(f"earth_{parameter_name}"),
+                2,
+            )
+        elif parameter_name == constants.RADIATION:
+            return 0.0
+        elif parameter_name == constants.PRESSURE:
+            if self.default_grid.area == 1:
+                return self.earth_size * 6 * self.get_tuning("earth_pressure")
+            else:
+                return self.default_grid.area * 6 * self.get_tuning("earth_pressure")
+        else:
+            return self.get_tuning(f"earth_{parameter_name}")
+
+    def calculate_parameter_habitability(self, parameter_name: str) -> int:
+        """
+        Description:
+            Calculates and returns the habitability effect of a particular global parameter
+        Input:
+            string parameter_name: Name of the parameter to calculate habitability for
+        Output:
+            int: Returns the habitability effect of the inputted parameter, from 0 to 5 (5 is perfect, 0 is deadly)
+        """
+        value = self.get_parameter(parameter_name)
+        ideal = self.get_ideal_parameter(parameter_name)
+        if parameter_name == constants.PRESSURE:
+            ratio = round(value / ideal, 2)
+            if ratio >= 30:
+                return constants.HABITABILITY_DEADLY
+            elif ratio >= 10:
+                return constants.HABITABILITY_DANGEROUS
+            elif ratio >= 4:
+                return constants.HABITABILITY_HOSTILE
+            elif ratio >= 2.5:
+                return constants.HABITABILITY_UNPLEASANT
+            elif ratio >= 1.1:
+                return constants.HABITABILITY_TOLERABLE
+            elif ratio >= 0.9:
+                return constants.HABITABILITY_PERFECT
+            elif ratio >= 0.75:
+                return constants.HABITABILITY_TOLERABLE
+            elif ratio >= 0.55:
+                return constants.HABITABILITY_UNPLEASANT
+            elif ratio >= 0.21:
+                return constants.HABITABILITY_HOSTILE
+            elif ratio >= 0.12:
+                return constants.HABITABILITY_DANGEROUS
+            else:
+                return constants.HABITABILITY_DEADLY
+        elif parameter_name == constants.OXYGEN:
+            if self.get_parameter(constants.PRESSURE) == 0:
+                return constants.HABITABILITY_PERFECT
+            composition = round(value / self.get_parameter(constants.PRESSURE), 2)
+            if composition >= 0.6:
+                return constants.HABITABILITY_HOSTILE
+            elif composition >= 0.24:
+                return constants.HABITABILITY_UNPLEASANT
+            elif composition >= 0.22:
+                return constants.HABITABILITY_TOLERABLE
+            elif composition >= 0.2:
+                return constants.HABITABILITY_PERFECT
+            elif composition >= 0.19:
+                return constants.HABITABILITY_TOLERABLE
+            elif composition >= 0.17:
+                return constants.HABITABILITY_UNPLEASANT
+            elif composition >= 0.14:
+                return constants.HABITABILITY_HOSTILE
+            elif composition >= 0.1:
+                return constants.HABITABILITY_DANGEROUS
+            else:
+                return constants.HABITABILITY_DEADLY
+        elif parameter_name == constants.GHG:
+            if self.get_parameter(constants.PRESSURE) == 0:
+                return constants.HABITABILITY_PERFECT
+            composition = round(value / self.get_parameter(constants.PRESSURE), 3)
+            if composition >= 0.03:
+                return constants.HABITABILITY_DEADLY
+            elif composition >= 0.02:
+                return constants.HABITABILITY_DANGEROUS
+            elif composition >= 0.015:
+                return constants.HABITABILITY_HOSTILE
+            elif composition >= 0.01:
+                return constants.HABITABILITY_UNPLEASANT
+            elif composition >= 0.006:
+                return constants.HABITABILITY_TOLERABLE
+            else:
+                return constants.HABITABILITY_PERFECT
+
+        elif parameter_name == constants.INERT_GASES:
+            if self.get_parameter(constants.PRESSURE) == 0:
+                return constants.HABITABILITY_PERFECT
+            composition = round(value / self.get_parameter(constants.PRESSURE), 2)
+            if composition >= 0.80:
+                return constants.HABITABILITY_TOLERABLE
+            elif composition >= 0.76:
+                return constants.HABITABILITY_PERFECT
+            elif composition >= 0.5:
+                return constants.HABITABILITY_TOLERABLE
+            else:
+                return constants.HABITABILITY_UNPLEASANT
+
+        elif parameter_name == constants.TOXIC_GASES:
+            if self.get_parameter(constants.PRESSURE) == 0:
+                return constants.HABITABILITY_PERFECT
+            composition = round(value / self.get_parameter(constants.PRESSURE), 4)
+            if composition >= 0.004:
+                return constants.HABITABILITY_DEADLY
+            elif composition >= 0.003:
+                return constants.HABITABILITY_DANGEROUS
+            elif composition >= 0.002:
+                return constants.HABITABILITY_HOSTILE
+            elif composition >= 0.001:
+                return constants.HABITABILITY_UNPLEASANT
+            elif composition > 0:
+                return constants.HABITABILITY_TOLERABLE
+            else:
+                return constants.HABITABILITY_PERFECT
+
+        elif parameter_name == constants.GRAVITY:
+            ratio = round(value / ideal, 2)
+            if ratio >= 5:
+                return constants.HABITABILITY_DEADLY
+            elif ratio >= 4:
+                return constants.HABITABILITY_DANGEROUS
+            elif ratio >= 2:
+                return constants.HABITABILITY_HOSTILE
+            elif ratio >= 1.41:
+                return constants.HABITABILITY_UNPLEASANT
+            elif ratio >= 1.21:
+                return constants.HABITABILITY_TOLERABLE
+            elif ratio >= 0.8:
+                return constants.HABITABILITY_PERFECT
+            elif ratio >= 0.6:
+                return constants.HABITABILITY_TOLERABLE
+            elif ratio >= 0.3:
+                return constants.HABITABILITY_UNPLEASANT
+            else:
+                return constants.HABITABILITY_HOSTILE
+
+        elif parameter_name == constants.RADIATION:
+            radiation_effect = value - self.get_parameter(constants.MAGNETIC_FIELD)
+            if radiation_effect >= 4:
+                return constants.HABITABILITY_DEADLY
+            elif radiation_effect >= 2:
+                return constants.HABITABILITY_DANGEROUS
+            elif radiation_effect >= 1:
+                return constants.HABITABILITY_HOSTILE
+            else:
+                return constants.HABITABILITY_PERFECT
+        elif parameter_name == constants.MAGNETIC_FIELD:
+            return constants.HABITABILITY_PERFECT
 
 
 class terrain_handler:
@@ -968,6 +1300,9 @@ class terrain_handler:
         self.pole_distance_multiplier: float = (
             1.0  # 0.1 for polar cells, 1.0 for equatorial cells
         )
+        self.north_pole_distance_multiplier: float = input_dict.get(
+            "north_pole_distance_multiplier", 1.0
+        )
         self.inverse_pole_distance_multiplier: float = 1.0
         self.minima = {constants.TEMPERATURE: -6}
         self.maxima = {constants.TEMPERATURE: 11}
@@ -981,6 +1316,71 @@ class terrain_handler:
         self.terrain_features: Dict[str, bool] = {}
         for key, value in input_dict.get("terrain_features", {}).items():
             self.add_terrain_feature(value)
+
+    def calculate_parameter_habitability(self, parameter_name: str) -> int:
+        """
+        Description:
+            Calculates and returns the habitability effect of a particular parameter
+        Input:
+            string parameter_name: Name of the parameter to calculate habitability for
+        Output:
+            int: Returns the habitability effect of the inputted parameter, from 0 to 5 (5 is perfect, 0 is deadly)
+        """
+        if parameter_name in constants.global_parameters:
+            return self.get_world_handler().calculate_parameter_habitability(
+                parameter_name
+            )
+        elif parameter_name == constants.TEMPERATURE:
+            return actor_utility.calculate_temperature_habitability(
+                self.get_parameter(parameter_name)
+            )
+        else:
+            return constants.HABITABILITY_PERFECT
+
+    def get_habitability_dict(self, omit_perfect: bool = True) -> Dict[str, int]:
+        """
+        Description:
+            Returns a dictionary of the habitability of each parameter of this terrain, with perfect values omitted
+        Input:
+            None
+        Output:
+            dictionary: Dictionary with key/value pairs of parameter type and parameter habitability, with perfect values omitted
+        """
+        habitability_dict = {}
+        for terrain_parameter in (
+            constants.terrain_parameters + constants.global_parameters
+        ):
+            habitability = self.calculate_parameter_habitability(terrain_parameter)
+            if (not omit_perfect) or habitability != constants.HABITABILITY_PERFECT:
+                habitability_dict[
+                    terrain_parameter
+                ] = self.calculate_parameter_habitability(terrain_parameter)
+        return habitability_dict
+
+    def get_unit_habitability(self, unit) -> int:
+        """
+        Description:
+            Returns the habitability of this tile for the inputted units
+        Input:
+            Mob unit: Unit to check the habitability of this tile for
+        Output:
+            int: Returns habitability of this tile for the inputted unit
+        """
+        if (
+            self.get_world_handler() == status.globe_projection_grid.world_handler
+        ):  # If in orbit of planet
+            default_habitability = constants.HABITABILITY_DEADLY
+        else:
+            default_habitability = min(
+                self.get_habitability_dict(omit_perfect=False).values()
+            )
+        if unit.any_permissions(
+            constants.SPACESUITS_PERMISSION,
+            constants.VEHICLE_PERMISSION,
+            constants.IN_VEHICLE_PERMISSION,
+        ):
+            default_habitability = constants.HABITABILITY_PERFECT
+        return default_habitability
 
     def get_expected_temperature(self) -> float:
         """
@@ -1115,6 +1515,8 @@ class terrain_handler:
             for cell in self.attached_cells:
                 if cell.tile:
                     cell.tile.set_terrain(self.terrain, update_image_bundle=True)
+            if not flags.loading:
+                status.strategic_map_grid.update_globe_projection()
 
         if status.displayed_tile:
             for cell in self.attached_cells:
@@ -1202,6 +1604,7 @@ class terrain_handler:
         # save_dict["apparent_terrain_parameters"] = self.apparent_terrain_parameters
         save_dict["terrain"] = self.terrain
         save_dict["resource"] = self.resource
+        save_dict["north_pole_distance_multiplier"] = self.pole_distance_multiplier
         return save_dict
 
     def get_parameter(self, parameter_name: str) -> int:
@@ -1406,4 +1809,5 @@ class terrain_handler:
 
         # Make any per-tile modifications
 
-        return world_green_screen
+        return constants.WORLD_GREEN_SCREEN_DEFAULTS
+        # return world_green_screen

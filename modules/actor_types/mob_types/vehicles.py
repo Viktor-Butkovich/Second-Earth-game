@@ -1,7 +1,7 @@
 # Contains functionality for vehicle units
 
 import random
-
+from typing import List
 from .pmobs import pmob
 from ...util import text_utility, actor_utility, minister_utility
 import modules.constants.constants as constants
@@ -147,17 +147,12 @@ class vehicle(pmob):
             current_cell = self.get_cell()
         elif not current_cell:
             return
-        if not self.crew:
-            sub_mobs = []
-        else:
-            sub_mobs = [self.crew]
-        sub_mobs += self.contained_mobs
 
         transportation_minister = minister_utility.get_minister(
             constants.TRANSPORTATION_MINISTER
         )
         non_replaced_attrition = []
-        for current_sub_mob in sub_mobs:
+        for current_sub_mob in self.get_sub_mobs():
             if (
                 current_cell.local_attrition() and random.randrange(1, 7) >= 4
             ):  # vehicle removes 1/2 of attrition, slightly less than forts, ports, etc.
@@ -251,14 +246,25 @@ class vehicle(pmob):
         Output:
             None
         """
-        for current_passenger in self.contained_mobs:
+        for current_passenger in self.get_sub_mobs():
             current_passenger.x = self.x
             current_passenger.y = self.y
             if current_passenger.get_permission(constants.GROUP_PERMISSION):
                 current_passenger.calibrate_sub_mob_positions()
+
+    def get_sub_mobs(self) -> List[pmob]:
+        """
+        Description:
+            Returns a list of units managed by this vehicle
+        Input:
+            None
+        Output:
+            list: Returns a list of units managed by this vehicle
+        """
         if self.crew:
-            self.crew.x = self.x
-            self.crew.y = self.y
+            return [self.crew] + self.contained_mobs
+        else:
+            return self.contained_mobs
 
     def eject_crew(self):
         """
@@ -316,12 +322,9 @@ class vehicle(pmob):
             None
         """
         super().die(death_type)
-        for current_passenger in self.contained_mobs:
-            current_passenger.die()
-        self.contained_mobs = []
-        if self.crew:
-            self.crew.die()
-            self.crew = None
+        for current_sub_mob in self.get_sub_mobs():
+            current_sub_mob.die()
+        self.set_crew(None)
 
     def fire(self):
         """
@@ -332,12 +335,10 @@ class vehicle(pmob):
         Output:
             None
         """
-        for current_passenger in self.contained_mobs:
-            current_passenger.fire()
+        for current_sub_mob in self.get_sub_mobs():
+            current_sub_mob.fire()
         self.contained_mobs = []
-        if self.crew:
-            self.crew.fire()
-            self.set_crew(None)
+        self.set_crew(None)
         super().fire()
 
     def to_save_dict(self):
@@ -382,7 +383,7 @@ class vehicle(pmob):
             if not self.get_permission(constants.MOVEMENT_DISABLED_PERMISSION):
                 return super().can_move(x_change, y_change, can_print)
             elif can_print:
-                print(
+                text_utility.print_to_screen(
                     f"This {self.name} is still having its crew replaced and cannot move this turn."
                 )
         elif can_print:
@@ -400,12 +401,10 @@ class vehicle(pmob):
             None
         """
         super().go_to_grid(new_grid, new_coordinates)
-        for current_mob in self.contained_mobs + [
-            self.crew
-        ]:  # make list of all mobs in vehicle
-            current_mob.go_to_grid(new_grid, new_coordinates)
-            current_mob.in_vehicle = True
-            current_mob.hide_images()
+        for current_sub_mob in self.get_sub_mobs():
+            current_sub_mob.go_to_grid(new_grid, new_coordinates)
+            current_sub_mob.set_permission(constants.IN_VEHICLE_PERMISSION, True)
+            current_sub_mob.hide_images()
         if new_grid == status.earth_grid or self.images[
             0
         ].current_cell.has_intact_building(constants.SPACEPORT):
@@ -428,3 +427,16 @@ class vehicle(pmob):
             return self.crew
         else:
             return super().get_worker()
+
+    def update_habitability(self):
+        """
+        Description:
+            Updates this unit's habitability and that of its passengers, based on the tile it is in
+        Input:
+            None
+        Output:
+            None
+        """
+        super().update_habitability()
+        for current_mob in self.contained_mobs:
+            current_mob.update_habitability()

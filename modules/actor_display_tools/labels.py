@@ -305,6 +305,12 @@ class actor_display_label(label):
         elif self.actor_label_type == constants.TERRAIN_LABEL:
             self.message_start = "Terrain: "
 
+        elif self.actor_label_type == constants.PLANET_NAME_LABEL:
+            self.message_start = ""
+            input_dict["init_type"] = constants.RENAME_PLANET_BUTTON
+            input_dict["image_id"] = "buttons/rename.png"
+            self.add_attached_button(input_dict)
+
         elif self.actor_label_type == constants.MINISTER_LABEL:
             self.message_start = "Minister: "
             input_dict["width"], input_dict["height"] = (m_size, m_size)
@@ -490,6 +496,9 @@ class actor_display_label(label):
                 input_dict["change"] = 1
                 input_dict["image_id"] = "buttons/cycle_ministers_up_button.png"
                 self.add_attached_button(input_dict)
+
+        elif self.actor_label_type == constants.HABITABILITY_LABEL:
+            self.message_start = "Habitability: "
 
         elif self.actor_label_type.removesuffix(
             "_label"
@@ -891,7 +900,45 @@ class actor_display_label(label):
                         f"Any radiation exceeding magnetic field strength can harm life and slowly strip away atmosphere, particularly oxygen, inert gases, and non-frozen water"
                     )
             self.set_tooltip(tooltip_text)
+        elif self.actor_label_type == constants.HABITABILITY_LABEL:
+            tooltip_text = [self.message]
+            if self.actor:
+                habitability_dict = (
+                    self.actor.cell.terrain_handler.get_habitability_dict()
+                )
 
+                if not self.actor.cell.grid.is_abstract_grid:
+                    tooltip_text.append(
+                        f"    Overall habitability is the minimum of all parts of the local conditions"
+                    )
+                else:
+                    habitability_dict[
+                        constants.TEMPERATURE
+                    ] = actor_utility.calculate_temperature_habitability(
+                        round(self.actor.cell.grid.world_handler.average_temperature)
+                    )
+                    if (
+                        habitability_dict[constants.TEMPERATURE]
+                        == constants.HABITABILITY_PERFECT
+                    ):
+                        del habitability_dict[constants.TEMPERATURE]
+                tooltip_text.append(
+                    f"Represents the habitability for humans to live and work here"
+                )
+                if (not self.actor.cell.grid.is_abstract_grid) and (
+                    self.actor.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
+                    < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
+                ):
+                    if constants.TEMPERATURE in habitability_dict:
+                        del habitability_dict[constants.TEMPERATURE]
+                    tooltip_text.append(f"    Temperature: unknown")
+                for key, value in reversed(
+                    sorted(habitability_dict.items(), key=lambda item: item[1])
+                ):
+                    tooltip_text.append(
+                        f"    {utility.capitalize(key.replace('_', ' '))}: {constants.HABITABILITY_DESCRIPTIONS[value]}"
+                    )
+            self.set_tooltip(tooltip_text)
         else:
             super().update_tooltip()
 
@@ -927,19 +974,27 @@ class actor_display_label(label):
                 self.set_label(f"{self.message_start}({new_actor.x}, {new_actor.y})")
 
             elif self.actor_label_type == constants.TERRAIN_LABEL:
+                if not new_actor.grid.is_abstract_grid:
+                    if (
+                        self.actor.cell.terrain_handler.visible
+                        and self.actor.cell.terrain_handler.knowledge_available(
+                            constants.TERRAIN_KNOWLEDGE
+                        )
+                    ):
+                        self.set_label(
+                            f"{self.message_start}{new_actor.cell.terrain_handler.terrain.replace('_', ' ')}"
+                        )
+                    else:
+                        self.set_label(self.message_start + "unknown")
+
+            elif self.actor_label_type == constants.PLANET_NAME_LABEL:
                 if new_actor.grid.is_abstract_grid:
-                    self.set_label(utility.capitalize(new_actor.grid.name))
-                elif (
-                    self.actor.cell.terrain_handler.visible
-                    and self.actor.cell.terrain_handler.knowledge_available(
-                        constants.TERRAIN_KNOWLEDGE
-                    )
-                ):
-                    self.set_label(
-                        f"{self.message_start}{new_actor.cell.terrain_handler.terrain.replace('_', ' ')}"
-                    )
-                else:
-                    self.set_label(self.message_start + "unknown")
+                    if new_actor.grid != status.earth_grid:
+                        self.set_label(
+                            f"{utility.capitalize(new_actor.grid.name)} (in orbit)"
+                        )
+                    else:
+                        self.set_label(utility.capitalize(new_actor.grid.name))
 
             elif self.actor_label_type == constants.RESOURCE_LABEL:
                 if new_actor.grid.is_abstract_grid:
@@ -1359,6 +1414,41 @@ class actor_display_label(label):
                     self.set_label(
                         f"{self.message_start}{average_temperature} (+{round(average_temperature - self.actor.grid.world_handler.earth_average_temperature, 2):,} Earth)"
                     )
+            elif self.actor_label_type == constants.HABITABILITY_LABEL:
+                habitability_dict = (
+                    self.actor.cell.terrain_handler.get_habitability_dict()
+                )
+                if self.actor.cell.grid.is_abstract_grid:  # If global habitability
+                    habitability_dict[
+                        constants.TEMPERATURE
+                    ] = actor_utility.calculate_temperature_habitability(
+                        round(self.actor.cell.grid.world_handler.average_temperature)
+                    )
+                    overall_habitability = min(habitability_dict.values())
+                    self.set_label(
+                        f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]}"
+                    )
+                elif (
+                    self.actor.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
+                    < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
+                ):  # If no temperature knowledge
+                    if constants.TEMPERATURE in habitability_dict:
+                        del habitability_dict[constants.TEMPERATURE]
+                    if not habitability_dict:
+                        overall_habitability = constants.HABITABILITY_PERFECT
+                    else:
+                        overall_habitability = min(habitability_dict.values())
+                    self.set_label(
+                        f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]} (estimated)"
+                    )
+                else:  # If full knowledge
+                    if not habitability_dict:
+                        overall_habitability = constants.HABITABILITY_PERFECT
+                    else:
+                        overall_habitability = min(habitability_dict.values())
+                    self.set_label(
+                        f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]}"
+                    )
         elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
             return  # do not set text for tooltip label
         elif self.actor_label_type == constants.BANNER_LABEL:
@@ -1396,6 +1486,11 @@ class actor_display_label(label):
             or (not self.actor.cell.has_building(constants.RESOURCE))
         ):
             return False
+        elif (
+            self.actor_label_type == constants.COORDINATES_LABEL
+            and self.actor.cell.grid.is_abstract_grid
+        ):
+            return False
         elif self.actor_label_type in [
             constants.CREW_LABEL,
             constants.PASSENGERS_LABEL,
@@ -1409,7 +1504,11 @@ class actor_display_label(label):
         ] and not self.actor.get_permission(constants.GROUP_PERMISSION):
             return False
         elif self.actor.actor_type == "mob" and (
-            self.actor.in_vehicle or self.actor.in_group or self.actor.in_building
+            self.actor.any_permissions(
+                constants.IN_VEHICLE_PERMISSION,
+                constants.IN_GROUP_PERMISSION,
+                constants.IN_BUILDING_PERMISSION,
+            )
         ):  # Do not show mobs that are attached to another unit/building
             return False
         elif (
@@ -1468,6 +1567,10 @@ class actor_display_label(label):
             return self.actor.get_permission(constants.GROUP_PERMISSION)
         elif self.actor_label_type == constants.EQUIPMENT_LABEL:
             return bool(self.actor.equipment)
+        elif self.actor_label_type == constants.PLANET_NAME_LABEL:
+            return self.actor.grid.is_abstract_grid
+        elif self.actor_label_type == constants.TERRAIN_LABEL:
+            return not self.actor.grid.is_abstract_grid
         else:
             return result
 
@@ -1522,6 +1625,10 @@ class banner(actor_display_label):
                     constants.TERRAIN_PARAMETER_KNOWLEDGE
                 )
             )
+        elif self.banner_type == "deadly conditions":
+            return super().can_show(
+                skip_parent_collection=skip_parent_collection
+            ) and not self.actor.get_permission(constants.SURVIVABLE_PERMISSION)
         else:
             return super().can_show(skip_parent_collection=skip_parent_collection)
 
@@ -1616,10 +1723,15 @@ class actor_tooltip_label(actor_display_label):
         if self.actor_type == "minister":
             return
         if self.actor_type == "tile":
-            actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, self.actor
-            )
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
+            if self.actor.actor_type == "tile":  # If not tile_inventory
+                actor_utility.calibrate_actor_info_display(
+                    status.tile_info_display, self.actor
+                )
+                actor_utility.calibrate_actor_info_display(
+                    status.mob_info_display, None
+                )
+            else:
+                return
         elif self.actor:
             if self.actor.get_permission(constants.DUMMY_PERMISSION):
                 if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):

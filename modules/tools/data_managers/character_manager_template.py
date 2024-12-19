@@ -432,7 +432,7 @@ class character_manager_template:
                 ),
                 "suit_colors": random.sample(self.clothing_colors, 2)
                 + [random.choice(self.accessory_colors)],
-                "has_hat": random.randrange(1, 7) >= 5,
+                "has_hat": random.randrange(1, 7) >= 6,
                 "has_facial_hair": has_facial_hair,
                 "full_body": full_body,
                 "ethnicity": ethnicity,

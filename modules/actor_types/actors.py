@@ -278,7 +278,11 @@ class actor:
                 if self.actor_type == "tile":
                     current_cell = self.cell
                 elif self.actor_type == "mob":
-                    if not (self.in_building or self.in_group or self.in_vehicle):
+                    if not self.any_permissions(
+                        constants.IN_BUILDING_PERMISSION,
+                        constants.IN_GROUP_PERMISSION,
+                        constants.IN_VEHICLE_PERMISSION,
+                    ):
                         current_cell = self.get_cell()
                     else:
                         return ()  # only surface-level mobs can have inventories and need to roll for attrition
@@ -588,7 +592,6 @@ class actor:
             None
         """
         self.set_image(self.get_image_id_list())
-        self.reselect()
 
     def set_inventory_capacity(self, new_value):
         """

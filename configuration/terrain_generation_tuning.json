@@ -48,6 +48,8 @@
     "earth_tile_soil": 2,
     "earth_tile_altitude": 2,
 
+    "earth_rotation_direction": -1,
+    "earth_rotation_speed": 3,
     "earth_base_temperature": 2,
     "earth_expected_temperature_target": 2.15,
     "earth_pressure": 1.0,
@@ -67,6 +69,8 @@
     "earth_sand_color": [220, 180, 80],
     "earth_rock_color": [94, 88, 75],
 
+    "mars_rotation_direction": -1,
+    "mars_rotation_speed": 3,
     "mars_base_temperature": -3,
     "mars_expected_temperature_target": -2.6,
     "mars_pressure": 0.006,
@@ -85,6 +89,8 @@
     "mars_sand_color": [170, 107, 60],
     "mars_rock_color": [84, 59, 55],
 
+    "venus_rotation_direction": 1,
+    "venus_rotation_speed": 1,
     "venus_base_temperature": 12,
     "venus_expected_temperature_target": 10.61,
     "venus_pressure": 93,

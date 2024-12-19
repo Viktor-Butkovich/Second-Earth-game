@@ -139,7 +139,8 @@ class pmob(mob):
         Output:
             None
         """
-        self.in_vehicle = True
+        self.vehicle = vehicle
+        self.set_permission(constants.IN_VEHICLE_PERMISSION, True)
         self.hide_images()
         vehicle.set_crew(self)
         moved_mob = vehicle
@@ -169,9 +170,10 @@ class pmob(mob):
         Output:
             None
         """
-        self.in_vehicle = False
+        self.vehicle = None
         self.x = vehicle.x
         self.y = vehicle.y
+        self.set_permission(constants.IN_VEHICLE_PERMISSION, False)
         self.show_images()
         if not self.get_cell().get_intact_building(constants.SPACEPORT):
             if constants.ALLOW_DISORGANIZED:
@@ -186,6 +188,7 @@ class pmob(mob):
         )
         self.select()
         self.add_to_turn_queue()
+        self.update_habitability()
         self.update_image_bundle()
 
     def on_move(self):
@@ -566,10 +569,10 @@ class pmob(mob):
                         self.get_permission(constants.VEHICLE_PERMISSION)
                         and self.crew == None
                     )
-                    and not (
-                        self.get_permission(constants.VEHICLE_PERMISSION)
-                        or self.in_group
-                        or self.in_building
+                    and not self.any_permissions(
+                        constants.IN_VEHICLE_PERMISSION,
+                        constants.IN_GROUP_PERMISSION,
+                        constants.IN_BUILDING_PERMISSION,
                     )
                 ):
                     self.add_to_turn_queue()
@@ -823,10 +826,13 @@ class pmob(mob):
         Output:
             None
         """
-        if self.in_vehicle or self.in_group or self.in_building:
-            return False
-        else:
-            return super().can_show_tooltip()
+        return (
+            not self.any_permissions(
+                constants.IN_VEHICLE_PERMISSION,
+                constants.IN_GROUP_PERMISSION,
+                constants.IN_BUILDING_PERMISSION,
+            )
+        ) and super().can_show_tooltip()
 
     def embark_vehicle(self, vehicle, focus=True):
         """
@@ -838,7 +844,6 @@ class pmob(mob):
         Output:
             None
         """
-        self.in_vehicle = True
         self.vehicle = vehicle
         for (
             current_commodity
@@ -855,6 +860,7 @@ class pmob(mob):
         vehicle.contained_mobs.append(self)
         vehicle.hide_images()
         vehicle.show_images()  # moves vehicle images to front
+        self.set_permission(constants.IN_VEHICLE_PERMISSION, True)
         if (
             focus and not flags.loading_save
         ):  # don't select vehicle if loading in at start of game
@@ -878,7 +884,7 @@ class pmob(mob):
         """
         vehicle.contained_mobs = utility.remove_from_list(vehicle.contained_mobs, self)
         self.vehicle = None
-        self.in_vehicle = False
+        self.set_permission(constants.IN_VEHICLE_PERMISSION, False)
         self.x = vehicle.x
         self.y = vehicle.y
         for current_image in self.images:
@@ -899,7 +905,6 @@ class pmob(mob):
                 text_utility.print_to_screen(
                     f"{utility.capitalize(self.name)} automatically took {consumer_goods_transferred} consumer goods from {vehicle.name}'s cargo."
                 )
-
         self.add_to_turn_queue()
         if focus:
             actor_utility.calibrate_actor_info_display(
@@ -908,6 +913,7 @@ class pmob(mob):
             self.select()
             self.movement_sound()
         self.on_move()
+        self.update_habitability()
 
     def get_worker(self) -> "pmob":
         """

@@ -1,5 +1,5 @@
 import pygame
-from typing import Dict, List, Any
+from typing import Dict, List, Tuple, Any
 from modules.tools.data_managers.sound_manager_template import sound_manager_template
 from modules.tools.data_managers.save_load_manager_template import (
     save_load_manager_template,
@@ -178,9 +178,13 @@ else:
     display_width: float = resolution_finder.current_w - round(
         default_display_width / 10
     )
+    if effect_manager.effect_active("skinny_screen"):
+        display_width /= 2
     display_height: float = resolution_finder.current_h - round(
         default_display_height / 10
     )
+    if effect_manager.effect_active("short_screen"):
+        display_height /= 2
     game_display: pygame.Surface = pygame.display.set_mode(
         (display_width, display_height), pygame.HWSURFACE | pygame.DOUBLEBUF
     )
@@ -227,7 +231,7 @@ previous_turn_time: float = 0.0
 current_time: float = 0.0
 last_selection_outline_switch: float = 0.0
 mouse_moved_time: float = 0.0
-end_turn_wait_time: float = 0.8
+end_turn_wait_time: float = 0.05
 
 old_mouse_x: int = pygame.mouse.get_pos()[0]
 old_mouse_y: int = pygame.mouse.get_pos()[1]
@@ -246,26 +250,40 @@ current_instructions_page_index: int = 0
 current_instructions_page_text: str = ""
 message: str = ""
 
+STRATEGIC_MAP_GRID_TYPE: str = "strategic_map_grid"
+EARTH_GRID_TYPE: str = "earth_grid"
+GLOBE_PROJECTION_GRID_TYPE: str = "globe_projection_grid"
+SCROLLING_STRATEGIC_MAP_GRID_TYPE: str = "scrolling_strategic_map_grid"
+MINIMAP_GRID_TYPE: str = "minimap_grid"
+
 grid_types_list: List[str] = [
-    "strategic_map_grid",
-    "earth_grid",
-    "scrolling_strategic_map_grid",
-    "minimap_grid",
+    STRATEGIC_MAP_GRID_TYPE,
+    EARTH_GRID_TYPE,
+    GLOBE_PROJECTION_GRID_TYPE,
+    SCROLLING_STRATEGIC_MAP_GRID_TYPE,
+    MINIMAP_GRID_TYPE,
 ]
-abstract_grid_type_list: List[str] = ["earth_grid"]
+abstract_grid_type_list: List[str] = [EARTH_GRID_TYPE, GLOBE_PROJECTION_GRID_TYPE]
 
 grids_collection_x: int = default_display_width - 740
 grids_collection_y: int = default_display_height - 325
 
-earth_grid_x_offset: int = -75  # 130 - 60
+earth_grid_x_offset: int = -75
 earth_grid_y_offset: int = 140
-earth_grid_width: int = 108  # 180
-earth_grid_height: int = 108  # 180
+earth_grid_width: int = 108
+earth_grid_height: int = 108
 
-strategic_map_x_offset: int = earth_grid_x_offset + earth_grid_width + 15  # 60
+strategic_map_x_offset: int = earth_grid_x_offset + earth_grid_width + 15
 strategic_map_y_offset: int = earth_grid_y_offset
-strategic_map_pixel_width: int = 180  # 320 * 0.75
-strategic_map_pixel_height: int = 180  # 320 * 0.75
+strategic_map_pixel_width: int = 180
+strategic_map_pixel_height: int = 180
+
+globe_projection_grid_x_offset: int = (
+    strategic_map_x_offset + strategic_map_pixel_width + 15
+)
+globe_projection_grid_y_offset: int = earth_grid_y_offset
+globe_projection_grid_width: int = 108
+globe_projection_grid_height: int = 108
 
 minimap_grid_x_offset: int = -75
 minimap_grid_y_offset: int = 150
@@ -541,12 +559,22 @@ DEFAULT_LEVEL: int = 2
 BACKPACK_LEVEL: int = 1
 
 PIXELLATED_SIZE: int = 2
-LIGHT_PIXELLATED_SIZE: int = 50
+LIGHT_PIXELLATED_SIZE: int = 70
 
 TERRAIN_KNOWLEDGE: str = "terrain"
 TERRAIN_KNOWLEDGE_REQUIREMENT: int = 0
 TERRAIN_PARAMETER_KNOWLEDGE: str = "terrain_parameter"
 TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT: int = 0
+
+WORLD_GREEN_SCREEN_DEFAULTS: str = "world_green_screen_defaults"
+TIME_PASSING_ROTATION: int = 0
+TIME_PASSING_INITIAL_ORIENTATION: int = 0
+TIME_PASSING_EQUATORIAL_COORDINATES: List[Tuple[int, int]] = []
+TIME_PASSING_TARGET_ROTATIONS: int = 3
+TIME_PASSING_EARTH_ROTATIONS: int = 0
+TIME_PASSING_ITERATIONS: int = 0
+TIME_PASSING_EARTH_SCHEDULE: List[bool] = []
+TIME_PASSING_PLANET_SCHEDULE: List[bool] = []
 
 
 def update_terrain_knowledge_requirements():
@@ -564,7 +592,7 @@ update_terrain_knowledge_requirements()
 UNIQUE_FEATURE_TRACKING: str = "unique"
 LIST_FEATURE_TRACKING: str = "list"
 
-MAP_MODE_ALPHA: int = 170
+MAP_MODE_ALPHA: int = 0  # 170
 
 SETTLEMENT_PANEL: str = "settlement_panel"
 LOCAL_CONDITIONS_PANEL: str = "local_conditions_panel"
@@ -652,7 +680,7 @@ FORT: str = "fort"
 TRAIN_STATION: str = "train_station"
 SPACEPORT: str = "spaceport"
 WAREHOUSES: str = "warehouses"
-WAREHOUSES_LEVEL: str = "warehouses_level"
+WAREHOUSE_LEVEL: str = "warehouse_level"
 RESOURCE: str = "resource"
 RESOURCE_SCALE: str = "scale"
 RESOURCE_EFFICIENCY: str = "efficiency"
@@ -701,6 +729,7 @@ SELL_ALL_COMMODITY_BUTTON: str = "sell_all_commodity_button"
 USE_EQUIPMENT_BUTTON: str = "use_equipment_button"
 REMOVE_EQUIPMENT_BUTTON: str = "remove_equipment_button"
 RENAME_SETTLEMENT_BUTTON: str = "rename_settlement_button"
+RENAME_PLANET_BUTTON: str = "rename_planet_button"
 MINIMIZE_INTERFACE_COLLECTION_BUTTON: str = "minimize_interface_collection_button"
 MOVE_INTERFACE_COLLECTION_BUTTON: str = "move_interface_collection_button"
 RESET_INTERFACE_COLLECTION_BUTTON: str = "reset_interface_collection_button"
@@ -816,11 +845,13 @@ INVENTORY_QUANTITY_LABEL: str = "inventory_quantity_label"
 COORDINATES_LABEL: str = "coordinates_label"
 KNOWLEDGE_LABEL: str = "knowledge_label"
 TERRAIN_LABEL: str = "terrain_label"
+PLANET_NAME_LABEL: str = "planet_name_label"
 WATER_LABEL: str = "water_label"
 TEMPERATURE_LABEL: str = "temperature_label"
 VEGETATION_LABEL: str = "vegetation_label"
 ROUGHNESS_LABEL: str = "roughness_label"
 SOIL_LABEL: str = "soil_label"
+HABITABILITY_LABEL: str = "habitability_label"
 ALTITUDE_LABEL: str = "altitude_label"
 RESOURCE_LABEL: str = "resource_label"
 PRESSURE_LABEL: str = "pressure_label"
@@ -856,10 +887,15 @@ ACTION_NOTIFICATION: str = "action_notification"
 DICE_ROLLING_NOTIFICATION: str = "dice_rolling_notification"
 OFF_TILE_EXPLORATION_NOTIFICATION: str = "off_tile_exploration_notification"
 
+SPACESUITS_EQUIPMENT: str = "spacesuits"
+
 PMOB_PERMISSION: str = "pmob"
 NPMOB_PERMISSION: str = "npmob"
 VEHICLE_PERMISSION: str = "vehicle"
 SPACESHIP_PERMISSION: str = "spaceship"
+IN_VEHICLE_PERMISSION: str = "in_vehicle"
+IN_GROUP_PERMISSION: str = "in_group"
+IN_BUILDING_PERMISSION: str = "in_building"
 TRAIN_PERMISSION: str = "train"
 TRAVEL_PERMISSION: str = "travel"
 MOVEMENT_DISABLED_PERMISSION: str = "movement_disabled"
@@ -878,6 +914,7 @@ DISORGANIZED_PERMISSION: str = "disorganized"
 VETERAN_PERMISSION: str = "veteran"
 DUMMY_PERMISSION: str = "dummy"
 SPACESUITS_PERMISSION: str = "spacesuits"
+SURVIVABLE_PERMISSION: str = "survivable"
 
 EXPEDITION_PERMISSION: str = "expedition"
 CONSTRUCTION_PERMISSION: str = "construction"
@@ -929,3 +966,18 @@ NOSE_PORTRAIT_SECTION: str = "nose"
 MOUTH_PORTRAIT_SECTION: str = "mouth"
 EYES_PORTRAITS_SECTION: str = "eyes"
 FRAME_PORTRAIT_SECTION: str = "frame"
+
+HABITABILITY_PERFECT: int = 5
+HABITABILITY_TOLERABLE: int = 4
+HABITABILITY_UNPLEASANT: int = 3
+HABITABILITY_HOSTILE: int = 2
+HABITABILITY_DANGEROUS: int = 1
+HABITABILITY_DEADLY: int = 0
+HABITABILITY_DESCRIPTIONS: Dict[int, str] = {
+    HABITABILITY_PERFECT: "perfect",
+    HABITABILITY_TOLERABLE: "tolerable",
+    HABITABILITY_UNPLEASANT: "unpleasant",
+    HABITABILITY_HOSTILE: "hostile",
+    HABITABILITY_DANGEROUS: "dangerous",
+    HABITABILITY_DEADLY: "deadly",
+}

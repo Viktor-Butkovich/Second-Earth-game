@@ -100,6 +100,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.PICK_UP_EACH_COMMODITY_BUTTON: buttons.button,
             constants.USE_EQUIPMENT_BUTTON: buttons.button,
             constants.RENAME_SETTLEMENT_BUTTON: buttons.button,
+            constants.RENAME_PLANET_BUTTON: buttons.button,
             constants.MINIMIZE_INTERFACE_COLLECTION_BUTTON: buttons.button,
             constants.MOVE_INTERFACE_COLLECTION_BUTTON: buttons.button,
             constants.RESET_INTERFACE_COLLECTION_BUTTON: buttons.button,
@@ -200,11 +201,13 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.COORDINATES_LABEL: actor_display_labels.actor_display_label,
             constants.KNOWLEDGE_LABEL: actor_display_labels.actor_display_label,
             constants.TERRAIN_LABEL: actor_display_labels.actor_display_label,
+            constants.PLANET_NAME_LABEL: actor_display_labels.actor_display_label,
             constants.WATER_LABEL: actor_display_labels.actor_display_label,
             constants.TEMPERATURE_LABEL: actor_display_labels.actor_display_label,
             constants.VEGETATION_LABEL: actor_display_labels.actor_display_label,
             constants.ROUGHNESS_LABEL: actor_display_labels.actor_display_label,
             constants.SOIL_LABEL: actor_display_labels.actor_display_label,
+            constants.HABITABILITY_LABEL: actor_display_labels.actor_display_label,
             constants.ALTITUDE_LABEL: actor_display_labels.actor_display_label,
             constants.RESOURCE_LABEL: actor_display_labels.actor_display_label,
             constants.PRESSURE_LABEL: actor_display_labels.actor_display_label,
@@ -344,9 +347,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                 "grids": officer.grids,
                 "worker": worker,
                 "officer": officer,
-                "modes": officer.grids[
-                    0
-                ].modes,  # if created in Africa grid, should be ['strategic']. If created on Earth, should be ['strategic', 'earth']
+                "modes": officer.modes,
                 "init_type": officer.unit_type.group_type.key,
                 "image": "misc/empty.png",
                 "name": actor_utility.generate_group_name(worker, officer),

@@ -26,6 +26,7 @@ from modules.interface_types.buttons import (
     same_tile_icon,
     reorganize_unit_button,
     minister_portrait_image,
+    switch_game_mode_button,
 )
 from modules.interface_types.inventory_interface import item_icon
 from modules.interface_types.instructions import instructions_page
@@ -49,6 +50,7 @@ strategic_map_grid: world_grid = None
 scrolling_strategic_map_grid: mini_grid = None
 minimap_grid: mini_grid = None
 earth_grid: abstract_grid = None
+globe_projection_grid: abstract_grid = None
 planet_view_mask: free_image = None
 
 actions: Dict[str, action] = {}
@@ -63,6 +65,11 @@ displayed_prosecution: minister = None
 displayed_notification: notification = None
 
 rendered_images: Dict[str, pygame.Surface] = {}
+globe_projection_image: free_image = None
+globe_projection_surface: pygame.Surface = None
+to_strategic_button: switch_game_mode_button = None
+to_earth_button: switch_game_mode_button = None
+
 button_list: List[button] = []
 instructions_list: List[str] = []
 minister_list: List[minister] = []

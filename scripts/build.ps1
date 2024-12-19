@@ -21,7 +21,7 @@ rm misc -force -Recurse
 rm -force Second_Earth.py
 rm -force configuration/dev_config.json
 rm -force configuration/demographic_util.py
-rm -force save_games/*.pickle
+rm -force save_games/*
 rm -force .gitattributes
 Remove-Item -Path notes\* -Exclude "Crash Log.txt"
 Get-ChildItem -Path "graphics" -Filter "*.xcf" -Recurse | Remove-Item -Force

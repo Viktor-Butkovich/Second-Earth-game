@@ -154,7 +154,7 @@ class building(actor):
             )
         elif self.building_type == constants.WAREHOUSES:
             tooltip_text.append(
-                f"Level {self.warehouses_level} warehouses allow an inventory capacity of {9 * self.warehouses_level}"
+                f"Level {self.upgrade_fields[constants.WAREHOUSE_LEVEL]} warehouses allow an inventory capacity of {9 * self.upgrade_fields[constants.WAREHOUSE_LEVEL]}"
             )
         else:
             tooltip_text += self.building_type.description
@@ -497,13 +497,13 @@ class warehouses(building):
                 'name': string value - Required if from save, this building's name
                 'modes': string list value - Game modes during which this building's images can appear
                 'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
-                'warehouses_level': int value - Required if from save, size of warehouse (9 inventory capacity per level)
+                'warehouse_level': int value - Required if from save, size of warehouse (9 inventory capacity per level)
         Output:
             None
         """
         super().__init__(from_save, input_dict)
         self.cell.tile.set_inventory_capacity(
-            self.upgrade_fields[constants.WAREHOUSES_LEVEL] * 9
+            self.upgrade_fields[constants.WAREHOUSE_LEVEL] * 9
         )
         if constants.effect_manager.effect_active("damaged_buildings"):
             if self.building_type.can_damage:
@@ -523,7 +523,9 @@ class warehouses(building):
 
     def upgrade(self, upgrade_type="warehouses_level"):
         super().upgrade(upgrade_type)
-        self.cell.tile.set_inventory_capacity(self.warehouses_level * 9)
+        self.cell.tile.set_inventory_capacity(
+            self.upgrade_fields[constants.WAREHOUSE_LEVEL] * 9
+        )
 
     def get_image_id_list(self, override_values={}):
         """

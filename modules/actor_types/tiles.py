@@ -69,7 +69,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             if self.cell.grid.from_save:
                 self.inventory = self.cell.save_dict["inventory"]
             if (
-                self.grid.grid_type == "earth_grid"
+                self.grid.grid_type == constants.EARTH_GRID_TYPE
             ):  # Earth should be able to hold commodities despite not being terrain
                 self.infinite_inventory_capacity = True
                 if constants.effect_manager.effect_active("infinite_commodities"):
@@ -323,20 +323,16 @@ class tile(actor):  # to do: make terrain tiles a subclass
         else:
             if (
                 self.cell.terrain_handler.visible or force_visibility
-            ):  # force visibility shows full tile even if tile is not yet visible
+            ):  # Force visibility shows full tile even if tile is not yet visible
                 image_id_list.append(
                     {
                         "image_id": self.image_dict["default"],
-                        "size": 1,
-                        "x_offset": 0,
-                        "y_offset": 0,
                         "level": -9,
                         "color_filter": self.cell.terrain_handler.get_color_filter(),
                         "green_screen": self.cell.terrain_handler.get_green_screen(),
                         "pixellated": not self.cell.terrain_handler.knowledge_available(
                             constants.TERRAIN_KNOWLEDGE
                         ),
-                        "light_pixellated": False,
                     }
                 )
                 for (
@@ -345,16 +341,12 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     image_id_list.append(
                         {
                             "image_id": terrain_overlay_image,
-                            "size": 1,
-                            "x_offset": 0,
-                            "y_offset": 0,
                             "level": -8,
                             "color_filter": self.cell.terrain_handler.get_color_filter(),
                             "green_screen": self.cell.terrain_handler.get_green_screen(),
                             "pixellated": not self.cell.terrain_handler.knowledge_available(
                                 constants.TERRAIN_KNOWLEDGE
                             ),
-                            "light_pixellated": False,
                         }
                     )
                 if not terrain_only:
@@ -365,13 +357,14 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             "image_id",
                             status.terrain_feature_types[terrain_feature].image_id,
                         )
-                        if type(new_image_id) == str and not new_image_id.endswith(
-                            ".png"
-                        ):
-                            new_image_id = actor_utility.generate_label_image_id(
-                                new_image_id, y_offset=-0.75
-                            )
-                        image_id_list = utility.combine(image_id_list, new_image_id)
+                        if new_image_id != "misc/empty.png":
+                            if type(new_image_id) == str and not new_image_id.endswith(
+                                ".png"
+                            ):
+                                new_image_id = actor_utility.generate_label_image_id(
+                                    new_image_id, y_offset=-0.75
+                                )
+                            image_id_list = utility.combine(image_id_list, new_image_id)
                     if (
                         self.cell.terrain_handler.resource
                     ):  # If resource visible based on current knowledge
@@ -385,9 +378,11 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         if current_building:
                             image_id_list += current_building.get_image_id_list()
             elif self.show_terrain:
-                image_id_list.append(self.image_dict["hidden"])
+                pass
+                # image_id_list.append(self.image_dict["hidden"])
             else:
-                image_id_list.append(self.image_dict["default"])
+                pass
+                # image_id_list.append(self.image_dict["default"])
             for current_image in self.hosted_images:
                 if (
                     not current_image.anchor_key in ["south_pole", "north_pole"]
@@ -395,7 +390,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 ):
                     image_id_list += current_image.get_image_id_list()
 
-        if constants.current_map_mode != "terrain" and not terrain_only:
+        if constants.current_map_mode != "terrain":
             map_mode_image = "misc/map_modes/none.png"
             if constants.current_map_mode in constants.terrain_parameters:
                 if self.cell.terrain_handler.knowledge_available(
@@ -424,12 +419,19 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     "south pole", False
                 ):
                     map_mode_image = "misc/map_modes/south_pole.png"
-            image_id_list.append(
-                {
-                    "image_id": map_mode_image,
-                    "alpha": constants.MAP_MODE_ALPHA,
-                }
-            )
+            if constants.MAP_MODE_ALPHA:
+                image_id_list.append(
+                    {
+                        "image_id": map_mode_image,
+                        "alpha": constants.MAP_MODE_ALPHA,
+                    }
+                )
+            else:
+                image_id_list = [
+                    {
+                        "image_id": map_mode_image,
+                    }
+                ]
         for current_image in self.hosted_images:
             if (
                 current_image.anchor_key in ["south_pole", "north_pole"]
@@ -644,7 +646,20 @@ class abstract_tile(tile):
         """
         input_dict["coordinates"] = (0, 0)
         input_dict["show_terrain"] = False
-        self.grid_image_id = ["locations/earth.png"]
+        if input_dict["grid"] == status.earth_grid:
+            self.grid_image_id = [
+                "misc/space.png",
+                {
+                    "image_id": "locations/earth.png",
+                    "size": 0.8,
+                },
+            ]
+        elif input_dict["grid"] == status.globe_projection_grid:
+            self.grid_image_id = [
+                {
+                    "image_id": "misc/empty.png",
+                }
+            ]
         input_dict["image"] = self.grid_image_id
         super().__init__(from_save, input_dict)
 

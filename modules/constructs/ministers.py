@@ -254,7 +254,7 @@ class minister:
             string text: Message to display in notification
             string audio: Any audio to play with notification
             boolean transfer: Whether the minister icon should carry on to future notifications - should set to True for actions, False for misc. messages
-            function on_remove: Function to call when notification is removed
+            List on_remove: Functions to call when notification is removed, in format [(function, [args]), ...]
         Output:
             None
         """

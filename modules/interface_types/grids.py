@@ -94,36 +94,6 @@ class grid(interface_elements.interface_element):
         """
         return constants.terrain_manager.get_tuning(tuning_type)
 
-    def create_map_image(self):
-        """
-        Description:
-            Creates and returns a map image of this grid
-        Input:
-            None
-        Output:
-            List: List of images representing this grid - approximation of very zoomed out grid
-        """
-        return "misc/empty.png"
-        return_list = [{"image_id": "misc/lines.png", "level": 10}]
-        for current_cell in self.get_flat_cell_list():
-            image_id = current_cell.tile.get_image_id_list()
-            if type(image_id) == dict:
-                image_id = image_id["image_id"]
-            return_list.append(
-                {
-                    "image_id": image_id,
-                    "x_offset": (current_cell.x) / self.coordinate_width
-                    - 0.5
-                    + (0.7 / self.coordinate_width),
-                    "y_offset": (current_cell.y) / self.coordinate_height
-                    - 0.5
-                    + (0.4 / self.coordinate_height),
-                    "x_size": 1.05 / self.coordinate_width,
-                    "y_size": 1.05 / self.coordinate_height,
-                }
-            )
-        return return_list
-
     def to_save_dict(self):
         """
         Description:
@@ -143,6 +113,7 @@ class grid(interface_elements.interface_element):
                 current_cell.to_save_dict()
                 for current_cell in self.get_flat_cell_list()
             ],
+            "name": self.world_handler.name,
         }
 
     def draw(self):
@@ -582,6 +553,8 @@ class mini_grid(grid):
                     directional_indicator_image
                 ) in status.directional_indicator_image_list:
                     directional_indicator_image.calibrate()
+        if self == status.scrolling_strategic_map_grid:
+            status.strategic_map_grid.update_globe_projection()
 
     def get_main_grid_coordinates(self, mini_x, mini_y):
         """
@@ -763,11 +736,31 @@ class abstract_grid(grid):
         input_dict["coordinate_width"] = 1
         input_dict["coordinate_height"] = 1
         super().__init__(from_save, input_dict)
+        if input_dict["grid_type"] == constants.EARTH_GRID_TYPE:
+            self.world_handler = terrain_manager_template.world_handler(
+                self,
+                from_save,
+                input_dict.get("world_handler", {"grid_type": input_dict["grid_type"]}),
+            )
+        elif input_dict["grid_type"] == constants.GLOBE_PROJECTION_GRID_TYPE:
+            self.world_handler = status.strategic_map_grid.world_handler
         self.is_abstract_grid = True
-        self.world_handler = terrain_manager_template.world_handler(
-            self,
-            from_save,
-            input_dict.get("world_handler", {"grid_type": input_dict["grid_type"]}),
-        )
-        self.name = input_dict["name"]
+        self.name = self.world_handler.name
         self.cell_list[0][0].terrain_handler.set_visibility(True)
+
+    def rename(self, new_name: str) -> None:
+        """
+        Description:
+            Renames this grid
+        Input:
+            string new_name: New name for this grid
+        Output:
+            None
+        """
+        self.name = new_name
+        self.world_handler.name = new_name
+        self.cell_list[0][0].tile.name = new_name
+        if status.displayed_tile == self.cell_list[0][0].tile:
+            actor_utility.calibrate_actor_info_display(
+                status.tile_info_display, status.displayed_tile
+            )

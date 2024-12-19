@@ -125,6 +125,7 @@ except Exception:  # Displays error message and records error message in crash l
         3% - 100%: Global warming, instant death
             Note: Earth with no GHG would have an -18 C/0 F average, rather than 14 C/57 F
                 0 GHG would result in about -2 average temperature - each 0.5% contributes about 1 average temperature
+                Earth with 6x GHG would increase by about 10 C average, as in permian extinction
                 def average_temperature(distance, GHG):
                     return min(12, max(-5, 12 - distance + 2 * GHG pressure)) for random distances on some scale
                     Note that GHG pressure is based on the absolute # GHG units / planet size, rather than proportion of current atmosphere
@@ -235,7 +236,6 @@ except Exception:  # Displays error message and records error message in crash l
 #   Create new program to analyze series of inputs and extract letter/syllable frequencies - possibly combine with an ML method to output words of the same style
 # Strange issue - in non-ordered collections, height of collection incorrectly affects y positions of elements, and without any apparent modification to their y values
 # Continue adding hairstyles
-# Minister table_map_image not using smart green screens, probably because it directly uses tile image ID
 # Add new unit art
 # Add new minister appointing system - selecting an unappointed minister should highlight all available positions, and clicking on one appoint w/ a confirmation check
 # Add more variety to water/ice colors
@@ -244,25 +244,27 @@ except Exception:  # Displays error message and records error message in crash l
 #   basic planetary construction, 3 ~ for titanium, carbon fiber, advanced modern-day materials, spaceships, etc., 4+ for more advanced
 # Add minister deaths - may occur in assassination, attrition, freak accidents, heroic sacrifices, etc.
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
+# Various resolution issues, particularly with tall resolutions
+# Add manually created Earth map - should look similar to the UN flag, with a north pole projection
+# Transcribe Super-Earth planet names from https://science.nasa.gov/exoplanets/exoplanet-catalog/?pageno=1&planet_type=Super+Earth&content_list=true
 
 # Upcoming work queue:
-# Add rename prompt when creating settlement, defaulting to randomly generated - port back to SFA
-# Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
-# Replace "earth_grid" and similar with grid type constants
-# "Select a valid crew to fill this slot" tooltip should specify types of crew that can fill the slot
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art
-# Add radio voice lines for units in spacesuits
 # Add new resource types, allowing buying on Earth, transporting, and using to build when it is in the builder's tile
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
 # Add radio distortion versions of voice lines, either as separate files or runtime filter
+# Add radio voice lines for units in spacesuits
 # For tiles with knowledge 1, possibly change every turn to a cloud or normal pixellated version, depending on atmosphere conditions
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
 # Convert actor_type ("tile", "mob", "minister") to use constant keys
+# Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
+# Add altitude effect to local pressure
 # Add new notes from Second Earth notes folder
+# Possibly add global interface that appears when nothing is selected, showing global conditions
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>
