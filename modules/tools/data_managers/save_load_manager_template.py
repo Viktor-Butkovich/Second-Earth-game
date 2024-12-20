@@ -77,7 +77,7 @@ class save_load_manager_template:
         Output:
             None
         """
-        status.rendered_images = {}
+        status.cached_images = {}
         flags.creating_new_game = True
         flags.victories_this_game = []
 

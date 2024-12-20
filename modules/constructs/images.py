@@ -549,8 +549,8 @@ class bundle_image:
             if self.pixellated:
                 non_pixellated_key = key
                 key += "pixellated"
-        if key in status.rendered_images:  # if image already loaded, use it
-            self.image = status.rendered_images[key]
+        if key in status.cached_images:  # if image already loaded, use it
+            self.image = status.cached_images[key]
         else:  # If image not loaded, load it and add it to the loaded images
             if full_image_id.endswith(".png"):
                 self.text = False
@@ -574,7 +574,7 @@ class bundle_image:
                         ),
                     )
                 if self.pixellated:
-                    status.rendered_images[non_pixellated_key] = self.image
+                    status.cached_images[non_pixellated_key] = self.image
                     self.image = pygame.transform.scale(
                         self.image,
                         (constants.PIXELLATED_SIZE, constants.PIXELLATED_SIZE),
@@ -588,7 +588,7 @@ class bundle_image:
                         self.image = pygame.transform.flip(self.image, False, True)
             if self.is_offset and self.alpha != 255:
                 self.image.set_alpha(self.alpha)
-            status.rendered_images[key] = self.image
+            status.cached_images[key] = self.image
 
     def apply_per_pixel_mutations(self):
         """
@@ -905,8 +905,8 @@ class free_image(image):
                     else:
                         self.text = True
                         full_image_id = self.image_id
-                    if full_image_id in status.rendered_images:
-                        self.image = status.rendered_images[full_image_id]
+                    if full_image_id in status.cached_images:
+                        self.image = status.cached_images[full_image_id]
                     else:
                         if not self.text:
                             try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
@@ -918,7 +918,7 @@ class free_image(image):
                             self.image = text_utility.text(
                                 full_image_id, constants.myfont
                             )
-                        status.rendered_images[full_image_id] = self.image
+                        status.cached_images[full_image_id] = self.image
                     self.image = pygame.transform.scale(
                         self.image, (self.width, self.height)
                     )
@@ -1735,8 +1735,8 @@ class actor_image(image):
                 else:
                     self.text = True
                     full_image_id = self.image_id
-                if full_image_id in status.rendered_images:
-                    self.image = status.rendered_images[full_image_id]
+                if full_image_id in status.cached_images:
+                    self.image = status.cached_images[full_image_id]
                 else:
                     if not self.text:
                         try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
@@ -1746,7 +1746,7 @@ class actor_image(image):
                             self.image = pygame.image.load(full_image_id)
                     else:
                         self.image = text_utility.text(self.image_id, constants.myfont)
-                    status.rendered_images[full_image_id] = self.image
+                    status.cached_images[full_image_id] = self.image
                 self.image = pygame.transform.scale(
                     self.image, (self.width, self.height)
                 )
@@ -2007,15 +2007,15 @@ class button_image(actor_image):
         if isinstance(self.image_id, str):  # If set to string image path
             self.contains_bundle = False
             full_image_id = f"graphics/{self.image_id}"
-            if full_image_id in status.rendered_images:
-                self.image = status.rendered_images[full_image_id]
+            if full_image_id in status.cached_images:
+                self.image = status.cached_images[full_image_id]
             else:
                 try:  # Use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
                     self.image = pygame.image.load(full_image_id)
                 except:
                     print(full_image_id)
                     self.image = pygame.image.load(full_image_id)
-                status.rendered_images[full_image_id] = self.image
+                status.cached_images[full_image_id] = self.image
             self.image = pygame.transform.scale(self.image, (self.width, self.height))
         elif isinstance(new_image_id, pygame.Surface):
             self.image = new_image_id

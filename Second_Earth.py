@@ -189,6 +189,10 @@ except Exception:  # Displays error message and records error message in crash l
                 w/ 400 tiles, 2400/2400 atmosphere units: 1,884/1884 inert gases, 504/504 O2, 12/12 GHG, 0/2.4 toxic gases
         Create interface that conveys total pressure w/ proportions as well as quantities of O2, GHG, inert gases, toxic gases, followed by total water, radiation, and magnetic field
             - ~8 labels
+    Appearance: Determine some random appearance of the atmosphere, based on composition and some random factors
+        A planet with an Earth-like atmosphere would have an Earth-like blue sky and white clouds covering ~50% of the surface, but other compositions could be unpredictable
+        Show sky as a transparent ring around the perimeter of the globe projection, and show clouds both on the projection and optionally on the tile map
+            Mars has slight sky effect but no clouds due to low atmosphere, Venus is fully covered, Luna has no sky effect or clouds
 
 6. Add alien vegetation
 7. Add alien animals
@@ -249,7 +253,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Transcribe Super-Earth planet names from https://science.nasa.gov/exoplanets/exoplanet-catalog/?pageno=1&planet_type=Super+Earth&content_list=true
 
 # Upcoming work queue:
-# Try recursive image caching - cache each portion of an image rather than the whole thing
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art
