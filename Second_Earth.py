@@ -193,6 +193,7 @@ except Exception:  # Displays error message and records error message in crash l
         A planet with an Earth-like atmosphere would have an Earth-like blue sky and white clouds covering ~50% of the surface, but other compositions could be unpredictable
         Show sky as a transparent ring around the perimeter of the globe projection, and show clouds both on the projection and optionally on the tile map
             Mars has slight sky effect but no clouds due to low atmosphere, Venus is fully covered, Luna has no sky effect or clouds
+        Additionally, the sky color largely determines the water color
 
 6. Add alien vegetation
 7. Add alien animals
