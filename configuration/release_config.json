@@ -9,6 +9,7 @@
       "allow_toggle_fog_of_war"
    ],
    "effects": [
+      "speed_loading",
       "rotate_game_mode_buttons",
       "skinny_screen",
       "short_screen",

@@ -1392,7 +1392,10 @@ def create_grid(
         else:
             map_size_list = constants.terrain_manager.get_tuning("map_sizes")
         constants.map_size_options = map_size_list
-        map_size = input_dict.get("map_size", random.choice(map_size_list))
+        if constants.effect_manager.effect_active("speed_loading"):
+            map_size = input_dict.get("map_size", map_size_list[0])
+        else:
+            map_size = input_dict.get("map_size", random.choice(map_size_list))
         if constants.effect_manager.effect_active(
             "earth_preset"
         ) or constants.effect_manager.effect_active("venus_preset"):
