@@ -261,7 +261,7 @@ def main_loop():
                     )
                     if constants.effect_manager.effect_active("save_global_projection"):
                         pygame.image.save(
-                            status.globe_projection_grid.find_cell(0, 0).tile.image,
+                            status.globe_projection_surface.convert_alpha(),
                             f"save_games/globe_rotations/{constants.TIME_PASSING_EARTH_ROTATIONS}.png",
                         )
                     if status.strategic_map_grid.world_handler.rotation_speed > 2:

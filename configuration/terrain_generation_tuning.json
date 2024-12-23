@@ -68,6 +68,7 @@
     "earth_ice_color": [160, 210, 240],
     "earth_sand_color": [220, 180, 80],
     "earth_rock_color": [94, 88, 75],
+    "earth_sky_color": [190, 235, 254],
 
     "mars_rotation_direction": -1,
     "mars_rotation_speed": 3,
@@ -88,6 +89,7 @@
     "mars_ice_color": [160, 210, 240],
     "mars_sand_color": [170, 107, 60],
     "mars_rock_color": [84, 59, 55],
+    "mars_sky_color": [11, 41, 138],
 
     "venus_rotation_direction": 1,
     "venus_rotation_speed": 1,
@@ -108,6 +110,7 @@
     "venus_ice_color": [160, 210, 240],
     "venus_sand_color": [141, 127, 5],
     "venus_rock_color": [92, 62, 66],
+    "venus_sky_color": [251, 227, 166],
     
 
     "map_sizes": [11, 13, 15, 17, 19, 21, 23, 25],

@@ -592,7 +592,7 @@ update_terrain_knowledge_requirements()
 UNIQUE_FEATURE_TRACKING: str = "unique"
 LIST_FEATURE_TRACKING: str = "list"
 
-MAP_MODE_ALPHA: int = 0  # 170
+MAP_MODE_ALPHA: int = 255
 
 SETTLEMENT_PANEL: str = "settlement_panel"
 LOCAL_CONDITIONS_PANEL: str = "local_conditions_panel"

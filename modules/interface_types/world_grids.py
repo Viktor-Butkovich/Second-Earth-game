@@ -1081,7 +1081,11 @@ class world_grid(grid):
             ):  # For center offset, just draw a straight vertical latitude line
                 current_line = latitude_lines[index]
                 return_list += self.draw_latitude_line(
-                    current_line, largest_size, level=offset + 20
+                    current_line,
+                    largest_size,
+                    level=offset + 20,
+                    offset=offset,
+                    offset_width=offset_width,
                 )
             else:  # For non-center offsets, draw symmetrical curved latitude lines, progressively farther from center
                 longitude_bulge_factor = (offset / offset_width) ** 0.5
@@ -1092,6 +1096,8 @@ class world_grid(grid):
                     longitude_bulge_factor=longitude_bulge_factor,
                     level=offset + 20,
                     min_width=min_width,
+                    offset=offset,
+                    offset_width=offset_width,
                 )
 
                 return_list += self.draw_latitude_line(
@@ -1100,6 +1106,8 @@ class world_grid(grid):
                     longitude_bulge_factor=-1 * longitude_bulge_factor,
                     level=(-1 * offset) + 20,
                     min_width=min_width,
+                    offset=offset,
+                    offset_width=offset_width,
                 )
         return return_list
 
@@ -1110,6 +1118,8 @@ class world_grid(grid):
         longitude_bulge_factor: float = 0.0,
         level: int = 0,
         min_width: bool = False,
+        offset: int = 0,
+        offset_width: int = 0,
     ):
         """
         Description:
@@ -1253,6 +1263,46 @@ class world_grid(grid):
                     image_id = {"image_id": image_id}
                 image_id.update(projection)
                 return_list.append(image_id)
+
+            if (
+                self.world_handler.get_pressure_ratio() > 50.0
+            ):  # If very high pressure, have sky effects for all latitude lines
+                threshold = max_latitude_line_length
+            elif (
+                self.world_handler.get_pressure_ratio() > 10.0
+            ):  # If high pressure, also have sky effects for 3rd farthest latitude line
+                threshold = 3
+            else:  # If normal or low pressure, only have sky effects for 2nd farthest latitude line
+                threshold = 2
+            if (
+                offset_width - offset <= threshold and not min_width
+            ):  # If 2nd farthest latitude line
+                sky_effect = {
+                    "image_id": "misc/green_screen_base.png",
+                    "green_screen": tuple(self.world_handler.sky_color),
+                }
+                sky_effect.update(projection)
+                sky_effect["level"] += 10
+                if threshold <= 3 or abs(longitude_bulge_factor) > 0.5:
+                    sky_effect["x_size"] *= 0.4
+
+                sky_effect["alpha"] = 75
+                if offset != 0:
+                    x_offset_magnitude = 0.02
+                    if max_latitude_line_length <= constants.map_size_options[1]:
+                        x_offset_magnitude *= 1.6
+                    elif max_latitude_line_length >= constants.map_size_options[5]:
+                        x_offset_magnitude *= 2.0
+                    else:
+                        x_offset_magnitude *= 1.6
+                    x_offset += x_offset_magnitude * (
+                        1 if longitude_bulge_factor >= 0 else -1
+                    )  # Shift right if on right side and vice versa
+                    sky_effect["x_offset"] = (
+                        center_position[0] + x_offset
+                    ) * size_multiplier
+
+                return_list.append(sky_effect)
         return return_list
 
     def get_next_unaccounted_coordinates(

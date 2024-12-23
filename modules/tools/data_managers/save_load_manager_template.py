@@ -162,7 +162,8 @@ class save_load_manager_template:
 
         if constants.effect_manager.effect_active("save_global_projection"):
             pygame.image.save(
-                status.globe_projection_surface, "save_games/globe_projection.png"
+                status.globe_projection_surface.convert_alpha(),
+                "save_games/globe_projection.png",
             )
 
         status.transaction_history = constants.money_tracker.transaction_history

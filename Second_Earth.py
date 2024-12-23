@@ -155,7 +155,7 @@ except Exception:  # Displays error message and records error message in crash l
             Suits/buildings need to be shielded enough to block the remaining radiation not blocked by global/local shielding
 
     Magnetic field
-        Based on magnetic field strength, 0
+        Based on magnetic field strength
         Magnetic field blocks some amount of incoming radiation
         Any unblocked radiation reaches tiles and causes a solar wind effect
         Solar wind removes a small amount of each gas each turn
@@ -194,6 +194,12 @@ except Exception:  # Displays error message and records error message in crash l
         Show sky as a transparent ring around the perimeter of the globe projection, and show clouds both on the projection and optionally on the tile map
             Mars has slight sky effect but no clouds due to low atmosphere, Venus is fully covered, Luna has no sky effect or clouds
         Additionally, the sky color largely determines the water color
+            As atmosphere approaches 0, water color approaches space color or ground color, for deep water and shallow water, respectively
+            For thicker atmosphere, sky color will be some random color based on composition, getting closer to Earth as atmosphere approaches earth-like composition
+            For very thick atmospheres, sky effect should approach that of Venus
+        When displaying clouds, have ~6 custom cloud images that are overlayed by picking 2
+            Cloud frequency should be based on the amount of liquid water in the tile and nearby tiles (or just average water?)
+            Change clouds at end of turn and while globes are spinning
 
 6. Add alien vegetation
 7. Add alien animals
@@ -252,8 +258,13 @@ except Exception:  # Displays error message and records error message in crash l
 # Various resolution issues, particularly with tall resolutions
 # Add manually created Earth map - should look similar to the UN flag, with a north pole projection
 # Transcribe Super-Earth planet names from https://science.nasa.gov/exoplanets/exoplanet-catalog/?pageno=1&planet_type=Super+Earth&content_list=true
+# God mode changes to make habitabilty deadly/not deadly not correctly calibrating reorganization projection of ship crew - fix if ever relevant outside of god mode
+# Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
+# Continue adding sky effects
+# Add cloud effects
+# Add local brightness effect based on altitude
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art
@@ -270,6 +281,8 @@ except Exception:  # Displays error message and records error message in crash l
 # Add altitude effect to local pressure
 # Add new notes from Second Earth notes folder
 # Possibly add global interface that appears when nothing is selected, showing global conditions
+# Learn how to use Python script to process earth projection images
+# Correctly update water and atmosphere colors based on current composition compared to initial and Earth
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>

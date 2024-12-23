@@ -1816,9 +1816,19 @@ class change_parameter_button(button):
             None
         """
         if main_loop_utility.action_possible():
-            self.attached_label.actor.cell.terrain_handler.change_parameter(
-                self.attached_label.actor_label_type.removesuffix("_label"), self.change
-            )
+            if (
+                self.attached_label.actor_label_type.removesuffix("_label")
+                in constants.global_parameters
+            ):
+                self.attached_label.actor.cell.grid.world_handler.change_parameter(
+                    self.attached_label.actor_label_type.removesuffix("_label"),
+                    self.change,
+                )
+            else:
+                self.attached_label.actor.cell.terrain_handler.change_parameter(
+                    self.attached_label.actor_label_type.removesuffix("_label"),
+                    self.change,
+                )
         else:
             text_utility.print_to_screen(
                 "You are busy and cannot change this parameter."

@@ -549,6 +549,8 @@ class bundle_image:
             if self.pixellated:
                 non_pixellated_key = key
                 key += "pixellated"
+            if self.alpha != 255:
+                key += str(self.alpha)
         if key in status.cached_images:  # if image already loaded, use it
             self.image = status.cached_images[key]
         else:  # If image not loaded, load it and add it to the loaded images
