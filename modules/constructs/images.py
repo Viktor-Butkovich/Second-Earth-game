@@ -1,6 +1,7 @@
 # Contains functionality for images
 
 import pygame
+import math
 from ..util import utility, drawing_utility, text_utility, scaling, minister_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -400,6 +401,7 @@ class bundle_image:
         if not is_offset:
             self.image_id = image_id
             self.level = 0
+            self.detail_level = constants.BUNDLE_IMAGE_DETAIL_LEVEL
         else:
             self.image_id_dict = image_id
             self.image_id = image_id["image_id"]
@@ -413,6 +415,9 @@ class bundle_image:
             self.y_offset = image_id.get("y_offset", 0)
             self.level = image_id.get("level", 0)
             self.alpha = image_id.get("alpha", 255)
+            self.detail_level = image_id.get(
+                "detail_level", constants.BUNDLE_IMAGE_DETAIL_LEVEL
+            )
             if image_id.get("override_width", None):
                 self.override_width = image_id["override_width"]
             if image_id.get("override_height", None):
@@ -540,7 +545,8 @@ class bundle_image:
             full_image_id = "graphics/misc/empty.png"
         else:
             full_image_id = self.image_id
-        key = str(full_image_id)
+        key = str(full_image_id) + str(self.detail_level)
+        no_green_screen_key = key
         if self.is_offset:
             if self.has_green_screen:
                 key += str(self.green_screen_colors)
@@ -561,6 +567,14 @@ class bundle_image:
                 except:
                     self.image = pygame.image.load(full_image_id)
                 self.image.convert()
+                size = self.image.get_size()
+                self.image = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
+                    self.image,
+                    (
+                        math.floor(size[0] * self.detail_level),
+                        math.floor(size[1] * self.detail_level),
+                    ),
+                )
                 if self.is_offset and (self.has_green_screen or self.has_color_filter):
                     self.apply_per_pixel_mutations()
             else:
@@ -582,7 +596,7 @@ class bundle_image:
                         (constants.PIXELLATED_SIZE, constants.PIXELLATED_SIZE),
                     )
                     hashed_key = hash(
-                        key
+                        no_green_screen_key
                     )  # Randomly flip pixellated image in the same way every time
                     if hashed_key % 2 == 0:
                         self.image = pygame.transform.flip(self.image, True, False)
@@ -920,6 +934,14 @@ class free_image(image):
                             self.image = text_utility.text(
                                 full_image_id, constants.myfont
                             )
+                        size = self.image.get_size()
+                        self.image = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
+                            self.image,
+                            (
+                                math.floor(size[0] * constants.DETAIL_LEVEL),
+                                math.floor(size[1] * constants.DETAIL_LEVEL),
+                            ),
+                        )
                         status.cached_images[full_image_id] = self.image
                     self.image = pygame.transform.scale(
                         self.image, (self.width, self.height)
@@ -987,8 +1009,11 @@ class background_image(free_image):
             None
         """
         input_dict["image_id"] = input_dict.get(
-            "image_id", "misc/screen_backgrounds/background.png"
+            "image_id",
+            {"image_id": "misc/screen_backgrounds/background.png", "detail_level": 1.0},
         )
+        if type(input_dict["image_id"]) != list:
+            input_dict["image_id"] = [input_dict["image_id"]]
         self.default_image_id = input_dict["image_id"]
         input_dict["coordinates"] = (0, 0)
         input_dict["width"] = constants.display_width
@@ -1010,14 +1035,15 @@ class background_image(free_image):
                 self.previous_safe_click_area_showing = status.safe_click_area.showing
                 if self.previous_safe_click_area_showing:
                     self.set_image(
-                        [
+                        utility.combine(
                             self.default_image_id,
                             {
                                 "image_id": "misc/safe_click_area.png",
                                 "override_width": status.safe_click_area.width,
                                 "free": True,
+                                "detail_level": 1.0,
                             },
-                        ]
+                        )
                     )
                 else:
                     self.set_image(self.default_image_id)
@@ -1748,6 +1774,14 @@ class actor_image(image):
                             self.image = pygame.image.load(full_image_id)
                     else:
                         self.image = text_utility.text(self.image_id, constants.myfont)
+                    size = self.image.get_size()
+                    self.image = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
+                        self.image,
+                        (
+                            math.floor(size[0] * constants.DETAIL_LEVEL),
+                            math.floor(size[1] * constants.DETAIL_LEVEL),
+                        ),
+                    )
                     status.cached_images[full_image_id] = self.image
                 self.image = pygame.transform.scale(
                     self.image, (self.width, self.height)
@@ -2017,6 +2051,14 @@ class button_image(actor_image):
                 except:
                     print(full_image_id)
                     self.image = pygame.image.load(full_image_id)
+                size = self.image.get_size()
+                self.image = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
+                    self.image,
+                    (
+                        math.floor(size[0] * constants.BUTTON_DETAIL_LEVEL),
+                        math.floor(size[1] * constants.BUTTON_DETAIL_LEVEL),
+                    ),
+                )
                 status.cached_images[full_image_id] = self.image
             self.image = pygame.transform.scale(self.image, (self.width, self.height))
         elif isinstance(new_image_id, pygame.Surface):

@@ -77,10 +77,10 @@ class save_load_manager_template:
         Output:
             None
         """
+        game_transitions.start_loading()
         status.cached_images = {}
         flags.creating_new_game = True
         flags.victories_this_game = []
-
         for grid_type in constants.grid_types_list:
             world_grids.create_grid(from_save=False, grid_type=grid_type)
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)

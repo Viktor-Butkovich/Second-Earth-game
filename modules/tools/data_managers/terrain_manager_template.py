@@ -720,12 +720,16 @@ class world_handler:
             "average_temperature", self.default_temperature
         )
         self.size: int = input_dict.get("size", self.default_grid.area)
-        self.global_parameters: Dict[str, int] = {}
-        for key in constants.global_parameters:
-            self.set_parameter(key, input_dict.get("global_parameters", {}).get(key, 0))
         self.sky_color = input_dict["sky_color"]
         self.default_sky_color = input_dict["default_sky_color"]
-
+        self.global_parameters: Dict[str, int] = {}
+        self.initial_atmosphere_offset = input_dict.get(
+            "initial_atmosphere_offset", 0.001
+        )
+        for key in constants.global_parameters:
+            self.set_parameter(key, input_dict.get("global_parameters", {}).get(key, 0))
+        if not from_save:
+            self.update_sky_color(set_initial_offset=True)
         """
         15 x 15 grid has north pole 0, 0 and south pole 7, 7
         If centered at (11, 11), latitude line should include (0, 0), (14, 14), (13, 13), (12, 12), (11, 11), (10, 10), (9, 9), (8, 8), (7, 7)
@@ -808,6 +812,16 @@ class world_handler:
         destination: Tuple[int, int],
         omit_origin: bool = False,
     ) -> List[Tuple[int, int]]:
+        """
+        Description:
+            Finds and returns a list of adjacent/diagonal coordinates leading from the origin to the destination
+        Input:
+            int tuple origin: Origin coordinate
+            int tuple destination: Destination coordinate
+            boolean omit_origin: Whether to omit the origin from the list
+        Output:
+            int tuple list: List of adjacent/diagonal coordinates leading from the origin to the destination
+        """
         line = []
         if not omit_origin:
             line.append(origin)
@@ -864,7 +878,7 @@ class world_handler:
             None
         """
         self.set_parameter(
-            parameter_name, self.global_parameters[parameter_name] + change
+            parameter_name, round(self.global_parameters[parameter_name] + change, 2)
         )
 
     def set_parameter(self, parameter_name: str, new_value: int) -> None:
@@ -878,7 +892,7 @@ class world_handler:
         Output:
             None
         """
-        self.global_parameters[parameter_name] = new_value
+        self.global_parameters[parameter_name] = max(0, new_value)
         if parameter_name in [
             constants.OXYGEN,
             constants.GHG,
@@ -899,8 +913,8 @@ class world_handler:
     def update_pressure(self) -> None:
         self.global_parameters[constants.PRESSURE] = sum(
             [
-                self.get_parameter(parameter)
-                for parameter in [
+                self.get_parameter(atmosphere_component)
+                for atmosphere_component in [
                     constants.OXYGEN,
                     constants.GHG,
                     constants.INERT_GASES,
@@ -909,8 +923,102 @@ class world_handler:
             ]
         )
 
-    def update_sky_color(self) -> None:
-        pass
+    def update_sky_color(self, set_initial_offset=False) -> None:
+        """
+        Description:
+            Updates the sky color of this world handler based on the current atmosphere composition
+                The sky color is a weighted average of the original sky color and that of Earth, with weights depending on atmosphere terraforming progress
+            Optionally records the original atmosphere offset from Earth's atmosphere for initial setup
+        Input:
+            None
+        Output:
+            None
+        """
+        if self.get_parameter(constants.PRESSURE) == 0:
+            if set_initial_offset:
+                self.initial_atmosphere_offset = 0
+        default_sky_color = self.default_sky_color
+        earth_sky_color = self.get_tuning("earth_sky_color")
+        total_offset = 0
+        for atmosphere_component in [
+            constants.OXYGEN,
+            constants.GHG,
+            constants.INERT_GASES,
+            constants.TOXIC_GASES,
+        ]:
+            if self.get_parameter(constants.PRESSURE) == 0:
+                composition = 0.01
+            else:
+                composition = self.get_parameter(
+                    atmosphere_component
+                ) / self.get_parameter(constants.PRESSURE)
+            ideal = self.get_tuning(f"earth_{atmosphere_component}")
+            if atmosphere_component == constants.TOXIC_GASES:
+                offset = max(0, (composition - 0.001) / 0.001)
+            if ideal != 0:
+                offset = abs(composition - ideal) / ideal
+            total_offset += offset
+        if set_initial_offset:
+            self.initial_atmosphere_offset = max(0.001, total_offset)
+
+        # Record total offset in each call - only update colors if total offset changed
+        total_offset = min(total_offset, self.initial_atmosphere_offset)
+        progress = (self.initial_atmosphere_offset - total_offset) / (
+            self.initial_atmosphere_offset
+        )
+        self.sky_color = [
+            round(
+                max(
+                    0,
+                    min(
+                        255,
+                        default_sky_color[i] * (1.0 - progress)
+                        + earth_sky_color[i] * progress,
+                    ),
+                )
+            )
+            for i in range(3)
+        ]
+
+        inherent_water_color = (11, 24, 144)
+        sky_weight = 0.4
+        water_color = [
+            round(
+                (
+                    inherent_water_color[i] * (1.0 - sky_weight)
+                    + ((self.sky_color[i] - 50) * sky_weight)
+                )
+            )
+            for i in range(3)
+        ]
+        if self.green_screen:
+            self.green_screen["deep water"]["replacement_color"] = (
+                water_color[0] * 0.9,
+                water_color[1] * 0.9,
+                water_color[2] * 1,
+            )
+            self.green_screen["shallow water"]["replacement_color"] = (
+                water_color[0],
+                water_color[1] * 1.1,
+                water_color[2] * 1,
+            )
+
+            # Replacing green screen is a very expensive operation - maybe only do at end of turn, during time passing
+            #   Use an optional omit water update argument
+            # Get Earth numbers to work out, such that water and sky end up being accurate
+            # Maybe store an "actual" sky color, and a "display" sky color to use for the sky effect - actual is used in water calculation
+            #   On both Earth and Mars, the sky effect from space looks significantly different from the sky effect looking up or on the water
+
+        if not flags.loading:
+            status.strategic_map_grid.update_globe_projection(update_button=True)
+            actor_utility.calibrate_actor_info_display(
+                status.tile_info_display, status.displayed_tile
+            )
+            status.minimap_grid.calibrate(
+                status.minimap_grid.center_x,
+                status.minimap_grid.center_y,
+                calibrate_center=False,
+            )
 
     def get_parameter(self, parameter_name: str) -> int:
         """
@@ -957,6 +1065,7 @@ class world_handler:
             "name": self.name,
             "sky_color": self.sky_color,
             "default_sky_color": self.default_sky_color,
+            "initial_atmosphere_offset": self.initial_atmosphere_offset,
         }
 
     def generate_green_screen(self) -> Dict[str, Dict[str, any]]:

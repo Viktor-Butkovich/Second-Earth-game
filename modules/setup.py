@@ -173,8 +173,11 @@ def misc():
     status.loading_image = constants.actor_creation_manager.create_interface_element(
         {
             "image_id": [
-                "misc/screen_backgrounds/title.png",
-                "misc/screen_backgrounds/loading.png",
+                {"image_id": "misc/screen_backgrounds/title.png", "detail_level": 1.0},
+                {
+                    "image_id": "misc/screen_backgrounds/loading.png",
+                    "detail_level": 1.0,
+                },
             ],
             "init_type": constants.LOADING_IMAGE_TEMPLATE_IMAGE,
         }
@@ -229,7 +232,6 @@ def misc():
                     constants.TRIAL_MODE,
                     constants.NEW_GAME_SETUP_MODE,
                 ],
-                "image_id": "misc/screen_backgrounds/background.png",
                 "init_type": constants.BACKGROUND_IMAGE,
             }
         )
@@ -241,7 +243,10 @@ def misc():
                 "modes": [
                     constants.MINISTERS_MODE,
                 ],
-                "image_id": "misc/screen_backgrounds/ministers_background.png",
+                "image_id": {
+                    "image_id": "misc/screen_backgrounds/ministers_background.png",
+                    "detail_level": 1.0,
+                },
                 "init_type": constants.BACKGROUND_IMAGE,
             }
         )
@@ -252,7 +257,10 @@ def misc():
             "modes": [
                 constants.MAIN_MENU_MODE,
             ],
-            "image_id": "misc/screen_backgrounds/title.png",
+            "image_id": {
+                "image_id": "misc/screen_backgrounds/title.png",
+                "detail_level": 1.0,
+            },
             "init_type": constants.BACKGROUND_IMAGE,
         }
     )
@@ -309,7 +317,12 @@ def misc():
         {
             "coordinates": scaling.scale_coordinates(0, 0),
             "modes": [constants.STRATEGIC_MODE],
-            "image_id": "misc/north_indicator.png",
+            "image_id": [
+                {
+                    "image_id": "misc/south_indicator.png",
+                    "detail_level": 1.0,
+                }
+            ],
             "init_type": constants.DIRECTIONAL_INDICATOR_IMAGE,
             "anchor_key": "north_pole",
             "width": scaling.scale_width(25),
@@ -321,7 +334,12 @@ def misc():
         {
             "coordinates": scaling.scale_coordinates(0, 0),
             "modes": [constants.STRATEGIC_MODE],
-            "image_id": "misc/south_indicator.png",
+            "image_id": [
+                {
+                    "image_id": "misc/south_indicator.png",
+                    "detail_level": 1.0,
+                }
+            ],
             "init_type": constants.DIRECTIONAL_INDICATOR_IMAGE,
             "anchor_key": "south_pole",
             "width": scaling.scale_width(25),
@@ -1760,6 +1778,7 @@ def buttons():
             {
                 "image_id": "locations/mars.png",
                 "size": 0.6,
+                "detail_level": 1.0,
             }
         ]
         input_dict["width"] = scaling.scale_width(100)
@@ -1773,6 +1792,7 @@ def buttons():
             {
                 "image_id": "locations/earth.png",
                 "size": 0.6,
+                "detail_level": 1.0,
             }
         ]
         constants.actor_creation_manager.create_interface_element(input_dict)
@@ -1782,6 +1802,7 @@ def buttons():
             {
                 "image_id": "locations/venus.png",
                 "size": 0.6,
+                "detail_level": 1.0,
             }
         ]
         constants.actor_creation_manager.create_interface_element(input_dict)

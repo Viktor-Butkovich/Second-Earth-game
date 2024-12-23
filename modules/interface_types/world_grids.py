@@ -2,6 +2,8 @@
 
 import random
 import json
+import math
+import pygame
 from typing import Dict, List, Tuple
 from .grids import grid, mini_grid, abstract_grid
 from .cells import cell
@@ -976,6 +978,15 @@ class world_grid(grid):
             )
         )
         status.globe_projection_surface = status.globe_projection_image.image
+        size = status.globe_projection_surface.get_size()
+        status.globe_projection_surface = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
+            status.globe_projection_surface,
+            (
+                math.floor(size[0] * constants.GLOBE_PROJECTION_DETAIL_LEVEL),
+                math.floor(size[1] * constants.GLOBE_PROJECTION_DETAIL_LEVEL),
+            ),
+        )
+
         globe_projection_tile = status.globe_projection_grid.find_cell(0, 0).tile
         globe_projection_image_id = [
             "misc/space.png",
@@ -1275,10 +1286,13 @@ class world_grid(grid):
             else:  # If normal or low pressure, only have sky effects for 2nd farthest latitude line
                 threshold = 2
             if (
-                offset_width - offset <= threshold and not min_width
+                (offset_width - offset <= threshold and not min_width)
+                and self.world_handler.get_parameter(constants.PRESSURE) > 0
+                and constants.current_map_mode == "terrain"
             ):  # If 2nd farthest latitude line
                 sky_effect = {
                     "image_id": "misc/green_screen_base.png",
+                    "detail_level": 1.0,
                     "green_screen": tuple(self.world_handler.sky_color),
                 }
                 sky_effect.update(projection)
@@ -1287,12 +1301,19 @@ class world_grid(grid):
                     sky_effect["x_size"] *= 0.4
 
                 sky_effect["alpha"] = 75
+                pressure_ratio = self.world_handler.get_pressure_ratio()
+                if pressure_ratio <= 1.0:  # More transparent for lower pressure
+                    sky_effect["alpha"] = 50 + int(25 * min(pressure_ratio, 1))
+                else:  # Less transparent for higher pressure
+                    sky_effect["alpha"] = 75 + int(
+                        25 * min((pressure_ratio - 1) / 99, 1)
+                    )
                 if offset != 0:
                     x_offset_magnitude = 0.02
                     if max_latitude_line_length <= constants.map_size_options[1]:
                         x_offset_magnitude *= 1.6
                     elif max_latitude_line_length >= constants.map_size_options[5]:
-                        x_offset_magnitude *= 2.0
+                        x_offset_magnitude *= 1.6
                     else:
                         x_offset_magnitude *= 1.6
                     x_offset += x_offset_magnitude * (

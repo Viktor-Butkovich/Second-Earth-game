@@ -739,9 +739,10 @@ class pmob(mob):
             for current_image in self.images:
                 if (
                     current_image.current_cell
+                    and current_image.current_cell.contained_mobs
                     and self == current_image.current_cell.contained_mobs[0]
                     and current_image.current_cell.grid.showing
-                ):  # only draw outline if on top of stack
+                ):  # Only draw outline if on top of stack
                     pygame.draw.rect(
                         constants.game_display,
                         constants.color_dict[self.selection_outline_color],

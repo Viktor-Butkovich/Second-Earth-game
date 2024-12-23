@@ -560,6 +560,11 @@ BACKPACK_LEVEL: int = 1
 
 PIXELLATED_SIZE: int = 2
 LIGHT_PIXELLATED_SIZE: int = 70
+DETAIL_LEVEL: float = 1.0
+BUNDLE_IMAGE_DETAIL_LEVEL: float = 0.5
+BUTTON_DETAIL_LEVEL: float = 1.0
+GLOBE_PROJECTION_DETAIL_LEVEL: float = 1.0
+TERRAIN_DETAIL_LEVEL: float = 0.5
 
 TERRAIN_KNOWLEDGE: str = "terrain"
 TERRAIN_KNOWLEDGE_REQUIREMENT: int = 0
@@ -592,7 +597,7 @@ update_terrain_knowledge_requirements()
 UNIQUE_FEATURE_TRACKING: str = "unique"
 LIST_FEATURE_TRACKING: str = "list"
 
-MAP_MODE_ALPHA: int = 255
+MAP_MODE_ALPHA: int = 0
 
 SETTLEMENT_PANEL: str = "settlement_panel"
 LOCAL_CONDITIONS_PANEL: str = "local_conditions_panel"

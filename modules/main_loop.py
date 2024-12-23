@@ -282,6 +282,7 @@ def main_loop():
                             {
                                 "image_id": f"locations/earth_rotations/{(constants.TIME_PASSING_EARTH_ROTATIONS % num_earth_images)}.png",
                                 "size": 0.8,
+                                "detail_level": 1.0,
                             },
                         ]
                     )
@@ -322,6 +323,7 @@ def main_loop():
                         {
                             "image_id": f"locations/earth.png",
                             "size": 0.8,
+                            "detail_level": 1.0,
                         },
                     ]
                 )

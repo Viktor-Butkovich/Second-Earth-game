@@ -997,6 +997,7 @@ class ordered_collection(interface_collection):
                     {
                         "image_id": globe_image,
                         "size": 0.6,
+                        "detail_level": 1.0,
                     }
                 ]
             )

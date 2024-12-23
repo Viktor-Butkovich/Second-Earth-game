@@ -120,7 +120,7 @@ def set_game_mode(new_game_mode):
         constants.EARTH_MODE,
         constants.MINISTERS_MODE,
     ]:
-        if not (
+        if new_game_mode == constants.MINISTERS_MODE or not (
             status.displayed_tile and status.displayed_tile.grid == status.earth_grid
         ):
             actor_utility.calibrate_actor_info_display(
