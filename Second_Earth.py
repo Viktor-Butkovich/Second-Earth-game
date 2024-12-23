@@ -264,7 +264,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Upcoming work queue:
 # Continue adding sky effects
 # Add cloud effects
-# Add local brightness effect based on altitude
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art

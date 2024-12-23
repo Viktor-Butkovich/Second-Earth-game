@@ -526,11 +526,11 @@ class actor_display_label(label):
                 input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
                 input_dict["width"], input_dict["height"] = (s_size, s_size)
 
-                input_dict["change"] = -1
+                input_dict["change"] = -10000
                 input_dict["image_id"] = "buttons/cycle_ministers_down_button.png"
                 self.add_attached_button(input_dict)
 
-                input_dict["change"] = 1
+                input_dict["change"] = 10000
                 input_dict["image_id"] = "buttons/cycle_ministers_up_button.png"
                 self.add_attached_button(input_dict)
 

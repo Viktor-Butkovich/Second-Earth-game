@@ -1616,6 +1616,8 @@ class terrain_handler:
         overlay_images = self.get_overlay_images()
         if parameter_name in [constants.WATER, constants.TEMPERATURE]:
             old_value = self.terrain_parameters[parameter_name]
+        elif parameter_name == constants.ALTITUDE:
+            old_color_filter = self.get_color_filter()
         self.terrain_parameters[parameter_name] = max(
             self.minima.get(parameter_name, 0),
             min(new_value, self.maxima.get(parameter_name, 5)),
@@ -1652,6 +1654,10 @@ class terrain_handler:
             constants.current_map_mode != "terrain"
             or self.terrain != new_terrain
             or overlay_images != self.get_overlay_images()
+            or (
+                parameter_name == constants.ALTITUDE
+                and old_color_filter != self.get_color_filter()
+            )
             or parameter_name == constants.KNOWLEDGE
         ):
             self.set_terrain(new_terrain)
@@ -1908,7 +1914,15 @@ class terrain_handler:
             dictionary: Color filter for this terrain handler's world handler
         """
         if self.get_world_handler():
-            return self.get_world_handler().color_filter
+            color_filter = self.get_world_handler().color_filter.copy()
+            for key in color_filter:
+                color_filter[key] = round(
+                    color_filter[key]
+                    + (self.get_parameter(constants.ALTITUDE) / 10)
+                    - 0.2,
+                    2,
+                )
+            return color_filter
         else:
             return {"red": 1, "green": 1, "blue": 1}
 

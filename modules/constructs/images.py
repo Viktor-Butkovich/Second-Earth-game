@@ -697,6 +697,8 @@ class bundle_image:
                                                 255,
                                             )
                                             break
+                                else:
+                                    break
                         else:
                             for (
                                 index,
