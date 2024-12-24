@@ -167,6 +167,7 @@ def start_player_turn(first_turn=False):
         manage_financial_report()
         actor_utility.reset_action_prices()
         game_end_check()
+        status.strategic_map_grid.world_handler.update_sky_color(update_water=True)
         constants.notification_manager.set_lock(False)
 
     flags.player_turn = (
