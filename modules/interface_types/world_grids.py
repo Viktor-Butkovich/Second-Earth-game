@@ -1285,10 +1285,6 @@ class world_grid(grid):
                 return_list.append(image_id)
 
             if (
-                self.world_handler.get_pressure_ratio() > 50.0
-            ) and False:  # If very high pressure, have sky effects for all latitude lines
-                threshold = max_latitude_line_length
-            elif (
                 self.world_handler.get_pressure_ratio() > 10.0
             ):  # If high pressure, also have sky effects for 3rd farthest latitude line
                 threshold = 3

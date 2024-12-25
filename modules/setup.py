@@ -319,7 +319,7 @@ def misc():
             "modes": [constants.STRATEGIC_MODE],
             "image_id": [
                 {
-                    "image_id": "misc/south_indicator.png",
+                    "image_id": "misc/north_indicator.png",
                     "detail_level": 1.0,
                 }
             ],

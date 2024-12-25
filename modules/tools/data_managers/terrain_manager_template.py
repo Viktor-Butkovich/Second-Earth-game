@@ -226,16 +226,6 @@ class world_handler:
         )  # Atmosphere units required for 1 bar pressure (like Earth)
         if not from_save:
             if input_dict["grid_type"] == constants.STRATEGIC_MAP_GRID_TYPE:
-                if constants.effect_manager.effect_active("earth_preset"):
-                    input_dict["color_filter"] = self.get_tuning("earth_color_filter")
-                elif constants.effect_manager.effect_active("mars_preset"):
-                    input_dict["color_filter"] = self.get_tuning("mars_color_filter")
-                else:
-                    input_dict["color_filter"] = {
-                        "red": random.randrange(95, 106) / 100,
-                        "green": random.randrange(95, 106) / 100,
-                        "blue": random.randrange(95, 106) / 100,
-                    }
                 input_dict["green_screen"] = self.generate_green_screen()
 
                 if self.get_tuning("weighted_temperature_bounds"):

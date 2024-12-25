@@ -262,6 +262,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
+# Add toxic gas clouds
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art
@@ -280,6 +281,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Possibly add global interface that appears when nothing is selected, showing global conditions
 # Learn how to use Python script to process earth projection images
 # Correctly update water and atmosphere colors based on current composition compared to initial and Earth
+# Include pressure in landing difficulty
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>

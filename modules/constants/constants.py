@@ -563,8 +563,8 @@ BACKGROUND_LEVEL: int = -5
 DEFAULT_LEVEL: int = 2
 BACKPACK_LEVEL: int = 1
 
-ALTITUDE_BRIGHTNESS_MULTIPLIER: float = 0.6
-PIXELLATED_SIZE: int = 3
+ALTITUDE_BRIGHTNESS_MULTIPLIER: float = 1.0
+PIXELLATED_SIZE: int = 2
 LIGHT_PIXELLATED_SIZE: int = 70
 if effect_manager.effect_active("speed_loading"):
     DETAIL_LEVEL: float = 1.0

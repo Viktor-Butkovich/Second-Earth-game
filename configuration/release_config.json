@@ -6,6 +6,7 @@
       "god_mode",
       "link_inventory_tabs",
       "allow_presets",
+      "allow_toggle_clouds",
       "allow_toggle_fog_of_war"
    ],
    "effects": [
