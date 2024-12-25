@@ -434,13 +434,12 @@ class world_handler:
                         input_dict["global_parameters"][constants.GHG] = random.choices(
                             [
                                 random.randrange(0, atmosphere_size * 90),
-                                random.randrange(0, atmosphere_size * 40),
                                 random.randrange(0, atmosphere_size * 10),
                                 random.randrange(0, atmosphere_size * 5),
                                 random.randrange(0, atmosphere_size),
                                 random.randrange(0, ceil(atmosphere_size * 0.1)),
                             ],
-                            [1, 2, 2, 4, 4],
+                            [2, 4, 4, 4, 6],
                             k=1,
                         )[0]
                         input_dict["global_parameters"][
@@ -453,7 +452,7 @@ class world_handler:
                                 random.randrange(0, ceil(atmosphere_size * 0.5)),
                                 random.randrange(0, ceil(atmosphere_size * 0.01)),
                             ],
-                            [1, 2, 2, 4, 4],
+                            [2, 4, 4, 4, 6],
                             k=1,
                         )[
                             0
@@ -468,7 +467,7 @@ class world_handler:
                                 random.randrange(0, atmosphere_size),
                                 random.randrange(0, ceil(atmosphere_size * 0.1)),
                             ],
-                            [1, 2, 2, 4, 4],
+                            [2, 4, 4, 4, 6],
                             k=1,
                         )[
                             0
@@ -483,7 +482,7 @@ class world_handler:
                                 random.randrange(0, ceil(atmosphere_size * 0.5)),
                                 random.randrange(0, ceil(atmosphere_size * 0.01)),
                             ],
-                            [1, 2, 2, 4, 4],
+                            [2, 4, 4, 4, 6],
                             k=1,
                         )[
                             0
