@@ -63,11 +63,12 @@
     "earth_magnetic_field": 5,
     "earth_gravity": 1.0,
     "earth_roughness_multiplier": 60,
-    "earth_color_filter": {"red": 1, "green": 1, "blue": 1},
     "earth_water_color": [15, 50, 180],
     "earth_ice_color": [160, 210, 240],
     "earth_sand_color": [220, 180, 80],
     "earth_rock_color": [94, 88, 75],
+    "earth_sky_color": [102, 167, 242],
+    "earth_water_vapor": 3.45,
 
     "mars_rotation_direction": -1,
     "mars_rotation_speed": 3,
@@ -83,11 +84,11 @@
     "mars_magnetic_field": 0,
     "mars_gravity": 0.38,
     "mars_roughness_multiplier": 35,
-    "mars_color_filter": {"red": 1.1, "green": 0.95, "blue": 0.95},
     "mars_water_color": [25, 50, 180],
     "mars_ice_color": [160, 210, 240],
     "mars_sand_color": [170, 107, 60],
     "mars_rock_color": [84, 59, 55],
+    "mars_sky_color": [124, 125, 129],
 
     "venus_rotation_direction": 1,
     "venus_rotation_speed": 1,
@@ -108,6 +109,7 @@
     "venus_ice_color": [160, 210, 240],
     "venus_sand_color": [141, 127, 5],
     "venus_rock_color": [92, 62, 66],
+    "venus_sky_color": [240, 179, 110],
     
 
     "map_sizes": [11, 13, 15, 17, 19, 21, 23, 25],

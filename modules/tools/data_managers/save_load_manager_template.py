@@ -77,10 +77,10 @@ class save_load_manager_template:
         Output:
             None
         """
-        status.rendered_images = {}
+        game_transitions.start_loading()
+        status.cached_images = {}
         flags.creating_new_game = True
         flags.victories_this_game = []
-
         for grid_type in constants.grid_types_list:
             world_grids.create_grid(from_save=False, grid_type=grid_type)
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
@@ -162,7 +162,8 @@ class save_load_manager_template:
 
         if constants.effect_manager.effect_active("save_global_projection"):
             pygame.image.save(
-                status.globe_projection_surface, "save_games/globe_projection.png"
+                status.globe_projection_surface.convert_alpha(),
+                "save_games/globe_projection.png",
             )
 
         status.transaction_history = constants.money_tracker.transaction_history

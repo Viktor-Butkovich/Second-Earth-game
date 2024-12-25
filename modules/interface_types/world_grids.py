@@ -2,6 +2,8 @@
 
 import random
 import json
+import math
+import pygame
 from typing import Dict, List, Tuple
 from .grids import grid, mini_grid, abstract_grid
 from .cells import cell
@@ -63,6 +65,10 @@ class world_grid(grid):
             self.generate_poles_and_equator()
             self.generate_terrain_parameters()
             self.generate_terrain_features()
+            self.world_handler.update_sky_color(
+                set_initial_offset=True, update_water=True
+            )
+            self.world_handler.update_clouds()
 
     def generate_altitude(self) -> None:
         """
@@ -354,40 +360,44 @@ class world_grid(grid):
             - self.world_handler.get_parameter(constants.MAGNETIC_FIELD),
         )
 
-        if choice.get_parameter(constants.TEMPERATURE) <= frozen_bound:
+        if not (
+            self.world_handler.get_pressure_ratio() < 0.05
+            and choice.get_parameter(constants.TEMPERATURE)
+            >= self.get_tuning("water_freezing_point")
+        ):
+            # If insufficient pressure, any evaporated water disappears
             change = 1
-            # If during setup
-            if (
-                choice.get_parameter(constants.TEMPERATURE)
-                >= self.get_tuning("water_freezing_point") - 1
-            ):  # Lose most water if sometimes above freezing
-                if radiation_effect >= 3:
+            if choice.get_parameter(constants.TEMPERATURE) <= frozen_bound:
+                # If during setup
+                if choice.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
+                    "water_freezing_point"
+                ):  # Lose most water if sometimes above freezing
+                    if radiation_effect >= 3:
+                        if random.randrange(1, 13) >= 2:
+                            # choice.change_parameter(constants.WATER, -1)
+                            change = 0
+                    elif radiation_effect >= 1:
+                        if random.randrange(1, 13) >= 4:
+                            # choice.change_parameter(constants.WATER, -1)
+                            change = 0
+                # If far below freezing, retain water regardless of radiation
+                if change != 0:
+                    choice.change_parameter(constants.WATER, change)
+            else:
+                # If during setup
+                if (
+                    radiation_effect >= 3
+                ):  # Lose almost all water if consistently above freezing
+                    if random.randrange(1, 13) >= 2:
+                        change = 0
+                elif (
+                    radiation_effect >= 1
+                ):  # Lose most water if consistently above freezing
                     if random.randrange(1, 13) >= 4:
-                        choice.change_parameter(constants.WATER, -1)
                         change = 0
-                elif radiation_effect >= 1:
-                    if random.randrange(1, 13) >= 6:
-                        choice.change_parameter(constants.WATER, -1)
-                        change = 0
-            # If far below freezing, retain water regardless of radiation
-            if change != 0:
-                choice.change_parameter(constants.WATER, change)
-        else:
-            change = 1
-            # If during setup
-            if (
-                radiation_effect >= 3
-            ):  # Lose almost all water if consistently above freezing
-                if random.randrange(1, 13) >= 2:
-                    change = 0
-            elif (
-                radiation_effect >= 1
-            ):  # Lose most water if consistently above freezing
-                if random.randrange(1, 13) >= 4:
-                    change = 0
-            if change != 0:
-                choice.change_parameter(constants.WATER, change)
-                choice.terrain_handler.flow()
+                if change != 0:
+                    choice.change_parameter(constants.WATER, change)
+                    choice.terrain_handler.flow()
 
     def generate_soil(self) -> None:
         """
@@ -976,6 +986,15 @@ class world_grid(grid):
             )
         )
         status.globe_projection_surface = status.globe_projection_image.image
+        size = status.globe_projection_surface.get_size()
+        status.globe_projection_surface = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
+            status.globe_projection_surface,
+            (
+                math.floor(size[0] * constants.GLOBE_PROJECTION_DETAIL_LEVEL),
+                math.floor(size[1] * constants.GLOBE_PROJECTION_DETAIL_LEVEL),
+            ),
+        )
+
         globe_projection_tile = status.globe_projection_grid.find_cell(0, 0).tile
         globe_projection_image_id = [
             "misc/space.png",
@@ -1081,7 +1100,11 @@ class world_grid(grid):
             ):  # For center offset, just draw a straight vertical latitude line
                 current_line = latitude_lines[index]
                 return_list += self.draw_latitude_line(
-                    current_line, largest_size, level=offset + 20
+                    current_line,
+                    largest_size,
+                    level=offset + 20,
+                    offset=offset,
+                    offset_width=offset_width,
                 )
             else:  # For non-center offsets, draw symmetrical curved latitude lines, progressively farther from center
                 longitude_bulge_factor = (offset / offset_width) ** 0.5
@@ -1092,14 +1115,17 @@ class world_grid(grid):
                     longitude_bulge_factor=longitude_bulge_factor,
                     level=offset + 20,
                     min_width=min_width,
+                    offset=offset,
+                    offset_width=offset_width,
                 )
-
                 return_list += self.draw_latitude_line(
                     latitude_lines[(index - offset) % planet_width],
                     largest_size,
                     longitude_bulge_factor=-1 * longitude_bulge_factor,
                     level=(-1 * offset) + 20,
                     min_width=min_width,
+                    offset=offset,
+                    offset_width=offset_width,
                 )
         return return_list
 
@@ -1110,6 +1136,8 @@ class world_grid(grid):
         longitude_bulge_factor: float = 0.0,
         level: int = 0,
         min_width: bool = False,
+        offset: int = 0,
+        offset_width: int = 0,
     ):
         """
         Description:
@@ -1189,7 +1217,7 @@ class world_grid(grid):
                 linear_weight *= 2.5  # Have stronger linear effect for edge latitude lines to minimize blocky corners
             elif abs(longitude_bulge_factor) > 0.35:
                 linear_weight *= 1.3
-            if max_latitude_line_length >= constants.map_size_options[-2]:
+            if max_latitude_line_length >= constants.map_size_options[-3]:
                 ellipse_weight *= 1 / 3
                 linear_weight *= 1.5
             latitude_bulge_factor = (
@@ -1228,6 +1256,8 @@ class world_grid(grid):
                 max_latitude_line_length <= constants.map_size_options[1]
             ):  # Increase height for smaller maps to avoid empty space near poles
                 height_penalty *= 0.6
+            if max_latitude_line_length >= constants.map_size_options[-3]:
+                width_penalty *= 2
             tile_width, tile_height = (
                 base_tile_width - width_penalty,
                 base_tile_height - height_penalty,
@@ -1247,12 +1277,58 @@ class world_grid(grid):
             }
             for image_id in self.find_cell(
                 coordinates[0], coordinates[1]
-            ).tile.get_image_id_list(terrain_only=True):
+            ).tile.get_image_id_list(terrain_only=True, force_clouds=True):
                 # Apply projection offsets to each image in the tile's terrain
                 if type(image_id) == str:
                     image_id = {"image_id": image_id}
                 image_id.update(projection)
                 return_list.append(image_id)
+
+            if (
+                self.world_handler.get_pressure_ratio() > 10.0
+            ):  # If high pressure, also have sky effects for 3rd farthest latitude line
+                threshold = 3
+            else:  # If normal or low pressure, only have sky effects for 2nd farthest latitude line
+                threshold = 2
+            if (
+                (offset_width - offset <= threshold and not min_width)
+                and self.world_handler.get_parameter(constants.PRESSURE) > 0
+                and constants.current_map_mode == "terrain"
+            ):  # If 2nd farthest latitude line
+                sky_effect = {
+                    "image_id": "misc/green_screen_base.png",
+                    "detail_level": 1.0,
+                    "green_screen": tuple(self.world_handler.sky_color),
+                }
+                sky_effect.update(projection)
+                sky_effect["level"] += 10
+                if threshold <= 3 or abs(longitude_bulge_factor) > 0.5:
+                    sky_effect["x_size"] *= 0.4
+
+                sky_effect["alpha"] = 75
+                pressure_ratio = self.world_handler.get_pressure_ratio()
+                if pressure_ratio <= 1.0:  # More transparent for lower pressure
+                    sky_effect["alpha"] = 50 + int(25 * min(pressure_ratio, 1))
+                else:  # Less transparent for higher pressure
+                    sky_effect["alpha"] = 75 + int(
+                        25 * min((pressure_ratio - 1) / 99, 1)
+                    )
+                if offset != 0:
+                    x_offset_magnitude = 0.02
+                    if max_latitude_line_length <= constants.map_size_options[1]:
+                        x_offset_magnitude *= 1.6
+                    elif max_latitude_line_length >= constants.map_size_options[5]:
+                        x_offset_magnitude *= 1.6
+                    else:
+                        x_offset_magnitude *= 1.6
+                    x_offset += x_offset_magnitude * (
+                        1 if longitude_bulge_factor >= 0 else -1
+                    )  # Shift right if on right side and vice versa
+                    sky_effect["x_offset"] = (
+                        center_position[0] + x_offset
+                    ) * size_multiplier
+
+                return_list.append(sky_effect)
         return return_list
 
     def get_next_unaccounted_coordinates(
@@ -1321,7 +1397,10 @@ def create_grid(
         else:
             map_size_list = constants.terrain_manager.get_tuning("map_sizes")
         constants.map_size_options = map_size_list
-        map_size = input_dict.get("map_size", random.choice(map_size_list))
+        if constants.effect_manager.effect_active("speed_loading"):
+            map_size = input_dict.get("map_size", map_size_list[0])
+        else:
+            map_size = input_dict.get("map_size", random.choice(map_size_list))
         if constants.effect_manager.effect_active(
             "earth_preset"
         ) or constants.effect_manager.effect_active("venus_preset"):

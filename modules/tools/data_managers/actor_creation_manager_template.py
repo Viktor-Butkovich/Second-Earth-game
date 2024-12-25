@@ -363,8 +363,12 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         Output:
             None
         """
-        for i in range(0, constants.minister_limit - 2 + random.randrange(-2, 3)):
-            self.create_minister(False, {})
+        if constants.effect_manager.effect_active("speed_loading"):
+            for i in range(8):
+                self.create_minister(False, {})
+        else:
+            for i in range(0, constants.minister_limit - 2 + random.randrange(-2, 3)):
+                self.create_minister(False, {})
 
     def create_minister(self, from_save, input_dict):
         """

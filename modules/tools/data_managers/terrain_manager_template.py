@@ -174,6 +174,18 @@ class terrain_manager_template:
                 current_variant + 1
             )  # number of variants, variants in format 'mountains_0', 'mountains_1', etc.
 
+            for special_terrain in [
+                "clouds_base",
+                "clouds_solid",
+            ]:  # Load in terrains that need variants but don't occur in the terrain definitions
+                current_variant = 0
+                while os.path.exists(
+                    f"graphics/terrains/{special_terrain}_{current_variant}.png"
+                ):
+                    current_variant += 1
+                current_variant -= 1  # back up from index that didn't work
+                self.terrain_variant_dict[special_terrain] = current_variant + 1
+
     def classify(self, terrain_parameters):
         """
         Description:
@@ -214,16 +226,6 @@ class world_handler:
         )  # Atmosphere units required for 1 bar pressure (like Earth)
         if not from_save:
             if input_dict["grid_type"] == constants.STRATEGIC_MAP_GRID_TYPE:
-                if constants.effect_manager.effect_active("earth_preset"):
-                    input_dict["color_filter"] = self.get_tuning("earth_color_filter")
-                elif constants.effect_manager.effect_active("mars_preset"):
-                    input_dict["color_filter"] = self.get_tuning("mars_color_filter")
-                else:
-                    input_dict["color_filter"] = {
-                        "red": random.randrange(95, 106) / 100,
-                        "green": random.randrange(95, 106) / 100,
-                        "blue": random.randrange(95, 106) / 100,
-                    }
                 input_dict["green_screen"] = self.generate_green_screen()
 
                 if self.get_tuning("weighted_temperature_bounds"):
@@ -291,6 +293,7 @@ class world_handler:
                     input_dict["average_water_target"] = self.get_tuning(
                         "earth_average_water_target"
                     )
+                    input_dict["sky_color"] = self.get_tuning("earth_sky_color")
 
                 elif constants.effect_manager.effect_active("mars_preset"):
                     input_dict["name"] = "Mars"
@@ -340,6 +343,8 @@ class world_handler:
                     input_dict["average_water_target"] = self.get_tuning(
                         "mars_average_water_target"
                     )
+                    input_dict["sky_color"] = self.get_tuning("mars_sky_color")
+
                 elif constants.effect_manager.effect_active("venus_preset"):
                     input_dict["name"] = "Venus"
                     input_dict["rotation_direction"] = self.get_tuning(
@@ -388,6 +393,7 @@ class world_handler:
                     input_dict["average_water_target"] = self.get_tuning(
                         "venus_average_water_target"
                     )
+                    input_dict["sky_color"] = self.get_tuning("venus_sky_color")
                 else:
                     input_dict[
                         "name"
@@ -409,7 +415,7 @@ class world_handler:
                         constants.MAGNETIC_FIELD
                     ] = random.choices([0, 1, 2, 3, 4, 5], [5, 2, 2, 2, 2, 2], k=1)[0]
                     atmosphere_type = random.choice(
-                        ["thick", "medium", "thin", "thin", "none"]
+                        ["thick", "thick", "medium", "thin", "thin", "none"]
                     )
                     if (
                         input_dict["global_parameters"][constants.MAGNETIC_FIELD]
@@ -428,6 +434,7 @@ class world_handler:
                         input_dict["global_parameters"][constants.GHG] = random.choices(
                             [
                                 random.randrange(0, atmosphere_size * 90),
+                                random.randrange(0, atmosphere_size * 40),
                                 random.randrange(0, atmosphere_size * 10),
                                 random.randrange(0, atmosphere_size * 5),
                                 random.randrange(0, atmosphere_size),
@@ -629,6 +636,9 @@ class world_handler:
                         input_dict["global_parameters"][constants.OXYGEN] = round(
                             input_dict["global_parameters"][constants.OXYGEN] / 2
                         )
+                    input_dict["sky_color"] = [
+                        random.randrange(0, 256) for _ in range(3)
+                    ]
             elif (
                 input_dict["grid_type"] == constants.EARTH_GRID_TYPE
             ):  # Replace with a series of grid_type constants
@@ -670,6 +680,8 @@ class world_handler:
                     input_dict["average_temperature"] * self.default_grid.area
                 )
                 input_dict["size"] = self.earth_size
+                input_dict["sky_color"] = self.get_tuning("earth_sky_color")
+            input_dict["default_sky_color"] = input_dict["sky_color"].copy()
 
         input_dict["global_parameters"][constants.INERT_GASES] = round(
             input_dict["global_parameters"][constants.INERT_GASES], 1
@@ -684,6 +696,10 @@ class world_handler:
             input_dict["global_parameters"][constants.TOXIC_GASES], 1
         )
 
+        self.terrain_handlers: List[terrain_handler] = [
+            current_cell.terrain_handler
+            for current_cell in self.default_grid.get_flat_cell_list()
+        ]
         self.name = input_dict["name"]
         self.rotation_direction = input_dict["rotation_direction"]
         self.rotation_speed = input_dict["rotation_speed"]
@@ -711,10 +727,15 @@ class world_handler:
             "average_temperature", self.default_temperature
         )
         self.size: int = input_dict.get("size", self.default_grid.area)
+        self.sky_color = input_dict["sky_color"]
+        self.default_sky_color = input_dict["default_sky_color"]
+        self.steam_color = [0, 0, 0]
         self.global_parameters: Dict[str, int] = {}
+        self.initial_atmosphere_offset = input_dict.get(
+            "initial_atmosphere_offset", 0.001
+        )
         for key in constants.global_parameters:
             self.set_parameter(key, input_dict.get("global_parameters", {}).get(key, 0))
-
         """
         15 x 15 grid has north pole 0, 0 and south pole 7, 7
         If centered at (11, 11), latitude line should include (0, 0), (14, 14), (13, 13), (12, 12), (11, 11), (10, 10), (9, 9), (8, 8), (7, 7)
@@ -797,6 +818,16 @@ class world_handler:
         destination: Tuple[int, int],
         omit_origin: bool = False,
     ) -> List[Tuple[int, int]]:
+        """
+        Description:
+            Finds and returns a list of adjacent/diagonal coordinates leading from the origin to the destination
+        Input:
+            int tuple origin: Origin coordinate
+            int tuple destination: Destination coordinate
+            boolean omit_origin: Whether to omit the origin from the list
+        Output:
+            int tuple list: List of adjacent/diagonal coordinates leading from the origin to the destination
+        """
         line = []
         if not omit_origin:
             line.append(origin)
@@ -853,7 +884,7 @@ class world_handler:
             None
         """
         self.set_parameter(
-            parameter_name, self.terrain_parameters[parameter_name] + change
+            parameter_name, round(self.global_parameters[parameter_name] + change, 2)
         )
 
     def set_parameter(self, parameter_name: str, new_value: int) -> None:
@@ -867,7 +898,7 @@ class world_handler:
         Output:
             None
         """
-        self.global_parameters[parameter_name] = new_value
+        self.global_parameters[parameter_name] = max(0, new_value)
         if parameter_name in [
             constants.OXYGEN,
             constants.GHG,
@@ -880,12 +911,15 @@ class world_handler:
             actor_utility.calibrate_actor_info_display(
                 status.tile_info_display, status.displayed_tile
             )
+        for mob in status.mob_list:
+            if mob.get_cell() and mob.get_cell().grid.world_handler == self:
+                mob.update_habitability()
 
     def update_pressure(self) -> None:
         self.global_parameters[constants.PRESSURE] = sum(
             [
-                self.get_parameter(parameter)
-                for parameter in [
+                self.get_parameter(atmosphere_component)
+                for atmosphere_component in [
                     constants.OXYGEN,
                     constants.GHG,
                     constants.INERT_GASES,
@@ -893,6 +927,226 @@ class world_handler:
                 ]
             ]
         )
+
+    def update_sky_color(
+        self, set_initial_offset: bool = False, update_water: bool = False
+    ) -> None:
+        """
+        Description:
+            Updates the sky color of this world handler based on the current atmosphere composition
+                The sky color is a weighted average of the original sky color and that of Earth, with weights depending on atmosphere terraforming progress
+            Optionally records the original atmosphere offset from Earth's atmosphere for initial setup
+        Input:
+            bool set_initial_offset: Whether to record the original atmosphere offset from Earth's atmosphere
+            update_water: Whether to update the water color
+        Output:
+            None
+        """
+        if self.get_parameter(constants.PRESSURE) == 0:
+            if set_initial_offset:
+                self.initial_atmosphere_offset = 0
+        default_sky_color = self.default_sky_color
+        earth_sky_color = self.get_tuning("earth_sky_color")
+        total_offset = 0
+        for atmosphere_component in [
+            constants.OXYGEN,
+            constants.GHG,
+            constants.INERT_GASES,
+            constants.TOXIC_GASES,
+        ]:
+            if self.get_parameter(constants.PRESSURE) == 0:
+                composition = 0.01
+            else:
+                composition = self.get_parameter(
+                    atmosphere_component
+                ) / self.get_parameter(constants.PRESSURE)
+            ideal = self.get_tuning(f"earth_{atmosphere_component}")
+            if atmosphere_component == constants.TOXIC_GASES:
+                offset = max(0, (composition - 0.001) / 0.001)
+            if ideal != 0:
+                offset = abs(composition - ideal) / ideal
+            total_offset += offset
+        if set_initial_offset:
+            self.initial_atmosphere_offset = max(0.001, total_offset)
+
+        # Record total offset in each call - only update colors if total offset changed
+        total_offset = min(total_offset, self.initial_atmosphere_offset)
+        progress = (self.initial_atmosphere_offset - total_offset) / (
+            self.initial_atmosphere_offset
+        )
+        self.sky_color = [
+            round(
+                max(
+                    0,
+                    min(
+                        255,
+                        default_sky_color[i] * (1.0 - progress)
+                        + earth_sky_color[i] * progress,
+                    ),
+                )
+            )
+            for i in range(3)
+        ]
+        self.steam_color = [min(240, sky_color + 80) for sky_color in self.sky_color]
+        if update_water:
+            inherent_water_color = (11, 24, 144)
+            sky_weight = 0.4
+            water_color = [
+                round(
+                    (
+                        inherent_water_color[i] * (1.0 - sky_weight)
+                        + ((self.sky_color[i] - 50) * sky_weight)
+                    )
+                )
+                for i in range(3)
+            ]
+            if self.green_screen:
+                self.green_screen["deep water"]["replacement_color"] = (
+                    water_color[0] * 0.9,
+                    water_color[1] * 0.9,
+                    water_color[2] * 1,
+                )
+                self.green_screen["shallow water"]["replacement_color"] = (
+                    water_color[0],
+                    water_color[1] * 1.1,
+                    water_color[2] * 1,
+                )
+
+        if not flags.loading:
+            status.strategic_map_grid.update_globe_projection(update_button=True)
+
+    def get_water_vapor_contributions(self):
+        """
+        Description:
+            Calculates the average water vapor for the planet, depending on local water and temperature
+        Input:
+            None
+        Output:
+            float: Average water vapor for the planet
+        """
+        total_water_vapor = 0
+        for terrain_handler in self.terrain_handlers:
+            if terrain_handler.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
+                "water_freezing_point"
+            ):
+                total_water_vapor += terrain_handler.get_parameter(constants.WATER)
+            if terrain_handler.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
+                "water_boiling_point"
+            ):  # Count boiling twice
+                total_water_vapor += terrain_handler.get_parameter(constants.WATER)
+        return total_water_vapor / self.default_grid.area
+
+    def update_clouds(self):
+        """
+        Description:
+            Creates random clouds for each terrain handler, with frequency depending on water vapor
+        Input:
+            None
+        Output:
+            None
+        """
+        num_cloud_variants = constants.terrain_manager.terrain_variant_dict.get(
+            "clouds_base", 1
+        )
+        num_solid_cloud_variants = constants.terrain_manager.terrain_variant_dict.get(
+            "clouds_solid", 1
+        )
+        cloud_frequency = max(
+            0,
+            min(
+                1,
+                0.25
+                * (
+                    self.get_water_vapor_contributions()
+                    / self.get_tuning("earth_water_vapor")
+                ),
+            ),
+        )
+        if self.get_parameter(constants.PRESSURE) > 0:
+            toxic_cloud_composition_frequency = min(
+                0.5,
+                self.get_parameter(constants.TOXIC_GASES)
+                / self.get_parameter(constants.PRESSURE)
+                * 10,
+            )
+        else:
+            toxic_cloud_composition_frequency = 0
+        toxic_cloud_quantity_frequency = min(
+            0.5,
+            (
+                self.get_parameter(constants.PRESSURE)
+                / self.get_ideal_parameter(constants.PRESSURE)
+            )
+            * 0.25,
+        )
+        # Toxic cloud frequency depends on both toxic gas % and total pressure
+
+        for terrain_handler in self.terrain_handlers:
+            terrain_handler.current_clouds = []
+
+            cloud_type = None
+            if random.random() < cloud_frequency:
+                cloud_type = "water vapor"
+            elif (
+                random.random() < toxic_cloud_quantity_frequency
+                and random.random() < toxic_cloud_composition_frequency
+            ):
+                cloud_type = "toxic"
+            if cloud_type:
+                terrain_handler.current_clouds.append(
+                    {
+                        "image_id": "misc/shader.png",
+                        "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                    }
+                )
+            alpha = min(255, (self.get_pressure_ratio() * 7) - 14)
+            if alpha > 0:
+                terrain_handler.current_clouds.append(
+                    {
+                        "image_id": f"terrains/clouds_solid_{random.randrange(0, num_solid_cloud_variants)}.png",
+                        "alpha": alpha,
+                        "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                        "green_screen": {
+                            "clouds": {
+                                "base_colors": [(174, 37, 19)],
+                                "tolerance": 60,
+                                "replacement_color": self.sky_color,
+                            },
+                        },
+                    }
+                )
+            if cloud_type == "water vapor":
+                terrain_handler.current_clouds.append(
+                    {
+                        "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
+                        "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                        "green_screen": {
+                            "clouds": {
+                                "base_colors": [(174, 37, 19)],
+                                "tolerance": 60,
+                                "replacement_color": self.steam_color,
+                            },
+                        },
+                    }
+                )
+            elif cloud_type == "toxic":
+                terrain_handler.current_clouds.append(
+                    {
+                        "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
+                        "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                        "green_screen": {
+                            "clouds": {
+                                "base_colors": [(174, 37, 19)],
+                                "tolerance": 60,
+                                "replacement_color": [
+                                    round(color * 0.8) for color in self.sky_color
+                                ],
+                            },
+                        },
+                    }
+                )
+        if not flags.loading:
+            status.strategic_map_grid.update_globe_projection(update_button=True)
 
     def get_parameter(self, parameter_name: str) -> int:
         """
@@ -937,6 +1191,9 @@ class world_handler:
             "rotation_direction": self.rotation_direction,
             "rotation_speed": self.rotation_speed,
             "name": self.name,
+            "sky_color": self.sky_color,
+            "default_sky_color": self.default_sky_color,
+            "initial_atmosphere_offset": self.initial_atmosphere_offset,
         }
 
     def generate_green_screen(self) -> Dict[str, Dict[str, any]]:
@@ -1085,6 +1342,12 @@ class world_handler:
                     round(rock_color[2] * 0.5),
                 ),
             },
+            "clouds": {
+                "base_colors": [(174, 37, 19)],
+                "tolerance": 60,
+                "replacement_color": (0, 0, 0),
+                # Replacement color updated when sky color changes
+            },
         }
 
     def get_green_screen(self, terrain: str = None) -> Dict[str, Dict[str, any]]:
@@ -1128,6 +1391,19 @@ class world_handler:
                 return self.default_grid.area * 6 * self.get_tuning("earth_pressure")
         else:
             return self.get_tuning(f"earth_{parameter_name}")
+
+    def get_pressure_ratio(self) -> float:
+        """
+        Description:
+            Returns the ratio of the current pressure to the ideal pressure
+        Input:
+            None
+        Output:
+            float: Ratio of the current pressure to the ideal pressure
+        """
+        return self.get_parameter(constants.PRESSURE) / self.get_ideal_parameter(
+            constants.PRESSURE
+        )
 
     def calculate_parameter_habitability(self, parameter_name: str) -> int:
         """
@@ -1297,6 +1573,7 @@ class terrain_handler:
             },
         )
         self.terrain_variant: int = input_dict.get("terrain_variant", 0)
+        self.current_clouds: List[Dict[str, any]] = input_dict.get("current_clouds", [])
         self.pole_distance_multiplier: float = (
             1.0  # 0.1 for polar cells, 1.0 for equatorial cells
         )
@@ -1367,8 +1644,9 @@ class terrain_handler:
             int: Returns habitability of this tile for the inputted unit
         """
         if (
-            self.get_world_handler() == status.globe_projection_grid.world_handler
+            self.attached_cells[0].grid == status.globe_projection_grid
         ):  # If in orbit of planet
+            self.get_world_handler() == status.globe_projection_grid.world_handler
             default_habitability = constants.HABITABILITY_DEADLY
         else:
             default_habitability = min(
@@ -1459,7 +1737,9 @@ class terrain_handler:
             parameter_name, self.terrain_parameters[parameter_name] + change
         )
 
-    def set_parameter(self, parameter_name: str, new_value: int) -> None:
+    def set_parameter(
+        self, parameter_name: str, new_value: int, update_display: bool = True
+    ) -> None:
         """
         Description:
             Sets the value of a parameter for this handler's cells
@@ -1473,6 +1753,8 @@ class terrain_handler:
         overlay_images = self.get_overlay_images()
         if parameter_name in [constants.WATER, constants.TEMPERATURE]:
             old_value = self.terrain_parameters[parameter_name]
+        elif parameter_name == constants.ALTITUDE:
+            old_color_filter = self.get_color_filter()
         self.terrain_parameters[parameter_name] = max(
             self.minima.get(parameter_name, 0),
             min(new_value, self.maxima.get(parameter_name, 5)),
@@ -1509,13 +1791,17 @@ class terrain_handler:
             constants.current_map_mode != "terrain"
             or self.terrain != new_terrain
             or overlay_images != self.get_overlay_images()
+            or (
+                parameter_name == constants.ALTITUDE
+                and old_color_filter != self.get_color_filter()
+            )
             or parameter_name == constants.KNOWLEDGE
         ):
             self.set_terrain(new_terrain)
             for cell in self.attached_cells:
                 if cell.tile:
                     cell.tile.set_terrain(self.terrain, update_image_bundle=True)
-            if not flags.loading:
+            if update_display and not flags.loading:
                 status.strategic_map_grid.update_globe_projection()
 
         if status.displayed_tile:
@@ -1524,6 +1810,9 @@ class terrain_handler:
                     actor_utility.calibrate_actor_info_display(
                         status.tile_info_display, cell.tile
                     )
+        for mob in status.mob_list:
+            if mob.get_cell() and mob.get_cell().terrain_handler == self:
+                mob.update_habitability()
 
     def has_snow(self) -> bool:
         """
@@ -1558,7 +1847,7 @@ class terrain_handler:
     def get_overlay_images(self) -> List[str]:
         """
         Description:
-            Gets any overlay images that are part of terrain but not from original image
+            Gets any non-cloud overlay images that are part of terrain but not from original image
         Input:
             None
         Output:
@@ -1567,19 +1856,30 @@ class terrain_handler:
         return_list = []
         if self.has_snow():
             return_list.append(f"terrains/snow_{self.terrain_variant % 4}.png")
-        elif self.boiling():  # If 4 below boiling, add steam
-            return_list.append(f"terrains/boiling_{self.terrain_variant % 4}.png")
+
+        steam_list = []
+        if self.boiling():  # If 4 below boiling, add steam
+            steam_list.append(f"terrains/boiling_{self.terrain_variant % 4}.png")
             if self.get_parameter(constants.WATER) >= 2 and self.get_parameter(
                 constants.TEMPERATURE
             ) >= constants.terrain_manager.get_tuning("water_boiling_point"):
                 # If boiling, add more steam as water increases
-                return_list.append(
+                steam_list.append(
                     f"terrains/boiling_{(self.terrain_variant + 1) % 4}.png"
                 )
                 if self.get_parameter(constants.WATER) >= 4:
-                    return_list.append(
+                    steam_list.append(
                         f"terrains/boiling_{(self.terrain_variant + 2) % 4}.png"
                     )
+        return_list += [
+            {
+                "image_id": current_steam,
+                "green_screen": [self.get_world_handler().steam_color],
+                "override_green_screen_colors": [(140, 183, 216)],
+            }
+            for current_steam in steam_list
+        ]
+
         return return_list
 
     def to_save_dict(self) -> Dict[str, any]:
@@ -1605,6 +1905,7 @@ class terrain_handler:
         save_dict["terrain"] = self.terrain
         save_dict["resource"] = self.resource
         save_dict["north_pole_distance_multiplier"] = self.pole_distance_multiplier
+        save_dict["current_clouds"] = self.current_clouds
         return save_dict
 
     def get_parameter(self, parameter_name: str) -> int:
@@ -1762,7 +2063,15 @@ class terrain_handler:
             dictionary: Color filter for this terrain handler's world handler
         """
         if self.get_world_handler():
-            return self.get_world_handler().color_filter
+            color_filter = self.get_world_handler().color_filter.copy()
+            for key in color_filter:
+                color_filter[key] = round(
+                    color_filter[key]
+                    + ((self.get_parameter(constants.ALTITUDE) / 10) - 0.2)
+                    * constants.ALTITUDE_BRIGHTNESS_MULTIPLIER,
+                    2,
+                )
+            return color_filter
         else:
             return {"red": 1, "green": 1, "blue": 1}
 

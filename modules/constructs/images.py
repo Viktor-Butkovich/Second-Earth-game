@@ -1,6 +1,7 @@
 # Contains functionality for images
 
 import pygame
+import math
 from ..util import utility, drawing_utility, text_utility, scaling, minister_utility
 import modules.constants.constants as constants
 import modules.constants.status as status
@@ -396,10 +397,10 @@ class bundle_image:
         self.image = None
         self.member_type = member_type
         self.is_offset = is_offset
-
         if not is_offset:
             self.image_id = image_id
             self.level = 0
+            self.detail_level = constants.BUNDLE_IMAGE_DETAIL_LEVEL
         else:
             self.image_id_dict = image_id
             self.image_id = image_id["image_id"]
@@ -413,6 +414,12 @@ class bundle_image:
             self.y_offset = image_id.get("y_offset", 0)
             self.level = image_id.get("level", 0)
             self.alpha = image_id.get("alpha", 255)
+            self.detail_level = image_id.get(
+                "detail_level", constants.BUNDLE_IMAGE_DETAIL_LEVEL
+            )
+            self.override_green_screen_colors = image_id.get(
+                "override_green_screen_colors", []
+            )
             if image_id.get("override_width", None):
                 self.override_width = image_id["override_width"]
             if image_id.get("override_height", None):
@@ -540,7 +547,8 @@ class bundle_image:
             full_image_id = "graphics/misc/empty.png"
         else:
             full_image_id = self.image_id
-        key = str(full_image_id)
+        key = str(full_image_id) + str(self.detail_level)
+        no_green_screen_key = key
         if self.is_offset:
             if self.has_green_screen:
                 key += str(self.green_screen_colors)
@@ -549,8 +557,10 @@ class bundle_image:
             if self.pixellated:
                 non_pixellated_key = key
                 key += "pixellated"
-        if key in status.rendered_images:  # if image already loaded, use it
-            self.image = status.rendered_images[key]
+            if self.alpha != 255:
+                key += str(self.alpha)
+        if key in status.cached_images:  # if image already loaded, use it
+            self.image = status.cached_images[key]
         else:  # If image not loaded, load it and add it to the loaded images
             if full_image_id.endswith(".png"):
                 self.text = False
@@ -559,6 +569,14 @@ class bundle_image:
                 except:
                     self.image = pygame.image.load(full_image_id)
                 self.image.convert()
+                size = self.image.get_size()
+                self.image = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
+                    self.image,
+                    (
+                        math.floor(size[0] * self.detail_level),
+                        math.floor(size[1] * self.detail_level),
+                    ),
+                )
                 if self.is_offset and (self.has_green_screen or self.has_color_filter):
                     self.apply_per_pixel_mutations()
             else:
@@ -574,13 +592,13 @@ class bundle_image:
                         ),
                     )
                 if self.pixellated:
-                    status.rendered_images[non_pixellated_key] = self.image
+                    status.cached_images[non_pixellated_key] = self.image
                     self.image = pygame.transform.scale(
                         self.image,
                         (constants.PIXELLATED_SIZE, constants.PIXELLATED_SIZE),
                     )
                     hashed_key = hash(
-                        key
+                        no_green_screen_key
                     )  # Randomly flip pixellated image in the same way every time
                     if hashed_key % 2 == 0:
                         self.image = pygame.transform.flip(self.image, True, False)
@@ -588,7 +606,7 @@ class bundle_image:
                         self.image = pygame.transform.flip(self.image, False, True)
             if self.is_offset and self.alpha != 255:
                 self.image.set_alpha(self.alpha)
-            status.rendered_images[key] = self.image
+            status.cached_images[key] = self.image
 
     def apply_per_pixel_mutations(self):
         """
@@ -681,11 +699,13 @@ class bundle_image:
                                                 255,
                                             )
                                             break
+                                else:
+                                    break
                         else:
-                            for (
-                                index,
-                                current_green_screen_color,
-                            ) in enumerate(constants.green_screen_colors):
+                            for (index, current_green_screen_color,) in enumerate(
+                                self.override_green_screen_colors
+                                + constants.green_screen_colors
+                            ):
                                 # If pixel matches preset green screen color, replace it with the image's corresponding replacement color
                                 if (
                                     red,
@@ -905,8 +925,8 @@ class free_image(image):
                     else:
                         self.text = True
                         full_image_id = self.image_id
-                    if full_image_id in status.rendered_images:
-                        self.image = status.rendered_images[full_image_id]
+                    if full_image_id in status.cached_images:
+                        self.image = status.cached_images[full_image_id]
                     else:
                         if not self.text:
                             try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
@@ -918,7 +938,15 @@ class free_image(image):
                             self.image = text_utility.text(
                                 full_image_id, constants.myfont
                             )
-                        status.rendered_images[full_image_id] = self.image
+                        size = self.image.get_size()
+                        self.image = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
+                            self.image,
+                            (
+                                math.floor(size[0] * constants.DETAIL_LEVEL),
+                                math.floor(size[1] * constants.DETAIL_LEVEL),
+                            ),
+                        )
+                        status.cached_images[full_image_id] = self.image
                     self.image = pygame.transform.scale(
                         self.image, (self.width, self.height)
                     )
@@ -985,8 +1013,11 @@ class background_image(free_image):
             None
         """
         input_dict["image_id"] = input_dict.get(
-            "image_id", "misc/screen_backgrounds/background.png"
+            "image_id",
+            {"image_id": "misc/screen_backgrounds/background.png", "detail_level": 1.0},
         )
+        if type(input_dict["image_id"]) != list:
+            input_dict["image_id"] = [input_dict["image_id"]]
         self.default_image_id = input_dict["image_id"]
         input_dict["coordinates"] = (0, 0)
         input_dict["width"] = constants.display_width
@@ -1008,14 +1039,15 @@ class background_image(free_image):
                 self.previous_safe_click_area_showing = status.safe_click_area.showing
                 if self.previous_safe_click_area_showing:
                     self.set_image(
-                        [
+                        utility.combine(
                             self.default_image_id,
                             {
                                 "image_id": "misc/safe_click_area.png",
                                 "override_width": status.safe_click_area.width,
                                 "free": True,
+                                "detail_level": 1.0,
                             },
-                        ]
+                        )
                     )
                 else:
                     self.set_image(self.default_image_id)
@@ -1735,8 +1767,8 @@ class actor_image(image):
                 else:
                     self.text = True
                     full_image_id = self.image_id
-                if full_image_id in status.rendered_images:
-                    self.image = status.rendered_images[full_image_id]
+                if full_image_id in status.cached_images:
+                    self.image = status.cached_images[full_image_id]
                 else:
                     if not self.text:
                         try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
@@ -1746,7 +1778,15 @@ class actor_image(image):
                             self.image = pygame.image.load(full_image_id)
                     else:
                         self.image = text_utility.text(self.image_id, constants.myfont)
-                    status.rendered_images[full_image_id] = self.image
+                    size = self.image.get_size()
+                    self.image = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
+                        self.image,
+                        (
+                            math.floor(size[0] * constants.DETAIL_LEVEL),
+                            math.floor(size[1] * constants.DETAIL_LEVEL),
+                        ),
+                    )
+                    status.cached_images[full_image_id] = self.image
                 self.image = pygame.transform.scale(
                     self.image, (self.width, self.height)
                 )
@@ -2007,15 +2047,23 @@ class button_image(actor_image):
         if isinstance(self.image_id, str):  # If set to string image path
             self.contains_bundle = False
             full_image_id = f"graphics/{self.image_id}"
-            if full_image_id in status.rendered_images:
-                self.image = status.rendered_images[full_image_id]
+            if full_image_id in status.cached_images:
+                self.image = status.cached_images[full_image_id]
             else:
                 try:  # Use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
                     self.image = pygame.image.load(full_image_id)
                 except:
                     print(full_image_id)
                     self.image = pygame.image.load(full_image_id)
-                status.rendered_images[full_image_id] = self.image
+                size = self.image.get_size()
+                self.image = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
+                    self.image,
+                    (
+                        math.floor(size[0] * constants.BUTTON_DETAIL_LEVEL),
+                        math.floor(size[1] * constants.BUTTON_DETAIL_LEVEL),
+                    ),
+                )
+                status.cached_images[full_image_id] = self.image
             self.image = pygame.transform.scale(self.image, (self.width, self.height))
         elif isinstance(new_image_id, pygame.Surface):
             self.image = new_image_id

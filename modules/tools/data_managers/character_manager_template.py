@@ -322,6 +322,11 @@ class character_manager_template:
                 part["x_offset"] = part.get("x_offset", 0) + 0.01
                 part["y_offset"] = part.get("y_offset", 0) + 0.342
                 part["level"] = part.get("level", 1) - 5
+                if (
+                    part["metadata"]["portrait_section"]
+                    != constants.FULL_BODY_PORTRAIT_SECTION
+                ):
+                    part["detail_level"] = constants.BUNDLE_IMAGE_DETAIL_LEVEL / 2
 
             if unit.get_permission(constants.WORKER_PERMISSION):
                 hidden_sections = [
@@ -642,6 +647,7 @@ class character_manager_template:
         portrait_sections.append(
             {
                 "image_id": random.choice(self.nose_images),
+                "detail_level": 1.0,
                 "metadata": {"portrait_section": constants.NOSE_PORTRAIT_SECTION},
                 "level": constants.DEFAULT_LEVEL,
             }
@@ -666,6 +672,7 @@ class character_manager_template:
         portrait_sections.append(
             {
                 "image_id": image_id,
+                "detail_level": 1.0,
                 "metadata": {"portrait_section": constants.MOUTH_PORTRAIT_SECTION},
                 "level": constants.DEFAULT_LEVEL,
             }
@@ -686,6 +693,7 @@ class character_manager_template:
         portrait_sections.append(
             {
                 "image_id": random.choice(self.eyes_images[metadata["masculine"]]),
+                "detail_level": 1.0,
                 "green_screen": [metadata["eye_color"], metadata["hair_color"]],
                 "metadata": {"portrait_section": constants.EYES_PORTRAITS_SECTION},
                 "level": constants.EYES_LEVEL,

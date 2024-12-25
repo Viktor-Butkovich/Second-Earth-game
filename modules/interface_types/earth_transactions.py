@@ -119,9 +119,20 @@ class buy_item_button(button):
         """
         self.item_type = input_dict["item_type"]
         input_dict["image_id"] = [
-            "buttons/default_button_alt.png",
-            {"image_id": "misc/green_circle.png", "size": 0.75},
-            {"image_id": "items/" + self.item_type + ".png", "size": 0.75},
+            {
+                "image_id": "buttons/default_button_alt.png",
+                "detail_level": constants.BUTTON_DETAIL_LEVEL,
+            },
+            {
+                "image_id": "misc/green_circle.png",
+                "size": 0.75,
+                "detail_level": constants.BUTTON_DETAIL_LEVEL,
+            },
+            {
+                "image_id": f"items/{self.item_type}.png",
+                "size": 0.75,
+                "detail_level": constants.BUTTON_DETAIL_LEVEL,
+            },
         ]
         input_dict["button_type"] = "buy item"
         super().__init__(input_dict)

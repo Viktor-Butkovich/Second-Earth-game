@@ -460,6 +460,11 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
         "True": "Fog of war disabled - no knowledge required to view tiles",
         "False": "Fog of war active - knowledge required to view tiles",
     },
+    "show_clouds": {
+        "default": "Toggles cloud visibility on explored tiles",
+        "True": "Currently showing clouds, even on explored tiles",
+        "False": "Currently showing clouds on unexplored tiles only",
+    },
     "earth_preset": {
         "default": "Creates an Earth-like planet",
         "True": "Earth-like planet creation enabled",
@@ -558,8 +563,23 @@ BACKGROUND_LEVEL: int = -5
 DEFAULT_LEVEL: int = 2
 BACKPACK_LEVEL: int = 1
 
+ALTITUDE_BRIGHTNESS_MULTIPLIER: float = 1.0
 PIXELLATED_SIZE: int = 2
 LIGHT_PIXELLATED_SIZE: int = 70
+if effect_manager.effect_active("speed_loading"):
+    DETAIL_LEVEL: float = 1.0
+    BUNDLE_IMAGE_DETAIL_LEVEL: float = 0.1
+    BUTTON_DETAIL_LEVEL: float = 1.0
+    GLOBE_PROJECTION_DETAIL_LEVEL: float = 1.0
+    TERRAIN_DETAIL_LEVEL: float = 0.1
+    CLOUDS_DETAIL_LEVEL: float = 0.1
+else:
+    DETAIL_LEVEL: float = 1.0
+    BUNDLE_IMAGE_DETAIL_LEVEL: float = 0.5
+    BUTTON_DETAIL_LEVEL: float = 1.0
+    GLOBE_PROJECTION_DETAIL_LEVEL: float = 1.0
+    TERRAIN_DETAIL_LEVEL: float = 0.5
+    CLOUDS_DETAIL_LEVEL: float = 0.15
 
 TERRAIN_KNOWLEDGE: str = "terrain"
 TERRAIN_KNOWLEDGE_REQUIREMENT: int = 0
@@ -592,7 +612,7 @@ update_terrain_knowledge_requirements()
 UNIQUE_FEATURE_TRACKING: str = "unique"
 LIST_FEATURE_TRACKING: str = "list"
 
-MAP_MODE_ALPHA: int = 0  # 170
+MAP_MODE_ALPHA: int = 0
 
 SETTLEMENT_PANEL: str = "settlement_panel"
 LOCAL_CONDITIONS_PANEL: str = "local_conditions_panel"

@@ -72,11 +72,26 @@ class actor_display_free_image(free_image):
                             }
                         )
                     if new_actor.get_permission(constants.PMOB_PERMISSION):
-                        image_id_list.append("misc/actor_backgrounds/pmob_outline.png")
+                        image_id_list.append(
+                            {
+                                "image_id": "misc/actor_backgrounds/pmob_outline.png",
+                                "detail_level": 1.0,
+                            }
+                        )
                     else:
-                        image_id_list.append("misc/actor_backgrounds/npmob_outline.png")
+                        image_id_list.append(
+                            {
+                                "image_id": "misc/actor_backgrounds/npmob_outline.png",
+                                "detail_level": 1.0,
+                            }
+                        )
                 else:
-                    image_id_list.append("misc/tile_outline.png")
+                    image_id_list.append(
+                        {
+                            "image_id": "misc/tile_outline.png",
+                            "detail_level": 1.0,
+                        }
+                    )
                 self.set_image(image_id_list)
         else:
             image_id_list = action_utility.generate_background_image_id_list()
@@ -88,7 +103,12 @@ class actor_display_free_image(free_image):
                 image_id_list.append(
                     {"image_id": "misc/dark_shader.png", "level": constants.FRONT_LEVEL}
                 )
-            image_id_list.append("misc/actor_backgrounds/pmob_outline.png")
+            image_id_list.append(
+                {
+                    "image_id": "misc/actor_backgrounds/pmob_outline.png",
+                    "detail_level": 1.0,
+                }
+            )
             self.set_image(image_id_list)
 
 

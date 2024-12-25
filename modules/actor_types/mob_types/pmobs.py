@@ -180,16 +180,10 @@ class pmob(mob):
                 self.set_permission(constants.DISORGANIZED_PERMISSION, True)
         vehicle.set_crew(None)
         vehicle.end_turn_destination = None
-        vehicle.hide_images()
-        vehicle.show_images()  # bring vehicle to front of tile
         vehicle.remove_from_turn_queue()
-        actor_utility.calibrate_actor_info_display(
-            status.mob_info_display, None, override_exempt=True
-        )
         self.select()
         self.add_to_turn_queue()
         self.update_habitability()
-        self.update_image_bundle()
 
     def on_move(self):
         """
@@ -217,6 +211,10 @@ class pmob(mob):
                             requirement,
                             cell.terrain_handler.get_parameter(constants.KNOWLEDGE),
                         ),
+                        update_display=cell
+                        == current_cell.adjacent_list[
+                            -1
+                        ],  # Only update display on last cell
                     )
 
     def to_save_dict(self):
@@ -739,9 +737,10 @@ class pmob(mob):
             for current_image in self.images:
                 if (
                     current_image.current_cell
+                    and current_image.current_cell.contained_mobs
                     and self == current_image.current_cell.contained_mobs[0]
                     and current_image.current_cell.grid.showing
-                ):  # only draw outline if on top of stack
+                ):  # Only draw outline if on top of stack
                     pygame.draw.rect(
                         constants.game_display,
                         constants.color_dict[self.selection_outline_color],
@@ -788,7 +787,6 @@ class pmob(mob):
                 self.end_turn_destination.grids[0],
                 (self.end_turn_destination.x, self.end_turn_destination.y),
             )
-            self.get_cell().tile.select(music_override=True)
             self.manage_inventory_attrition()  # do an inventory check when crossing ocean, using the destination's terrain
             self.end_turn_destination = None
 
@@ -907,9 +905,6 @@ class pmob(mob):
                 )
         self.add_to_turn_queue()
         if focus:
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, None, override_exempt=True
-            )
             self.select()
             self.movement_sound()
         self.on_move()

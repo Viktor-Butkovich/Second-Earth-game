@@ -64,7 +64,7 @@ displayed_defense: minister = None
 displayed_prosecution: minister = None
 displayed_notification: notification = None
 
-rendered_images: Dict[str, pygame.Surface] = {}
+cached_images: Dict[str, pygame.Surface] = {}
 globe_projection_image: free_image = None
 globe_projection_surface: pygame.Surface = None
 to_strategic_button: switch_game_mode_button = None

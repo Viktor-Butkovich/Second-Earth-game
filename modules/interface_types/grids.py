@@ -515,7 +515,7 @@ class mini_grid(grid):
         self.center_x = 0
         self.center_y = 0
 
-    def calibrate(self, center_x, center_y, recursive=False):
+    def calibrate(self, center_x, center_y, recursive=False, calibrate_center=True):
         """
         Description:
             Centers this mini grid on the cell at the inputted coordinates of the attached grid, moving any displayed actors, terrain, and resources on this grid to their new locations as needed
@@ -533,10 +533,11 @@ class mini_grid(grid):
                 for mini_grid in self.attached_grid.mini_grids:
                     if mini_grid != self:
                         mini_grid.calibrate(center_x, center_y, recursive=True)
-                actor_utility.calibrate_actor_info_display(
-                    status.tile_info_display,
-                    self.attached_grid.find_cell(self.center_x, self.center_y).tile,
-                )  # calibrate tile display information to centered tile
+                if calibrate_center:
+                    actor_utility.calibrate_actor_info_display(
+                        status.tile_info_display,
+                        self.attached_grid.find_cell(self.center_x, self.center_y).tile,
+                    )  # calibrate tile display information to centered tile
             for current_cell in self.get_flat_cell_list():
                 attached_x, attached_y = self.get_main_grid_coordinates(
                     current_cell.x, current_cell.y

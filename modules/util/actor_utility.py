@@ -537,6 +537,7 @@ def generate_label_image_id(text: str, y_offset=0):
     return [
         {
             "image_id": "misc/paper_label.png",
+            "detail_level": 1.0,
             "x_offset": x_offset - 0.01,
             "y_offset": y_offset,
             "free": True,
@@ -592,6 +593,7 @@ def generate_frame(
     frame = {
         "image_id": frame,
         "level": constants.BACKGROUND_LEVEL,
+        "detail_level": 1.0,
     }
 
     if type(image_id) == str:
@@ -604,6 +606,7 @@ def generate_frame(
                 "x_offset": x_offset,
                 "y_offset": y_offset,
                 "level": constants.BACKGROUND_LEVEL + 1,
+                "detail_level": constants.BUTTON_DETAIL_LEVEL,
             },
         )
 

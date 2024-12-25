@@ -300,7 +300,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
         self.hosted_images.append(new_image)
         self.update_image_bundle()
 
-    def get_image_id_list(self, terrain_only=False, force_visibility=False):
+    def get_image_id_list(
+        self, terrain_only=False, force_visibility=False, force_clouds=False
+    ):
         """
         Description:
             Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
@@ -312,83 +314,117 @@ class tile(actor):  # to do: make terrain tiles a subclass
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
         image_id_list = []
-        if self.cell.grid.is_mini_grid:
-            equivalent_tiles = self.get_equivalent_tiles()
-            if equivalent_tiles and self.show_terrain:
-                image_id_list = equivalent_tiles[0].get_image_id_list()
-            for current_image in self.hosted_images:
-                image_id_list += current_image.get_image_id_list()
-        elif self.cell.grid == status.earth_grid:
-            image_id_list = []
-        else:
-            if (
-                self.cell.terrain_handler.visible or force_visibility
-            ):  # Force visibility shows full tile even if tile is not yet visible
-                image_id_list.append(
-                    {
-                        "image_id": self.image_dict["default"],
-                        "level": -9,
-                        "color_filter": self.cell.terrain_handler.get_color_filter(),
-                        "green_screen": self.cell.terrain_handler.get_green_screen(),
-                        "pixellated": not self.cell.terrain_handler.knowledge_available(
-                            constants.TERRAIN_KNOWLEDGE
-                        ),
-                    }
-                )
-                for (
-                    terrain_overlay_image
-                ) in self.cell.terrain_handler.get_overlay_images():
+        if constants.current_map_mode == "terrain" or constants.MAP_MODE_ALPHA:
+            if self.cell.grid.is_mini_grid:
+                equivalent_tiles = self.get_equivalent_tiles()
+                if equivalent_tiles and self.show_terrain:
+                    image_id_list = equivalent_tiles[0].get_image_id_list()
+                for current_image in self.hosted_images:
+                    image_id_list += current_image.get_image_id_list()
+            elif self.cell.grid == status.earth_grid:
+                image_id_list = []
+            else:
+                if (
+                    self.cell.terrain_handler.visible or force_visibility
+                ):  # Force visibility shows full tile even if tile is not yet visible
                     image_id_list.append(
                         {
-                            "image_id": terrain_overlay_image,
-                            "level": -8,
+                            "image_id": self.image_dict["default"],
+                            "level": -9,
                             "color_filter": self.cell.terrain_handler.get_color_filter(),
                             "green_screen": self.cell.terrain_handler.get_green_screen(),
                             "pixellated": not self.cell.terrain_handler.knowledge_available(
                                 constants.TERRAIN_KNOWLEDGE
                             ),
+                            "detail_level": constants.TERRAIN_DETAIL_LEVEL,
                         }
                     )
-                if not terrain_only:
-                    for terrain_feature in self.cell.terrain_handler.terrain_features:
-                        new_image_id = self.cell.terrain_handler.terrain_features[
-                            terrain_feature
-                        ].get(
-                            "image_id",
-                            status.terrain_feature_types[terrain_feature].image_id,
+                    for (
+                        terrain_overlay_image
+                    ) in self.cell.terrain_handler.get_overlay_images():
+                        if type(terrain_overlay_image) == str:
+                            terrain_overlay_image = {
+                                "image_id": terrain_overlay_image,
+                            }
+                        terrain_overlay_image.update(
+                            {
+                                "level": -8,
+                                "color_filter": self.cell.terrain_handler.get_color_filter(),
+                                "pixellated": not self.cell.terrain_handler.knowledge_available(
+                                    constants.TERRAIN_KNOWLEDGE
+                                ),
+                                "detail_level": constants.TERRAIN_DETAIL_LEVEL,
+                            }
                         )
-                        if new_image_id != "misc/empty.png":
-                            if type(new_image_id) == str and not new_image_id.endswith(
-                                ".png"
-                            ):
-                                new_image_id = actor_utility.generate_label_image_id(
-                                    new_image_id, y_offset=-0.75
-                                )
-                            image_id_list = utility.combine(image_id_list, new_image_id)
+                        if not terrain_overlay_image.get("green_screen", None):
+                            terrain_overlay_image[
+                                "green_screen"
+                            ] = self.cell.terrain_handler.get_green_screen()
+                        image_id_list.append(terrain_overlay_image)
                     if (
-                        self.cell.terrain_handler.resource
-                    ):  # If resource visible based on current knowledge
-                        resource_icon = actor_utility.generate_resource_icon(self)
-                        if type(resource_icon) == str:
-                            image_id_list.append(resource_icon)
-                        else:
-                            image_id_list += resource_icon
-                    for building_type in status.building_types.keys():
-                        current_building = self.cell.get_building(building_type)
-                        if current_building:
-                            image_id_list += current_building.get_image_id_list()
-            elif self.show_terrain:
-                pass
-                # image_id_list.append(self.image_dict["hidden"])
-            else:
-                pass
-                # image_id_list.append(self.image_dict["default"])
-            for current_image in self.hosted_images:
-                if (
-                    not current_image.anchor_key in ["south_pole", "north_pole"]
-                    and not terrain_only
-                ):
-                    image_id_list += current_image.get_image_id_list()
+                        constants.effect_manager.effect_active("show_clouds")
+                        or force_clouds
+                        or not self.cell.terrain_handler.knowledge_available(
+                            constants.TERRAIN_KNOWLEDGE
+                        )
+                    ):
+                        for cloud_image in self.cell.terrain_handler.current_clouds:
+                            image_id_list.append(cloud_image.copy())
+                            if not image_id_list[-1].get("detail_level", None):
+                                image_id_list[-1][
+                                    "detail_level"
+                                ] = constants.TERRAIN_DETAIL_LEVEL
+                            image_id_list[-1]["level"] = -7
+                            if not image_id_list[-1].get("green_screen", None):
+                                image_id_list[-1][
+                                    "green_screen"
+                                ] = self.cell.terrain_handler.get_green_screen()
+                    if not terrain_only:
+                        for (
+                            terrain_feature
+                        ) in self.cell.terrain_handler.terrain_features:
+                            new_image_id = self.cell.terrain_handler.terrain_features[
+                                terrain_feature
+                            ].get(
+                                "image_id",
+                                status.terrain_feature_types[terrain_feature].image_id,
+                            )
+                            if new_image_id != "misc/empty.png":
+                                if type(
+                                    new_image_id
+                                ) == str and not new_image_id.endswith(".png"):
+                                    new_image_id = (
+                                        actor_utility.generate_label_image_id(
+                                            new_image_id, y_offset=-0.75
+                                        )
+                                    )
+                                image_id_list = utility.combine(
+                                    image_id_list, new_image_id
+                                )
+                        if (
+                            self.cell.terrain_handler.resource
+                        ):  # If resource visible based on current knowledge
+                            resource_icon = actor_utility.generate_resource_icon(self)
+                            if type(resource_icon) == str:
+                                image_id_list.append(resource_icon)
+                            else:
+                                image_id_list += resource_icon
+                        for building_type in status.building_types.keys():
+                            current_building = self.cell.get_building(building_type)
+                            if current_building:
+                                image_id_list += current_building.get_image_id_list()
+                elif self.show_terrain:
+                    pass
+                    # image_id_list.append(self.image_dict["hidden"])
+                else:
+                    pass
+                    # image_id_list.append(self.image_dict["default"])
+                for current_image in self.hosted_images:
+                    if (
+                        not current_image.anchor_key in ["south_pole", "north_pole"]
+                        and not terrain_only
+                    ):
+                        image_id_list += current_image.get_image_id_list()
 
         if constants.current_map_mode != "terrain":
             map_mode_image = "misc/map_modes/none.png"
@@ -423,6 +459,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 image_id_list.append(
                     {
                         "image_id": map_mode_image,
+                        "detail_level": 1.0,
                         "alpha": constants.MAP_MODE_ALPHA,
                     }
                 )
@@ -430,6 +467,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 image_id_list = [
                     {
                         "image_id": map_mode_image,
+                        "detail_level": 1.0,
                     }
                 ]
         for current_image in self.hosted_images:
@@ -652,6 +690,7 @@ class abstract_tile(tile):
                 {
                     "image_id": "locations/earth.png",
                     "size": 0.8,
+                    "detail_level": 1.0,
                 },
             ]
         elif input_dict["grid"] == status.globe_projection_grid:

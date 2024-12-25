@@ -26,6 +26,8 @@ def end_turn():
     Output:
         None
     """
+    actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
+    actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
     remove_excess_inventory()
     manage_environmental_conditions()
     flags.player_turn = False
@@ -167,6 +169,8 @@ def start_player_turn(first_turn=False):
         manage_financial_report()
         actor_utility.reset_action_prices()
         game_end_check()
+        status.strategic_map_grid.world_handler.update_sky_color(update_water=True)
+        status.strategic_map_grid.world_handler.update_clouds()
         constants.notification_manager.set_lock(False)
 
     flags.player_turn = (
@@ -178,17 +182,28 @@ def start_player_turn(first_turn=False):
     if not first_turn:
         market_utility.adjust_prices()
 
-    if status.displayed_mob == None or status.displayed_mob.get_permission(
-        constants.NPMOB_PERMISSION
-    ):
-        game_transitions.cycle_player_turn(True)
+    # if status.displayed_mob == None or status.displayed_mob.get_permission(
+    #    constants.NPMOB_PERMISSION
+    # ):
+    #    game_transitions.cycle_player_turn(True)
 
-    if status.displayed_mob:
-        status.displayed_mob.select()
-    else:
-        actor_utility.calibrate_actor_info_display(
-            status.mob_info_display, None, override_exempt=True
-        )
+    # if status.displayed_mob:
+    #    status.displayed_mob.select()
+    # else:
+    #    actor_utility.calibrate_actor_info_display(
+    #        status.mob_info_display, None, override_exempt=True
+    #    )
+    status.minimap_grid.calibrate(
+        status.minimap_grid.center_x,
+        status.minimap_grid.center_y,
+        calibrate_center=False,
+    )
+    actor_utility.calibrate_actor_info_display(
+        status.tile_info_display, status.displayed_tile
+    )
+    actor_utility.calibrate_actor_info_display(
+        status.mob_info_display, status.displayed_mob
+    )
     constants.achievement_manager.check_achievements("start of turn")
 
 
