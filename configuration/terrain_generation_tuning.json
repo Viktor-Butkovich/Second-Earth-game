@@ -69,6 +69,7 @@
     "earth_sand_color": [220, 180, 80],
     "earth_rock_color": [94, 88, 75],
     "earth_sky_color": [102, 167, 242],
+    "earth_water_vapor": 3.45,
 
     "mars_rotation_direction": -1,
     "mars_rotation_speed": 3,

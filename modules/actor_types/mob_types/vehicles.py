@@ -194,7 +194,7 @@ class vehicle(pmob):
                                 }
                             )
         for current_sub_mob in non_replaced_attrition:
-            current_sub_mob.disembark_vehicle(self)
+            current_sub_mob.disembark_vehicle(self, focus=False)
             current_sub_mob.attrition_death(False)
 
     def crew_attrition_death(self, crew):
@@ -279,7 +279,7 @@ class vehicle(pmob):
             self.ejected_crew = self.crew
             self.crew.uncrew_vehicle(self)
 
-    def eject_passengers(self):
+    def eject_passengers(self, focus=True):
         """
         Description:
             Removes this vehicle's passengers
@@ -290,7 +290,7 @@ class vehicle(pmob):
         """
         while len(self.contained_mobs) > 0:
             current_mob = self.contained_mobs.pop(0)
-            current_mob.disembark_vehicle(self)
+            current_mob.disembark_vehicle(self, focus=focus)
             if (not flags.player_turn) or flags.enemy_combat_phase:
                 self.ejected_passengers.append(current_mob)
 
@@ -408,10 +408,10 @@ class vehicle(pmob):
         if new_grid == status.earth_grid or self.images[
             0
         ].current_cell.has_intact_building(constants.SPACEPORT):
-            self.eject_passengers()
+            self.eject_passengers(focus=False)
             self.drop_inventory()
         elif new_grid.grid_type in constants.abstract_grid_type_list:
-            self.eject_passengers()
+            self.eject_passengers(focus=False)
         self.on_move()
 
     def get_worker(self) -> "pmob":

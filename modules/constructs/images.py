@@ -397,7 +397,6 @@ class bundle_image:
         self.image = None
         self.member_type = member_type
         self.is_offset = is_offset
-
         if not is_offset:
             self.image_id = image_id
             self.level = 0
@@ -417,6 +416,9 @@ class bundle_image:
             self.alpha = image_id.get("alpha", 255)
             self.detail_level = image_id.get(
                 "detail_level", constants.BUNDLE_IMAGE_DETAIL_LEVEL
+            )
+            self.override_green_screen_colors = image_id.get(
+                "override_green_screen_colors", []
             )
             if image_id.get("override_width", None):
                 self.override_width = image_id["override_width"]
@@ -700,10 +702,10 @@ class bundle_image:
                                 else:
                                     break
                         else:
-                            for (
-                                index,
-                                current_green_screen_color,
-                            ) in enumerate(constants.green_screen_colors):
+                            for (index, current_green_screen_color,) in enumerate(
+                                self.override_green_screen_colors
+                                + constants.green_screen_colors
+                            ):
                                 # If pixel matches preset green screen color, replace it with the image's corresponding replacement color
                                 if (
                                     red,

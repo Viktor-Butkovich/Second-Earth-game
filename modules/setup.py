@@ -1713,6 +1713,17 @@ def buttons():
         rhs_menu_collection.add_member(
             constants.actor_creation_manager.create_interface_element(input_dict)
         )
+    if constants.effect_manager.effect_active("allow_toggle_clouds"):
+        input_dict["init_type"] = constants.TOGGLE_BUTTON
+        input_dict["toggle_variable"] = "show_clouds"
+        input_dict["attached_to_actor"] = False
+        input_dict["modes"] = [constants.STRATEGIC_MODE]
+        input_dict["image_id"] = actor_utility.generate_frame(
+            "buttons/toggle_clouds_button.png"
+        )
+        rhs_menu_collection.add_member(
+            constants.actor_creation_manager.create_interface_element(input_dict)
+        )
 
     input_dict["coordinates"] = scaling.scale_coordinates(
         110, constants.default_display_height - 50

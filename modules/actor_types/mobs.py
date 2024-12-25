@@ -763,10 +763,13 @@ class mob(actor):
                 self.movement_points
             ):  # if whole number, don't show decimal
                 self.movement_points = round(self.movement_points)
-            if (
-                self.get_permission(constants.PMOB_PERMISSION)
-                and self.get_cell()
-                and not self.get_permission(constants.INACTIVE_VEHICLE_PERMISSION)
+            if self.get_permission(
+                constants.PMOB_PERMISSION
+            ) and not self.any_permissions(
+                constants.INACTIVE_VEHICLE_PERMISSION,
+                constants.IN_VEHICLE_PERMISSION,
+                constants.IN_BUILDING_PERMISSION,
+                constants.IN_GROUP_PERMISSION,
             ):
                 self.add_to_turn_queue()
             if status.displayed_mob == self:
@@ -811,7 +814,7 @@ class mob(actor):
         """
         if new_grid == status.earth_grid:
             self.modes.append(constants.EARTH_MODE)
-        else:  # if mob was spawned on Earth, make it so that it does not appear in the Earth screen after leaving
+        else:  # If mob was spawned on Earth, make it so that it does not appear in the Earth screen after leaving
             self.modes = utility.remove_from_list(self.modes, constants.EARTH_MODE)
         self.x, self.y = new_coordinates
         old_image_id = self.images[0].image_id
@@ -819,9 +822,6 @@ class mob(actor):
             current_image.remove_from_cell()
         self.grids = [new_grid] + new_grid.mini_grids
         self.grid = new_grid
-        if new_grid.mini_grids:
-            for mini_grid in new_grid.mini_grids:
-                mini_grid.calibrate(new_coordinates[0], new_coordinates[1])
         self.images = []
         for current_grid in self.grids:
             self.images.append(

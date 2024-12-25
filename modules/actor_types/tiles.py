@@ -300,7 +300,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
         self.hosted_images.append(new_image)
         self.update_image_bundle()
 
-    def get_image_id_list(self, terrain_only=False, force_visibility=False):
+    def get_image_id_list(
+        self, terrain_only=False, force_visibility=False, force_clouds=False
+    ):
         """
         Description:
             Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
@@ -340,18 +342,42 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     for (
                         terrain_overlay_image
                     ) in self.cell.terrain_handler.get_overlay_images():
-                        image_id_list.append(
-                            {
+                        if type(terrain_overlay_image) == str:
+                            terrain_overlay_image = {
                                 "image_id": terrain_overlay_image,
+                            }
+                        terrain_overlay_image.update(
+                            {
                                 "level": -8,
                                 "color_filter": self.cell.terrain_handler.get_color_filter(),
-                                "green_screen": self.cell.terrain_handler.get_green_screen(),
                                 "pixellated": not self.cell.terrain_handler.knowledge_available(
                                     constants.TERRAIN_KNOWLEDGE
                                 ),
                                 "detail_level": constants.TERRAIN_DETAIL_LEVEL,
                             }
                         )
+                        if not terrain_overlay_image.get("green_screen", None):
+                            terrain_overlay_image[
+                                "green_screen"
+                            ] = self.cell.terrain_handler.get_green_screen()
+                        image_id_list.append(terrain_overlay_image)
+                    if (
+                        constants.effect_manager.effect_active("show_clouds")
+                        or force_clouds
+                        or not self.cell.terrain_handler.knowledge_available(
+                            constants.TERRAIN_KNOWLEDGE
+                        )
+                    ):
+                        for cloud_image in self.cell.terrain_handler.current_clouds:
+                            image_id_list.append(cloud_image.copy())
+                            image_id_list[-1][
+                                "detail_level"
+                            ] = constants.TERRAIN_DETAIL_LEVEL
+                            image_id_list[-1]["level"] = -7
+                            if not image_id_list[-1].get("green_screen", None):
+                                image_id_list[-1][
+                                    "green_screen"
+                                ] = self.cell.terrain_handler.get_green_screen()
                     if not terrain_only:
                         for (
                             terrain_feature

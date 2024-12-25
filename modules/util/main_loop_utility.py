@@ -707,4 +707,3 @@ def debug_print():
         None
     """
     print("")
-    print(constants.effect_manager)

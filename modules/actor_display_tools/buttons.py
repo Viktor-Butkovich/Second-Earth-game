@@ -1722,7 +1722,7 @@ class toggle_button(button):
             constants.effect_manager.set_effect(
                 self.toggle_variable, not self.get_value()
             )
-            if self.toggle_variable == "remove_fog_of_war":
+            if self.toggle_variable in ["remove_fog_of_war", "show_clouds"]:
                 constants.update_terrain_knowledge_requirements()
                 status.minimap_grid.calibrate(
                     status.minimap_grid.center_x, status.minimap_grid.center_y

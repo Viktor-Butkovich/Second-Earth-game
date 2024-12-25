@@ -460,6 +460,11 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
         "True": "Fog of war disabled - no knowledge required to view tiles",
         "False": "Fog of war active - knowledge required to view tiles",
     },
+    "show_clouds": {
+        "default": "Toggles cloud visibility on explored tiles",
+        "True": "Currently showing clouds, even on explored tiles",
+        "False": "Currently showing clouds on unexplored tiles only",
+    },
     "earth_preset": {
         "default": "Creates an Earth-like planet",
         "True": "Earth-like planet creation enabled",
@@ -558,6 +563,7 @@ BACKGROUND_LEVEL: int = -5
 DEFAULT_LEVEL: int = 2
 BACKPACK_LEVEL: int = 1
 
+ALTITUDE_BRIGHTNESS_MULTIPLIER: float = 0.6
 PIXELLATED_SIZE: int = 2
 LIGHT_PIXELLATED_SIZE: int = 70
 if effect_manager.effect_active("speed_loading"):

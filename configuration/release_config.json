@@ -10,6 +10,8 @@
    ],
    "effects": [
       "speed_loading",
+      "allow_toggle_clouds",
+      "show_clouds",
       "rotate_game_mode_buttons",
       "skinny_screen",
       "short_screen",

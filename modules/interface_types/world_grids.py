@@ -65,6 +65,10 @@ class world_grid(grid):
             self.generate_poles_and_equator()
             self.generate_terrain_parameters()
             self.generate_terrain_features()
+            self.world_handler.update_sky_color(
+                set_initial_offset=True, update_water=True
+            )
+            self.world_handler.update_clouds()
 
     def generate_altitude(self) -> None:
         """
@@ -356,40 +360,44 @@ class world_grid(grid):
             - self.world_handler.get_parameter(constants.MAGNETIC_FIELD),
         )
 
-        if choice.get_parameter(constants.TEMPERATURE) <= frozen_bound:
+        if not (
+            self.world_handler.get_parameter(constants.PRESSURE) == 0
+            and choice.get_parameter(constants.TEMPERATURE)
+            >= self.get_tuning("water_freezing_point")
+        ):
+            # If no pressure, any evaporated water disappears
             change = 1
-            # If during setup
-            if (
-                choice.get_parameter(constants.TEMPERATURE)
-                >= self.get_tuning("water_freezing_point") - 1
-            ):  # Lose most water if sometimes above freezing
-                if radiation_effect >= 3:
+            if choice.get_parameter(constants.TEMPERATURE) <= frozen_bound:
+                # If during setup
+                if choice.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
+                    "water_freezing_point"
+                ):  # Lose most water if sometimes above freezing
+                    if radiation_effect >= 3:
+                        if random.randrange(1, 13) >= 2:
+                            # choice.change_parameter(constants.WATER, -1)
+                            change = 0
+                    elif radiation_effect >= 1:
+                        if random.randrange(1, 13) >= 4:
+                            # choice.change_parameter(constants.WATER, -1)
+                            change = 0
+                # If far below freezing, retain water regardless of radiation
+                if change != 0:
+                    choice.change_parameter(constants.WATER, change)
+            else:
+                # If during setup
+                if (
+                    radiation_effect >= 3
+                ):  # Lose almost all water if consistently above freezing
+                    if random.randrange(1, 13) >= 2:
+                        change = 0
+                elif (
+                    radiation_effect >= 1
+                ):  # Lose most water if consistently above freezing
                     if random.randrange(1, 13) >= 4:
-                        choice.change_parameter(constants.WATER, -1)
                         change = 0
-                elif radiation_effect >= 1:
-                    if random.randrange(1, 13) >= 6:
-                        choice.change_parameter(constants.WATER, -1)
-                        change = 0
-            # If far below freezing, retain water regardless of radiation
-            if change != 0:
-                choice.change_parameter(constants.WATER, change)
-        else:
-            change = 1
-            # If during setup
-            if (
-                radiation_effect >= 3
-            ):  # Lose almost all water if consistently above freezing
-                if random.randrange(1, 13) >= 2:
-                    change = 0
-            elif (
-                radiation_effect >= 1
-            ):  # Lose most water if consistently above freezing
-                if random.randrange(1, 13) >= 4:
-                    change = 0
-            if change != 0:
-                choice.change_parameter(constants.WATER, change)
-                choice.terrain_handler.flow()
+                if change != 0:
+                    choice.change_parameter(constants.WATER, change)
+                    choice.terrain_handler.flow()
 
     def generate_soil(self) -> None:
         """
@@ -1210,7 +1218,7 @@ class world_grid(grid):
                 linear_weight *= 2.5  # Have stronger linear effect for edge latitude lines to minimize blocky corners
             elif abs(longitude_bulge_factor) > 0.35:
                 linear_weight *= 1.3
-            if max_latitude_line_length >= constants.map_size_options[-2]:
+            if max_latitude_line_length >= constants.map_size_options[-3]:
                 ellipse_weight *= 1 / 3
                 linear_weight *= 1.5
             latitude_bulge_factor = (
@@ -1268,7 +1276,7 @@ class world_grid(grid):
             }
             for image_id in self.find_cell(
                 coordinates[0], coordinates[1]
-            ).tile.get_image_id_list(terrain_only=True):
+            ).tile.get_image_id_list(terrain_only=True, force_clouds=True):
                 # Apply projection offsets to each image in the tile's terrain
                 if type(image_id) == str:
                     image_id = {"image_id": image_id}

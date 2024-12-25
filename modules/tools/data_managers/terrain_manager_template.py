@@ -174,6 +174,17 @@ class terrain_manager_template:
                 current_variant + 1
             )  # number of variants, variants in format 'mountains_0', 'mountains_1', etc.
 
+            for special_terrain in [
+                "clouds_base"
+            ]:  # Load in terrains that need variants but don't occur in the terrain definitions
+                current_variant = 0
+                while os.path.exists(
+                    f"graphics/terrains/{special_terrain}_{current_variant}.png"
+                ):
+                    current_variant += 1
+                current_variant -= 1  # back up from index that didn't work
+                self.terrain_variant_dict[special_terrain] = current_variant + 1
+
     def classify(self, terrain_parameters):
         """
         Description:
@@ -693,6 +704,10 @@ class world_handler:
             input_dict["global_parameters"][constants.TOXIC_GASES], 1
         )
 
+        self.terrain_handlers: List[terrain_handler] = [
+            current_cell.terrain_handler
+            for current_cell in self.default_grid.get_flat_cell_list()
+        ]
         self.name = input_dict["name"]
         self.rotation_direction = input_dict["rotation_direction"]
         self.rotation_speed = input_dict["rotation_speed"]
@@ -722,14 +737,13 @@ class world_handler:
         self.size: int = input_dict.get("size", self.default_grid.area)
         self.sky_color = input_dict["sky_color"]
         self.default_sky_color = input_dict["default_sky_color"]
+        self.steam_color = [0, 0, 0]
         self.global_parameters: Dict[str, int] = {}
         self.initial_atmosphere_offset = input_dict.get(
             "initial_atmosphere_offset", 0.001
         )
         for key in constants.global_parameters:
             self.set_parameter(key, input_dict.get("global_parameters", {}).get(key, 0))
-        if not from_save:
-            self.update_sky_color(set_initial_offset=True, update_water=True)
         """
         15 x 15 grid has north pole 0, 0 and south pole 7, 7
         If centered at (11, 11), latitude line should include (0, 0), (14, 14), (13, 13), (12, 12), (11, 11), (10, 10), (9, 9), (8, 8), (7, 7)
@@ -981,6 +995,7 @@ class world_handler:
             )
             for i in range(3)
         ]
+        self.steam_color = [min(240, sky_color + 100) for sky_color in self.sky_color]
         if update_water:
             inherent_water_color = (11, 24, 144)
             sky_weight = 0.4
@@ -1004,15 +1019,68 @@ class world_handler:
                     water_color[1] * 1.1,
                     water_color[2] * 1,
                 )
+                self.green_screen["clouds"]["replacement_color"] = self.steam_color
 
         if not flags.loading:
             status.strategic_map_grid.update_globe_projection(update_button=True)
-            if update_water:
-                status.minimap_grid.calibrate(
-                    status.minimap_grid.center_x,
-                    status.minimap_grid.center_y,
-                    calibrate_center=False,
+
+    def get_water_vapor_contributions(self):
+        """
+        Description:
+            Calculates the average water vapor for the planet, depending on local water and temperature
+        Input:
+            None
+        Output:
+            float: Average water vapor for the planet
+        """
+        total_water_vapor = 0
+        for terrain_handler in self.terrain_handlers:
+            if terrain_handler.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
+                "water_freezing_point"
+            ):
+                total_water_vapor += terrain_handler.get_parameter(constants.WATER)
+            if terrain_handler.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
+                "water_boiling_point"
+            ):  # Count boiling twice
+                total_water_vapor += terrain_handler.get_parameter(constants.WATER)
+        return total_water_vapor / self.default_grid.area
+
+    def update_clouds(self):
+        """
+        Description:
+            Creates random clouds for each terrain handler, with frequency depending on water vapor
+        Input:
+            None
+        Output:
+            None
+        """
+        num_cloud_variants = constants.terrain_manager.terrain_variant_dict.get(
+            "clouds_base", 1
+        )
+        cloud_frequency = max(
+            0,
+            min(
+                1,
+                0.25
+                * (
+                    self.get_water_vapor_contributions()
+                    / self.get_tuning("earth_water_vapor")
+                ),
+            ),
+        )
+        if cloud_frequency == 0:
+            return
+        for terrain_handler in self.terrain_handlers:
+            terrain_handler.current_clouds = []
+            if random.random() < cloud_frequency:
+                terrain_handler.current_clouds.append({"image_id": "misc/shader.png"})
+                terrain_handler.current_clouds.append(
+                    {
+                        "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
+                    }
                 )
+        if not flags.loading:
+            status.strategic_map_grid.update_globe_projection(update_button=True)
 
     def get_parameter(self, parameter_name: str) -> int:
         """
@@ -1207,6 +1275,12 @@ class world_handler:
                     round(rock_color[1] * 0.5),
                     round(rock_color[2] * 0.5),
                 ),
+            },
+            "clouds": {
+                "base_colors": [(174, 37, 19)],
+                "tolerance": 60,
+                "replacement_color": (0, 0, 0),
+                # Replacement color updated when sky color changes
             },
         }
 
@@ -1433,6 +1507,7 @@ class terrain_handler:
             },
         )
         self.terrain_variant: int = input_dict.get("terrain_variant", 0)
+        self.current_clouds: List[Dict[str, any]] = input_dict.get("current_clouds", [])
         self.pole_distance_multiplier: float = (
             1.0  # 0.1 for polar cells, 1.0 for equatorial cells
         )
@@ -1596,7 +1671,9 @@ class terrain_handler:
             parameter_name, self.terrain_parameters[parameter_name] + change
         )
 
-    def set_parameter(self, parameter_name: str, new_value: int) -> None:
+    def set_parameter(
+        self, parameter_name: str, new_value: int, update_display: bool = True
+    ) -> None:
         """
         Description:
             Sets the value of a parameter for this handler's cells
@@ -1658,7 +1735,7 @@ class terrain_handler:
             for cell in self.attached_cells:
                 if cell.tile:
                     cell.tile.set_terrain(self.terrain, update_image_bundle=True)
-            if not flags.loading:
+            if update_display and not flags.loading:
                 status.strategic_map_grid.update_globe_projection()
 
         if status.displayed_tile:
@@ -1704,7 +1781,7 @@ class terrain_handler:
     def get_overlay_images(self) -> List[str]:
         """
         Description:
-            Gets any overlay images that are part of terrain but not from original image
+            Gets any non-cloud overlay images that are part of terrain but not from original image
         Input:
             None
         Output:
@@ -1713,19 +1790,30 @@ class terrain_handler:
         return_list = []
         if self.has_snow():
             return_list.append(f"terrains/snow_{self.terrain_variant % 4}.png")
-        elif self.boiling():  # If 4 below boiling, add steam
-            return_list.append(f"terrains/boiling_{self.terrain_variant % 4}.png")
+
+        steam_list = []
+        if self.boiling():  # If 4 below boiling, add steam
+            steam_list.append(f"terrains/boiling_{self.terrain_variant % 4}.png")
             if self.get_parameter(constants.WATER) >= 2 and self.get_parameter(
                 constants.TEMPERATURE
             ) >= constants.terrain_manager.get_tuning("water_boiling_point"):
                 # If boiling, add more steam as water increases
-                return_list.append(
+                steam_list.append(
                     f"terrains/boiling_{(self.terrain_variant + 1) % 4}.png"
                 )
                 if self.get_parameter(constants.WATER) >= 4:
-                    return_list.append(
+                    steam_list.append(
                         f"terrains/boiling_{(self.terrain_variant + 2) % 4}.png"
                     )
+        return_list += [
+            {
+                "image_id": current_steam,
+                "green_screen": [self.get_world_handler().steam_color],
+                "override_green_screen_colors": [(140, 183, 216)],
+            }
+            for current_steam in steam_list
+        ]
+
         return return_list
 
     def to_save_dict(self) -> Dict[str, any]:
@@ -1751,6 +1839,7 @@ class terrain_handler:
         save_dict["terrain"] = self.terrain
         save_dict["resource"] = self.resource
         save_dict["north_pole_distance_multiplier"] = self.pole_distance_multiplier
+        save_dict["current_clouds"] = self.current_clouds
         return save_dict
 
     def get_parameter(self, parameter_name: str) -> int:
@@ -1912,8 +2001,8 @@ class terrain_handler:
             for key in color_filter:
                 color_filter[key] = round(
                     color_filter[key]
-                    + (self.get_parameter(constants.ALTITUDE) / 10)
-                    - 0.2,
+                    + ((self.get_parameter(constants.ALTITUDE) / 10) - 0.2)
+                    * constants.ALTITUDE_BRIGHTNESS_MULTIPLIER,
                     2,
                 )
             return color_filter
