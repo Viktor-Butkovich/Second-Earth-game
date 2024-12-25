@@ -262,7 +262,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
-# Add toxic gas clouds
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art
@@ -271,16 +270,13 @@ except Exception:  # Displays error message and records error message in crash l
 # Allow large items to be stored in inventory, with supporting interface
 # Add radio distortion versions of voice lines, either as separate files or runtime filter
 # Add radio voice lines for units in spacesuits
-# For tiles with knowledge 1, possibly change every turn to a cloud or normal pixellated version, depending on atmosphere conditions
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
 # Convert actor_type ("tile", "mob", "minister") to use constant keys
 # Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
 # Add altitude effect to local pressure
 # Add new notes from Second Earth notes folder
-# Possibly add global interface that appears when nothing is selected, showing global conditions
 # Learn how to use Python script to process earth projection images
-# Correctly update water and atmosphere colors based on current composition compared to initial and Earth
 # Include pressure in landing difficulty
 #
 # Fix this rare crash

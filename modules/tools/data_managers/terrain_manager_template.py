@@ -415,7 +415,7 @@ class world_handler:
                         constants.MAGNETIC_FIELD
                     ] = random.choices([0, 1, 2, 3, 4, 5], [5, 2, 2, 2, 2, 2], k=1)[0]
                     atmosphere_type = random.choice(
-                        ["thick", "medium", "thin", "thin", "none"]
+                        ["thick", "thick", "medium", "thin", "thin", "none"]
                     )
                     if (
                         input_dict["global_parameters"][constants.MAGNETIC_FIELD]
@@ -434,6 +434,7 @@ class world_handler:
                         input_dict["global_parameters"][constants.GHG] = random.choices(
                             [
                                 random.randrange(0, atmosphere_size * 90),
+                                random.randrange(0, atmosphere_size * 40),
                                 random.randrange(0, atmosphere_size * 10),
                                 random.randrange(0, atmosphere_size * 5),
                                 random.randrange(0, atmosphere_size),
@@ -1010,7 +1011,6 @@ class world_handler:
                     water_color[1] * 1.1,
                     water_color[2] * 1,
                 )
-                self.green_screen["clouds"]["replacement_color"] = self.steam_color
 
         if not flags.loading:
             status.strategic_map_grid.update_globe_projection(update_button=True)
@@ -1062,23 +1062,43 @@ class world_handler:
                 ),
             ),
         )
+        if self.get_parameter(constants.PRESSURE) > 0:
+            toxic_cloud_composition_frequency = min(
+                0.5,
+                self.get_parameter(constants.TOXIC_GASES)
+                / self.get_parameter(constants.PRESSURE)
+                * 10,
+            )
+        else:
+            toxic_cloud_composition_frequency = 0
+        toxic_cloud_quantity_frequency = min(
+            0.5,
+            (
+                self.get_parameter(constants.PRESSURE)
+                / self.get_ideal_parameter(constants.PRESSURE)
+            )
+            * 0.25,
+        )
+        # Toxic cloud frequency depends on both toxic gas % and total pressure
 
         for terrain_handler in self.terrain_handlers:
             terrain_handler.current_clouds = []
-            if cloud_frequency != 0:
-                if random.random() < cloud_frequency:
-                    terrain_handler.current_clouds.append(
-                        {
-                            "image_id": "misc/shader.png",
-                            "detail_level": constants.CLOUDS_DETAIL_LEVEL,
-                        }
-                    )
-                    terrain_handler.current_clouds.append(
-                        {
-                            "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
-                            "detail_level": constants.CLOUDS_DETAIL_LEVEL,
-                        }
-                    )
+
+            cloud_type = None
+            if random.random() < cloud_frequency:
+                cloud_type = "water vapor"
+            elif (
+                random.random() < toxic_cloud_quantity_frequency
+                and random.random() < toxic_cloud_composition_frequency
+            ):
+                cloud_type = "toxic"
+            if cloud_type:
+                terrain_handler.current_clouds.append(
+                    {
+                        "image_id": "misc/shader.png",
+                        "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                    }
+                )
             alpha = min(255, (self.get_pressure_ratio() * 7) - 14)
             if alpha > 0:
                 terrain_handler.current_clouds.append(
@@ -1091,6 +1111,36 @@ class world_handler:
                                 "base_colors": [(174, 37, 19)],
                                 "tolerance": 60,
                                 "replacement_color": self.sky_color,
+                            },
+                        },
+                    }
+                )
+            if cloud_type == "water vapor":
+                terrain_handler.current_clouds.append(
+                    {
+                        "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
+                        "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                        "green_screen": {
+                            "clouds": {
+                                "base_colors": [(174, 37, 19)],
+                                "tolerance": 60,
+                                "replacement_color": self.steam_color,
+                            },
+                        },
+                    }
+                )
+            elif cloud_type == "toxic":
+                terrain_handler.current_clouds.append(
+                    {
+                        "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
+                        "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                        "green_screen": {
+                            "clouds": {
+                                "base_colors": [(174, 37, 19)],
+                                "tolerance": 60,
+                                "replacement_color": [
+                                    round(color * 0.8) for color in self.sky_color
+                                ],
                             },
                         },
                     }
