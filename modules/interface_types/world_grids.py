@@ -361,11 +361,11 @@ class world_grid(grid):
         )
 
         if not (
-            self.world_handler.get_parameter(constants.PRESSURE) == 0
+            self.world_handler.get_pressure_ratio() < 0.05
             and choice.get_parameter(constants.TEMPERATURE)
             >= self.get_tuning("water_freezing_point")
         ):
-            # If no pressure, any evaporated water disappears
+            # If insufficient pressure, any evaporated water disappears
             change = 1
             if choice.get_parameter(constants.TEMPERATURE) <= frozen_bound:
                 # If during setup
@@ -1118,7 +1118,6 @@ class world_grid(grid):
                     offset=offset,
                     offset_width=offset_width,
                 )
-
                 return_list += self.draw_latitude_line(
                     latitude_lines[(index - offset) % planet_width],
                     largest_size,
@@ -1257,6 +1256,8 @@ class world_grid(grid):
                 max_latitude_line_length <= constants.map_size_options[1]
             ):  # Increase height for smaller maps to avoid empty space near poles
                 height_penalty *= 0.6
+            if max_latitude_line_length >= constants.map_size_options[-3]:
+                width_penalty *= 2
             tile_width, tile_height = (
                 base_tile_width - width_penalty,
                 base_tile_height - height_penalty,
@@ -1285,7 +1286,7 @@ class world_grid(grid):
 
             if (
                 self.world_handler.get_pressure_ratio() > 50.0
-            ):  # If very high pressure, have sky effects for all latitude lines
+            ) and False:  # If very high pressure, have sky effects for all latitude lines
                 threshold = max_latitude_line_length
             elif (
                 self.world_handler.get_pressure_ratio() > 10.0

@@ -175,7 +175,8 @@ class terrain_manager_template:
             )  # number of variants, variants in format 'mountains_0', 'mountains_1', etc.
 
             for special_terrain in [
-                "clouds_base"
+                "clouds_base",
+                "clouds_solid",
             ]:  # Load in terrains that need variants but don't occur in the terrain definitions
                 current_variant = 0
                 while os.path.exists(
@@ -995,7 +996,7 @@ class world_handler:
             )
             for i in range(3)
         ]
-        self.steam_color = [min(240, sky_color + 100) for sky_color in self.sky_color]
+        self.steam_color = [min(240, sky_color + 80) for sky_color in self.sky_color]
         if update_water:
             inherent_water_color = (11, 24, 144)
             sky_weight = 0.4
@@ -1057,6 +1058,9 @@ class world_handler:
         num_cloud_variants = constants.terrain_manager.terrain_variant_dict.get(
             "clouds_base", 1
         )
+        num_solid_cloud_variants = constants.terrain_manager.terrain_variant_dict.get(
+            "clouds_solid", 1
+        )
         cloud_frequency = max(
             0,
             min(
@@ -1068,15 +1072,37 @@ class world_handler:
                 ),
             ),
         )
-        if cloud_frequency == 0:
-            return
+
         for terrain_handler in self.terrain_handlers:
             terrain_handler.current_clouds = []
-            if random.random() < cloud_frequency:
-                terrain_handler.current_clouds.append({"image_id": "misc/shader.png"})
+            if cloud_frequency != 0:
+                if random.random() < cloud_frequency:
+                    terrain_handler.current_clouds.append(
+                        {
+                            "image_id": "misc/shader.png",
+                            "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                        }
+                    )
+                    terrain_handler.current_clouds.append(
+                        {
+                            "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
+                            "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                        }
+                    )
+            alpha = min(255, (self.get_pressure_ratio() * 7) - 14)
+            if alpha > 0:
                 terrain_handler.current_clouds.append(
                     {
-                        "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
+                        "image_id": f"terrains/clouds_solid_{random.randrange(0, num_solid_cloud_variants)}.png",
+                        "alpha": alpha,
+                        "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                        "green_screen": {
+                            "clouds": {
+                                "base_colors": [(174, 37, 19)],
+                                "tolerance": 60,
+                                "replacement_color": self.sky_color,
+                            },
+                        },
                     }
                 )
         if not flags.loading:

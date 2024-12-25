@@ -564,7 +564,7 @@ DEFAULT_LEVEL: int = 2
 BACKPACK_LEVEL: int = 1
 
 ALTITUDE_BRIGHTNESS_MULTIPLIER: float = 0.6
-PIXELLATED_SIZE: int = 2
+PIXELLATED_SIZE: int = 3
 LIGHT_PIXELLATED_SIZE: int = 70
 if effect_manager.effect_active("speed_loading"):
     DETAIL_LEVEL: float = 1.0
@@ -572,12 +572,14 @@ if effect_manager.effect_active("speed_loading"):
     BUTTON_DETAIL_LEVEL: float = 1.0
     GLOBE_PROJECTION_DETAIL_LEVEL: float = 1.0
     TERRAIN_DETAIL_LEVEL: float = 0.1
+    CLOUDS_DETAIL_LEVEL: float = 0.1
 else:
     DETAIL_LEVEL: float = 1.0
     BUNDLE_IMAGE_DETAIL_LEVEL: float = 0.5
     BUTTON_DETAIL_LEVEL: float = 1.0
     GLOBE_PROJECTION_DETAIL_LEVEL: float = 1.0
     TERRAIN_DETAIL_LEVEL: float = 0.5
+    CLOUDS_DETAIL_LEVEL: float = 0.15
 
 TERRAIN_KNOWLEDGE: str = "terrain"
 TERRAIN_KNOWLEDGE_REQUIREMENT: int = 0

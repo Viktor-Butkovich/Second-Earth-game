@@ -370,9 +370,10 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     ):
                         for cloud_image in self.cell.terrain_handler.current_clouds:
                             image_id_list.append(cloud_image.copy())
-                            image_id_list[-1][
-                                "detail_level"
-                            ] = constants.TERRAIN_DETAIL_LEVEL
+                            if not image_id_list[-1].get("detail_level", None):
+                                image_id_list[-1][
+                                    "detail_level"
+                                ] = constants.TERRAIN_DETAIL_LEVEL
                             image_id_list[-1]["level"] = -7
                             if not image_id_list[-1].get("green_screen", None):
                                 image_id_list[-1][
