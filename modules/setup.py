@@ -1359,6 +1359,29 @@ def buttons():
         }
     )
 
+    if constants.effect_manager.effect_active("map_customization"):
+        north_pole_centered_earth = (
+            constants.actor_creation_manager.create_interface_element(
+                {
+                    "coordinates": scaling.scale_coordinates(
+                        constants.strategic_map_x_offset,
+                        constants.strategic_map_y_offset,
+                    ),
+                    "width": scaling.scale_width(constants.strategic_map_pixel_width),
+                    "height": scaling.scale_height(
+                        constants.strategic_map_pixel_height
+                    ),
+                    "parent_collection": status.grids_collection,
+                    "modes": [constants.STRATEGIC_MODE],
+                    "init_type": constants.FREE_IMAGE,
+                    "image_id": "locations/north_pole_centered_earth_grid.png",
+                }
+            )
+        )
+        constants.globe_projection_grid_x_offset += constants.strategic_map_pixel_width
+        constants.strategic_map_x_offset += constants.strategic_map_pixel_width
+        # globe_projection_x += constants.strategic_map_pixel_width
+
     input_dict = {
         "coordinates": scaling.scale_coordinates(0, 10),
         "width": scaling.scale_width(150),
@@ -1387,6 +1410,8 @@ def buttons():
         + constants.strategic_map_pixel_width
         + 15
     )
+    # if constants.effect_manager.effect_active("map_customization"):
+    #    globe_projection_x += constants.strategic_map_pixel_width
     globe_projection_y = (
         scaling.scale_height(constants.earth_grid_y_offset) + status.grids_collection.y
     )

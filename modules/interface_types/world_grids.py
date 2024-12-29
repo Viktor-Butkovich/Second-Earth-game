@@ -79,9 +79,15 @@ class world_grid(grid):
         Output:
             None
         """
-        default_altitude = 0
+        if constants.effect_manager.effect_active("map_customization"):
+            default_altitude = 2
+        else:
+            default_altitude = 0
         for cell in self.get_flat_cell_list():
             cell.set_parameter(constants.ALTITUDE, default_altitude)
+
+        if constants.effect_manager.effect_active("map_customization"):
+            return
 
         for i in range(constants.terrain_manager.get_tuning("altitude_worms")):
             min_length = (
@@ -241,6 +247,8 @@ class world_grid(grid):
         Output:
             None
         """
+        if constants.effect_manager.effect_active("map_customization"):
+            return
         if constants.effect_manager.effect_active("earth_preset"):
             num_worms = self.get_tuning("earth_roughness_multiplier")
         elif constants.effect_manager.effect_active("mars_preset"):
@@ -290,6 +298,11 @@ class world_grid(grid):
             round(self.world_handler.average_water_target * self.world_handler.size)
         ):
             self.place_water()
+        if constants.effect_manager.effect_active("map_customization"):
+            attempts = 0
+            while attempts < 10000 and not self.find_average(constants.WATER) == 5.0:
+                self.place_water()
+                attempts += 1
 
     def place_water(self, frozen_bound=0) -> None:
         """
@@ -408,6 +421,8 @@ class world_grid(grid):
         Output:
             None
         """
+        if constants.effect_manager.effect_active("map_customization"):
+            return
         if constants.effect_manager.effect_active("earth_preset"):
             for cell in self.get_flat_cell_list():
                 cell.set_parameter(constants.SOIL, random.randrange(0, 6))
@@ -457,6 +472,8 @@ class world_grid(grid):
         Output:
             None
         """
+        if constants.effect_manager.effect_active("map_customization"):
+            return
         if constants.effect_manager.effect_active("earth_preset"):
             for cell in self.get_flat_cell_list():
                 if cell.get_parameter(constants.TEMPERATURE) > 0:

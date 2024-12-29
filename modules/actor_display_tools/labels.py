@@ -51,6 +51,7 @@ class actor_display_label(label):
         m_increment = scaling.scale_width(9)
         l_increment = scaling.scale_width(30)
 
+        ss_size = self.height + 1
         s_size = self.height + s_increment
         m_size = self.height + m_increment
         l_size = self.height + l_increment
@@ -487,14 +488,42 @@ class actor_display_label(label):
             )
             if constants.effect_manager.effect_active("god_mode"):
                 input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
-                input_dict["width"], input_dict["height"] = (s_size, s_size)
+                input_dict["width"], input_dict["height"] = (ss_size, ss_size)
 
                 input_dict["change"] = -1
-                input_dict["image_id"] = "buttons/cycle_ministers_down_button.png"
+                input_dict["image_id"] = "buttons/commodity_drop_button.png"
+                if (
+                    self.actor_label_type == constants.WATER_LABEL
+                    and constants.effect_manager.effect_active("map_customization")
+                ):
+                    input_dict["keybind_id"] = pygame.K_q
                 self.add_attached_button(input_dict)
 
                 input_dict["change"] = 1
-                input_dict["image_id"] = "buttons/cycle_ministers_up_button.png"
+                input_dict["image_id"] = "buttons/commodity_pick_up_button.png"
+                if (
+                    self.actor_label_type == constants.WATER_LABEL
+                    and constants.effect_manager.effect_active("map_customization")
+                ):
+                    input_dict["keybind_id"] = pygame.K_w
+                self.add_attached_button(input_dict)
+
+                input_dict["change"] = -6
+                input_dict["image_id"] = "buttons/commodity_drop_all_button.png"
+                if (
+                    self.actor_label_type == constants.WATER_LABEL
+                    and constants.effect_manager.effect_active("map_customization")
+                ):
+                    input_dict["keybind_id"] = pygame.K_e
+                self.add_attached_button(input_dict)
+
+                input_dict["change"] = 6
+                input_dict["image_id"] = "buttons/commodity_pick_up_all_button.png"
+                if (
+                    self.actor_label_type == constants.WATER_LABEL
+                    and constants.effect_manager.effect_active("map_customization")
+                ):
+                    input_dict["keybind_id"] = pygame.K_r
                 self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.HABITABILITY_LABEL:
