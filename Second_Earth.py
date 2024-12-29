@@ -50,8 +50,10 @@ except Exception:  # Displays error message and records error message in crash l
 #   New SE features:
 # Future subsystems:
 """
-1. Add new resource types (water, food, oxygen, goods) - allow buying on Earth, transporting, and being used as unit upkeep
+1. Add new resource types (water, food, oxygen, goods, energy) - allow buying on Earth, transporting, and being used as unit upkeep
     Die instantly if not enough water, food, or oxygen - prompt before ending turn
+    Grant free upkeep/housing to any units on Earth - functionally unlimited
+    Insufficient goods or energy is unpleasant but does not cause instant death
 2. Add new building types, including modules that can be transported and worked while on a vehicle
     Modules should take more than 1 inventory capacity each
     Possibly allow pre-upgraded modules?
@@ -80,12 +82,20 @@ except Exception:  # Displays error message and records error message in crash l
                         If a unit is not attached to a building, consider its workplace to be the most shielded building in its tile
                 This allows quickly setting up outpost w/ minimal dome infrastructure, but requires more resources, suits, and attrition
                 Alternatively, a dome or habitable planet trivializes these concerns
-        Work-crew style buildings, which can extract resources, convert between 2 resources, spend use resources to gain some functionality
+        Air miners
+            Use building/work crew to collect small amounts of useful materials from atmosphere, particularly when they are common
+        Work-crew style buildings, which can extract resources, convert between 2 resources, spend use resources to gain some functionality0
         Specialized buildings, including space elevator, plasma torus, teleoperation center, etc.
         Infrastructure
             Note - to create networks, calculating a minimal spanning tree could minimize total distances required (suggest most efficient road structure?)
                 Cormen et al., Chapter 21
+            Buildings should have some quality/durability, secretly determined on creation along with failure/success roll
+                A corrupt roll may only steal some of the materials, actually using the rest but creating a faultier result
+                Each building would preserve which minister created it, and quality could be discovered by Minister of Security after creation
+                    Same system also applies to vehicles, organisms, etc.
+                For units/items bought from Earth, the Terran Affairs minister would be responsible for ensuring the quality, as if built themselves
 3. Add randomized special resources
+    Implement Mars dry ice caps as special resources on the poles (likely known from the start, particularly South pole)
 4. Add depositing/extracting gas/unpurified water to/from environment
 5. Add atmosphere mechanics
     Pressure
@@ -174,6 +184,7 @@ except Exception:  # Displays error message and records error message in crash l
                     GHG provides 9 F of warming - about 0.5 temperature units more than distance from sun would cause
             Strong radiation, mitigated by roughness locally (especially in chaos and canyon regions)
                 240-300 mSv/year, with suggested limit of 20 mSv/year
+            The dry ice on Mars, if evaporated, would increase the atmosphere pressure 43x, from 0.15 psi to 6.5 psi
         Venus:
             Light induced magnetic field - moderate amount of radiation gets through - introducing water long-term would require a magnetic field
             93 bar atmosphere - 3.5% inert gases, 95.5% GHG, 1% toxic gases
@@ -216,27 +227,84 @@ except Exception:  # Displays error message and records error message in crash l
     While on "solar", display miniature planet map, which transitions to "strategic" when clicked, and vice versa (such that clicking "zooms in")
     Unit can instantly (as an action) switch from "solar" to "strategic" map by landing/launching - only exists on 1 at a time - no hovering above a tile
     Star system map should be next to the planet map, between Earth and the planet
+    Initial expedition could contain a shuttle ship that must stay on the colony ship
+        Since the shuttle itself could have cargo, it should take a net of 9 cargo on the colony ship
+        Shuttle vs freighter distinction?
+    Once a colony ship is landed on any planet, there should be a confirmation, confirming you want to stay on this planet for the rest of the game
+        Once colony is created, other viable exoplanets in the system then become normal outpost locations
+        Don't necessarily ask directly, but lock in once a colony ship is successfully landed
 9. Add fuel resource, with vehicle fuel mechanics
 10. Add research screen
+    Scientists at labs should be able to research new technologies - likely focus on an area to improve and random advances will occur, with per-turn progress
+    Possible technologies:
+        Fusion power
+        Floating infrastructure for Venusian planets
+        Moholes
+        Magnetic field generators
+        Space elevators
+        Improved spaceship fuel efficiency
+        Better organism customization
+        Studies of the planet itself - weather prediction, uses for new resources, etc.
+        Construction teleoperation
+            Implement robots as a single "software" unit working at a server to teleoperate many at once
+        Improved spacesuit/building environmental tolerance ranges
+        Gene repair/anti-aging
+        VR training simulations
+    Add some capability for the advances and techniques learned on the planet to help improve the state of Earth
 11. Add ideology system
+    Colonist morale and Earth public opinion should change based on your actions
+    Colonist morale should approach 50 (indifferent), and Earth public opinion should approach 0 (constant progress expected)
 12. Modify most actions to spend resources/time, rather than money - initially only allow ones from tile/inventory, then allow transportation networks
 13. Add energy system with energy networks
 14. Add supply networks
+    Use network system for transportation/supply networks, energy networks, etc.
+    An area of connected tiles should have a certain transportation capacity between them - any needed resources will automatically be transported
+        Have special inventory interface showing what could be delivered here this turn
+    Possibly use some variant of a max-flow algorithm like Ford-Fulkerson to calculate capacity and routes
+    Supply network reaches out 1 tile from core (hiking distance)
+    Trucks and rovers contribute less than trains but can extend the hiking distance to be a farther driving distance
+    An isolated, exploring unit could safely move within 1 tile of its vehicle (portable housing/warehouse)
+    Any networks without trains would be restricted to a core warehouse and vehicle driving distance away
 15. Add volcanic activity
     Volcanic activity strength/being present is a function of planet age and size, but there are exceptions
     Volcanic activity tends to output GHG and toxic gases, as well as temporarily increase the temperature
     Plate tectonics tend to cause lines of volcanoes on edges of plates, while planets w/o plate tectonics have larger volcanoes at arbitrary locations
         Plate tectonics allow deposition of GHG and toxic gases back out of the atmosphere, while planets w/o plate tectonics tend to accumulate them in the atmosphere
     Volcanic activity is generally (but not always) associated with a magnetic field, with both caused by a molten core
-16. Add colonies
+16. Add outposts/colonies
     Allow colonies on other planets/moons in the system - abstracted single tile that can produce resources not found on the planet
     Water import from Europa, ice/metals from Ceres, GHG/inert gases from Venus, etc., solid nitrogen/water from Pluto
     Various buildings could be built on the colony, but it is never directly colonized
     It would require a fully equipped colony ship like that on the main planet to colonize one of these
     Need to decide level of detail to require for colony management
+    Many building could have outpost-specific variants
+        Outpost buildings can upgrade scale, efficiency, or number (equivalent to expanding to multiple tiles)
+    Possibly allow a shuttle (or higher technology ship) to create a transportation network within the system, allowing transporting resources automatically between them
+    Reference notes/Planning.docx for Sol system outpost locations
+        Particularly allow outposts to take the role of Io Mining Industries, Water Import from Europa, Phobos Space Haven, nitrogen imports, etc.
 17. Temperature rework
     Local tile temperature could be a function of solation (distance from poles * distance from sun), GHG, random "weather modifier", albedo
         Avoid loops where temperature determines terrain, which determines albedo, which determines temperature
+18. Organism customization
+    Environmental engineers at a lab should be able to work towards creating a customized organism, with progress each turn based on success rolls
+        Minister stealing part of materials should result in an organism that doesn't act quite as expected
+            If encountered later, could be interpereted as a mutation, bad luck, or theft
+        Customize features like range of habitability, growth rate/proliferation/reproduction method, energy method/objective
+        Ideally use the same system for plants, animals, microbes, and even construction of customized buildings/equipment
+    Examples:
+        Slow-growing, extremely hardy lichen that can perform limited photosynthesis to improve oxygen and soil on Mars' initial condiitons
+            Incorrect creation or mutation could cause different growth rates, habitability range, actuall decreasing soil quality, etc.
+        Specialized, infectious microbe to eliminate a particular type of native plant
+        Prolific algae focused on producing oxygen in wet areas
+        Soil processing bacteria that improve soil quality
+    Include templates for base organisms that are easier to start from, with extra difficulty for each modification (like JWE)
+19. AI entities
+    There should be various AI-controlled entities throughout the game, such as alien vegetation/animals, Earth-controlled units, other corporations, and rebelling units
+    You may allow in a corporation and its units, and they will pursue their own goals on the planet, which may align with yours
+    Alternatively, you may refuse the demands of Earth's government and provoke an attack of AI-controlled shuttles/marines
+20. Planetary weather
+    Add planetary weather and disasters such as earthquakes, dust storms, tsunamis, etc.
+    More able to predict these as the game progresses - when you first land, you haven't done the long-term study to know what is even possible
 """
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
@@ -262,6 +330,11 @@ except Exception:  # Displays error message and records error message in crash l
 # Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
+# Continue transcring notes from Second Earth notes folder
+# Ensure that units aren't allowed to walk from uninhabitable tiles to habitable ones
+# Fix playtesting errors - crash on unit tooltip, crew health attrition, various unit actions on planet
+# Add temperature calculation - distance from sun/solation, GHG, random weather
+# Add 4+ water as deadly in local habitability equation (but not in global habitability summary)
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art
@@ -269,15 +342,23 @@ except Exception:  # Displays error message and records error message in crash l
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
 # Add radio distortion versions of voice lines, either as separate files or runtime filter
-# Add radio voice lines for units in spacesuits
+#    Add radio voice lines for units in spacesuits
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
 # Convert actor_type ("tile", "mob", "minister") to use constant keys
 # Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
 # Add altitude effect to local pressure
-# Add new notes from Second Earth notes folder
-# Learn how to use Python script to process earth projection images
 # Include pressure in landing difficulty
+# Sort inventory display in ascending order, such that most abundant items are shown last and do not block other items
+# Show key/legend with keywords on parameter map modes
+# Use keywords instead of numbers for all local parameters (local fahrenheit average range for temperature)
+# Include penalties on most rolls for wearing spacesuits
+# Fix unit/tile outlines to blit in draw order, rather than appearing in front at all times (would fix occasional notification overlap)
+# Store local resolution (possibly as save game metadata) to better recreate resolution errors
+# Improve clarity for astronauts acting as ship crew - include in tooltips, rather than just in labels
+# Improve parameter tooltips - most are currently empty
+# Create and display standard movement cost formula based on parameter values
+# Look into minister speech bubbles for minister messages, particularly tutorial messages
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>
