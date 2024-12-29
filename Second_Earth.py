@@ -362,7 +362,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
-# Continue transcring notes from Second Earth notes folder
 # Ensure that units aren't allowed to walk from uninhabitable tiles to habitable ones
 # Fix playtesting errors - crash on unit tooltip, crew health attrition, various unit actions on planet
 # Add temperature calculation - distance from sun/solation, GHG, random weather
