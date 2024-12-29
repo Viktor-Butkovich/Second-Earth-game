@@ -53,6 +53,7 @@ except Exception:  # Displays error message and records error message in crash l
 1. Add new resource types (water, food, oxygen, goods, energy) - allow buying on Earth, transporting, and being used as unit upkeep
     Die instantly if not enough water, food, or oxygen - prompt before ending turn
     Grant free upkeep/housing to any units on Earth - functionally unlimited
+    Possibly require different types of food for health bonuses
     Insufficient goods or energy is unpleasant but does not cause instant death
 2. Add new building types, including modules that can be transported and worked while on a vehicle
     Modules should take more than 1 inventory capacity each
@@ -96,6 +97,8 @@ except Exception:  # Displays error message and records error message in crash l
                 For units/items bought from Earth, the Terran Affairs minister would be responsible for ensuring the quality, as if built themselves
 3. Add randomized special resources
     Implement Mars dry ice caps as special resources on the poles (likely known from the start, particularly South pole)
+    Regardless of planet, there should be souvenirs (i.e. moon rocks) you can bring back to Earth for early money if you can transport it
+        The price of souvenir would quickly collapse, and should not be profitable later in the game
 4. Add depositing/extracting gas/unpurified water to/from environment
 5. Add atmosphere mechanics
     Pressure
@@ -233,6 +236,13 @@ except Exception:  # Displays error message and records error message in crash l
     Once a colony ship is landed on any planet, there should be a confirmation, confirming you want to stay on this planet for the rest of the game
         Once colony is created, other viable exoplanets in the system then become normal outpost locations
         Don't necessarily ask directly, but lock in once a colony ship is successfully landed
+    Ship types should include colony ship, shuttle, and rocket
+        Colony ship is very large and required at the start of the game
+        Shuttle is smaller and can go on multiple trips
+            It would be much more difficult for a shuttle to start a self-sustaining colony if it can't hold the necessary modules/work crews
+        Rocket is uncrewed and one-way - similar to an airdrop or a missile
+            Rockets must be uncrewed to prevent an over-supply of astronaut crews at either destination
+    Can launch probes from within star system to explore parts of a planet or an outpost location
 9. Add fuel resource, with vehicle fuel mechanics
 10. Add research screen
     Scientists at labs should be able to research new technologies - likely focus on an area to improve and random advances will occur, with per-turn progress
@@ -265,6 +275,7 @@ except Exception:  # Displays error message and records error message in crash l
     Trucks and rovers contribute less than trains but can extend the hiking distance to be a farther driving distance
     An isolated, exploring unit could safely move within 1 tile of its vehicle (portable housing/warehouse)
     Any networks without trains would be restricted to a core warehouse and vehicle driving distance away
+    Include map modes for energy and supply networks
 15. Add volcanic activity
     Volcanic activity strength/being present is a function of planet age and size, but there are exceptions
     Volcanic activity tends to output GHG and toxic gases, as well as temporarily increase the temperature
@@ -301,10 +312,31 @@ except Exception:  # Displays error message and records error message in crash l
 19. AI entities
     There should be various AI-controlled entities throughout the game, such as alien vegetation/animals, Earth-controlled units, other corporations, and rebelling units
     You may allow in a corporation and its units, and they will pursue their own goals on the planet, which may align with yours
+        May introduce non-productive/parasitic elven bungalow-style buildings
     Alternatively, you may refuse the demands of Earth's government and provoke an attack of AI-controlled shuttles/marines
 20. Planetary weather
     Add planetary weather and disasters such as earthquakes, dust storms, tsunamis, etc.
     More able to predict these as the game progresses - when you first land, you haven't done the long-term study to know what is even possible
+21. New officer types
+    The colony ship should include X number of each officer type, since Earth will send the most skilled people of every field
+    These officers should be recruitable from a limited pool in your "capital" tile, similar to SFA slums
+        You should be able to return an officer to the pool whenever you want, with a button like sentry mode (should not allow instant transport)
+    Officer types:
+        Scientists
+        Executive/lobbyist
+        Medical officer
+        Environmental engineer
+        Astronaut commander
+        Marines
+        Do land vehicles require crew?
+        Technician (power plants)
+        Foreman (work crews)
+            Work crews create items that take inventory space, while other units make units/buildings or abstract products like research, money, energy
+22. Space projects
+    Include various large-scale projects in space
+    Space projects are a major terraforming method - solettas, comets, etc.
+    Can additionally be useful as infrastructure, such as orbital habitats and space elevators
+    These should be expensive but impactful, with various opportunities throughout the game
 """
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
@@ -334,6 +366,8 @@ except Exception:  # Displays error message and records error message in crash l
 # Ensure that units aren't allowed to walk from uninhabitable tiles to habitable ones
 # Fix playtesting errors - crash on unit tooltip, crew health attrition, various unit actions on planet
 # Add temperature calculation - distance from sun/solation, GHG, random weather
+#   Once planet brightness is determined, show the planet brightness with a transparent white/black filter on each tile - similar to atmosphere haze
+#       Possibly draw this and clouds/atmosphere haze over units rather than under - modify how tiles are drawn
 # Add 4+ water as deadly in local habitability equation (but not in global habitability summary)
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
