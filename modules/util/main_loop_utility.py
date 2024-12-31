@@ -158,6 +158,8 @@ def draw_loading_screen():
                     elif event.type == pygame.QUIT:
                         pygame.quit()
                         return
+                    elif event.type == constants.music_endevent:
+                        constants.sound_manager.song_done()
                 pygame.display.update()
 
 

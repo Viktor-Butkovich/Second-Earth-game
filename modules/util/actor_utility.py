@@ -188,7 +188,10 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
     if displayed_actor:
         if tabbed_collection == status.tile_tabbed_collection:
             if (
-                status.tile_tabbed_collection.current_tabbed_member.tab_button.can_show()
+                (
+                    status.tile_tabbed_collection.current_tabbed_member == None
+                    or status.tile_tabbed_collection.current_tabbed_member.tab_button.can_show()
+                )
                 and status.tile_tabbed_collection.current_tabbed_member
                 != status.local_conditions_collection
             ):

@@ -1666,7 +1666,11 @@ class banner(actor_display_label):
             None
         """
         super().calibrate(new_actor)
-        if new_actor and self.banner_type == "tab name":
+        if (
+            new_actor
+            and self.banner_type == "tab name"
+            and self.parent_collection.parent_collection.current_tabbed_member
+        ):
             self.set_label(
                 f"{self.parent_collection.parent_collection.current_tabbed_member.tab_button.tab_name.capitalize()}"
             )

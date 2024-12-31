@@ -380,16 +380,6 @@ terrain_build_cost_multiplier_dict: Dict[str, int] = {
     "desert": 2,
 }
 
-terrain_attrition_dict: Dict[str, int] = {
-    "savannah": 1,
-    "hills": 1,
-    "jungle": 3,
-    "water": 2,
-    "mountains": 2,
-    "swamp": 3,
-    "desert": 2,
-}
-
 commodity_types: List[str] = [
     "consumer goods",
     "coffee",

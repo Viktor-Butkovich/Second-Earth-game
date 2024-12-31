@@ -153,46 +153,54 @@ class vehicle(pmob):
         )
         non_replaced_attrition = []
         for current_sub_mob in self.get_sub_mobs():
+            trigger_attrition = False
             if (
-                current_cell.local_attrition() and random.randrange(1, 7) >= 4
-            ):  # vehicle removes 1/2 of attrition, slightly less than forts, ports, etc.
-                if transportation_minister.no_corruption_roll(
-                    6, "health_attrition"
-                ) == 1 or constants.effect_manager.effect_active("boost_attrition"):
-                    if random.randrange(1, 7) == 1:
-                        if current_sub_mob == self.crew:  # if crew died of attrition
-                            crew = self.crew
-                            if not current_sub_mob.automatically_replace:
-                                self.eject_passengers()
-                                self.eject_crew()
-                            self.crew_attrition_death(crew)
-                        elif current_sub_mob.get_permission(
-                            constants.GROUP_PERMISSION
-                        ):  # if group passenger died of attrition
-                            attrition_unit_type = random.choice(["officer", "worker"])
-                            current_sub_mob.attrition_death(attrition_unit_type)
+                constants.effect_manager.effect_active("boost_attrition")
+                and random.randrange(1, 7) >= 4
+            ):
+                trigger_attrition = True
+            elif (
+                current_cell.local_attrition()
+                and random.randrange(1, 7) >= 4
+                and transportation_minister.no_corruption_roll(6, "health_attrition")
+                == 1
+            ):
+                trigger_attrition = True
+                # Vehicle removes 1/2 of attrition, slightly less than forts, ports, etc.
+            if trigger_attrition:
+                if current_sub_mob == self.crew:  # If crew died of attrition
+                    if not self.crew.automatically_replace:
+                        self.eject_passengers()
+                        self.eject_crew()
+                    self.crew_attrition_death(self.crew)
+                elif current_sub_mob.get_permission(
+                    constants.GROUP_PERMISSION
+                ):  # If group passenger died of attrition
+                    current_sub_mob.attrition_death(
+                        random.choice(["officer", "worker"])
+                    )
 
-                        else:  # if non-group passenger died of attrition
-                            text = f"The {current_sub_mob.name} aboard the {self.name} at ({self.x}, {self.y}) have died from attrition. /n /n"
-                            if current_sub_mob.automatically_replace:
-                                text += (
-                                    current_sub_mob.generate_attrition_replacement_text()
-                                )  # 'The ' + current_sub_mob.name + ' will remain inactive for the next turn as replacements are found.'
-                                current_sub_mob.replace()
-                                current_sub_mob.set_permission(
-                                    constants.MOVEMENT_DISABLED_PERMISSION,
-                                    True,
-                                    override=True,
-                                )
-                                current_sub_mob.death_sound("violent")
-                            else:
-                                non_replaced_attrition.append(current_sub_mob)
-                            constants.notification_manager.display_notification(
-                                {
-                                    "message": text,
-                                    "zoom_destination": self,
-                                }
-                            )
+                else:  # If non-group passenger died of attrition
+                    text = f"The {current_sub_mob.name} aboard the {self.name} at ({self.x}, {self.y}) have died from attrition. /n /n"
+                    if current_sub_mob.automatically_replace:
+                        text += (
+                            current_sub_mob.generate_attrition_replacement_text()
+                        )  # 'The ' + current_sub_mob.name + ' will remain inactive for the next turn as replacements are found.'
+                        current_sub_mob.replace()
+                        current_sub_mob.set_permission(
+                            constants.MOVEMENT_DISABLED_PERMISSION,
+                            True,
+                            override=True,
+                        )
+                        current_sub_mob.death_sound("violent")
+                    else:
+                        non_replaced_attrition.append(current_sub_mob)
+                    constants.notification_manager.display_notification(
+                        {
+                            "message": text,
+                            "zoom_destination": self,
+                        }
+                    )
         for current_sub_mob in non_replaced_attrition:
             current_sub_mob.disembark_vehicle(self, focus=False)
             current_sub_mob.attrition_death(False)
@@ -206,23 +214,23 @@ class vehicle(pmob):
         Output:
             None
         """
-        constants.evil_tracker.change(1)
-        text += f"The {crew.name} crewing the {self.name} at ({self.x}, {self.y}) have died from attrition. /n /n"
+        # constants.evil_tracker.change(1)
+        # text = f"The {crew.name} crewing the {self.name} at ({self.x}, {self.y}) have died from attrition. /n /n"
         if crew.automatically_replace:
-            text += f"The {self.name} will remain inactive for the next turn as replacements are found. /n /n"
-            crew.replace(self)
+            # text += f"The {self.name} will remain inactive for the next turn as replacements are found. /n /n"
+            crew.attrition_death(random.choice(["officer", "worker"]))
             self.set_permission(
                 constants.MOVEMENT_DISABLED_PERMISSION, True, override=True
             )
         else:
             crew.attrition_death(False)
-        constants.notification_manager.display_notification(
-            {
-                "message": text,
-                "zoom_destination": self,
-            }
-        )
-        crew.death_sound("violent")
+        # constants.notification_manager.display_notification(
+        #    {
+        #        "message": text,
+        #        "zoom_destination": self,
+        #    }
+        # )
+        # crew.death_sound("violent")
 
     def move(self, x_change, y_change):
         """

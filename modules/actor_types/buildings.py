@@ -664,20 +664,33 @@ class resource_building(building):
         transportation_minister = minister_utility.get_minister(
             constants.TRANSPORTATION_MINISTER
         )
-        worker_attrition_list = []
-        officer_attrition_list = []
-        for current_work_crew in self.contained_work_crews:
-            if current_cell.local_attrition():
-                if transportation_minister.no_corruption_roll(
-                    6, "health_attrition"
-                ) == 1 or constants.effect_manager.effect_active("boost_attrition"):
-                    officer_attrition_list.append(current_work_crew)
-            if current_cell.local_attrition():
-                if transportation_minister.no_corruption_roll(
-                    6, "health_attrition"
-                ) == 1 or constants.effect_manager.effect_active("boost_attrition"):
-                    if random.randrange(1, 7) == 1:
-                        worker_attrition_list.append(current_work_crew)
+        if constants.effect_manager.effect_active("boost_attrition"):
+            worker_attrition_list = [
+                current_work_crew
+                for current_work_crew in self.contained_work_crews
+                if random.randrange(1, 7) >= 4
+            ]
+            officer_attrition_list = [
+                current_work_crew
+                for current_work_crew in self.contained_work_crews
+                if random.randrange(1, 7) >= 4
+            ]
+        else:
+            worker_attrition_list = [
+                current_work_crew
+                for current_work_crew in self.contained_work_crews
+                if current_cell.local_attrition()
+                and transportation_minister.no_corruption_roll(6, "health_attrition")
+                == 1
+            ]
+            officer_attrition_list = [
+                current_work_crew
+                for current_work_crew in self.contained_work_crews
+                if current_cell.local_attrition()
+                and transportation_minister.no_corruption_roll(6, "health_attrition")
+                == 1
+            ]
+
         for current_work_crew in worker_attrition_list:
             current_work_crew.attrition_death("worker")
         for current_work_crew in officer_attrition_list:

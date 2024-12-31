@@ -46,6 +46,7 @@ class officer(pmob):
             )
         else:
             self.character_info = input_dict["character_info"]
+        self.group = None
         super().__init__(from_save, input_dict, original_constructor=False)
         if not from_save:
             self.selection_sound()
@@ -101,15 +102,16 @@ class officer(pmob):
             self.set_name("veteran " + self.name)
             self.set_permission(constants.VETERAN_PERMISSION, True)
 
-    def join_group(self):
+    def join_group(self, group):
         """
         Description:
             Hides this officer when joining a group, preventing it from being directly interacted with until the group is disbanded
         Input:
-            None
+            group group: Group this officer is joining
         Output:
             None
         """
+        self.group = group
         self.set_permission(constants.IN_GROUP_PERMISSION, True)
         self.hide_images()
         self.remove_from_turn_queue()
@@ -119,10 +121,11 @@ class officer(pmob):
         Description:
             Reveals this officer when its group is disbanded, allowing it to be directly interacted with. Also selects this officer, rather than the group's worker
         Input:
-            group group: group from which this officer is leaving
+            group group: Group from which this officer is leaving
         Output:
             None
         """
+        self.group = None
         self.set_permission(constants.IN_GROUP_PERMISSION, False)
         self.x = group.x
         self.y = group.y

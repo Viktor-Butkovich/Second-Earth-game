@@ -262,15 +262,18 @@ class actor:
         Output:
             None
         """
+        if (
+            constants.effect_manager.effect_active("boost_attrition")
+            and random.randrange(1, 7) >= 4
+        ):
+            self.trigger_inventory_attrition()
+            return
+
         if self.get_inventory_used() > 0:
-            if (
-                random.randrange(1, 7) <= 2
-                or constants.effect_manager.effect_active("boost_attrition")
-                or (
-                    self.actor_type == "mob"
-                    and (not self.get_permission(constants.VEHICLE_PERMISSION))
-                    and random.randrange(1, 7) <= 1
-                )
+            if random.randrange(1, 7) <= 2 or (
+                self.actor_type == "mob"
+                and (not self.get_permission(constants.VEHICLE_PERMISSION))
+                and random.randrange(1, 7) <= 1
             ):  # extra chance of failure when carried by porters/caravan
                 transportation_minister = minister_utility.get_minister(
                     constants.TRANSPORTATION_MINISTER
@@ -290,13 +293,13 @@ class actor:
                     random.randrange(1, 7) <= 2
                     and transportation_minister.check_corruption()
                 ):  # 1/18 chance of corruption check to take commodities - 1/36 chance for most corrupt to steal
-                    self.trigger_inventory_attrition(transportation_minister, True)
+                    self.trigger_inventory_attrition(stealing=True)
                     return ()
                 elif (
                     current_cell.local_attrition("inventory")
                     and transportation_minister.no_corruption_roll(6) < 4
                 ):  # 1/6 chance of doing tile conditions check, if passes minister needs to make a 4+ roll to avoid attrition
-                    self.trigger_inventory_attrition(transportation_minister)
+                    self.trigger_inventory_attrition()
                     return ()
 
             # this part of function only reached if no inventory attrition was triggered
@@ -318,17 +321,20 @@ class actor:
                 )
 
     def trigger_inventory_attrition(
-        self, transportation_minister, stealing=False
+        self, stealing=False
     ):  # later add input to see if corruption or real attrition to change how much minister has stolen
         """
         Description:
             Removes up to half of this unit's stored commodities when inventory attrition occurs. The inventory attrition may result from poor terrain/storage conditions or from the transportation minister stealing commodites. Also
                 displays a zoom notification describing what was lost
         Input:
-            minister transportation_minister: The current transportation minister, who is in charge of dealing with attrition
+            boolean stealing = False: Whether the transportation minister is stealing the commodities
         Output:
             None
         """
+        transportation_minister = minister_utility.get_minister(
+            constants.TRANSPORTATION_MINISTER
+        )
         lost_commodities_message = ""
         types_lost_list = []
         amounts_lost_list = []
@@ -390,7 +396,7 @@ class actor:
             if status.strategic_map_grid in self.grids:
                 location_message = f"at ({self.x}, {self.y})"
             else:
-                location_message = f"in {self.grids[0].name}"
+                location_message = f"in orbit of {self.grids[0].name}"
 
             if self.actor_type == "tile":
                 transportation_minister.display_message(

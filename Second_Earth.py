@@ -368,9 +368,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
-# Music stops if song on loading screen (Press enter to continue prompt) finishes
-# Ensure that units aren't allowed to walk from uninhabitable tiles to habitable ones
-# Fix playtesting errors - crash on unit tooltip, crew health attrition, various unit actions on planet
 # Add temperature calculation - distance from sun/solation, GHG, random weather
 #   Once planet brightness is determined, show the planet brightness with a transparent white/black filter on each tile - similar to atmosphere haze
 #       Possibly draw this and clouds/atmosphere haze over units rather than under - modify how tiles are drawn
@@ -399,6 +396,8 @@ except Exception:  # Displays error message and records error message in crash l
 # Improve parameter tooltips - most are currently empty
 # Create and display standard movement cost formula based on parameter values
 # Look into minister speech bubbles for minister messages, particularly tutorial messages
+# Prevent polar tiles from appearing too close to equator in globe projection - primary cause of visible distortions
+#   Copy an adjacent tile instead of far away tiles, even if the other tile doesn't have a latitude line
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>

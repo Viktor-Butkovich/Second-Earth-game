@@ -165,6 +165,11 @@ class cell:
         Output:
             boolean: Returns whether attrition should happen here based on this cell's terrain and buildings
         """
+        if (
+            constants.effect_manager.effect_active("boost_attrition")
+            and random.randrange(1, 7) >= 4
+        ):
+            return True
         if self.grid in [status.earth_grid]:  # no attrition on Earth
             if attrition_type == "health":
                 return False
@@ -176,11 +181,10 @@ class cell:
                 ):  # same effect as clear area with port
                     return False
         else:
-            if (
-                random.randrange(1, 7)
-                >= constants.terrain_attrition_dict.get(self.terrain_handler.terrain, 1)
-                + 1
-            ):  # Attrition on 1-, 2-, or 3-, based on terrain
+            if random.randrange(1, 7) <= min(
+                self.terrain_handler.get_habitability_dict(omit_perfect=False).values()
+            ):
+                # Attrition only occurs if a random roll is higher than the habitability - more attrition for worse habitability
                 return False
 
             if (
@@ -196,7 +200,6 @@ class cell:
             ):
                 if random.randrange(1, 7) >= 5:  # removes 1/3 of attrition
                     return False
-
         return True
 
     def has_building(self, building_type: str) -> bool:
