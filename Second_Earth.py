@@ -297,6 +297,17 @@ except Exception:  # Displays error message and records error message in crash l
 17. Temperature rework
     Local tile temperature could be a function of solation (distance from poles * distance from sun), GHG, random "weather modifier", albedo
         Avoid loops where temperature determines terrain, which determines albedo, which determines temperature
+    Temperature formula:
+        Distance from sun: Base solation causing -6 through 11 F
+            Modify with space mirrors, solar shaders
+        Greenhouse effect: Apply some multiplier to solation for each atm of GHG, with diminishing returns
+            Modify by releasing or storing GHG
+        Albedo effect: Apply some multiplier to solation based on average brightness of tiles
+            Modify by changing color of terrain, adding plants/snow/black dust, etc.
+    Ideal local temperature: Average temperature + distance from poles effect + local weather modifier
+        Local weather modifier is random for each tile, but can change over time based on local activities (releasing energy, etc.)
+        At start of turn, change local temperatures until global average is sufficiently close to ideal
+        First change tiles whose local temperatures are farthest from the ideal local temperature
 18. Organism customization
     Environmental engineers at a lab should be able to work towards creating a customized organism, with progress each turn based on success rolls
         Minister stealing part of materials should result in an organism that doesn't act quite as expected

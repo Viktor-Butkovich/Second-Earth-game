@@ -666,17 +666,11 @@ class world_handler:
                 input_dict["average_water"] = self.get_tuning(
                     "earth_average_water_target"
                 )
-                input_dict["global_water"] = (
-                    input_dict["average_water"] * self.earth_size
-                )
                 input_dict["default_temperature"] = self.get_tuning(
                     "earth_base_temperature"
                 )
                 input_dict["average_temperature"] = self.get_tuning(
                     "earth_expected_temperature_target"
-                )
-                input_dict["global_temperature"] = (
-                    input_dict["average_temperature"] * self.default_grid.area
                 )
                 input_dict["size"] = self.earth_size
                 input_dict["sky_color"] = self.get_tuning("earth_sky_color")
@@ -712,21 +706,14 @@ class world_handler:
             "expected_temperature_target", 0.0
         )
         self.default_temperature: int = input_dict.get("default_temperature", 0)
-        self.average_water_target: float = input_dict.get("average_water_target", 0.0)
-        self.earth_global_water = round(
-            self.get_tuning("earth_average_water_target") * self.earth_size
-        )
+        self.average_temperature: float = input_dict.get("average_temperature", 0.0)
         self.earth_average_temperature = self.get_tuning(
             "earth_expected_temperature_target"
         )
-        self.global_water = input_dict.get(
-            "global_water", 0
-        )  # Each tile starts with water 0, adjust whenever changed
-        self.average_water = input_dict.get("average_water", 0.0)
-        self.global_temperature = input_dict.get("global_temperature", 0)
-        self.average_temperature = input_dict.get(
-            "average_temperature", self.default_temperature
-        )
+
+        self.average_water_target: float = input_dict.get("average_water_target", 0.0)
+        self.average_water: float = input_dict.get("average_water", 0.0)
+
         self.size: int = input_dict.get("size", self.default_grid.area)
         self.sky_color = input_dict["sky_color"]
         self.default_sky_color = input_dict["default_sky_color"]
@@ -1187,8 +1174,6 @@ class world_handler:
             "global_parameters": self.global_parameters,
             "average_water": self.average_water,
             "average_temperature": self.average_temperature,
-            "global_water": self.global_water,
-            "global_temperature": self.global_temperature,
             "rotation_direction": self.rotation_direction,
             "rotation_speed": self.rotation_speed,
             "name": self.name,
@@ -1544,6 +1529,46 @@ class world_handler:
         elif parameter_name == constants.MAGNETIC_FIELD:
             return constants.HABITABILITY_PERFECT
 
+    def update_average_temperature(self):
+        """
+        Description:
+            Re-calculates the average temperature of this world
+        Input:
+            None
+        Output:
+            None
+        """
+        self.average_temperature = round(
+            sum(
+                [
+                    terrain_handler.get_parameter(constants.TEMPERATURE)
+                    for terrain_handler in self.terrain_handlers
+                ]
+            )
+            / self.default_grid.area,
+            2,
+        )
+
+    def update_average_water(self):
+        """
+        Description:
+            Re-calculates the average water of this world
+        Input:
+            None
+        Output:
+            None
+        """
+        self.average_water = round(
+            sum(
+                [
+                    terrain_handler.get_parameter(constants.WATER)
+                    for terrain_handler in self.terrain_handlers
+                ]
+            )
+            / self.default_grid.area,
+            2,
+        )
+
 
 class terrain_handler:
     """
@@ -1800,24 +1825,12 @@ class terrain_handler:
             parameter_name == constants.WATER
             and not self.get_world_handler().default_grid.is_abstract_grid
         ):
-            self.get_world_handler().global_water += (
-                self.terrain_parameters[parameter_name] - old_value
-            )
-            self.get_world_handler().average_water = round(
-                self.get_world_handler().global_water / self.get_world_handler().size, 2
-            )
+            self.get_world_handler().update_average_water()
         elif (
             parameter_name == constants.TEMPERATURE
             and not self.get_world_handler().default_grid.is_abstract_grid
         ):
-            self.get_world_handler().global_temperature += (
-                self.terrain_parameters[parameter_name] - old_value
-            )
-            self.get_world_handler().average_temperature = round(
-                self.get_world_handler().global_temperature
-                / self.get_world_handler().size,
-                2,
-            )
+            self.get_world_handler().update_average_temperature()
             self.expected_temperature_offset = (
                 self.terrain_parameters[parameter_name]
                 - self.get_expected_temperature()
@@ -1938,7 +1951,6 @@ class terrain_handler:
         save_dict["terrain_variant"] = self.terrain_variant
         save_dict["terrain_features"] = self.terrain_features
         save_dict["terrain_parameters"] = self.terrain_parameters
-        # save_dict["apparent_terrain_parameters"] = self.apparent_terrain_parameters
         save_dict["terrain"] = self.terrain
         save_dict["resource"] = self.resource
         save_dict["north_pole_distance_multiplier"] = self.pole_distance_multiplier

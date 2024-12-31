@@ -1445,7 +1445,7 @@ class actor_display_label(label):
                     == self.actor.grid.world_handler.earth_average_temperature
                 ):
                     self.set_label(
-                        f"{self.message_start}{average_temperature} (1x Earth)"
+                        f"{self.message_start}{average_temperature} (1.0x Earth)"
                     )
                 elif (
                     average_temperature
