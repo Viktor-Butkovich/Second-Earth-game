@@ -244,6 +244,7 @@ except Exception:  # Displays error message and records error message in crash l
             Rockets must be uncrewed to prevent an over-supply of astronaut crews at either destination
     Can launch probes from within star system to explore parts of a planet or an outpost location
 9. Add fuel resource, with vehicle fuel mechanics
+    Possibly have lower fuel costs for launching from near the equator
 10. Add research screen
     Scientists at labs should be able to research new technologies - likely focus on an area to improve and random advances will occur, with per-turn progress
     Possible technologies:
@@ -337,6 +338,11 @@ except Exception:  # Displays error message and records error message in crash l
     Space projects are a major terraforming method - solettas, comets, etc.
     Can additionally be useful as infrastructure, such as orbital habitats and space elevators
     These should be expensive but impactful, with various opportunities throughout the game
+23. Add new terrains
+    Add crater, canyon terrain variants for each terrain type
+        Ideally variants of high-roughness terrains that will occur if certain local features are present
+    Add vegetation terrains, with Earth-dominated and alien-dominated variants
+        Appearance should possibly depend on organisms present
 """
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
@@ -362,6 +368,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
+# Music stops if song on loading screen (Press enter to continue prompt) finishes
 # Ensure that units aren't allowed to walk from uninhabitable tiles to habitable ones
 # Fix playtesting errors - crash on unit tooltip, crew health attrition, various unit actions on planet
 # Add temperature calculation - distance from sun/solation, GHG, random weather

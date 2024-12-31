@@ -1459,37 +1459,17 @@ class actor_display_label(label):
                         f"{self.message_start}{average_temperature} (+{round(average_temperature - self.actor.grid.world_handler.earth_average_temperature, 2):,} Earth)"
                     )
             elif self.actor_label_type == constants.HABITABILITY_LABEL:
-                habitability_dict = (
-                    self.actor.cell.terrain_handler.get_habitability_dict()
+                overall_habitability = (
+                    self.actor.cell.terrain_handler.get_known_habitability()
                 )
-                if self.actor.cell.grid.is_abstract_grid:  # If global habitability
-                    habitability_dict[
-                        constants.TEMPERATURE
-                    ] = actor_utility.calculate_temperature_habitability(
-                        round(self.actor.cell.grid.world_handler.average_temperature)
-                    )
-                    overall_habitability = min(habitability_dict.values())
-                    self.set_label(
-                        f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]}"
-                    )
-                elif (
+                if (
                     self.actor.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
                     < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
-                ):  # If no temperature knowledge
-                    if constants.TEMPERATURE in habitability_dict:
-                        del habitability_dict[constants.TEMPERATURE]
-                    if not habitability_dict:
-                        overall_habitability = constants.HABITABILITY_PERFECT
-                    else:
-                        overall_habitability = min(habitability_dict.values())
+                ):
                     self.set_label(
                         f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]} (estimated)"
                     )
-                else:  # If full knowledge
-                    if not habitability_dict:
-                        overall_habitability = constants.HABITABILITY_PERFECT
-                    else:
-                        overall_habitability = min(habitability_dict.values())
+                else:
                     self.set_label(
                         f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]}"
                     )

@@ -673,7 +673,7 @@ class world_handler:
                     "earth_base_temperature"
                 )
                 input_dict["average_temperature"] = self.get_tuning(
-                    "earth_average_temperature"
+                    "earth_expected_temperature_target"
                 )
                 input_dict["global_temperature"] = (
                     input_dict["average_temperature"] * self.default_grid.area
@@ -716,7 +716,9 @@ class world_handler:
         self.earth_global_water = round(
             self.get_tuning("earth_average_water_target") * self.earth_size
         )
-        self.earth_average_temperature = self.get_tuning("earth_average_temperature")
+        self.earth_average_temperature = self.get_tuning(
+            "earth_expected_temperature_target"
+        )
         self.global_water = input_dict.get(
             "global_water", 0
         )  # Each tile starts with water 0, adjust whenever changed
@@ -1659,6 +1661,42 @@ class terrain_handler:
             default_habitability = constants.HABITABILITY_PERFECT
         return default_habitability
 
+    def get_known_habitability(self) -> int:
+        """
+        Description:
+            Returns the habitability of this tile based on current knowledge
+        Input:
+            None
+        Output:
+            int: Returns the habitability of this tile based on current knowledge
+        """
+        habitability_dict = self.get_habitability_dict()
+        if (
+            self.get_world_handler().default_grid.is_abstract_grid
+        ):  # If global habitability
+            habitability_dict[
+                constants.TEMPERATURE
+            ] = actor_utility.calculate_temperature_habitability(
+                round(self.get_world_handler().average_temperature)
+            )
+            overall_habitability = min(habitability_dict.values())
+        elif (
+            self.get_parameter(constants.KNOWLEDGE)
+            < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
+        ):  # If no temperature knowledge
+            if constants.TEMPERATURE in habitability_dict:
+                del habitability_dict[constants.TEMPERATURE]
+            if not habitability_dict:
+                overall_habitability = constants.HABITABILITY_PERFECT
+            else:
+                overall_habitability = min(habitability_dict.values())
+        else:  # If full knowledge
+            if not habitability_dict:
+                overall_habitability = constants.HABITABILITY_PERFECT
+            else:
+                overall_habitability = min(habitability_dict.values())
+        return overall_habitability
+
     def get_expected_temperature(self) -> float:
         """
         Description:
@@ -2025,11 +2063,11 @@ class terrain_handler:
             None
         """
         flowed = False
-        if self.terrain_parameters[constants.WATER] >= 4 and self.terrain_parameters[
-            constants.TEMPERATURE
-        ] > constants.terrain_manager.get_tuning(
-            "water_freezing_point"
-        ):  # If enough liquid water to flow
+        if (
+            self.terrain_parameters[constants.WATER] >= 4
+            and self.terrain_parameters[constants.TEMPERATURE]
+            > constants.terrain_manager.get_tuning("water_freezing_point") - 1
+        ):  # If enough liquid water to flow - frozen or 1 lower (occasionally liquid)
             for adjacent_cell in self.attached_cells[0].adjacent_list:
                 if adjacent_cell.get_parameter(
                     constants.ALTITUDE

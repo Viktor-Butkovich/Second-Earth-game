@@ -556,8 +556,8 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
-        if self.show_terrain:  # If is terrain, show tooltip
-            tooltip_message = []
+        tooltip_message = []
+        if self.show_terrain:
             coordinates = self.get_main_grid_coordinates()
             tooltip_message.append(f"Coordinates: ({coordinates[0]}, {coordinates[1]})")
             if self.cell.terrain_handler.terrain:
@@ -613,9 +613,22 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     tooltip_message += status.terrain_feature_types[
                         terrain_feature
                     ].description
-            self.set_tooltip(tooltip_message)
-        else:
-            self.set_tooltip([])
+        elif self.grid.is_abstract_grid:
+            tooltip_message.append(self.name)
+        if self.cell.terrain_handler.get_world_handler():
+            overall_habitability = self.cell.terrain_handler.get_known_habitability()
+            if (
+                self.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
+                < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
+            ):
+                tooltip_message.append(
+                    f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability]} (estimated)"
+                )
+            else:
+                tooltip_message.append(
+                    f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability]}"
+                )
+        self.set_tooltip(tooltip_message)
 
     def set_coordinates(self, x, y):
         """
@@ -701,17 +714,6 @@ class abstract_tile(tile):
             ]
         input_dict["image"] = self.grid_image_id
         super().__init__(from_save, input_dict)
-
-    def update_tooltip(self):
-        """
-        Description:
-            Sets this tile's tooltip to what it should be whenever the player looks at the tooltip. An abstract tile's tooltip is its name
-        Input:
-            None
-        Output:
-            None
-        """
-        self.set_tooltip([self.name])
 
     def can_show_tooltip(self):
         """

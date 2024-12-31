@@ -309,7 +309,7 @@ class world_grid(grid):
         Description:
             Places 1 unit of water on the map, depending on altitude and temperature
         Input:
-            int frozen_bound: Temperature below which water will "freeze" -
+            int frozen_bound: Temperature below which water will "freeze"
         Output:
             None
         """
@@ -325,7 +325,7 @@ class world_grid(grid):
         ):
             if (
                 candidate.get_parameter(constants.WATER) < 5
-                and candidate.get_parameter(constants.TEMPERATURE) > frozen_bound
+                and candidate.get_parameter(constants.TEMPERATURE) > frozen_bound - 1
             ):
                 if candidate.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
                     "water_boiling_point"
@@ -345,7 +345,7 @@ class world_grid(grid):
         ):
             if candidate.get_parameter(constants.WATER) < 5:
                 if (
-                    candidate.get_parameter(constants.TEMPERATURE) <= frozen_bound
+                    candidate.get_parameter(constants.TEMPERATURE) <= frozen_bound - 1
                 ):  # Water can go to coldest freezing location
                     if best_frozen == None or candidate.get_parameter(
                         constants.TEMPERATURE
@@ -380,7 +380,7 @@ class world_grid(grid):
         ):
             # If insufficient pressure, any evaporated water disappears
             change = 1
-            if choice.get_parameter(constants.TEMPERATURE) <= frozen_bound:
+            if choice.get_parameter(constants.TEMPERATURE) <= frozen_bound - 1:
                 # If during setup
                 if choice.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
                     "water_freezing_point"

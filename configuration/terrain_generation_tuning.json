@@ -58,7 +58,6 @@
     "earth_GHG": 0.005,
     "earth_toxic_gases": 0.0,
     "earth_average_water_target": 3.7,
-    "earth_average_temperature": 2.15,
     "earth_radiation": 3,
     "earth_magnetic_field": 5,
     "earth_gravity": 1.0,
