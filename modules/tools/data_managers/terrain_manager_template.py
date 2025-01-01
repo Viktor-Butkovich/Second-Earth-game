@@ -52,26 +52,7 @@ class terrain_manager_template:
                 4: "very high",
                 5: "stratospheric",
             },
-            constants.TEMPERATURE: {
-                -6: "frozen",
-                -5: "frozen",
-                -4: "frozen",
-                -3: "frozen",
-                -2: "frozen",
-                -1: "frozen",
-                0: "frozen",
-                1: "cold",
-                2: "cool",
-                3: "warm",
-                4: "hot",
-                5: "scorching",
-                6: "scorching",
-                7: "scorching",
-                8: "scorching",
-                9: "scorching",
-                10: "scorching",
-                11: "scorching",
-            },
+            constants.TEMPERATURE: {},
             constants.ROUGHNESS: {
                 0: "flat",
                 1: "rolling",
@@ -105,6 +86,32 @@ class terrain_manager_template:
                 5: "deep",
             },
         }
+        for idx, bounds in enumerate(
+            [
+                (-185, -155),
+                (-155, -125),
+                (-125, -95),
+                (-95, -65),
+                (-65, -35),
+                (-35, -5),
+                (-5, 25),
+                (25, 45),
+                (45, 65),
+                (65, 85),
+                (85, 105),
+                (105, 125),
+                (125, 155),
+                (155, 185),
+                (185, 215),
+                (215, 245),
+                (245, 275),
+                (275, 305),
+            ]
+        ):
+            lower_bound, upper_bound = bounds
+            self.terrain_parameter_keywords[constants.TEMPERATURE][
+                idx - 6
+            ] = f"{lower_bound} °F to {upper_bound} °F"
         self.load_terrains("configuration/terrain_definitions.json")
         self.load_tuning("configuration/terrain_generation_tuning.json")
 
@@ -1378,16 +1385,18 @@ class world_handler:
         else:
             return self.get_tuning(f"earth_{parameter_name}")
 
-    def get_pressure_ratio(self) -> float:
+    def get_pressure_ratio(self, component=None) -> float:
         """
         Description:
             Returns the ratio of the current pressure to the ideal pressure
         Input:
-            None
+            string component: Component of the pressure to get the ratio of, default to entire pressure
         Output:
             float: Ratio of the current pressure to the ideal pressure
         """
-        return self.get_parameter(constants.PRESSURE) / self.get_ideal_parameter(
+        if not component:
+            component = constants.PRESSURE
+        return self.get_parameter(component) / self.get_ideal_parameter(
             constants.PRESSURE
         )
 

@@ -480,12 +480,15 @@ class actor_display_label(label):
         elif (
             self.actor_label_type.removesuffix("_label") in constants.terrain_parameters
         ):
-            self.message_start = (
-                utility.capitalize(
-                    self.actor_label_type.removesuffix("_label").replace("_", "")
+            if self.actor_label_type == constants.TEMPERATURE_LABEL:
+                self.message_start = "Avg. temperature: "
+            else:
+                self.message_start = (
+                    utility.capitalize(
+                        self.actor_label_type.removesuffix("_label").replace("_", "")
+                    )
+                    + ": "
                 )
-                + ": "
-            )
             if constants.effect_manager.effect_active("god_mode"):
                 input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
                 input_dict["width"], input_dict["height"] = (ss_size, ss_size)
@@ -539,6 +542,10 @@ class actor_display_label(label):
                 "_label"
             ).isupper():  # Detect acronyms
                 self.message_start = self.actor_label_type.removesuffix("_label") + ": "
+            elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
+                self.message_start = "Avg. temperature: "
+            elif self.actor_label_type == constants.AVERAGE_WATER_LABEL:
+                self.message_start = "Avg. water: "
             else:
                 self.message_start = (
                     utility.capitalize(
@@ -893,16 +900,6 @@ class actor_display_label(label):
                     tooltip_text.append(
                         "Represents the amount of water in this tile, including both standing water and average precipitation"
                     )
-                elif self.actor_label_type == constants.TEMPERATURE_LABEL:
-                    tooltip_text.append(
-                        "Represents the average temperature in this tile, on a scale from -6 to 11"
-                    )
-                    if self.actor.cell.terrain_handler.knowledge_available(
-                        constants.TERRAIN_PARAMETER_KNOWLEDGE
-                    ):
-                        tooltip_text.append(
-                            f"Approximately {utility.fahrenheit(self.actor.cell.get_parameter('temperature'))} degrees Fahrenheit"
-                        )
             self.set_tooltip(tooltip_text)
 
         elif self.actor_label_type.removesuffix(
@@ -913,24 +910,39 @@ class actor_display_label(label):
         ]:
             tooltip_text = [self.message]
             if self.actor:
-                if (
-                    self.actor_label_type == constants.GRAVITY_LABEL
-                    and not self.actor.grid == status.earth_grid
-                ):
+                if self.actor_label_type == constants.PRESSURE_LABEL:
                     tooltip_text.append(
-                        f"Approximately {self.actor.grid.world_handler.get_parameter(constants.GRAVITY)}x Earth's gravity"
+                        f"Pressure is the total u (atmosphere units) on a planet, with Earth having 1.0 atm (atmospheres)"
                     )
                     tooltip_text.append(
-                        f"Approximately {round(self.actor.grid.world_handler.size / self.actor.grid.world_handler.earth_size, 2)}x Earth's size"
+                        f"A total pressure of 1.0 atm is achieved by having 6 u of gas per tile on a planet"
                     )
-                elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
-                    if not self.actor.grid == status.earth_grid:
+                elif self.actor_label_type in [
+                    constants.OXYGEN_LABEL,
+                    constants.GHG_LABEL,
+                    constants.INERT_GASES_LABEL,
+                    constants.TOXIC_GASES_LABEL,
+                ]:
+                    tooltip_text.append(
+                        f"Partial pressure is the u (atmosphere units) of a particular gas on a planet"
+                    )
+                    tooltip_text.append(
+                        f"A total pressure of 1.0 atm is achieved by having 6 u of gas per tile on a planet"
+                    )
+                elif self.actor_label_type == constants.GRAVITY_LABEL:
+                    tooltip_text.append(
+                        f"Gravity is the weight caused by the planet's pull, with Earth having 1.0 g"
+                    )
+                    if self.actor.grid != status.earth_grid:
                         tooltip_text.append(
-                            f"Approximately {round(utility.fahrenheit(self.actor.grid.world_handler.average_temperature), 2)} degrees Fahrenheit"
+                            f"Approximately {self.actor.grid.world_handler.get_parameter(constants.GRAVITY)}x Earth's gravity"
                         )
-                    tooltip_text.append(
-                        f"Earth is approximately 58 degrees Fahrenheit, corresponding to ~{self.actor.grid.world_handler.earth_average_temperature} temperature"
-                    )
+                        tooltip_text.append(
+                            f"Approximately {round(self.actor.grid.world_handler.size / self.actor.grid.world_handler.earth_size, 2)}x Earth's size"
+                        )
+                elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
+                    if self.actor.grid != status.earth_grid:
+                        tooltip_text.append(f"Earth is an average of 58.0 °F")
                 elif self.actor_label_type == constants.RADIATION_LABEL:
                     tooltip_text.append(f"Represents cosmic radiation and solar winds")
                     tooltip_text.append(
@@ -1332,7 +1344,7 @@ class actor_display_label(label):
                     parameter = self.actor_label_type.removesuffix("_label")
                     value = new_actor.cell.get_parameter(parameter)
                     self.set_label(
-                        f"{self.message_start}{constants.terrain_manager.terrain_parameter_keywords[parameter][value]} ({value}/{new_actor.cell.terrain_handler.maxima.get(parameter, 5)})"
+                        f"{self.message_start}{constants.terrain_manager.terrain_parameter_keywords[parameter][value]}"
                     )
                 else:
                     self.set_label(f"{self.message_start}unknown")
@@ -1352,112 +1364,46 @@ class actor_display_label(label):
                     if (
                         parameter == constants.PRESSURE
                     ):  # Pressure: 1200/2400 (0.5x Earth)
-                        ideal = round(
-                            self.actor.grid.world_handler.size
-                            * 6
-                            * self.actor.grid.world_handler.get_tuning("earth_pressure")
+                        self.set_label(
+                            f"{self.message_start}{value:,} u ({round(self.actor.grid.world_handler.get_pressure_ratio(parameter), 2):,} atm)"
                         )
-                        if self.actor.grid == status.earth_grid:
-                            self.set_label(f"{self.message_start}{round(value, 1):,}")
-                        elif value == 0:
-                            self.set_label(
-                                f"{self.message_start}{round(value, 1):,} (0x Earth)"
-                            )
-                        else:
-                            self.set_label(
-                                f"{self.message_start}{round(value, 1):,} ({max(0.01, round((value / ideal), 2)):,}x Earth)"
-                            )
-                    else:  # 42% Oxygen: 1008/2400 (2.0x Earth)
-                        pressure = self.actor.grid.world_handler.get_parameter(
-                            constants.PRESSURE
+                    elif (
+                        self.actor.grid.world_handler.get_parameter(constants.PRESSURE)
+                        == 0.0
+                    ):
+                        self.set_label(
+                            f"0.0% {self.message_start}{value:,} u (0.0 atm)"
                         )
-                        if parameter == constants.GHG:
-                            ideal = round(
-                                self.actor.grid.world_handler.size
-                                * 6
-                                * self.actor.grid.world_handler.get_tuning("earth_GHG")
-                            )
-                        elif parameter == constants.INERT_GASES:
-                            ideal = round(
-                                self.actor.grid.world_handler.size
-                                * 6
-                                * self.actor.grid.world_handler.get_tuning(
-                                    "earth_inert_gases"
-                                )
-                            )
-                        elif parameter == constants.OXYGEN:
-                            ideal = round(
-                                self.actor.grid.world_handler.size
-                                * 6
-                                * self.actor.grid.world_handler.get_tuning(
-                                    "earth_oxygen"
-                                )
-                            )
-                        if self.actor.grid == status.earth_grid:
-                            self.set_label(
-                                f"{round(100 * value / pressure, 1)}% {self.message_start}{value:,}"
-                            )
-                        elif value == 0:
-                            self.set_label(f"0.0% {self.message_start}{value:,}")
-                        elif parameter == constants.TOXIC_GASES:
-                            self.set_label(
-                                f"{round(100 * value / pressure, 1)}% {self.message_start}{value:,}"
-                            )
-                        else:
-                            self.set_label(
-                                f"{round(100 * value / pressure, 1)}% {self.message_start}{value:,} ({max(0.01, round((value / ideal), 2)):,}x Earth)"
-                            )
+                    else:  # 42% Oxygen: 1008 u (0.42 atm)
+                        self.set_label(
+                            f"{round(100 * value / self.actor.grid.world_handler.get_parameter(constants.PRESSURE), 1)}% {self.message_start}{value:,} u ({round(self.actor.grid.world_handler.get_pressure_ratio(parameter), 2):,} atm)"
+                        )
                 elif parameter == constants.GRAVITY:
                     if self.actor.grid == status.earth_grid:
-                        self.set_label(f"{self.message_start}{value}")
+                        self.set_label(f"{self.message_start}{value} g")
                     else:
-                        self.set_label(f"{self.message_start}{value}x Earth")
+                        self.set_label(f"{self.message_start}{value} g")
                 else:
-                    if self.actor.grid == status.earth_grid:
-                        self.set_label(f"{self.message_start}{value}/5")
+                    ideal = status.earth_grid.world_handler.get_parameter(
+                        self.actor_label_type.removesuffix("_label")
+                    )
+                    if value == 0:
+                        self.set_label(f"{self.message_start}0.0x Earth")
                     else:
-                        ideal = status.earth_grid.world_handler.get_parameter(
-                            self.actor_label_type.removesuffix("_label")
+                        self.set_label(
+                            f"{self.message_start}{max(0.01, round((float(value) / ideal), 2)):,}x Earth"
                         )
-                        if value == 0:
-                            self.set_label(
-                                f"{self.message_start}{value:,}/5 (0x Earth)"
-                            )
-                        else:
-                            self.set_label(
-                                f"{self.message_start}{value:,}/5 ({max(0.01, round((float(value) / ideal), 2)):,}x Earth)"
-                            )
             elif self.actor_label_type == constants.AVERAGE_WATER_LABEL:
                 if self.actor.grid == status.earth_grid:
-                    self.set_label(
-                        f"{self.message_start}{self.actor.grid.world_handler.average_water}"
-                    )
+                    self.set_label(f"{self.message_start}1.0x Earth")
                 else:
                     self.set_label(
-                        f"{self.message_start}{self.actor.grid.world_handler.average_water} ({round((self.actor.grid.world_handler.average_water) / 3.7, 2):,}x Earth)"
+                        f"{self.message_start}{round((self.actor.grid.world_handler.average_water) / status.strategic_map_grid.get_tuning('earth_average_water_target'), 2):,}x Earth"
                     )
             elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
-                average_temperature = self.actor.grid.world_handler.average_temperature
-                if self.actor.grid == status.earth_grid:
-                    self.set_label(f"{self.message_start}{average_temperature}")
-                elif (
-                    round(average_temperature, 2)
-                    == self.actor.grid.world_handler.earth_average_temperature
-                ):
-                    self.set_label(
-                        f"{self.message_start}{average_temperature} (1.0x Earth)"
-                    )
-                elif (
-                    average_temperature
-                    < self.actor.grid.world_handler.earth_average_temperature
-                ):
-                    self.set_label(
-                        f"{self.message_start}{average_temperature} (-{round(self.actor.grid.world_handler.earth_average_temperature - average_temperature, 2):,} Earth)"
-                    )
-                else:
-                    self.set_label(
-                        f"{self.message_start}{average_temperature} (+{round(average_temperature - self.actor.grid.world_handler.earth_average_temperature, 2):,} Earth)"
-                    )
+                self.set_label(
+                    f"{self.message_start}{round(utility.fahrenheit(self.actor.grid.world_handler.average_temperature), 2)} °F"
+                )
             elif self.actor_label_type == constants.HABITABILITY_LABEL:
                 overall_habitability = (
                     self.actor.cell.terrain_handler.get_known_habitability()

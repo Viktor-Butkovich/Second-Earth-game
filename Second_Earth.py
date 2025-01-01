@@ -379,6 +379,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
+# Units should update knowledge upon arriving to planet - incorrectly only updates when moving on surface
 # Add temperature calculation - distance from sun/solation, GHG, random weather
 #   Once planet brightness is determined, show the planet brightness with a transparent white/black filter on each tile - similar to atmosphere haze
 #       Possibly draw this and clouds/atmosphere haze over units rather than under - modify how tiles are drawn
