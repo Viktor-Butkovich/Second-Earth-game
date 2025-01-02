@@ -1,7 +1,36 @@
 # Runs setup and main loop on program start
 
-import modules.main_loop as main_loop
-from modules.setup import *
+from modules import main_loop
+from modules.setup import (
+    setup,
+    manage_crash,
+    misc,
+    equipment_types_config,
+    terrain_feature_types_config,
+    commodities,
+    minister_types_config,
+    building_types_config,
+    unit_types_config,
+    new_game_setup_screen,
+    info_displays,
+    transactions,
+    actions,
+    value_trackers,
+    buttons,
+    earth_screen,
+    ministers_screen,
+    trial_screen,
+    tile_interface,
+    mob_interface,
+    organization_interface,
+    vehicle_organization_interface,
+    unit_organization_interface,
+    terrain_interface,
+    settlement_interface,
+    inventory_interface,
+    mob_sub_interface,
+    minister_interface,
+)
 
 try:
     setup(

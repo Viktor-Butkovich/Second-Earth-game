@@ -1,9 +1,8 @@
 # Contains all functionality for trial actions
 
 import random
-from . import action
-from ..util import (
-    action_utility,
+from modules.action_types import action
+from modules.util import (
     text_utility,
     trial_utility,
     utility,
@@ -11,9 +10,7 @@ from ..util import (
     game_transitions,
     scaling,
 )
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.constants import constants, status, flags
 
 
 class trial(action.campaign):

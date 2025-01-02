@@ -1,11 +1,9 @@
 # Contains functionality for choice notifications
 
-from . import buttons, action_notifications
-from ..util import text_utility, scaling, market_utility, utility
-from ..constructs import unit_types
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.interface_types import buttons, action_notifications
+from modules.util import utility, text_utility, scaling
+from modules.constructs import unit_types
+from modules.constants import constants, status, flags
 
 
 class choice_notification(action_notifications.action_notification):

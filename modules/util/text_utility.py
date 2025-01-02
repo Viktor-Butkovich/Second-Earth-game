@@ -1,8 +1,7 @@
 # Contains functions that manage the text box and other miscellaneous text display utility
 
 import pygame
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.constants import constants, status, flags
 
 
 def text(message, font):

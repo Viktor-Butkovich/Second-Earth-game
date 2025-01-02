@@ -1,7 +1,6 @@
 # Contains trial-related helper functions
 
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.constants import constants, status, flags
 
 
 def manage_defense(corruption_evidence, prosecutor_corrupt):

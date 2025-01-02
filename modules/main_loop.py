@@ -3,15 +3,13 @@
 import time
 import pygame
 import os
-from .util import (
+from modules.util import (
     main_loop_utility,
     text_utility,
     turn_management_utility,
     actor_utility,
 )
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.constants import constants, status, flags
 
 
 def main_loop():

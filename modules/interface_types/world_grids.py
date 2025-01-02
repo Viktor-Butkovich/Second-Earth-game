@@ -5,13 +5,11 @@ import json
 import math
 import pygame
 from typing import Dict, List, Tuple
-from .grids import grid, mini_grid, abstract_grid
-from .cells import cell
-from ..util import scaling, utility, actor_utility
-from ..tools.data_managers import terrain_manager_template
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.interface_types.grids import grid, mini_grid, abstract_grid
+from modules.interface_types.cells import cell
+from modules.util import scaling, actor_utility
+from modules.constructs import world_handlers
+from modules.constants import constants, status, flags
 
 
 class world_grid(grid):
@@ -41,12 +39,10 @@ class world_grid(grid):
             None
         """
         super().__init__(from_save, input_dict)
-        self.world_handler: terrain_manager_template.world_handler = (
-            terrain_manager_template.world_handler(
-                self,
-                from_save,
-                input_dict.get("world_handler", {"grid_type": input_dict["grid_type"]}),
-            )
+        self.world_handler: world_handlers.world_handler = world_handlers.world_handler(
+            self,
+            from_save,
+            input_dict.get("world_handler", {"grid_type": input_dict["grid_type"]}),
         )
 
     def create_world(self, from_save: bool):

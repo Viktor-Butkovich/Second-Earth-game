@@ -1,8 +1,8 @@
 # Contains functionality for dummies, which replicate other objects or act as models of hypothetical objects with fake attribute values and tooltips
 
 from typing import Dict, Any
-import modules.actor_types.mob_types.pmobs as pmobs
-import modules.constants.constants as constants
+from modules.actor_types.mob_types import pmobs
+from modules.constants import constants, status, flags
 
 
 class dummy(pmobs.pmob):

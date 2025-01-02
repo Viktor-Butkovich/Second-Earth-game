@@ -1,12 +1,11 @@
 # Contains functionality for ministers
 
-import random, os
+import random
+import os
 from typing import List, Tuple, Dict
-from ..util import utility, minister_utility, scaling
-from ..constructs import minister_types
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.util import utility, minister_utility, scaling
+from modules.constructs import minister_types
+from modules.constants import constants, status, flags
 
 
 class minister:

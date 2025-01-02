@@ -1,9 +1,7 @@
 # Contains miscellaneous functions relating to action functionality
 
-from . import scaling
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.util import scaling
+from modules.constants import constants, status, flags
 
 
 def generate_die_input_dict(

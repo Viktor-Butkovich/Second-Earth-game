@@ -1,11 +1,9 @@
 # Contains all functionality for construction
 
-import pygame
-from . import action
-from ..util import action_utility, utility, actor_utility, text_utility
-import modules.constructs.building_types as building_types
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.action_types import action
+from modules.util import action_utility, utility, actor_utility, text_utility
+from modules.constructs import building_types
+from modules.constants import constants, status, flags
 
 
 class construction(action.action):

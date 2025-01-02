@@ -1,9 +1,7 @@
 # Contains miscellaneous functions relating to minister functionality
 
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
-import modules.util.game_transitions as game_transitions
+from modules.util import game_transitions
+from modules.constants import constants, status, flags
 
 
 def get_minister(minister_type):

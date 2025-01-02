@@ -1,7 +1,5 @@
-from ...util import text_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.util import text_utility
+from modules.constants import constants, status, flags
 
 
 class input_manager_template:

@@ -1,9 +1,7 @@
 # Contains functionality for panels
 
-from .buttons import button
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.interface_types.buttons import button
+from modules.constants import constants, status, flags
 
 
 class panel(button):

@@ -1,19 +1,16 @@
 # Contains functionality for buttons relating to the Earth headquarters screen
 
 import random
-from .buttons import button
-from ..util import (
+from modules.interface_types.buttons import button
+from modules.util import (
     main_loop_utility,
     text_utility,
     market_utility,
-    utility,
     actor_utility,
     minister_utility,
-    dummy_utility,
 )
-from ..constructs import unit_types
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.constructs import unit_types
+from modules.constants import constants, status, flags
 
 
 class recruitment_button(button):

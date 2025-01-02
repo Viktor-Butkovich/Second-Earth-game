@@ -1,10 +1,9 @@
 # Contains utility functions for setting up reorganization interface with correct dummy units for merge/split procedures
 
 from typing import List
-from . import actor_utility, utility
 from copy import deepcopy
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.util import actor_utility
+from modules.constants import constants, status, flags
 
 
 required_dummy_attributes = [

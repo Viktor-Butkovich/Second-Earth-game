@@ -1,10 +1,9 @@
 # Contains functionality for interface elements and collections
 
 import pygame
-from ..constructs import images
-from ..util import scaling, utility, dummy_utility, actor_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.constructs import images
+from modules.util import scaling, utility, dummy_utility, actor_utility
+from modules.constants import constants, status, flags
 
 
 class interface_element:

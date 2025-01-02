@@ -1,6 +1,6 @@
 # Contains functions that scale coordinates and lengths/widths to different resolutions
 
-import modules.constants.constants as constants
+from modules.constants import constants, status, flags
 
 
 def scale_coordinates(x, y):

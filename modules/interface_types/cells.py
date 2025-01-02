@@ -3,10 +3,9 @@
 import pygame
 import random
 from typing import Dict, List, Any
-from ..util import actor_utility
-from ..tools.data_managers.terrain_manager_template import terrain_handler
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.util import actor_utility
+from modules.constructs import terrain_handlers
+from modules.constants import constants, status, flags
 
 
 class cell:
@@ -42,7 +41,7 @@ class cell:
         self.grid.cell_list[x][y] = self
         self.tile = None
         self.settlement = None
-        self.terrain_handler: terrain_handler = None
+        self.terrain_handler: terrain_handlers.terrain_handler = None
         self.contained_mobs: list = []
         self.contained_buildings: Dict[str, Any] = {}
         self.adjacent_cells: Dict[str, cell] = {
@@ -55,9 +54,9 @@ class cell:
             self.save_dict: dict = save_dict
             if constants.effect_manager.effect_active("remove_fog_of_war"):
                 save_dict["visible"] = True
-            self.terrain_handler = terrain_handler(self, save_dict)
+            self.terrain_handler = terrain_handlers.terrain_handler(self, save_dict)
         else:  # If creating new map
-            self.terrain_handler = terrain_handler(self)
+            self.terrain_handler = terrain_handlers.terrain_handler(self)
 
     def get_parameter(self, parameter_name: str) -> int:
         """

@@ -1,9 +1,8 @@
 # Contains functionality for notifications
 
-from .labels import multi_line_label
-from ..util import actor_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.interface_types.labels import multi_line_label
+from modules.util import actor_utility
+from modules.constants import constants, status, flags
 
 
 class notification(multi_line_label):

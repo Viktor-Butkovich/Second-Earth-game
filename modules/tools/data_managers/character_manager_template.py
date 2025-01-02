@@ -1,12 +1,11 @@
 # Manages character generation, minister/officer/worker backgrounds, names, appearance, ethnicity, and other personal details
 
-from typing import List, Dict, Tuple
-from ...util import csv_utility, utility, actor_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
 import json
 import random
 import pygame
+from typing import List, Dict, Tuple
+from modules.util import csv_utility, utility, actor_utility
+from modules.constants import constants, status, flags
 
 
 class character_manager_template:

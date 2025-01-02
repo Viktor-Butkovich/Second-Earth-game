@@ -2,18 +2,16 @@
 
 import pygame
 import logging
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
-import modules.util.scaling as scaling
-import modules.util.actor_utility as actor_utility
-import modules.util.game_transitions as game_transitions
-import modules.constructs.fonts as fonts
-import modules.constructs.unit_types as unit_types
-import modules.constructs.minister_types as minister_types
-import modules.constructs.building_types as building_types
-import modules.constructs.equipment_types as equipment_types
-import modules.constructs.terrain_feature_types as terrain_feature_types
+from modules.constants import constants, status, flags
+from modules.util import scaling, actor_utility, game_transitions
+from modules.constructs import (
+    fonts,
+    unit_types,
+    minister_types,
+    building_types,
+    equipment_types,
+    terrain_feature_types,
+)
 from modules.tools.data_managers import (
     notification_manager_template,
     value_tracker_template,

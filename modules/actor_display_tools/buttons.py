@@ -1,20 +1,17 @@
 # Contains functionality for actor display buttons
 
 import random
-from ..interface_types.buttons import button
-from ..util import (
+from modules.interface_types.buttons import button
+from modules.util import (
     main_loop_utility,
-    utility,
     actor_utility,
     minister_utility,
     trial_utility,
     text_utility,
     game_transitions,
 )
-from ..constructs import minister_types
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.constructs import minister_types
+from modules.constants import constants, status, flags
 
 
 class embark_all_passengers_button(button):

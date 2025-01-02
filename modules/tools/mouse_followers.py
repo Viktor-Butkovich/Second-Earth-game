@@ -1,9 +1,8 @@
 # Contains functionality for icons that follow the mouse pointer
 
 import pygame
-from ..constructs.images import free_image
-import modules.constants.constants as constants
-import modules.constants.flags as flags
+from modules.constructs.images import free_image
+from modules.constants import constants, status, flags
 
 
 class mouse_follower_template(free_image):

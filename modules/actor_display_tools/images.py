@@ -1,9 +1,8 @@
 # Contains functionality for actor display images
 
-from ..constructs.images import free_image
-from ..util import action_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.constructs.images import free_image
+from modules.util import action_utility
+from modules.constants import constants, status, flags
 
 
 class actor_display_free_image(free_image):

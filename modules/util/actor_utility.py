@@ -5,10 +5,8 @@ import os
 import pygame
 import math
 from typing import List, Tuple
-from . import utility, text_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.util import utility, text_utility
+from modules.constants import constants, status, flags
 
 
 def press_button(button_type: str) -> None:

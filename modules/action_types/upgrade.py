@@ -1,11 +1,9 @@
 # Contains all functionality for building upgrades
 
-import pygame
-from . import action
-from ..util import actor_utility, action_utility
-import modules.constructs.building_types as building_types
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.action_types import action
+from modules.util import actor_utility, action_utility
+from modules.constructs import building_types
+from modules.constants import constants, status, flags
 
 
 class upgrade(action.action):

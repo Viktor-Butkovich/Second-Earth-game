@@ -1,6 +1,6 @@
 # Contains functionality for generic actions
 
-from ..util import (
+from modules.util import (
     main_loop_utility,
     text_utility,
     actor_utility,
@@ -9,9 +9,7 @@ from ..util import (
     utility,
     minister_utility,
 )
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.constants import constants, status, flags
 
 
 class action:

@@ -3,10 +3,9 @@
 import pygame
 import time
 import random
-from .buttons import button
-from ..util import utility
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.interface_types.buttons import button
+from modules.util import utility
+from modules.constants import constants, status, flags
 
 
 class die(button):

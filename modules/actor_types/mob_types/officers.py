@@ -1,9 +1,8 @@
 # Contains functionality for officer units
 
 import random
-from .pmobs import pmob
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.actor_types.mob_types.pmobs import pmob
+from modules.constants import constants, status, flags
 
 
 class officer(pmob):

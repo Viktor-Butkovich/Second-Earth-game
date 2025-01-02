@@ -4,12 +4,10 @@ import random
 import pygame
 import itertools
 from typing import Dict, List, Tuple
-from . import cells, interface_elements
-from ..util import actor_utility, utility
-from ..tools.data_managers import terrain_manager_template
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.interface_types import cells, interface_elements
+from modules.util import actor_utility, utility
+from modules.constructs import world_handlers
+from modules.constants import constants, status, flags
 
 
 class grid(interface_elements.interface_element):
@@ -738,7 +736,7 @@ class abstract_grid(grid):
         input_dict["coordinate_height"] = 1
         super().__init__(from_save, input_dict)
         if input_dict["grid_type"] == constants.EARTH_GRID_TYPE:
-            self.world_handler = terrain_manager_template.world_handler(
+            self.world_handler = world_handlers.world_handler(
                 self,
                 from_save,
                 input_dict.get("world_handler", {"grid_type": input_dict["grid_type"]}),

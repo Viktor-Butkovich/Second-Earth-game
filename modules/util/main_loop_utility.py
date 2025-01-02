@@ -2,17 +2,15 @@
 
 import pygame
 import time
-from . import (
+from modules.util import (
     scaling,
     text_utility,
     actor_utility,
-    minister_utility,
     utility,
     traversal_utility,
+    minister_utility,
 )
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.constants import constants, status, flags
 
 
 def update_display():

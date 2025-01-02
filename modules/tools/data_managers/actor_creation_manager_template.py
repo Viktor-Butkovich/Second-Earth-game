@@ -1,14 +1,14 @@
 # Contains functionality for creating new instances of mobs, buildings, dice, and ministers
 
 import random
-from ...actor_types import mobs, buildings
-from ...actor_types.mob_types import vehicles, officers, dummy, workers, groups
-from ...actor_types.mob_types.group_types import (
+from modules.actor_types import mobs, buildings
+from modules.actor_types.mob_types import vehicles, officers, dummy, workers, groups
+from modules.actor_types.mob_types.group_types import (
     battalions,
     expeditions,
     work_crews,
 )
-from ...interface_types import (
+from modules.interface_types import (
     dice,
     buttons,
     labels,
@@ -22,14 +22,13 @@ from ...interface_types import (
     earth_transactions,
     inventory_interface,
 )
-from ...actor_display_tools import buttons as actor_display_buttons
-from ...actor_display_tools import labels as actor_display_labels
-from ...actor_display_tools import images as actor_display_images
-from ...constructs import ministers, images, settlements, unit_types
-from ...util import utility, actor_utility, market_utility
-from .. import mouse_followers
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.actor_display_tools import buttons as actor_display_buttons
+from modules.actor_display_tools import labels as actor_display_labels
+from modules.actor_display_tools import images as actor_display_images
+from modules.constructs import ministers, images, settlements, unit_types
+from modules.util import utility, actor_utility, market_utility
+from modules.tools import mouse_followers
+from modules.constants import constants, status, flags
 
 
 class actor_creation_manager_template:  # can get instance from anywhere and create actors with it without importing respective actor module

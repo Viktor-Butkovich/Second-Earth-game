@@ -2,12 +2,10 @@
 
 import pygame
 import random
-from ..mobs import mob
-from ...util import text_utility, utility, actor_utility, minister_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
 from typing import Dict
+from modules.actor_types.mobs import mob
+from modules.util import text_utility, utility, actor_utility, minister_utility
+from modules.constants import constants, status, flags
 
 
 class pmob(mob):

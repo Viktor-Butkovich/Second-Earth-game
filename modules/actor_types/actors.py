@@ -2,7 +2,7 @@
 
 import pygame
 import random
-from ..util import (
+from modules.util import (
     text_utility,
     utility,
     actor_utility,
@@ -10,9 +10,8 @@ from ..util import (
     market_utility,
     minister_utility,
 )
-from ..interface_types.grids import grid
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.interface_types.grids import grid
+from modules.constants import constants, status, flags
 from typing import Dict, List
 
 

@@ -2,19 +2,16 @@
 
 import random
 import os
-from . import (
+from modules.util import (
     text_utility,
     actor_utility,
     trial_utility,
     market_utility,
     utility,
-    game_transitions,
     minister_utility,
     main_loop_utility,
 )
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.constants import constants, status, flags
 
 
 def end_turn():

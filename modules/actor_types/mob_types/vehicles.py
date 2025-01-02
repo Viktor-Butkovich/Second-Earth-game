@@ -2,11 +2,9 @@
 
 import random
 from typing import List
-from .pmobs import pmob
-from ...util import text_utility, actor_utility, minister_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.actor_types.mob_types.pmobs import pmob
+from modules.util import text_utility, minister_utility
+from modules.constants import constants, status, flags
 
 
 class vehicle(pmob):

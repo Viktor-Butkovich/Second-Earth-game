@@ -2,14 +2,9 @@
 
 import random
 from typing import Dict, List
-import modules.constants.status as status
-import modules.constants.constants as constants
-import modules.util.market_utility as market_utility
-import modules.util.text_utility as text_utility
-import modules.util.utility as utility
-import modules.util.actor_utility as actor_utility
-import modules.constructs.minister_types as minister_types
-import modules.constructs.building_types as building_types
+from modules.util import market_utility, text_utility, utility, actor_utility
+from modules.constructs import minister_types, building_types
+from modules.constants import constants, status, flags
 
 
 class unit_type:

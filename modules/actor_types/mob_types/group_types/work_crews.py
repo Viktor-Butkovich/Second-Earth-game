@@ -1,10 +1,9 @@
 # Contains functionality for work crews
 
 import random
-from ..groups import group
-from ....util import actor_utility, utility, market_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.actor_types.mob_types.groups import group
+from modules.util import actor_utility, utility, market_utility
+from modules.constants import constants, status, flags
 
 
 class work_crew(group):

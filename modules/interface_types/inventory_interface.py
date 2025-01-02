@@ -1,18 +1,11 @@
 # Contains inventory-specific interface classes
 
 import pygame
-from .interface_elements import ordered_collection
-from .buttons import button
-from ..util import (
-    actor_utility,
-    utility,
-    main_loop_utility,
-    text_utility,
-    minister_utility,
-)
-from ..constructs import equipment_types
-import modules.constants.status as status
-import modules.constants.constants as constants
+from modules.interface_types.interface_elements import ordered_collection
+from modules.interface_types.buttons import button
+from modules.util import actor_utility, utility
+from modules.constructs import equipment_types
+from modules.constants import constants, status, flags
 
 
 class inventory_grid(ordered_collection):

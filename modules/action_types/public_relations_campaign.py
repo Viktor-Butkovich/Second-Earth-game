@@ -2,10 +2,9 @@
 
 import pygame
 import random
-from . import action
-from ..util import action_utility, text_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.action_types import action
+from modules.util import action_utility, text_utility
+from modules.constants import constants, status, flags
 
 
 class public_relations_campaign(action.campaign):

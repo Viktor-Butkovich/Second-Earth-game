@@ -1,9 +1,7 @@
 # Contains functionality for settlements
 
-import random
-from ..util import utility, actor_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.util import utility, actor_utility
+from modules.constants import constants, status, flags
 
 
 class settlement:

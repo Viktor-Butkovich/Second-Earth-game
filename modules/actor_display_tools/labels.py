@@ -1,12 +1,9 @@
 # Contains functionality for actor display labels
 
 import pygame
-from math import ceil
-from ..interface_types.labels import label
-from ..util import utility, scaling, actor_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.interface_types.labels import label
+from modules.util import utility, scaling, actor_utility
+from modules.constants import constants, status, flags
 
 
 class actor_display_label(label):

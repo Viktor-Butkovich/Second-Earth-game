@@ -1,6 +1,6 @@
 # Contains functionality for global effects
 
-from ..util import utility
+from modules.util import utility
 
 
 class effect:

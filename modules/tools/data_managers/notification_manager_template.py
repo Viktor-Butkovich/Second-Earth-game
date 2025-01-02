@@ -1,6 +1,5 @@
-from ...util import scaling
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.util import scaling
+from modules.constants import constants, status, flags
 
 
 class notification_manager_template:

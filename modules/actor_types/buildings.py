@@ -3,11 +3,10 @@
 import pygame
 import random
 from typing import Dict
-from .actors import actor
-from ..util import utility, scaling, actor_utility, text_utility, minister_utility
-from ..constructs import building_types
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.actor_types.actors import actor
+from modules.util import utility, scaling, actor_utility, text_utility, minister_utility
+from modules.constructs import building_types
+from modules.constants import constants, status, flags
 
 
 class building(actor):

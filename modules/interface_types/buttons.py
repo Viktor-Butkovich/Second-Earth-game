@@ -2,7 +2,7 @@
 
 import pygame
 from typing import List
-from ..util import (
+from modules.util import (
     text_utility,
     scaling,
     main_loop_utility,
@@ -13,11 +13,9 @@ from ..util import (
     game_transitions,
     minister_utility,
 )
-from ..constructs import equipment_types, minister_types
-from . import interface_elements
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.constructs import equipment_types, minister_types
+from modules.interface_types import interface_elements
+from modules.constants import constants, status, flags
 
 
 class button(interface_elements.interface_element):

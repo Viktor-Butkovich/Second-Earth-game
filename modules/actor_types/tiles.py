@@ -2,12 +2,10 @@
 
 import pygame
 import random
-from ..constructs import images
-from ..util import utility, actor_utility, main_loop_utility
-from .actors import actor
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.constructs import images
+from modules.util import utility, actor_utility, main_loop_utility
+from modules.actor_types.actors import actor
+from modules.constants import constants, status, flags
 
 
 class tile(actor):  # to do: make terrain tiles a subclass
