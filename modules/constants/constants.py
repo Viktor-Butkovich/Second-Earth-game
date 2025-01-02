@@ -513,6 +513,7 @@ OXYGEN: str = "oxygen"
 GHG: str = "GHG"
 INERT_GASES: str = "inert_gases"
 TOXIC_GASES: str = "toxic_gases"
+ATMOSPHERE_COMPONENTS: str = [OXYGEN, GHG, INERT_GASES, TOXIC_GASES]
 GRAVITY: str = "gravity"
 RADIATION: str = "radiation"
 MAGNETIC_FIELD: str = "magnetic_field"

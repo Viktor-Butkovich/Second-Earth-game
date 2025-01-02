@@ -243,6 +243,9 @@ except Exception:  # Displays error message and records error message in crash l
         Rocket is uncrewed and one-way - similar to an airdrop or a missile
             Rockets must be uncrewed to prevent an over-supply of astronaut crews at either destination
     Can launch probes from within star system to explore parts of a planet or an outpost location
+    Only main sequence stars can have Earth-like planets near them - about 90% of stars
+        It is easier to find exoplanets that are near smaller stars - smaller stars have closer habitable zones
+        The Kepler planets only include about 1% of the sky - much more to discover
 9. Add fuel resource, with vehicle fuel mechanics
     Possibly have lower fuel costs for launching from near the equator
 10. Add research screen
@@ -379,7 +382,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
-# Units should update knowledge upon arriving to planet - incorrectly only updates when moving on surface
 # Add temperature calculation - distance from sun/solation, GHG, random weather
 #   Once planet brightness is determined, show the planet brightness with a transparent white/black filter on each tile - similar to atmosphere haze
 #       Possibly draw this and clouds/atmosphere haze over units rather than under - modify how tiles are drawn

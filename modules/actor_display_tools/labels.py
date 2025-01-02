@@ -553,12 +553,11 @@ class actor_display_label(label):
                     )
                     + ": "
                 )
-            if self.actor_label_type.removesuffix("_label") in [
-                constants.OXYGEN,
-                constants.GHG,
-                constants.INERT_GASES,
-                constants.TOXIC_GASES,
-            ] and constants.effect_manager.effect_active("god_mode"):
+            if self.actor_label_type.removesuffix(
+                "_label"
+            ) in constants.ATMOSPHERE_COMPONENTS and constants.effect_manager.effect_active(
+                "god_mode"
+            ):
                 input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
                 input_dict["width"], input_dict["height"] = (s_size, s_size)
                 input_dict["change"] = -1000
@@ -1354,13 +1353,7 @@ class actor_display_label(label):
             ):
                 parameter = self.actor_label_type.removesuffix("_label")
                 value = self.actor.grid.world_handler.get_parameter(parameter)
-                if parameter in [
-                    constants.PRESSURE,
-                    constants.GHG,
-                    constants.INERT_GASES,
-                    constants.OXYGEN,
-                    constants.TOXIC_GASES,
-                ]:
+                if parameter in [constants.PRESSURE] + constants.ATMOSPHERE_COMPONENTS:
                     if (
                         parameter == constants.PRESSURE
                     ):  # Pressure: 1200/2400 (0.5x Earth)
@@ -1394,12 +1387,17 @@ class actor_display_label(label):
                             f"{self.message_start}{max(0.01, round((float(value) / ideal), 2)):,}x Earth"
                         )
             elif self.actor_label_type == constants.AVERAGE_WATER_LABEL:
+                original_value = (
+                    self.actor.grid.world_handler.average_water
+                    / status.strategic_map_grid.get_tuning("earth_average_water_target")
+                )
+                rounded_value = round(original_value, 2)
+                if original_value != 0 and rounded_value == 0:
+                    rounded_value = 0.01
                 if self.actor.grid == status.earth_grid:
                     self.set_label(f"{self.message_start}1.0x Earth")
                 else:
-                    self.set_label(
-                        f"{self.message_start}{round((self.actor.grid.world_handler.average_water) / status.strategic_map_grid.get_tuning('earth_average_water_target'), 2):,}x Earth"
-                    )
+                    self.set_label(f"{self.message_start}{rounded_value}x Earth")
             elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
                 self.set_label(
                     f"{self.message_start}{round(utility.fahrenheit(self.actor.grid.world_handler.average_temperature), 2)} °F"

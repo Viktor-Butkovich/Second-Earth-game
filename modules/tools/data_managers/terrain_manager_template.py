@@ -228,423 +228,73 @@ class world_handler:
         """
         self.default_grid = attached_grid
         self.earth_size = constants.map_size_options[4] ** 2
-        atmosphere_size = (
+        self.ideal_atmosphere_size = (
             self.default_grid.area * 6
-        )  # Atmosphere units required for 1 bar pressure (like Earth)
+        )  # Atmosphere units required for 1 atm pressure (like Earth)
         if not from_save:
             if input_dict["grid_type"] == constants.STRATEGIC_MAP_GRID_TYPE:
                 input_dict["green_screen"] = self.generate_green_screen()
 
-                if self.get_tuning("weighted_temperature_bounds"):
-                    input_dict["default_temperature"] = min(
-                        max(
-                            random.randrange(-6, 12),
-                            self.get_tuning("base_temperature_lower_bound"),
-                        ),
-                        self.get_tuning("base_temperature_upper_bound"),
-                    )
-
-                else:
-                    input_dict["default_temperature"] = random.randrange(
-                        self.get_tuning("base_temperature_lower_bound"),
-                        self.get_tuning("base_temperature_upper_bound") + 1,
-                    )
-                input_dict["expected_temperature_target"] = max(
-                    min(
-                        input_dict["default_temperature"] + random.uniform(-0.5, 0.5),
-                        10.95,
-                    ),
-                    -5.95,
-                )
+                preset = None
                 if constants.effect_manager.effect_active("earth_preset"):
-                    input_dict["name"] = "Earth"
-                    input_dict["rotation_direction"] = self.get_tuning(
-                        "earth_rotation_direction"
-                    )
-                    input_dict["rotation_speed"] = self.get_tuning(
-                        "earth_rotation_speed"
-                    )
-                    input_dict["global_parameters"] = {
-                        constants.GRAVITY: self.get_tuning("earth_gravity"),
-                        constants.RADIATION: self.get_tuning("earth_radiation"),
-                        constants.MAGNETIC_FIELD: self.get_tuning(
-                            "earth_magnetic_field"
-                        ),
-                        constants.INERT_GASES: round(
-                            self.get_tuning("earth_inert_gases")
-                            * self.get_tuning("earth_pressure")
-                            * atmosphere_size
-                        ),
-                        constants.OXYGEN: round(
-                            self.get_tuning("earth_oxygen")
-                            * self.get_tuning("earth_pressure")
-                            * atmosphere_size
-                        ),
-                        constants.GHG: round(
-                            self.get_tuning("earth_GHG")
-                            * self.get_tuning("earth_pressure")
-                            * atmosphere_size
-                        ),
-                        constants.TOXIC_GASES: round(
-                            self.get_tuning("earth_toxic_gases")
-                            * self.get_tuning("earth_pressure")
-                            * atmosphere_size
-                        ),
-                    }
-                    input_dict["default_temperature"] = self.get_tuning(
-                        "earth_base_temperature"
-                    )
-                    input_dict["expected_temperature_target"] = self.get_tuning(
-                        "earth_expected_temperature_target"
-                    )
-                    input_dict["average_water_target"] = self.get_tuning(
-                        "earth_average_water_target"
-                    )
-                    input_dict["sky_color"] = self.get_tuning("earth_sky_color")
-
+                    preset = "earth"
                 elif constants.effect_manager.effect_active("mars_preset"):
-                    input_dict["name"] = "Mars"
-                    input_dict["rotation_direction"] = self.get_tuning(
-                        "mars_rotation_direction"
-                    )
-                    input_dict["rotation_speed"] = self.get_tuning(
-                        "mars_rotation_speed"
-                    )
-                    input_dict["global_parameters"] = {
-                        constants.GRAVITY: self.get_tuning("mars_gravity"),
-                        constants.RADIATION: self.get_tuning("mars_radiation"),
-                        constants.MAGNETIC_FIELD: self.get_tuning(
-                            "mars_magnetic_field"
-                        ),
-                        constants.INERT_GASES: round(
-                            self.get_tuning("mars_inert_gases")
-                            * self.get_tuning("mars_pressure")
-                            * atmosphere_size,
-                            1,
-                        ),
-                        constants.OXYGEN: round(
-                            self.get_tuning("mars_oxygen")
-                            * self.get_tuning("mars_pressure")
-                            * atmosphere_size,
-                            1,
-                        ),
-                        constants.GHG: round(
-                            self.get_tuning("mars_GHG")
-                            * self.get_tuning("mars_pressure")
-                            * atmosphere_size,
-                            1,
-                        ),
-                        constants.TOXIC_GASES: round(
-                            self.get_tuning("mars_toxic_gases")
-                            * self.get_tuning("mars_pressure")
-                            * atmosphere_size,
-                            1,
-                        ),
-                    }
-                    input_dict["default_temperature"] = self.get_tuning(
-                        "mars_base_temperature"
-                    )
-                    input_dict["expected_temperature_target"] = self.get_tuning(
-                        "mars_expected_temperature_target"
-                    )
-                    input_dict["average_water_target"] = self.get_tuning(
-                        "mars_average_water_target"
-                    )
-                    input_dict["sky_color"] = self.get_tuning("mars_sky_color")
-
+                    preset = "mars"
                 elif constants.effect_manager.effect_active("venus_preset"):
-                    input_dict["name"] = "Venus"
+                    preset = "venus"
+
+                if preset:
+                    input_dict["name"] = preset.capitalize()
                     input_dict["rotation_direction"] = self.get_tuning(
-                        "venus_rotation_direction"
+                        f"{preset}_rotation_direction"
                     )
                     input_dict["rotation_speed"] = self.get_tuning(
-                        "venus_rotation_speed"
+                        f"{preset}_rotation_speed"
                     )
                     input_dict["global_parameters"] = {
-                        constants.GRAVITY: self.get_tuning("venus_gravity"),
-                        constants.RADIATION: self.get_tuning("venus_radiation"),
+                        constants.GRAVITY: self.get_tuning(f"{preset}_gravity"),
+                        constants.RADIATION: self.get_tuning(f"{preset}_radiation"),
                         constants.MAGNETIC_FIELD: self.get_tuning(
-                            "venus_magnetic_field"
+                            f"{preset}_magnetic_field"
                         ),
                         constants.INERT_GASES: round(
-                            self.get_tuning("venus_inert_gases")
-                            * self.get_tuning("venus_pressure")
-                            * atmosphere_size,
+                            self.get_tuning(f"{preset}_inert_gases")
+                            * self.get_tuning(f"{preset}_pressure")
+                            * self.ideal_atmosphere_size,
                             1,
                         ),
                         constants.OXYGEN: round(
-                            self.get_tuning("venus_oxygen")
-                            * self.get_tuning("venus_pressure")
-                            * atmosphere_size,
+                            self.get_tuning(f"{preset}_oxygen")
+                            * self.get_tuning(f"{preset}_pressure")
+                            * self.ideal_atmosphere_size,
                             1,
                         ),
                         constants.GHG: round(
-                            self.get_tuning("venus_GHG")
-                            * self.get_tuning("venus_pressure")
-                            * atmosphere_size,
+                            self.get_tuning(f"{preset}_GHG")
+                            * self.get_tuning(f"{preset}_pressure")
+                            * self.ideal_atmosphere_size,
                             1,
                         ),
                         constants.TOXIC_GASES: round(
-                            self.get_tuning("venus_toxic_gases")
-                            * self.get_tuning("venus_pressure")
-                            * atmosphere_size,
+                            self.get_tuning(f"{preset}_toxic_gases")
+                            * self.get_tuning(f"{preset}_pressure")
+                            * self.ideal_atmosphere_size,
                             1,
                         ),
                     }
                     input_dict["default_temperature"] = self.get_tuning(
-                        "venus_base_temperature"
+                        f"{preset}_base_temperature"
                     )
                     input_dict["expected_temperature_target"] = self.get_tuning(
-                        "venus_expected_temperature_target"
+                        f"{preset}_expected_temperature_target"
                     )
                     input_dict["average_water_target"] = self.get_tuning(
-                        "venus_average_water_target"
+                        f"{preset}_average_water_target"
                     )
-                    input_dict["sky_color"] = self.get_tuning("venus_sky_color")
-                else:
-                    input_dict[
-                        "name"
-                    ] = constants.flavor_text_manager.generate_flavor_text(
-                        "planet_names"
-                    )
-                    input_dict["rotation_direction"] = random.choice([1, -1])
-                    input_dict["rotation_speed"] = random.choice([1, 2, 2, 3, 4, 5])
-                    input_dict["global_parameters"] = {}
-                    input_dict["global_parameters"][constants.GRAVITY] = round(
-                        (self.default_grid.area / (constants.map_size_options[4] ** 2))
-                        * random.uniform(0.7, 1.3),
-                        2,
-                    )
-                    input_dict["global_parameters"][constants.RADIATION] = max(
-                        random.randrange(0, 5), random.randrange(0, 5)
-                    )
-                    input_dict["global_parameters"][
-                        constants.MAGNETIC_FIELD
-                    ] = random.choices([0, 1, 2, 3, 4, 5], [5, 2, 2, 2, 2, 2], k=1)[0]
-                    atmosphere_type = random.choice(
-                        ["thick", "thick", "medium", "thin", "thin", "none"]
-                    )
-                    if (
-                        input_dict["global_parameters"][constants.MAGNETIC_FIELD]
-                        >= input_dict["global_parameters"][constants.RADIATION]
-                    ):
-                        if atmosphere_type in ["thin", "none"]:
-                            atmosphere_type = "medium"
-                    elif (
-                        input_dict["global_parameters"][constants.MAGNETIC_FIELD]
-                        >= input_dict["global_parameters"][constants.RADIATION] - 2
-                    ):
-                        if atmosphere_type == "none":
-                            atmosphere_type = "thin"
+                    input_dict["sky_color"] = self.get_tuning(f"{preset}_sky_color")
 
-                    if atmosphere_type == "thick":
-                        input_dict["global_parameters"][constants.GHG] = random.choices(
-                            [
-                                random.randrange(0, atmosphere_size * 90),
-                                random.randrange(0, atmosphere_size * 10),
-                                random.randrange(0, atmosphere_size * 5),
-                                random.randrange(0, atmosphere_size),
-                                random.randrange(0, ceil(atmosphere_size * 0.1)),
-                            ],
-                            [2, 4, 4, 4, 6],
-                            k=1,
-                        )[0]
-                        input_dict["global_parameters"][
-                            constants.OXYGEN
-                        ] = random.choices(
-                            [
-                                random.randrange(0, atmosphere_size * 10),
-                                random.randrange(0, atmosphere_size * 5),
-                                random.randrange(0, atmosphere_size * 2),
-                                random.randrange(0, ceil(atmosphere_size * 0.5)),
-                                random.randrange(0, ceil(atmosphere_size * 0.01)),
-                            ],
-                            [2, 4, 4, 4, 6],
-                            k=1,
-                        )[
-                            0
-                        ]
-                        input_dict["global_parameters"][
-                            constants.INERT_GASES
-                        ] = random.choices(
-                            [
-                                random.randrange(0, atmosphere_size * 90),
-                                random.randrange(0, atmosphere_size * 10),
-                                random.randrange(0, atmosphere_size * 5),
-                                random.randrange(0, atmosphere_size),
-                                random.randrange(0, ceil(atmosphere_size * 0.1)),
-                            ],
-                            [2, 4, 4, 4, 6],
-                            k=1,
-                        )[
-                            0
-                        ]  # Same distribution as GHG
-                        input_dict["global_parameters"][
-                            constants.TOXIC_GASES
-                        ] = random.choices(
-                            [
-                                random.randrange(0, atmosphere_size * 10),
-                                random.randrange(0, atmosphere_size * 5),
-                                random.randrange(0, atmosphere_size * 2),
-                                random.randrange(0, ceil(atmosphere_size * 0.5)),
-                                random.randrange(0, ceil(atmosphere_size * 0.01)),
-                            ],
-                            [2, 4, 4, 4, 6],
-                            k=1,
-                        )[
-                            0
-                        ]  # Same distribution as oxygen
-                    elif atmosphere_type == "medium":
-                        input_dict["global_parameters"][constants.GHG] = random.choices(
-                            [
-                                random.randrange(0, atmosphere_size),
-                                random.randrange(0, ceil(atmosphere_size * 0.5)),
-                                random.randrange(0, ceil(atmosphere_size * 0.3)),
-                                random.randrange(0, ceil(atmosphere_size * 0.1)),
-                                random.randrange(0, ceil(atmosphere_size * 0.01)),
-                            ],
-                            [3, 3, 3, 3, 3],
-                            k=1,
-                        )[0]
-                        input_dict["global_parameters"][
-                            constants.OXYGEN
-                        ] = random.choices(
-                            [
-                                random.randrange(0, ceil(atmosphere_size * 0.6)),
-                                random.randrange(0, ceil(atmosphere_size * 0.3)),
-                                random.randrange(0, ceil(atmosphere_size * 0.15)),
-                                random.randrange(0, ceil(atmosphere_size * 0.05)),
-                                random.randrange(0, ceil(atmosphere_size * 0.01)),
-                            ],
-                            [3, 3, 3, 3, 3],
-                            k=1,
-                        )[
-                            0
-                        ]
-                        input_dict["global_parameters"][
-                            constants.INERT_GASES
-                        ] = random.choices(
-                            [
-                                random.randrange(0, atmosphere_size),
-                                random.randrange(0, ceil(atmosphere_size * 0.5)),
-                                random.randrange(0, ceil(atmosphere_size * 0.3)),
-                                random.randrange(0, ceil(atmosphere_size * 0.1)),
-                                random.randrange(0, ceil(atmosphere_size * 0.01)),
-                            ],
-                            [3, 3, 3, 3, 3],
-                            k=1,
-                        )[
-                            0
-                        ]  # Same distribution as GHG
-                        input_dict["global_parameters"][
-                            constants.TOXIC_GASES
-                        ] = random.choices(
-                            [
-                                random.randrange(0, ceil(atmosphere_size * 0.6)),
-                                random.randrange(0, ceil(atmosphere_size * 0.3)),
-                                random.randrange(0, ceil(atmosphere_size * 0.15)),
-                                random.randrange(0, ceil(atmosphere_size * 0.05)),
-                                random.randrange(0, ceil(atmosphere_size * 0.01)),
-                            ],
-                            [3, 3, 3, 3, 3],
-                            k=1,
-                        )[
-                            0
-                        ]  # Same distribution as oxygen
-                    elif atmosphere_type == "thin":
-                        input_dict["global_parameters"][constants.GHG] = random.choices(
-                            [
-                                random.randrange(0, ceil(atmosphere_size * 0.05)),
-                                random.randrange(0, ceil(atmosphere_size * 0.01)),
-                                random.randrange(0, ceil(atmosphere_size * 0.005)),
-                                random.randrange(0, ceil(atmosphere_size * 0.001)),
-                                0,
-                            ],
-                            [3, 3, 3, 3, 3],
-                            k=1,
-                        )[0]
-                        input_dict["global_parameters"][
-                            constants.OXYGEN
-                        ] = random.choices(
-                            [
-                                random.randrange(0, ceil(atmosphere_size * 0.01)),
-                                random.randrange(0, ceil(atmosphere_size * 0.005)),
-                                random.randrange(0, ceil(atmosphere_size * 0.001)),
-                                0,
-                                0,
-                            ],
-                            [3, 3, 3, 3, 3],
-                            k=1,
-                        )[
-                            0
-                        ]
-                        input_dict["global_parameters"][
-                            constants.INERT_GASES
-                        ] = random.choices(
-                            [
-                                random.randrange(0, ceil(atmosphere_size * 0.05)),
-                                random.randrange(0, ceil(atmosphere_size * 0.01)),
-                                random.randrange(0, ceil(atmosphere_size * 0.005)),
-                                random.randrange(0, ceil(atmosphere_size * 0.001)),
-                                0,
-                            ],
-                            [3, 3, 3, 3, 3],
-                            k=1,
-                        )[
-                            0
-                        ]  # Same distribution as GHG
-                        input_dict["global_parameters"][
-                            constants.TOXIC_GASES
-                        ] = random.choices(
-                            [
-                                random.randrange(0, ceil(atmosphere_size * 0.01)),
-                                random.randrange(0, ceil(atmosphere_size * 0.005)),
-                                random.randrange(0, ceil(atmosphere_size * 0.001)),
-                                0,
-                                0,
-                            ],
-                            [3, 3, 3, 3, 3],
-                            k=1,
-                        )[
-                            0
-                        ]  # Same distribution as oxygen
-                    elif atmosphere_type == "none":
-                        input_dict["global_parameters"][constants.GHG] = 0
-                        input_dict["global_parameters"][constants.OXYGEN] = 0
-                        input_dict["global_parameters"][constants.INERT_GASES] = 0
-                        input_dict["global_parameters"][constants.TOXIC_GASES] = 0
-
-                    input_dict["average_water_target"] = random.choice(
-                        [
-                            random.uniform(0.0, 5.0),
-                            random.uniform(0.0, 1.0),
-                            random.uniform(0.0, 4.0),
-                        ]
-                    )
-
-                    radiation_effect = (
-                        input_dict["global_parameters"][constants.RADIATION]
-                        - input_dict["global_parameters"][constants.MAGNETIC_FIELD]
-                    )
-                    if radiation_effect >= 3:
-                        input_dict["global_parameters"][constants.INERT_GASES] = 0
-                        input_dict["global_parameters"][constants.OXYGEN] = 0
-                        input_dict["global_parameters"][constants.TOXIC_GASES] = round(
-                            input_dict["global_parameters"][constants.TOXIC_GASES] / 2
-                        )
-                        input_dict["global_parameters"][constants.GHG] = round(
-                            input_dict["global_parameters"][constants.GHG] / 2
-                        )
-                    elif radiation_effect >= 1:
-                        input_dict["global_parameters"][constants.INERT_GASES] = round(
-                            input_dict["global_parameters"][constants.INERT_GASES] / 2
-                        )
-                        input_dict["global_parameters"][constants.OXYGEN] = round(
-                            input_dict["global_parameters"][constants.OXYGEN] / 2
-                        )
-                    input_dict["sky_color"] = [
-                        random.randrange(0, 256) for _ in range(3)
-                    ]
+                else:  # If no preset, create a random planet
+                    input_dict.update(self.generate_global_parameters())
             elif (
                 input_dict["grid_type"] == constants.EARTH_GRID_TYPE
             ):  # Replace with a series of grid_type constants
@@ -658,16 +308,16 @@ class world_handler:
                     constants.RADIATION: self.get_tuning("earth_radiation"),
                     constants.MAGNETIC_FIELD: self.get_tuning("earth_magnetic_field"),
                     constants.INERT_GASES: round(
-                        self.get_tuning("earth_inert_gases") * (self.earth_size * 6)
+                        self.get_tuning("earth_inert_gases") * (self.earth_size * 6), 1
                     ),
                     constants.OXYGEN: round(
-                        self.get_tuning("earth_oxygen") * (self.earth_size * 6)
+                        self.get_tuning("earth_oxygen") * (self.earth_size * 6), 1
                     ),
                     constants.GHG: round(
-                        self.get_tuning("earth_GHG") * (self.earth_size * 6)
+                        self.get_tuning("earth_GHG") * (self.earth_size * 6), 1
                     ),
                     constants.TOXIC_GASES: round(
-                        self.get_tuning("earth_toxic_gases") * (self.earth_size * 6)
+                        self.get_tuning("earth_toxic_gases") * (self.earth_size * 6), 1
                     ),
                 }
                 input_dict["average_water"] = self.get_tuning(
@@ -682,19 +332,6 @@ class world_handler:
                 input_dict["size"] = self.earth_size
                 input_dict["sky_color"] = self.get_tuning("earth_sky_color")
             input_dict["default_sky_color"] = input_dict["sky_color"].copy()
-
-        input_dict["global_parameters"][constants.INERT_GASES] = round(
-            input_dict["global_parameters"][constants.INERT_GASES], 1
-        )
-        input_dict["global_parameters"][constants.OXYGEN] = round(
-            input_dict["global_parameters"][constants.OXYGEN], 1
-        )
-        input_dict["global_parameters"][constants.GHG] = round(
-            input_dict["global_parameters"][constants.GHG], 1
-        )
-        input_dict["global_parameters"][constants.TOXIC_GASES] = round(
-            input_dict["global_parameters"][constants.TOXIC_GASES], 1
-        )
 
         self.terrain_handlers: List[terrain_handler] = [
             current_cell.terrain_handler
@@ -731,15 +368,277 @@ class world_handler:
         )
         for key in constants.global_parameters:
             self.set_parameter(key, input_dict.get("global_parameters", {}).get(key, 0))
-        """
-        15 x 15 grid has north pole 0, 0 and south pole 7, 7
-        If centered at (11, 11), latitude line should include (0, 0), (14, 14), (13, 13), (12, 12), (11, 11), (10, 10), (9, 9), (8, 8), (7, 7)
-            The above line should be used if centered at any of the above coordinates
-        If centered at (3, 11), latitude line should include (0, 0), (1, 14), (1, 13), (2, 12), (3, 11), (4, 10), (5, 9), (6, 8), (7, 7)
+        self.latitude_lines_setup()
 
-        Need to draw latitude lines using the above method, centered on (0, 7), (1, 6), (2, 5), (3, 4), (4, 3), (5, 2), (6, 1), (7, 0), (8, 14), (9, 13), (10, 12), (11, 11), (12, 10), (13, 9), (14, 8)
-            ^ Forms diagonal line
-        Also need to draw latitude lines on other cross: (0, 8), (1, 9), (2, 10), (3, 11), (4, 12), (5, 13), (6, 14), (7, 0), (8, 1), (9, 2), (10, 3), (11, 4), (12, 5), (13, 6), (14, 7)
+    def generate_global_parameters(self) -> Dict[str, int]:
+        """
+        Description:
+            Calculates and returns global parameter values for a ranodm planet
+        Input:
+            None
+        Output:
+            dictionary: Returns a dictionary of global parameter values for a random planet
+        """
+        input_dict: Dict[str, any] = {}
+
+        input_dict["name"] = constants.flavor_text_manager.generate_flavor_text(
+            "planet_names"
+        )
+
+        if self.get_tuning("weighted_temperature_bounds"):
+            input_dict["default_temperature"] = min(
+                max(
+                    random.randrange(-6, 12),
+                    self.get_tuning("base_temperature_lower_bound"),
+                ),
+                self.get_tuning("base_temperature_upper_bound"),
+            )
+
+        else:
+            input_dict["default_temperature"] = random.randrange(
+                self.get_tuning("base_temperature_lower_bound"),
+                self.get_tuning("base_temperature_upper_bound") + 1,
+            )
+        input_dict["expected_temperature_target"] = max(
+            min(
+                input_dict["default_temperature"] + random.uniform(-0.5, 0.5),
+                10.95,
+            ),
+            -5.95,
+        )
+
+        input_dict["rotation_direction"] = random.choice([1, -1])
+        input_dict["rotation_speed"] = random.choice([1, 2, 2, 3, 4, 5])
+        input_dict["average_water_target"] = random.choice(
+            [
+                random.uniform(0.0, 5.0),
+                random.uniform(0.0, 1.0),
+                random.uniform(0.0, 4.0),
+            ]
+        )
+        input_dict["sky_color"] = [
+            random.randrange(0, 256) for _ in range(3)
+        ]  # Random sky color
+
+        global_parameters: Dict[str, float] = {}
+        global_parameters[constants.GRAVITY] = round(
+            (self.default_grid.area / (constants.map_size_options[4] ** 2))
+            * random.uniform(0.7, 1.3),
+            2,
+        )
+        global_parameters[constants.RADIATION] = max(
+            random.randrange(0, 5), random.randrange(0, 5)
+        )
+        global_parameters[constants.MAGNETIC_FIELD] = random.choices(
+            [0, 1, 2, 3, 4, 5], [5, 2, 2, 2, 2, 2], k=1
+        )[0]
+        atmosphere_type = random.choice(
+            ["thick", "thick", "medium", "thin", "thin", "none"]
+        )
+        if (
+            global_parameters[constants.MAGNETIC_FIELD]
+            >= global_parameters[constants.RADIATION]
+        ):
+            if atmosphere_type in ["thin", "none"]:
+                atmosphere_type = "medium"
+        elif (
+            global_parameters[constants.MAGNETIC_FIELD]
+            >= global_parameters[constants.RADIATION] - 2
+        ):
+            if atmosphere_type == "none":
+                atmosphere_type = "thin"
+
+        if atmosphere_type == "thick":
+            global_parameters[constants.GHG] = random.choices(
+                [
+                    random.randrange(0, self.ideal_atmosphere_size * 90),
+                    random.randrange(0, self.ideal_atmosphere_size * 10),
+                    random.randrange(0, self.ideal_atmosphere_size * 5),
+                    random.randrange(0, self.ideal_atmosphere_size),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.1)),
+                ],
+                [2, 4, 4, 4, 6],
+                k=1,
+            )[0]
+            global_parameters[constants.OXYGEN] = random.choices(
+                [
+                    random.randrange(0, self.ideal_atmosphere_size * 10),
+                    random.randrange(0, self.ideal_atmosphere_size * 5),
+                    random.randrange(0, self.ideal_atmosphere_size * 2),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.5)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                ],
+                [2, 4, 4, 4, 6],
+                k=1,
+            )[0]
+            global_parameters[constants.INERT_GASES] = random.choices(
+                [
+                    random.randrange(0, self.ideal_atmosphere_size * 90),
+                    random.randrange(0, self.ideal_atmosphere_size * 10),
+                    random.randrange(0, self.ideal_atmosphere_size * 5),
+                    random.randrange(0, self.ideal_atmosphere_size),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.1)),
+                ],
+                [2, 4, 4, 4, 6],
+                k=1,
+            )[
+                0
+            ]  # Same distribution as GHG
+            global_parameters[constants.TOXIC_GASES] = random.choices(
+                [
+                    random.randrange(0, self.ideal_atmosphere_size * 10),
+                    random.randrange(0, self.ideal_atmosphere_size * 5),
+                    random.randrange(0, self.ideal_atmosphere_size * 2),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.5)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                ],
+                [2, 4, 4, 4, 6],
+                k=1,
+            )[
+                0
+            ]  # Same distribution as oxygen
+        elif atmosphere_type == "medium":
+            global_parameters[constants.GHG] = random.choices(
+                [
+                    random.randrange(0, self.ideal_atmosphere_size),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.5)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.3)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.1)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                ],
+                [3, 3, 3, 3, 3],
+                k=1,
+            )[0]
+            global_parameters[constants.OXYGEN] = random.choices(
+                [
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.6)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.3)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.15)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.05)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                ],
+                [3, 3, 3, 3, 3],
+                k=1,
+            )[0]
+            global_parameters[constants.INERT_GASES] = random.choices(
+                [
+                    random.randrange(0, self.ideal_atmosphere_size),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.5)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.3)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.1)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                ],
+                [3, 3, 3, 3, 3],
+                k=1,
+            )[
+                0
+            ]  # Same distribution as GHG
+            global_parameters[constants.TOXIC_GASES] = random.choices(
+                [
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.6)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.3)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.15)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.05)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                ],
+                [3, 3, 3, 3, 3],
+                k=1,
+            )[
+                0
+            ]  # Same distribution as oxygen
+        elif atmosphere_type == "thin":
+            global_parameters[constants.GHG] = random.choices(
+                [
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.05)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.005)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.001)),
+                    0,
+                ],
+                [3, 3, 3, 3, 3],
+                k=1,
+            )[0]
+            global_parameters[constants.OXYGEN] = random.choices(
+                [
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.005)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.001)),
+                    0,
+                    0,
+                ],
+                [3, 3, 3, 3, 3],
+                k=1,
+            )[0]
+            global_parameters[constants.INERT_GASES] = random.choices(
+                [
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.05)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.005)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.001)),
+                    0,
+                ],
+                [3, 3, 3, 3, 3],
+                k=1,
+            )[
+                0
+            ]  # Same distribution as GHG
+            global_parameters[constants.TOXIC_GASES] = random.choices(
+                [
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.005)),
+                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.001)),
+                    0,
+                    0,
+                ],
+                [3, 3, 3, 3, 3],
+                k=1,
+            )[
+                0
+            ]  # Same distribution as oxygen
+        elif atmosphere_type == "none":
+            global_parameters[constants.GHG] = 0
+            global_parameters[constants.OXYGEN] = 0
+            global_parameters[constants.INERT_GASES] = 0
+            global_parameters[constants.TOXIC_GASES] = 0
+
+        radiation_effect = (
+            global_parameters[constants.RADIATION]
+            - global_parameters[constants.MAGNETIC_FIELD]
+        )
+        if radiation_effect >= 3:
+            global_parameters[constants.INERT_GASES] = 0
+            global_parameters[constants.OXYGEN] = 0
+            global_parameters[constants.TOXIC_GASES] /= 2
+            global_parameters[constants.GHG] /= 2
+        elif radiation_effect >= 1:
+            global_parameters[constants.INERT_GASES] /= 2
+            global_parameters[constants.OXYGEN] /= 2
+
+        for component in constants.ATMOSPHERE_COMPONENTS:
+            if global_parameters[component] != 0:
+                global_parameters[component] += random.uniform(-1.0, 1.0)
+            global_parameters[component] = max(
+                0, round(global_parameters[component], 1)
+            )
+
+        input_dict["global_parameters"] = global_parameters
+        return input_dict
+
+    def latitude_lines_setup(self):
+        """
+        Description:
+            15 x 15 grid has north pole 0, 0 and south pole 7, 7
+            If centered at (11, 11), latitude line should include (0, 0), (14, 14), (13, 13), (12, 12), (11, 11), (10, 10), (9, 9), (8, 8), (7, 7)
+                The above line should be used if centered at any of the above coordinates
+            If centered at (3, 11), latitude line should include (0, 0), (1, 14), (1, 13), (2, 12), (3, 11), (4, 10), (5, 9), (6, 8), (7, 7)
+
+            Need to draw latitude lines using the above method, centered on (0, 7), (1, 6), (2, 5), (3, 4), (4, 3), (5, 2), (6, 1), (7, 0), (8, 14), (9, 13), (10, 12), (11, 11), (12, 10), (13, 9), (14, 8)
+                ^ Forms diagonal line
+            Also need to draw latitude lines on other cross: (0, 8), (1, 9), (2, 10), (3, 11), (4, 12), (5, 13), (6, 14), (7, 0), (8, 1), (9, 2), (10, 3), (11, 4), (12, 5), (13, 6), (14, 7)
+        Input:
+            None
+        Output:
+            None
         """
         self.latitude_lines = []
         self.alternate_latitude_lines = []
@@ -784,6 +683,14 @@ class world_handler:
     def get_latitude_line(
         self, coordinates: Tuple[int, int]
     ) -> Tuple[int, List[List[Tuple[int, int]]]]:
+        """
+        Description:
+            Finds and returns the latitude line that the inputted coordinates are on
+        Input:
+            int tuple coordinates: Coordinates to find the latitude line of
+        Output:
+            int tuple list: Returns a latitude line (list of coordinates from 1 pole to the other) that the inputted coordinates are on
+        """
         latitude_line_type = self.latitude_lines_types[coordinates[0]][coordinates[1]]
         if latitude_line_type == None:
             for offset in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
@@ -894,12 +801,7 @@ class world_handler:
             None
         """
         self.global_parameters[parameter_name] = max(0, new_value)
-        if parameter_name in [
-            constants.OXYGEN,
-            constants.GHG,
-            constants.INERT_GASES,
-            constants.TOXIC_GASES,
-        ]:
+        if parameter_name in constants.ATMOSPHERE_COMPONENTS:
             self.update_pressure()
 
         if status.displayed_tile:
@@ -911,16 +813,22 @@ class world_handler:
                 mob.update_habitability()
 
     def update_pressure(self) -> None:
-        self.global_parameters[constants.PRESSURE] = sum(
-            [
-                self.get_parameter(atmosphere_component)
-                for atmosphere_component in [
-                    constants.OXYGEN,
-                    constants.GHG,
-                    constants.INERT_GASES,
-                    constants.TOXIC_GASES,
+        """
+        Description:
+            Updates the planet's pressure to be a sum of its atmosphere components whenever any are changed
+        Input:
+            None
+        Output:
+            None
+        """
+        self.global_parameters[constants.PRESSURE] = round(
+            sum(
+                [
+                    self.get_parameter(atmosphere_component)
+                    for atmosphere_component in constants.ATMOSPHERE_COMPONENTS
                 ]
-            ]
+            ),
+            1,
         )
 
     def update_sky_color(
@@ -943,12 +851,7 @@ class world_handler:
         default_sky_color = self.default_sky_color
         earth_sky_color = self.get_tuning("earth_sky_color")
         total_offset = 0
-        for atmosphere_component in [
-            constants.OXYGEN,
-            constants.GHG,
-            constants.INERT_GASES,
-            constants.TOXIC_GASES,
-        ]:
+        for atmosphere_component in constants.ATMOSPHERE_COMPONENTS:
             if self.get_parameter(constants.PRESSURE) == 0:
                 composition = 0.01
             else:
@@ -1365,12 +1268,7 @@ class world_handler:
         Output:
             float: Ideal value of the inputted parameter, like 1.0 gravity or 21% of atmosphere's pressure for oxygen
         """
-        if parameter_name in [
-            constants.OXYGEN,
-            constants.GHG,
-            constants.INERT_GASES,
-            constants.TOXIC_GASES,
-        ]:
+        if parameter_name in constants.ATMOSPHERE_COMPONENTS:
             return round(
                 self.default_grid.area * 6 * self.get_tuning(f"earth_{parameter_name}"),
                 2,
@@ -1575,7 +1473,7 @@ class world_handler:
                 ]
             )
             / self.default_grid.area,
-            2,
+            3,
         )
 
 
