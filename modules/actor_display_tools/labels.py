@@ -489,15 +489,17 @@ class actor_display_label(label):
             if constants.effect_manager.effect_active("god_mode"):
                 input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
                 input_dict["width"], input_dict["height"] = (ss_size, ss_size)
-
                 input_dict["change"] = -1
                 input_dict["image_id"] = "buttons/commodity_drop_button.png"
+                offset = scaling.scale_width(-145)
                 if (
                     self.actor_label_type == constants.WATER_LABEL
                     and constants.effect_manager.effect_active("map_customization")
                 ):
                     input_dict["keybind_id"] = pygame.K_q
-                self.add_attached_button(input_dict)
+                self.add_attached_button(
+                    input_dict, member_config={"order_exempt": True, "x_offset": offset}
+                )
 
                 input_dict["change"] = 1
                 input_dict["image_id"] = "buttons/commodity_pick_up_button.png"
@@ -506,7 +508,15 @@ class actor_display_label(label):
                     and constants.effect_manager.effect_active("map_customization")
                 ):
                     input_dict["keybind_id"] = pygame.K_w
-                self.add_attached_button(input_dict)
+                self.add_attached_button(
+                    input_dict,
+                    member_config={
+                        "order_exempt": True,
+                        "x_offset": offset
+                        + input_dict["width"]
+                        + scaling.scale_width(5),
+                    },
+                )
 
                 input_dict["change"] = -6
                 input_dict["image_id"] = "buttons/commodity_drop_all_button.png"
@@ -515,7 +525,14 @@ class actor_display_label(label):
                     and constants.effect_manager.effect_active("map_customization")
                 ):
                     input_dict["keybind_id"] = pygame.K_e
-                self.add_attached_button(input_dict)
+                self.add_attached_button(
+                    input_dict,
+                    member_config={
+                        "order_exempt": True,
+                        "x_offset": offset
+                        + (input_dict["width"] + scaling.scale_width(5)) * 2,
+                    },
+                )
 
                 input_dict["change"] = 6
                 input_dict["image_id"] = "buttons/commodity_pick_up_all_button.png"
@@ -524,7 +541,14 @@ class actor_display_label(label):
                     and constants.effect_manager.effect_active("map_customization")
                 ):
                     input_dict["keybind_id"] = pygame.K_r
-                self.add_attached_button(input_dict)
+                self.add_attached_button(
+                    input_dict,
+                    member_config={
+                        "order_exempt": True,
+                        "x_offset": offset
+                        + (input_dict["width"] + scaling.scale_width(5)) * 3,
+                    },
+                )
 
         elif self.actor_label_type == constants.HABITABILITY_LABEL:
             self.message_start = "Habitability: "
@@ -534,6 +558,11 @@ class actor_display_label(label):
         ) in constants.global_parameters or self.actor_label_type in [
             constants.AVERAGE_WATER_LABEL,
             constants.AVERAGE_TEMPERATURE_LABEL,
+            constants.STAR_DISTANCE_LABEL,
+            constants.INSOLATION_LABEL,
+            constants.GHG_EFFECT_LABEL,
+            constants.WATER_VAPOR_EFFECT_LABEL,
+            constants.TOTAL_HEAT_LABEL,
         ]:
             if self.actor_label_type.removesuffix(
                 "_label"
@@ -543,6 +572,10 @@ class actor_display_label(label):
                 self.message_start = "Avg. temperature: "
             elif self.actor_label_type == constants.AVERAGE_WATER_LABEL:
                 self.message_start = "Avg. water: "
+            elif self.actor_label_type == constants.GHG_EFFECT_LABEL:
+                self.message_start = "GHG effect: "
+            elif self.actor_label_type == constants.WATER_VAPOR_EFFECT_LABEL:
+                self.message_start = "Water vapor effect: "
             else:
                 self.message_start = (
                     utility.capitalize(
@@ -550,20 +583,35 @@ class actor_display_label(label):
                     )
                     + ": "
                 )
-            if self.actor_label_type.removesuffix(
-                "_label"
-            ) in constants.ATMOSPHERE_COMPONENTS and constants.effect_manager.effect_active(
-                "god_mode"
-            ):
+            if (
+                self.actor_label_type.removesuffix("_label")
+                in constants.ATMOSPHERE_COMPONENTS
+                or self.actor_label_type == constants.AVERAGE_WATER_LABEL
+            ) and constants.effect_manager.effect_active("god_mode"):
+                offset = scaling.scale_width(-75)
+                if self.actor_label_type == constants.AVERAGE_WATER_LABEL:
+                    change_magnitude = 10
+                else:
+                    change_magnitude = 10
                 input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
-                input_dict["width"], input_dict["height"] = (s_size, s_size)
-                input_dict["change"] = -1000
+                input_dict["width"], input_dict["height"] = (ss_size, ss_size)
+                input_dict["change"] = -1 * change_magnitude
                 input_dict["image_id"] = "buttons/cycle_ministers_down_button.png"
-                self.add_attached_button(input_dict)
+                self.add_attached_button(
+                    input_dict, member_config={"order_exempt": True, "x_offset": offset}
+                )
 
-                input_dict["change"] = 1000
+                input_dict["change"] = change_magnitude
                 input_dict["image_id"] = "buttons/cycle_ministers_up_button.png"
-                self.add_attached_button(input_dict)
+                self.add_attached_button(
+                    input_dict,
+                    member_config={
+                        "order_exempt": True,
+                        "x_offset": offset
+                        + input_dict["width"]
+                        + scaling.scale_width(5),
+                    },
+                )
 
         elif self.actor_label_type == constants.BANNER_LABEL:
             self.message_start = self.banner_text
@@ -903,6 +951,11 @@ class actor_display_label(label):
         ) in constants.global_parameters or self.actor_label_type in [
             constants.AVERAGE_WATER_LABEL,
             constants.AVERAGE_TEMPERATURE_LABEL,
+            constants.STAR_DISTANCE_LABEL,
+            constants.INSOLATION_LABEL,
+            constants.GHG_EFFECT_LABEL,
+            constants.WATER_VAPOR_EFFECT_LABEL,
+            constants.TOTAL_HEAT_LABEL,
         ]:
             tooltip_text = [self.message]
             if self.actor:
@@ -931,18 +984,69 @@ class actor_display_label(label):
                     )
                     if self.actor.grid != status.earth_grid:
                         tooltip_text.append(
-                            f"Approximately {self.actor.grid.world_handler.get_parameter(constants.GRAVITY)}x Earth's gravity"
+                            f"Approximately {self.actor.grid.world_handler.get_parameter(constants.GRAVITY) * 100}% Earth's gravity"
                         )
                         tooltip_text.append(
-                            f"Approximately {round(self.actor.grid.world_handler.size / self.actor.grid.world_handler.earth_size, 2)}x Earth's size"
+                            f"Approximately {round(self.actor.grid.world_handler.size / self.actor.grid.world_handler.earth_size, 2) * 100}% Earth's size"
                         )
                 elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
+                    tooltip_text.append(
+                        f"    Average temperature = absolute zero + total heat"
+                    )
                     if self.actor.grid != status.earth_grid:
                         tooltip_text.append(f"Earth is an average of 58.0 °F")
                 elif self.actor_label_type == constants.RADIATION_LABEL:
                     tooltip_text.append(f"Represents cosmic radiation and solar winds")
                     tooltip_text.append(
                         f"Any radiation exceeding magnetic field strength can harm life and slowly strip away atmosphere, particularly oxygen, inert gases, and non-frozen water"
+                    )
+
+                elif self.actor_label_type in [
+                    constants.STAR_DISTANCE_LABEL,
+                    constants.INSOLATION_LABEL,
+                ]:
+                    tooltip_text.append(
+                        f"Earth is 1 AU (astronomical unit) from the sun"
+                    )
+                    tooltip_text.append(
+                        f"The amount of sunlight a planet receives, known as insolation, depends on its distance from its star"
+                    )
+                    tooltip_text.append(f"    Insolation = 1 / (star distance)^2")
+                    tooltip_text.append(
+                        f"    {self.actor.grid.world_handler.get_insolation()} = 1 / ({self.actor.grid.world_handler.star_distance})^2"
+                    )
+
+                if self.actor_label_type in [
+                    constants.GHG,
+                    constants.GHG_EFFECT_LABEL,
+                    constants.WATER_VAPOR_EFFECT_LABEL,
+                ]:
+                    if self.actor_label_type in [
+                        constants.GHG,
+                        constants.GHG_EFFECT_LABEL,
+                    ]:
+                        tooltip_text.append(
+                            f"Greenhouse gases (GHGs) primarily includes carbon dioxide and methane (excluding water vapor)"
+                        )
+                    else:
+                        tooltip_text.append(
+                            f"Water vapor also acts as a greenhouse gas (GHG). Water vapor is based on the planet's temperature and quantity of water"
+                        )
+                    tooltip_text.append(
+                        f"GHGs help retain heat from the star, warming the planet"
+                    )
+                    tooltip_text.append(
+                        f"    Results in a multiplier to the effect of any insolation from the star"
+                    )
+                    tooltip_text.append(
+                        f"    The effect of any GHGs is stronger in thicker atmospheres, and vice versa"
+                    )
+                elif self.actor_label_type == constants.TOTAL_HEAT_LABEL:
+                    tooltip_text.append(
+                        f"Total heat is the planet's insolation multiplied by the greenhouse effects of GHG and water vapor"
+                    )
+                    tooltip_text.append(
+                        f"    Total heat = insolation * GHG multiplier * water vapor multiplier"
                     )
                 elif self.actor_label_type == constants.MAGNETIC_FIELD_LABEL:
                     tooltip_text.append(
@@ -991,6 +1095,15 @@ class actor_display_label(label):
                         f"    {utility.capitalize(key.replace('_', ' '))}: {constants.HABITABILITY_DESCRIPTIONS[value]}"
                     )
             self.set_tooltip(tooltip_text)
+        elif self.actor_label_type == constants.BANNER_LABEL:
+            if self.banner_type == "absolute zero":
+                tooltip_text = [self.message]
+                tooltip_text.append(
+                    "Absolute zero is the coldest possible temperature, and is the natural temperature when there is no heat"
+                )
+                self.set_tooltip(tooltip_text)
+            else:
+                super().update_tooltip()
         else:
             super().update_tooltip()
 
@@ -1353,20 +1466,21 @@ class actor_display_label(label):
                 if parameter in [constants.PRESSURE] + constants.ATMOSPHERE_COMPONENTS:
                     if (
                         parameter == constants.PRESSURE
-                    ):  # Pressure: 1200/2400 (0.5x Earth)
+                    ):  # Pressure: 1200/2400 (50% Earth)
                         self.set_label(
                             f"{self.message_start}{value:,} u ({round(self.actor.grid.world_handler.get_pressure_ratio(parameter), 2):,} atm)"
                         )
                     elif (
                         self.actor.grid.world_handler.get_parameter(constants.PRESSURE)
                         == 0.0
+                        or value == 0
                     ):
                         self.set_label(
                             f"0.0% {self.message_start}{value:,} u (0.0 atm)"
                         )
                     else:  # 42% Oxygen: 1008 u (0.42 atm)
                         self.set_label(
-                            f"{round(100 * value / self.actor.grid.world_handler.get_parameter(constants.PRESSURE), 1)}% {self.message_start}{value:,} u ({round(self.actor.grid.world_handler.get_pressure_ratio(parameter), 2):,} atm)"
+                            f"{round(100 * value / self.actor.grid.world_handler.get_parameter(constants.PRESSURE), 1)}% {self.message_start}{value:,} u ({max(0.01, round(self.actor.grid.world_handler.get_pressure_ratio(parameter), 2)):,} atm)"
                         )
                 elif parameter == constants.GRAVITY:
                     if self.actor.grid == status.earth_grid:
@@ -1378,26 +1492,65 @@ class actor_display_label(label):
                         self.actor_label_type.removesuffix("_label")
                     )
                     if value == 0:
-                        self.set_label(f"{self.message_start}0.0x Earth")
+                        self.set_label(f"{self.message_start}0% Earth")
                     else:
                         self.set_label(
-                            f"{self.message_start}{max(0.01, round((float(value) / ideal), 2)):,}x Earth"
+                            f"{self.message_start}{round(max(1, 100 * (float(value) / ideal))):,}% Earth"
                         )
             elif self.actor_label_type == constants.AVERAGE_WATER_LABEL:
                 original_value = (
                     self.actor.grid.world_handler.average_water
                     / status.strategic_map_grid.get_tuning("earth_average_water_target")
                 )
-                rounded_value = round(original_value, 2)
-                if original_value != 0 and rounded_value == 0:
-                    rounded_value = 0.01
+                if original_value != 0 and round(original_value * 100) == 0:
+                    original_value = 0.01
                 if self.actor.grid == status.earth_grid:
-                    self.set_label(f"{self.message_start}1.0x Earth")
+                    self.set_label(f"{self.message_start}100% Earth")
                 else:
-                    self.set_label(f"{self.message_start}{rounded_value}x Earth")
+                    self.set_label(
+                        f"{self.message_start}{round(original_value * 100)}% Earth"
+                    )
             elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
                 self.set_label(
                     f"{self.message_start}{round(utility.fahrenheit(self.actor.grid.world_handler.average_temperature), 2)} °F"
+                )
+            elif self.actor_label_type == constants.GHG_EFFECT_LABEL:
+                if self.actor.grid.world_handler.ghg_multiplier == 1.0:
+                    self.set_label(f"{self.message_start}+0% (0% Earth)")
+                else:
+                    self.set_label(
+                        f"{self.message_start}+{round((self.actor.grid.world_handler.ghg_multiplier - 1.0) * 100, 2)}% ({round((self.actor.grid.world_handler.ghg_multiplier - 1.0) / (status.earth_grid.world_handler.ghg_multiplier - 1.0) * 100)}% Earth)"
+                    )
+            elif self.actor_label_type == constants.WATER_VAPOR_EFFECT_LABEL:
+                if self.actor.grid.world_handler.water_vapor_multiplier == 1.0:
+                    self.set_label(f"{self.message_start}+0% (0% Earth)")
+                else:
+                    self.set_label(
+                        f"{self.message_start}+{round((self.actor.grid.world_handler.water_vapor_multiplier - 1.0) * 100, 2)}% ({round((self.actor.grid.world_handler.water_vapor_multiplier - 1.0) / (status.earth_grid.world_handler.water_vapor_multiplier - 1.0) * 100)}% Earth)"
+                    )
+            elif self.actor_label_type == constants.TOTAL_HEAT_LABEL:
+                total_heat = round(
+                    self.actor.grid.world_handler.water_vapor_multiplier
+                    * self.actor.grid.world_handler.ghg_multiplier
+                    * self.actor.grid.world_handler.get_sun_effect(),
+                    2,
+                )
+                earth_total_heat = round(
+                    status.earth_grid.world_handler.water_vapor_multiplier
+                    * status.earth_grid.world_handler.ghg_multiplier
+                    * status.earth_grid.world_handler.get_sun_effect(),
+                    2,
+                )
+                self.set_label(
+                    f"{self.message_start}+{total_heat} °F ({round((total_heat / earth_total_heat) * 100)}% Earth)"
+                )
+            elif self.actor_label_type == constants.STAR_DISTANCE_LABEL:
+                self.set_label(
+                    f"{self.message_start}{self.actor.grid.world_handler.star_distance} AU"
+                )
+            elif self.actor_label_type == constants.INSOLATION_LABEL:
+                self.set_label(
+                    f"{self.message_start}+{round(self.actor.grid.world_handler.get_sun_effect(), 2)} °F ({round(self.actor.grid.world_handler.get_insolation() * 100)}% Earth)"
                 )
             elif self.actor_label_type == constants.HABITABILITY_LABEL:
                 overall_habitability = (

@@ -156,16 +156,19 @@ def start_player_turn(first_turn=False):
         manage_attrition()  # have attrition before or after enemy turn? Before upkeep?
         manage_production()
         reset_mobs("pmobs")
-        manage_public_opinion()
-        manage_upkeep()
-        manage_loans()
-        manage_worker_price_changes()
-        manage_commodity_sales()
-        manage_ministers()
-        manage_subsidies()  # subsidies given after public opinion changes
-        manage_financial_report()
+        if not constants.effect_manager.effect_active("skip_start_of_turn"):
+            manage_public_opinion()
+            manage_upkeep()
+            manage_loans()
+            manage_worker_price_changes()
+            manage_commodity_sales()
+            manage_ministers()
+            manage_subsidies()  # subsidies given after public opinion changes
+            manage_financial_report()
         actor_utility.reset_action_prices()
         game_end_check()
+        status.strategic_map_grid.world_handler.update_target_average_temperature()
+        status.strategic_map_grid.world_handler.change_to_temperature_target()
         status.strategic_map_grid.world_handler.update_sky_color(update_water=True)
         status.strategic_map_grid.world_handler.update_clouds()
         constants.notification_manager.set_lock(False)

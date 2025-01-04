@@ -33,6 +33,9 @@ class terrain_handler:
                 constants.WATER: 0,
             },
         )
+        self.local_weather_offset = input_dict.get(
+            "local_weather_offset", random.uniform(-0.2, 0.2)
+        )
         self.terrain_variant: int = input_dict.get("terrain_variant", 0)
         self.current_clouds: List[Dict[str, any]] = input_dict.get("current_clouds", [])
         self.pole_distance_multiplier: float = (
@@ -131,9 +134,7 @@ class terrain_handler:
             int: Returns the habitability of this tile based on current knowledge
         """
         habitability_dict = self.get_habitability_dict()
-        if (
-            self.get_world_handler().default_grid.is_abstract_grid
-        ):  # If global habitability
+        if self.default_cell.grid.is_abstract_grid:  # If global habitability
             habitability_dict[
                 constants.TEMPERATURE
             ] = actor_utility.calculate_temperature_habitability(
@@ -219,7 +220,9 @@ class terrain_handler:
         else:
             return True
 
-    def change_parameter(self, parameter_name: str, change: int) -> None:
+    def change_parameter(
+        self, parameter_name: str, change: int, update_display: bool = True
+    ) -> None:
         """
         Description:
             Changes the value of a parameter for this handler's cells
@@ -231,7 +234,9 @@ class terrain_handler:
             None
         """
         self.set_parameter(
-            parameter_name, self.terrain_parameters[parameter_name] + change
+            parameter_name,
+            self.terrain_parameters[parameter_name] + change,
+            update_display=update_display,
         )
 
     def set_parameter(
@@ -256,6 +261,7 @@ class terrain_handler:
             self.minima.get(parameter_name, 0),
             min(new_value, self.maxima.get(parameter_name, 5)),
         )
+        new_value = self.terrain_parameters[parameter_name]
         if (
             parameter_name == constants.WATER
             and not self.get_world_handler().default_grid.is_abstract_grid
@@ -265,11 +271,22 @@ class terrain_handler:
             parameter_name == constants.TEMPERATURE
             and not self.get_world_handler().default_grid.is_abstract_grid
         ):
-            self.get_world_handler().update_average_temperature()
-            self.expected_temperature_offset = (
-                self.terrain_parameters[parameter_name]
-                - self.get_expected_temperature()
-            )
+            # If changing temperature, re-distribute water around the planet
+            # Causes melting glaciers and vice versa
+            if new_value != old_value:
+                water_displaced = random.randrange(
+                    0, self.get_parameter(constants.WATER) + 1
+                )
+                self.set_parameter(
+                    constants.WATER,
+                    self.get_parameter(constants.WATER) - water_displaced,
+                    update_display=False,
+                )
+                for i in range(water_displaced):
+                    self.get_world_handler().default_grid.place_water(
+                        radiation_effect=False
+                    )
+
         new_terrain = constants.terrain_manager.classify(self.terrain_parameters)
 
         if (
@@ -381,6 +398,7 @@ class terrain_handler:
                 'terrain_features': string/boolean dictionary value - Dictionary containing an entry for each terrain feature in this handler's cells
                 'terrain_parameters': string/int dictionary value - Dictionary containing 1-6 parameters for this handler's cells, like 'temperature': 1
                 'resource': string value - Resource type of this handler's cells and their tiles, like 'exotic wood'
+                'local_weather_offset': float value - Temperature offset of this handler's cells from the usual at the same location
         """
         save_dict = {}
         save_dict["terrain_variant"] = self.terrain_variant
@@ -390,6 +408,7 @@ class terrain_handler:
         save_dict["resource"] = self.resource
         save_dict["north_pole_distance_multiplier"] = self.pole_distance_multiplier
         save_dict["current_clouds"] = self.current_clouds
+        save_dict["local_weather_offset"] = self.local_weather_offset
         return save_dict
 
     def get_parameter(self, parameter_name: str) -> int:
@@ -529,8 +548,10 @@ class terrain_handler:
                         adjacent_cell.get_parameter(constants.WATER)
                         <= self.terrain_parameters[constants.WATER] - 2
                     ):
-                        adjacent_cell.change_parameter(constants.WATER, 1)
-                        self.change_parameter(constants.WATER, -1)
+                        adjacent_cell.change_parameter(
+                            constants.WATER, 1, update_display=False
+                        )
+                        self.change_parameter(constants.WATER, -1, update_display=False)
                         flowed = True
 
         if flowed:  # Flow could recursively trigger flows in adjacent cells

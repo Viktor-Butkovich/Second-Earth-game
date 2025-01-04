@@ -2596,7 +2596,10 @@ class tab_button(button):
                 )
             elif self.identifier == constants.LOCAL_CONDITIONS_PANEL:
                 return_value = not status.displayed_tile.grid.is_abstract_grid
-            elif self.identifier == constants.GLOBAL_CONDITIONS_PANEL:
+            elif self.identifier in [
+                constants.GLOBAL_CONDITIONS_PANEL,
+                constants.TEMPERATURE_BREAKDOWN_PANEL,
+            ]:
                 return_value = status.displayed_tile.grid.is_abstract_grid
 
         if (

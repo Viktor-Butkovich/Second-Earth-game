@@ -340,6 +340,17 @@ except Exception:  # Displays error message and records error message in crash l
         Local weather modifier is random for each tile, but can change over time based on local activities (releasing energy, etc.)
         At start of turn, change local temperatures until global average is sufficiently close to ideal
         First change tiles whose local temperatures are farthest from the ideal local temperature
+    Mars is 1.523x as far from the sun as Earth, so it receives 1 / (1.523^2) = 0.43x the solation
+    Venus is 0.723x as far from the sun as Earth, so it receives 1 / (0.723^2) = 1.91x the solation
+    Earth would be about 0 degrees Fahrenheit with no GHG, and is about 58 degrees Fahrenheit with current GHG levels
+        About half of Earth's greenhouse effect is caused by water, and about half by GHG
+            Increasing water vapor proportion can increase greenhouse effect, in turn increasing temperature
+                However, more clouds can increase albedo, decreasing effective solation
+    Mars has an average of -68 degrees F, but, by the Stefan-Boltzmann law, it would be -88 degrees F with no GHG effect
+        Therefore, the CO2 on Mars causes about 20 degrees F of warming
+    Likewise, Earth has an average of 58 degrees F, but would be -0.5 degrees F with no GHG effect, so GHG causes about 58.5 degrees F of warming
+        Note that about half of this warming is from GHG, and half is from water vapor
+    Venus has an average of 864 degrees F, but would be 81 degrees F with no GHG effect, so GHG causes about 783 degrees F of warming
 18. Organism customization
     Environmental engineers at a lab should be able to work towards creating a customized organism, with progress each turn based on success rolls
         Minister stealing part of materials should result in an organism that doesn't act quite as expected

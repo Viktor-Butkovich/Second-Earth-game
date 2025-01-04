@@ -104,9 +104,18 @@ class terrain_manager_template:
             ]
         ):
             lower_bound, upper_bound = bounds
-            self.terrain_parameter_keywords[constants.TEMPERATURE][
-                idx - 6
-            ] = f"{lower_bound} °F to {upper_bound} °F"
+            if lower_bound == -185:
+                self.terrain_parameter_keywords[constants.TEMPERATURE][
+                    idx - 6
+                ] = f"below {upper_bound} °F"
+            elif upper_bound == 305:
+                self.terrain_parameter_keywords[constants.TEMPERATURE][
+                    idx - 6
+                ] = f"above {lower_bound} °F"
+            else:
+                self.terrain_parameter_keywords[constants.TEMPERATURE][
+                    idx - 6
+                ] = f"{lower_bound} °F to {upper_bound} °F"
         self.load_terrains("configuration/terrain_definitions.json")
         self.load_tuning("configuration/terrain_generation_tuning.json")
 

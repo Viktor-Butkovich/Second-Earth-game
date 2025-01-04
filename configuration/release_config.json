@@ -10,6 +10,7 @@
       "allow_toggle_fog_of_war"
    ],
    "effects": [
+      "skip_start_of_turn",
       "map_customization",
       "speed_loading",
       "allow_toggle_clouds",

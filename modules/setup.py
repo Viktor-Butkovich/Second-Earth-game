@@ -3176,6 +3176,59 @@ def terrain_interface():
         }
         constants.actor_creation_manager.create_interface_element(input_dict)
 
+    status.temperature_breakdown_collection = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
+                "init_type": constants.ORDERED_COLLECTION,
+                "parent_collection": status.tile_tabbed_collection,
+                "member_config": {
+                    "tabbed": True,
+                    "button_image_id": actor_utility.generate_frame(
+                        "misc/map_modes/temperature.png"
+                    ),
+                    "identifier": constants.TEMPERATURE_BREAKDOWN_PANEL,
+                    "tab_name": "temperature breakdown",
+                },
+            }
+        )
+    )
+
+    for current_actor_label_type in [
+        constants.BANNER_LABEL,
+        constants.TOTAL_HEAT_LABEL,
+        constants.INSOLATION_LABEL,
+        constants.STAR_DISTANCE_LABEL,
+        constants.GHG_EFFECT_LABEL,
+        constants.WATER_VAPOR_EFFECT_LABEL,
+        constants.AVERAGE_TEMPERATURE_LABEL,
+    ]:
+        if current_actor_label_type in [
+            constants.AVERAGE_TEMPERATURE_LABEL,
+            constants.BANNER_LABEL,
+            constants.TOTAL_HEAT_LABEL,
+        ]:
+            x_displacement = 0
+        elif current_actor_label_type in [constants.STAR_DISTANCE_LABEL]:
+            x_displacement = 50
+        else:
+            x_displacement = 25
+        input_dict = {
+            "minimum_width": scaling.scale_width(10),
+            "height": scaling.scale_height(30),
+            "image_id": "misc/default_label.png",
+            "init_type": current_actor_label_type,
+            "actor_type": "tile",
+            "parent_collection": status.temperature_breakdown_collection,
+            "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
+        }
+        if current_actor_label_type == constants.BANNER_LABEL:
+            input_dict["banner_type"] = "absolute zero"
+            input_dict["banner_text"] = f"Absolute zero: {constants.ABSOLUTE_ZERO} °F"
+        constants.actor_creation_manager.create_interface_element(input_dict)
+
     status.local_conditions_collection = (
         constants.actor_creation_manager.create_interface_element(
             {

@@ -608,6 +608,7 @@ MAP_MODE_ALPHA: int = 0
 SETTLEMENT_PANEL: str = "settlement_panel"
 LOCAL_CONDITIONS_PANEL: str = "local_conditions_panel"
 GLOBAL_CONDITIONS_PANEL: str = "global_conditions_panel"
+TEMPERATURE_BREAKDOWN_PANEL: str = "temperature_breakdown_panel"
 
 INVENTORY_PANEL: str = "inventory_panel"
 REORGANIZATION_PANEL: str = "reorganization_panel"
@@ -875,6 +876,11 @@ AVERAGE_TEMPERATURE_LABEL: str = "average_temperature_label"
 GRAVITY_LABEL: str = "gravity_label"
 RADIATION_LABEL: str = "radiation_label"
 MAGNETIC_FIELD_LABEL: str = "magnetic_field_label"
+STAR_DISTANCE_LABEL: str = "star_distance_label"
+INSOLATION_LABEL: str = "insolation_label"
+GHG_EFFECT_LABEL: str = "GHG_effect_label"
+WATER_VAPOR_EFFECT_LABEL: str = "water_vapor_effect_label"
+TOTAL_HEAT_LABEL: str = "total_heat_label"
 TILE_INVENTORY_CAPACITY_LABEL: str = "tile_inventory_capacity_label"
 MOB_INVENTORY_CAPACITY_LABEL: str = "mob_inventory_capacity_label"
 
@@ -992,3 +998,5 @@ HABITABILITY_DESCRIPTIONS: Dict[int, str] = {
     HABITABILITY_DANGEROUS: "dangerous",
     HABITABILITY_DEADLY: "deadly",
 }
+
+ABSOLUTE_ZERO: float = -459.67

@@ -69,7 +69,9 @@ class cell:
         """
         return self.terrain_handler.get_parameter(parameter_name)
 
-    def change_parameter(self, parameter_name: str, change: int) -> None:
+    def change_parameter(
+        self, parameter_name: str, change: int, update_display: bool = True
+    ) -> None:
         """
         Description:
             Changes the value of a parameter for this cell's terrain handler
@@ -79,7 +81,9 @@ class cell:
         Output:
             None
         """
-        self.terrain_handler.change_parameter(parameter_name, change)
+        self.terrain_handler.change_parameter(
+            parameter_name, change, update_display=update_display
+        )
 
     def set_parameter(self, parameter_name: str, new_value: int) -> None:
         """

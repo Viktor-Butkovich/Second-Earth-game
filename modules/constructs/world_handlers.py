@@ -1,7 +1,7 @@
 import random
-from math import ceil
+from math import ceil, log
 from typing import List, Dict, Tuple
-from modules.util import actor_utility
+from modules.util import utility, actor_utility
 from modules.constants import constants, status, flags
 
 
@@ -76,11 +76,8 @@ class world_handler:
                             1,
                         ),
                     }
-                    input_dict["default_temperature"] = self.get_tuning(
-                        f"{preset}_base_temperature"
-                    )
-                    input_dict["expected_temperature_target"] = self.get_tuning(
-                        f"{preset}_expected_temperature_target"
+                    input_dict["star_distance"] = self.get_tuning(
+                        f"{preset}_star_distance"
                     )
                     input_dict["average_water_target"] = self.get_tuning(
                         f"{preset}_average_water_target"
@@ -117,14 +114,9 @@ class world_handler:
                 input_dict["average_water"] = self.get_tuning(
                     "earth_average_water_target"
                 )
-                input_dict["default_temperature"] = self.get_tuning(
-                    "earth_base_temperature"
-                )
-                input_dict["average_temperature"] = self.get_tuning(
-                    "earth_expected_temperature_target"
-                )
                 input_dict["size"] = self.earth_size
                 input_dict["sky_color"] = self.get_tuning("earth_sky_color")
+                input_dict["star_distance"] = self.get_tuning("earth_star_distance")
             input_dict["default_sky_color"] = input_dict["sky_color"].copy()
 
         self.terrain_handlers: list = [
@@ -140,15 +132,12 @@ class world_handler:
         self.color_filter: Dict[str, float] = input_dict.get(
             "color_filter", {"red": 1, "green": 1, "blue": 1}
         )
-        self.expected_temperature_target: float = input_dict.get(
-            "expected_temperature_target", 0.0
-        )
-        self.default_temperature: int = input_dict.get("default_temperature", 0)
-        self.average_temperature: float = input_dict.get("average_temperature", 0.0)
-        self.earth_average_temperature = self.get_tuning(
-            "earth_expected_temperature_target"
-        )
+        self.star_distance: float = input_dict["star_distance"]
 
+        self.water_vapor_multiplier: float = input_dict.get(
+            "water_vapor_multiplier", 1.0
+        )
+        self.ghg_multiplier: float = input_dict.get("ghg_multiplier", 1.0)
         self.average_water_target: float = input_dict.get("average_water_target", 0.0)
         self.average_water: float = input_dict.get("average_water", 0.0)
 
@@ -163,6 +152,11 @@ class world_handler:
         for key in constants.global_parameters:
             self.set_parameter(key, input_dict.get("global_parameters", {}).get(key, 0))
         self.latitude_lines_setup()
+        self.average_temperature: float = 0.0
+        self.update_target_average_temperature(
+            earth_grid=input_dict["grid_type"] == constants.EARTH_GRID_TYPE,
+            estimate_water_vapor=not from_save,
+        )
 
     def generate_global_parameters(self) -> Dict[str, int]:
         """
@@ -179,27 +173,7 @@ class world_handler:
             "planet_names"
         )
 
-        if self.get_tuning("weighted_temperature_bounds"):
-            input_dict["default_temperature"] = min(
-                max(
-                    random.randrange(-6, 12),
-                    self.get_tuning("base_temperature_lower_bound"),
-                ),
-                self.get_tuning("base_temperature_upper_bound"),
-            )
-
-        else:
-            input_dict["default_temperature"] = random.randrange(
-                self.get_tuning("base_temperature_lower_bound"),
-                self.get_tuning("base_temperature_upper_bound") + 1,
-            )
-        input_dict["expected_temperature_target"] = max(
-            min(
-                input_dict["default_temperature"] + random.uniform(-0.5, 0.5),
-                10.95,
-            ),
-            -5.95,
-        )
+        input_dict["star_distance"] = round(random.uniform(0.5, 2.0), 3)
 
         input_dict["rotation_direction"] = random.choice([1, -1])
         input_dict["rotation_speed"] = random.choice([1, 2, 2, 3, 4, 5])
@@ -250,8 +224,9 @@ class world_handler:
                     random.randrange(0, self.ideal_atmosphere_size * 5),
                     random.randrange(0, self.ideal_atmosphere_size),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.1)),
+                    0,
                 ],
-                [2, 4, 4, 4, 6],
+                [2, 4, 4, 4, 6, 6],
                 k=1,
             )[0]
             global_parameters[constants.OXYGEN] = random.choices(
@@ -261,8 +236,9 @@ class world_handler:
                     random.randrange(0, self.ideal_atmosphere_size * 2),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.5)),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                    0,
                 ],
-                [2, 4, 4, 4, 6],
+                [2, 4, 4, 4, 6, 6],
                 k=1,
             )[0]
             global_parameters[constants.INERT_GASES] = random.choices(
@@ -272,8 +248,9 @@ class world_handler:
                     random.randrange(0, self.ideal_atmosphere_size * 5),
                     random.randrange(0, self.ideal_atmosphere_size),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.1)),
+                    0,
                 ],
-                [2, 4, 4, 4, 6],
+                [2, 4, 4, 4, 6, 6],
                 k=1,
             )[
                 0
@@ -285,8 +262,9 @@ class world_handler:
                     random.randrange(0, self.ideal_atmosphere_size * 2),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.5)),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                    0,
                 ],
-                [2, 4, 4, 4, 6],
+                [2, 4, 4, 4, 6, 6],
                 k=1,
             )[
                 0
@@ -299,8 +277,9 @@ class world_handler:
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.3)),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.1)),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                    0,
                 ],
-                [3, 3, 3, 3, 3],
+                [3, 3, 3, 3, 3, 3],
                 k=1,
             )[0]
             global_parameters[constants.OXYGEN] = random.choices(
@@ -310,8 +289,9 @@ class world_handler:
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.15)),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.05)),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                    0,
                 ],
-                [3, 3, 3, 3, 3],
+                [3, 3, 3, 3, 3, 3],
                 k=1,
             )[0]
             global_parameters[constants.INERT_GASES] = random.choices(
@@ -321,8 +301,9 @@ class world_handler:
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.3)),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.1)),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                    0,
                 ],
-                [3, 3, 3, 3, 3],
+                [3, 3, 3, 3, 3, 3],
                 k=1,
             )[
                 0
@@ -334,8 +315,9 @@ class world_handler:
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.15)),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.05)),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
+                    0,
                 ],
-                [3, 3, 3, 3, 3],
+                [3, 3, 3, 3, 3, 3],
                 k=1,
             )[
                 0
@@ -348,8 +330,9 @@ class world_handler:
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.005)),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.001)),
                     0,
+                    0,
                 ],
-                [3, 3, 3, 3, 3],
+                [3, 3, 3, 3, 3, 3],
                 k=1,
             )[0]
             global_parameters[constants.OXYGEN] = random.choices(
@@ -370,8 +353,9 @@ class world_handler:
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.005)),
                     random.randrange(0, ceil(self.ideal_atmosphere_size * 0.001)),
                     0,
+                    0,
                 ],
-                [3, 3, 3, 3, 3],
+                [3, 3, 3, 3, 3, 3],
                 k=1,
             )[
                 0
@@ -409,7 +393,9 @@ class world_handler:
             global_parameters[constants.OXYGEN] /= 2
 
         for component in constants.ATMOSPHERE_COMPONENTS:
-            if global_parameters[component] != 0:
+            if random.randrange(1, 7) >= 5:
+                global_parameters[component] = 0
+            elif global_parameters[component] != 0:
                 global_parameters[component] += random.uniform(-1.0, 1.0)
             global_parameters[component] = max(
                 0, round(global_parameters[component], 1)
@@ -417,6 +403,44 @@ class world_handler:
 
         input_dict["global_parameters"] = global_parameters
         return input_dict
+
+    def change_to_temperature_target(self, estimate_water_vapor: bool = False):
+        """
+        Description:
+            Modifies the temperature of tiles on this grid until the target average temperature is reached
+                Must be called after re-calculating the average temperature
+            Selects tiles that are most different from their ideal temperatures
+        Input:
+            boolean estimate_water_vapor: Whether to estimate the water vapor contribution or to directly calculate
+                Setting up temperature before water requires estimating water vapor amount
+        Output:
+            None
+        """
+        if abs(self.average_temperature - self.get_average_tile_temperature()) > 0.01:
+            while (
+                self.average_temperature > self.get_average_tile_temperature()
+                and self.get_average_tile_temperature() < 10.5
+            ):
+                self.default_grid.warm()
+                self.update_target_average_temperature(
+                    estimate_water_vapor=estimate_water_vapor
+                )
+            while (
+                self.average_temperature < self.get_average_tile_temperature()
+                and self.get_average_tile_temperature() > -5.5
+            ):
+                self.default_grid.cool()
+                self.update_target_average_temperature(
+                    estimate_water_vapor=estimate_water_vapor
+                )
+        self.default_grid.bound(
+            constants.TEMPERATURE,
+            round(self.average_temperature)
+            - self.get_tuning("final_temperature_variations")[0],
+            round(self.average_temperature)
+            + self.get_tuning("final_temperature_variations")[1],
+        )
+        self.default_grid.smooth(constants.TEMPERATURE)
 
     def latitude_lines_setup(self):
         """
@@ -707,7 +731,9 @@ class world_handler:
         if not flags.loading:
             status.strategic_map_grid.update_globe_projection(update_button=True)
 
-    def get_water_vapor_contributions(self):
+    def get_water_vapor_contributions(
+        self, estimated_temperature: float = None
+    ) -> float:
         """
         Description:
             Calculates the average water vapor for the planet, depending on local water and temperature
@@ -717,16 +743,40 @@ class world_handler:
             float: Average water vapor for the planet
         """
         total_water_vapor = 0
-        for terrain_handler in self.terrain_handlers:
-            if terrain_handler.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
-                "water_freezing_point"
-            ):
-                total_water_vapor += terrain_handler.get_parameter(constants.WATER)
-            if terrain_handler.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
-                "water_boiling_point"
-            ):  # Count boiling twice
-                total_water_vapor += terrain_handler.get_parameter(constants.WATER)
-        return total_water_vapor / self.default_grid.area
+        water_vapor_max_contribution = (
+            self.get_tuning("water_boiling_point")
+            - self.get_tuning("water_freezing_point")
+            + 2
+        )
+        if estimated_temperature != None:
+            water_vapor_contribution = (
+                estimated_temperature - self.get_tuning("water_freezing_point") + 2
+            )
+            contribution_ratio = water_vapor_contribution / water_vapor_max_contribution
+            if contribution_ratio > 0:
+                average_water_vapor = (
+                    (0.4 + (0.6 * contribution_ratio)) * self.average_water_target * 1.5
+                )
+            else:
+                average_water_vapor = 0
+            return average_water_vapor
+        else:
+            for terrain_handler in self.terrain_handlers:
+                water_vapor_contribution = (
+                    terrain_handler.get_parameter(constants.TEMPERATURE)
+                    - self.get_tuning("water_freezing_point")
+                    + 2
+                )
+                contribution_ratio = (
+                    water_vapor_contribution / water_vapor_max_contribution
+                )
+                if contribution_ratio > 0:
+                    total_water_vapor += (
+                        (0.4 + (0.6 * contribution_ratio))
+                        * terrain_handler.get_parameter(constants.WATER)
+                        * 1.5
+                    )
+            return total_water_vapor / self.default_grid.area
 
     def update_clouds(self):
         """
@@ -874,7 +924,6 @@ class world_handler:
         return {
             "color_filter": self.color_filter,
             "green_screen": self.green_screen,
-            "default_temperature": self.default_temperature,
             "global_parameters": self.global_parameters,
             "average_water": self.average_water,
             "average_temperature": self.average_temperature,
@@ -884,6 +933,10 @@ class world_handler:
             "sky_color": self.sky_color,
             "default_sky_color": self.default_sky_color,
             "initial_atmosphere_offset": self.initial_atmosphere_offset,
+            "star_distance": self.star_distance,
+            "average_temperature": self.average_temperature,
+            "water_vapor_multiplier": self.water_vapor_multiplier,
+            "ghg_multiplier": self.ghg_multiplier,
         }
 
     def generate_green_screen(self) -> Dict[str, Dict[str, any]]:
@@ -1230,7 +1283,7 @@ class world_handler:
         elif parameter_name == constants.MAGNETIC_FIELD:
             return constants.HABITABILITY_PERFECT
 
-    def update_average_temperature(self):
+    def get_average_tile_temperature(self):
         """
         Description:
             Re-calculates the average temperature of this world
@@ -1239,7 +1292,7 @@ class world_handler:
         Output:
             None
         """
-        self.average_temperature = round(
+        return round(
             sum(
                 [
                     terrain_handler.get_parameter(constants.TEMPERATURE)
@@ -1269,3 +1322,142 @@ class world_handler:
             / self.default_grid.area,
             3,
         )
+
+    def get_insolation(self):
+        """
+        Description:
+            Calculates and returns the insolation of this planet based on its star distance
+        Input:
+            None
+        Output:
+            Returns the insolation of this planet based on its star distance
+        """
+        return round(1 / (self.star_distance) ** 2, 2)
+
+    def get_sun_effect(self):
+        """
+        Description:
+            Calculates and returns the base amount of heat caused by the sun on this planet, before including greenhouse effect and albedo
+        Input:
+            None
+        Output:
+            Returns the base amount of heat caused by the sun on this planet
+        """
+        return (
+            self.get_tuning("earth_base_temperature_fahrenheit")
+            - constants.ABSOLUTE_ZERO
+        ) * (self.get_insolation() ** 0.25)
+
+    def get_ghg_effect_multiplier(self, weight: float = 1.0) -> float:
+        """
+        Description:
+            Calculates and returns the greenhouse effect caused by greenhouse gases on this planet
+        Input:
+            float weight: Weight of the greenhouse gas effect in the overall temperature calculation
+        Output:
+            Returns the greenhouse effect caused by greenhouse gases on this planet
+        """
+        atm = self.get_pressure_ratio(constants.GHG)
+        if atm < 0.005:
+            ghg_multiplier = 1.0 + weight * (atm / 0.005) * 0.124
+        else:
+            ghg_multiplier = 1.0 + weight * (0.124 * (log(atm / 0.005, 3) + 1))
+        self.ghg_multiplier = ghg_multiplier
+        return ghg_multiplier
+
+    def get_water_vapor_effect_multiplier(
+        self,
+        weight: float = 1.0,
+        earth_grid: bool = False,
+        estimated_temperature: float = None,
+    ) -> float:
+        """
+        Description:
+            Calculates and returns the greenhouse effect caused by water vapor on this planet
+                Optionally uses an estimated final temperature to use if attempting to calculate water vapor effect before water is generated
+                    Water vapor both causes and is caused by temperature changes, so an estimated baseline is required
+        Input:
+            float weight: Weight of the water vapor effect in the overall temperature calculation
+            bool earth_grid: Whether calculating Earth's water vapor or a planet's
+                Difficult to determine if current grid is the Earth grid if during setup
+            float estimated_temperature: Estimated temperature of the planet, used to calculate water vapor effect before water is generated
+        Output:
+            Returns the greenhouse effect caused by water vapor on this planet
+        """
+        if earth_grid:
+            water_vapor = self.get_tuning("earth_water_vapor")
+        else:
+            water_vapor = self.get_water_vapor_contributions(
+                estimated_temperature=estimated_temperature
+            )
+
+        water_vapor_multiplier = 1.0 + (
+            water_vapor / self.get_tuning("earth_water_vapor") * weight * 0.124
+        )
+        self.water_vapor_multiplier = water_vapor_multiplier
+        return water_vapor_multiplier
+
+    def update_target_average_temperature(
+        self, earth_grid: bool = False, estimate_water_vapor: bool = False
+    ):
+        """
+        Description:
+            Re-calculates the average temperature of this world, based on sun distance -> solation and greenhouse effect
+                This average temperature is used as a target, changing individual tiles until the average is reached
+        Input:
+            None
+        Output:
+            None
+        """
+        pressure = self.get_pressure_ratio()
+        if pressure >= 1:  # Linear relationship from 1, 1 to 10, 3/2
+            min_effect = 1
+            max_effect = 3 / 2
+            min_pressure = 1
+            max_pressure = 10
+            min_pressure = 1
+        else:
+            min_effect = 2 / 3 + 0.08  # Tune value to make Mars the correct temperature
+            max_effect = 1
+            min_pressure = 0
+            max_pressure = 1
+            min_pressure = 0
+        pressure_effect = min(
+            max_effect,
+            max(
+                min_effect,
+                min_effect
+                + ((pressure - min_pressure) * (max_effect - min_effect))
+                / (max_pressure - min_pressure),
+            ),
+        )
+        water_vapor_weight, ghg_weight = (
+            0.5 * pressure_effect,
+            0.5 * pressure_effect,
+        )  # Increase GHG effect for higher pressures and vice versa
+
+        ghg_multiplier = self.get_ghg_effect_multiplier(weight=ghg_weight)
+
+        if estimate_water_vapor:
+            estimated_temperature = utility.reverse_fahrenheit(
+                ghg_multiplier * 1.03 * self.get_sun_effect() + constants.ABSOLUTE_ZERO
+            )
+            water_vapor_multiplier = self.get_water_vapor_effect_multiplier(
+                weight=water_vapor_weight,
+                earth_grid=earth_grid,
+                estimated_temperature=estimated_temperature,
+            )
+        else:
+            water_vapor_multiplier = self.get_water_vapor_effect_multiplier(
+                weight=water_vapor_weight, earth_grid=earth_grid
+            )
+        fahrenheit = (
+            ghg_multiplier * water_vapor_multiplier * self.get_sun_effect()
+        ) + constants.ABSOLUTE_ZERO
+        self.average_temperature = utility.reverse_fahrenheit(fahrenheit)
+        for terrain_handler in self.terrain_handlers:
+            terrain_handler.expected_temperature_offset = (
+                terrain_handler.terrain_parameters[constants.TEMPERATURE]
+                - terrain_handler.get_expected_temperature()
+            )
+        self.average_temperature = utility.reverse_fahrenheit(fahrenheit)
