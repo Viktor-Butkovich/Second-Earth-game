@@ -296,6 +296,7 @@ class world_grid(grid):
         frozen_bound=0,
         radiation_effect: bool = False,
         update_display: bool = False,
+        repeat_on_fail: bool = False,
     ) -> None:
         """
         Description:
@@ -366,14 +367,13 @@ class world_grid(grid):
             )
         else:
             radiation_effect = 0
-
+        change = 1
         if not (
             self.world_handler.get_pressure_ratio() < 0.05
             and choice.get_parameter(constants.TEMPERATURE)
             >= self.get_tuning("water_freezing_point")
         ):
             # If insufficient pressure, any evaporated water disappears
-            change = 1
             if choice.get_parameter(constants.TEMPERATURE) <= frozen_bound - 1:
                 # If during setup
                 if choice.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
@@ -409,6 +409,12 @@ class world_grid(grid):
                         constants.WATER, change, update_display=update_display
                     )
                     choice.terrain_handler.flow()
+        if change == 0 and repeat_on_fail:
+            self.place_water(
+                radiation_effect=radiation_effect,
+                update_display=update_display,
+                repeat_on_fail=repeat_on_fail,
+            )
 
     def remove_water(self, update_display: bool = False) -> None:
         """

@@ -3203,6 +3203,7 @@ def terrain_interface():
         constants.STAR_DISTANCE_LABEL,
         constants.GHG_EFFECT_LABEL,
         constants.WATER_VAPOR_EFFECT_LABEL,
+        constants.ALBEDO_EFFECT_LABEL,
         constants.AVERAGE_TEMPERATURE_LABEL,
     ]:
         if current_actor_label_type in [

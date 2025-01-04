@@ -167,8 +167,9 @@ def start_player_turn(first_turn=False):
             manage_financial_report()
         actor_utility.reset_action_prices()
         game_end_check()
-        status.strategic_map_grid.world_handler.update_target_average_temperature()
-        status.strategic_map_grid.world_handler.change_to_temperature_target()
+        for i in range(5):  # Change to equilibrium
+            status.strategic_map_grid.world_handler.update_target_average_temperature()
+            status.strategic_map_grid.world_handler.change_to_temperature_target()
         status.strategic_map_grid.world_handler.update_sky_color(update_water=True)
         status.strategic_map_grid.world_handler.update_clouds()
         constants.notification_manager.set_lock(False)

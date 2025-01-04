@@ -223,6 +223,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.INSOLATION_LABEL: actor_display_labels.actor_display_label,
             constants.GHG_EFFECT_LABEL: actor_display_labels.actor_display_label,
             constants.WATER_VAPOR_EFFECT_LABEL: actor_display_labels.actor_display_label,
+            constants.ALBEDO_EFFECT_LABEL: actor_display_labels.actor_display_label,
             constants.TOTAL_HEAT_LABEL: actor_display_labels.actor_display_label,
             constants.MOB_INVENTORY_CAPACITY_LABEL: actor_display_labels.actor_display_label,
             constants.TILE_INVENTORY_CAPACITY_LABEL: actor_display_labels.actor_display_label,

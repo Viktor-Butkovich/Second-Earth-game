@@ -138,6 +138,7 @@ class world_handler:
             "water_vapor_multiplier", 1.0
         )
         self.ghg_multiplier: float = input_dict.get("ghg_multiplier", 1.0)
+        self.albedo_multiplier: float = input_dict.get("albedo_multiplier", 1.0)
         self.average_water_target: float = input_dict.get("average_water_target", 0.0)
         self.average_water: float = input_dict.get("average_water", 0.0)
 
@@ -154,7 +155,6 @@ class world_handler:
         self.latitude_lines_setup()
         self.average_temperature: float = 0.0
         self.update_target_average_temperature(
-            earth_grid=input_dict["grid_type"] == constants.EARTH_GRID_TYPE,
             estimate_water_vapor=not from_save,
         )
 
@@ -416,7 +416,7 @@ class world_handler:
         Output:
             None
         """
-        if abs(self.average_temperature - self.get_average_tile_temperature()) > 0.01:
+        if abs(self.average_temperature - self.get_average_tile_temperature()) > 0.03:
             while (
                 self.average_temperature > self.get_average_tile_temperature()
                 and self.get_average_tile_temperature() < 10.5
@@ -433,14 +433,14 @@ class world_handler:
                 self.update_target_average_temperature(
                     estimate_water_vapor=estimate_water_vapor
                 )
-        self.default_grid.bound(
-            constants.TEMPERATURE,
-            round(self.average_temperature)
-            - self.get_tuning("final_temperature_variations")[0],
-            round(self.average_temperature)
-            + self.get_tuning("final_temperature_variations")[1],
-        )
-        self.default_grid.smooth(constants.TEMPERATURE)
+            self.default_grid.bound(
+                constants.TEMPERATURE,
+                round(self.average_temperature)
+                - self.get_tuning("final_temperature_variations")[0],
+                round(self.average_temperature)
+                + self.get_tuning("final_temperature_variations")[1],
+            )
+            self.default_grid.smooth(constants.TEMPERATURE)
 
     def latitude_lines_setup(self):
         """
@@ -937,6 +937,7 @@ class world_handler:
             "average_temperature": self.average_temperature,
             "water_vapor_multiplier": self.water_vapor_multiplier,
             "ghg_multiplier": self.ghg_multiplier,
+            "albedo_multiplier": self.albedo_multiplier,
         }
 
     def generate_green_screen(self) -> Dict[str, Dict[str, any]]:
@@ -1332,21 +1333,26 @@ class world_handler:
         Output:
             Returns the insolation of this planet based on its star distance
         """
-        return round(1 / (self.star_distance) ** 2, 2)
+        return round((1 / (self.star_distance) ** 2), 2)
 
     def get_sun_effect(self):
         """
         Description:
             Calculates and returns the base amount of heat caused by the sun on this planet, before including greenhouse effect and albedo
+                Note that Earth's albedo is divided out so that multiplying in Earth's albedo later cancels out, resulting in the correct sun effect for Earth
         Input:
             None
         Output:
             Returns the base amount of heat caused by the sun on this planet
         """
         return (
-            self.get_tuning("earth_base_temperature_fahrenheit")
-            - constants.ABSOLUTE_ZERO
-        ) * (self.get_insolation() ** 0.25)
+            (
+                self.get_tuning("earth_base_temperature_fahrenheit")
+                - constants.ABSOLUTE_ZERO
+            )
+            * (self.get_insolation() ** 0.25)
+            / self.get_tuning("earth_albedo")
+        )
 
     def get_ghg_effect_multiplier(self, weight: float = 1.0) -> float:
         """
@@ -1363,7 +1369,7 @@ class world_handler:
         else:
             ghg_multiplier = 1.0 + weight * (0.124 * (log(atm / 0.005, 3) + 1))
         self.ghg_multiplier = ghg_multiplier
-        return ghg_multiplier
+        return self.ghg_multiplier
 
     def get_water_vapor_effect_multiplier(
         self,
@@ -1395,11 +1401,13 @@ class world_handler:
             water_vapor / self.get_tuning("earth_water_vapor") * weight * 0.124
         )
         self.water_vapor_multiplier = water_vapor_multiplier
-        return water_vapor_multiplier
+        return self.water_vapor_multiplier
 
-    def update_target_average_temperature(
-        self, earth_grid: bool = False, estimate_water_vapor: bool = False
-    ):
+    def get_albedo_effect_multiplier(self):
+        self.albedo_multiplier = 0.7
+        return self.albedo_multiplier
+
+    def update_target_average_temperature(self, estimate_water_vapor: bool = False):
         """
         Description:
             Re-calculates the average temperature of this world, based on sun distance -> solation and greenhouse effect
@@ -1440,19 +1448,28 @@ class world_handler:
 
         if estimate_water_vapor:
             estimated_temperature = utility.reverse_fahrenheit(
-                ghg_multiplier * 1.03 * self.get_sun_effect() + constants.ABSOLUTE_ZERO
+                (ghg_multiplier * 1.03 * self.get_sun_effect())
+                + constants.ABSOLUTE_ZERO
             )
             water_vapor_multiplier = self.get_water_vapor_effect_multiplier(
                 weight=water_vapor_weight,
-                earth_grid=earth_grid,
+                earth_grid=self.default_grid.grid_type == constants.EARTH_GRID_TYPE,
                 estimated_temperature=estimated_temperature,
             )
+            albedo_multiplier = (
+                self.get_albedo_effect_multiplier()
+            )  # Maybe use estimate instead, since terrains are not finalized
         else:
             water_vapor_multiplier = self.get_water_vapor_effect_multiplier(
-                weight=water_vapor_weight, earth_grid=earth_grid
+                weight=water_vapor_weight,
+                earth_grid=self.default_grid.grid_type == constants.EARTH_GRID_TYPE,
             )
+            albedo_multiplier = self.get_albedo_effect_multiplier()
         fahrenheit = (
-            ghg_multiplier * water_vapor_multiplier * self.get_sun_effect()
+            ghg_multiplier
+            * water_vapor_multiplier
+            * albedo_multiplier
+            * self.get_sun_effect()
         ) + constants.ABSOLUTE_ZERO
         self.average_temperature = utility.reverse_fahrenheit(fahrenheit)
         for terrain_handler in self.terrain_handlers:

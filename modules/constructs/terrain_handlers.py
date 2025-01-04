@@ -38,9 +38,9 @@ class terrain_handler:
         )
         self.terrain_variant: int = input_dict.get("terrain_variant", 0)
         self.current_clouds: List[Dict[str, any]] = input_dict.get("current_clouds", [])
-        self.pole_distance_multiplier: float = (
-            1.0  # 0.1 for polar cells, 1.0 for equatorial cells
-        )
+        self.pole_distance_multiplier: float = input_dict.get(
+            "pole_distance_multiplier", 1.0
+        )  # 0.1 for polar cells, 1.0 for equatorial cells
         self.north_pole_distance_multiplier: float = input_dict.get(
             "north_pole_distance_multiplier", 1.0
         )
@@ -284,7 +284,7 @@ class terrain_handler:
                 )
                 for i in range(water_displaced):
                     self.get_world_handler().default_grid.place_water(
-                        radiation_effect=False
+                        radiation_effect=False, repeat_on_fail=True
                     )
 
         new_terrain = constants.terrain_manager.classify(self.terrain_parameters)
@@ -406,7 +406,10 @@ class terrain_handler:
         save_dict["terrain_parameters"] = self.terrain_parameters
         save_dict["terrain"] = self.terrain
         save_dict["resource"] = self.resource
-        save_dict["north_pole_distance_multiplier"] = self.pole_distance_multiplier
+        save_dict[
+            "north_pole_distance_multiplier"
+        ] = self.north_pole_distance_multiplier
+        save_dict["pole_distance_multiplier"] = self.pole_distance_multiplier
         save_dict["current_clouds"] = self.current_clouds
         save_dict["local_weather_offset"] = self.local_weather_offset
         return save_dict

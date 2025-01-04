@@ -422,9 +422,11 @@ except Exception:  # Displays error message and records error message in crash l
 # Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
-# Add temperature calculation - distance from sun/solation, GHG, random weather
-#   Once planet brightness is determined, show the planet brightness with a transparent white/black filter on each tile - similar to atmosphere haze
-#       Possibly draw this and clouds/atmosphere haze over units rather than under - modify how tiles are drawn
+# Add albedo effect
+#   Over-represent haze effect for toxic gases
+#   About 30% of light on Earth is reflected by albedo
+# Once planet brightness is determined, show the planet brightness with a transparent white/black filter on each tile - similar to atmosphere haze
+#   Possibly draw this and clouds/atmosphere haze over units rather than under - modify how tiles are drawn
 # Add 4+ water as deadly in local habitability equation (but not in global habitability summary)
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits

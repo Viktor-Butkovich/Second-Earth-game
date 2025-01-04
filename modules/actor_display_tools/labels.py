@@ -562,6 +562,7 @@ class actor_display_label(label):
             constants.INSOLATION_LABEL,
             constants.GHG_EFFECT_LABEL,
             constants.WATER_VAPOR_EFFECT_LABEL,
+            constants.ALBEDO_EFFECT_LABEL,
             constants.TOTAL_HEAT_LABEL,
         ]:
             if self.actor_label_type.removesuffix(
@@ -576,6 +577,8 @@ class actor_display_label(label):
                 self.message_start = "GHG effect: "
             elif self.actor_label_type == constants.WATER_VAPOR_EFFECT_LABEL:
                 self.message_start = "Water vapor effect: "
+            elif self.actor_label_type == constants.ALBEDO_EFFECT_LABEL:
+                self.message_start = "Albedo effect: "
             else:
                 self.message_start = (
                     utility.capitalize(
@@ -955,6 +958,7 @@ class actor_display_label(label):
             constants.INSOLATION_LABEL,
             constants.GHG_EFFECT_LABEL,
             constants.WATER_VAPOR_EFFECT_LABEL,
+            constants.ALBEDO_EFFECT_LABEL,
             constants.TOTAL_HEAT_LABEL,
         ]:
             tooltip_text = [self.message]
@@ -1033,20 +1037,30 @@ class actor_display_label(label):
                             f"Water vapor also acts as a greenhouse gas (GHG). Water vapor is based on the planet's temperature and quantity of water"
                         )
                     tooltip_text.append(
-                        f"GHGs help retain heat from the star, warming the planet"
+                        f"GHGs help retain heat from light absorbed by the planet rather than dissipating into space, warming the planet"
                     )
                     tooltip_text.append(
                         f"    Results in a multiplier to the effect of any insolation from the star"
                     )
                     tooltip_text.append(
-                        f"    The effect of any GHGs is stronger in thicker atmospheres, and vice versa"
+                        f"    Regardless of composition, the greenhouse effect is stronger in thicker atmospheres, and vice versa"
+                    )
+                elif self.actor_label_type == constants.ALBEDO_EFFECT_LABEL:
+                    tooltip_text.append(
+                        f"Albedo is the percent of light reflected or blocked from the planet's surface rather than being absorbed as heat, cooling the planet"
+                    )
+                    tooltip_text.append(
+                        f"Albedo is increased by clouds, thick atmosphere, dust/debris (e.g. nuclear winter), and brightly colored terrain (e.g. ice)"
+                    )
+                    tooltip_text.append(
+                        f"    Results in a multiplier decreasing the effect of any insolation from the star"
                     )
                 elif self.actor_label_type == constants.TOTAL_HEAT_LABEL:
                     tooltip_text.append(
-                        f"Total heat is the planet's insolation multiplied by the greenhouse effects of GHG and water vapor"
+                        f"Total heat is the planet's insolation multiplied by the greenhouse effects of GHG and water vapor and the albedo effect"
                     )
                     tooltip_text.append(
-                        f"    Total heat = insolation * GHG multiplier * water vapor multiplier"
+                        f"    Total heat = insolation * GHG effect * water vapor effect * albedo effect"
                     )
                 elif self.actor_label_type == constants.MAGNETIC_FIELD_LABEL:
                     tooltip_text.append(
@@ -1528,16 +1542,24 @@ class actor_display_label(label):
                     self.set_label(
                         f"{self.message_start}+{round((self.actor.grid.world_handler.water_vapor_multiplier - 1.0) * 100, 2)}% ({round((self.actor.grid.world_handler.water_vapor_multiplier - 1.0) / (status.earth_grid.world_handler.water_vapor_multiplier - 1.0) * 100)}% Earth)"
                     )
+            elif (
+                self.actor_label_type == constants.ALBEDO_EFFECT_LABEL
+            ):  # Continue troubleshooting
+                self.set_label(
+                    f"{self.message_start}-{round((1.0 - self.actor.grid.world_handler.albedo_multiplier) * 100)}% ({round((1.0 - self.actor.grid.world_handler.albedo_multiplier) / (1.0 - status.earth_grid.world_handler.albedo_multiplier) * 100)}% Earth)"
+                )
             elif self.actor_label_type == constants.TOTAL_HEAT_LABEL:
                 total_heat = round(
                     self.actor.grid.world_handler.water_vapor_multiplier
                     * self.actor.grid.world_handler.ghg_multiplier
+                    * self.actor.grid.world_handler.albedo_multiplier
                     * self.actor.grid.world_handler.get_sun_effect(),
                     2,
                 )
                 earth_total_heat = round(
                     status.earth_grid.world_handler.water_vapor_multiplier
                     * status.earth_grid.world_handler.ghg_multiplier
+                    * status.earth_grid.world_handler.albedo_multiplier
                     * status.earth_grid.world_handler.get_sun_effect(),
                     2,
                 )
