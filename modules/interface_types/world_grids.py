@@ -59,6 +59,7 @@ class world_grid(grid):
                 cell.terrain_handler.set_resource(cell.save_dict["resource"])
         else:
             self.generate_poles_and_equator()
+            self.world_handler.update_clouds(estimated_temperature=True)
             self.generate_terrain_parameters()
             self.generate_terrain_features()
             self.world_handler.update_sky_color(
@@ -66,7 +67,7 @@ class world_grid(grid):
             )
             self.world_handler.update_clouds()
         for i in range(5):  # Simulate time passing until equilibrium is reached
-            self.world_handler.update_target_average_temperature()
+            self.world_handler.update_target_average_temperature(update_albedo=True)
             self.world_handler.change_to_temperature_target()
 
     def generate_altitude(self) -> None:
@@ -125,7 +126,9 @@ class world_grid(grid):
         Output:
             Nones
         """
-        self.world_handler.update_target_average_temperature(estimate_water_vapor=True)
+        self.world_handler.update_target_average_temperature(
+            estimate_water_vapor=True, update_albedo=True
+        )
         default_temperature = round(self.world_handler.average_temperature)
         for cell in self.get_flat_cell_list():
             cell.set_parameter(
@@ -216,7 +219,9 @@ class world_grid(grid):
                     weight_parameter="pole_distance_multiplier",
                 )
 
-        self.world_handler.update_target_average_temperature(estimate_water_vapor=True)
+        self.world_handler.update_target_average_temperature(
+            estimate_water_vapor=True, update_albedo=True
+        )
         self.world_handler.change_to_temperature_target(estimate_water_vapor=True)
 
     def generate_roughness(self) -> None:
@@ -284,7 +289,7 @@ class world_grid(grid):
             while attempts < 10000 and not self.find_average(constants.WATER) == 5.0:
                 self.place_water(radiation_effect=True)
                 attempts += 1
-        self.world_handler.update_target_average_temperature()
+        self.world_handler.update_target_average_temperature(update_albedo=True)
         self.world_handler.change_to_temperature_target()
         for terrain_handler in self.world_handler.terrain_handlers:
             terrain_handler.local_weather_offset = (

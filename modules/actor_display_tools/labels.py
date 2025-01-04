@@ -1045,12 +1045,16 @@ class actor_display_label(label):
                     tooltip_text.append(
                         f"    Regardless of composition, the greenhouse effect is stronger in thicker atmospheres, and vice versa"
                     )
+                    if self.actor_label_type == constants.GHG_EFFECT_LABEL:
+                        tooltip_text.append(
+                            f"In particularly thin atmospheres, heat can easily be lost directly into space, cooling the planet"
+                        )
                 elif self.actor_label_type == constants.ALBEDO_EFFECT_LABEL:
                     tooltip_text.append(
                         f"Albedo is the percent of light reflected or blocked from the planet's surface rather than being absorbed as heat, cooling the planet"
                     )
                     tooltip_text.append(
-                        f"Albedo is increased by clouds, thick atmosphere, dust/debris (e.g. nuclear winter), and brightly colored terrain (e.g. ice)"
+                        f"Albedo is increased by clouds, thick atmosphere, toxic gases, dust/debris (e.g. nuclear winter), and brightly colored terrain (e.g. ice)"
                     )
                     tooltip_text.append(
                         f"    Results in a multiplier decreasing the effect of any insolation from the star"
@@ -1532,8 +1536,12 @@ class actor_display_label(label):
                 if self.actor.grid.world_handler.ghg_multiplier == 1.0:
                     self.set_label(f"{self.message_start}+0% (0% Earth)")
                 else:
+                    if self.actor.grid.world_handler.ghg_multiplier > 1.0:
+                        sign = "+"
+                    else:
+                        sign = ""
                     self.set_label(
-                        f"{self.message_start}+{round((self.actor.grid.world_handler.ghg_multiplier - 1.0) * 100, 2)}% ({round((self.actor.grid.world_handler.ghg_multiplier - 1.0) / (status.earth_grid.world_handler.ghg_multiplier - 1.0) * 100)}% Earth)"
+                        f"{self.message_start}{sign}{round((self.actor.grid.world_handler.ghg_multiplier - 1.0) * 100, 2)}% ({round((self.actor.grid.world_handler.ghg_multiplier - 1.0) / (status.earth_grid.world_handler.ghg_multiplier - 1.0) * 100)}% Earth)"
                     )
             elif self.actor_label_type == constants.WATER_VAPOR_EFFECT_LABEL:
                 if self.actor.grid.world_handler.water_vapor_multiplier == 1.0:

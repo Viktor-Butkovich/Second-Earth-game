@@ -2,6 +2,7 @@ import random
 from math import ceil, log
 from typing import List, Dict, Tuple
 from modules.util import utility, actor_utility
+from modules.constructs import images
 from modules.constants import constants, status, flags
 
 
@@ -117,6 +118,9 @@ class world_handler:
                 input_dict["size"] = self.earth_size
                 input_dict["sky_color"] = self.get_tuning("earth_sky_color")
                 input_dict["star_distance"] = self.get_tuning("earth_star_distance")
+                input_dict["albedo_multiplier"] = self.get_tuning(
+                    "earth_albedo_multiplier"
+                )
             input_dict["default_sky_color"] = input_dict["sky_color"].copy()
 
         self.terrain_handlers: list = [
@@ -141,6 +145,9 @@ class world_handler:
         self.albedo_multiplier: float = input_dict.get("albedo_multiplier", 1.0)
         self.average_water_target: float = input_dict.get("average_water_target", 0.0)
         self.average_water: float = input_dict.get("average_water", 0.0)
+        self.cloud_frequency: float = input_dict.get("cloud_frequency", 0.0)
+        self.toxic_cloud_frequency: float = input_dict.get("toxic_cloud_frequency", 0.0)
+        self.atmosphere_haze_alpha: int = input_dict.get("atmosphere_haze_alpha", 0)
 
         self.size: int = input_dict.get("size", self.default_grid.area)
         self.sky_color = input_dict["sky_color"]
@@ -155,7 +162,7 @@ class world_handler:
         self.latitude_lines_setup()
         self.average_temperature: float = 0.0
         self.update_target_average_temperature(
-            estimate_water_vapor=not from_save,
+            estimate_water_vapor=not from_save, update_albedo=False
         )
 
     def generate_global_parameters(self) -> Dict[str, int]:
@@ -423,7 +430,7 @@ class world_handler:
             ):
                 self.default_grid.warm()
                 self.update_target_average_temperature(
-                    estimate_water_vapor=estimate_water_vapor
+                    estimate_water_vapor=estimate_water_vapor, update_albedo=False
                 )
             while (
                 self.average_temperature < self.get_average_tile_temperature()
@@ -431,7 +438,7 @@ class world_handler:
             ):
                 self.default_grid.cool()
                 self.update_target_average_temperature(
-                    estimate_water_vapor=estimate_water_vapor
+                    estimate_water_vapor=estimate_water_vapor, update_albedo=False
                 )
             self.default_grid.bound(
                 constants.TEMPERATURE,
@@ -778,7 +785,7 @@ class world_handler:
                     )
             return total_water_vapor / self.default_grid.area
 
-    def update_clouds(self):
+    def update_cloud_frequencies(self, estimated_temperature: bool = None) -> float:
         """
         Description:
             Creates random clouds for each terrain handler, with frequency depending on water vapor
@@ -793,13 +800,15 @@ class world_handler:
         num_solid_cloud_variants = constants.terrain_manager.terrain_variant_dict.get(
             "clouds_solid", 1
         )
-        cloud_frequency = max(
+        self.cloud_frequency = max(
             0,
             min(
                 1,
                 0.25
                 * (
-                    self.get_water_vapor_contributions()
+                    self.get_water_vapor_contributions(
+                        estimated_temperature=estimated_temperature
+                    )
                     / self.get_tuning("earth_water_vapor")
                 ),
             ),
@@ -821,18 +830,46 @@ class world_handler:
             )
             * 0.25,
         )
+        self.toxic_cloud_frequency = (
+            toxic_cloud_quantity_frequency * toxic_cloud_composition_frequency
+        )
+
+    def update_clouds(self, estimated_temperature: float = None) -> None:
+        """
+        Description:
+            Creates random clouds for each terrain handler, with frequency depending on water vapor
+        Input:
+            None
+        Output:
+            None
+        """
+        num_cloud_variants = constants.terrain_manager.terrain_variant_dict.get(
+            "clouds_base", 1
+        )
+        num_solid_cloud_variants = constants.terrain_manager.terrain_variant_dict.get(
+            "clouds_solid", 1
+        )
+        self.update_cloud_frequencies(estimated_temperature=estimated_temperature)
         # Toxic cloud frequency depends on both toxic gas % and total pressure
+
+        self.atmosphere_haze_alpha = max(
+            0,
+            min(
+                255,
+                (self.get_pressure_ratio() * 7)
+                - 14
+                + (self.get_pressure_ratio(constants.TOXIC_GASES) * 10 * 255),
+            ),
+        )
+        # Atmosphere haze depends on total pressure, with toxic gases greatly over-represented
 
         for terrain_handler in self.terrain_handlers:
             terrain_handler.current_clouds = []
 
             cloud_type = None
-            if random.random() < cloud_frequency:
+            if random.random() < self.cloud_frequency:
                 cloud_type = "water vapor"
-            elif (
-                random.random() < toxic_cloud_quantity_frequency
-                and random.random() < toxic_cloud_composition_frequency
-            ):
+            elif random.random() < self.toxic_cloud_frequency:
                 cloud_type = "toxic"
             if cloud_type:
                 terrain_handler.current_clouds.append(
@@ -841,12 +878,11 @@ class world_handler:
                         "detail_level": constants.CLOUDS_DETAIL_LEVEL,
                     }
                 )
-            alpha = min(255, (self.get_pressure_ratio() * 7) - 14)
-            if alpha > 0:
+            if self.atmosphere_haze_alpha > 0:
                 terrain_handler.current_clouds.append(
                     {
                         "image_id": f"terrains/clouds_solid_{random.randrange(0, num_solid_cloud_variants)}.png",
-                        "alpha": alpha,
+                        "alpha": self.atmosphere_haze_alpha,
                         "detail_level": constants.CLOUDS_DETAIL_LEVEL,
                         "green_screen": {
                             "clouds": {
@@ -938,6 +974,9 @@ class world_handler:
             "water_vapor_multiplier": self.water_vapor_multiplier,
             "ghg_multiplier": self.ghg_multiplier,
             "albedo_multiplier": self.albedo_multiplier,
+            "cloud_frequency": self.cloud_frequency,
+            "toxic_cloud_frequency": self.toxic_cloud_frequency,
+            "atmosphere_haze_alpha": self.atmosphere_haze_alpha,
         }
 
     def generate_green_screen(self) -> Dict[str, Dict[str, any]]:
@@ -1351,7 +1390,7 @@ class world_handler:
                 - constants.ABSOLUTE_ZERO
             )
             * (self.get_insolation() ** 0.25)
-            / self.get_tuning("earth_albedo")
+            / self.get_tuning("earth_albedo_multiplier")
         )
 
     def get_ghg_effect_multiplier(self, weight: float = 1.0) -> float:
@@ -1367,7 +1406,14 @@ class world_handler:
         if atm < 0.005:
             ghg_multiplier = 1.0 + weight * (atm / 0.005) * 0.124
         else:
-            ghg_multiplier = 1.0 + weight * (0.124 * (log(atm / 0.005, 3) + 1))
+            ghg_multiplier = 1.0 + weight * (
+                0.124 * (log(atm / 0.005, 2.0) + 1)
+            )  # Tune log base to make Venus the correct temperature
+        if (
+            self.get_pressure_ratio() < 0.5
+        ):  # Apply negative penalty to GHG multiplier in thin atmospheres, as more heat is lost directly to space
+            ghg_multiplier -= 0.1 * (0.5 - self.get_pressure_ratio())
+
         self.ghg_multiplier = ghg_multiplier
         return self.ghg_multiplier
 
@@ -1404,10 +1450,46 @@ class world_handler:
         return self.water_vapor_multiplier
 
     def get_albedo_effect_multiplier(self):
-        self.albedo_multiplier = 0.7
+        """
+        Description:
+            Re-calculates and returns the albedo multiplier to heat received by this planet, based on clouds and tile brightnesss
+        Input:
+            None
+        Output:
+            None
+        """
+        cloud_albedo = 0.75
+        cloud_frequency = min(
+            1,
+            self.cloud_frequency
+            + self.toxic_cloud_frequency
+            + (self.atmosphere_haze_alpha / 255),
+        )
+
+        average_brightness = (
+            sum(
+                [
+                    terrain_handler.get_brightness()
+                    for terrain_handler in self.terrain_handlers
+                ]
+            )
+            / self.default_grid.area
+        )
+        terrain_albedo = min(0.5, max(0.0, (0.5 / 255) * average_brightness * 0.85))
+
+        albedo_weight = 0.4  # Draw albedo effect towards that of Earth
+        total_albedo = (cloud_albedo * cloud_frequency) + (
+            terrain_albedo * (1 - cloud_frequency)
+        )
+        self.albedo_multiplier = ((1 - total_albedo) * albedo_weight) + (
+            self.get_tuning("earth_albedo_multiplier") * (1 - albedo_weight)
+        )
+
         return self.albedo_multiplier
 
-    def update_target_average_temperature(self, estimate_water_vapor: bool = False):
+    def update_target_average_temperature(
+        self, estimate_water_vapor: bool = False, update_albedo: bool = False
+    ):
         """
         Description:
             Re-calculates the average temperature of this world, based on sun distance -> solation and greenhouse effect
@@ -1420,12 +1502,12 @@ class world_handler:
         pressure = self.get_pressure_ratio()
         if pressure >= 1:  # Linear relationship from 1, 1 to 10, 3/2
             min_effect = 1
-            max_effect = 3 / 2
+            max_effect = 2.45
             min_pressure = 1
-            max_pressure = 10
+            max_pressure = 25
             min_pressure = 1
         else:
-            min_effect = 2 / 3 + 0.08  # Tune value to make Mars the correct temperature
+            min_effect = 0  # Tune value to make Mars the correct temperature
             max_effect = 1
             min_pressure = 0
             max_pressure = 1
@@ -1456,19 +1538,20 @@ class world_handler:
                 earth_grid=self.default_grid.grid_type == constants.EARTH_GRID_TYPE,
                 estimated_temperature=estimated_temperature,
             )
-            albedo_multiplier = (
-                self.get_albedo_effect_multiplier()
-            )  # Maybe use estimate instead, since terrains are not finalized
         else:
+            estimated_temperature = None
             water_vapor_multiplier = self.get_water_vapor_effect_multiplier(
                 weight=water_vapor_weight,
                 earth_grid=self.default_grid.grid_type == constants.EARTH_GRID_TYPE,
             )
-            albedo_multiplier = self.get_albedo_effect_multiplier()
+
+        if update_albedo:
+            self.update_cloud_frequencies(estimated_temperature=estimated_temperature)
+            self.get_albedo_effect_multiplier()
         fahrenheit = (
             ghg_multiplier
             * water_vapor_multiplier
-            * albedo_multiplier
+            * self.albedo_multiplier
             * self.get_sun_effect()
         ) + constants.ABSOLUTE_ZERO
         self.average_temperature = utility.reverse_fahrenheit(fahrenheit)

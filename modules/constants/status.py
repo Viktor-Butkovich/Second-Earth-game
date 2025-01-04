@@ -138,6 +138,7 @@ reorganize_group_right_button: reorganize_unit_button = None
 reorganize_vehicle_left_button: reorganize_unit_button = None
 reorganize_vehicle_right_button: reorganize_unit_button = None
 minister_loading_image: minister_portrait_image = None
+albedo_free_image: free_image = None
 cursor_image: pygame.image = None
 next_boarded_vehicle: pmob = None
 text_box_destination: callable = None

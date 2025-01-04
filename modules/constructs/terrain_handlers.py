@@ -628,3 +628,37 @@ class terrain_handler:
 
         return constants.WORLD_GREEN_SCREEN_DEFAULTS
         # return world_green_screen
+
+    def get_brightness(self) -> float:
+        """
+        Description:
+            Calculates and returns the average RGB value of this tile's terrain
+        Input:
+            None
+        Output:
+            float: Returns the average RGB value of this tile's terrain
+        """
+        if self.default_cell.tile:
+            image_id = self.default_cell.tile.get_image_id_list(
+                terrain_only=True,
+                force_pixellated=True,
+                allow_mapmodes=False,
+                allow_clouds=False,
+            )
+            status.albedo_free_image.set_image(image_id)
+            return (
+                sum(
+                    [
+                        sum(
+                            status.albedo_free_image.image.combined_surface.get_at(
+                                (x, y)
+                            )[0:3]
+                        )
+                        / 3
+                        for x, y in [(0, 0), (0, 1), (1, 0), (1, 1)]
+                    ]
+                )
+                / 4
+            )
+        else:
+            return 1.0 - self.get_world_handler().get_tuning("earth_albedo_multiplier")

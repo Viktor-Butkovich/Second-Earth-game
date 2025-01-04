@@ -3281,6 +3281,19 @@ def terrain_interface():
             input_dict["banner_text"] = "Details unknown"
         constants.actor_creation_manager.create_interface_element(input_dict)
 
+        status.albedo_free_image = (
+            constants.actor_creation_manager.create_interface_element(
+                {
+                    "coordinates": (0, 200),
+                    "image_id": "misc/empty.png",
+                    "modes": [],
+                    "width": 2,
+                    "height": 2,
+                    "init_type": constants.FREE_IMAGE,
+                }
+            )
+        )
+
 
 def organization_interface():
     """

@@ -69,7 +69,7 @@
     "earth_water_vapor": 3.48,
     "earth_star_distance": 1.0,
     "earth_base_temperature_fahrenheit": -0.5,
-    "earth_albedo": 0.7,
+    "earth_albedo_multiplier": 0.7,
 
     "mars_rotation_direction": -1,
     "mars_rotation_speed": 3,

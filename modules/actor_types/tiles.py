@@ -299,7 +299,13 @@ class tile(actor):  # to do: make terrain tiles a subclass
         self.update_image_bundle()
 
     def get_image_id_list(
-        self, terrain_only=False, force_visibility=False, force_clouds=False
+        self,
+        terrain_only=False,
+        force_visibility=False,
+        force_clouds=False,
+        force_pixellated=False,
+        allow_mapmodes=True,
+        allow_clouds=True,
     ):
         """
         Description:
@@ -312,7 +318,11 @@ class tile(actor):  # to do: make terrain tiles a subclass
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
         image_id_list = []
-        if constants.current_map_mode == "terrain" or constants.MAP_MODE_ALPHA:
+        if (
+            (not allow_mapmodes)
+            or constants.current_map_mode == "terrain"
+            or constants.MAP_MODE_ALPHA
+        ):
             if self.cell.grid.is_mini_grid:
                 equivalent_tiles = self.get_equivalent_tiles()
                 if equivalent_tiles and self.show_terrain:
@@ -331,35 +341,38 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             "level": -9,
                             "color_filter": self.cell.terrain_handler.get_color_filter(),
                             "green_screen": self.cell.terrain_handler.get_green_screen(),
-                            "pixellated": not self.cell.terrain_handler.knowledge_available(
+                            "pixellated": force_pixellated
+                            or not self.cell.terrain_handler.knowledge_available(
                                 constants.TERRAIN_KNOWLEDGE
                             ),
                             "detail_level": constants.TERRAIN_DETAIL_LEVEL,
                         }
                     )
-                    for (
-                        terrain_overlay_image
-                    ) in self.cell.terrain_handler.get_overlay_images():
-                        if type(terrain_overlay_image) == str:
-                            terrain_overlay_image = {
-                                "image_id": terrain_overlay_image,
-                            }
-                        terrain_overlay_image.update(
-                            {
-                                "level": -8,
-                                "color_filter": self.cell.terrain_handler.get_color_filter(),
-                                "pixellated": not self.cell.terrain_handler.knowledge_available(
-                                    constants.TERRAIN_KNOWLEDGE
-                                ),
-                                "detail_level": constants.TERRAIN_DETAIL_LEVEL,
-                            }
-                        )
-                        if not terrain_overlay_image.get("green_screen", None):
-                            terrain_overlay_image[
-                                "green_screen"
-                            ] = self.cell.terrain_handler.get_green_screen()
-                        image_id_list.append(terrain_overlay_image)
-                    if (
+                    if allow_clouds:
+                        for (
+                            terrain_overlay_image
+                        ) in self.cell.terrain_handler.get_overlay_images():
+                            if type(terrain_overlay_image) == str:
+                                terrain_overlay_image = {
+                                    "image_id": terrain_overlay_image,
+                                }
+                            terrain_overlay_image.update(
+                                {
+                                    "level": -8,
+                                    "color_filter": self.cell.terrain_handler.get_color_filter(),
+                                    "pixellated": force_pixellated
+                                    or not self.cell.terrain_handler.knowledge_available(
+                                        constants.TERRAIN_KNOWLEDGE
+                                    ),
+                                    "detail_level": constants.TERRAIN_DETAIL_LEVEL,
+                                }
+                            )
+                            if not terrain_overlay_image.get("green_screen", None):
+                                terrain_overlay_image[
+                                    "green_screen"
+                                ] = self.cell.terrain_handler.get_green_screen()
+                            image_id_list.append(terrain_overlay_image)
+                    if allow_clouds and (
                         constants.effect_manager.effect_active("show_clouds")
                         or force_clouds
                         or not self.cell.terrain_handler.knowledge_available(
@@ -424,7 +437,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     ):
                         image_id_list += current_image.get_image_id_list()
 
-        if constants.current_map_mode != "terrain":
+        if constants.current_map_mode != "terrain" and allow_mapmodes:
             map_mode_image = "misc/map_modes/none.png"
             if constants.current_map_mode in constants.terrain_parameters:
                 if self.cell.terrain_handler.knowledge_available(
