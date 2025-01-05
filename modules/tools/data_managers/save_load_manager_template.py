@@ -3,7 +3,7 @@
 import random
 import pickle
 import pygame
-from ...util import (
+from modules.util import (
     game_transitions,
     turn_management_utility,
     text_utility,
@@ -12,11 +12,9 @@ from ...util import (
     actor_utility,
     tutorial_utility,
 )
-from ...interface_types import world_grids
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
-import modules.constructs.unit_types as unit_types
+from modules.interface_types import world_grids
+from modules.constructs import unit_types
+from modules.constants import constants, status, flags
 
 
 class save_load_manager_template:

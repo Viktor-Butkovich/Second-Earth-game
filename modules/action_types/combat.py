@@ -1,18 +1,15 @@
 # Contains all functionality for combat
 
 import random
-from . import action
-from ..util import (
+from modules.action_types import action
+from modules.util import (
     action_utility,
-    text_utility,
     actor_utility,
     dice_utility,
     utility,
     turn_management_utility,
 )
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.constants import constants, status, flags
 
 
 class combat(action.action):

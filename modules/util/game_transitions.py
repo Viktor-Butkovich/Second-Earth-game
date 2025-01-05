@@ -1,11 +1,14 @@
 # Contains functions used when switching between parts of the game, like loading screen display
 
-import time
-from . import main_loop_utility, text_utility, actor_utility, minister_utility, scaling
-from ..actor_types import tiles
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.util import (
+    main_loop_utility,
+    text_utility,
+    actor_utility,
+    minister_utility,
+    scaling,
+)
+from modules.actor_types import tiles
+from modules.constants import constants, status, flags
 
 
 def cycle_player_turn(start_of_turn=False):

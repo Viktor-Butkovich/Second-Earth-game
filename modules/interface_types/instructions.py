@@ -1,10 +1,9 @@
 # Contains functionality for instructions pages
 
-from .labels import label
-from .buttons import button
-from ..util import scaling, text_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.interface_types.labels import label
+from modules.interface_types.buttons import button
+from modules.util import scaling, text_utility
+from modules.constants import constants, status, flags
 
 
 class instructions_button(button):

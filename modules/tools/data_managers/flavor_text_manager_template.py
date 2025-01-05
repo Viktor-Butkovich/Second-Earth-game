@@ -1,7 +1,6 @@
 import random
-import modules.constants.constants as constants
-import modules.constants.status as status
-from ...util import csv_utility
+from modules.util import csv_utility
+from modules.constants import constants, status, flags
 
 
 class flavor_text_manager_template:

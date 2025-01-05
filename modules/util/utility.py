@@ -275,3 +275,20 @@ def fahrenheit(temperature: int):
         return temperature * 30 - 40
     else:
         return temperature * 20 + 15
+
+
+def reverse_fahrenheit(temperature: int):
+    """
+    Description:
+        Returns the approximate tile temperature for the inputted fahrenheit temperature
+    Input:
+        int temperature: Temperature in fahrenheit
+    Output:
+        int: Returns temperature in game units
+    """
+    if temperature < fahrenheit(0):
+        return (temperature - 10) / 30
+    elif temperature > fahrenheit(5):
+        return (temperature + 40) / 30
+    else:
+        return (temperature - 15) / 20

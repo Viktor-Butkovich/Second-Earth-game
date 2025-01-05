@@ -1,10 +1,9 @@
 # contains functionality for cell icons, which act as hybrid interface element-actors
 
-from ..actor_types.actors import actor
-from ..util import utility
-from ..constructs import images
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.actor_types.actors import actor
+from modules.util import utility
+from modules.constructs import images
+from modules.constants import constants, status, flags
 
 
 class cell_icon(actor):

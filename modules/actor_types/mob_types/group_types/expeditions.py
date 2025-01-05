@@ -1,10 +1,8 @@
 # Contains functionality for expeditions
 
 import random
-from ..groups import group
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.actor_types.mob_types.groups import group
+from modules.constants import constants, status, flags
 
 
 class expedition(group):

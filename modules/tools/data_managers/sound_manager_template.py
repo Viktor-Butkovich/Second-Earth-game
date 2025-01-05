@@ -1,9 +1,7 @@
 import random
 import pygame
 import os
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.constants import constants, status, flags
 
 
 class sound_manager_template:

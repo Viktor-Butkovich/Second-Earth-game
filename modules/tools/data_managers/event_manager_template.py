@@ -1,5 +1,5 @@
-from ...constructs import events
-import modules.constants.constants as constants
+from modules.constructs import events
+from modules.constants import constants, status, flags
 
 
 class event_manager_template:

@@ -1,5 +1,5 @@
 import json
-from .. import effects
+from modules.tools import effects
 
 
 class effect_manager_template:

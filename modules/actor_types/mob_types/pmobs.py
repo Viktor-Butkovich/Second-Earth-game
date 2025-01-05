@@ -2,12 +2,10 @@
 
 import pygame
 import random
-from ..mobs import mob
-from ...util import text_utility, utility, actor_utility, minister_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
 from typing import Dict
+from modules.actor_types.mobs import mob
+from modules.util import text_utility, utility, actor_utility, minister_utility
+from modules.constants import constants, status, flags
 
 
 class pmob(mob):
@@ -636,20 +634,26 @@ class pmob(mob):
         Output:
             None
         """
+        if (
+            constants.effect_manager.effect_active("boost_attrition")
+            and random.randrange(1, 7) >= 4
+        ):
+            self.attrition_death()
+            return
+
         if current_cell == "default":
             current_cell = self.get_cell()
         elif current_cell == None:
             return
-        if current_cell.local_attrition():
-            if minister_utility.get_minister(
+        if (
+            current_cell.local_attrition()
+            and minister_utility.get_minister(
                 constants.TRANSPORTATION_MINISTER
-            ).no_corruption_roll(
-                6, "health_attrition"
-            ) == 1 or constants.effect_manager.effect_active(
-                "boost_attrition"
-            ):
-                if random.randrange(1, 7) <= 2:
-                    self.attrition_death()
+            ).no_corruption_roll(6, "health_attrition")
+            == 1
+        ):
+            if random.randrange(1, 7) <= 2:
+                self.attrition_death()
 
     def attrition_death(self, show_notification=True):
         """
@@ -669,9 +673,15 @@ class pmob(mob):
             and self.automatically_replace
         ):
             if show_notification:
+                if self.get_cell().grid == status.globe_projection_grid:
+                    location_message = f"in orbit of {status.globe_projection_grid.world_handler.name}. "
+                elif self.get_cell().grid == status.earth_grid:
+                    location_message = f"in orbit of Earth. "
+                else:
+                    location_message = f"at ({self.x}, {self.y}). "
                 constants.notification_manager.display_notification(
                     {
-                        "message": f"{utility.capitalize(self.name)} has died from attrition at ({self.x}, {self.y}) /n /n{self.generate_attrition_replacement_text()}",
+                        "message": f"{utility.capitalize(self.name)} has died from attrition {location_message}/n /n{self.generate_attrition_replacement_text()}",
                         "zoom_destination": self,
                     }
                 )
@@ -700,9 +710,16 @@ class pmob(mob):
         Output:
             Returns text to use in attrition replacement notifications
         """
-        text = "The unit will remain inactive for the next turn as replacements are found. /n /n"
+        if (
+            self.get_permission(constants.IN_GROUP_PERMISSION)
+            and self.group.get_permission(constants.IN_VEHICLE_PERMISSION)
+            and self.group == self.group.vehicle.crew
+        ):
+            text = "The crew and vehicle will remain inactive for the next turn as replacements are found. /n /n"
+        else:
+            text = "The unit will remain inactive for the next turn as replacements are found. /n /n"
         if self.get_permission(constants.OFFICER_PERMISSION):
-            text += f"{self.unit_type.recruitment_cost} money has automatically been spent to recruit a replacement. /n /n"
+            text += f"{self.unit_type.recruitment_cost} money has automatically been spent to recruit a replacement officer. /n /n"
         return text
 
     def remove(self):

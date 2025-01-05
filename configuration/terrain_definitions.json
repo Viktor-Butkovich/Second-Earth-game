@@ -441,9 +441,22 @@
         "min_water": 3,
         "max_water": 6
     },
+    "ice_sheet": {
+        "name": "ice_sheet",
+        "min_temperature": -5,
+        "max_temperature": 0,
+        "min_roughness": 1,
+        "max_roughness": 6,
+        "min_vegetation": 1,
+        "max_vegetation": 6,
+        "min_soil": 1,
+        "max_soil": 6,
+        "min_water": 6,
+        "max_water": 6
+    },
     "glacier": {
         "name": "glacier",
-        "min_temperature": 1,
+        "min_temperature": -5,
         "max_temperature": 1,
         "min_roughness": 1,
         "max_roughness": 6,
@@ -452,6 +465,19 @@
         "min_soil": 1,
         "max_soil": 6,
         "min_water": 5,
+        "max_water": 5
+    },
+    "ice_floes": {
+        "name": "ice floes",
+        "min_temperature": 1,
+        "max_temperature": 1,
+        "min_roughness": 1,
+        "max_roughness": 6,
+        "min_vegetation": 1,
+        "max_vegetation": 6,
+        "min_soil": 1,
+        "max_soil": 6,
+        "min_water": 6,
         "max_water": 6
     },
     "wetland": {

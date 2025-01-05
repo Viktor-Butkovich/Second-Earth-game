@@ -1,10 +1,7 @@
 # Contains functionality for battalions
 
-from ..groups import group
-from ....util import actor_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.actor_types.mob_types.groups import group
+from modules.constants import constants, status, flags
 
 
 class battalion(group):

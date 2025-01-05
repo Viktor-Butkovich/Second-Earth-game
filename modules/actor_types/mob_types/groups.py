@@ -2,10 +2,9 @@
 
 import random
 import math
-from .pmobs import pmob
-from ...util import actor_utility, minister_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.actor_types.mob_types.pmobs import pmob
+from modules.util import actor_utility, minister_utility
+from modules.constants import constants, status, flags
 
 
 class group(pmob):
@@ -47,8 +46,8 @@ class group(pmob):
                 True, input_dict["officer"]
             )
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.worker.join_group()
-        self.officer.join_group()
+        self.worker.join_group(self)
+        self.officer.join_group(self)
         for current_mob in [
             self.worker,
             self.officer,
@@ -128,7 +127,7 @@ class group(pmob):
         self.worker.fire(wander=False)
         self.worker = new_worker
         self.worker.update_image_bundle()
-        self.worker.join_group()
+        self.worker.join_group(self)
         self.update_image_bundle()
         if previous_selected:
             previous_selected.select()
@@ -170,6 +169,13 @@ class group(pmob):
         Output:
             None
         """
+        if constants.effect_manager.effect_active("boost_attrition"):
+            if random.randrange(1, 7) >= 4:
+                self.attrition_death("officer")
+            if random.randrange(1, 7) >= 4:
+                self.attrition_death("worker")
+            return
+
         if current_cell == "default":
             current_cell = self.get_cell()
         elif not current_cell:
@@ -179,17 +185,16 @@ class group(pmob):
             constants.TRANSPORTATION_MINISTER
         )
 
-        if current_cell.local_attrition():
-            if transportation_minister.no_corruption_roll(
-                6, "health_attrition"
-            ) == 1 or constants.effect_manager.effect_active("boost_attrition"):
-                self.attrition_death("officer")
-        if current_cell.local_attrition():
-            if transportation_minister.no_corruption_roll(
-                6, "health_attrition"
-            ) == 1 or constants.effect_manager.effect_active("boost_attrition"):
-                if random.randrange(1, 7) == 1:
-                    self.attrition_death("worker")
+        if (
+            current_cell.local_attrition()
+            and transportation_minister.no_corruption_roll(6, "health_attrition") == 1
+        ):
+            self.attrition_death("officer")
+        if (
+            current_cell.local_attrition()
+            and transportation_minister.no_corruption_roll(6, "health_attrition") == 1
+        ):
+            self.attrition_death("worker")
 
     def attrition_death(self, target):
         """
@@ -204,18 +209,37 @@ class group(pmob):
         self.set_permission(constants.MOVEMENT_DISABLED_PERMISSION, True, override=True)
         if self.get_permission(constants.IN_VEHICLE_PERMISSION):
             zoom_destination = self.vehicle
-            destination_message = f" from the {self.name} aboard the {zoom_destination.name} at ({self.x}, {self.y}) "
+            if self.vehicle.crew == self:
+                destination_message = (
+                    f" from the {self.name} crewing the {zoom_destination.name} "
+                )
+            else:
+                destination_message = (
+                    f" from the {self.name} aboard the {zoom_destination.name} "
+                )
         elif self.get_permission(constants.IN_BUILDING_PERMISSION):
             zoom_destination = self.building.cell.get_intact_building(
                 constants.RESOURCE
             )
-            destination_message = f" from the {self.name} in the {zoom_destination.name} at ({self.x}, {self.y}) "
+            destination_message = (
+                f" from the {self.name} in the {zoom_destination.name} "
+            )
         else:
             zoom_destination = self
-            destination_message = f" from the {self.name} at ({self.x}, {self.y}) "
+            destination_message = f" from the {self.name} "
+
+        if self.get_cell().grid == status.globe_projection_grid:
+            location_message = (
+                f"in orbit of {status.globe_projection_grid.world_handler.name} "
+            )
+        elif self.get_cell().grid == status.earth_grid:
+            location_message = f"in orbit of Earth "
+        else:
+            location_message = f"at ({self.x}, {self.y}) "
+        destination_message += location_message
 
         if target == "officer":
-            text = f"The {self.officer.name}{destination_message}has died from attrition. /n /n "
+            text = f"The {self.officer.name}{destination_message}has died from attrition. /n /n"
             if self.officer.automatically_replace:
                 text += (
                     self.officer.generate_attrition_replacement_text()
@@ -234,19 +258,10 @@ class group(pmob):
                 if self.get_permission(constants.IN_VEHICLE_PERMISSION):
                     worker.embark_vehicle(zoom_destination)
 
-            constants.notification_manager.display_notification(
-                {
-                    "message": text,
-                    "zoom_destination": zoom_destination,
-                }
-            )
-
         elif target == "worker":
-            text = f"The {self.worker.name}{destination_message}have died from attrition. /n /n "
+            text = f"The {self.worker.name}{destination_message}have died from attrition. /n /n"
             if self.worker.automatically_replace:
-                text += (
-                    self.worker.generate_attrition_replacement_text()
-                )  # 'The ' + self.name + ' will remain inactive for the next turn as replacements are found.'
+                text += self.worker.generate_attrition_replacement_text()
                 self.worker.replace(self)
                 self.worker.death_sound()
             else:
@@ -261,12 +276,12 @@ class group(pmob):
                 if self.get_permission(constants.IN_VEHICLE_PERMISSION):
                     officer.embark_vehicle(zoom_destination)
 
-            constants.notification_manager.display_notification(
-                {
-                    "message": text,
-                    "zoom_destination": zoom_destination,
-                }
-            )
+        constants.notification_manager.display_notification(
+            {
+                "message": text,
+                "zoom_destination": zoom_destination,
+            }
+        )
 
     def fire(self):
         """
@@ -337,9 +352,9 @@ class group(pmob):
         """
         super().go_to_grid(new_grid, new_coordinates)
         self.officer.go_to_grid(new_grid, new_coordinates)
-        self.officer.join_group()
+        self.officer.join_group(self)
         self.worker.go_to_grid(new_grid, new_coordinates)
-        self.worker.join_group()
+        self.worker.join_group(self)
 
     def disband(self):
         """

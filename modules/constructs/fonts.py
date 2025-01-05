@@ -1,7 +1,7 @@
 # Contains wrapper for pygame font
 
 import pygame
-import modules.constants.constants as constants
+from modules.constants import constants, status, flags
 
 
 class font:

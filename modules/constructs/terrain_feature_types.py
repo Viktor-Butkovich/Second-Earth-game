@@ -2,8 +2,7 @@
 
 import random
 from typing import Dict, List, Tuple
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.constants import constants, status, flags
 
 
 class terrain_feature_type:

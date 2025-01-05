@@ -1,9 +1,8 @@
 # Contains functions that manage market prices and sale of commodities
 
 import random
-from . import text_utility, utility
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.util import text_utility, utility
+from modules.constants import constants, status, flags
 
 
 def adjust_prices():

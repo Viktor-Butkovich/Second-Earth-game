@@ -5,13 +5,11 @@ import json
 import math
 import pygame
 from typing import Dict, List, Tuple
-from .grids import grid, mini_grid, abstract_grid
-from .cells import cell
-from ..util import scaling, utility, actor_utility
-from ..tools.data_managers import terrain_manager_template
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.interface_types.grids import grid, mini_grid, abstract_grid
+from modules.interface_types.cells import cell
+from modules.util import scaling, actor_utility
+from modules.constructs import world_handlers
+from modules.constants import constants, status, flags
 
 
 class world_grid(grid):
@@ -41,12 +39,10 @@ class world_grid(grid):
             None
         """
         super().__init__(from_save, input_dict)
-        self.world_handler: terrain_manager_template.world_handler = (
-            terrain_manager_template.world_handler(
-                self,
-                from_save,
-                input_dict.get("world_handler", {"grid_type": input_dict["grid_type"]}),
-            )
+        self.world_handler: world_handlers.world_handler = world_handlers.world_handler(
+            self,
+            from_save,
+            input_dict.get("world_handler", {"grid_type": input_dict["grid_type"]}),
         )
 
     def create_world(self, from_save: bool):
@@ -63,12 +59,16 @@ class world_grid(grid):
                 cell.terrain_handler.set_resource(cell.save_dict["resource"])
         else:
             self.generate_poles_and_equator()
+            self.world_handler.update_clouds(estimated_temperature=True)
             self.generate_terrain_parameters()
             self.generate_terrain_features()
             self.world_handler.update_sky_color(
                 set_initial_offset=True, update_water=True
             )
             self.world_handler.update_clouds()
+        for i in range(5):  # Simulate time passing until equilibrium is reached
+            self.world_handler.update_target_average_temperature(update_albedo=True)
+            self.world_handler.change_to_temperature_target()
 
     def generate_altitude(self) -> None:
         """
@@ -79,9 +79,15 @@ class world_grid(grid):
         Output:
             None
         """
-        default_altitude = 0
+        if constants.effect_manager.effect_active("map_customization"):
+            default_altitude = 2
+        else:
+            default_altitude = 0
         for cell in self.get_flat_cell_list():
             cell.set_parameter(constants.ALTITUDE, default_altitude)
+
+        if constants.effect_manager.effect_active("map_customization"):
+            return
 
         for i in range(constants.terrain_manager.get_tuning("altitude_worms")):
             min_length = (
@@ -118,9 +124,12 @@ class world_grid(grid):
         Input:
             None
         Output:
-            None
+            Nones
         """
-        default_temperature = self.world_handler.default_temperature
+        self.world_handler.update_target_average_temperature(
+            estimate_water_vapor=True, update_albedo=True
+        )
+        default_temperature = round(self.world_handler.average_temperature)
         for cell in self.get_flat_cell_list():
             cell.set_parameter(
                 constants.TEMPERATURE,
@@ -210,27 +219,10 @@ class world_grid(grid):
                     weight_parameter="pole_distance_multiplier",
                 )
 
-        if self.get_tuning("smooth_temperature"):
-            while self.smooth(
-                constants.TEMPERATURE
-            ):  # Continue running smooth until it doesn't make any more changes
-                pass
-        self.bound(
-            constants.TEMPERATURE,
-            default_temperature - self.get_tuning("final_temperature_variations")[0],
-            default_temperature + self.get_tuning("final_temperature_variations")[1],
+        self.world_handler.update_target_average_temperature(
+            estimate_water_vapor=True, update_albedo=True
         )
-
-        while (
-            self.world_handler.average_temperature
-            > self.world_handler.expected_temperature_target
-        ):
-            self.cool()
-        while (
-            self.world_handler.average_temperature
-            < self.world_handler.expected_temperature_target
-        ):
-            self.warm()
+        self.world_handler.change_to_temperature_target(estimate_water_vapor=True)
 
     def generate_roughness(self) -> None:
         """
@@ -241,6 +233,8 @@ class world_grid(grid):
         Output:
             None
         """
+        if constants.effect_manager.effect_active("map_customization"):
+            return
         if constants.effect_manager.effect_active("earth_preset"):
             num_worms = self.get_tuning("earth_roughness_multiplier")
         elif constants.effect_manager.effect_active("mars_preset"):
@@ -289,14 +283,31 @@ class world_grid(grid):
         for _ in range(
             round(self.world_handler.average_water_target * self.world_handler.size)
         ):
-            self.place_water()
+            self.place_water(radiation_effect=True)
+        if constants.effect_manager.effect_active("map_customization"):
+            attempts = 0
+            while attempts < 10000 and not self.find_average(constants.WATER) == 5.0:
+                self.place_water(radiation_effect=True)
+                attempts += 1
+        self.world_handler.update_target_average_temperature(update_albedo=True)
+        self.world_handler.change_to_temperature_target()
+        for terrain_handler in self.world_handler.terrain_handlers:
+            terrain_handler.local_weather_offset = (
+                terrain_handler.expected_temperature_offset + random.uniform(-0.4, 0.4)
+            )
 
-    def place_water(self, frozen_bound=0) -> None:
+    def place_water(
+        self,
+        frozen_bound=0,
+        radiation_effect: bool = False,
+        update_display: bool = False,
+        repeat_on_fail: bool = False,
+    ) -> None:
         """
         Description:
             Places 1 unit of water on the map, depending on altitude and temperature
         Input:
-            int frozen_bound: Temperature below which water will "freeze" -
+            int frozen_bound: Temperature below which water will "freeze"
         Output:
             None
         """
@@ -312,7 +323,7 @@ class world_grid(grid):
         ):
             if (
                 candidate.get_parameter(constants.WATER) < 5
-                and candidate.get_parameter(constants.TEMPERATURE) > frozen_bound
+                and candidate.get_parameter(constants.TEMPERATURE) > frozen_bound - 1
             ):
                 if candidate.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
                     "water_boiling_point"
@@ -332,7 +343,7 @@ class world_grid(grid):
         ):
             if candidate.get_parameter(constants.WATER) < 5:
                 if (
-                    candidate.get_parameter(constants.TEMPERATURE) <= frozen_bound
+                    candidate.get_parameter(constants.TEMPERATURE) <= frozen_bound - 1
                 ):  # Water can go to coldest freezing location
                     if best_frozen == None or candidate.get_parameter(
                         constants.TEMPERATURE
@@ -353,21 +364,22 @@ class world_grid(grid):
             ],
             k=1,
         )[0]
-
-        radiation_effect = max(
-            0,
-            self.world_handler.get_parameter(constants.RADIATION)
-            - self.world_handler.get_parameter(constants.MAGNETIC_FIELD),
-        )
-
+        if radiation_effect:
+            radiation_effect = max(
+                0,
+                self.world_handler.get_parameter(constants.RADIATION)
+                - self.world_handler.get_parameter(constants.MAGNETIC_FIELD),
+            )
+        else:
+            radiation_effect = 0
+        change = 1
         if not (
             self.world_handler.get_pressure_ratio() < 0.05
             and choice.get_parameter(constants.TEMPERATURE)
             >= self.get_tuning("water_freezing_point")
         ):
             # If insufficient pressure, any evaporated water disappears
-            change = 1
-            if choice.get_parameter(constants.TEMPERATURE) <= frozen_bound:
+            if choice.get_parameter(constants.TEMPERATURE) <= frozen_bound - 1:
                 # If during setup
                 if choice.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
                     "water_freezing_point"
@@ -382,7 +394,9 @@ class world_grid(grid):
                             change = 0
                 # If far below freezing, retain water regardless of radiation
                 if change != 0:
-                    choice.change_parameter(constants.WATER, change)
+                    choice.change_parameter(
+                        constants.WATER, change, update_display=update_display
+                    )
             else:
                 # If during setup
                 if (
@@ -396,8 +410,37 @@ class world_grid(grid):
                     if random.randrange(1, 13) >= 4:
                         change = 0
                 if change != 0:
-                    choice.change_parameter(constants.WATER, change)
+                    choice.change_parameter(
+                        constants.WATER, change, update_display=update_display
+                    )
                     choice.terrain_handler.flow()
+        if change == 0 and repeat_on_fail:
+            self.place_water(
+                radiation_effect=radiation_effect,
+                update_display=update_display,
+                repeat_on_fail=repeat_on_fail,
+            )
+
+    def remove_water(self, update_display: bool = False) -> None:
+        """
+        Description:
+            Removes 1 unit of water from the map, depending on altitude and temperature
+        Input:
+            None
+        Output:
+            None
+        """
+        water_cells = [
+            cell
+            for cell in self.get_flat_cell_list()
+            if cell.get_parameter(constants.WATER) > 0
+        ]
+        if water_cells:
+            random.choices(
+                water_cells,
+                weights=[cell.get_parameter(constants.WATER) for cell in water_cells],
+                k=1,
+            )[0].change_parameter(constants.WATER, -1, update_display=update_display)
 
     def generate_soil(self) -> None:
         """
@@ -408,6 +451,8 @@ class world_grid(grid):
         Output:
             None
         """
+        if constants.effect_manager.effect_active("map_customization"):
+            return
         if constants.effect_manager.effect_active("earth_preset"):
             for cell in self.get_flat_cell_list():
                 cell.set_parameter(constants.SOIL, random.randrange(0, 6))
@@ -457,6 +502,8 @@ class world_grid(grid):
         Output:
             None
         """
+        if constants.effect_manager.effect_active("map_customization"):
+            return
         if constants.effect_manager.effect_active("earth_preset"):
             for cell in self.get_flat_cell_list():
                 if cell.get_parameter(constants.TEMPERATURE) > 0:
@@ -537,10 +584,10 @@ class world_grid(grid):
                         parameter
                     ):
                         if direction != "up":
-                            cell.change_parameter(parameter, -1)
+                            cell.change_parameter(parameter, -1, update_display=False)
                     else:
                         if direction != "down":
-                            cell.change_parameter(parameter, 1)
+                            cell.change_parameter(parameter, 1, update_display=False)
                     smoothed = True
         return smoothed
 
@@ -567,18 +614,7 @@ class world_grid(grid):
         Output:
             None
         """
-        offsets = [
-            (
-                cell,
-                cell.terrain_handler.expected_temperature_offset
-                + random.uniform(-0.2, 0.2),
-            )
-            for cell in self.get_flat_cell_list()
-            if not cell.get_parameter(constants.TEMPERATURE) == 11
-        ]
-        if offsets:
-            cold_outlier = min(offsets, key=lambda x: x[1])[0]
-            cold_outlier.change_parameter(constants.TEMPERATURE, 1)
+        self.place_temperature(change=1, bound=11, choice_function=min)
 
     def cool(self) -> None:
         """
@@ -590,18 +626,35 @@ class world_grid(grid):
         Output:
             None
         """
+        self.place_temperature(change=-1, bound=-6, choice_function=max)
+
+    def place_temperature(
+        self, change: int, bound: int, choice_function: callable
+    ) -> None:
+        """
+        Description:
+            Changes the temperature of the grid by the inputted amount, selecting the cell that most differs from its expected temperature
+        Input:
+            int change: Amount to change the temperature by
+            int bound: Maximum temperature value in the direction being changed
+            callable choice_function: Function to determine which offset to choose - min or max
+        Output:
+            None
+        """
         offsets = [
             (
                 cell,
                 cell.terrain_handler.expected_temperature_offset
-                + random.uniform(-0.6, 0.6),
+                + cell.terrain_handler.local_weather_offset,
             )
             for cell in self.get_flat_cell_list()
-            if not cell.get_parameter(constants.TEMPERATURE) == -6
+            if not cell.get_parameter(constants.TEMPERATURE) == bound
         ]
         if offsets:
-            hot_outlier = max(offsets, key=lambda x: x[1])[0]
-            hot_outlier.change_parameter(constants.TEMPERATURE, -1)
+            outlier = choice_function(offsets, key=lambda x: x[1])[0]
+            outlier.change_parameter(
+                constants.TEMPERATURE, change, update_display=False
+            )
 
     def make_random_terrain_parameter_worm(
         self,
@@ -654,7 +707,7 @@ class world_grid(grid):
             if bound == 0 or (
                 resulting_value <= upper_bound and resulting_value >= lower_bound
             ):
-                current_cell.change_parameter(parameter, change)
+                current_cell.change_parameter(parameter, change, update_display=False)
             counter = counter + 1
             if weight_parameter:
                 selected_cell = self.parameter_weighted_sample(

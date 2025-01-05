@@ -1,8 +1,7 @@
 # Contains functionality for building type templates
 
 from typing import Dict, List, Tuple, Any
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.constants import constants, status, flags
 
 
 class building_type:

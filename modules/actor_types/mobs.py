@@ -1,20 +1,17 @@
 # Contains functionality for mobs
 
 import pygame, random
-from ..constructs import images
-from ..util import (
+from modules.constructs import images, unit_types, ministers
+from modules.util import (
     utility,
     actor_utility,
     main_loop_utility,
     text_utility,
     minister_utility,
 )
-from ..constructs import unit_types, ministers
-from ..interface_types import cells
-from .actors import actor
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.interface_types import cells
+from modules.actor_types.actors import actor
+from modules.constants import constants, status, flags
 from typing import List, Dict, Any
 
 

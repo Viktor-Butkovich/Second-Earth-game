@@ -1,10 +1,8 @@
 # Contains functionality for multi-step notifications
 
-from .notifications import notification
-from ..util import scaling, action_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.interface_types.notifications import notification
+from modules.util import scaling, action_utility
+from modules.constants import constants, status, flags
 
 
 class action_notification(notification):

@@ -1,20 +1,17 @@
 # Contains functionality for actor display buttons
 
 import random
-from ..interface_types.buttons import button
-from ..util import (
+from modules.interface_types.buttons import button
+from modules.util import (
     main_loop_utility,
-    utility,
     actor_utility,
     minister_utility,
     trial_utility,
     text_utility,
     game_transitions,
 )
-from ..constructs import minister_types
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.constructs import minister_types
+from modules.constants import constants, status, flags
 
 
 class embark_all_passengers_button(button):
@@ -1824,6 +1821,24 @@ class change_parameter_button(button):
                     self.attached_label.actor_label_type.removesuffix("_label"),
                     self.change,
                 )
+            elif self.attached_label.actor_label_type == constants.AVERAGE_WATER_LABEL:
+                if self.change > 0:
+                    for i in range(abs(self.change) - 1):
+                        self.attached_label.actor.cell.grid.world_handler.default_grid.place_water(
+                            repeat_on_fail=True, radiation_effect=False
+                        )
+                    self.attached_label.actor.cell.grid.world_handler.default_grid.place_water(
+                        update_display=True, repeat_on_fail=True, radiation_effect=False
+                    )
+                else:
+                    for i in range(abs(self.change) - 1):
+                        self.attached_label.actor.cell.grid.world_handler.default_grid.remove_water()
+                    self.attached_label.actor.cell.grid.world_handler.default_grid.remove_water(
+                        update_display=True
+                    )
+                actor_utility.calibrate_actor_info_display(
+                    status.tile_info_display, status.displayed_tile
+                )
             else:
                 self.attached_label.actor.cell.terrain_handler.change_parameter(
                     self.attached_label.actor_label_type.removesuffix("_label"),
@@ -1833,3 +1848,24 @@ class change_parameter_button(button):
             text_utility.print_to_screen(
                 "You are busy and cannot change this parameter."
             )
+
+    def can_show(self, skip_parent_collection: bool = False) -> bool:
+        """
+        Description:
+            Returns whether this button should be drawn
+        Input:
+            None
+        Output:
+            boolean: Returns True if this button is a local parameter button or is a global parameter button for the planet grid, otherwise returns False
+        """
+        if (
+            self.attached_label.actor_label_type == constants.AVERAGE_WATER_LABEL
+            or self.attached_label.actor_label_type.removesuffix("_label")
+            in constants.global_parameters
+        ):
+            return (
+                super().can_show(skip_parent_collection=skip_parent_collection)
+                and self.attached_label.actor.cell.grid != status.earth_grid
+            )
+        else:
+            return super().can_show(skip_parent_collection=skip_parent_collection)

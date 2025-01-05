@@ -2,18 +2,16 @@
 
 import pygame
 import logging
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
-import modules.util.scaling as scaling
-import modules.util.actor_utility as actor_utility
-import modules.util.game_transitions as game_transitions
-import modules.constructs.fonts as fonts
-import modules.constructs.unit_types as unit_types
-import modules.constructs.minister_types as minister_types
-import modules.constructs.building_types as building_types
-import modules.constructs.equipment_types as equipment_types
-import modules.constructs.terrain_feature_types as terrain_feature_types
+from modules.constants import constants, status, flags
+from modules.util import scaling, actor_utility, game_transitions
+from modules.constructs import (
+    fonts,
+    unit_types,
+    minister_types,
+    building_types,
+    equipment_types,
+    terrain_feature_types,
+)
 from modules.tools.data_managers import (
     notification_manager_template,
     value_tracker_template,
@@ -1359,6 +1357,29 @@ def buttons():
         }
     )
 
+    if constants.effect_manager.effect_active("map_customization"):
+        north_pole_centered_earth = (
+            constants.actor_creation_manager.create_interface_element(
+                {
+                    "coordinates": scaling.scale_coordinates(
+                        constants.strategic_map_x_offset,
+                        constants.strategic_map_y_offset,
+                    ),
+                    "width": scaling.scale_width(constants.strategic_map_pixel_width),
+                    "height": scaling.scale_height(
+                        constants.strategic_map_pixel_height
+                    ),
+                    "parent_collection": status.grids_collection,
+                    "modes": [constants.STRATEGIC_MODE],
+                    "init_type": constants.FREE_IMAGE,
+                    "image_id": "locations/north_pole_centered_earth_grid.png",
+                }
+            )
+        )
+        constants.globe_projection_grid_x_offset += constants.strategic_map_pixel_width
+        constants.strategic_map_x_offset += constants.strategic_map_pixel_width
+        # globe_projection_x += constants.strategic_map_pixel_width
+
     input_dict = {
         "coordinates": scaling.scale_coordinates(0, 10),
         "width": scaling.scale_width(150),
@@ -1387,6 +1408,8 @@ def buttons():
         + constants.strategic_map_pixel_width
         + 15
     )
+    # if constants.effect_manager.effect_active("map_customization"):
+    #    globe_projection_x += constants.strategic_map_pixel_width
     globe_projection_y = (
         scaling.scale_height(constants.earth_grid_y_offset) + status.grids_collection.y
     )
@@ -3153,6 +3176,60 @@ def terrain_interface():
         }
         constants.actor_creation_manager.create_interface_element(input_dict)
 
+    status.temperature_breakdown_collection = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
+                "init_type": constants.ORDERED_COLLECTION,
+                "parent_collection": status.tile_tabbed_collection,
+                "member_config": {
+                    "tabbed": True,
+                    "button_image_id": actor_utility.generate_frame(
+                        "misc/map_modes/temperature.png"
+                    ),
+                    "identifier": constants.TEMPERATURE_BREAKDOWN_PANEL,
+                    "tab_name": "temperature breakdown",
+                },
+            }
+        )
+    )
+
+    for current_actor_label_type in [
+        constants.BANNER_LABEL,
+        constants.TOTAL_HEAT_LABEL,
+        constants.INSOLATION_LABEL,
+        constants.STAR_DISTANCE_LABEL,
+        constants.GHG_EFFECT_LABEL,
+        constants.WATER_VAPOR_EFFECT_LABEL,
+        constants.ALBEDO_EFFECT_LABEL,
+        constants.AVERAGE_TEMPERATURE_LABEL,
+    ]:
+        if current_actor_label_type in [
+            constants.AVERAGE_TEMPERATURE_LABEL,
+            constants.BANNER_LABEL,
+            constants.TOTAL_HEAT_LABEL,
+        ]:
+            x_displacement = 0
+        elif current_actor_label_type in [constants.STAR_DISTANCE_LABEL]:
+            x_displacement = 50
+        else:
+            x_displacement = 25
+        input_dict = {
+            "minimum_width": scaling.scale_width(10),
+            "height": scaling.scale_height(30),
+            "image_id": "misc/default_label.png",
+            "init_type": current_actor_label_type,
+            "actor_type": "tile",
+            "parent_collection": status.temperature_breakdown_collection,
+            "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
+        }
+        if current_actor_label_type == constants.BANNER_LABEL:
+            input_dict["banner_type"] = "absolute zero"
+            input_dict["banner_text"] = f"Absolute zero: {constants.ABSOLUTE_ZERO} °F"
+        constants.actor_creation_manager.create_interface_element(input_dict)
+
     status.local_conditions_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
@@ -3203,6 +3280,19 @@ def terrain_interface():
             input_dict["banner_type"] = "terrain details"
             input_dict["banner_text"] = "Details unknown"
         constants.actor_creation_manager.create_interface_element(input_dict)
+
+        status.albedo_free_image = (
+            constants.actor_creation_manager.create_interface_element(
+                {
+                    "coordinates": (0, 200),
+                    "image_id": "misc/empty.png",
+                    "modes": [],
+                    "width": 2,
+                    "height": 2,
+                    "init_type": constants.FREE_IMAGE,
+                }
+            )
+        )
 
 
 def organization_interface():

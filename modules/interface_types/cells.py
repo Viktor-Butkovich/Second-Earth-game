@@ -3,10 +3,9 @@
 import pygame
 import random
 from typing import Dict, List, Any
-from ..util import actor_utility
-from ..tools.data_managers.terrain_manager_template import terrain_handler
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.util import actor_utility
+from modules.constructs import terrain_handlers
+from modules.constants import constants, status, flags
 
 
 class cell:
@@ -42,7 +41,7 @@ class cell:
         self.grid.cell_list[x][y] = self
         self.tile = None
         self.settlement = None
-        self.terrain_handler: terrain_handler = None
+        self.terrain_handler: terrain_handlers.terrain_handler = None
         self.contained_mobs: list = []
         self.contained_buildings: Dict[str, Any] = {}
         self.adjacent_cells: Dict[str, cell] = {
@@ -55,9 +54,9 @@ class cell:
             self.save_dict: dict = save_dict
             if constants.effect_manager.effect_active("remove_fog_of_war"):
                 save_dict["visible"] = True
-            self.terrain_handler = terrain_handler(self, save_dict)
+            self.terrain_handler = terrain_handlers.terrain_handler(self, save_dict)
         else:  # If creating new map
-            self.terrain_handler = terrain_handler(self)
+            self.terrain_handler = terrain_handlers.terrain_handler(self)
 
     def get_parameter(self, parameter_name: str) -> int:
         """
@@ -70,7 +69,9 @@ class cell:
         """
         return self.terrain_handler.get_parameter(parameter_name)
 
-    def change_parameter(self, parameter_name: str, change: int) -> None:
+    def change_parameter(
+        self, parameter_name: str, change: int, update_display: bool = True
+    ) -> None:
         """
         Description:
             Changes the value of a parameter for this cell's terrain handler
@@ -80,7 +81,9 @@ class cell:
         Output:
             None
         """
-        self.terrain_handler.change_parameter(parameter_name, change)
+        self.terrain_handler.change_parameter(
+            parameter_name, change, update_display=update_display
+        )
 
     def set_parameter(self, parameter_name: str, new_value: int) -> None:
         """
@@ -165,6 +168,11 @@ class cell:
         Output:
             boolean: Returns whether attrition should happen here based on this cell's terrain and buildings
         """
+        if (
+            constants.effect_manager.effect_active("boost_attrition")
+            and random.randrange(1, 7) >= 4
+        ):
+            return True
         if self.grid in [status.earth_grid]:  # no attrition on Earth
             if attrition_type == "health":
                 return False
@@ -176,11 +184,10 @@ class cell:
                 ):  # same effect as clear area with port
                     return False
         else:
-            if (
-                random.randrange(1, 7)
-                >= constants.terrain_attrition_dict.get(self.terrain_handler.terrain, 1)
-                + 1
-            ):  # Attrition on 1-, 2-, or 3-, based on terrain
+            if random.randrange(1, 7) <= min(
+                self.terrain_handler.get_habitability_dict(omit_perfect=False).values()
+            ):
+                # Attrition only occurs if a random roll is higher than the habitability - more attrition for worse habitability
                 return False
 
             if (
@@ -196,7 +203,6 @@ class cell:
             ):
                 if random.randrange(1, 7) >= 5:  # removes 1/3 of attrition
                     return False
-
         return True
 
     def has_building(self, building_type: str) -> bool:

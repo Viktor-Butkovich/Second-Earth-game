@@ -1,10 +1,9 @@
 # Contains all functionality for loan searches
 
 import pygame
-from . import action
-from ..util import action_utility, text_utility, market_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.action_types import action
+from modules.util import action_utility, text_utility, market_utility
+from modules.constants import constants, status, flags
 
 
 class loan_search(action.campaign):

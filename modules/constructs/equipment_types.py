@@ -1,10 +1,14 @@
 # Contains functionality for equipment type templates
 
-from typing import Dict, List
-import modules.constants.constants as constants
-import modules.constants.status as status
-from ..util import actor_utility, text_utility, main_loop_utility, minister_utility
 import random
+from typing import Dict, List
+from modules.util import (
+    actor_utility,
+    text_utility,
+    main_loop_utility,
+    minister_utility,
+)
+from modules.constants import constants, status, flags
 
 
 class equipment_type:

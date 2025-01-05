@@ -1,6 +1,6 @@
 # Contains functions to manage interface collection traversal, doing particular actions for each element with simple decision-making
 
-import modules.constants.status as status
+from modules.constants import constants, status, flags
 
 
 def draw_interface_elements(interface_elements):

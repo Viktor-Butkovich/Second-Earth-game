@@ -2,17 +2,15 @@
 
 import pygame
 import random
-from . import action
-from ..util import (
+from modules.util import (
     action_utility,
     text_utility,
     market_utility,
     scaling,
     game_transitions,
 )
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.action_types import action
+from modules.constants import constants, status, flags
 
 
 class advertising_campaign(action.campaign):

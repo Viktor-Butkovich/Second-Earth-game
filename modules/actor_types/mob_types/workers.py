@@ -1,14 +1,10 @@
 # Contains functionality for worker units
 import random
-
-from .pmobs import pmob
-from ...util import actor_utility
-from ...util import text_utility
-from ...constructs import unit_types
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
 from typing import Dict
+from modules.actor_types.mob_types.pmobs import pmob
+from modules.util import actor_utility, text_utility
+from modules.constructs import unit_types
+from modules.constants import constants, status, flags
 
 
 class worker(pmob):
@@ -41,6 +37,7 @@ class worker(pmob):
         self.worker_type: unit_types.worker_type = input_dict.get(
             "worker_type", status.worker_types.get(input_dict.get("init_type"))
         )  # Colonist, etc. worker_type object
+        self.group = None
         super().__init__(from_save, input_dict, original_constructor=False)
 
         if not from_save:
@@ -98,7 +95,7 @@ class worker(pmob):
         destination_message = (
             f" for the {destination.name} at ({destination.x}, {destination.y})"
         )
-        self.worker_type.on_recruit(purchased=True)
+        self.worker_type.on_recruit()
         text_utility.print_to_screen(
             f"Replacement {self.worker_type.name} have been automatically hired{destination_message}."
         )
@@ -116,15 +113,16 @@ class worker(pmob):
         super().fire()
         self.worker_type.on_fire(wander=wander)
 
-    def join_group(self):
+    def join_group(self, group):
         """
         Description:
             Hides this worker when joining a group, preventing it from being directly interacted with until the group is disbanded
         Input:
-            None
+            group group: Group this worker is joining
         Output:
             None
         """
+        self.group = group
         self.set_permission(constants.IN_GROUP_PERMISSION, True)
         self.hide_images()
         self.remove_from_turn_queue()
@@ -138,6 +136,7 @@ class worker(pmob):
         Output:
             None
         """
+        self.group = None
         self.x = group.x
         self.y = group.y
         self.show_images()

@@ -50,7 +50,6 @@
 
     "earth_rotation_direction": -1,
     "earth_rotation_speed": 3,
-    "earth_base_temperature": 2,
     "earth_expected_temperature_target": 2.15,
     "earth_pressure": 1.0,
     "earth_inert_gases": 0.785,
@@ -58,7 +57,6 @@
     "earth_GHG": 0.005,
     "earth_toxic_gases": 0.0,
     "earth_average_water_target": 3.7,
-    "earth_average_temperature": 2.15,
     "earth_radiation": 3,
     "earth_magnetic_field": 5,
     "earth_gravity": 1.0,
@@ -68,11 +66,13 @@
     "earth_sand_color": [220, 180, 80],
     "earth_rock_color": [94, 88, 75],
     "earth_sky_color": [102, 167, 242],
-    "earth_water_vapor": 3.45,
+    "earth_water_vapor": 3.48,
+    "earth_star_distance": 1.0,
+    "earth_base_temperature_fahrenheit": -0.5,
+    "earth_albedo_multiplier": 0.7,
 
     "mars_rotation_direction": -1,
     "mars_rotation_speed": 3,
-    "mars_base_temperature": -3,
     "mars_expected_temperature_target": -2.6,
     "mars_pressure": 0.006,
     "mars_inert_gases": 0.049,
@@ -89,10 +89,10 @@
     "mars_sand_color": [170, 107, 60],
     "mars_rock_color": [84, 59, 55],
     "mars_sky_color": [124, 125, 129],
+    "mars_star_distance": 1.523,
 
     "venus_rotation_direction": 1,
     "venus_rotation_speed": 1,
-    "venus_base_temperature": 12,
     "venus_expected_temperature_target": 10.61,
     "venus_pressure": 93,
     "venus_inert_gases": 0.035,
@@ -110,6 +110,7 @@
     "venus_sand_color": [141, 127, 5],
     "venus_rock_color": [92, 62, 66],
     "venus_sky_color": [240, 179, 110],
+    "venus_star_distance": 0.723,
     
 
     "map_sizes": [11, 13, 15, 17, 19, 21, 23, 25],

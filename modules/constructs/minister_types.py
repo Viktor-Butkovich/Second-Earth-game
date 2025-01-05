@@ -1,9 +1,8 @@
 # Contains functionality for minister type templates, such as Minister of Security or Minister of Energy
 
 from typing import Dict, List
-import modules.constants.status as status
-import modules.constants.constants as constants
-import modules.util.minister_utility as minister_utility
+from modules.util import minister_utility
+from modules.constants import constants, status, flags
 
 
 class minister_type:

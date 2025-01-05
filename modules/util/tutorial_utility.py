@@ -1,7 +1,6 @@
 # Contains functions that control the display of new notifications
 
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.constants import constants, status, flags
 
 
 def show_tutorial_notifications():

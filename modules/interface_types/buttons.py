@@ -2,7 +2,7 @@
 
 import pygame
 from typing import List
-from ..util import (
+from modules.util import (
     text_utility,
     scaling,
     main_loop_utility,
@@ -13,11 +13,9 @@ from ..util import (
     game_transitions,
     minister_utility,
 )
-from ..constructs import equipment_types, minister_types
-from . import interface_elements
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.constructs import equipment_types, minister_types
+from modules.interface_types import interface_elements
+from modules.constants import constants, status, flags
 
 
 class button(interface_elements.interface_element):
@@ -648,7 +646,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.CHANGE_PARAMETER_BUTTON:
             self.set_tooltip(
                 [
-                    f"Changes this tile's {self.attached_label.actor_label_type.removesuffix('_label')} by {self.change}"
+                    f"Changes this tile's {self.attached_label.actor_label_type.removesuffix('_label').replace('_', ' ')} by {self.change}"
                 ]
             )
         else:
@@ -2598,7 +2596,10 @@ class tab_button(button):
                 )
             elif self.identifier == constants.LOCAL_CONDITIONS_PANEL:
                 return_value = not status.displayed_tile.grid.is_abstract_grid
-            elif self.identifier == constants.GLOBAL_CONDITIONS_PANEL:
+            elif self.identifier in [
+                constants.GLOBAL_CONDITIONS_PANEL,
+                constants.TEMPERATURE_BREAKDOWN_PANEL,
+            ]:
                 return_value = status.displayed_tile.grid.is_abstract_grid
 
         if (

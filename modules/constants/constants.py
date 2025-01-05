@@ -380,16 +380,6 @@ terrain_build_cost_multiplier_dict: Dict[str, int] = {
     "desert": 2,
 }
 
-terrain_attrition_dict: Dict[str, int] = {
-    "savannah": 1,
-    "hills": 1,
-    "jungle": 3,
-    "water": 2,
-    "mountains": 2,
-    "swamp": 3,
-    "desert": 2,
-}
-
 commodity_types: List[str] = [
     "consumer goods",
     "coffee",
@@ -523,6 +513,7 @@ OXYGEN: str = "oxygen"
 GHG: str = "GHG"
 INERT_GASES: str = "inert_gases"
 TOXIC_GASES: str = "toxic_gases"
+ATMOSPHERE_COMPONENTS: str = [OXYGEN, GHG, INERT_GASES, TOXIC_GASES]
 GRAVITY: str = "gravity"
 RADIATION: str = "radiation"
 MAGNETIC_FIELD: str = "magnetic_field"
@@ -563,7 +554,7 @@ BACKGROUND_LEVEL: int = -5
 DEFAULT_LEVEL: int = 2
 BACKPACK_LEVEL: int = 1
 
-ALTITUDE_BRIGHTNESS_MULTIPLIER: float = 1.0
+ALTITUDE_BRIGHTNESS_MULTIPLIER: float = 0.5
 PIXELLATED_SIZE: int = 2
 LIGHT_PIXELLATED_SIZE: int = 70
 if effect_manager.effect_active("speed_loading"):
@@ -617,6 +608,7 @@ MAP_MODE_ALPHA: int = 0
 SETTLEMENT_PANEL: str = "settlement_panel"
 LOCAL_CONDITIONS_PANEL: str = "local_conditions_panel"
 GLOBAL_CONDITIONS_PANEL: str = "global_conditions_panel"
+TEMPERATURE_BREAKDOWN_PANEL: str = "temperature_breakdown_panel"
 
 INVENTORY_PANEL: str = "inventory_panel"
 REORGANIZATION_PANEL: str = "reorganization_panel"
@@ -884,6 +876,12 @@ AVERAGE_TEMPERATURE_LABEL: str = "average_temperature_label"
 GRAVITY_LABEL: str = "gravity_label"
 RADIATION_LABEL: str = "radiation_label"
 MAGNETIC_FIELD_LABEL: str = "magnetic_field_label"
+STAR_DISTANCE_LABEL: str = "star_distance_label"
+INSOLATION_LABEL: str = "insolation_label"
+GHG_EFFECT_LABEL: str = "GHG_effect_label"
+WATER_VAPOR_EFFECT_LABEL: str = "water_vapor_effect_label"
+ALBEDO_EFFECT_LABEL: str = "albedo_effect_label"
+TOTAL_HEAT_LABEL: str = "total_heat_label"
 TILE_INVENTORY_CAPACITY_LABEL: str = "tile_inventory_capacity_label"
 MOB_INVENTORY_CAPACITY_LABEL: str = "mob_inventory_capacity_label"
 
@@ -1001,3 +999,5 @@ HABITABILITY_DESCRIPTIONS: Dict[int, str] = {
     HABITABILITY_DANGEROUS: "dangerous",
     HABITABILITY_DEADLY: "deadly",
 }
+
+ABSOLUTE_ZERO: float = -459.67

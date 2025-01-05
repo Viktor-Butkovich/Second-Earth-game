@@ -1,5 +1,4 @@
-import modules.constants.constants as constants
-import modules.constants.status as status
+from modules.constants import constants, status, flags
 
 
 class value_tracker_template:

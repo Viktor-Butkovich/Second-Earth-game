@@ -1,7 +1,7 @@
 # Contains functions that control the display of images
 
 import pygame
-import modules.constants.constants as constants
+from modules.constants import constants, status, flags
 
 
 def rect_to_surface(rect):

@@ -2,10 +2,14 @@
 
 import pygame
 import math
-from ..util import utility, drawing_utility, text_utility, scaling, minister_utility
-import modules.constants.constants as constants
-import modules.constants.status as status
-import modules.constants.flags as flags
+from modules.util import (
+    utility,
+    drawing_utility,
+    text_utility,
+    scaling,
+    minister_utility,
+)
+from modules.constants import constants, status, flags
 
 
 class image:
