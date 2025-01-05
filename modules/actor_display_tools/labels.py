@@ -591,21 +591,18 @@ class actor_display_label(label):
                 in constants.ATMOSPHERE_COMPONENTS
                 or self.actor_label_type == constants.AVERAGE_WATER_LABEL
             ) and constants.effect_manager.effect_active("god_mode"):
-                offset = scaling.scale_width(-75)
-                if self.actor_label_type == constants.AVERAGE_WATER_LABEL:
-                    change_magnitude = 10
-                else:
-                    change_magnitude = 10
+                offset = scaling.scale_width(-140)
+                change_magnitude = 10
                 input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
                 input_dict["width"], input_dict["height"] = (ss_size, ss_size)
                 input_dict["change"] = -1 * change_magnitude
-                input_dict["image_id"] = "buttons/cycle_ministers_down_button.png"
+                input_dict["image_id"] = "buttons/commodity_drop_button.png"
                 self.add_attached_button(
                     input_dict, member_config={"order_exempt": True, "x_offset": offset}
                 )
 
                 input_dict["change"] = change_magnitude
-                input_dict["image_id"] = "buttons/cycle_ministers_up_button.png"
+                input_dict["image_id"] = "buttons/commodity_pick_up_button.png"
                 self.add_attached_button(
                     input_dict,
                     member_config={
@@ -613,6 +610,29 @@ class actor_display_label(label):
                         "x_offset": offset
                         + input_dict["width"]
                         + scaling.scale_width(5),
+                    },
+                )
+
+                change_magnitude = 1000
+                input_dict["change"] = -1 * change_magnitude
+                input_dict["image_id"] = "buttons/commodity_drop_all_button.png"
+                self.add_attached_button(
+                    input_dict,
+                    member_config={
+                        "order_exempt": True,
+                        "x_offset": offset
+                        + (input_dict["width"] + scaling.scale_width(5)) * 2,
+                    },
+                )
+
+                input_dict["change"] = change_magnitude
+                input_dict["image_id"] = "buttons/commodity_pick_up_all_button.png"
+                self.add_attached_button(
+                    input_dict,
+                    member_config={
+                        "order_exempt": True,
+                        "x_offset": offset
+                        + (input_dict["width"] + scaling.scale_width(5)) * 3,
                     },
                 )
 
@@ -1040,7 +1060,7 @@ class actor_display_label(label):
                         f"GHGs help retain heat from light absorbed by the planet rather than dissipating into space, warming the planet"
                     )
                     tooltip_text.append(
-                        f"    Results in a multiplier to the effect of any insolation from the star"
+                        f"    Results in a multiplier to heat received from the star's insolation"
                     )
                     tooltip_text.append(
                         f"    Regardless of composition, the greenhouse effect is stronger in thicker atmospheres, and vice versa"
@@ -1057,7 +1077,7 @@ class actor_display_label(label):
                         f"Albedo is increased by clouds, thick atmosphere, toxic gases, dust/debris (e.g. nuclear winter), and brightly colored terrain (e.g. ice)"
                     )
                     tooltip_text.append(
-                        f"    Results in a multiplier decreasing the effect of any insolation from the star"
+                        f"    Results in a multiplier decreasing heat received from the star's insolation"
                     )
                 elif self.actor_label_type == constants.TOTAL_HEAT_LABEL:
                     tooltip_text.append(
@@ -1572,7 +1592,7 @@ class actor_display_label(label):
                     2,
                 )
                 self.set_label(
-                    f"{self.message_start}+{total_heat} °F ({round((total_heat / earth_total_heat) * 100)}% Earth)"
+                    f"{self.message_start}{total_heat} °F ({round((total_heat / earth_total_heat) * 100)}% Earth)"
                 )
             elif self.actor_label_type == constants.STAR_DISTANCE_LABEL:
                 self.set_label(
@@ -1580,7 +1600,7 @@ class actor_display_label(label):
                 )
             elif self.actor_label_type == constants.INSOLATION_LABEL:
                 self.set_label(
-                    f"{self.message_start}+{round(self.actor.grid.world_handler.get_sun_effect(), 2)} °F ({round(self.actor.grid.world_handler.get_insolation() * 100)}% Earth)"
+                    f"{self.message_start}{round(self.actor.grid.world_handler.get_sun_effect(), 2)} °F ({round(self.actor.grid.world_handler.get_insolation() * 100)}% Earth)"
                 )
             elif self.actor_label_type == constants.HABITABILITY_LABEL:
                 overall_habitability = (
