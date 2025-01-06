@@ -3254,6 +3254,7 @@ def terrain_interface():
         constants.BANNER_LABEL,
         constants.WATER_LABEL,
         constants.TEMPERATURE_LABEL,
+        constants.LOCAL_AVERAGE_TEMPERATURE_LABEL,
         constants.VEGETATION_LABEL,
         constants.ROUGHNESS_LABEL,
         constants.SOIL_LABEL,
@@ -3265,6 +3266,8 @@ def terrain_interface():
             constants.HABITABILITY_LABEL,
         ]:
             x_displacement = 0
+        elif current_actor_label_type == constants.LOCAL_AVERAGE_TEMPERATURE_LABEL:
+            x_displacement = 50
         else:
             x_displacement = 25
         input_dict = {

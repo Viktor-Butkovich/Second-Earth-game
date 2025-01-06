@@ -47,7 +47,26 @@ class terrain_manager_template:
                 4: "very high",
                 5: "stratospheric",
             },
-            constants.TEMPERATURE: {},
+            constants.TEMPERATURE: {
+                -6: "freezing",
+                -5: "freezing",
+                -4: "freezing",
+                -3: "freezing",
+                -2: "freezing",
+                -1: "freezing",
+                0: "freezing",
+                1: "cold",
+                2: "cool",
+                3: "warm",
+                4: "hot",
+                5: "scorching",
+                6: "scorching",
+                7: "scorching",
+                8: "scorching",
+                9: "scorching",
+                10: "scorching",
+                11: "scorching",
+            },
             constants.ROUGHNESS: {
                 0: "flat",
                 1: "rolling",
@@ -81,6 +100,7 @@ class terrain_manager_template:
                 5: "deep",
             },
         }
+        self.temperature_bounds = {}
         for idx, bounds in enumerate(
             [
                 (-185, -155),
@@ -105,17 +125,13 @@ class terrain_manager_template:
         ):
             lower_bound, upper_bound = bounds
             if lower_bound == -185:
-                self.terrain_parameter_keywords[constants.TEMPERATURE][
-                    idx - 6
-                ] = f"below {upper_bound} °F"
+                self.temperature_bounds[idx - 6] = f"below {upper_bound} °F)"
             elif upper_bound == 305:
-                self.terrain_parameter_keywords[constants.TEMPERATURE][
-                    idx - 6
-                ] = f"above {lower_bound} °F"
+                self.temperature_bounds[idx - 6] = f"above {lower_bound} °F)"
             else:
-                self.terrain_parameter_keywords[constants.TEMPERATURE][
+                self.temperature_bounds[
                     idx - 6
-                ] = f"{lower_bound} °F to {upper_bound} °F"
+                ] = f"between {lower_bound} °F and {upper_bound} °F)"
         self.load_terrains("configuration/terrain_definitions.json")
         self.load_tuning("configuration/terrain_generation_tuning.json")
 

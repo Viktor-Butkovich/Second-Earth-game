@@ -477,15 +477,12 @@ class actor_display_label(label):
         elif (
             self.actor_label_type.removesuffix("_label") in constants.terrain_parameters
         ):
-            if self.actor_label_type == constants.TEMPERATURE_LABEL:
-                self.message_start = "Avg. temperature: "
-            else:
-                self.message_start = (
-                    utility.capitalize(
-                        self.actor_label_type.removesuffix("_label").replace("_", "")
-                    )
-                    + ": "
+            self.message_start = (
+                utility.capitalize(
+                    self.actor_label_type.removesuffix("_label").replace("_", "")
                 )
+                + ": "
+            )
             if constants.effect_manager.effect_active("god_mode"):
                 input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
                 input_dict["width"], input_dict["height"] = (ss_size, ss_size)
@@ -549,6 +546,9 @@ class actor_display_label(label):
                         + (input_dict["width"] + scaling.scale_width(5)) * 3,
                     },
                 )
+
+        elif self.actor_label_type == constants.LOCAL_AVERAGE_TEMPERATURE_LABEL:
+            self.message_start = "(Average "
 
         elif self.actor_label_type == constants.HABITABILITY_LABEL:
             self.message_start = "Habitability: "
@@ -1495,6 +1495,12 @@ class actor_display_label(label):
                     )
                 else:
                     self.set_label(f"{self.message_start}unknown")
+
+            elif self.actor_label_type == constants.LOCAL_AVERAGE_TEMPERATURE_LABEL:
+                self.set_label(
+                    f"{self.message_start}{constants.terrain_manager.temperature_bounds[new_actor.cell.terrain_handler.get_parameter(constants.TEMPERATURE)]}"
+                )
+
             elif (
                 self.actor_label_type.removesuffix("_label")
                 in constants.global_parameters
@@ -1725,7 +1731,7 @@ class actor_display_label(label):
         elif (
             self.actor_label_type.removesuffix("_label") in constants.terrain_parameters
             and self.actor_label_type != constants.KNOWLEDGE_LABEL
-        ):
+        ) or self.actor_label_type == constants.LOCAL_AVERAGE_TEMPERATURE_LABEL:
             return self.actor.cell.terrain_handler.knowledge_available(
                 constants.TERRAIN_PARAMETER_KNOWLEDGE
             )

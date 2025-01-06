@@ -422,6 +422,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
+# Add terraforming advice notification - press button, receive advice based on your current situation from your ecology minister
 # Possibly show solation as brightness on each tile (shouldn't affect albedo)
 # Add 4+ water as deadly in local habitability equation (but not in global habitability summary)
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
