@@ -19,6 +19,7 @@ from modules.tools.data_managers import (
     character_manager_template,
     actor_creation_manager_template,
     terrain_manager_template,
+    help_manager_template,
 )
 from modules.action_types import (
     public_relations_campaign,
@@ -298,6 +299,8 @@ def misc():
     constants.character_manager = (
         character_manager_template.character_manager_template()
     )
+
+    constants.help_manager = help_manager_template.help_manager_template()
 
     status.grids_collection = constants.actor_creation_manager.create_interface_element(
         {

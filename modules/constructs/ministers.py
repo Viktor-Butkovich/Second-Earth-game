@@ -245,11 +245,14 @@ class minister:
         minister_portrait_icon_dict["minister_image_type"] = "portrait"
         return [minister_position_icon_dict, minister_portrait_icon_dict]
 
-    def display_message(self, text, audio=None, transfer=False, on_remove=None):
+    def display_message(
+        self, text, override_input_dict=None, transfer=False, on_remove=None
+    ):
         """
         Description:
             Displays a notification message from this minister with an attached portrait
         Input:
+            dictionary override_input_dict: Extra input dict parameters for the notification
             string text: Message to display in notification
             string audio: Any audio to play with notification
             boolean transfer: Whether the minister icon should carry on to future notifications - should set to True for actions, False for misc. messages
@@ -257,18 +260,18 @@ class minister:
         Output:
             None
         """
-        constants.notification_manager.display_notification(
-            {
-                "message": text + "Click to remove this notification. /n /n",
-                "notification_type": constants.ACTION_NOTIFICATION,
-                "audio": audio,
-                "attached_interface_elements": self.generate_icon_input_dicts(
-                    alignment="left"
-                ),
-                "transfer_interface_elements": transfer,
-                "on_remove": on_remove,
-            }
-        )
+        input_dict = {
+            "message": text + "Click to remove this notification. /n /n",
+            "notification_type": constants.ACTION_NOTIFICATION,
+            "attached_interface_elements": self.generate_icon_input_dicts(
+                alignment="left"
+            ),
+            "transfer_interface_elements": transfer,
+            "on_remove": on_remove,
+        }
+        if override_input_dict:
+            input_dict.update(override_input_dict)
+        constants.notification_manager.display_notification(input_dict)
 
     def can_pay(self, value):
         """
@@ -339,7 +342,9 @@ class minister:
                     evidence_message += "Each piece of evidence can help in a trial to remove a corrupt minister from office. /n /n"
                     prosecutor.display_message(
                         evidence_message,
-                        prosecutor.get_voice_line("evidence"),
+                        override_input_dict={
+                            "audio": prosecutor.get_voice_line("evidence"),
+                        },
                         transfer=False,
                     )  # Don't need to transfer since evidence is last step in action
                     if constants.effect_manager.effect_active("show_minister_stealing"):
@@ -1303,7 +1308,9 @@ class minister:
                 text += "Their position will need to be filled by a replacement as soon as possible for your colony to continue operations. /n /n"
         constants.public_opinion_tracker.change(public_opinion_change)
         if text != "":
-            self.display_message(text, audio=audio, on_remove=on_remove)
+            self.display_message(
+                text, override_input_dict={"audio": audio}, on_remove=on_remove
+            )
 
     def get_voice_line(self, type):
         """

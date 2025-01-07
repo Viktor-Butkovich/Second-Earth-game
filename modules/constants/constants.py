@@ -30,6 +30,7 @@ from modules.tools.data_managers.value_tracker_template import (
     public_opinion_tracker_template,
     money_tracker_template,
 )
+from modules.tools.data_managers.help_manager_template import help_manager_template
 from modules.tools.mouse_followers import mouse_follower_template
 from modules.interface_types.labels import money_label_template
 from modules.constructs.fonts import font
@@ -207,6 +208,9 @@ achievement_manager: achievement_manager_template = (
 )
 event_manager: event_manager_template = event_manager_template()
 notification_manager: notification_manager_template = (
+    None  # requires additional setup before initialization
+)
+help_manager: help_manager_template = (
     None  # requires additional setup before initialization
 )
 mouse_follower: mouse_follower_template = None
@@ -800,6 +804,7 @@ BUILD_TRAIN_BUTTON: str = "build_train_button"
 EXECUTE_AUTOMATIC_ROUTE_BUTTON: str = "execute_automatic_route_button"
 DRAW_AUTOMATIC_ROUTE_BUTTON: str = "draw_automatic_route_button"
 CLEAR_AUTOMATIC_ROUTE_BUTTON: str = "clear_automatic_route_button"
+HELP_BUTTON: str = "help_button"
 
 SAME_TILE_ICON: str = "same_tile_icon"
 MINISTER_PORTRAIT_IMAGE: str = "minister_portrait_image"
@@ -872,6 +877,12 @@ OXYGEN_LABEL: str = "oxygen_label"
 GHG_LABEL: str = "GHG_label"
 INERT_GASES_LABEL: str = "inert_gases_label"
 TOXIC_GASES_LABEL: str = "toxic_gases_label"
+ATMOSPHERE_COMPONENT_LABELS: str = [
+    OXYGEN_LABEL,
+    GHG_LABEL,
+    INERT_GASES_LABEL,
+    TOXIC_GASES_LABEL,
+]
 AVERAGE_WATER_LABEL: str = "average_water_label"
 AVERAGE_TEMPERATURE_LABEL: str = "average_temperature_label"
 GRAVITY_LABEL: str = "gravity_label"
@@ -1002,3 +1013,6 @@ HABITABILITY_DESCRIPTIONS: Dict[int, str] = {
 }
 
 ABSOLUTE_ZERO: float = -459.67
+
+HELP_GLOBAL_PARAMETERS: str = "help_subjects_global_parameters"
+HELP_WORLD_HANDLER_CONTEXT: str = "help_subjects_world_handler_context"

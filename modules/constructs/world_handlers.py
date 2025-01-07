@@ -208,7 +208,7 @@ class world_handler:
             [0, 1, 2, 3, 4, 5], [5, 2, 2, 2, 2, 2], k=1
         )[0]
         atmosphere_type = random.choice(
-            ["thick", "thick", "medium", "thin", "thin", "none"]
+            ["thick", "thick", "medium", "medium", "thin", "none"]
         )
         if (
             global_parameters[constants.MAGNETIC_FIELD]
@@ -852,15 +852,12 @@ class world_handler:
         self.update_cloud_frequencies(estimated_temperature=estimated_temperature)
         # Toxic cloud frequency depends on both toxic gas % and total pressure
 
-        self.atmosphere_haze_alpha = max(
-            0,
-            min(
-                255,
-                (self.get_pressure_ratio() * 7)
-                - 14
-                + (self.get_pressure_ratio(constants.TOXIC_GASES) * 10 * 255),
-            ),
+        pressure_alpha = max(0, self.get_pressure_ratio() * 7 - 14)
+        toxic_alpha = min(
+            255, log(1 + (self.get_pressure_ratio(constants.TOXIC_GASES)), 2) * 255
         )
+        self.atmosphere_haze_alpha = min(255, pressure_alpha + toxic_alpha)
+
         # Atmosphere haze depends on total pressure, with toxic gases greatly over-represented
 
         for terrain_handler in self.terrain_handlers:

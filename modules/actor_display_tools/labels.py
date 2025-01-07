@@ -671,6 +671,15 @@ class actor_display_label(label):
                 )
                 + ": "
             )  # 'worker' -> 'Worker: '
+
+        if self.actor_label_type in constants.help_manager.label_types:
+            input_dict["init_type"] = constants.HELP_BUTTON
+            input_dict["width"], input_dict["height"] = (ss_size, ss_size)
+            input_dict["image_id"] = actor_utility.generate_frame(
+                "buttons/help_button.png"
+            )
+            self.add_attached_button(input_dict)
+
         self.calibrate(None)
 
     def add_attached_button(self, input_dict, member_config=None):
@@ -1531,6 +1540,14 @@ class actor_display_label(label):
                         self.set_label(f"{self.message_start}{value} g")
                     else:
                         self.set_label(f"{self.message_start}{value} g")
+                elif parameter in [constants.MAGNETIC_FIELD, constants.RADIATION]:
+                    ideal = status.earth_grid.world_handler.get_parameter(parameter)
+                    if value == 0:
+                        self.set_label(f"{self.message_start}0/5 (0% Earth)")
+                    else:
+                        self.set_label(
+                            f"{self.message_start}{value}/5 ({round(max(1, 100 * (float(value) / ideal))):,}% Earth)"
+                        )
                 else:
                     ideal = status.earth_grid.world_handler.get_parameter(
                         self.actor_label_type.removesuffix("_label")
@@ -1560,27 +1577,27 @@ class actor_display_label(label):
                 )
             elif self.actor_label_type == constants.GHG_EFFECT_LABEL:
                 if self.actor.grid.world_handler.ghg_multiplier == 1.0:
-                    self.set_label(f"{self.message_start}+0% (0% Earth)")
+                    self.set_label(f"{self.message_start}+0%")
                 else:
                     if self.actor.grid.world_handler.ghg_multiplier > 1.0:
                         sign = "+"
                     else:
                         sign = ""
                     self.set_label(
-                        f"{self.message_start}{sign}{round((self.actor.grid.world_handler.ghg_multiplier - 1.0) * 100, 2)}% ({round((self.actor.grid.world_handler.ghg_multiplier - 1.0) / (status.earth_grid.world_handler.ghg_multiplier - 1.0) * 100)}% Earth)"
+                        f"{self.message_start}{sign}{round((self.actor.grid.world_handler.ghg_multiplier - 1.0) * 100, 2)}%"
                     )
             elif self.actor_label_type == constants.WATER_VAPOR_EFFECT_LABEL:
                 if self.actor.grid.world_handler.water_vapor_multiplier == 1.0:
-                    self.set_label(f"{self.message_start}+0% (0% Earth)")
+                    self.set_label(f"{self.message_start}+0%")
                 else:
                     self.set_label(
-                        f"{self.message_start}+{round((self.actor.grid.world_handler.water_vapor_multiplier - 1.0) * 100, 2)}% ({round((self.actor.grid.world_handler.water_vapor_multiplier - 1.0) / (status.earth_grid.world_handler.water_vapor_multiplier - 1.0) * 100)}% Earth)"
+                        f"{self.message_start}+{round((self.actor.grid.world_handler.water_vapor_multiplier - 1.0) * 100, 2)}%"
                     )
             elif (
                 self.actor_label_type == constants.ALBEDO_EFFECT_LABEL
             ):  # Continue troubleshooting
                 self.set_label(
-                    f"{self.message_start}-{round((1.0 - self.actor.grid.world_handler.albedo_multiplier) * 100)}% ({round((1.0 - self.actor.grid.world_handler.albedo_multiplier) / (1.0 - status.earth_grid.world_handler.albedo_multiplier) * 100)}% Earth)"
+                    f"{self.message_start}-{round((1.0 - self.actor.grid.world_handler.albedo_multiplier) * 100)}%"
                 )
             elif self.actor_label_type == constants.TOTAL_HEAT_LABEL:
                 total_heat = round(

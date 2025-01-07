@@ -1,6 +1,7 @@
 # Contains functionality for actor display buttons
 
 import random
+from typing import Dict, Any
 from modules.interface_types.buttons import button
 from modules.util import (
     main_loop_utility,
@@ -1869,3 +1870,83 @@ class change_parameter_button(button):
             )
         else:
             return super().can_show(skip_parent_collection=skip_parent_collection)
+
+
+class help_button(button):
+    """
+    Button that displays a help message for an attached label
+    """
+
+    def generate_context(self) -> Dict[str, Any]:
+        """
+        Description:
+            Generates required context for help message generation
+        Input:
+            None
+        Output:
+            Dict[str, Any]: Returns a dictionary of context values
+        """
+        context = {}
+        if (
+            self.attached_label.actor
+            and self.attached_label.actor_label_type
+            in constants.help_manager.subjects[constants.HELP_GLOBAL_PARAMETERS]
+        ):
+            context[
+                constants.HELP_WORLD_HANDLER_CONTEXT
+            ] = self.attached_label.actor.cell.grid.world_handler
+        return context
+
+    def on_click(self):
+        """
+        Description:
+            Displays a help message for the attached label
+        Input:
+            None
+        Output:
+            None
+        """
+        message = constants.help_manager.generate_message(
+            self.attached_label.actor_label_type, context=self.generate_context()
+        )
+        if (
+            self.attached_label.actor_label_type
+            in constants.help_manager.subjects[constants.HELP_GLOBAL_PARAMETERS]
+            and status.current_ministers[constants.ECOLOGY_MINISTER]
+        ):
+            status.current_ministers[constants.ECOLOGY_MINISTER].display_message(
+                message,
+                override_input_dict={
+                    "audio": status.current_ministers[
+                        constants.ECOLOGY_MINISTER
+                    ].get_voice_line("acknowledgement")
+                },
+            )
+        else:
+            constants.notification_manager.display_notification({"message": message})
+
+    def update_tooltip(self):
+        """
+        Description:
+            Sets this button's tooltip depending on the attached label
+        Input:
+            None
+        Output:
+            None
+        """
+        self.set_tooltip(
+            constants.help_manager.generate_tooltip(
+                self.attached_label.actor_label_type, context=self.generate_context()
+            )
+        )
+
+    def can_show(self):
+        """
+        Description:
+            Returns whether this button should be drawn
+        Input:
+            None
+        Output:
+            boolean: Returns whether this button should be drawn
+        """
+        return True
