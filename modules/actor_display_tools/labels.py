@@ -317,8 +317,8 @@ class actor_display_label(label):
                 constants.actor_creation_manager.create_interface_element(
                     {
                         "coordinates": (self.x - self.height - m_increment, self.y),
-                        "width": self.height + m_increment,
-                        "height": self.height + m_increment,
+                        "width": scaling.scale_width(30) + m_increment,
+                        "height": scaling.scale_height(30) + m_increment,
                         "modes": self.modes,
                         "minister_type": None,
                         "attached_label": self,
@@ -488,7 +488,7 @@ class actor_display_label(label):
                 input_dict["width"], input_dict["height"] = (ss_size, ss_size)
                 input_dict["change"] = -1
                 input_dict["image_id"] = "buttons/commodity_drop_button.png"
-                offset = scaling.scale_width(-145)
+                offset = scaling.scale_width(-130)
                 if (
                     self.actor_label_type == constants.WATER_LABEL
                     and constants.effect_manager.effect_active("map_customization")
@@ -591,7 +591,7 @@ class actor_display_label(label):
                 in constants.ATMOSPHERE_COMPONENTS
                 or self.actor_label_type == constants.AVERAGE_WATER_LABEL
             ) and constants.effect_manager.effect_active("god_mode"):
-                offset = scaling.scale_width(-140)
+                offset = scaling.scale_width(-130)
                 change_magnitude = 10
                 input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
                 input_dict["width"], input_dict["height"] = (ss_size, ss_size)

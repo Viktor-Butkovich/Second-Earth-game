@@ -126,6 +126,16 @@ class grid(interface_elements.interface_element):
         for cell in self.get_flat_cell_list():
             cell.draw()
         self.draw_grid_lines()
+        if (
+            status.displayed_tile
+            and status.displayed_tile.cell in self.get_flat_cell_list()
+        ):
+            status.displayed_tile.draw_actor_match_outline()
+            if (
+                status.displayed_mob
+                and status.displayed_mob.get_cell() in self.get_flat_cell_list()
+            ):
+                status.displayed_mob.draw_outline()
 
     def draw_grid_lines(self):
         """

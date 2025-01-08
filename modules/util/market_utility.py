@@ -122,7 +122,7 @@ def attempt_worker_upkeep_change(change_type, worker_type):
             changed_price = round(current_price + constants.worker_upkeep_increment, 2)
             worker_type.upkeep = changed_price
             text_utility.print_to_screen(
-                f"Hiring {utility.generate_article(worker_type.name)} increased {worker_type.name} upkeep from {current_price} to {changed_price}."
+                f"Hiring {utility.generate_article(worker_type.name, add_space=True)}increased {worker_type.name} upkeep from {current_price} to {changed_price}."
             )
         elif change_type == "decrease":
             changed_price = round(current_price - constants.worker_upkeep_increment, 2)

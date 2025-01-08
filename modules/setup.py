@@ -1225,7 +1225,9 @@ def value_trackers():
     constants.actor_creation_manager.create_interface_element(
         {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "modes": [
                 constants.STRATEGIC_MODE,
                 constants.EARTH_MODE,
@@ -1246,7 +1248,9 @@ def value_trackers():
     constants.money_label = constants.actor_creation_manager.create_interface_element(
         {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "modes": [
                 constants.STRATEGIC_MODE,
                 constants.EARTH_MODE,
@@ -1270,7 +1274,9 @@ def value_trackers():
     constants.actor_creation_manager.create_interface_element(
         {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "modes": [
                 constants.STRATEGIC_MODE,
                 constants.EARTH_MODE,
@@ -1291,7 +1297,9 @@ def value_trackers():
         constants.actor_creation_manager.create_interface_element(
             {
                 "minimum_width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "height": scaling.scale_height(
+                    constants.default_notification_font_size + 5
+                ),
                 "modes": [
                     constants.STRATEGIC_MODE,
                     constants.EARTH_MODE,
@@ -2126,7 +2134,7 @@ def trial_screen():
     input_dict = {
         "coordinates": scaling.scale_coordinates(0, defense_current_y),
         "minimum_width": scaling.scale_width(10),
-        "height": scaling.scale_height(30),
+        "height": scaling.scale_height(constants.default_notification_font_size + 5),
         "image_id": "misc/default_label.png",
         "message": "Defense",
         "init_type": constants.LABEL,
@@ -2203,7 +2211,7 @@ def trial_screen():
     prosecution_current_y -= 35
     input_dict = {
         "minimum_width": scaling.scale_width(10),
-        "height": scaling.scale_height(30),
+        "height": scaling.scale_height(constants.default_notification_font_size + 5),
         "image_id": "misc/default_label.png",
         "message": "Prosecution",
         "init_type": constants.LABEL,
@@ -2329,7 +2337,7 @@ def mob_interface():
         }
     )
 
-    tab_collection_relative_coordinates = (450, -30)
+    tab_collection_relative_coordinates = (420, -30)
     status.mob_tabbed_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
@@ -2486,7 +2494,9 @@ def mob_sub_interface():
             x_displacement = 0
         input_dict = {  # should declare here to reinitialize dict and prevent extra parameters from being incorrectly retained between iterations
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
             "actor_type": "mob",
@@ -2634,7 +2644,9 @@ def tile_interface():
         x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
             "actor_type": "tile",
@@ -2651,7 +2663,7 @@ def tile_interface():
         else:
             constants.actor_creation_manager.create_interface_element(input_dict)
 
-    tab_collection_relative_coordinates = (450, -30)
+    tab_collection_relative_coordinates = (420, -30)
 
     status.tile_tabbed_collection = (
         constants.actor_creation_manager.create_interface_element(
@@ -2744,7 +2756,7 @@ def inventory_interface():
 
     input_dict = {
         "minimum_width": scaling.scale_width(10),
-        "height": scaling.scale_height(30),
+        "height": scaling.scale_height(constants.default_notification_font_size + 5),
         "image_id": "misc/default_label.png",
         "init_type": constants.MOB_INVENTORY_CAPACITY_LABEL,
         "actor_type": "mob",
@@ -2872,7 +2884,9 @@ def inventory_interface():
         x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
             "actor_type": "mob",
@@ -2904,7 +2918,7 @@ def inventory_interface():
 
     input_dict = {
         "minimum_width": scaling.scale_width(10),
-        "height": scaling.scale_height(30),
+        "height": scaling.scale_height(constants.default_notification_font_size + 5),
         "image_id": "misc/default_label.png",
         "init_type": constants.TILE_INVENTORY_CAPACITY_LABEL,
         "actor_type": "tile",
@@ -3030,7 +3044,9 @@ def inventory_interface():
         x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
             "actor_type": "tile",
@@ -3094,7 +3110,9 @@ def settlement_interface():
             x_displacement = 25
         input_dict = {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
             "actor_type": "tile",
             "parent_collection": status.settlement_collection,
@@ -3170,7 +3188,9 @@ def terrain_interface():
             x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
             "actor_type": "tile",
@@ -3221,7 +3241,9 @@ def terrain_interface():
             x_displacement = 25
         input_dict = {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
             "actor_type": "tile",
@@ -3275,7 +3297,9 @@ def terrain_interface():
             x_displacement = 25
         input_dict = {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
             "actor_type": "tile",
@@ -3938,7 +3962,7 @@ def minister_interface():
     input_dict = {
         "coordinates": scaling.scale_coordinates(0, 0),
         "minimum_width": scaling.scale_width(10),
-        "height": scaling.scale_height(30),
+        "height": scaling.scale_height(constants.default_notification_font_size + 5),
         "image_id": "misc/default_label.png",
         "actor_type": "minister",
         "init_type": constants.ACTOR_DISPLAY_LABEL,

@@ -47,6 +47,9 @@ class help_manager_template:
             string: Returns a notification message for the inputted subject
         """
         message = ["line1", "line2"]
+        if subject in self.subjects[constants.HELP_GLOBAL_PARAMETERS]:
+            world_handler = context[constants.HELP_WORLD_HANDLER_CONTEXT]
+            message.append(str(world_handler))
 
         return " /n /n".join(message) + " /n /n"
 

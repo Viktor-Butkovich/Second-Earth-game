@@ -1,9 +1,9 @@
 {
-    "altitude_worms": 10,
-    "min_altitude_worm_multiplier": 200,
-    "med_altitude_worm_multiplier": 350,
-    "max_altitude_worm_multiplier": 500,
-    "altitude_changes": [1, 2, 1, 2, 1, 2, -1],
+    "altitude_worms": 2000,
+    "min_altitude_worm_multiplier": 50,
+    "med_altitude_worm_multiplier": 100,
+    "max_altitude_worm_multiplier": 150,
+    "altitude_changes": [-3, -3, -2, -2, -2, 1, 3, 4, 4],
     "altitude_bounds": [1, 1, 1, 1, 1, 2, 2, 3],
     "smooth_altitude": true,
 

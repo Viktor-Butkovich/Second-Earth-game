@@ -3228,6 +3228,12 @@ class map_mode_button(button):
             for cell in grid.get_flat_cell_list():
                 cell.tile.update_image_bundle()
         status.strategic_map_grid.update_globe_projection()
+        actor_utility.calibrate_actor_info_display(
+            status.tile_info_display, status.displayed_tile
+        )
+        actor_utility.calibrate_actor_info_display(
+            status.mob_info_display, status.displayed_mob
+        )
 
     def update_tooltip(self):
         """

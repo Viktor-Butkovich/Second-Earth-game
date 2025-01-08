@@ -30,13 +30,6 @@ def update_display():
         # could modify with a layer dictionary to display elements on different layers - currently, drawing elements in order of collection creation is working w/o overlap
         # issues
 
-        displayed_tile = status.displayed_tile
-        if displayed_tile:
-            displayed_tile.draw_actor_match_outline(False)
-
-        if status.displayed_mob:
-            status.displayed_mob.draw_outline()
-
         for current_mob in status.mob_list:
             if current_mob.can_show_tooltip():
                 for same_tile_mob in current_mob.get_cell().contained_mobs:
