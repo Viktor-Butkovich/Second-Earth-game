@@ -208,7 +208,7 @@ class world_handler:
             [0, 1, 2, 3, 4, 5], [5, 2, 2, 2, 2, 2], k=1
         )[0]
         atmosphere_type = random.choice(
-            ["thick", "thick", "medium", "medium", "thin", "none"]
+            ["thick", "thick", "medium", "medium", "medium", "thin"]
         )
         if (
             global_parameters[constants.MAGNETIC_FIELD]
@@ -402,8 +402,7 @@ class world_handler:
         for component in constants.ATMOSPHERE_COMPONENTS:
             if random.randrange(1, 7) >= 5:
                 global_parameters[component] = 0
-            elif global_parameters[component] != 0:
-                global_parameters[component] += random.uniform(-1.0, 1.0)
+            global_parameters[component] += random.uniform(-10.0, 10.0)
             global_parameters[component] = max(
                 0, round(global_parameters[component], 1)
             )
@@ -1400,12 +1399,21 @@ class world_handler:
             Returns the greenhouse effect caused by greenhouse gases on this planet
         """
         atm = self.get_pressure_ratio(constants.GHG)
-        if atm < 0.005:
-            ghg_multiplier = 1.0 + weight * (atm / 0.005) * 0.124
-        else:
-            ghg_multiplier = 1.0 + weight * (
-                0.124 * (log(atm / 0.005, 2.0) + 1)
-            )  # Tune log base to make Venus the correct temperature
+        if atm < 0.0002:  # Linear relationship for very low GHG values
+            ghg_multiplier = 1.0 + (weight * (0.05 * (atm / 0.0002)))
+        else:  # Logarithmic relationship for Earth-like GHG values, such that doubling/halving GHG changes temperature by about 5 degrees Fahrenheit
+            ghg_multiplier = 1.0 + (weight * (0.06 + (log(atm / 0.0004, 2) * 0.01)))
+        ghg_multiplier += min(
+            0.43, weight * atm
+        )  # Add significant increases for GHG values from ~0-1 atm, up to 0.43x
+        ghg_multiplier += min(
+            0.43, weight * (atm * 0.272 * 0.5 * 0.5)
+        )  # Add significant increases for moderately large GHG values, up to 0.43x
+        ghg_multiplier += weight * (
+            atm * 0.015 * 0.26
+        )  # Continue adding significant increases for very large GHG values
+        # Tune to get yield correct Venus temperature
+
         if (
             self.get_pressure_ratio() < 0.5
         ):  # Apply negative penalty to GHG multiplier in thin atmospheres, as more heat is lost directly to space
@@ -1441,7 +1449,7 @@ class world_handler:
             )
 
         water_vapor_multiplier = 1.0 + (
-            water_vapor / self.get_tuning("earth_water_vapor") * weight * 0.124
+            water_vapor / self.get_tuning("earth_water_vapor") * weight * 0.5 * 0.124
         )
         self.water_vapor_multiplier = water_vapor_multiplier
         return self.water_vapor_multiplier
@@ -1519,8 +1527,8 @@ class world_handler:
             ),
         )
         water_vapor_weight, ghg_weight = (
-            0.5 * pressure_effect,
-            0.5 * pressure_effect,
+            1.0 * pressure_effect,
+            1.0 * pressure_effect,
         )  # Increase GHG effect for higher pressures and vice versa
 
         ghg_multiplier = self.get_ghg_effect_multiplier(weight=ghg_weight)

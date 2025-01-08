@@ -592,7 +592,10 @@ class actor_display_label(label):
                 or self.actor_label_type == constants.AVERAGE_WATER_LABEL
             ) and constants.effect_manager.effect_active("god_mode"):
                 offset = scaling.scale_width(-130)
-                change_magnitude = 10
+                if self.actor_label_type == constants.GHG_LABEL:
+                    change_magnitude = 1
+                else:
+                    change_magnitude = 10
                 input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
                 input_dict["width"], input_dict["height"] = (ss_size, ss_size)
                 input_dict["change"] = -1 * change_magnitude
@@ -613,7 +616,13 @@ class actor_display_label(label):
                     },
                 )
 
-                change_magnitude = 1000
+                if self.actor_label_type in [
+                    constants.GHG_LABEL,
+                    constants.AVERAGE_WATER_LABEL,
+                ]:
+                    change_magnitude = 100
+                else:
+                    change_magnitude = 1000
                 input_dict["change"] = -1 * change_magnitude
                 input_dict["image_id"] = "buttons/commodity_drop_all_button.png"
                 self.add_attached_button(
