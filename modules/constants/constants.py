@@ -240,8 +240,9 @@ end_turn_wait_time: float = 0.05
 old_mouse_x: int = pygame.mouse.get_pos()[0]
 old_mouse_y: int = pygame.mouse.get_pos()[1]
 
+small_font_name: str = "times new roman"
 font_name: str = "microsoftsansserif"
-default_font_size: int = 15
+default_font_size: int = 18
 font_size: float = None
 default_notification_font_size: int = 22
 notification_font_size: float = None
@@ -1016,3 +1017,23 @@ ABSOLUTE_ZERO: float = -459.67
 
 HELP_GLOBAL_PARAMETERS: str = "help_subjects_global_parameters"
 HELP_WORLD_HANDLER_CONTEXT: str = "help_subjects_world_handler_context"
+
+DEADLY_PARAMETER_BOUNDS: Dict[str, Tuple[float, float]] = {
+    PRESSURE: (0.12, 30),
+    OXYGEN: (0.1, None),
+    GHG: (None, 0.03),
+    INERT_GASES: (None, None),
+    TOXIC_GASES: (None, 0.004),
+    GRAVITY: (None, None),
+    RADIATION: (4, None),
+}
+
+PERFECT_PARAMETER_BOUNDS: Dict[str, Tuple[float, float]] = {
+    PRESSURE: (0.9, 1.1),
+    OXYGEN: (0.2, 0.22),
+    GHG: (None, 0.006),
+    INERT_GASES: (0.76, 0.8),
+    TOXIC_GASES: (None, 0),
+    GRAVITY: (0.8, 1.2),
+    RADIATION: (None, 0),
+}

@@ -103,7 +103,7 @@ def misc():
     constants.myfont = fonts.font(
         {
             "descriptor": "default",
-            "name": constants.font_name,
+            "name": constants.small_font_name,
             "size": constants.font_size,
             "color": "black",
         }
@@ -111,7 +111,7 @@ def misc():
     fonts.font(
         {
             "descriptor": "white",
-            "name": constants.font_name,
+            "name": constants.small_font_name,
             "size": constants.font_size,
             "color": "white",
         }

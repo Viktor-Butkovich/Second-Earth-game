@@ -679,9 +679,7 @@ class world_handler:
             if self.get_parameter(constants.PRESSURE) == 0:
                 composition = 0.01
             else:
-                composition = self.get_parameter(
-                    atmosphere_component
-                ) / self.get_parameter(constants.PRESSURE)
+                composition = self.get_composition(atmosphere_component)
             ideal = self.get_tuning(f"earth_{atmosphere_component}")
             if atmosphere_component == constants.TOXIC_GASES:
                 offset = max(0, (composition - 0.001) / 0.001)
@@ -1181,6 +1179,22 @@ class world_handler:
             constants.PRESSURE
         )
 
+    def get_composition(self, component: str) -> float:
+        """
+        Description:
+            Calculates and returns the % composition of an inputted atmosphere component
+        Input:
+            string component: Component of the atmosphere to calculate the composition of
+        Output:
+            float: Returns the % composition of the inputted atmosphere component
+        """
+        if self.get_parameter(component) == 0:
+            return 0.0
+        else:
+            return self.get_parameter(component) / self.get_parameter(
+                constants.PRESSURE
+            )
+
     def calculate_parameter_habitability(self, parameter_name: str) -> int:
         """
         Description:
@@ -1192,9 +1206,17 @@ class world_handler:
         """
         value = self.get_parameter(parameter_name)
         ideal = self.get_ideal_parameter(parameter_name)
+        deadly_lower_bound, deadly_upper_bound = constants.DEADLY_PARAMETER_BOUNDS.get(
+            parameter_name, (None, None)
+        )
+        (
+            perfect_lower_bound,
+            perfect_upper_bound,
+        ) = constants.PERFECT_PARAMETER_BOUNDS.get(parameter_name, (None, None))
+
         if parameter_name == constants.PRESSURE:
             ratio = round(value / ideal, 2)
-            if ratio >= 30:
+            if ratio >= deadly_upper_bound:
                 return constants.HABITABILITY_DEADLY
             elif ratio >= 10:
                 return constants.HABITABILITY_DANGEROUS
@@ -1212,21 +1234,21 @@ class world_handler:
                 return constants.HABITABILITY_UNPLEASANT
             elif ratio >= 0.21:
                 return constants.HABITABILITY_HOSTILE
-            elif ratio >= 0.12:
+            elif ratio >= deadly_lower_bound:
                 return constants.HABITABILITY_DANGEROUS
             else:
                 return constants.HABITABILITY_DEADLY
         elif parameter_name == constants.OXYGEN:
             if self.get_parameter(constants.PRESSURE) == 0:
                 return constants.HABITABILITY_PERFECT
-            composition = round(value / self.get_parameter(constants.PRESSURE), 2)
+            composition = round(self.get_composition(constants.OXYGEN), 2)
             if composition >= 0.6:
                 return constants.HABITABILITY_HOSTILE
             elif composition >= 0.24:
                 return constants.HABITABILITY_UNPLEASANT
-            elif composition >= 0.22:
+            elif composition >= perfect_upper_bound:
                 return constants.HABITABILITY_TOLERABLE
-            elif composition >= 0.2:
+            elif composition >= perfect_lower_bound:
                 return constants.HABITABILITY_PERFECT
             elif composition >= 0.19:
                 return constants.HABITABILITY_TOLERABLE
@@ -1234,15 +1256,15 @@ class world_handler:
                 return constants.HABITABILITY_UNPLEASANT
             elif composition >= 0.14:
                 return constants.HABITABILITY_HOSTILE
-            elif composition >= 0.1:
+            elif composition >= deadly_lower_bound:
                 return constants.HABITABILITY_DANGEROUS
             else:
                 return constants.HABITABILITY_DEADLY
         elif parameter_name == constants.GHG:
             if self.get_parameter(constants.PRESSURE) == 0:
                 return constants.HABITABILITY_PERFECT
-            composition = round(value / self.get_parameter(constants.PRESSURE), 3)
-            if composition >= 0.03:
+            composition = round(self.get_composition(constants.GHG), 3)
+            if composition >= deadly_upper_bound:
                 return constants.HABITABILITY_DEADLY
             elif composition >= 0.02:
                 return constants.HABITABILITY_DANGEROUS
@@ -1250,7 +1272,7 @@ class world_handler:
                 return constants.HABITABILITY_HOSTILE
             elif composition >= 0.01:
                 return constants.HABITABILITY_UNPLEASANT
-            elif composition >= 0.006:
+            elif composition >= perfect_upper_bound:
                 return constants.HABITABILITY_TOLERABLE
             else:
                 return constants.HABITABILITY_PERFECT
@@ -1258,10 +1280,10 @@ class world_handler:
         elif parameter_name == constants.INERT_GASES:
             if self.get_parameter(constants.PRESSURE) == 0:
                 return constants.HABITABILITY_PERFECT
-            composition = round(value / self.get_parameter(constants.PRESSURE), 2)
-            if composition >= 0.80:
+            composition = round(self.get_composition(constants.INERT_GASES), 2)
+            if composition >= perfect_upper_bound:
                 return constants.HABITABILITY_TOLERABLE
-            elif composition >= 0.76:
+            elif composition >= perfect_lower_bound:
                 return constants.HABITABILITY_PERFECT
             elif composition >= 0.5:
                 return constants.HABITABILITY_TOLERABLE
@@ -1271,8 +1293,8 @@ class world_handler:
         elif parameter_name == constants.TOXIC_GASES:
             if self.get_parameter(constants.PRESSURE) == 0:
                 return constants.HABITABILITY_PERFECT
-            composition = round(value / self.get_parameter(constants.PRESSURE), 4)
-            if composition >= 0.004:
+            composition = round(self.get_composition(constants.TOXIC_GASES), 4)
+            if composition >= deadly_upper_bound:
                 return constants.HABITABILITY_DEADLY
             elif composition >= 0.003:
                 return constants.HABITABILITY_DANGEROUS
@@ -1280,7 +1302,7 @@ class world_handler:
                 return constants.HABITABILITY_HOSTILE
             elif composition >= 0.001:
                 return constants.HABITABILITY_UNPLEASANT
-            elif composition > 0:
+            elif composition > perfect_upper_bound:
                 return constants.HABITABILITY_TOLERABLE
             else:
                 return constants.HABITABILITY_PERFECT
@@ -1293,11 +1315,11 @@ class world_handler:
                 return constants.HABITABILITY_DANGEROUS
             elif ratio >= 2:
                 return constants.HABITABILITY_HOSTILE
-            elif ratio >= 1.41:
+            elif ratio >= 1.4:
                 return constants.HABITABILITY_UNPLEASANT
-            elif ratio >= 1.21:
+            elif ratio >= perfect_upper_bound:
                 return constants.HABITABILITY_TOLERABLE
-            elif ratio >= 0.8:
+            elif ratio >= perfect_lower_bound:
                 return constants.HABITABILITY_PERFECT
             elif ratio >= 0.6:
                 return constants.HABITABILITY_TOLERABLE
@@ -1308,7 +1330,7 @@ class world_handler:
 
         elif parameter_name == constants.RADIATION:
             radiation_effect = value - self.get_parameter(constants.MAGNETIC_FIELD)
-            if radiation_effect >= 4:
+            if radiation_effect >= deadly_lower_bound:
                 return constants.HABITABILITY_DEADLY
             elif radiation_effect >= 2:
                 return constants.HABITABILITY_DANGEROUS
@@ -1491,6 +1513,23 @@ class world_handler:
         )
 
         return self.albedo_multiplier
+
+    def get_total_heat(self):
+        """
+        Description:
+            Calculates and returns the total heat received by this planet, including greenhouse effect, water vapor, albedo, and base sunlight received
+        Input:
+            None
+        Output:
+            float: Returns the total heat received by this planet
+        """
+        return round(
+            self.water_vapor_multiplier
+            * self.ghg_multiplier
+            * self.albedo_multiplier
+            * self.get_sun_effect(),
+            2,
+        )
 
     def update_target_average_temperature(
         self, estimate_water_vapor: bool = False, update_albedo: bool = False

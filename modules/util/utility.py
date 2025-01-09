@@ -124,6 +124,21 @@ def generate_plural(amount):
         return "s"
 
 
+def generate_possessive(word):
+    """
+    Description:
+        Returns the possessive form of the inputted noun
+    Input:
+        string word: Word to generate a possessive form for
+    Output:
+        string: Returns the possessive form of the inputted noun
+    """
+    if word != "" and word[-1] == "s":
+        return f"{word}'"
+    else:
+        return f"{word}'s"
+
+
 def generate_capitalized_article(word):
     """
     Description:

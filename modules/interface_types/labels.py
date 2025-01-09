@@ -558,6 +558,7 @@ class multi_line_label(label):
         self.format_message()
         for text_line in self.message:
             self.width = max(self.ideal_width, self.font.calculate_size(text_line))
+        self.width += scaling.scale_width(5)
         self.Rect = pygame.Rect(
             self.x,
             constants.display_height - self.y - self.height,

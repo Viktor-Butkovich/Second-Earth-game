@@ -1057,6 +1057,9 @@ class actor_display_label(label):
                     tooltip_text.append(
                         f"    {self.actor.grid.world_handler.get_insolation()} = 1 / ({self.actor.grid.world_handler.star_distance})^2"
                     )
+                    tooltip_text.append(
+                        f"By the Stefan-Boltzmann law, a planet with {self.actor.grid.world_handler.get_insolation()}x Earth's insolation receives {round(self.actor.grid.world_handler.get_sun_effect(), 2)} °F heat"
+                    )
 
                 if self.actor_label_type in [
                     constants.GHG,
@@ -1541,8 +1544,14 @@ class actor_display_label(label):
                             f"0.0% {self.message_start}{value:,} u (0.0 atm)"
                         )
                     else:  # 42% Oxygen: 1008 u (0.42 atm)
+                        atm = round(
+                            self.actor.grid.world_handler.get_pressure_ratio(parameter),
+                            2,
+                        )
+                        if atm < 0.01:
+                            atm = "<0.01"
                         self.set_label(
-                            f"{round(100 * value / self.actor.grid.world_handler.get_parameter(constants.PRESSURE), 1)}% {self.message_start}{value:,} u ({max(0.01, round(self.actor.grid.world_handler.get_pressure_ratio(parameter), 2)):,} atm)"
+                            f"{round(100 * value / self.actor.grid.world_handler.get_parameter(constants.PRESSURE), 1)}% {self.message_start}{value:,} u ({atm} atm)"
                         )
                 elif parameter == constants.GRAVITY:
                     if self.actor.grid == status.earth_grid:
@@ -1609,20 +1618,8 @@ class actor_display_label(label):
                     f"{self.message_start}-{round((1.0 - self.actor.grid.world_handler.albedo_multiplier) * 100)}%"
                 )
             elif self.actor_label_type == constants.TOTAL_HEAT_LABEL:
-                total_heat = round(
-                    self.actor.grid.world_handler.water_vapor_multiplier
-                    * self.actor.grid.world_handler.ghg_multiplier
-                    * self.actor.grid.world_handler.albedo_multiplier
-                    * self.actor.grid.world_handler.get_sun_effect(),
-                    2,
-                )
-                earth_total_heat = round(
-                    status.earth_grid.world_handler.water_vapor_multiplier
-                    * status.earth_grid.world_handler.ghg_multiplier
-                    * status.earth_grid.world_handler.albedo_multiplier
-                    * status.earth_grid.world_handler.get_sun_effect(),
-                    2,
-                )
+                total_heat = self.actor.grid.world_handler.get_total_heat()
+                earth_total_heat = status.earth_grid.world_handler.get_total_heat()
                 self.set_label(
                     f"{self.message_start}{total_heat} °F ({round((total_heat / earth_total_heat) * 100)}% Earth)"
                 )
@@ -1632,7 +1629,7 @@ class actor_display_label(label):
                 )
             elif self.actor_label_type == constants.INSOLATION_LABEL:
                 self.set_label(
-                    f"{self.message_start}{round(self.actor.grid.world_handler.get_sun_effect(), 2)} °F ({round(self.actor.grid.world_handler.get_insolation() * 100)}% Earth)"
+                    f"{self.message_start}{round(self.actor.grid.world_handler.get_sun_effect(), 2)} °F ({round((self.actor.grid.world_handler.get_sun_effect() / status.earth_grid.world_handler.get_sun_effect()) * 100)}% Earth)"
                 )
             elif self.actor_label_type == constants.HABITABILITY_LABEL:
                 overall_habitability = (
