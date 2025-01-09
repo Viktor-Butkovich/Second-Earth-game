@@ -1025,7 +1025,7 @@ DEADLY_PARAMETER_BOUNDS: Dict[str, Tuple[float, float]] = {
     INERT_GASES: (None, None),
     TOXIC_GASES: (None, 0.004),
     GRAVITY: (None, None),
-    RADIATION: (4, None),
+    RADIATION: (None, 4),
 }
 
 PERFECT_PARAMETER_BOUNDS: Dict[str, Tuple[float, float]] = {
@@ -1033,7 +1033,7 @@ PERFECT_PARAMETER_BOUNDS: Dict[str, Tuple[float, float]] = {
     OXYGEN: (0.2, 0.22),
     GHG: (None, 0.006),
     INERT_GASES: (0.76, 0.8),
-    TOXIC_GASES: (None, 0),
+    TOXIC_GASES: (None, 0.0005),
     GRAVITY: (0.8, 1.2),
-    RADIATION: (None, 0),
+    RADIATION: (0, 0),
 }

@@ -620,7 +620,7 @@ def generate_frame(
         return utility.combine(frame, image_id)
 
 
-def calculate_temperature_habitability(temperature: int) -> int:
+def get_temperature_habitability(temperature: int) -> int:
     """
     Description:
         Calculates and returns the habitability effect of a particular temperature value

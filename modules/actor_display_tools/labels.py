@@ -1129,7 +1129,7 @@ class actor_display_label(label):
                 else:
                     habitability_dict[
                         constants.TEMPERATURE
-                    ] = actor_utility.calculate_temperature_habitability(
+                    ] = actor_utility.get_temperature_habitability(
                         round(self.actor.cell.grid.world_handler.average_temperature)
                     )
                     if (

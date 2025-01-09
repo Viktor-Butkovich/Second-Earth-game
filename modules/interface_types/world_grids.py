@@ -66,9 +66,9 @@ class world_grid(grid):
                 set_initial_offset=True, update_water=True
             )
             self.world_handler.update_clouds()
-        for i in range(5):  # Simulate time passing until equilibrium is reached
-            self.world_handler.update_target_average_temperature(update_albedo=True)
-            self.world_handler.change_to_temperature_target()
+            for i in range(5):  # Simulate time passing until equilibrium is reached
+                self.world_handler.update_target_average_temperature(update_albedo=True)
+                self.world_handler.change_to_temperature_target()
 
     def generate_altitude(self) -> None:
         """

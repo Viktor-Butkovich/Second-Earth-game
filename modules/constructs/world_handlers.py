@@ -121,6 +121,7 @@ class world_handler:
                 input_dict["albedo_multiplier"] = self.get_tuning(
                     "earth_albedo_multiplier"
                 )
+                input_dict["cloud_frequency"] = self.get_tuning("earth_cloud_frequency")
             input_dict["default_sky_color"] = input_dict["sky_color"].copy()
 
         self.terrain_handlers: list = [
@@ -160,10 +161,11 @@ class world_handler:
         for key in constants.global_parameters:
             self.set_parameter(key, input_dict.get("global_parameters", {}).get(key, 0))
         self.latitude_lines_setup()
-        self.average_temperature: float = 0.0
-        self.update_target_average_temperature(
-            estimate_water_vapor=not from_save, update_albedo=False
-        )
+        self.average_temperature: float = input_dict.get("average_temperature", 0.0)
+        if not from_save:
+            self.update_target_average_temperature(
+                estimate_water_vapor=True, update_albedo=False
+            )
 
     def generate_global_parameters(self) -> Dict[str, int]:
         """
@@ -964,7 +966,6 @@ class world_handler:
             "default_sky_color": self.default_sky_color,
             "initial_atmosphere_offset": self.initial_atmosphere_offset,
             "star_distance": self.star_distance,
-            "average_temperature": self.average_temperature,
             "water_vapor_multiplier": self.water_vapor_multiplier,
             "ghg_multiplier": self.ghg_multiplier,
             "albedo_multiplier": self.albedo_multiplier,
@@ -1195,7 +1196,7 @@ class world_handler:
                 constants.PRESSURE
             )
 
-    def calculate_parameter_habitability(self, parameter_name: str) -> int:
+    def get_parameter_habitability(self, parameter_name: str) -> int:
         """
         Description:
             Calculates and returns the habitability effect of a particular global parameter
@@ -1293,7 +1294,7 @@ class world_handler:
         elif parameter_name == constants.TOXIC_GASES:
             if self.get_parameter(constants.PRESSURE) == 0:
                 return constants.HABITABILITY_PERFECT
-            composition = round(self.get_composition(constants.TOXIC_GASES), 4)
+            composition = round(self.get_composition(constants.TOXIC_GASES), 5)
             if composition >= deadly_upper_bound:
                 return constants.HABITABILITY_DEADLY
             elif composition >= 0.003:
@@ -1302,7 +1303,7 @@ class world_handler:
                 return constants.HABITABILITY_HOSTILE
             elif composition >= 0.001:
                 return constants.HABITABILITY_UNPLEASANT
-            elif composition > perfect_upper_bound:
+            elif composition >= perfect_upper_bound:
                 return constants.HABITABILITY_TOLERABLE
             else:
                 return constants.HABITABILITY_PERFECT
@@ -1330,7 +1331,7 @@ class world_handler:
 
         elif parameter_name == constants.RADIATION:
             radiation_effect = value - self.get_parameter(constants.MAGNETIC_FIELD)
-            if radiation_effect >= deadly_lower_bound:
+            if radiation_effect >= deadly_upper_bound:
                 return constants.HABITABILITY_DEADLY
             elif radiation_effect >= 2:
                 return constants.HABITABILITY_DANGEROUS

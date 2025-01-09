@@ -58,7 +58,7 @@ class terrain_handler:
         for key, value in input_dict.get("terrain_features", {}).items():
             self.add_terrain_feature(value)
 
-    def calculate_parameter_habitability(self, parameter_name: str) -> int:
+    def get_parameter_habitability(self, parameter_name: str) -> int:
         """
         Description:
             Calculates and returns the habitability effect of a particular parameter
@@ -68,11 +68,9 @@ class terrain_handler:
             int: Returns the habitability effect of the inputted parameter, from 0 to 5 (5 is perfect, 0 is deadly)
         """
         if parameter_name in constants.global_parameters:
-            return self.get_world_handler().calculate_parameter_habitability(
-                parameter_name
-            )
+            return self.get_world_handler().get_parameter_habitability(parameter_name)
         elif parameter_name == constants.TEMPERATURE:
-            return actor_utility.calculate_temperature_habitability(
+            return actor_utility.get_temperature_habitability(
                 self.get_parameter(parameter_name)
             )
         else:
@@ -91,11 +89,11 @@ class terrain_handler:
         for terrain_parameter in (
             constants.terrain_parameters + constants.global_parameters
         ):
-            habitability = self.calculate_parameter_habitability(terrain_parameter)
+            habitability = self.get_parameter_habitability(terrain_parameter)
             if (not omit_perfect) or habitability != constants.HABITABILITY_PERFECT:
-                habitability_dict[
+                habitability_dict[terrain_parameter] = self.get_parameter_habitability(
                     terrain_parameter
-                ] = self.calculate_parameter_habitability(terrain_parameter)
+                )
         return habitability_dict
 
     def get_unit_habitability(self, unit) -> int:
@@ -137,7 +135,7 @@ class terrain_handler:
         if self.default_cell.grid.is_abstract_grid:  # If global habitability
             habitability_dict[
                 constants.TEMPERATURE
-            ] = actor_utility.calculate_temperature_habitability(
+            ] = actor_utility.get_temperature_habitability(
                 round(self.get_world_handler().average_temperature)
             )
             overall_habitability = min(habitability_dict.values())

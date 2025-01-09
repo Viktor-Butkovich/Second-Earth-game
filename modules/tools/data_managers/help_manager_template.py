@@ -70,7 +70,7 @@ class help_manager_template:
 
             if subject == constants.PRESSURE_LABEL:
                 value = round(world_handler.get_pressure_ratio(), 2)
-                parameter_habitability = world_handler.calculate_parameter_habitability(
+                parameter_habitability = world_handler.get_parameter_habitability(
                     parameter
                 )
 
@@ -167,7 +167,7 @@ class help_manager_template:
                     ):
                         current_line += "At freezing temperatures, adding water increases ice, raising albedo and lowering temperature. "
                     else:
-                        current_line += "At non-freezing temperatures, adding water both increases the water vapor GHG effect and albedo from clouds, having mixed effects on temperature. "
+                        current_line += "At non-freezing temperatures, adding water both increases the water vapor greenhouse effect and albedo from clouds, having mixed effects on temperature. "
                         message.append(current_line)
                         current_line = "To confirm the effects of adding water, add small amounts and observe the resulting temperature changes. "
                     message.append(current_line)
@@ -185,7 +185,7 @@ class help_manager_template:
                     ):
                         current_line += f"At freezing temperatures, removing water decreases ice, lowering albedo and raising temperature. "
                     else:
-                        current_line += f"At non-freezing temperatures, removing water both decreases the water vapor GHG effect and albedo from clouds, having mixed effects on temperature. "
+                        current_line += f"At non-freezing temperatures, removing water both decreases the water vapor greenhouse effect and albedo from clouds, having mixed effects on temperature. "
                         message.append(current_line)
                         current_line = f"To confirm the effects of removing water, remove small amounts and observe the resulting temperature changes. "
                     message.append(current_line)
@@ -203,7 +203,7 @@ class help_manager_template:
 
             elif subject == constants.GRAVITY_LABEL:
                 value = round(world_handler.get_parameter(constants.GRAVITY), 2)
-                parameter_habitability = world_handler.calculate_parameter_habitability(
+                parameter_habitability = world_handler.get_parameter_habitability(
                     parameter
                 )
 
@@ -223,7 +223,7 @@ class help_manager_template:
                     else:
                         current_line = f"{planet_name_possessive} gravity is stronger than ideal for humans. "
                         current_line += f"While gravity is difficult to modify, strong gravity hinders spacecraft launches, construction, and movement, and introduces long-term health problems for colonists. "
-                        current_line += f"However, high-gravity planetes tend to be larger and more likely to retain strong atmospheres and magnetic fields. "
+                        current_line += f"However, high-gravity planets tend to be larger and more likely to retain strong atmospheres and magnetic fields. "
                     message.append(current_line)
                 else:
                     current_line = f"{planet_name_possessive} gravity is ideal for humans and has no notable effects. "
@@ -241,14 +241,14 @@ class help_manager_template:
                 current_line = f"{world_handler.get_parameter(constants.RADIATION)} radiation - {world_handler.get_parameter(constants.MAGNETIC_FIELD)} magnetic field = {value} effective radiation. "
                 message.append(current_line)
 
-                if value <= perfect_upper_bound:
+                if value == 0:
                     current_line = f"{world_handler.name} receives an effective radiation of 0, which is ideal for humans and does not need to be modified. "
-                elif value < deadly_lower_bound:
+                elif value < deadly_upper_bound:
                     current_line = f"{world_handler.name} receives an effective radiation of {value}, which is more than ideal for humans. "
                     current_line += attrition_message
                 else:
                     current_line = f"{world_handler.name} receives an effective radiation of {value}, which is deadly for humans. "
-                    current_line += f"Humans can survive effective radiation levels of 0-{deadly_lower_bound - 1}. "
+                    current_line += f"Humans can survive effective radiation levels of 0-{deadly_upper_bound - 1}. "
                 message.append(current_line)
 
                 if value > perfect_upper_bound:
@@ -367,6 +367,31 @@ class help_manager_template:
                 message.append(
                     f"Greenhouse gases (GHG) such as carbon dioxide and methane trap heat in the atmosphere, raising the temperature through the GHG effect."
                 )
+
+                if subject == constants.GHG_LABEL:
+                    percent_composition = round(
+                        world_handler.get_composition(constants.GHG) * 100, 2
+                    )
+
+                    if (
+                        world_handler.get_parameter_habitability(constants.GHG)
+                        == constants.HABITABILITY_DEADLY
+                    ):
+                        message.append(
+                            f"This {percent_composition}% composition of GHG is deadly for humans, who can survive GHG levels of 0-{round(deadly_upper_bound * 100)}%. "
+                        )
+                    elif (
+                        world_handler.get_parameter_habitability(constants.GHG)
+                        != constants.HABITABILITY_PERFECT
+                    ):
+                        message.append(
+                            f"This {percent_composition}% composition of GHG is non-ideal for humans. GHG levels of 0-{perfect_upper_bound * 100}% are ideal for humans. {attrition_message}"
+                        )
+                    else:
+                        message.append(
+                            f"This {percent_composition}% composition of GHG is ideal for humans and does not need to be changed. "
+                        )
+
                 message.append(
                     f"{planet_name_possessive} GHG effect of {value_description}% is determined by the {ghg_atm} atm of GHG in the atmosphere and the {total_atm} atm total pressure. "
                 )
@@ -381,7 +406,7 @@ class help_manager_template:
                     if value < 0:
                         message.append(low_pressure_message)
                     elif (
-                        world_handler.calculate_parameter_habitability(constants.GHG)
+                        world_handler.get_parameter_habitability(constants.GHG)
                         != constants.HABITABILITY_PERFECT
                     ):
                         message.append(
@@ -402,7 +427,7 @@ class help_manager_template:
                     if value < 0:
                         message.append(low_pressure_message)
                     elif (
-                        world_handler.calculate_parameter_habitability(constants.GHG)
+                        world_handler.get_parameter_habitability(constants.GHG)
                         != constants.HABITABILITY_PERFECT
                     ):
                         message.append(
@@ -415,18 +440,215 @@ class help_manager_template:
                 elif value < 0:
                     message.append(low_pressure_message)
                 elif (
-                    world_handler.calculate_parameter_habitability(constants.GHG)
+                    world_handler.get_parameter_habitability(constants.GHG)
                     != constants.HABITABILITY_PERFECT
                 ):
                     message.append(
-                        f"While {world_handler.name} has an ideal temperature, the air quality can only be improved by weakening the GHG effect, which would decrease temperature. "
+                        f"While {world_handler.name} has an ideal temperature, the air quality can only be improved by removing GHG, which would decrease temperature. "
                     )
                 else:
                     message.append(
                         f"{world_handler.name} has an ideal temperature and air quality, and the GHG effect does not need to be changed. "
                     )
+            elif subject == constants.WATER_VAPOR_EFFECT_LABEL:
+                value = round((world_handler.water_vapor_multiplier - 1) * 100, 2)
+                message.append(
+                    f"Like GHG, water vapor traps heat in the atmosphere, raising the temperature through the water vapor greenhouse effect."
+                )
+                message.append(
+                    f"{planet_name_possessive} water vapor effect of +{value}% is determined by the {world_handler.average_water} average water and the {round(utility.fahrenheit(world_handler.average_temperature), 2)} °F average temperature. Water at higher temperatures contributes more to water vapor, with ice far below the melting point contributing none. "
+                )
+                message.append(
+                    f"This results in a +{value}% modifier to the total heat received by the planet."
+                )
+                if world_handler.average_temperature <= world_handler.get_tuning(
+                    "water_freezing_point"
+                ):
+                    message.append(
+                        "At freezing temperatures, adding water increases ice, raising albedo and lowering temperature without a significant effect on water vapor. "
+                    )
+                else:
+                    message.append(
+                        "At non-freezing temperatures, adding water both increases the water vapor greenhouse effect and albedo from clouds, having mixed effects on temperature. "
+                    )
+                    message.append(
+                        "To confirm the effects of adding water, add small amounts and observe the resulting temperature changes. "
+                    )
 
-        # Still missing water vapor effect, albedo effect, toxic gases, oxygen, and inert gases help messages
+            elif subject == constants.ALBEDO_EFFECT_LABEL:
+                value = round((world_handler.albedo_multiplier - 1) * 100, 2)
+                message.append(
+                    f"Albedo represents the percent of sunlight reflected or blocked from the planet's surface, lowering temperature. "
+                )
+                clouds, haze = False, False
+                if (
+                    world_handler.cloud_frequency > 0.0
+                    or world_handler.toxic_cloud_frequency > 0.0
+                ):
+                    clouds = True
+                if (
+                    world_handler.get_parameter(constants.TOXIC_GASES) > 0
+                    or world_handler.get_pressure_ratio() > 5.0
+                ):
+                    haze = True
+                if clouds and haze:
+                    description = "cloud frequency, terrain color, and atmospheric haze"
+                elif clouds:
+                    description = "cloud frequency and terrain color"
+                elif haze:
+                    description = "terrain color and atmospheric haze"
+                else:
+                    description = "terrain color"
+                message.append(
+                    f"{planet_name_possessive} albedo effect of {value}% currently includes {description}. "
+                )
+                message.append(
+                    f"This results in a {value}% modifier to the total heat received by the planet."
+                )
+                message.append(
+                    f"Brighter terrains (particularly ice) reflect more sunlight and raise albedo, and vice versa. "
+                )
+                if world_handler.cloud_frequency > 0.0:
+                    message.append(
+                        f"Based on the amount of water vapor, {round(world_handler.cloud_frequency * 100, 2)}% of the surface is covered by water clouds, which have high albedo. "
+                    )
+                if world_handler.toxic_cloud_frequency > 0.0:
+                    message.append(
+                        f"Additionally, due to the {round(world_handler.get_pressure_ratio(constants.TOXIC_GASES), 2)} atm of toxic gases and {round(world_handler.get_pressure_ratio(), 2)} atm of total pressure, {round(world_handler.toxic_cloud_frequency * 100, 2)}% of the surface is covered by toxic clouds, which have high albedo. "
+                    )
+                if (
+                    world_handler.get_parameter(constants.TOXIC_GASES) > 0
+                    or world_handler.get_pressure_ratio() > 5.0
+                ):
+                    message.append(
+                        f"Thick atmospheres, particularly toxic gases, cause a haze obscuring the entire planet that raises albedo depending on thickness. "
+                    )
+
+            elif subject == constants.OXYGEN_LABEL:
+                value = round(world_handler.get_composition(constants.OXYGEN) * 100, 2)
+                message.append(
+                    f"Oxygen is a vital component for life, but is rarely found in large quantities in planetary atmospheres. "
+                )
+                if (
+                    world_handler.get_parameter_habitability(constants.OXYGEN)
+                    == constants.HABITABILITY_DEADLY
+                ):
+                    message.append(
+                        f"This {value}% composition of oxygen is deadly for humans, who can survive oxygen levels of {round(deadly_lower_bound * 100)}-100%. "
+                    )
+                elif (
+                    world_handler.get_parameter_habitability(constants.OXYGEN)
+                    != constants.HABITABILITY_PERFECT
+                ):
+                    message.append(
+                        f"This {value}% composition of oxygen is non-ideal for humans. Oxygen levels of {round(perfect_lower_bound * 100)}-{round(perfect_upper_bound * 100)}% are ideal for humans. {attrition_message}"
+                    )
+                else:
+                    message.append(
+                        f"This {value}% composition of oxygen is ideal for humans and does not need to be changed. "
+                    )
+                message.append(
+                    f"As a relatively light gas, oxygen is particularly affected by solar winds and radiation, and can be lost to space over time without a sufficient magnetic field. "
+                )
+                if world_handler.get_pressure_ratio() < 1.0:
+                    message.append(
+                        f"Oxygen is a simple gas to add in large amounts to increase pressure, as it has few side effects and can be tolerated in high concentrations by humans. "
+                    )
+                if (
+                    world_handler.get_parameter_habitability(constants.OXYGEN)
+                    != constants.HABITABILITY_PERFECT
+                    and world_handler.get_pressure_ratio(constants.OXYGEN)
+                    > perfect_lower_bound
+                    and world_handler.get_composition(constants.OXYGEN)
+                    < perfect_upper_bound
+                ):
+                    message.append(
+                        f"Note that, while oxygen currently has a low % concentration, more than enough atm are already present - removing other gases will increase oxygen concentration to ideal levels. "
+                    )
+
+            elif subject == constants.INERT_GASES_LABEL:
+                value = round(
+                    world_handler.get_composition(constants.INERT_GASES) * 100, 2
+                )
+                message.append(
+                    f"Inert gases are stable gases that only rarely react with other elements, such as nitrogen, argon, and neon. "
+                )
+                if (
+                    world_handler.get_parameter_habitability(constants.INERT_GASES)
+                    != constants.HABITABILITY_PERFECT
+                ):
+                    message.append(
+                        f"This {value}% composition of inert gases is non-ideal for humans. Inert gas levels of {round(perfect_lower_bound * 100)}-{round(perfect_upper_bound * 100)}% are ideal for humans. {attrition_message}"
+                    )
+                else:
+                    message.append(
+                        f"This {value}% composition of inert gases is ideal for humans and does not need to be changed. "
+                    )
+                message.append(
+                    f"As relatively light gases, inert gases are particularly affected by solar winds and radiation, and can be lost to space over time without a sufficient magnetic field. "
+                )
+                if world_handler.get_pressure_ratio() < 1.0:
+                    message.append(
+                        f"Inert gases are simple to add in large amounts to increase pressure, as they have few side effects and can be tolerated in any concentration by humans. "
+                    )
+                if (
+                    world_handler.get_parameter_habitability(constants.INERT_GASES)
+                    != constants.HABITABILITY_PERFECT
+                    and world_handler.get_pressure_ratio(constants.INERT_GASES)
+                    > perfect_lower_bound
+                ):
+                    message.append(
+                        f"Note that, while inert gases currently have a low % concentration, more than enough atm are already present - removing other gases will increase inert gas concentration to ideal levels. "
+                    )
+
+            elif subject == constants.TOXIC_GASES_LABEL:
+                value = round(
+                    world_handler.get_composition(constants.TOXIC_GASES) * 100, 3
+                )
+                message.append(
+                    f"Toxic gases are harmful gases that can harm or kill humans, even in small quantities. "
+                )
+                if (
+                    world_handler.get_parameter_habitability(constants.TOXIC_GASES)
+                    == constants.HABITABILITY_DEADLY
+                ):
+                    message.append(
+                        f"This {value}% composition of toxic gases is deadly for humans, who can survive toxic gas levels of 0-{round(deadly_upper_bound * 100, 2)}%. "
+                    )
+                elif (
+                    world_handler.get_parameter_habitability(constants.TOXIC_GASES)
+                    != constants.HABITABILITY_PERFECT
+                ):
+                    message.append(
+                        f"This {value}% composition of toxic gases is non-ideal for humans. Toxic gas levels of 0-{round(perfect_upper_bound * 100, 2)}% are ideal for humans. {attrition_message}"
+                    )
+                else:
+                    message.append(
+                        f"This {value}% composition of toxic gases is ideal for humans and does not need to be changed. "
+                    )
+                if (
+                    world_handler.get_total_heat()
+                    > status.earth_grid.world_handler.get_total_heat() + 5
+                ):
+                    message.append(
+                        f"While detrimental to air quality, toxic gases can be added to increase albedo through clouds and haze, lowering temperature. "
+                    )
+                elif (
+                    world_handler.get_total_heat()
+                    < status.earth_grid.world_handler.get_total_heat() - 5
+                    and world_handler.get_composition(constants.TOXIC_GASES) > 0
+                ):
+                    message.append(
+                        f"Toxic gases can be removed to improve air quality while also decreasing albedo, raising temperature. "
+                    )
+                if (
+                    world_handler.get_insolation()
+                    > status.earth_grid.world_handler.get_insolation()
+                    and world_handler.get_composition(constants.TOXIC_GASES) > 0
+                ):
+                    message.append(
+                        f"Note that {planet_name_possessive} close distance to the sun predisposes it to high insolation, which may cause excessive temperatures if albedo is decreased by removing toxic gases. "
+                    )
 
         return " /n /n".join(message) + " /n /n"
 
@@ -476,7 +698,7 @@ class help_manager_template:
                 )
             elif subject == constants.ALBEDO_EFFECT_LABEL:
                 tooltip.append(
-                    f"{intro} albedo effect, which decreases total heat based on how much sunlight is reflected away"
+                    f"{intro} albedo effect, which decreases total heat based on how much sunlight is reflected"
                 )
             elif subject == constants.AVERAGE_TEMPERATURE_LABEL:
                 tooltip.append(
