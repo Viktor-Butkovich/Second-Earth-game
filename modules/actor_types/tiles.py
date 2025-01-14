@@ -256,10 +256,11 @@ class tile(actor):  # to do: make terrain tiles a subclass
         return_list = []
         if self.grid == status.strategic_map_grid:
             for mini_grid in self.grid.mini_grids:
-                mini_x, mini_y = mini_grid.get_mini_grid_coordinates(self.x, self.y)
-                equivalent_cell = mini_grid.find_cell(mini_x, mini_y)
-                if equivalent_cell and equivalent_cell.tile:
-                    return_list.append(equivalent_cell.tile)
+                if mini_grid.is_on_mini_grid(self.x, self.y):
+                    mini_x, mini_y = mini_grid.get_mini_grid_coordinates(self.x, self.y)
+                    equivalent_cell = mini_grid.find_cell(mini_x, mini_y)
+                    if equivalent_cell and equivalent_cell.tile:
+                        return_list.append(equivalent_cell.tile)
         elif self.grid.is_mini_grid:
             main_x, main_y = self.grid.get_main_grid_coordinates(self.x, self.y)
             equivalent_cell = self.grid.attached_grid.find_cell(main_x, main_y)

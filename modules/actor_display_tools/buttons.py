@@ -1906,24 +1906,31 @@ class help_button(button):
         Output:
             None
         """
-        message = constants.help_manager.generate_message(
-            self.attached_label.actor_label_type, context=self.generate_context()
-        )
-        if (
-            self.attached_label.actor_label_type
-            in constants.help_manager.subjects[constants.HELP_GLOBAL_PARAMETERS]
-            and status.current_ministers[constants.ECOLOGY_MINISTER]
-        ):
-            status.current_ministers[constants.ECOLOGY_MINISTER].display_message(
-                message,
-                override_input_dict={
-                    "audio": status.current_ministers[
-                        constants.ECOLOGY_MINISTER
-                    ].get_voice_line("acknowledgement")
-                },
+        if main_loop_utility.action_possible():
+            message = constants.help_manager.generate_message(
+                self.attached_label.actor_label_type, context=self.generate_context()
             )
+            if (
+                self.attached_label.actor_label_type
+                in constants.help_manager.subjects[constants.HELP_GLOBAL_PARAMETERS]
+                and status.current_ministers[constants.ECOLOGY_MINISTER]
+            ):
+                status.current_ministers[constants.ECOLOGY_MINISTER].display_message(
+                    message,
+                    override_input_dict={
+                        "audio": status.current_ministers[
+                            constants.ECOLOGY_MINISTER
+                        ].get_voice_line("acknowledgement")
+                    },
+                )
+            else:
+                constants.notification_manager.display_notification(
+                    {"message": message}
+                )
         else:
-            constants.notification_manager.display_notification({"message": message})
+            text_utility.print_to_screen(
+                "You are busy and cannot receive a help message."
+            )
 
     def update_tooltip(self):
         """

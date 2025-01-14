@@ -70,6 +70,11 @@ class help_manager_template:
 
             if subject == constants.PRESSURE_LABEL:
                 value = round(world_handler.get_pressure_ratio(), 2)
+                total_atm = world_handler.get_pressure_ratio()
+                if total_atm < 0.01:
+                    total_atm = "<0.01"
+                else:
+                    total_atm = round(total_atm, 2)
                 parameter_habitability = world_handler.get_parameter_habitability(
                     parameter
                 )
@@ -84,19 +89,19 @@ class help_manager_template:
                 current_line = ""
                 if parameter_habitability == constants.HABITABILITY_DEADLY:
                     if value <= deadly_lower_bound:
-                        current_line += f"{planet_name_possessive} current pressure of {value} atm is too low for humans to survive. "
+                        current_line += f"{planet_name_possessive} current pressure of {total_atm} atm is too low for humans to survive. "
                     else:
-                        current_line += f"{planet_name_possessive} current pressure of {value} atm is too high for humans to survive. "
+                        current_line += f"{planet_name_possessive} current pressure of {total_atm} atm is too high for humans to survive. "
                     current_line += f"Humans can survive pressure levels of {deadly_lower_bound}-{deadly_upper_bound} atm. "
                 elif parameter_habitability != constants.HABITABILITY_PERFECT:
                     if value <= perfect_lower_bound:
-                        current_line += f"{planet_name_possessive} current pressure of {value} atm is lower than ideal for humans. "
+                        current_line += f"{planet_name_possessive} current pressure of {total_atm} atm is lower than ideal for humans. "
                     else:
-                        current_line += f"{planet_name_possessive} current pressure of {value} atm is higher than ideal for humans. "
+                        current_line += f"{planet_name_possessive} current pressure of {total_atm} atm is higher than ideal for humans. "
                     current_line += f"The ideal pressure for humans is {perfect_lower_bound}-{perfect_upper_bound} atm. "
                     current_line += attrition_message
                 else:
-                    current_line += f"{planet_name_possessive} current pressure of {value} atm is ideal for humans and does not need to be changed. "
+                    current_line += f"{planet_name_possessive} current pressure of {total_atm} atm is ideal for humans and does not need to be changed. "
                 message.append(current_line)
 
                 current_line = ""
@@ -500,7 +505,7 @@ class help_manager_template:
                 else:
                     description = "terrain color"
                 message.append(
-                    f"{planet_name_possessive} albedo effect of {value}% currently includes {description}. "
+                    f"{planet_name_possessive} albedo effect of {value}% currently including {description}. "
                 )
                 message.append(
                     f"This results in a {value}% modifier to the total heat received by the planet."

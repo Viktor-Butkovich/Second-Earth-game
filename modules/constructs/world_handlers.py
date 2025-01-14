@@ -153,7 +153,7 @@ class world_handler:
         self.size: int = input_dict.get("size", self.default_grid.area)
         self.sky_color = input_dict["sky_color"]
         self.default_sky_color = input_dict["default_sky_color"]
-        self.steam_color = [0, 0, 0]
+        self.steam_color = input_dict.get("steam_color", [0, 0, 0])
         self.global_parameters: Dict[str, int] = {}
         self.initial_atmosphere_offset = input_dict.get(
             "initial_atmosphere_offset", 0.001
@@ -689,7 +689,7 @@ class world_handler:
                 offset = abs(composition - ideal) / ideal
             total_offset += offset
         if set_initial_offset:
-            self.initial_atmosphere_offset = max(0.001, total_offset)
+            self.initial_atmosphere_offset = max(50.0, total_offset)
 
         # Record total offset in each call - only update colors if total offset changed
         total_offset = min(total_offset, self.initial_atmosphere_offset)
@@ -964,6 +964,7 @@ class world_handler:
             "name": self.name,
             "sky_color": self.sky_color,
             "default_sky_color": self.default_sky_color,
+            "steam_color": self.steam_color,
             "initial_atmosphere_offset": self.initial_atmosphere_offset,
             "star_distance": self.star_distance,
             "water_vapor_multiplier": self.water_vapor_multiplier,
@@ -1281,7 +1282,7 @@ class world_handler:
         elif parameter_name == constants.INERT_GASES:
             if self.get_parameter(constants.PRESSURE) == 0:
                 return constants.HABITABILITY_PERFECT
-            composition = round(self.get_composition(constants.INERT_GASES), 2)
+            composition = round(self.get_composition(constants.INERT_GASES), 3)
             if composition >= perfect_upper_bound:
                 return constants.HABITABILITY_TOLERABLE
             elif composition >= perfect_lower_bound:

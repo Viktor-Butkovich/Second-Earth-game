@@ -495,50 +495,19 @@ def manage_lmb_down(clicked_button):
                                     status.minimap_grid.center_y,
                                 )  # center
                             if not current_grid in status.displayed_mob.grids:
-                                stopping = False
-                                if (
-                                    not current_grid.is_abstract_grid
-                                ):  # If grid has more than 1 cell, check if correct part of grid
-                                    (
-                                        destination_x,
-                                        destination_y,
-                                    ) = target_cell.tile.get_main_grid_coordinates()
-                                    if (
-                                        (
-                                            not (
-                                                destination_y == 0
-                                                or (
-                                                    destination_y == 1
-                                                    and target_cell.has_intact_building(
-                                                        constants.SPACEPORT
-                                                    )
-                                                )
-                                            )
-                                        )
-                                        and destination_x >= 0
-                                        and destination_x
-                                        < status.strategic_map_grid.coordinate_width
-                                    ):  # or is harbor
-                                        text_utility.print_to_screen(
-                                            "You can only send ships to coastal waters and coastal ports."
-                                        )
-                                        stopping = False  # True
-                                if not stopping:
-                                    status.displayed_mob.end_turn_destination = (
-                                        target_cell.tile
-                                    )
-                                    status.displayed_mob.movement_sound(
-                                        allow_fadeout=False
-                                    )
-                                    flags.show_selection_outlines = True
-                                    constants.last_selection_outline_switch = (
-                                        constants.current_time
-                                    )  # outlines should be shown immediately once destination is chosen
-                                    status.displayed_mob.remove_from_turn_queue()
-                                    status.displayed_mob.select()
-                                    status.displayed_mob.images[
-                                        0
-                                    ].current_cell.tile.select()
+                                status.displayed_mob.end_turn_destination = (
+                                    target_cell.tile
+                                )
+                                status.displayed_mob.movement_sound(allow_fadeout=False)
+                                flags.show_selection_outlines = True
+                                constants.last_selection_outline_switch = (
+                                    constants.current_time
+                                )  # outlines should be shown immediately once destination is chosen
+                                status.displayed_mob.remove_from_turn_queue()
+                                status.displayed_mob.select()
+                                status.displayed_mob.images[
+                                    0
+                                ].current_cell.tile.select()
                             else:  # cannot move to same continent
                                 actor_utility.calibrate_actor_info_display(
                                     status.mob_info_display, None

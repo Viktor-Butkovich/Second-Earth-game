@@ -1532,9 +1532,13 @@ class actor_display_label(label):
                     if (
                         parameter == constants.PRESSURE
                     ):  # Pressure: 1200/2400 (50% Earth)
-                        self.set_label(
-                            f"{self.message_start}{value:,} u ({round(self.actor.grid.world_handler.get_pressure_ratio(parameter), 2):,} atm)"
+                        atm = round(
+                            self.actor.grid.world_handler.get_pressure_ratio(parameter),
+                            2,
                         )
+                        if atm < 0.01:
+                            atm = "<0.01"
+                        self.set_label(f"{self.message_start}{value:,} u ({atm} atm)")
                     elif (
                         self.actor.grid.world_handler.get_parameter(constants.PRESSURE)
                         == 0.0
