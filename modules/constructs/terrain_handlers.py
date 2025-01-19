@@ -168,7 +168,17 @@ class terrain_handler:
         """
         if self.get_world_handler():
             average_temperature = self.get_world_handler().average_temperature
-            return average_temperature - 3.5 + (5 * self.pole_distance_multiplier)
+            altitude_effect = (
+                -1 * self.get_parameter(constants.ALTITUDE)
+            ) + self.get_world_handler().average_altitude
+            altitude_effect_weight = 0.5
+            # Colder to the extent that tile is higher than average altitude, and vice versa
+            return (
+                average_temperature
+                - 3.5
+                + (5 * self.pole_distance_multiplier)
+                + (altitude_effect * altitude_effect_weight)
+            )
         else:
             return 0.0
 
@@ -265,6 +275,11 @@ class terrain_handler:
             and not self.get_world_handler().default_grid.is_abstract_grid
         ):
             self.get_world_handler().update_average_water()
+        elif (
+            parameter_name == constants.ALTITUDE
+            and not self.get_world_handler().default_grid.is_abstract_grid
+        ):
+            self.get_world_handler().update_average_altitude()
         elif (
             parameter_name == constants.TEMPERATURE
             and not self.get_world_handler().default_grid.is_abstract_grid

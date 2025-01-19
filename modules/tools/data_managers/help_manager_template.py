@@ -599,9 +599,11 @@ class help_manager_template:
                 if (
                     world_handler.get_parameter_habitability(constants.INERT_GASES)
                     != constants.HABITABILITY_PERFECT
+                    and world_handler.get_composition(constants.INERT_GASES)
+                    < perfect_lower_bound
                     and world_handler.get_pressure_ratio(constants.INERT_GASES)
                     > perfect_lower_bound
-                ):
+                ):  # If inert gases below perfect levels currently but would be above perfect if other gases removed
                     message.append(
                         f"Note that, while inert gases currently have a low % concentration, more than enough atm are already present - removing other gases will increase inert gas concentration to ideal levels. "
                     )

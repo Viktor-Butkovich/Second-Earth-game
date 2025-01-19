@@ -146,6 +146,7 @@ class world_handler:
         self.albedo_multiplier: float = input_dict.get("albedo_multiplier", 1.0)
         self.average_water_target: float = input_dict.get("average_water_target", 0.0)
         self.average_water: float = input_dict.get("average_water", 0.0)
+        self.average_altitude: float = input_dict.get("average_altitude", 0.0)
         self.cloud_frequency: float = input_dict.get("cloud_frequency", 0.0)
         self.toxic_cloud_frequency: float = input_dict.get("toxic_cloud_frequency", 0.0)
         self.atmosphere_haze_alpha: int = input_dict.get("atmosphere_haze_alpha", 0)
@@ -1381,6 +1382,26 @@ class world_handler:
             )
             / self.default_grid.area,
             3,
+        )
+
+    def update_average_altitude(self):
+        """
+        Description:
+            Re-calculates the average altitude of this world
+        Input:
+            None
+        Output:
+            None
+        """
+        self.average_altitude = round(
+            sum(
+                [
+                    terrain_handler.get_parameter(constants.ALTITUDE)
+                    for terrain_handler in self.terrain_handlers
+                ]
+            )
+            / self.default_grid.area,
+            2,
         )
 
     def get_insolation(self):
