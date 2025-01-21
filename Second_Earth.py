@@ -421,7 +421,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
-# Possibly show solation as brightness on each tile (shouldn't affect albedo)
 # Add 4+ water as deadly in local habitability equation (but not in global habitability summary)
 # Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
@@ -447,8 +446,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Improve parameter tooltips - most are currently empty
 # Create and display standard movement cost formula based on parameter values
 # Look into minister speech bubbles for minister messages, particularly tutorial messages
-# Prevent polar tiles from appearing too close to equator in globe projection - primary cause of visible distortions
-#   Copy an adjacent tile instead of far away tiles, even if the other tile doesn't have a latitude line
+# Possibly show solation as brightness on each tile (shouldn't affect albedo)
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>
