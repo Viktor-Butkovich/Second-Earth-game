@@ -421,7 +421,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
-# Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
 # Add modern minister outfits
 # Add astronauts art
 # Add new resource types, allowing buying on Earth, transporting, and using to build when it is in the builder's tile
@@ -446,6 +445,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Create and display standard movement cost formula based on parameter values
 # Look into minister speech bubbles for minister messages, particularly tutorial messages
 # Possibly show solation as brightness on each tile (shouldn't affect albedo)
+# Add task-specific unit voicelines, with separate unit and minister voice sets
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>

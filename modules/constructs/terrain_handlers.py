@@ -103,7 +103,7 @@ class terrain_handler:
                 )
         return habitability_dict
 
-    def get_unit_habitability(self, unit) -> int:
+    def get_unit_habitability(self, unit=None) -> int:
         """
         Description:
             Returns the habitability of this tile for the inputted units
@@ -121,7 +121,7 @@ class terrain_handler:
             default_habitability = min(
                 self.get_habitability_dict(omit_perfect=False).values()
             )
-        if unit.any_permissions(
+        if unit and unit.any_permissions(
             constants.SPACESUITS_PERMISSION,
             constants.VEHICLE_PERMISSION,
             constants.IN_VEHICLE_PERMISSION,

@@ -167,8 +167,15 @@ class mob(actor):
         Output:
             cell: Returns the cell this mob is currently in
         """
-        if self.get_permission(constants.IN_VEHICLE_PERMISSION):
+        if self.get_permission(constants.DUMMY_PERMISSION):
+            if status.displayed_mob:
+                return status.displayed_mob.get_cell()
+            else:
+                return None
+        elif self.get_permission(constants.IN_VEHICLE_PERMISSION):
             return self.vehicle.get_cell()
+        elif self.get_permission(constants.IN_GROUP_PERMISSION):
+            return self.group.get_cell()
         return self.images[0].current_cell
 
     def on_move(self):
@@ -183,6 +190,8 @@ class mob(actor):
         current_cell = self.get_cell()
         if current_cell:
             self.update_habitability()
+            if self.equipment:  # Update spacesuit image for local conditions
+                self.update_image_bundle()
 
     def permissions_setup(self) -> None:
         """
@@ -324,65 +333,6 @@ class mob(actor):
             self.set_permission(constants.INIT_COMPLETE_PERMISSION, True)
             self.update_habitability()
 
-    def update_equipment_image(self, equipment: str, equipped: bool):
-        """
-        Description:
-            Updates this unit's image to show the inputted equipment being equipped or unequipped
-        Input:
-            string equipment: Key of the equipment being equipped or unequipped
-            bool equipped: True if the equipment is being equipped, False if it is being unequipped
-        Output:
-            None
-        """
-        if self.get_permission(constants.GROUP_PERMISSION):
-            if status.equipment_types[equipment].equipment_image:
-                self.update_image_bundle()
-        else:
-            equipment_image = status.equipment_types[equipment].equipment_image
-            if equipment_image:
-                for portrait_name in ["portrait", "left portrait", "right portrait"]:
-                    if self.image_dict.get(portrait_name, None):
-                        portrait = self.image_dict[portrait_name]
-                        key_indices = [
-                            (
-                                key,
-                                constants.character_manager.find_portrait_section(
-                                    key, portrait
-                                ),
-                            )
-                            for key in equipment_image.keys()
-                        ]
-                        if equipped:
-                            for key, section_index in key_indices:
-                                if section_index == None:
-                                    portrait.append(
-                                        {
-                                            "image_id": equipment_image[key],
-                                            "metadata": {
-                                                "portrait_section": key,
-                                            },
-                                        }
-                                    )
-                                else:
-                                    modified_section = portrait[section_index]
-                                    modified_section["metadata"][
-                                        "original_image"
-                                    ] = modified_section["image_id"]
-                                    modified_section["image_id"] = equipment_image[key]
-                        else:
-                            for key, section_index in key_indices:
-                                modified_section = portrait[section_index]
-                                if modified_section["metadata"].get(
-                                    "original_image", None
-                                ):
-                                    modified_section["image_id"] = modified_section[
-                                        "metadata"
-                                    ]["original_image"]
-                                    del modified_section["metadata"]["original_image"]
-                                else:
-                                    portrait.pop(section_index)
-                self.update_image_bundle()
-
     def image_variants_setup(self, from_save, input_dict):
         """
         Description:
@@ -426,11 +376,6 @@ class mob(actor):
         save_dict["init_type"] = self.unit_type.key
         save_dict["movement_points"] = self.movement_points
         save_dict["max_movement_points"] = self.max_movement_points
-        for equipment, equipped in list(
-            self.equipment.items()
-        ):  # Don't preserve equipment-specific images
-            if equipped:
-                self.update_equipment_image(equipment, False)
         save_dict["image"] = self.image_dict["default"]
         if "portrait" in self.image_dict:
             save_dict["portrait"] = self.image_dict["portrait"]
@@ -438,9 +383,6 @@ class mob(actor):
             save_dict["left portrait"] = self.image_dict["left portrait"]
         if "right portrait" in self.image_dict:
             save_dict["right portrait"] = self.image_dict["right portrait"]
-        for equipment, equipped in list(self.equipment.items()):
-            if equipped:
-                self.update_equipment_image(equipment, True)
         save_dict["creation_turn"] = self.creation_turn
         save_dict["disorganized"] = self.get_permission(
             constants.DISORGANIZED_PERMISSION
@@ -451,6 +393,39 @@ class mob(actor):
             if hasattr(self, "second_image_variant"):
                 save_dict["second_image_variant"] = self.second_image_variant
         return save_dict
+
+    def insert_equipment(self, portrait: List[any]) -> List[any]:
+        """
+        Description:
+            Returns a version of the inputted unit portrait with any equipment images inserted into the correct sections
+        Input:
+            list portrait: List of unit portrait sections
+        Output:
+            list: Returns a version of the inputted unit portrait with any equipment images inserted into the correct sections
+        """
+        if not portrait:  # If empty portrait, return intact
+            return portrait
+        copied = False
+        for key, equipment_type in status.equipment_types.items():
+            if self.get_permission(key):  # If equipped
+                for (
+                    section_key,
+                    section_image_id,
+                ) in equipment_type.equipment_image.items():
+                    if equipment_type.can_show_portrait_section(self, section_key):
+                        if (
+                            not copied
+                        ):  # If making any changes, copy portrait to avoid changing original
+                            portrait = portrait.copy()
+                            copied = True
+                        portrait_index = (
+                            constants.character_manager.find_portrait_section(
+                                section_key, portrait
+                            )
+                        )
+                        portrait[portrait_index] = portrait[portrait_index].copy()
+                        portrait[portrait_index]["image_id"] = section_image_id
+        return portrait
 
     def get_image_id_list(self, override_values={}):
         """
@@ -468,7 +443,7 @@ class mob(actor):
             for section in ["portrait", "left portrait", "right portrait"]
         ):
             image_id_list.remove(self.image_dict["default"])
-        image_id_list += self.image_dict.get("portrait", [])
+        image_id_list += self.insert_equipment(self.image_dict.get("portrait", []))
         if override_values.get(
             "disorganized", self.get_permission(constants.DISORGANIZED_PERMISSION)
         ):
@@ -946,8 +921,10 @@ class mob(actor):
         Output:
             None
         """
+        previous_image = self.previous_image
         super().update_image_bundle()
-        self.reselect()
+        if self.previous_image != previous_image:
+            self.reselect()
 
     def update_tooltip(self):
         """

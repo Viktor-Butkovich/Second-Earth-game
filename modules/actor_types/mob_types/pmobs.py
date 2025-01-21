@@ -532,11 +532,15 @@ class pmob(mob):
                 self.worker, self.officer
             )
         elif self.get_permission(constants.WORKER_PERMISSION):
-            image_id_list += actor_utility.generate_unit_component_portrait(
-                self.image_dict.get("left portrait", []), "left"
+            image_id_list += self.insert_equipment(
+                actor_utility.generate_unit_component_portrait(
+                    self.image_dict.get("left portrait", []), "left"
+                )
             )
-            image_id_list += actor_utility.generate_unit_component_portrait(
-                self.image_dict.get("right portrait", []), "right"
+            image_id_list += self.insert_equipment(
+                actor_utility.generate_unit_component_portrait(
+                    self.image_dict.get("right portrait", []), "right"
+                )
             )
         return image_id_list
 

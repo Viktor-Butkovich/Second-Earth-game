@@ -501,6 +501,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
+        previous_image = self.previous_image
         if override_image:
             self.set_image(override_image)
         else:
@@ -508,7 +509,8 @@ class tile(actor):  # to do: make terrain tiles a subclass
         if self.grid == status.strategic_map_grid:
             for equivalent_tile in self.get_equivalent_tiles():
                 equivalent_tile.update_image_bundle(override_image=override_image)
-        self.reselect()
+        if previous_image != self.previous_image:
+            self.reselect()
 
     def reselect(self):
         """

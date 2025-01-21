@@ -34,6 +34,7 @@ class actor:
         Output:
             None
         """
+        self.previous_image = None
         self.from_save = from_save
         status.actor_list.append(self)
         self.modes = input_dict["modes"]
@@ -112,6 +113,10 @@ class actor:
         Output:
             None
         """
+        if new_image != self.previous_image:
+            self.previous_image = new_image
+        else:
+            return
         for current_image in self.images:
             if current_image.change_with_other_images:
                 current_image.set_image(new_image)

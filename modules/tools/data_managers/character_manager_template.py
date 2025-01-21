@@ -569,16 +569,17 @@ class character_manager_template:
             None
         """
         if metadata["has_facial_hair"]:
-            portrait_sections.append(
-                {
-                    "image_id": random.choice(self.facial_hair_images),
-                    "green_screen": metadata["hair_color"],
-                    "metadata": {
-                        "portrait_section": constants.FACIAL_HAIR_PORTAIT_SECTION
-                    },
-                    "level": constants.FACIAL_HAIR_LEVEL,
-                }
-            )
+            facial_hair_image_id = random.choice(self.facial_hair_images)
+        else:
+            facial_hair_image_id = "misc/empty.png"
+        portrait_sections.append(
+            {
+                "image_id": facial_hair_image_id,
+                "green_screen": metadata["hair_color"],
+                "metadata": {"portrait_section": constants.FACIAL_HAIR_PORTAIT_SECTION},
+                "level": constants.FACIAL_HAIR_LEVEL,
+            }
+        )
 
     def generate_accessories(
         self, portrait_sections: List[any], metadata: Dict[str, any]

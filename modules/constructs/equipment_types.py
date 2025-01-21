@@ -64,6 +64,36 @@ class equipment_type:
                 print(f"{self.key} gave modifier of {modifier} to {action_type} roll")
         return modifier
 
+    def can_show_portrait_section(self, unit, key: str) -> bool:
+        """
+        Description:
+            Returns whether the inputted unit can show the inputted section of this equipment in its portrait
+        Input:
+            pmob unit: Unit to check conditions for
+            string key: Key of equipment type to check for, like constants.SPACESUIT_EQUIPMENT
+        Output:
+            bool: Returns whether the inputted unit can show the inputted section of this equipment in its portrait
+        """
+        if self.key == constants.SPACESUITS_EQUIPMENT:
+            if unit.get_cell():
+                habitability = unit.get_cell().terrain_handler.get_unit_habitability(
+                    unit=None
+                )
+            else:
+                habitability = constants.HABITABILITY_DEADLY
+            toggled_sections = [
+                constants.HAT_PORTRAIT_SECTION,
+                constants.HAIR_PORTRAIT_SECTION,
+                constants.FACIAL_HAIR_PORTAIT_SECTION,
+            ]
+            return not (
+                key in toggled_sections
+                and habitability != constants.HABITABILITY_DEADLY
+            )
+            # Take off spacesuit helmet if in non-deadly conditions
+        else:
+            return True
+
     def equip(self, unit) -> None:
         """
         Description:
@@ -82,13 +112,13 @@ class equipment_type:
                     allow_increase=False,
                 )
             for permission in self.effects.get("permissions", []):
-                unit.set_permission(permission, True, override=True)
+                unit.set_permission(permission, True, override=True, update_image=False)
             if unit.get_permission(constants.GROUP_PERMISSION):
                 if self.check_requirement(unit.officer):
                     self.equip(unit.officer)
                 if self.check_requirement(unit.worker):
                     self.equip(unit.worker)
-            unit.update_equipment_image(self.key, True)
+            unit.update_image_bundle()
 
     def unequip(self, unit) -> None:
         """
@@ -112,7 +142,7 @@ class equipment_type:
             if unit.get_permission(constants.GROUP_PERMISSION):
                 self.unequip(unit.officer)
                 self.unequip(unit.worker)
-            unit.update_equipment_image(self.key, False)
+            unit.update_image_bundle()
 
     def check_requirement(self, unit) -> bool:
         """

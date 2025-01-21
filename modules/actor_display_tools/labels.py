@@ -316,7 +316,10 @@ class actor_display_label(label):
             attached_minister_position_image = (
                 constants.actor_creation_manager.create_interface_element(
                     {
-                        "coordinates": (self.x - self.height - m_increment, self.y),
+                        "coordinates": (
+                            self.x - self.height - m_increment - scaling.scale_width(5),
+                            self.y,
+                        ),
                         "width": scaling.scale_width(30) + m_increment,
                         "height": scaling.scale_height(30) + m_increment,
                         "modes": self.modes,
