@@ -1639,14 +1639,14 @@ class actor_display_label(label):
                 overall_habitability = (
                     self.actor.cell.terrain_handler.get_known_habitability()
                 )
-                if (
+                if (not self.actor.cell.grid.is_abstract_grid) and (
                     self.actor.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
                     < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
-                ):
+                ):  # If local terrain handler with no local temperature knowledge
                     self.set_label(
                         f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]} (estimated)"
                     )
-                else:
+                else:  # If world terrain handler or local terrain with local temperature knowledge
                     self.set_label(
                         f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]}"
                     )

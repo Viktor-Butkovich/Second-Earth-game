@@ -40,14 +40,6 @@
     "water_freezing_point": 0,
     "water_boiling_point": 9,
 
-    "earth_tile_knowledge": 5,
-    "earth_tile_temperature": 2,
-    "earth_tile_water": 4,
-    "earth_tile_vegetation": 4,
-    "earth_tile_roughness": 2,
-    "earth_tile_soil": 2,
-    "earth_tile_altitude": 2,
-
     "earth_rotation_direction": -1,
     "earth_rotation_speed": 3,
     "earth_expected_temperature_target": 2.15,

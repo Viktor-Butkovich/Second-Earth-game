@@ -73,6 +73,13 @@ class terrain_handler:
             return actor_utility.get_temperature_habitability(
                 self.get_parameter(parameter_name)
             )
+        elif parameter_name == constants.WATER:
+            if self.get_parameter(constants.WATER) >= 4 and self.get_parameter(
+                constants.TEMPERATURE
+            ) > self.get_world_handler().get_tuning("water_freezing_point"):
+                return constants.HABITABILITY_DEADLY
+            else:
+                return constants.HABITABILITY_PERFECT
         else:
             return constants.HABITABILITY_PERFECT
 

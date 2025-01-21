@@ -629,7 +629,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             tooltip_message.append(self.name)
         if self.cell.terrain_handler.get_world_handler():
             overall_habitability = self.cell.terrain_handler.get_known_habitability()
-            if (
+            if (not self.cell.grid.is_abstract_grid) and (
                 self.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
                 < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
             ):

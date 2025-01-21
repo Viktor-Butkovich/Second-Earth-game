@@ -83,11 +83,6 @@ class save_load_manager_template:
             world_grids.create_grid(from_save=False, grid_type=grid_type)
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
         game_transitions.create_strategic_map(from_save=False)
-        for terrain_parameter in constants.terrain_parameters:
-            status.earth_grid.cell_list[0][0].set_parameter(
-                terrain_parameter,
-                constants.terrain_manager.get_tuning(f"earth_tile_{terrain_parameter}"),
-            )
         status.minimap_grid.calibrate(
             round(0.75 * status.strategic_map_grid.coordinate_width),
             round(0.75 * status.strategic_map_grid.coordinate_height),
