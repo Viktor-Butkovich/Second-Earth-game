@@ -150,6 +150,10 @@ class help_manager_template:
                                 current_line += f"Similarly, excess GHG can be removed while weakening the GHG effect and lowering temperature. "
                         current_line += f"Regardless of composition, decreasing pressure slightly weakens the GHG effect and lowers temperature. "
                     message.append(current_line)
+                if world_handler.get_pressure_ratio() < 0.05:
+                    message.append(
+                        "In extremely thin atmospheres, any non-frozen water is immediately lost to space, so avoid releasing or melting water until the pressure is increased. "
+                    )
 
             elif subject == constants.AVERAGE_WATER_LABEL:
                 value = (
@@ -170,7 +174,7 @@ class help_manager_template:
                     if world_handler.average_temperature <= world_handler.get_tuning(
                         "water_freezing_point"
                     ):
-                        current_line += "At freezing temperatures, adding water increases ice, raising albedo and lowering temperature. "
+                        current_line += "At freezing temperatures, adding water increases ice, raising albedo and further lowering temperature. "
                     else:
                         current_line += "At non-freezing temperatures, adding water both increases the water vapor greenhouse effect and albedo from clouds, having mixed effects on temperature. "
                         message.append(current_line)
@@ -205,6 +209,10 @@ class help_manager_template:
                         current_line = ""
                         current_line += f"At freezing temperatures, water can be removed to decrease ice, lowering albedo and raising temperature. "
                         message.append(current_line)
+                if world_handler.get_pressure_ratio() < 0.05:
+                    message.append(
+                        "In extremely thin atmospheres, any non-frozen water is immediately lost to space, so avoid releasing or melting water until the pressure is increased. "
+                    )
 
             elif subject == constants.GRAVITY_LABEL:
                 value = round(world_handler.get_parameter(constants.GRAVITY), 2)
@@ -470,7 +478,7 @@ class help_manager_template:
                     "water_freezing_point"
                 ):
                     message.append(
-                        "At freezing temperatures, adding water increases ice, raising albedo and lowering temperature without a significant effect on water vapor. "
+                        "At freezing temperatures, adding water increases ice, raising albedo and further lowering temperature without a significant effect on water vapor. "
                     )
                 else:
                     message.append(
@@ -478,6 +486,10 @@ class help_manager_template:
                     )
                     message.append(
                         "To confirm the effects of adding water, add small amounts and observe the resulting temperature changes. "
+                    )
+                if world_handler.get_pressure_ratio() < 0.05:
+                    message.append(
+                        "In extremely thin atmospheres, any non-frozen water is immediately lost to space, so avoid releasing or melting water until the pressure is increased. "
                     )
 
             elif subject == constants.ALBEDO_EFFECT_LABEL:
