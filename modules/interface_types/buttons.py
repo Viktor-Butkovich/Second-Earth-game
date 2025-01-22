@@ -1134,6 +1134,7 @@ class button(interface_elements.interface_element):
                                 ):
                                     # If equpiment in tile, equippable by this unit, and not already equipped, equip it
                                     equipment.equip(status.displayed_mob)
+                                    status.displayed_mob.selection_sound()
                                     status.displayed_tile.change_inventory(
                                         equipment.key, -1
                                     )
@@ -1171,6 +1172,7 @@ class button(interface_elements.interface_element):
                     if equipment.check_requirement(status.displayed_mob):
                         if not status.displayed_mob.equipment.get(equipment.key, False):
                             equipment.equip(status.displayed_mob)
+                            status.displayed_mob.selection_sound()
                             status.displayed_tile.change_inventory(equipment.key, -1)
                             actor_utility.calibrate_actor_info_display(
                                 status.tile_info_display, status.displayed_tile
@@ -1216,6 +1218,7 @@ class button(interface_elements.interface_element):
                 status.equipment_types[self.equipment_type].unequip(
                     status.displayed_mob
                 )
+                status.displayed_mob.selection_sound()
                 status.displayed_tile.change_inventory(self.equipment_type, 1)
                 actor_utility.calibrate_actor_info_display(
                     status.mob_info_display, status.displayed_mob
@@ -2794,13 +2797,13 @@ class reorganize_unit_button(button):
 
         self.set_tooltip(self.tooltip_text)
 
-    def on_click(self):
+    def on_click(self, allow_sound: bool = True):
         """
         Description:
             Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button completes the determined procedure based
             on the current input cell contents
         Input:
-            None
+            bool allow_sound = False: Whether the reorganized unit will be allowed to play a selection sound
         Output:
             None
         """
@@ -2832,6 +2835,8 @@ class reorganize_unit_button(button):
                         procedure_actors[constants.WORKER_PERMISSION],
                         procedure_actors[constants.OFFICER_PERMISSION],
                     ).select()
+                    if allow_sound:
+                        status.displayed_mob.selection_sound()
 
                 elif procedure_type == constants.CREW_PROCEDURE:
                     if procedure_actors[
@@ -2848,6 +2853,8 @@ class reorganize_unit_button(button):
                         ].crew_vehicle(
                             procedure_actors[constants.INACTIVE_VEHICLE_PERMISSION]
                         )
+                        if allow_sound:
+                            status.displayed_mob.selection_sound()
                     else:
                         text_utility.print_to_screen(
                             f"{procedure_actors[constants.CREW_VEHICLE_PERMISSION].worker_type.name.capitalize()} cannot crew {procedure_actors[constants.INACTIVE_VEHICLE_PERMISSION].unit_type.name}s."
@@ -2855,6 +2862,8 @@ class reorganize_unit_button(button):
 
                 elif procedure_type == constants.SPLIT_PROCEDURE:
                     procedure_actors[constants.GROUP_PERMISSION].disband()
+                    if allow_sound:
+                        status.displayed_mob.selection_sound()
 
                 elif procedure_type == constants.UNCREW_PROCEDURE:
                     if (
@@ -2874,6 +2883,8 @@ class reorganize_unit_button(button):
                         ].crew.uncrew_vehicle(
                             procedure_actors[constants.ACTIVE_VEHICLE_PERMISSION]
                         )
+                        if allow_sound:
+                            status.displayed_mob.selection_sound()
 
             if procedure_type == constants.INVALID_PROCEDURE:
                 if constants.MERGE_PROCEDURE in self.allowed_procedures:

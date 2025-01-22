@@ -72,7 +72,8 @@ class embark_all_passengers_button(button):
                     ):  # vehicles and enemies won't be picked up as passengers
                         passenger.embark_vehicle(vehicle)
                 constants.sound_manager.play_sound(
-                    f"voices/all aboard {random.randrange(1, 4)}"
+                    f"voices/all aboard {random.randrange(1, 4)}",
+                    radio_effect=vehicle.get_radio_effect(),
                 )
         else:
             text_utility.print_to_screen(
@@ -810,7 +811,8 @@ class embark_vehicle_button(button):
                             vehicle.set_sentry_mode(False)
                         rider.embark_vehicle(vehicle)
                         constants.sound_manager.play_sound(
-                            f"voices/all aboard {random.randrange(1, 4)}"
+                            f"voices/all aboard {random.randrange(1, 4)}",
+                            radio_effect=vehicle.get_radio_effect(),
                         )
             else:
                 text_utility.print_to_screen(
@@ -833,7 +835,8 @@ class embark_vehicle_button(button):
         vehicle.set_sentry_mode(False)
         rider.embark_vehicle(vehicle)
         constants.sound_manager.play_sound(
-            f"voices/all aboard {random.randrange(1, 4)}"
+            f"voices/all aboard {random.randrange(1, 4)}",
+            radio_effect=vehicle.get_radio_effect(),
         )
 
     def skip_embark_vehicle(self, rider, vehicles, index):
@@ -1918,9 +1921,14 @@ class help_button(button):
                 status.current_ministers[constants.ECOLOGY_MINISTER].display_message(
                     message,
                     override_input_dict={
-                        "audio": status.current_ministers[
-                            constants.ECOLOGY_MINISTER
-                        ].get_voice_line("acknowledgement")
+                        "audio": {
+                            "sound_id": status.current_ministers[
+                                constants.ECOLOGY_MINISTER
+                            ].get_voice_line("acknowledgement"),
+                            "radio_effect": status.current_ministers[
+                                constants.ECOLOGY_MINISTER
+                            ].get_radio_effect(),
+                        },
                     },
                 )
             else:

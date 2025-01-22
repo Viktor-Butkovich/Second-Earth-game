@@ -110,7 +110,10 @@ class action:
                 f"You are busy and cannot start a {self.name}."
             )
             return False
-        elif not status.displayed_mob.check_action_survivability(notify=True):
+        elif (
+            status.displayed_mob
+            and not status.displayed_mob.check_action_survivability(notify=True)
+        ):
             return False
         elif self.actor_type == "mob" and not (unit.movement_points >= 1):
             text_utility.print_to_screen(

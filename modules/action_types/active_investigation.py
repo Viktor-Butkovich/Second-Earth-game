@@ -255,7 +255,10 @@ class active_investigation(action.campaign):
             {
                 "message": message,
                 "notification_type": constants.ACTION_NOTIFICATION,
-                "audio": audio,
+                "audio": {
+                    "sound_id": audio,
+                    "radio_effect": prosecutor.get_radio_effect(),
+                },
             }
         )
         super().complete()

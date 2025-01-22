@@ -157,7 +157,6 @@ class pmob(mob):
                 status.mob_info_display, None, override_exempt=True
             )
             vehicle.select()
-            vehicle.selection_sound()
 
     def uncrew_vehicle(self, vehicle):
         """
@@ -179,6 +178,7 @@ class pmob(mob):
         vehicle.set_crew(None)
         vehicle.end_turn_destination = None
         vehicle.remove_from_turn_queue()
+        self.update_image_bundle()
         self.select()
         self.add_to_turn_queue()
         self.update_habitability()

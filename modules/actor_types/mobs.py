@@ -90,6 +90,23 @@ class mob(actor):
                 self.creation_turn = constants.turn
         self.finish_init(original_constructor, from_save, input_dict)
 
+    def get_radio_effect(self) -> bool:
+        """
+        Description:
+            Calculates and returns whether this unit's voicelines should have a radio filter applied, based on the unit's current circumstances
+                Apply filter if spaceship or if wearing a spacesuit helmet
+        Input:
+            None
+        Output:
+            bool: Returns whether this unit's voiceliens should have a radio filter applied
+        """
+        return self.get_permission(constants.VEHICLE_PERMISSION) or (
+            self.get_permission(constants.SPACESUITS_PERMISSION)
+            and status.equipment_types[
+                constants.SPACESUITS_EQUIPMENT
+            ].can_show_portrait_section(self, constants.HAT_PORTRAIT_SECTION)
+        )
+
     def check_action_survivability(self, notify: bool = True) -> bool:
         """
         Description:
@@ -1094,7 +1111,9 @@ class mob(actor):
             ]
         if len(possible_sounds) > 0:
             constants.sound_manager.play_sound(
-                "voices/" + random.choice(possible_sounds), 0.5
+                "voices/" + random.choice(possible_sounds),
+                0.5,
+                radio_effect=self.get_radio_effect(),
             )
 
     def can_move(self, x_change: int, y_change: int, can_print: bool = False):
@@ -1208,7 +1227,9 @@ class mob(actor):
                 ):
                     possible_sounds.append("voices/steady she goes")
         if possible_sounds:
-            constants.sound_manager.play_sound(random.choice(possible_sounds))
+            constants.sound_manager.play_sound(
+                random.choice(possible_sounds), radio_effect=self.get_radio_effect()
+            )
 
     def movement_sound(self, allow_fadeout=True):
         """
@@ -1286,7 +1307,8 @@ class mob(actor):
                 or self.get_permission(constants.VEHICLE_PERMISSION)
             ):
                 constants.sound_manager.play_sound(
-                    random.choice(["voices/forward march 1", "voices/forward march 2"])
+                    random.choice(["voices/forward march 1", "voices/forward march 2"]),
+                    radio_effect=self.get_radio_effect(),
                 )
 
         self.last_move_direction = (x_change, y_change)

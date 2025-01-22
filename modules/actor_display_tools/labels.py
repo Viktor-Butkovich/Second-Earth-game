@@ -1943,23 +1943,24 @@ class actor_tooltip_label(actor_display_label):
         elif self.actor:
             if self.actor.get_permission(constants.DUMMY_PERMISSION):
                 if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
-                    status.reorganize_vehicle_right_button.on_click()
+                    status.reorganize_vehicle_right_button.on_click(allow_sound=False)
                 elif status.displayed_mob.get_permission(
                     constants.ACTIVE_VEHICLE_PERMISSION
                 ):
-                    status.reorganize_vehicle_left_button.on_click()
+                    status.reorganize_vehicle_left_button.on_click(allow_sound=False)
                 elif self.actor.any_permissions(
                     constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
                 ):
-                    status.reorganize_group_left_button.on_click()
+                    status.reorganize_group_left_button.on_click(allow_sound=False)
                 elif self.actor.get_permission(constants.GROUP_PERMISSION):
-                    status.reorganize_group_right_button.on_click()
+                    status.reorganize_group_right_button.on_click(allow_sound=False)
 
                 if not self.actor.get_permission(
                     constants.DUMMY_PERMISSION
                 ):  # Only select if dummy unit successfully became real
                     self.actor.cycle_select()
-            else:
+                    self.actor.selection_sound()
+            else:  # If already existing, simply select unit
                 self.actor.cycle_select()
 
 

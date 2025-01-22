@@ -135,6 +135,17 @@ class minister:
         self.update_tooltip()
         status.minister_loading_image.calibrate(self)  # Load in all images on creation
 
+    def get_radio_effect(self) -> bool:
+        """
+        Description:
+            Calculates and returns whether this minister's voicelines should have a radio filter applied, based on the minister's current circumstances
+        Input:
+            None
+        Output:
+            bool: Returns whether this minister's voiceliens should have a radio filter applied
+        """
+        return False
+
     def get_f_lname(self, use_prefix=False):
         """
         Description:
@@ -343,7 +354,10 @@ class minister:
                     prosecutor.display_message(
                         evidence_message,
                         override_input_dict={
-                            "audio": prosecutor.get_voice_line("evidence"),
+                            "audio": {
+                                "sound_id": prosecutor.get_voice_line("evidence"),
+                                "radio_effect": prosecutor.get_radio_effect(),
+                            },
                         },
                         transfer=False,
                     )  # Don't need to transfer since evidence is last step in action
@@ -1309,7 +1323,14 @@ class minister:
         constants.public_opinion_tracker.change(public_opinion_change)
         if text != "":
             self.display_message(
-                text, override_input_dict={"audio": audio}, on_remove=on_remove
+                text,
+                override_input_dict={
+                    "audio": {
+                        "sound_id": audio,
+                        "radio_effect": self.get_radio_effect(),
+                    },
+                },
+                on_remove=on_remove,
             )
 
     def get_voice_line(self, type):
@@ -1342,4 +1363,6 @@ class minister:
             None
         """
         if len(self.voice_lines[type]) > 0:
-            constants.sound_manager.play_sound(self.get_voice_line(type))
+            constants.sound_manager.play_sound(
+                self.get_voice_line(type), radio_effect=self.get_radio_effect()
+            )
