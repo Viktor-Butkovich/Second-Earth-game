@@ -1,6 +1,8 @@
 import random
 import pygame
 import os
+import pydub
+import io
 from modules.constants import constants, status, flags
 
 
@@ -27,6 +29,8 @@ class sound_manager_template:
         }
         self.previous_state = None
         self.previous_song = None
+        if False:  # For sound testing
+            self.play_sound("voices/all aboard 1")
 
     def busy(self):
         """
@@ -50,12 +54,13 @@ class sound_manager_template:
         """
         pygame.mixer.fadeout(ms)
 
-    def play_sound(self, file_name, volume=0.3):
+    def play_sound(self, file_name=None, volume=0.3):
         """
         Description:
             Plays the sound effect from the inputted file
         Input:
-            string file_name: Name of .ogg/.wav file to play sound of
+            bytes buffer: Optional buffer of sound data to play sound of
+            string file_name: Optional name of .ogg/.wav file to play sound of
             double volume = 0.3: Volume from 0.0 to 1.0 to play sound at - mixer usually uses a default of 1.0
         Output:
             Channel: Returns the pygame mixer Channel object that the sound was played on
@@ -64,9 +69,22 @@ class sound_manager_template:
             current_sound = pygame.mixer.Sound(f"sounds/{file_name}.ogg")
         except:
             current_sound = pygame.mixer.Sound(f"sounds/{file_name}.wav")
-        current_sound.set_volume(volume)
-        channel = pygame.mixer.find_channel(force=True)
-        channel.play(current_sound)
+        audio: pydub.AudioSegment = pydub.AudioSegment.from_file(
+            io.BytesIO(current_sound.get_raw()),
+            format="raw",
+            frame_rate=44100,
+            sample_width=2,
+            channels=2,
+        )
+        # Convert pygame sound to pydub audio segment
+        if False:
+            # Edit audio segment as needed in pydub
+            audio = audio.reverse()
+        current_sound = pygame.mixer.Sound(
+            buffer=audio.raw_data
+        )  # Convert edited audio segment back to pygame sound
+
+        channel = current_sound.play()
         return channel
 
     def queue_sound(self, file_name, channel, volume=0.3):
