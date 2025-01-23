@@ -396,7 +396,7 @@ class action:
             num_dice = 1
 
         if self.actor_type == "mob":
-            results = self.current_unit.controlling_minister.roll_to_list(
+            stealing, results = self.current_unit.controlling_minister.roll_to_list(
                 6,
                 self.current_min_success,
                 self.current_max_crit_fail,
@@ -405,7 +405,7 @@ class action:
                 num_dice,
             )
         else:
-            results = self.current_unit.roll_to_list(
+            stealing, results = self.current_unit.roll_to_list(
                 6,
                 self.current_min_success,
                 self.current_max_crit_fail,
@@ -413,10 +413,11 @@ class action:
                 self.action_type,
                 num_dice,
             )
-        results = [
-            max(min(current_result + self.random_unit_modifier(), 6), 1)
-            for current_result in results
-        ]  # Adds unit-specific modifiers
+        if not stealing:
+            results = [
+                max(min(current_result + self.random_unit_modifier(), 6), 1)
+                for current_result in results
+            ]  # Adds unit-specific modifiers
 
         self.roll_lists = self.generate_roll_lists(results)
 

@@ -421,13 +421,10 @@ except Exception:  # Displays error message and records error message in crash l
 # Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
-# Add modern minister outfits
-# Add astronauts art
-# Add new resource types, allowing buying on Earth, transporting, and using to build when it is in the builder's tile
+# Add astronaut officer art
+# Add new resource types, with colonist upkeep, buying on Earth, transporting, and using to build when it is in the builder's tile
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
-# Add radio distortion versions of voice lines, either as separate files or runtime filter
-#    Add radio voice lines for units in spacesuits
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
 # Convert actor_type ("tile", "mob", "minister") to use constant keys
@@ -446,6 +443,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Look into minister speech bubbles for minister messages, particularly tutorial messages
 # Possibly show solation as brightness on each tile (shouldn't affect albedo)
 # Add task-specific unit voicelines, with separate unit and minister voice sets
+# Add modern minister outfits
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>

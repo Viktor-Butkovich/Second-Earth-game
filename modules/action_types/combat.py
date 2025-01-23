@@ -465,9 +465,13 @@ class combat(action.action):
 
         self.current_roll_modifier = self.generate_current_roll_modifier(opponent=False)
         self.opponent_roll_modifier = self.generate_current_roll_modifier(opponent=True)
+        stealing = False
         if not self.defending:
             action_type = self.action_type
-            minister_rolls = self.current_unit.controlling_minister.attack_roll_to_list(  # minister rolls need to be made with enemy roll in mind, as corrupt result needs to be inconclusive
+            (
+                stealing,
+                minister_rolls,
+            ) = self.current_unit.controlling_minister.attack_roll_to_list(  # minister rolls need to be made with enemy roll in mind, as corrupt result needs to be inconclusive
                 self.current_roll_modifier,
                 self.opponent_roll_modifier,
                 self.opponent,
@@ -487,11 +491,12 @@ class combat(action.action):
             results = [self.opponent.combat_roll()] + [
                 random.randrange(1, 7) for i in range(num_dice)
             ]  # civilian ministers don't get to roll for combat with their units
-        for index, current_result in enumerate(results):
-            if index > 0:  # If not enemy roll
-                results[index] = max(
-                    min(current_result + self.random_unit_modifier(), 6), 1
-                )  # Adds unit-specific modifiers
+        if not stealing:
+            for index, current_result in enumerate(results):
+                if index > 0:  # If not enemy roll
+                    results[index] = max(
+                        min(current_result + self.random_unit_modifier(), 6), 1
+                    )  # Adds unit-specific modifiers
 
         if constants.effect_manager.effect_active("ministry_of_magic"):
             results = [1] + [6 for i in range(num_dice)]
