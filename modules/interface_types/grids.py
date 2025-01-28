@@ -44,7 +44,7 @@ class grid(interface_elements.interface_element):
         self.from_save = from_save
         self.is_mini_grid = False
         self.is_abstract_grid = False
-        self.attached_grid = None
+        self.attached_grid: grid = None
         self.coordinate_width: int = input_dict.get(
             "coordinate_size", input_dict.get("coordinate_width")
         )
@@ -126,6 +126,20 @@ class grid(interface_elements.interface_element):
         for cell in self.get_flat_cell_list():
             cell.draw()
         self.draw_grid_lines()
+        cell_list = list(self.get_flat_cell_list())
+        if self.attached_grid:
+            cell_list += list(self.attached_grid.get_flat_cell_list())
+
+        if status.displayed_tile and status.displayed_tile.cell in cell_list:
+            status.displayed_tile.draw_actor_match_outline()
+        if status.displayed_mob and (
+            status.displayed_mob.get_cell() in cell_list
+            or (
+                status.displayed_mob.end_turn_destination
+                and status.displayed_mob.end_turn_destination.cell in cell_list
+            )
+        ):
+            status.displayed_mob.draw_outline()
 
     def draw_grid_lines(self):
         """
@@ -400,7 +414,7 @@ class grid(interface_elements.interface_element):
         for current_cell in self.get_flat_cell_list():
             current_cell.find_adjacent_cells()
 
-    def get_flat_cell_list(self) -> List[cells.cell]:
+    def get_flat_cell_list(self) -> itertools.chain[cells.cell]:
         """
         Description:
             Generates and returns a flattened version of this grid's 2-dimensional cell list

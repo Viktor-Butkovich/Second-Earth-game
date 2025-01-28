@@ -121,6 +121,7 @@ class world_handler:
                 input_dict["albedo_multiplier"] = self.get_tuning(
                     "earth_albedo_multiplier"
                 )
+                input_dict["cloud_frequency"] = self.get_tuning("earth_cloud_frequency")
             input_dict["default_sky_color"] = input_dict["sky_color"].copy()
 
         self.terrain_handlers: list = [
@@ -145,6 +146,7 @@ class world_handler:
         self.albedo_multiplier: float = input_dict.get("albedo_multiplier", 1.0)
         self.average_water_target: float = input_dict.get("average_water_target", 0.0)
         self.average_water: float = input_dict.get("average_water", 0.0)
+        self.average_altitude: float = input_dict.get("average_altitude", 0.0)
         self.cloud_frequency: float = input_dict.get("cloud_frequency", 0.0)
         self.toxic_cloud_frequency: float = input_dict.get("toxic_cloud_frequency", 0.0)
         self.atmosphere_haze_alpha: int = input_dict.get("atmosphere_haze_alpha", 0)
@@ -152,7 +154,7 @@ class world_handler:
         self.size: int = input_dict.get("size", self.default_grid.area)
         self.sky_color = input_dict["sky_color"]
         self.default_sky_color = input_dict["default_sky_color"]
-        self.steam_color = [0, 0, 0]
+        self.steam_color = input_dict.get("steam_color", [0, 0, 0])
         self.global_parameters: Dict[str, int] = {}
         self.initial_atmosphere_offset = input_dict.get(
             "initial_atmosphere_offset", 0.001
@@ -160,10 +162,11 @@ class world_handler:
         for key in constants.global_parameters:
             self.set_parameter(key, input_dict.get("global_parameters", {}).get(key, 0))
         self.latitude_lines_setup()
-        self.average_temperature: float = 0.0
-        self.update_target_average_temperature(
-            estimate_water_vapor=not from_save, update_albedo=False
-        )
+        self.average_temperature: float = input_dict.get("average_temperature", 0.0)
+        if not from_save:
+            self.update_target_average_temperature(
+                estimate_water_vapor=True, update_albedo=False
+            )
 
     def generate_global_parameters(self) -> Dict[str, int]:
         """
@@ -208,7 +211,7 @@ class world_handler:
             [0, 1, 2, 3, 4, 5], [5, 2, 2, 2, 2, 2], k=1
         )[0]
         atmosphere_type = random.choice(
-            ["thick", "thick", "medium", "thin", "thin", "none"]
+            ["thick", "thick", "medium", "medium", "medium", "thin"]
         )
         if (
             global_parameters[constants.MAGNETIC_FIELD]
@@ -402,8 +405,7 @@ class world_handler:
         for component in constants.ATMOSPHERE_COMPONENTS:
             if random.randrange(1, 7) >= 5:
                 global_parameters[component] = 0
-            elif global_parameters[component] != 0:
-                global_parameters[component] += random.uniform(-1.0, 1.0)
+            global_parameters[component] += random.uniform(-10.0, 10.0)
             global_parameters[component] = max(
                 0, round(global_parameters[component], 1)
             )
@@ -680,9 +682,7 @@ class world_handler:
             if self.get_parameter(constants.PRESSURE) == 0:
                 composition = 0.01
             else:
-                composition = self.get_parameter(
-                    atmosphere_component
-                ) / self.get_parameter(constants.PRESSURE)
+                composition = self.get_composition(atmosphere_component)
             ideal = self.get_tuning(f"earth_{atmosphere_component}")
             if atmosphere_component == constants.TOXIC_GASES:
                 offset = max(0, (composition - 0.001) / 0.001)
@@ -690,7 +690,7 @@ class world_handler:
                 offset = abs(composition - ideal) / ideal
             total_offset += offset
         if set_initial_offset:
-            self.initial_atmosphere_offset = max(0.001, total_offset)
+            self.initial_atmosphere_offset = max(50.0, total_offset)
 
         # Record total offset in each call - only update colors if total offset changed
         total_offset = min(total_offset, self.initial_atmosphere_offset)
@@ -852,15 +852,12 @@ class world_handler:
         self.update_cloud_frequencies(estimated_temperature=estimated_temperature)
         # Toxic cloud frequency depends on both toxic gas % and total pressure
 
-        self.atmosphere_haze_alpha = max(
-            0,
-            min(
-                255,
-                (self.get_pressure_ratio() * 7)
-                - 14
-                + (self.get_pressure_ratio(constants.TOXIC_GASES) * 10 * 255),
-            ),
+        pressure_alpha = max(0, self.get_pressure_ratio() * 7 - 14)
+        toxic_alpha = min(
+            255, log(1 + (self.get_pressure_ratio(constants.TOXIC_GASES)), 2) * 255
         )
+        self.atmosphere_haze_alpha = min(255, pressure_alpha + toxic_alpha)
+
         # Atmosphere haze depends on total pressure, with toxic gases greatly over-represented
 
         for terrain_handler in self.terrain_handlers:
@@ -968,9 +965,9 @@ class world_handler:
             "name": self.name,
             "sky_color": self.sky_color,
             "default_sky_color": self.default_sky_color,
+            "steam_color": self.steam_color,
             "initial_atmosphere_offset": self.initial_atmosphere_offset,
             "star_distance": self.star_distance,
-            "average_temperature": self.average_temperature,
             "water_vapor_multiplier": self.water_vapor_multiplier,
             "ghg_multiplier": self.ghg_multiplier,
             "albedo_multiplier": self.albedo_multiplier,
@@ -1185,7 +1182,23 @@ class world_handler:
             constants.PRESSURE
         )
 
-    def calculate_parameter_habitability(self, parameter_name: str) -> int:
+    def get_composition(self, component: str) -> float:
+        """
+        Description:
+            Calculates and returns the % composition of an inputted atmosphere component
+        Input:
+            string component: Component of the atmosphere to calculate the composition of
+        Output:
+            float: Returns the % composition of the inputted atmosphere component
+        """
+        if self.get_parameter(component) == 0:
+            return 0.0
+        else:
+            return self.get_parameter(component) / self.get_parameter(
+                constants.PRESSURE
+            )
+
+    def get_parameter_habitability(self, parameter_name: str) -> int:
         """
         Description:
             Calculates and returns the habitability effect of a particular global parameter
@@ -1196,9 +1209,17 @@ class world_handler:
         """
         value = self.get_parameter(parameter_name)
         ideal = self.get_ideal_parameter(parameter_name)
+        deadly_lower_bound, deadly_upper_bound = constants.DEADLY_PARAMETER_BOUNDS.get(
+            parameter_name, (None, None)
+        )
+        (
+            perfect_lower_bound,
+            perfect_upper_bound,
+        ) = constants.PERFECT_PARAMETER_BOUNDS.get(parameter_name, (None, None))
+
         if parameter_name == constants.PRESSURE:
             ratio = round(value / ideal, 2)
-            if ratio >= 30:
+            if ratio >= deadly_upper_bound:
                 return constants.HABITABILITY_DEADLY
             elif ratio >= 10:
                 return constants.HABITABILITY_DANGEROUS
@@ -1216,21 +1237,21 @@ class world_handler:
                 return constants.HABITABILITY_UNPLEASANT
             elif ratio >= 0.21:
                 return constants.HABITABILITY_HOSTILE
-            elif ratio >= 0.12:
+            elif ratio >= deadly_lower_bound:
                 return constants.HABITABILITY_DANGEROUS
             else:
                 return constants.HABITABILITY_DEADLY
         elif parameter_name == constants.OXYGEN:
             if self.get_parameter(constants.PRESSURE) == 0:
                 return constants.HABITABILITY_PERFECT
-            composition = round(value / self.get_parameter(constants.PRESSURE), 2)
+            composition = round(self.get_composition(constants.OXYGEN), 2)
             if composition >= 0.6:
                 return constants.HABITABILITY_HOSTILE
             elif composition >= 0.24:
                 return constants.HABITABILITY_UNPLEASANT
-            elif composition >= 0.22:
+            elif composition >= perfect_upper_bound:
                 return constants.HABITABILITY_TOLERABLE
-            elif composition >= 0.2:
+            elif composition >= perfect_lower_bound:
                 return constants.HABITABILITY_PERFECT
             elif composition >= 0.19:
                 return constants.HABITABILITY_TOLERABLE
@@ -1238,15 +1259,15 @@ class world_handler:
                 return constants.HABITABILITY_UNPLEASANT
             elif composition >= 0.14:
                 return constants.HABITABILITY_HOSTILE
-            elif composition >= 0.1:
+            elif composition >= deadly_lower_bound:
                 return constants.HABITABILITY_DANGEROUS
             else:
                 return constants.HABITABILITY_DEADLY
         elif parameter_name == constants.GHG:
             if self.get_parameter(constants.PRESSURE) == 0:
                 return constants.HABITABILITY_PERFECT
-            composition = round(value / self.get_parameter(constants.PRESSURE), 3)
-            if composition >= 0.03:
+            composition = round(self.get_composition(constants.GHG), 3)
+            if composition >= deadly_upper_bound:
                 return constants.HABITABILITY_DEADLY
             elif composition >= 0.02:
                 return constants.HABITABILITY_DANGEROUS
@@ -1254,7 +1275,7 @@ class world_handler:
                 return constants.HABITABILITY_HOSTILE
             elif composition >= 0.01:
                 return constants.HABITABILITY_UNPLEASANT
-            elif composition >= 0.006:
+            elif composition >= perfect_upper_bound:
                 return constants.HABITABILITY_TOLERABLE
             else:
                 return constants.HABITABILITY_PERFECT
@@ -1262,10 +1283,10 @@ class world_handler:
         elif parameter_name == constants.INERT_GASES:
             if self.get_parameter(constants.PRESSURE) == 0:
                 return constants.HABITABILITY_PERFECT
-            composition = round(value / self.get_parameter(constants.PRESSURE), 2)
-            if composition >= 0.80:
+            composition = round(self.get_composition(constants.INERT_GASES), 3)
+            if composition >= perfect_upper_bound:
                 return constants.HABITABILITY_TOLERABLE
-            elif composition >= 0.76:
+            elif composition >= perfect_lower_bound:
                 return constants.HABITABILITY_PERFECT
             elif composition >= 0.5:
                 return constants.HABITABILITY_TOLERABLE
@@ -1275,8 +1296,8 @@ class world_handler:
         elif parameter_name == constants.TOXIC_GASES:
             if self.get_parameter(constants.PRESSURE) == 0:
                 return constants.HABITABILITY_PERFECT
-            composition = round(value / self.get_parameter(constants.PRESSURE), 4)
-            if composition >= 0.004:
+            composition = round(self.get_composition(constants.TOXIC_GASES), 5)
+            if composition >= deadly_upper_bound:
                 return constants.HABITABILITY_DEADLY
             elif composition >= 0.003:
                 return constants.HABITABILITY_DANGEROUS
@@ -1284,7 +1305,7 @@ class world_handler:
                 return constants.HABITABILITY_HOSTILE
             elif composition >= 0.001:
                 return constants.HABITABILITY_UNPLEASANT
-            elif composition > 0:
+            elif composition >= perfect_upper_bound:
                 return constants.HABITABILITY_TOLERABLE
             else:
                 return constants.HABITABILITY_PERFECT
@@ -1297,11 +1318,11 @@ class world_handler:
                 return constants.HABITABILITY_DANGEROUS
             elif ratio >= 2:
                 return constants.HABITABILITY_HOSTILE
-            elif ratio >= 1.41:
+            elif ratio >= 1.4:
                 return constants.HABITABILITY_UNPLEASANT
-            elif ratio >= 1.21:
+            elif ratio >= perfect_upper_bound:
                 return constants.HABITABILITY_TOLERABLE
-            elif ratio >= 0.8:
+            elif ratio >= perfect_lower_bound:
                 return constants.HABITABILITY_PERFECT
             elif ratio >= 0.6:
                 return constants.HABITABILITY_TOLERABLE
@@ -1312,7 +1333,7 @@ class world_handler:
 
         elif parameter_name == constants.RADIATION:
             radiation_effect = value - self.get_parameter(constants.MAGNETIC_FIELD)
-            if radiation_effect >= 4:
+            if radiation_effect >= deadly_upper_bound:
                 return constants.HABITABILITY_DEADLY
             elif radiation_effect >= 2:
                 return constants.HABITABILITY_DANGEROUS
@@ -1363,6 +1384,26 @@ class world_handler:
             3,
         )
 
+    def update_average_altitude(self):
+        """
+        Description:
+            Re-calculates the average altitude of this world
+        Input:
+            None
+        Output:
+            None
+        """
+        self.average_altitude = round(
+            sum(
+                [
+                    terrain_handler.get_parameter(constants.ALTITUDE)
+                    for terrain_handler in self.terrain_handlers
+                ]
+            )
+            / self.default_grid.area,
+            2,
+        )
+
     def get_insolation(self):
         """
         Description:
@@ -1403,12 +1444,21 @@ class world_handler:
             Returns the greenhouse effect caused by greenhouse gases on this planet
         """
         atm = self.get_pressure_ratio(constants.GHG)
-        if atm < 0.005:
-            ghg_multiplier = 1.0 + weight * (atm / 0.005) * 0.124
-        else:
-            ghg_multiplier = 1.0 + weight * (
-                0.124 * (log(atm / 0.005, 2.0) + 1)
-            )  # Tune log base to make Venus the correct temperature
+        if atm < 0.0002:  # Linear relationship for very low GHG values
+            ghg_multiplier = 1.0 + (weight * (0.05 * (atm / 0.0002)))
+        else:  # Logarithmic relationship for Earth-like GHG values, such that doubling/halving GHG changes temperature by about 5 degrees Fahrenheit
+            ghg_multiplier = 1.0 + (weight * (0.06 + (log(atm / 0.0004, 2) * 0.01)))
+        ghg_multiplier += min(
+            0.43, weight * atm
+        )  # Add significant increases for GHG values from ~0-1 atm, up to 0.43x
+        ghg_multiplier += min(
+            0.43, weight * (atm * 0.272 * 0.5 * 0.5)
+        )  # Add significant increases for moderately large GHG values, up to 0.43x
+        ghg_multiplier += weight * (
+            atm * 0.015 * 0.26
+        )  # Continue adding significant increases for very large GHG values
+        # Tune to get yield correct Venus temperature
+
         if (
             self.get_pressure_ratio() < 0.5
         ):  # Apply negative penalty to GHG multiplier in thin atmospheres, as more heat is lost directly to space
@@ -1444,7 +1494,7 @@ class world_handler:
             )
 
         water_vapor_multiplier = 1.0 + (
-            water_vapor / self.get_tuning("earth_water_vapor") * weight * 0.124
+            water_vapor / self.get_tuning("earth_water_vapor") * weight * 0.5 * 0.124
         )
         self.water_vapor_multiplier = water_vapor_multiplier
         return self.water_vapor_multiplier
@@ -1487,6 +1537,23 @@ class world_handler:
 
         return self.albedo_multiplier
 
+    def get_total_heat(self):
+        """
+        Description:
+            Calculates and returns the total heat received by this planet, including greenhouse effect, water vapor, albedo, and base sunlight received
+        Input:
+            None
+        Output:
+            float: Returns the total heat received by this planet
+        """
+        return round(
+            self.water_vapor_multiplier
+            * self.ghg_multiplier
+            * self.albedo_multiplier
+            * self.get_sun_effect(),
+            2,
+        )
+
     def update_target_average_temperature(
         self, estimate_water_vapor: bool = False, update_albedo: bool = False
     ):
@@ -1522,8 +1589,8 @@ class world_handler:
             ),
         )
         water_vapor_weight, ghg_weight = (
-            0.5 * pressure_effect,
-            0.5 * pressure_effect,
+            1.0 * pressure_effect,
+            1.0 * pressure_effect,
         )  # Increase GHG effect for higher pressures and vice versa
 
         ghg_multiplier = self.get_ghg_effect_multiplier(weight=ghg_weight)

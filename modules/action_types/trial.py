@@ -30,7 +30,7 @@ class trial(action.campaign):
         super().initial_setup()
         constants.transaction_descriptions[self.action_type] = "trial fees"
         self.name = "trial"
-        self.actor_type = "minister"
+        self.actor_type = constants.MINISTER_ACTOR_TYPE
         self.current_trial = {}
         self.allow_critical_failures = False
         self.placement_type = "free"
@@ -379,9 +379,10 @@ class trial(action.campaign):
         """
         prosecution = status.displayed_prosecution
         defense = status.displayed_defense
+        text = ""
         if self.roll_result >= self.current_min_success:
             confiscated_money = defense.stolen_money / 2.0
-            text = f"You have won the trial, removing {defense.name} as {defense.current_position.name} and putting them in prison. /n /n"
+            text += f"You have won the trial, removing {defense.name} as {defense.current_position.name} and putting them in prison. /n /n"
             if confiscated_money > 0:
                 text += f"While most of {defense.name}'s money was spent on the trial or unaccounted for, authorities managed to confiscate {str(confiscated_money)} money, which has been given to your company as compensation. /n /n"
                 text += " /n /n"

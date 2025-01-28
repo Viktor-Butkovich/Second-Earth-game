@@ -141,15 +141,15 @@ class zoom_notification(notification):
         """
         super().__init__(input_dict)
         target = input_dict["target"]
-        if target.actor_type == "building":
+        if target.actor_type == constants.BUILDING_ACTOR_TYPE:
             target = target.cell.tile
 
-        if target.actor_type == "tile":
+        if target.actor_type == constants.TILE_ACTOR_TYPE:
             actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
             actor_utility.calibrate_actor_info_display(status.tile_info_display, target)
             for mini_grid in target.cell.grid.mini_grids:
                 mini_grid.calibrate(target.x, target.y)
-        elif target.actor_type == "mob":
+        elif target.actor_type == constants.MOB_ACTOR_TYPE:
             if target.get_cell():  # If non-hidden mob, move to front of tile and select
                 target.select()
             else:  # If hidden mob, move to location and select tile

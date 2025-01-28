@@ -58,7 +58,7 @@ class terrain_handler:
         for key, value in input_dict.get("terrain_features", {}).items():
             self.add_terrain_feature(value)
 
-    def calculate_parameter_habitability(self, parameter_name: str) -> int:
+    def get_parameter_habitability(self, parameter_name: str) -> int:
         """
         Description:
             Calculates and returns the habitability effect of a particular parameter
@@ -68,13 +68,18 @@ class terrain_handler:
             int: Returns the habitability effect of the inputted parameter, from 0 to 5 (5 is perfect, 0 is deadly)
         """
         if parameter_name in constants.global_parameters:
-            return self.get_world_handler().calculate_parameter_habitability(
-                parameter_name
-            )
+            return self.get_world_handler().get_parameter_habitability(parameter_name)
         elif parameter_name == constants.TEMPERATURE:
-            return actor_utility.calculate_temperature_habitability(
+            return actor_utility.get_temperature_habitability(
                 self.get_parameter(parameter_name)
             )
+        elif parameter_name == constants.WATER:
+            if self.get_parameter(constants.WATER) >= 4 and self.get_parameter(
+                constants.TEMPERATURE
+            ) > self.get_world_handler().get_tuning("water_freezing_point"):
+                return constants.HABITABILITY_DEADLY
+            else:
+                return constants.HABITABILITY_PERFECT
         else:
             return constants.HABITABILITY_PERFECT
 
@@ -91,14 +96,14 @@ class terrain_handler:
         for terrain_parameter in (
             constants.terrain_parameters + constants.global_parameters
         ):
-            habitability = self.calculate_parameter_habitability(terrain_parameter)
+            habitability = self.get_parameter_habitability(terrain_parameter)
             if (not omit_perfect) or habitability != constants.HABITABILITY_PERFECT:
-                habitability_dict[
+                habitability_dict[terrain_parameter] = self.get_parameter_habitability(
                     terrain_parameter
-                ] = self.calculate_parameter_habitability(terrain_parameter)
+                )
         return habitability_dict
 
-    def get_unit_habitability(self, unit) -> int:
+    def get_unit_habitability(self, unit=None) -> int:
         """
         Description:
             Returns the habitability of this tile for the inputted units
@@ -116,7 +121,7 @@ class terrain_handler:
             default_habitability = min(
                 self.get_habitability_dict(omit_perfect=False).values()
             )
-        if unit.any_permissions(
+        if unit and unit.any_permissions(
             constants.SPACESUITS_PERMISSION,
             constants.VEHICLE_PERMISSION,
             constants.IN_VEHICLE_PERMISSION,
@@ -137,7 +142,7 @@ class terrain_handler:
         if self.default_cell.grid.is_abstract_grid:  # If global habitability
             habitability_dict[
                 constants.TEMPERATURE
-            ] = actor_utility.calculate_temperature_habitability(
+            ] = actor_utility.get_temperature_habitability(
                 round(self.get_world_handler().average_temperature)
             )
             overall_habitability = min(habitability_dict.values())
@@ -170,7 +175,17 @@ class terrain_handler:
         """
         if self.get_world_handler():
             average_temperature = self.get_world_handler().average_temperature
-            return average_temperature - 3.5 + (5 * self.pole_distance_multiplier)
+            altitude_effect = (
+                -1 * self.get_parameter(constants.ALTITUDE)
+            ) + self.get_world_handler().average_altitude
+            altitude_effect_weight = 0.5
+            # Colder to the extent that tile is higher than average altitude, and vice versa
+            return (
+                average_temperature
+                - 3.5
+                + (5 * self.pole_distance_multiplier)
+                + (altitude_effect * altitude_effect_weight)
+            )
         else:
             return 0.0
 
@@ -267,6 +282,11 @@ class terrain_handler:
             and not self.get_world_handler().default_grid.is_abstract_grid
         ):
             self.get_world_handler().update_average_water()
+        elif (
+            parameter_name == constants.ALTITUDE
+            and not self.get_world_handler().default_grid.is_abstract_grid
+        ):
+            self.get_world_handler().update_average_altitude()
         elif (
             parameter_name == constants.TEMPERATURE
             and not self.get_world_handler().default_grid.is_abstract_grid
@@ -377,6 +397,7 @@ class terrain_handler:
             {
                 "image_id": current_steam,
                 "green_screen": [self.get_world_handler().steam_color],
+                "detail_level": constants.CLOUDS_DETAIL_LEVEL,
                 "override_green_screen_colors": [(140, 183, 216)],
             }
             for current_steam in steam_list

@@ -52,17 +52,20 @@ class actor_display_free_image(free_image):
                 default_image_key = "default"
 
                 if (
-                    new_actor.actor_type == "tile"
+                    new_actor.actor_type == constants.TILE_ACTOR_TYPE
                     and not new_actor.cell.terrain_handler.visible
                 ):
                     default_image_key = "hidden"
-                if new_actor.actor_type in ["mob", "tile"] and isinstance(
+                if new_actor.actor_type in [
+                    constants.MOB_ACTOR_TYPE,
+                    constants.TILE_ACTOR_TYPE,
+                ] and isinstance(
                     new_actor.images[0].image_id, str
                 ):  # if id is string image path
                     image_id_list.append(new_actor.image_dict[default_image_key])
                 else:  # if id is list of strings for image bundle
                     image_id_list += new_actor.get_image_id_list()
-                if new_actor.actor_type == "mob":
+                if new_actor.actor_type == constants.MOB_ACTOR_TYPE:
                     if new_actor.get_permission(constants.DUMMY_PERMISSION):
                         image_id_list.append(
                             {

@@ -559,7 +559,7 @@ class interface_collection(interface_element):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if (
             self.is_info_display
-            and getattr(status, "displayed_" + self.actor_type) == None
+            and getattr(status, f"displayed_{self.actor_type}") == None
         ):
             return False
         else:
@@ -682,7 +682,9 @@ class tabbed_collection(interface_collection):
         constants.actor_creation_manager.create_interface_element(
             {
                 "minimum_width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "height": scaling.scale_height(
+                    constants.default_notification_font_size + 5
+                ),
                 "parent_collection": self.tabs_collection,
                 "init_type": constants.BANNER_LABEL,
                 "image_id": "misc/default_label.png",

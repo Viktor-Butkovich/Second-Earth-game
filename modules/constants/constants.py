@@ -30,6 +30,7 @@ from modules.tools.data_managers.value_tracker_template import (
     public_opinion_tracker_template,
     money_tracker_template,
 )
+from modules.tools.data_managers.help_manager_template import help_manager_template
 from modules.tools.mouse_followers import mouse_follower_template
 from modules.interface_types.labels import money_label_template
 from modules.constructs.fonts import font
@@ -209,6 +210,9 @@ event_manager: event_manager_template = event_manager_template()
 notification_manager: notification_manager_template = (
     None  # requires additional setup before initialization
 )
+help_manager: help_manager_template = (
+    None  # requires additional setup before initialization
+)
 mouse_follower: mouse_follower_template = None
 
 turn: int = 0
@@ -236,10 +240,11 @@ end_turn_wait_time: float = 0.05
 old_mouse_x: int = pygame.mouse.get_pos()[0]
 old_mouse_y: int = pygame.mouse.get_pos()[1]
 
-font_name: str = "times new roman"
-default_font_size: int = 15
+small_font_name: str = "times new roman"
+font_name: str = "microsoftsansserif"
+default_font_size: int = 18
 font_size: float = None
-default_notification_font_size: int = 25
+default_notification_font_size: int = 22
 notification_font_size: float = None
 myfont: font = None
 fonts: Dict[str, font] = {}
@@ -800,6 +805,7 @@ BUILD_TRAIN_BUTTON: str = "build_train_button"
 EXECUTE_AUTOMATIC_ROUTE_BUTTON: str = "execute_automatic_route_button"
 DRAW_AUTOMATIC_ROUTE_BUTTON: str = "draw_automatic_route_button"
 CLEAR_AUTOMATIC_ROUTE_BUTTON: str = "clear_automatic_route_button"
+HELP_BUTTON: str = "help_button"
 
 SAME_TILE_ICON: str = "same_tile_icon"
 MINISTER_PORTRAIT_IMAGE: str = "minister_portrait_image"
@@ -860,6 +866,7 @@ TERRAIN_LABEL: str = "terrain_label"
 PLANET_NAME_LABEL: str = "planet_name_label"
 WATER_LABEL: str = "water_label"
 TEMPERATURE_LABEL: str = "temperature_label"
+LOCAL_AVERAGE_TEMPERATURE_LABEL: str = "local_average_temperature_label"
 VEGETATION_LABEL: str = "vegetation_label"
 ROUGHNESS_LABEL: str = "roughness_label"
 SOIL_LABEL: str = "soil_label"
@@ -871,6 +878,12 @@ OXYGEN_LABEL: str = "oxygen_label"
 GHG_LABEL: str = "GHG_label"
 INERT_GASES_LABEL: str = "inert_gases_label"
 TOXIC_GASES_LABEL: str = "toxic_gases_label"
+ATMOSPHERE_COMPONENT_LABELS: str = [
+    OXYGEN_LABEL,
+    GHG_LABEL,
+    INERT_GASES_LABEL,
+    TOXIC_GASES_LABEL,
+]
 AVERAGE_WATER_LABEL: str = "average_water_label"
 AVERAGE_TEMPERATURE_LABEL: str = "average_temperature_label"
 GRAVITY_LABEL: str = "gravity_label"
@@ -985,6 +998,16 @@ MOUTH_PORTRAIT_SECTION: str = "mouth"
 EYES_PORTRAITS_SECTION: str = "eyes"
 FRAME_PORTRAIT_SECTION: str = "frame"
 
+MOB_ACTOR_TYPE: str = "mob"
+MOB_INVENTORY_ACTOR_TYPE: str = "mob_inventory"
+TILE_ACTOR_TYPE: str = "tile"
+TILE_INVENTORY_ACTOR_TYPE: str = "tile_inventory"
+BUILDING_ACTOR_TYPE: str = "building"
+CELL_ICON_ACTOR_TYPE: str = "cell_icon"
+MINISTER_ACTOR_TYPE: str = "minister"
+PROSECUTION_ACTOR_TYPE: str = "prosecution"
+DEFENSE_ACTOR_TYPE: str = "defense"
+
 HABITABILITY_PERFECT: int = 5
 HABITABILITY_TOLERABLE: int = 4
 HABITABILITY_UNPLEASANT: int = 3
@@ -1001,3 +1024,26 @@ HABITABILITY_DESCRIPTIONS: Dict[int, str] = {
 }
 
 ABSOLUTE_ZERO: float = -459.67
+
+HELP_GLOBAL_PARAMETERS: str = "help_subjects_global_parameters"
+HELP_WORLD_HANDLER_CONTEXT: str = "help_subjects_world_handler_context"
+
+DEADLY_PARAMETER_BOUNDS: Dict[str, Tuple[float, float]] = {
+    PRESSURE: (0.12, 30),
+    OXYGEN: (0.1, None),
+    GHG: (None, 0.03),
+    INERT_GASES: (None, None),
+    TOXIC_GASES: (None, 0.004),
+    GRAVITY: (None, None),
+    RADIATION: (None, 4),
+}
+
+PERFECT_PARAMETER_BOUNDS: Dict[str, Tuple[float, float]] = {
+    PRESSURE: (0.9, 1.1),
+    OXYGEN: (0.2, 0.22),
+    GHG: (None, 0.006),
+    INERT_GASES: (0.76, 0.8),
+    TOXIC_GASES: (None, 0.0005),
+    GRAVITY: (0.8, 1.2),
+    RADIATION: (0, 0),
+}

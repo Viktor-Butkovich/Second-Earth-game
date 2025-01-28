@@ -1,6 +1,10 @@
 import random
 import pygame
 import os
+import pydub
+import numpy as np
+import pedalboard
+import io
 from modules.constants import constants, status, flags
 
 
@@ -50,13 +54,90 @@ class sound_manager_template:
         """
         pygame.mixer.fadeout(ms)
 
-    def play_sound(self, file_name, volume=0.3):
+    def apply_radio_effect(self, sound: pygame.mixer.Sound) -> pygame.mixer.Sound:
+        """
+        Description:
+            Applies a radio effect to the inputted sound
+        Input:
+            pygame.mixer.Sound sound: Sound to apply the radio effect to
+        Output:
+            pygame.mixer.Sound: Returns the sound with the radio effect applied
+        """
+        # Convert pygame sound to pydub audio segment
+        sample_rate = 44100
+        audio: pydub.AudioSegment = pydub.AudioSegment.from_file(
+            io.BytesIO(sound.get_raw()),
+            format="raw",
+            frame_rate=sample_rate,
+            sample_width=2,
+            channels=2,
+        )
+        # Remove silent starts and ends of the audio
+        audio = audio.strip_silence(silence_len=100, silence_thresh=-40)
+
+        # Use pedalboard to resample and decrease the quality of the audio
+        samples = np.array(audio.get_array_of_samples())
+
+        # Convert static_fraction of the samples to random static
+        static_fraction = 0.3
+        num_samples_to_change = round(len(samples) * static_fraction)
+        indices_to_change = np.random.choice(
+            len(samples), num_samples_to_change, replace=False
+        )
+        samples[indices_to_change] = np.random.randint(
+            300, 1500, num_samples_to_change, dtype=np.int16
+        )
+
+        resample_fraction = 0.1
+        bitcrush_magnitude = 10
+        low_cutoff, high_cutoff = 300, 3000
+        reverb_magnitude = 0.2
+        compressor_db, compressor_ratio = -10.0, 2.0
+        board = pedalboard.Pedalboard(
+            [
+                pedalboard.Resample(
+                    target_sample_rate=round(audio.frame_rate * resample_fraction)
+                ),  # Decrease horizontal quality
+                pedalboard.Bitcrush(bitcrush_magnitude),  # Decrease vertical quality
+                pedalboard.HighpassFilter(
+                    cutoff_frequency_hz=low_cutoff
+                ),  # Remove low frequencies
+                pedalboard.LowpassFilter(
+                    cutoff_frequency_hz=high_cutoff
+                ),  # Remove high frequencies
+                pedalboard.Reverb(room_size=reverb_magnitude),  # Add slight reverb
+                pedalboard.Compressor(
+                    threshold_db=compressor_db, ratio=compressor_ratio
+                ),  # Compress high and low volumes
+            ]
+        )
+
+        # Convert to 32-bit float and apply pedalboard effects
+        effected = board(
+            samples.astype(np.float32) / 32768.0,
+            sample_rate=sample_rate // 2,
+            buffer_size=8192,
+            reset=True,
+        )
+
+        effected = (effected * 32768.0).astype(np.int16)  # Convert back to 16-bit int
+
+        sound = pygame.mixer.Sound(
+            buffer=effected.tobytes(),
+        )  # Convert edited pedalboard audio segment back to pygame sound
+
+        return sound
+
+    def play_sound(
+        self, file_name: str, volume: float = 0.3, radio_effect: bool = False
+    ):
         """
         Description:
             Plays the sound effect from the inputted file
         Input:
             string file_name: Name of .ogg/.wav file to play sound of
             double volume = 0.3: Volume from 0.0 to 1.0 to play sound at - mixer usually uses a default of 1.0
+            bool radio_effect = False: Whether to apply a radio effect to the sound
         Output:
             Channel: Returns the pygame mixer Channel object that the sound was played on
         """
@@ -64,12 +145,26 @@ class sound_manager_template:
             current_sound = pygame.mixer.Sound(f"sounds/{file_name}.ogg")
         except:
             current_sound = pygame.mixer.Sound(f"sounds/{file_name}.wav")
-        current_sound.set_volume(volume)
-        channel = pygame.mixer.find_channel(force=True)
-        channel.play(current_sound)
+
+        if radio_effect:
+            current_sound = self.apply_radio_effect(current_sound)
+
+        channel = current_sound.play()
+        try:
+            channel.set_volume(volume)
+        except:
+            raise Exception(
+                f"Error: Could not set volume to {volume} for sound {file_name}"
+            )
         return channel
 
-    def queue_sound(self, file_name, channel, volume=0.3):
+    def queue_sound(
+        self,
+        file_name: str,
+        channel: pygame.mixer.Channel,
+        volume: float = 0.3,
+        radio_effect: bool = False,
+    ):
         """
         Description:
             Queues the sound effect from the inputted file to be played once the inputted channel is done with its current sound
@@ -77,6 +172,7 @@ class sound_manager_template:
             string file_name: Name of .ogg/.wav file to play sound of
             Channel channel: Pygame mixer channel to queue the sound in
             double volume = 0.3: Volume from 0.0 to 1.0 to play sound at - mixer usually uses a default of 1.0
+            bool radio_effect = False: Whether to apply a radio effect to the sound
         Output:
             None
         """
@@ -84,6 +180,8 @@ class sound_manager_template:
             current_sound = pygame.mixer.Sound(f"sounds/{file_name}.ogg")
         except:
             current_sound = pygame.mixer.Sound(f"sounds/{file_name}.wav")
+        if radio_effect:
+            current_sound = self.apply_radio_effect(current_sound)
         current_sound.set_volume(volume)
         channel.queue(current_sound)
 

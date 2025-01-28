@@ -362,16 +362,19 @@ def generate_unit_component_portrait(
     """
     return_list = []
     for section in base_image:
-        edited_section = {
-            "image_id": section["image_id"],
-            "x_size": 0.85 * section.get("size", 1.0) * section.get("x_size", 1.0),
-            "y_size": 0.85 * section.get("size", 1.0) * section.get("y_size", 1.0),
-            "x_offset": section.get("x_offset", 0) - 0.01,
-            "y_offset": section.get("y_offset", 0) - 0.1,
-            "level": section.get("level", 0) - 1,
-            "green_screen": section.get("green_screen", []),
-            "metadata": section.get("metadata", {}),
-        }
+        edited_section = section.copy()
+        edited_section.update(
+            {
+                "image_id": section["image_id"],
+                "x_size": 0.85 * section.get("size", 1.0) * section.get("x_size", 1.0),
+                "y_size": 0.85 * section.get("size", 1.0) * section.get("y_size", 1.0),
+                "x_offset": section.get("x_offset", 0) - 0.01,
+                "y_offset": section.get("y_offset", 0) - 0.1,
+                "level": section.get("level", 0) - 1,
+                "green_screen": section.get("green_screen", []),
+                "metadata": section.get("metadata", {}),
+            }
+        )
         if component.endswith("left"):
             edited_section["x_offset"] -= 0.245
             edited_section["y_offset"] += 0.043
@@ -423,12 +426,14 @@ def generate_group_image_id_list(worker, officer):
     """
     return (
         generate_unit_component_portrait(
-            worker.image_dict["left portrait"], "group left"
+            worker.insert_equipment(worker.image_dict["left portrait"]), "group left"
         )
         + generate_unit_component_portrait(
-            worker.image_dict["right portrait"], "group right"
+            worker.insert_equipment(worker.image_dict["right portrait"]), "group right"
         )
-        + generate_unit_component_portrait(officer.image_dict["portrait"], "center")
+        + generate_unit_component_portrait(
+            officer.insert_equipment(officer.image_dict["portrait"]), "center"
+        )
     )
 
 
@@ -620,7 +625,7 @@ def generate_frame(
         return utility.combine(frame, image_id)
 
 
-def calculate_temperature_habitability(temperature: int) -> int:
+def get_temperature_habitability(temperature: int) -> int:
     """
     Description:
         Calculates and returns the habitability effect of a particular temperature value

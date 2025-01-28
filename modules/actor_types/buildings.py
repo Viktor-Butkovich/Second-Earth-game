@@ -33,7 +33,7 @@ class building(actor):
         Output:
             None
         """
-        self.actor_type = "building"
+        self.actor_type = constants.BUILDING_ACTOR_TYPE
         self.building_type: building_types.building_type = input_dict.get(
             "building_type", status.building_types[input_dict["init_type"]]
         )

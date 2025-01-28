@@ -1134,6 +1134,7 @@ class button(interface_elements.interface_element):
                                 ):
                                     # If equpiment in tile, equippable by this unit, and not already equipped, equip it
                                     equipment.equip(status.displayed_mob)
+                                    status.displayed_mob.selection_sound()
                                     status.displayed_tile.change_inventory(
                                         equipment.key, -1
                                     )
@@ -1171,6 +1172,7 @@ class button(interface_elements.interface_element):
                     if equipment.check_requirement(status.displayed_mob):
                         if not status.displayed_mob.equipment.get(equipment.key, False):
                             equipment.equip(status.displayed_mob)
+                            status.displayed_mob.selection_sound()
                             status.displayed_tile.change_inventory(equipment.key, -1)
                             actor_utility.calibrate_actor_info_display(
                                 status.tile_info_display, status.displayed_tile
@@ -1216,6 +1218,7 @@ class button(interface_elements.interface_element):
                 status.equipment_types[self.equipment_type].unequip(
                     status.displayed_mob
                 )
+                status.displayed_mob.selection_sound()
                 status.displayed_tile.change_inventory(self.equipment_type, 1)
                 actor_utility.calibrate_actor_info_display(
                     status.mob_info_display, status.displayed_mob
@@ -2189,7 +2192,7 @@ class minister_portrait_image(button):
             None
         """
         if (
-            new_minister and new_minister.actor_type != "minister"
+            new_minister and new_minister.actor_type != constants.MINISTER_ACTOR_TYPE
         ):  # If calibrated to non-minister, attempt to calibrate to that unit's controlling minister
             if hasattr(new_minister, "controlling_minister"):
                 new_minister = new_minister.controlling_minister
@@ -2794,13 +2797,13 @@ class reorganize_unit_button(button):
 
         self.set_tooltip(self.tooltip_text)
 
-    def on_click(self):
+    def on_click(self, allow_sound: bool = True):
         """
         Description:
             Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button completes the determined procedure based
             on the current input cell contents
         Input:
-            None
+            bool allow_sound = False: Whether the reorganized unit will be allowed to play a selection sound
         Output:
             None
         """
@@ -2832,6 +2835,8 @@ class reorganize_unit_button(button):
                         procedure_actors[constants.WORKER_PERMISSION],
                         procedure_actors[constants.OFFICER_PERMISSION],
                     ).select()
+                    if allow_sound:
+                        status.displayed_mob.selection_sound()
 
                 elif procedure_type == constants.CREW_PROCEDURE:
                     if procedure_actors[
@@ -2848,6 +2853,8 @@ class reorganize_unit_button(button):
                         ].crew_vehicle(
                             procedure_actors[constants.INACTIVE_VEHICLE_PERMISSION]
                         )
+                        if allow_sound:
+                            status.displayed_mob.selection_sound()
                     else:
                         text_utility.print_to_screen(
                             f"{procedure_actors[constants.CREW_VEHICLE_PERMISSION].worker_type.name.capitalize()} cannot crew {procedure_actors[constants.INACTIVE_VEHICLE_PERMISSION].unit_type.name}s."
@@ -2855,6 +2862,8 @@ class reorganize_unit_button(button):
 
                 elif procedure_type == constants.SPLIT_PROCEDURE:
                     procedure_actors[constants.GROUP_PERMISSION].disband()
+                    if allow_sound:
+                        status.displayed_mob.selection_sound()
 
                 elif procedure_type == constants.UNCREW_PROCEDURE:
                     if (
@@ -2874,6 +2883,8 @@ class reorganize_unit_button(button):
                         ].crew.uncrew_vehicle(
                             procedure_actors[constants.ACTIVE_VEHICLE_PERMISSION]
                         )
+                        if allow_sound:
+                            status.displayed_mob.selection_sound()
 
             if procedure_type == constants.INVALID_PROCEDURE:
                 if constants.MERGE_PROCEDURE in self.allowed_procedures:
@@ -3060,11 +3071,14 @@ class action_button(button):
         Output:
             None
         """
-        if self.corresponding_action.actor_type == "mob":
+        if self.corresponding_action.actor_type == constants.MOB_ACTOR_TYPE:
             return status.displayed_mob
-        elif self.corresponding_action.actor_type == "tile":
+        elif self.corresponding_action.actor_type == constants.TILE_ACTOR_TYPE:
             return status.displayed_tile
-        elif self.corresponding_action.actor_type in ["minister", "prosecutor"]:
+        elif self.corresponding_action.actor_type in [
+            constants.MINISTER_ACTOR_TYPE,
+            constants.PROSECUTION_ACTOR_TYPE,
+        ]:
             if constants.current_game_mode == constants.TRIAL_MODE:
                 return status.displayed_prosecution
             else:
@@ -3228,6 +3242,12 @@ class map_mode_button(button):
             for cell in grid.get_flat_cell_list():
                 cell.tile.update_image_bundle()
         status.strategic_map_grid.update_globe_projection()
+        actor_utility.calibrate_actor_info_display(
+            status.tile_info_display, status.displayed_tile
+        )
+        actor_utility.calibrate_actor_info_display(
+            status.mob_info_display, status.displayed_mob
+        )
 
     def update_tooltip(self):
         """

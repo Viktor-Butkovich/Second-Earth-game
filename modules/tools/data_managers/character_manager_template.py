@@ -321,10 +321,11 @@ class character_manager_template:
                 part["x_offset"] = part.get("x_offset", 0) + 0.01
                 part["y_offset"] = part.get("y_offset", 0) + 0.342
                 part["level"] = part.get("level", 1) - 5
-                if (
-                    part["metadata"]["portrait_section"]
-                    != constants.FULL_BODY_PORTRAIT_SECTION
-                ):
+                if part["metadata"]["portrait_section"] not in [
+                    constants.FULL_BODY_PORTRAIT_SECTION,
+                    constants.HAT_PORTRAIT_SECTION,
+                    constants.BACKPACK_PORTRAIT_SECTION,
+                ]:
                     part["detail_level"] = constants.BUNDLE_IMAGE_DETAIL_LEVEL / 2
 
             if unit.get_permission(constants.WORKER_PERMISSION):
@@ -473,6 +474,21 @@ class character_manager_template:
         Output:
             None
         """
+        suit_colors = random.sample(self.clothing_colors, 2)
+        accessory_color = random.choice(self.accessory_colors)
+        shoe_color = random.choice(self.clothing_colors)
+        green_screen = [
+            metadata["skin_color"],
+            suit_colors[0],
+            suit_colors[1],
+            accessory_color,
+            shoe_color,
+        ]
+        override_green_screen_colors = constants.green_screen_colors + [
+            (140, 183, 216),
+            (48, 30, 13),
+        ]  # Think of a 4th green screen color for colonist outfit accessories
+        # For colonist images, randomly choose one of the variants, applying colonist clothing green screen colors after the skin color
         portrait_sections.append(
             {
                 "image_id": metadata["body_image"],
@@ -480,7 +496,8 @@ class character_manager_template:
                 "y_size": 2.18,
                 "y_offset": -0.34,
                 "x_offset": -0.015,
-                "green_screen": metadata["skin_color"],
+                "green_screen": green_screen,
+                "override_green_screen_colors": override_green_screen_colors,
                 "level": constants.DEFAULT_LEVEL,
                 "metadata": {"portrait_section": constants.FULL_BODY_PORTRAIT_SECTION},
             }
@@ -568,16 +585,17 @@ class character_manager_template:
             None
         """
         if metadata["has_facial_hair"]:
-            portrait_sections.append(
-                {
-                    "image_id": random.choice(self.facial_hair_images),
-                    "green_screen": metadata["hair_color"],
-                    "metadata": {
-                        "portrait_section": constants.FACIAL_HAIR_PORTAIT_SECTION
-                    },
-                    "level": constants.FACIAL_HAIR_LEVEL,
-                }
-            )
+            facial_hair_image_id = random.choice(self.facial_hair_images)
+        else:
+            facial_hair_image_id = "misc/empty.png"
+        portrait_sections.append(
+            {
+                "image_id": facial_hair_image_id,
+                "green_screen": metadata["hair_color"],
+                "metadata": {"portrait_section": constants.FACIAL_HAIR_PORTAIT_SECTION},
+                "level": constants.FACIAL_HAIR_LEVEL,
+            }
+        )
 
     def generate_accessories(
         self, portrait_sections: List[any], metadata: Dict[str, any]
@@ -616,6 +634,7 @@ class character_manager_template:
                 "image_id": random.choice(hat_images),
                 "green_screen": metadata["suit_colors"],
                 "level": constants.HAT_LEVEL,
+                "detail_level": 1.0,
                 "metadata": {"portrait_section": constants.HAT_PORTRAIT_SECTION},
             }
         )
@@ -627,6 +646,7 @@ class character_manager_template:
                 "y_offset": -0.34,
                 "x_offset": -0.015,
                 "level": constants.BACKPACK_LEVEL,
+                "detail_level": 1.0,
                 "metadata": {"portrait_section": constants.BACKPACK_PORTRAIT_SECTION},
             }
         )

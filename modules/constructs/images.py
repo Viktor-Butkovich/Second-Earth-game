@@ -706,16 +706,19 @@ class bundle_image:
                                 else:
                                     break
                         else:
-                            for (index, current_green_screen_color,) in enumerate(
-                                self.override_green_screen_colors
-                                + constants.green_screen_colors
+                            if self.override_green_screen_colors:
+                                replaced_colors = self.override_green_screen_colors
+                            else:
+                                replaced_colors = constants.green_screen_colors
+                            for (index, current_replaced_color) in enumerate(
+                                replaced_colors
                             ):
                                 # If pixel matches preset green screen color, replace it with the image's corresponding replacement color
                                 if (
                                     red,
                                     green,
                                     blue,
-                                ) == current_green_screen_color:
+                                ) == current_replaced_color:
                                     (
                                         red,
                                         green,
@@ -1543,7 +1546,7 @@ class minister_type_image(tooltip_free_image):
         Output:
             None
         """
-        if new_minister and new_minister.actor_type != "minister":
+        if new_minister and new_minister.actor_type != constants.MINISTER_ACTOR_TYPE:
             if hasattr(new_minister, "controlling_minister"):
                 new_minister = new_minister.controlling_minister
             else:

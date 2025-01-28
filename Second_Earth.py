@@ -409,7 +409,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Continue adding hairstyles
 # Add new unit art
 # Add new minister appointing system - selecting an unappointed minister should highlight all available positions, and clicking on one appoint w/ a confirmation check
-# Add more variety to water/ice colors
 # Eventually add hydrogen fuel cells - process to convert hydrogen and oxygen into water, actually releases energy but requires facility and hydrogen/oxygen input
 # Include "advancement level" of building materials - 1 ~ stone/wood, etc. for basic shelters in atmosphere, 2 ~ for industrial steel/concrete for factories,
 #   basic planetary construction, 3 ~ for titanium, carbon fiber, advanced modern-day materials, spaceships, etc., 4+ for more advanced
@@ -422,19 +421,11 @@ except Exception:  # Displays error message and records error message in crash l
 # Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
-# Possibly show solation as brightness on each tile (shouldn't affect albedo)
-# Add 4+ water as deadly in local habitability equation (but not in global habitability summary)
-# Add spacesuits image have helmeted/helmetless versions depending on if unit is outside
-# Add modern minister outfits
-# Add astronauts art
-# Add new resource types, allowing buying on Earth, transporting, and using to build when it is in the builder's tile
+# Add new resource types, with colonist upkeep, buying on Earth, transporting, and using to build when it is in the builder's tile
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
-# Add radio distortion versions of voice lines, either as separate files or runtime filter
-#    Add radio voice lines for units in spacesuits
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
-# Convert actor_type ("tile", "mob", "minister") to use constant keys
 # Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
 # Add altitude effect to local pressure
 # Include pressure in landing difficulty
@@ -448,8 +439,10 @@ except Exception:  # Displays error message and records error message in crash l
 # Improve parameter tooltips - most are currently empty
 # Create and display standard movement cost formula based on parameter values
 # Look into minister speech bubbles for minister messages, particularly tutorial messages
-# Prevent polar tiles from appearing too close to equator in globe projection - primary cause of visible distortions
-#   Copy an adjacent tile instead of far away tiles, even if the other tile doesn't have a latitude line
+# Possibly show solation as brightness on each tile (shouldn't affect albedo)
+# Add task-specific unit voicelines, with separate unit and minister voice sets
+# Add modern minister outfits
+# Add crater terrain variants
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>

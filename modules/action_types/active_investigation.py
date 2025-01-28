@@ -24,7 +24,7 @@ class active_investigation(action.campaign):
         super().initial_setup()
         constants.transaction_descriptions[self.action_type] = "investigations"
         self.name = "active investigation"
-        self.actor_type = "prosecutor"
+        self.actor_type = constants.PROSECUTION_ACTOR_TYPE
         self.allow_critical_failures = False
         self.allow_critical_successes = False
         self.skip_result_notification = True
@@ -255,7 +255,10 @@ class active_investigation(action.campaign):
             {
                 "message": message,
                 "notification_type": constants.ACTION_NOTIFICATION,
-                "audio": audio,
+                "audio": {
+                    "sound_id": audio,
+                    "radio_effect": prosecutor.get_radio_effect(),
+                },
             }
         )
         super().complete()

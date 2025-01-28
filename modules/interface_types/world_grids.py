@@ -66,9 +66,9 @@ class world_grid(grid):
                 set_initial_offset=True, update_water=True
             )
             self.world_handler.update_clouds()
-        for i in range(5):  # Simulate time passing until equilibrium is reached
-            self.world_handler.update_target_average_temperature(update_albedo=True)
-            self.world_handler.change_to_temperature_target()
+            for i in range(5):  # Simulate time passing until equilibrium is reached
+                self.world_handler.update_target_average_temperature(update_albedo=True)
+                self.world_handler.change_to_temperature_target()
 
     def generate_altitude(self) -> None:
         """
@@ -1389,7 +1389,10 @@ class world_grid(grid):
     ):
         """
         Description:
-            Scans a latitude line for any nearby coordinates that have no latitude line, allowing extending a latitude line's length while also missing fewer cells
+            If mode is equator_shift, shows the adjacent coordinate that is closer to the equator
+                Reduces latitude distortions (tiles appear at accurate latitudes, slightly distorted to bulge equator) but misses some tiles
+            If mode is closest_unerpresnted, scans a latitude line for any nearby coordinates that have no latitude line, allowing extending a latitude line's length while also missing fewer cells
+                Misses fewer coordinates but introduces latitude distortions (tiles appearing at significantly inaccurate latitude)
         Input:
             list latitude_line: List of coordinates for each point in the latitude line
             tuple default_coordinates: Coordinates to insert if no other coordinates are found
@@ -1399,22 +1402,36 @@ class world_grid(grid):
         """
         inserted_coordinates = default_coordinates
         inserted_idx = latitude_line.index(default_coordinates)
-        for idx, coordinates in enumerate(latitude_line):
-            for offset in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-                adjacent_coordinates = (
-                    (coordinates[0] + offset[0]) % self.coordinate_width,
-                    (coordinates[1] + offset[1]) % self.coordinate_height,
-                )
-                if (
-                    self.world_handler.latitude_lines_types[adjacent_coordinates[0]][
-                        adjacent_coordinates[1]
-                    ]
-                    == None
-                    and not adjacent_coordinates in latitude_line
-                ):
-                    # If wouldn't be shown in any latitude lines, show here
-                    inserted_coordinates = adjacent_coordinates
-                    inserted_idx = idx
+
+        mode = "equator_shift"
+        if (
+            mode == "equator_shift"
+        ):  # Insert nearby coordinates on the side closer to the equator
+            if inserted_idx < round(len(latitude_line) / 2):
+                inserted_idx += 1
+            elif inserted_idx > round(len(latitude_line) / 2):
+                inserted_idx -= 1
+            inserted_coordinates = latitude_line[inserted_idx]
+
+        elif (
+            mode == "closest_unrepresented"
+        ):  # Insert nearby latitudes that are not contained in any latitude lines
+            for idx, coordinates in enumerate(latitude_line):
+                for offset in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+                    adjacent_coordinates = (
+                        (coordinates[0] + offset[0]) % self.coordinate_width,
+                        (coordinates[1] + offset[1]) % self.coordinate_height,
+                    )
+                    if (
+                        self.world_handler.latitude_lines_types[
+                            adjacent_coordinates[0]
+                        ][adjacent_coordinates[1]]
+                        == None
+                        and not adjacent_coordinates in latitude_line
+                    ):
+                        # If wouldn't be shown in any latitude lines, show here
+                        inserted_coordinates = adjacent_coordinates
+                        inserted_idx = idx
         return inserted_idx, inserted_coordinates
 
 

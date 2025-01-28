@@ -238,7 +238,7 @@ class item_icon(button):
             None
         """
         if self.showing:
-            if self == getattr(status, "displayed_" + self.actor_type):
+            if self == getattr(status, f"displayed_{self.actor_type}"):
                 pygame.draw.rect(
                     constants.game_display,
                     constants.color_dict["bright green"],
@@ -294,7 +294,7 @@ class item_icon(button):
             self.current_item = None
         if self.current_item:
             actor_utility.calibrate_actor_info_display(
-                getattr(status, self.actor_type + "_info_display"), self
+                getattr(status, f"{self.actor_type}_info_display"), self
             )
             if self.actor_type == "mob_inventory":
                 actor_utility.calibrate_actor_info_display(
@@ -306,7 +306,7 @@ class item_icon(button):
                 )
         else:
             actor_utility.calibrate_actor_info_display(
-                getattr(status, self.actor_type + "_info_display"), None
+                getattr(status, f"{self.actor_type}_info_display"), None
             )
 
     def transfer(self, amount):  # calling transfer but not doing anything from mob

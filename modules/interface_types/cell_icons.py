@@ -25,7 +25,7 @@ class cell_icon(actor):
             None
         """
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.actor_type = "cell_icon"
+        self.actor_type = constants.CELL_ICON_ACTOR_TYPE
         status.independent_interface_elements.append(self)
         self.showing = False
         self.image_dict = {"default": input_dict["image"]}

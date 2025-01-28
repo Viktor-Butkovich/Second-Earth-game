@@ -29,7 +29,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
-        self.actor_type = "tile"
+        self.actor_type = constants.TILE_ACTOR_TYPE
         self.selection_outline_color = "yellow"
         self.actor_match_outline_color = "white"
         input_dict["grids"] = [
@@ -256,10 +256,11 @@ class tile(actor):  # to do: make terrain tiles a subclass
         return_list = []
         if self.grid == status.strategic_map_grid:
             for mini_grid in self.grid.mini_grids:
-                mini_x, mini_y = mini_grid.get_mini_grid_coordinates(self.x, self.y)
-                equivalent_cell = mini_grid.find_cell(mini_x, mini_y)
-                if equivalent_cell and equivalent_cell.tile:
-                    return_list.append(equivalent_cell.tile)
+                if mini_grid.is_on_mini_grid(self.x, self.y):
+                    mini_x, mini_y = mini_grid.get_mini_grid_coordinates(self.x, self.y)
+                    equivalent_cell = mini_grid.find_cell(mini_x, mini_y)
+                    if equivalent_cell and equivalent_cell.tile:
+                        return_list.append(equivalent_cell.tile)
         elif self.grid.is_mini_grid:
             main_x, main_y = self.grid.get_main_grid_coordinates(self.x, self.y)
             equivalent_cell = self.grid.attached_grid.find_cell(main_x, main_y)
@@ -364,7 +365,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                                     or not self.cell.terrain_handler.knowledge_available(
                                         constants.TERRAIN_KNOWLEDGE
                                     ),
-                                    "detail_level": constants.TERRAIN_DETAIL_LEVEL,
+                                    "detail_level": terrain_overlay_image.get(
+                                        "detail_level", constants.TERRAIN_DETAIL_LEVEL
+                                    ),
                                 }
                             )
                             if not terrain_overlay_image.get("green_screen", None):
@@ -500,6 +503,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
+        previous_image = self.previous_image
         if override_image:
             self.set_image(override_image)
         else:
@@ -507,7 +511,8 @@ class tile(actor):  # to do: make terrain tiles a subclass
         if self.grid == status.strategic_map_grid:
             for equivalent_tile in self.get_equivalent_tiles():
                 equivalent_tile.update_image_bundle(override_image=override_image)
-        self.reselect()
+        if previous_image != self.previous_image:
+            self.reselect()
 
     def reselect(self):
         """
@@ -628,7 +633,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             tooltip_message.append(self.name)
         if self.cell.terrain_handler.get_world_handler():
             overall_habitability = self.cell.terrain_handler.get_known_habitability()
-            if (
+            if (not self.cell.grid.is_abstract_grid) and (
                 self.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
                 < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
             ):

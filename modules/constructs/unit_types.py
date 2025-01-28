@@ -110,8 +110,8 @@ class unit_type:
 
         original_random_state = random.getstate()
         random.seed(
-            self.key + "__"
-        )  # Consistently generate the same random portrait for the same interface elements
+            self.key + "random #7"
+        )  # Consistently generate the same random portrait for the same interface elements - modify concatenated text to try different versions
 
         image_id = self.generate_center_recruitment_image(dummy_recruited_unit)
 
@@ -375,18 +375,21 @@ class worker_type(unit_type):
         Output
             image_id list: List of image IDs for the recruitment button center image
         """
+        worker_images = random.choices(
+            actor_utility.get_image_variants(self.image_id), k=2
+        )
         image_id = utility.combine(
             actor_utility.generate_unit_component_portrait(
                 constants.character_manager.generate_unit_portrait(
                     dummy_recruited_unit,
-                    metadata={"body_image": self.image_id},
+                    metadata={"body_image": worker_images[0]},
                 ),
                 "left",
             ),
             actor_utility.generate_unit_component_portrait(
                 constants.character_manager.generate_unit_portrait(
                     dummy_recruited_unit,
-                    metadata={"body_image": self.image_id},
+                    metadata={"body_image": worker_images[1]},
                 ),
                 "right",
             ),

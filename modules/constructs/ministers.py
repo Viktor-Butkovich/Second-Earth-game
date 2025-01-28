@@ -37,7 +37,9 @@ class minister:
         Output:
             None
         """
-        self.actor_type = "minister"  # used for actor display labels and images
+        self.actor_type = (
+            constants.MINISTER_ACTOR_TYPE
+        )  # used for actor display labels and images
         status.minister_list.append(self)
         self.tooltip_text: List[str] = []
         if from_save:
@@ -134,6 +136,17 @@ class minister:
         self.stolen_already: bool = False
         self.update_tooltip()
         status.minister_loading_image.calibrate(self)  # Load in all images on creation
+
+    def get_radio_effect(self) -> bool:
+        """
+        Description:
+            Calculates and returns whether this minister's voicelines should have a radio filter applied, based on the minister's current circumstances
+        Input:
+            None
+        Output:
+            bool: Returns whether this minister's voiceliens should have a radio filter applied
+        """
+        return False
 
     def get_f_lname(self, use_prefix=False):
         """
@@ -245,11 +258,14 @@ class minister:
         minister_portrait_icon_dict["minister_image_type"] = "portrait"
         return [minister_position_icon_dict, minister_portrait_icon_dict]
 
-    def display_message(self, text, audio=None, transfer=False, on_remove=None):
+    def display_message(
+        self, text, override_input_dict=None, transfer=False, on_remove=None
+    ):
         """
         Description:
             Displays a notification message from this minister with an attached portrait
         Input:
+            dictionary override_input_dict: Extra input dict parameters for the notification
             string text: Message to display in notification
             string audio: Any audio to play with notification
             boolean transfer: Whether the minister icon should carry on to future notifications - should set to True for actions, False for misc. messages
@@ -257,18 +273,18 @@ class minister:
         Output:
             None
         """
-        constants.notification_manager.display_notification(
-            {
-                "message": text + "Click to remove this notification. /n /n",
-                "notification_type": constants.ACTION_NOTIFICATION,
-                "audio": audio,
-                "attached_interface_elements": self.generate_icon_input_dicts(
-                    alignment="left"
-                ),
-                "transfer_interface_elements": transfer,
-                "on_remove": on_remove,
-            }
-        )
+        input_dict = {
+            "message": text + "Click to remove this notification. /n /n",
+            "notification_type": constants.ACTION_NOTIFICATION,
+            "attached_interface_elements": self.generate_icon_input_dicts(
+                alignment="left"
+            ),
+            "transfer_interface_elements": transfer,
+            "on_remove": on_remove,
+        }
+        if override_input_dict:
+            input_dict.update(override_input_dict)
+        constants.notification_manager.display_notification(input_dict)
 
     def can_pay(self, value):
         """
@@ -339,7 +355,12 @@ class minister:
                     evidence_message += "Each piece of evidence can help in a trial to remove a corrupt minister from office. /n /n"
                     prosecutor.display_message(
                         evidence_message,
-                        prosecutor.get_voice_line("evidence"),
+                        override_input_dict={
+                            "audio": {
+                                "sound_id": prosecutor.get_voice_line("evidence"),
+                                "radio_effect": prosecutor.get_radio_effect(),
+                            },
+                        },
                         transfer=False,
                     )  # Don't need to transfer since evidence is last step in action
                     if constants.effect_manager.effect_active("show_minister_stealing"):
@@ -484,8 +505,9 @@ class minister:
         min_result = 1
         max_result = num_sides
         result = self.no_corruption_roll(num_sides, roll_type)
-
+        stealing = False
         if predetermined_corruption or self.check_corruption():
+            stealing = True
             if not self.stolen_already:  # true if stealing
                 self.steal_money(value, roll_type)
             result = random.randrange(
@@ -500,7 +522,7 @@ class minister:
         # if corrupt, chance to choose random non-critical failure result
         if result > num_sides:
             result = num_sides
-        return result
+        return stealing, result
 
     def no_corruption_roll(self, num_sides: int = 6, roll_type: str = None):
         """
@@ -533,10 +555,13 @@ class minister:
             string roll_type: Type of roll being made, used in prosector report description if minister steals money and is caught
             int num_dice: How many dice to roll
         Output:
+            bool stealing: Returns whether the roll was stolen
             int list: Returns a list of the rolls' modified results
         """
         results = []
+        stealing = False
         if self.check_corruption() and value > 0:
+            stealing = True
             self.steal_money(value, roll_type)
             self.stolen_already = True
             corrupt_index = random.randrange(0, num_dice)
@@ -549,17 +574,17 @@ class minister:
                     results.append(
                         self.roll(
                             num_sides, min_success, max_crit_fail, value, None, True
-                        )
+                        )[1]
                     )  # Use roll_type None because roll is fake, does not apply modifiers
                 else:  # For dice that are not chosen, can be critical or non-critical failure because higher will be chosen in case of critical failure, no successes allowed
                     results.append(
-                        self.roll(num_sides, min_success, 0, value, None, True)
+                        self.roll(num_sides, min_success, 0, value, None, True)[1]
                     )  # 0 for max_crit_fail allows critical failure numbers to be chosen
         else:  # If not corrupt, just roll with minister modifier
             for i in range(num_dice):
                 results.append(self.no_corruption_roll(num_sides, roll_type))
         self.stolen_already = False
-        return results
+        return stealing, results
 
     def attack_roll_to_list(
         self, own_modifier, enemy_modifier, opponent, value, roll_type, num_dice
@@ -575,10 +600,13 @@ class minister:
             string roll_type: Type of roll being made, used in prosector report description if minister steals money and is caught
             int num_dice: number of dice rolled by the friendly unit, not including the one die rolled by the enemy unit
         Output:
+            bool stealing: Returns whether the roll was stolen
             int list: Returns a list of the rolls' modified results, with the first item being the enemy roll
         """
         results = []
+        stealing = False
         if self.check_corruption():
+            stealing = True
             self.steal_money(value, roll_type)
             self.stolen_already = True
             for i in range(num_dice):
@@ -610,7 +638,7 @@ class minister:
             enemy_roll = opponent.combat_roll()
             results = [enemy_roll] + results
         self.stolen_already = False
-        return results
+        return stealing, results
 
     def appoint(self, new_position, update_display=True):
         """
@@ -1303,7 +1331,16 @@ class minister:
                 text += "Their position will need to be filled by a replacement as soon as possible for your colony to continue operations. /n /n"
         constants.public_opinion_tracker.change(public_opinion_change)
         if text != "":
-            self.display_message(text, audio=audio, on_remove=on_remove)
+            self.display_message(
+                text,
+                override_input_dict={
+                    "audio": {
+                        "sound_id": audio,
+                        "radio_effect": self.get_radio_effect(),
+                    },
+                },
+                on_remove=on_remove,
+            )
 
     def get_voice_line(self, type):
         """
@@ -1335,4 +1372,6 @@ class minister:
             None
         """
         if len(self.voice_lines[type]) > 0:
-            constants.sound_manager.play_sound(self.get_voice_line(type))
+            constants.sound_manager.play_sound(
+                self.get_voice_line(type), radio_effect=self.get_radio_effect()
+            )

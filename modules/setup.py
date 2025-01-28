@@ -19,6 +19,7 @@ from modules.tools.data_managers import (
     character_manager_template,
     actor_creation_manager_template,
     terrain_manager_template,
+    help_manager_template,
 )
 from modules.action_types import (
     public_relations_campaign,
@@ -102,7 +103,7 @@ def misc():
     constants.myfont = fonts.font(
         {
             "descriptor": "default",
-            "name": constants.font_name,
+            "name": constants.small_font_name,
             "size": constants.font_size,
             "color": "black",
         }
@@ -110,7 +111,7 @@ def misc():
     fonts.font(
         {
             "descriptor": "white",
-            "name": constants.font_name,
+            "name": constants.small_font_name,
             "size": constants.font_size,
             "color": "white",
         }
@@ -298,6 +299,8 @@ def misc():
     constants.character_manager = (
         character_manager_template.character_manager_template()
     )
+
+    constants.help_manager = help_manager_template.help_manager_template()
 
     status.grids_collection = constants.actor_creation_manager.create_interface_element(
         {
@@ -1222,7 +1225,9 @@ def value_trackers():
     constants.actor_creation_manager.create_interface_element(
         {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "modes": [
                 constants.STRATEGIC_MODE,
                 constants.EARTH_MODE,
@@ -1243,7 +1248,9 @@ def value_trackers():
     constants.money_label = constants.actor_creation_manager.create_interface_element(
         {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "modes": [
                 constants.STRATEGIC_MODE,
                 constants.EARTH_MODE,
@@ -1267,7 +1274,9 @@ def value_trackers():
     constants.actor_creation_manager.create_interface_element(
         {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "modes": [
                 constants.STRATEGIC_MODE,
                 constants.EARTH_MODE,
@@ -1288,7 +1297,9 @@ def value_trackers():
         constants.actor_creation_manager.create_interface_element(
             {
                 "minimum_width": scaling.scale_width(10),
-                "height": scaling.scale_height(30),
+                "height": scaling.scale_height(
+                    constants.default_notification_font_size + 5
+                ),
                 "modes": [
                     constants.STRATEGIC_MODE,
                     constants.EARTH_MODE,
@@ -2085,7 +2096,7 @@ def trial_screen():
                 "modes": [constants.TRIAL_MODE],
                 "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
-                "actor_type": "defense",
+                "actor_type": constants.DEFENSE_ACTOR_TYPE,
                 "allow_minimize": False,
                 "allow_move": False,
                 "description": "defense information panel",
@@ -2123,7 +2134,7 @@ def trial_screen():
     input_dict = {
         "coordinates": scaling.scale_coordinates(0, defense_current_y),
         "minimum_width": scaling.scale_width(10),
-        "height": scaling.scale_height(30),
+        "height": scaling.scale_height(constants.default_notification_font_size + 5),
         "image_id": "misc/default_label.png",
         "message": "Defense",
         "init_type": constants.LABEL,
@@ -2162,7 +2173,7 @@ def trial_screen():
                 "modes": [constants.TRIAL_MODE],
                 "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
-                "actor_type": "prosecution",
+                "actor_type": constants.PROSECUTION_ACTOR_TYPE,
                 "allow_minimize": False,
                 "allow_move": False,
                 "description": "prosecution information panel",
@@ -2200,7 +2211,7 @@ def trial_screen():
     prosecution_current_y -= 35
     input_dict = {
         "minimum_width": scaling.scale_width(10),
-        "height": scaling.scale_height(30),
+        "height": scaling.scale_height(constants.default_notification_font_size + 5),
         "image_id": "misc/default_label.png",
         "message": "Prosecution",
         "init_type": constants.LABEL,
@@ -2317,7 +2328,7 @@ def mob_interface():
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ORDERED_COLLECTION,
             "is_info_display": True,
-            "actor_type": "mob",
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "description": "unit information panel",
             "parent_collection": status.info_displays_collection,
             "member_config": {
@@ -2326,7 +2337,7 @@ def mob_interface():
         }
     )
 
-    tab_collection_relative_coordinates = (450, -30)
+    tab_collection_relative_coordinates = (420, -30)
     status.mob_tabbed_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
@@ -2362,7 +2373,7 @@ def mob_sub_interface():
                 "minimum_width": scaling.scale_width(115),
                 "height": scaling.scale_height(115),
                 "image_id": "misc/empty.png",
-                "actor_type": "mob",
+                "actor_type": constants.MOB_ACTOR_TYPE,
                 "init_type": constants.ACTOR_TOOLTIP_LABEL,
                 "parent_collection": status.mob_info_display,
                 "member_config": {"order_overlap": True},
@@ -2483,10 +2494,12 @@ def mob_sub_interface():
             x_displacement = 0
         input_dict = {  # should declare here to reinitialize dict and prevent extra parameters from being incorrectly retained between iterations
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
-            "actor_type": "mob",
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "parent_collection": status.mob_info_display,
             "member_config": {"order_x_offset": x_displacement},
         }
@@ -2521,7 +2534,7 @@ def tile_interface():
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ORDERED_COLLECTION,
             "is_info_display": True,
-            "actor_type": "tile",
+            "actor_type": constants.TILE_ACTOR_TYPE,
             "description": "tile information panel",
             "parent_collection": status.info_displays_collection,
             # "member_config": {
@@ -2598,7 +2611,7 @@ def tile_interface():
                 "minimum_width": scaling.scale_width(115),
                 "height": scaling.scale_height(115),
                 "image_id": "misc/empty.png",
-                "actor_type": "tile",
+                "actor_type": constants.TILE_ACTOR_TYPE,
                 "init_type": constants.ACTOR_TOOLTIP_LABEL,
                 "parent_collection": status.tile_info_display,
                 "member_config": {"order_overlap": True},
@@ -2631,10 +2644,12 @@ def tile_interface():
         x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
-            "actor_type": "tile",
+            "actor_type": constants.TILE_ACTOR_TYPE,
             "parent_collection": status.tile_info_display,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
@@ -2648,7 +2663,7 @@ def tile_interface():
         else:
             constants.actor_creation_manager.create_interface_element(input_dict)
 
-    tab_collection_relative_coordinates = (450, -30)
+    tab_collection_relative_coordinates = (420, -30)
 
     status.tile_tabbed_collection = (
         constants.actor_creation_manager.create_interface_element(
@@ -2741,10 +2756,10 @@ def inventory_interface():
 
     input_dict = {
         "minimum_width": scaling.scale_width(10),
-        "height": scaling.scale_height(30),
+        "height": scaling.scale_height(constants.default_notification_font_size + 5),
         "image_id": "misc/default_label.png",
         "init_type": constants.MOB_INVENTORY_CAPACITY_LABEL,
-        "actor_type": "mob",
+        "actor_type": constants.MOB_ACTOR_TYPE,
         "parent_collection": status.mob_inventory_collection,
     }
     mob_inventory_capacity_label = (
@@ -2775,7 +2790,7 @@ def inventory_interface():
                 "init_type": constants.ITEM_ICON,
                 "parent_collection": status.mob_inventory_grid,
                 "icon_index": current_index,
-                "actor_type": "mob_inventory",
+                "actor_type": constants.MOB_INVENTORY_ACTOR_TYPE,
                 "member_config": {
                     "second_dimension_coordinate": current_index % 9,
                     "order_y_offset": status.mob_inventory_grid.height,
@@ -2790,7 +2805,7 @@ def inventory_interface():
                 "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
-                "actor_type": "mob_inventory",
+                "actor_type": constants.MOB_INVENTORY_ACTOR_TYPE,
                 "description": "mob inventory panel",
                 "parent_collection": status.mob_inventory_collection,
                 "member_config": {"calibrate_exempt": True},
@@ -2806,7 +2821,7 @@ def inventory_interface():
                 "height": scaling.scale_height(90),
                 "image_id": "misc/empty.png",
                 "init_type": constants.ACTOR_TOOLTIP_LABEL,
-                "actor_type": "tile",
+                "actor_type": constants.TILE_ACTOR_TYPE,
                 "parent_collection": status.mob_inventory_info_display,
                 "member_config": {"order_overlap": True},
             }
@@ -2869,10 +2884,12 @@ def inventory_interface():
         x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
-            "actor_type": "mob",
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "parent_collection": status.mob_inventory_info_display,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
@@ -2901,10 +2918,10 @@ def inventory_interface():
 
     input_dict = {
         "minimum_width": scaling.scale_width(10),
-        "height": scaling.scale_height(30),
+        "height": scaling.scale_height(constants.default_notification_font_size + 5),
         "image_id": "misc/default_label.png",
         "init_type": constants.TILE_INVENTORY_CAPACITY_LABEL,
-        "actor_type": "tile",
+        "actor_type": constants.TILE_ACTOR_TYPE,
         "parent_collection": status.tile_inventory_collection,
     }
     tile_inventory_capacity_label = (
@@ -2969,7 +2986,7 @@ def inventory_interface():
                 "init_type": constants.ITEM_ICON,
                 "parent_collection": status.tile_inventory_grid,
                 "icon_index": current_index,
-                "actor_type": "tile_inventory",
+                "actor_type": constants.TILE_INVENTORY_ACTOR_TYPE,
                 "member_config": {
                     "second_dimension_coordinate": current_index % 9,
                     "order_y_offset": status.tile_inventory_grid.height,
@@ -2984,7 +3001,7 @@ def inventory_interface():
                 "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
-                "actor_type": "tile_inventory",
+                "actor_type": constants.TILE_INVENTORY_ACTOR_TYPE,
                 "description": "tile inventory panel",
                 "parent_collection": status.tile_inventory_collection,
                 "member_config": {"calibrate_exempt": True},
@@ -2999,7 +3016,7 @@ def inventory_interface():
                 "minimum_width": scaling.scale_width(90),
                 "height": scaling.scale_height(90),
                 "image_id": "misc/empty.png",
-                "actor_type": "tile",
+                "actor_type": constants.TILE_ACTOR_TYPE,
                 "init_type": constants.ACTOR_TOOLTIP_LABEL,
                 "parent_collection": status.tile_inventory_info_display,
                 "member_config": {"order_overlap": True},
@@ -3027,10 +3044,12 @@ def inventory_interface():
         x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
-            "actor_type": "tile",
+            "actor_type": constants.TILE_ACTOR_TYPE,
             "parent_collection": status.tile_inventory_info_display,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
@@ -3091,9 +3110,11 @@ def settlement_interface():
             x_displacement = 25
         input_dict = {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
-            "actor_type": "tile",
+            "actor_type": constants.TILE_ACTOR_TYPE,
             "parent_collection": status.settlement_collection,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
@@ -3167,10 +3188,12 @@ def terrain_interface():
             x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
-            "actor_type": "tile",
+            "actor_type": constants.TILE_ACTOR_TYPE,
             "parent_collection": status.global_conditions_collection,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
@@ -3218,10 +3241,12 @@ def terrain_interface():
             x_displacement = 25
         input_dict = {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
-            "actor_type": "tile",
+            "actor_type": constants.TILE_ACTOR_TYPE,
             "parent_collection": status.temperature_breakdown_collection,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
@@ -3254,6 +3279,7 @@ def terrain_interface():
         constants.BANNER_LABEL,
         constants.WATER_LABEL,
         constants.TEMPERATURE_LABEL,
+        constants.LOCAL_AVERAGE_TEMPERATURE_LABEL,
         constants.VEGETATION_LABEL,
         constants.ROUGHNESS_LABEL,
         constants.SOIL_LABEL,
@@ -3265,14 +3291,18 @@ def terrain_interface():
             constants.HABITABILITY_LABEL,
         ]:
             x_displacement = 0
+        elif current_actor_label_type == constants.LOCAL_AVERAGE_TEMPERATURE_LABEL:
+            x_displacement = 50
         else:
             x_displacement = 25
         input_dict = {
             "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(30),
+            "height": scaling.scale_height(
+                constants.default_notification_font_size + 5
+            ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
-            "actor_type": "tile",
+            "actor_type": constants.TILE_ACTOR_TYPE,
             "parent_collection": status.local_conditions_collection,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
@@ -3370,7 +3400,7 @@ def unit_organization_interface():
             "minimum_width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "image_id": "misc/empty.png",
-            "actor_type": "mob",
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.group_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
@@ -3412,7 +3442,7 @@ def unit_organization_interface():
             "minimum_width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "image_id": "misc/empty.png",
-            "actor_type": "mob",
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.group_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
@@ -3465,7 +3495,7 @@ def unit_organization_interface():
             "minimum_width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "image_id": "misc/empty.png",
-            "actor_type": "mob",
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.group_reorganization_collection,
             "member_config": {
@@ -3633,7 +3663,7 @@ def vehicle_organization_interface():
             "minimum_width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "image_id": "misc/empty.png",
-            "actor_type": "mob",
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.vehicle_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
@@ -3675,7 +3705,7 @@ def vehicle_organization_interface():
             "minimum_width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "image_id": "misc/empty.png",
-            "actor_type": "mob",
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.vehicle_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
@@ -3731,7 +3761,7 @@ def vehicle_organization_interface():
             "minimum_width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "image_id": "misc/empty.png",
-            "actor_type": "mob",
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.vehicle_reorganization_collection,
             "member_config": {
@@ -3867,7 +3897,7 @@ def minister_interface():
                 "modes": [constants.MINISTERS_MODE],
                 "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
-                "actor_type": "minister",
+                "actor_type": constants.MINISTER_ACTOR_TYPE,
                 "allow_minimize": False,
                 "allow_move": False,
                 "description": "minister information panel",
@@ -3918,7 +3948,7 @@ def minister_interface():
                 "minimum_width": scaling.scale_width(125),
                 "height": scaling.scale_height(125),
                 "image_id": "misc/empty.png",
-                "actor_type": "minister",
+                "actor_type": constants.MINISTER_ACTOR_TYPE,
                 "init_type": constants.ACTOR_TOOLTIP_LABEL,
                 "parent_collection": status.minister_info_display,
                 "member_config": {"order_overlap": False},
@@ -3932,9 +3962,9 @@ def minister_interface():
     input_dict = {
         "coordinates": scaling.scale_coordinates(0, 0),
         "minimum_width": scaling.scale_width(10),
-        "height": scaling.scale_height(30),
+        "height": scaling.scale_height(constants.default_notification_font_size + 5),
         "image_id": "misc/default_label.png",
-        "actor_type": "minister",
+        "actor_type": constants.MINISTER_ACTOR_TYPE,
         "init_type": constants.ACTOR_DISPLAY_LABEL,
         "parent_collection": status.minister_info_display,
     }

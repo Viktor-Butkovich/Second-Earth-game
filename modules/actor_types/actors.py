@@ -34,6 +34,7 @@ class actor:
         Output:
             None
         """
+        self.previous_image = None
         self.from_save = from_save
         status.actor_list.append(self)
         self.modes = input_dict["modes"]
@@ -87,11 +88,11 @@ class actor:
         """
         save_dict = {}
         init_type = ""
-        if self.actor_type == "mob":
+        if self.actor_type == constants.MOB_ACTOR_TYPE:
             init_type = self.unit_type.key
-        elif self.actor_type == "tile":
+        elif self.actor_type == constants.TILE_ACTOR_TYPE:
             init_type = "tile"
-        elif self.actor_type == "building":
+        elif self.actor_type == constants.BUILDING_ACTOR_TYPE:
             init_type = self.building_type.key
         save_dict["init_type"] = init_type
         save_dict["coordinates"] = (self.x, self.y)
@@ -112,15 +113,19 @@ class actor:
         Output:
             None
         """
+        if new_image != self.previous_image:
+            self.previous_image = new_image
+        else:
+            return
         for current_image in self.images:
             if current_image.change_with_other_images:
                 current_image.set_image(new_image)
-        if self.actor_type == "mob":
+        if self.actor_type == constants.MOB_ACTOR_TYPE:
             if status.displayed_mob == self:
                 actor_utility.calibrate_actor_info_display(
                     status.mob_info_display, self
                 )
-        elif self.actor_type == "tile":
+        elif self.actor_type == constants.TILE_ACTOR_TYPE:
             if status.displayed_tile == self:
                 actor_utility.calibrate_actor_info_display(
                     status.tile_info_display, self
@@ -140,7 +145,9 @@ class actor:
                 current_commodity, self.get_inventory(current_commodity)
             )
             self.set_inventory(current_commodity, 0)
-        if self.actor_type == "mob" and self.get_permission(constants.PMOB_PERMISSION):
+        if self.actor_type == constants.MOB_ACTOR_TYPE and self.get_permission(
+            constants.PMOB_PERMISSION
+        ):
             for current_equipment in self.equipment.copy():
                 if self.equipment[current_equipment]:
                     self.get_cell().tile.change_inventory(current_equipment, 1)
@@ -270,16 +277,16 @@ class actor:
 
         if self.get_inventory_used() > 0:
             if random.randrange(1, 7) <= 2 or (
-                self.actor_type == "mob"
+                self.actor_type == constants.MOB_ACTOR_TYPE
                 and (not self.get_permission(constants.VEHICLE_PERMISSION))
                 and random.randrange(1, 7) <= 1
             ):  # extra chance of failure when carried by porters/caravan
                 transportation_minister = minister_utility.get_minister(
                     constants.TRANSPORTATION_MINISTER
                 )
-                if self.actor_type == "tile":
+                if self.actor_type == constants.TILE_ACTOR_TYPE:
                     current_cell = self.cell
-                elif self.actor_type == "mob":
+                elif self.actor_type == constants.MOB_ACTOR_TYPE:
                     if not self.any_permissions(
                         constants.IN_BUILDING_PERMISSION,
                         constants.IN_GROUP_PERMISSION,
@@ -303,7 +310,7 @@ class actor:
 
             # this part of function only reached if no inventory attrition was triggered
             if (
-                self.actor_type == "mob"
+                self.actor_type == constants.MOB_ACTOR_TYPE
                 and self.all_permissions(
                     constants.PMOB_PERMISSION, constants.GROUP_PERMISSION
                 )
@@ -397,11 +404,11 @@ class actor:
             else:
                 location_message = f"in orbit of {self.grids[0].name}"
 
-            if self.actor_type == "tile":
+            if self.actor_type == constants.TILE_ACTOR_TYPE:
                 transportation_minister.display_message(
                     f"Minister of Transportation {transportation_minister.name} reports that {lost_commodities_message} {location_message} {was_word} lost, damaged, or misplaced. /n /n"
                 )
-            elif self.actor_type == "mob":
+            elif self.actor_type == constants.MOB_ACTOR_TYPE:
                 transportation_minister.display_message(
                     f"Minister of Transportation {transportation_minister.name} reports that {lost_commodities_message} carried by the {self.name} {location_message} {was_word} lost, damaged, or misplaced. /n /n"
                 )
@@ -610,9 +617,9 @@ class actor:
         self.inventory_capacity = new_value
         if new_value != 0:
             if (
-                hasattr(status, "displayed_" + self.actor_type)
-                and getattr(status, "displayed_" + self.actor_type) == self
+                hasattr(status, f"displayed_{self.actor_type}")
+                and getattr(status, f"displayed_{self.actor_type}") == self
             ):  # Updates info display for changed capacity
                 actor_utility.calibrate_actor_info_display(
-                    getattr(status, self.actor_type + "_info_display"), self
+                    getattr(status, f"{self.actor_type}_info_display"), self
                 )

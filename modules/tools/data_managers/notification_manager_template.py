@@ -268,16 +268,18 @@ class notification_manager_template:
                         )
                     in_sequence = current_sound.get("in_sequence", False)
                     volume = current_sound.get("volume", 0.3)
+                    radio_effect = current_sound.get("radio_effect", False)
                 else:
                     sound_file = current_sound
                     volume = 0.3
+                    radio_effect = False
                 if in_sequence and channel:
                     constants.sound_manager.queue_sound(
-                        sound_file, channel, volume=volume
+                        sound_file, channel, volume=volume, radio_effect=radio_effect
                     )
                 else:
                     channel = constants.sound_manager.play_sound(
-                        sound_file, volume=volume
+                        sound_file, volume=volume, radio_effect=radio_effect
                     )
         return new_notification
 
