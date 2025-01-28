@@ -47,7 +47,7 @@ class mob(actor):
         self.unit_type.num_instances += 1
         self.controlling_minister: ministers.minister = None
         self.update_controlling_minister()
-        self.actor_type = "mob"
+        self.actor_type = constants.MOB_ACTOR_TYPE
         self.end_turn_destination = None
         self.habitability = constants.HABITABILITY_PERFECT
         super().__init__(from_save, input_dict, original_constructor=False)

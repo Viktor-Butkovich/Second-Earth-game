@@ -113,7 +113,7 @@ class npmob(mob):
                 not possible_target.y == 0
             ):  # Ignore units in the ocean if can't swim in ocean
                 if (
-                    possible_target.actor_type == "building"
+                    possible_target.actor_type == constants.BUILDING_ACTOR_TYPE
                     or not possible_target.any_permissions(
                         constants.IN_VEHICLE_PERMISSION,
                         constants.IN_GROUP_PERMISSION,

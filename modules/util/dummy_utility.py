@@ -47,7 +47,7 @@ def generate_autofill_actors(
         constants.PMOB_PERMISSION
     ):
         dummy_input_dict = {
-            "actor_type": "mob",
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "images": [
                 constants.actor_creation_manager.create_dummy({"image_id": None})
             ],

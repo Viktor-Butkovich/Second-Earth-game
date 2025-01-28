@@ -426,7 +426,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Allow large items to be stored in inventory, with supporting interface
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
-# Convert actor_type ("tile", "mob", "minister") to use constant keys
 # Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
 # Add altitude effect to local pressure
 # Include pressure in landing difficulty

@@ -29,7 +29,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
-        self.actor_type = "tile"
+        self.actor_type = constants.TILE_ACTOR_TYPE
         self.selection_outline_color = "yellow"
         self.actor_match_outline_color = "white"
         input_dict["grids"] = [

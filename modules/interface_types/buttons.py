@@ -2192,7 +2192,7 @@ class minister_portrait_image(button):
             None
         """
         if (
-            new_minister and new_minister.actor_type != "minister"
+            new_minister and new_minister.actor_type != constants.MINISTER_ACTOR_TYPE
         ):  # If calibrated to non-minister, attempt to calibrate to that unit's controlling minister
             if hasattr(new_minister, "controlling_minister"):
                 new_minister = new_minister.controlling_minister
@@ -3071,11 +3071,14 @@ class action_button(button):
         Output:
             None
         """
-        if self.corresponding_action.actor_type == "mob":
+        if self.corresponding_action.actor_type == constants.MOB_ACTOR_TYPE:
             return status.displayed_mob
-        elif self.corresponding_action.actor_type == "tile":
+        elif self.corresponding_action.actor_type == constants.TILE_ACTOR_TYPE:
             return status.displayed_tile
-        elif self.corresponding_action.actor_type in ["minister", "prosecutor"]:
+        elif self.corresponding_action.actor_type in [
+            constants.MINISTER_ACTOR_TYPE,
+            constants.PROSECUTION_ACTOR_TYPE,
+        ]:
             if constants.current_game_mode == constants.TRIAL_MODE:
                 return status.displayed_prosecution
             else:

@@ -1546,7 +1546,7 @@ class minister_type_image(tooltip_free_image):
         Output:
             None
         """
-        if new_minister and new_minister.actor_type != "minister":
+        if new_minister and new_minister.actor_type != constants.MINISTER_ACTOR_TYPE:
             if hasattr(new_minister, "controlling_minister"):
                 new_minister = new_minister.controlling_minister
             else:

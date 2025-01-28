@@ -117,7 +117,7 @@ def generate_background_image_id_list(actor=None) -> list:
                 "level": constants.BACKGROUND_LEVEL,
             }
         )
-    elif actor.actor_type == "minister":
+    elif actor.actor_type == constants.MINISTER_ACTOR_TYPE:
         if not actor.current_position:
             image_id_list.append("misc/actor_backgrounds/mob_background.png")
         else:
@@ -128,7 +128,7 @@ def generate_background_image_id_list(actor=None) -> list:
             image_id_list.append(
                 {"image_id": "misc/warning_icon.png", "x_offset": 0.75}
             )
-    elif actor.actor_type == "mob":
+    elif actor.actor_type == constants.MOB_ACTOR_TYPE:
         if actor.get_permission(constants.SPACESHIP_PERMISSION):
             image_id_list.append(
                 {
@@ -143,7 +143,7 @@ def generate_background_image_id_list(actor=None) -> list:
                     "level": constants.BACKGROUND_LEVEL,
                 }
             )
-    elif actor.actor_type == "tile":
+    elif actor.actor_type == constants.TILE_ACTOR_TYPE:
         pass
     return image_id_list
 

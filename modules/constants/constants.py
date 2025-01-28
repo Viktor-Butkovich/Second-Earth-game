@@ -998,6 +998,16 @@ MOUTH_PORTRAIT_SECTION: str = "mouth"
 EYES_PORTRAITS_SECTION: str = "eyes"
 FRAME_PORTRAIT_SECTION: str = "frame"
 
+MOB_ACTOR_TYPE: str = "mob"
+MOB_INVENTORY_ACTOR_TYPE: str = "mob_inventory"
+TILE_ACTOR_TYPE: str = "tile"
+TILE_INVENTORY_ACTOR_TYPE: str = "tile_inventory"
+BUILDING_ACTOR_TYPE: str = "building"
+CELL_ICON_ACTOR_TYPE: str = "cell_icon"
+MINISTER_ACTOR_TYPE: str = "minister"
+PROSECUTION_ACTOR_TYPE: str = "prosecution"
+DEFENSE_ACTOR_TYPE: str = "defense"
+
 HABITABILITY_PERFECT: int = 5
 HABITABILITY_TOLERABLE: int = 4
 HABITABILITY_UNPLEASANT: int = 3

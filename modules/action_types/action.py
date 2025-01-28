@@ -53,7 +53,7 @@ class action:
         """
         status.actions[self.action_type] = self
         self.current_unit = None
-        self.actor_type = "mob"
+        self.actor_type = constants.MOB_ACTOR_TYPE
         self.placement_type = "label"
         if not self.action_type in constants.action_types:
             constants.action_types.append(self.action_type)
@@ -115,7 +115,9 @@ class action:
             and not status.displayed_mob.check_action_survivability(notify=True)
         ):
             return False
-        elif self.actor_type == "mob" and not (unit.movement_points >= 1):
+        elif self.actor_type == constants.MOB_ACTOR_TYPE and not (
+            unit.movement_points >= 1
+        ):
             text_utility.print_to_screen(
                 f"{utility.generate_article(self.name).capitalize()} {self.name} requires all remaining movement points, at least 1."
             )
@@ -125,9 +127,12 @@ class action:
                 f"You do not have the {self.get_price()} money needed for a {self.name}."
             )
             return False
-        elif self.actor_type == "mob" and not minister_utility.positions_filled():
+        elif (
+            self.actor_type == constants.MOB_ACTOR_TYPE
+            and not minister_utility.positions_filled()
+        ):
             return False
-        if self.actor_type == "mob" and unit.sentry_mode:
+        if self.actor_type == constants.MOB_ACTOR_TYPE and unit.sentry_mode:
             unit.set_sentry_mode(False)
         return True
 
@@ -168,8 +173,9 @@ class action:
             full_roll_message = (
                 f"{base_roll_message}{self.current_min_success}+ required "
             )
-            if self.actor_type == "mob" and self.current_unit.get_permission(
-                constants.VETERAN_PERMISSION
+            if (
+                self.actor_type == constants.MOB_ACTOR_TYPE
+                and self.current_unit.get_permission(constants.VETERAN_PERMISSION)
             ):
                 text += f"The {self.current_unit.default_name} is a veteran and can roll twice and pick the higher result. /n /n"
                 full_roll_message += "on at least 1 die to succeed."
@@ -213,17 +219,17 @@ class action:
                         override_input_dict={"member_config": {"centered": True}},
                     )
                 )
-            if self.actor_type == "mob":
+            if self.actor_type == constants.MOB_ACTOR_TYPE:
                 return_list += (
                     self.current_unit.controlling_minister.generate_icon_input_dicts(
                         alignment="leftmost"
                     )
                 )
-            elif self.actor_type == "minister":
+            elif self.actor_type == constants.MINISTER_ACTOR_TYPE:
                 return_list += self.current_unit.generate_icon_input_dicts(
                     alignment="leftmost"
                 )
-            elif self.actor_type == "prosecutor":
+            elif self.actor_type == constants.PROSECUTION_ACTOR_TYPE:
                 return_list += status.displayed_minister.generate_icon_input_dicts(
                     alignment="leftmost"
                 )
@@ -272,7 +278,7 @@ class action:
             int: Returns the current roll modifier
         """
         total_modifier = 0
-        if self.actor_type != "prosecutor":
+        if self.actor_type != constants.PROSECUTION_ACTOR_TYPE:
             for equipment_type in self.current_unit.equipment:
                 total_modifier += status.equipment_types[equipment_type].apply_modifier(
                     self.action_type
@@ -288,7 +294,7 @@ class action:
         Output:
             None
         """
-        if self.actor_type == "prosecutor":
+        if self.actor_type == constants.PROSECUTION_ACTOR_TYPE:
             self.current_unit = minister_utility.get_minister(
                 constants.SECURITY_MINISTER
             )
@@ -383,19 +389,20 @@ class action:
         """
         constants.notification_manager.set_lock(True)
         self.roll_result = 0
-        if self.actor_type == "mob":
+        if self.actor_type == constants.MOB_ACTOR_TYPE:
             self.current_unit.set_movement_points(0)
 
         price = self.process_payment()
 
-        if self.actor_type == "mob" and self.current_unit.get_permission(
-            constants.VETERAN_PERMISSION
+        if (
+            self.actor_type == constants.MOB_ACTOR_TYPE
+            and self.current_unit.get_permission(constants.VETERAN_PERMISSION)
         ):
             num_dice = 2
         else:
             num_dice = 1
 
-        if self.actor_type == "mob":
+        if self.actor_type == constants.MOB_ACTOR_TYPE:
             stealing, results = self.current_unit.controlling_minister.roll_to_list(
                 6,
                 self.current_min_success,
@@ -487,7 +494,7 @@ class action:
             if self.roll_result <= self.current_max_crit_fail:
                 result = "critical_failure"
             elif (
-                self.actor_type == "mob"
+                self.actor_type == constants.MOB_ACTOR_TYPE
                 and not self.current_unit.get_permission(constants.VETERAN_PERMISSION)
             ) and self.roll_result >= self.current_min_crit_success:
                 result = "critical_success"
@@ -518,7 +525,7 @@ class action:
             None
         """
         if (
-            self.actor_type == "mob"
+            self.actor_type == constants.MOB_ACTOR_TYPE
             and self.roll_result >= self.current_min_crit_success
             and not self.current_unit.get_permission(constants.VETERAN_PERMISSION)
         ):

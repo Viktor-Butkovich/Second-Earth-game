@@ -1267,6 +1267,7 @@ class reappoint_minister_button(button):
             super().can_show(skip_parent_collection=skip_parent_collection)
             and status.displayed_minister
             and status.displayed_minister.current_position
+            and constants.current_game_mode == constants.MINISTERS_MODE
         )
 
     def on_click(self):
@@ -1306,6 +1307,7 @@ class fire_minister_button(button):
             super().can_show(skip_parent_collection=skip_parent_collection)
             and status.displayed_minister
             and status.displayed_minister.current_position
+            and constants.current_game_mode == constants.MINISTERS_MODE
         )
 
     def on_click(self):

@@ -37,7 +37,9 @@ class minister:
         Output:
             None
         """
-        self.actor_type = "minister"  # used for actor display labels and images
+        self.actor_type = (
+            constants.MINISTER_ACTOR_TYPE
+        )  # used for actor display labels and images
         status.minister_list.append(self)
         self.tooltip_text: List[str] = []
         if from_save:

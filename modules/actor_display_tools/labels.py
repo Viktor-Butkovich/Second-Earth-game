@@ -38,7 +38,7 @@ class actor_display_label(label):
         )
         self.actor_type = input_dict[
             "actor_type"
-        ]  # mob or tile, None if does not scale with shown labels, like tooltip labels
+        ]  # constants.MOB_ACTOR_TYPE or constants.TILE_ACTOR_TYPE, None if does not scale with shown labels, like tooltip labels
         self.default_tooltip_text = input_dict.get("default_tooltip_text", [])
         self.image_y_displacement = 0
         input_dict["message"] = ""
@@ -117,7 +117,7 @@ class actor_display_label(label):
 
             for action_type in status.actions:
                 if (
-                    status.actions[action_type].actor_type in ["mob", "tile"]
+                    status.actions[action_type].actor_type in [constants.MOB_ACTOR_TYPE]
                     and status.actions[action_type].placement_type == "label"
                 ):
                     button_input_dict = status.actions[action_type].button_setup(
@@ -357,7 +357,8 @@ class actor_display_label(label):
             input_dict["width"], input_dict["height"] = (s_size, s_size)
             for action_type in status.actions:
                 if (
-                    status.actions[action_type].actor_type in ["minister", "prosecutor"]
+                    status.actions[action_type].actor_type
+                    in [constants.MINISTER_ACTOR_TYPE, constants.PROSECUTION_ACTOR_TYPE]
                     and status.actions[action_type].placement_type == "label"
                 ):
                     button_input_dict = status.actions[action_type].button_setup(
@@ -411,7 +412,7 @@ class actor_display_label(label):
 
         elif self.actor_label_type == constants.INVENTORY_QUANTITY_LABEL:
             self.message_start = "Quantity: "
-            if self.actor_type == "mob":
+            if self.actor_type == constants.MOB_ACTOR_TYPE:
                 input_dict["init_type"] = constants.ANONYMOUS_BUTTON
                 input_dict["image_id"] = "buttons/commodity_pick_up_button.png"
                 input_dict["button_type"] = {
@@ -433,7 +434,7 @@ class actor_display_label(label):
                 }
                 self.add_attached_button(input_dict)
 
-            elif self.actor_type == "tile":
+            elif self.actor_type == constants.TILE_ACTOR_TYPE:
                 original_input_dict = input_dict.copy()
                 input_dict["init_type"] = constants.ANONYMOUS_BUTTON
                 input_dict["image_id"] = "buttons/commodity_drop_button.png"
@@ -773,7 +774,7 @@ class actor_display_label(label):
                 self.actor.update_tooltip()
                 tooltip_text = self.actor.tooltip_text
                 if (
-                    self.actor.actor_type == "tile"
+                    self.actor.actor_type == constants.TILE_ACTOR_TYPE
                 ):  # show tooltips of buildings in tile
                     for current_building in self.actor.cell.get_buildings():
                         current_building.update_tooltip()
@@ -1390,7 +1391,7 @@ class actor_display_label(label):
                     text = self.message_start + "unlimited"
                 else:
                     text = f"{self.message_start}{inventory_used}/{self.actor.inventory_capacity}"
-                inventory_grid = getattr(status, self.actor_type + "_inventory_grid")
+                inventory_grid = getattr(status, f"{self.actor_type}_inventory_grid")
                 if inventory_grid.inventory_page > 0:
                     minimum = (inventory_grid.inventory_page * 27) + 1
                     functional_capacity = max(
@@ -1707,7 +1708,7 @@ class actor_display_label(label):
             constants.OFFICER_LABEL,
         ] and not self.actor.get_permission(constants.GROUP_PERMISSION):
             return False
-        elif self.actor.actor_type == "mob" and (
+        elif self.actor.actor_type == constants.MOB_ACTOR_TYPE and (
             self.actor.any_permissions(
                 constants.IN_VEHICLE_PERMISSION,
                 constants.IN_GROUP_PERMISSION,
@@ -1928,10 +1929,12 @@ class actor_tooltip_label(actor_display_label):
         Output:
             None
         """
-        if self.actor_type == "minister":
+        if self.actor_type == constants.MINISTER_ACTOR_TYPE:
             return
-        if self.actor_type == "tile":
-            if self.actor.actor_type == "tile":  # If not tile_inventory
+        if self.actor_type == constants.TILE_ACTOR_TYPE:
+            if (
+                self.actor.actor_type == constants.TILE_ACTOR_TYPE
+            ):  # If not tile_inventory
                 actor_utility.calibrate_actor_info_display(
                     status.tile_info_display, self.actor
                 )
