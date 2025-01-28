@@ -474,6 +474,21 @@ class character_manager_template:
         Output:
             None
         """
+        suit_colors = random.sample(self.clothing_colors, 2)
+        accessory_color = random.choice(self.accessory_colors)
+        shoe_color = random.choice(self.clothing_colors)
+        green_screen = [
+            metadata["skin_color"],
+            suit_colors[0],
+            suit_colors[1],
+            accessory_color,
+            shoe_color,
+        ]
+        override_green_screen_colors = constants.green_screen_colors + [
+            (140, 183, 216),
+            (48, 30, 13),
+        ]  # Think of a 4th green screen color for colonist outfit accessories
+        # For colonist images, randomly choose one of the variants, applying colonist clothing green screen colors after the skin color
         portrait_sections.append(
             {
                 "image_id": metadata["body_image"],
@@ -481,7 +496,8 @@ class character_manager_template:
                 "y_size": 2.18,
                 "y_offset": -0.34,
                 "x_offset": -0.015,
-                "green_screen": metadata["skin_color"],
+                "green_screen": green_screen,
+                "override_green_screen_colors": override_green_screen_colors,
                 "level": constants.DEFAULT_LEVEL,
                 "metadata": {"portrait_section": constants.FULL_BODY_PORTRAIT_SECTION},
             }

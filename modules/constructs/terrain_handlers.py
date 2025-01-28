@@ -397,6 +397,7 @@ class terrain_handler:
             {
                 "image_id": current_steam,
                 "green_screen": [self.get_world_handler().steam_color],
+                "detail_level": constants.CLOUDS_DETAIL_LEVEL,
                 "override_green_screen_colors": [(140, 183, 216)],
             }
             for current_steam in steam_list

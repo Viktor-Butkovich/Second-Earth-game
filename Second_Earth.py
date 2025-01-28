@@ -421,7 +421,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Maybe track when tiles change habitability, as well as display habitability mode
 
 # Upcoming work queue:
-# Add modern colonist outfits
 # Add new resource types, with colonist upkeep, buying on Earth, transporting, and using to build when it is in the builder's tile
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
@@ -444,6 +443,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Possibly show solation as brightness on each tile (shouldn't affect albedo)
 # Add task-specific unit voicelines, with separate unit and minister voice sets
 # Add modern minister outfits
+# Add crater terrain variants
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>

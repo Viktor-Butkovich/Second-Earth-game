@@ -362,16 +362,19 @@ def generate_unit_component_portrait(
     """
     return_list = []
     for section in base_image:
-        edited_section = {
-            "image_id": section["image_id"],
-            "x_size": 0.85 * section.get("size", 1.0) * section.get("x_size", 1.0),
-            "y_size": 0.85 * section.get("size", 1.0) * section.get("y_size", 1.0),
-            "x_offset": section.get("x_offset", 0) - 0.01,
-            "y_offset": section.get("y_offset", 0) - 0.1,
-            "level": section.get("level", 0) - 1,
-            "green_screen": section.get("green_screen", []),
-            "metadata": section.get("metadata", {}),
-        }
+        edited_section = section.copy()
+        edited_section.update(
+            {
+                "image_id": section["image_id"],
+                "x_size": 0.85 * section.get("size", 1.0) * section.get("x_size", 1.0),
+                "y_size": 0.85 * section.get("size", 1.0) * section.get("y_size", 1.0),
+                "x_offset": section.get("x_offset", 0) - 0.01,
+                "y_offset": section.get("y_offset", 0) - 0.1,
+                "level": section.get("level", 0) - 1,
+                "green_screen": section.get("green_screen", []),
+                "metadata": section.get("metadata", {}),
+            }
+        )
         if component.endswith("left"):
             edited_section["x_offset"] -= 0.245
             edited_section["y_offset"] += 0.043

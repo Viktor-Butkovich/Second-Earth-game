@@ -365,7 +365,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                                     or not self.cell.terrain_handler.knowledge_available(
                                         constants.TERRAIN_KNOWLEDGE
                                     ),
-                                    "detail_level": constants.TERRAIN_DETAIL_LEVEL,
+                                    "detail_level": terrain_overlay_image.get(
+                                        "detail_level", constants.TERRAIN_DETAIL_LEVEL
+                                    ),
                                 }
                             )
                             if not terrain_overlay_image.get("green_screen", None):
