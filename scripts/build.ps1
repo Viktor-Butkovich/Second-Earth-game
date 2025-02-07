@@ -18,6 +18,7 @@ rmdir sound_editing -force -Recurse
 rm dist -force -Recurse
 rm modules -force -Recurse
 rm misc -force -Recurse
+rm experiments -force -Recurse
 rm -force Second_Earth.py
 rm -force configuration/dev_config.json
 rm -force configuration/demographic_util.py

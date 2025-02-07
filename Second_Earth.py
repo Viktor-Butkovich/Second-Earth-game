@@ -419,8 +419,11 @@ except Exception:  # Displays error message and records error message in crash l
 # Transcribe Super-Earth planet names from https://science.nasa.gov/exoplanets/exoplanet-catalog/?pageno=1&planet_type=Super+Earth&content_list=true
 # God mode changes to make habitabilty deadly/not deadly not correctly calibrating reorganization projection of ship crew - fix if ever relevant outside of god mode
 # Maybe track when tiles change habitability, as well as display habitability mode
+# Possibly use fuzzy logic for AI decision-making - relatively easily to convert natural language rules into behavior
 
 # Upcoming work queue:
+# Finally ready to add new resources! Next major step is to add basic economic mechanics, now that the baseline terraforming is functional
+#   First add an item_type class, which should be inherited by equipment_type and resource_type (doesn't exist yet)
 # Add new resource types, with colonist upkeep, buying on Earth, transporting, and using to build when it is in the builder's tile
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
@@ -443,6 +446,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Add task-specific unit voicelines, with separate unit and minister voice sets
 # Add modern minister outfits
 # Add crater terrain variants
+# Try out fuzzy logic for planetary simulation
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>
