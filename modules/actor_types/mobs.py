@@ -428,7 +428,7 @@ class mob(actor):
                 for (
                     section_key,
                     section_image_id,
-                ) in equipment_type.equipment_image.items():
+                ) in equipment_type.item_image.items():
                     if equipment_type.can_show_portrait_section(self, section_key):
                         if (
                             not copied

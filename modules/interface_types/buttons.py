@@ -13,7 +13,7 @@ from modules.util import (
     game_transitions,
     minister_utility,
 )
-from modules.constructs import equipment_types, minister_types
+from modules.constructs import item_types, minister_types
 from modules.interface_types import interface_elements
 from modules.constants import constants, status, flags
 
@@ -1079,7 +1079,7 @@ class button(interface_elements.interface_element):
                 source_type = "tile_inventory"
             else:
                 source_type = "mob_inventory"
-            equipment_types.transfer("each", "all", source_type)
+            item_types.transfer("each", "all", source_type)
             if status.displayed_tile_inventory:
                 status.displayed_tile_inventory.on_click()
             if status.displayed_mob_inventory:

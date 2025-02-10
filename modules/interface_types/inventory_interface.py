@@ -4,7 +4,7 @@ import pygame
 from modules.interface_types.interface_elements import ordered_collection
 from modules.interface_types.buttons import button
 from modules.util import actor_utility, utility
-from modules.constructs import equipment_types
+from modules.constructs import item_types
 from modules.constants import constants, status, flags
 
 
@@ -318,5 +318,5 @@ class item_icon(button):
         Output:
             None
         """
-        equipment_types.transfer(self.current_item, amount, self.actor_type)
+        item_types.transfer(self.current_item, amount, self.actor_type)
         self.on_click()

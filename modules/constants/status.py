@@ -6,6 +6,7 @@ from modules.constructs.ministers import minister
 from modules.constructs.building_types import building_type
 from modules.constructs.unit_types import unit_type, worker_type
 from modules.constructs.equipment_types import equipment_type
+from modules.constructs.item_types import item_type
 from modules.constructs.minister_types import minister_type
 from modules.constructs.terrain_feature_types import terrain_feature_type
 from modules.constructs.images import image, free_image, directional_indicator_image
@@ -78,6 +79,7 @@ building_types: Dict[str, building_type] = {}
 unit_types: Dict[str, unit_type] = {}
 worker_types: Dict[str, worker_type] = {}
 recruitment_types: List[unit_type] = []
+item_type: Dict[str, item_type] = {}
 equipment_types: Dict[str, equipment_type] = {}
 minister_types: Dict[str, minister_type] = {}
 terrain_feature_types: Dict[str, terrain_feature_type] = {}

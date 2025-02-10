@@ -420,6 +420,9 @@ except Exception:  # Displays error message and records error message in crash l
 # God mode changes to make habitabilty deadly/not deadly not correctly calibrating reorganization projection of ship crew - fix if ever relevant outside of god mode
 # Maybe track when tiles change habitability, as well as display habitability mode
 # Possibly use fuzzy logic for AI decision-making - relatively easily to convert natural language rules into behavior
+#   Could try making an EC system that trains a set of fuzzy rules - create a set of rules that match a list of i/o specifications
+#   Input would be input and output categories and rules, model just needs to tune the the rules until no specification cases fail
+#       Would likely just require a mutation operator and a genome of the required weights
 
 # Upcoming work queue:
 # Finally ready to add new resources! Next major step is to add basic economic mechanics, now that the baseline terraforming is functional

@@ -382,7 +382,7 @@ def equipment_types_config():
                 "Human units without spacesuits in deadly conditions cannot perform actions and will die at the end of the turn",
                 # "By default, solitary officers are assumed to be wearing personal spacesuits",
             ],
-            "equipment_image": {
+            "item_image": {
                 constants.FULL_BODY_PORTRAIT_SECTION: "mobs/spacesuits/spacesuit_body.png",
                 constants.HAT_PORTRAIT_SECTION: "ministers/portraits/hat/spacesuit/spacesuit_helmet.png",
                 constants.HAIR_PORTRAIT_SECTION: "misc/empty.png",
