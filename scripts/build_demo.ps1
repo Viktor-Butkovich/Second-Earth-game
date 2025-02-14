@@ -21,6 +21,7 @@ rm misc -force -Recurse
 rm experiments -force -Recurse
 rm -force Second_Earth.py
 rm -force configuration/dev_config.json
+rm -force configuration/release_config.json
 rm -force configuration/demographic_util.py
 rm -force save_games/* -Recurse
 rm -force .gitattributes

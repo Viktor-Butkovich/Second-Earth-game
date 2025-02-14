@@ -1,5 +1,6 @@
 import json
 from modules.tools import effects
+import os
 
 
 class effect_manager_template:
@@ -18,21 +19,19 @@ class effect_manager_template:
         """
         self.possible_effects = []
         self.active_effects = []
-        file = open("configuration/release_config.json")
+        if os.path.exists("configuration/dev_config.json"):
+            file = open("configuration/dev_config.json")
+        elif os.path.exists("configuration/release_config.json"):
+            file = open("configuration/release_config.json")
+        else:
+            file = open("configuration/demo_config.json")
 
-        # returns JSON object as a dictionary
-        debug_config = json.load(file)
-        # Iterating through the json list
-        for current_effect in debug_config["effects"]:
-            self.create_effect("DEBUG_" + current_effect, current_effect)
+        active_effects_config = json.load(file)
         file.close()
 
-        try:  # for testing/development, use active effects of local version of config file that is not uploaded to GitHub
-            file = open("configuration/dev_config.json")
-            active_effects_config = json.load(file)
-            file.close()
-        except:
-            active_effects_config = debug_config
+        for current_effect in active_effects_config["effects"]:
+            self.create_effect(current_effect, current_effect)
+
         for current_effect in active_effects_config["active_effects"]:
             if self.effect_exists(current_effect):
                 self.set_effect(current_effect, True)

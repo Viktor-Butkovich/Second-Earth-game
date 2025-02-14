@@ -262,7 +262,7 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
         dummy_input_dict["veteran"] = officer.get_permission(
             constants.VETERAN_PERMISSION
         )
-        if dummy_input_dict["unit_type"] == status.unit_types[constants.BATTALION]:
+        if dummy_input_dict["unit_type"].key == constants.BATTALION:
             dummy_input_dict["disorganized"] = True
         dummy_input_dict["name"] = actor_utility.generate_group_name(
             worker, officer, add_veteran=True

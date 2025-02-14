@@ -792,162 +792,203 @@ def unit_types_config():
     Output:
         None
     """
-    unit_types.group_type(
-        False,
-        {
-            "key": constants.EXPEDITION,
-            "name": "expedition",
-            "controlling_minister_type": status.minister_types[
-                constants.SCIENCE_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.GROUP_PERMISSION: True,
-                constants.EXPEDITION_PERMISSION: True,
+    if not constants.effect_manager.effect_active("hide_old_units"):
+        unit_types.group_type(
+            False,
+            {
+                "key": constants.EXPEDITION,
+                "name": "expedition",
+                "controlling_minister_type": status.minister_types[
+                    constants.SCIENCE_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.GROUP_PERMISSION: True,
+                    constants.EXPEDITION_PERMISSION: True,
+                },
+                "can_recruit": False,
             },
-            "can_recruit": False,
-        },
-    )
-    unit_types.officer_type(
-        False,
-        {
-            "key": constants.EXPLORER,
-            "name": "explorer",
-            "controlling_minister_type": status.minister_types[
-                constants.SCIENCE_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.OFFICER_PERMISSION: True,
-                constants.EXPLORER_PERMISSION: True,
+        )
+        unit_types.officer_type(
+            False,
+            {
+                "key": constants.EXPLORER,
+                "name": "explorer",
+                "controlling_minister_type": status.minister_types[
+                    constants.SCIENCE_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.OFFICER_PERMISSION: True,
+                    constants.EXPLORER_PERMISSION: True,
+                },
+                "can_recruit": True,
+                "recruitment_verb": "hire",
+                "recruitment_cost": 5,
+                "description": [
+                    f"Explorers are controlled by the {status.minister_types[constants.SCIENCE_MINISTER].name}.",
+                    "An explorer combines with colonists to form an expedition, which can explore new tiles.",
+                ],
             },
-            "can_recruit": True,
-            "recruitment_verb": "hire",
-            "recruitment_cost": 5,
-            "description": [
-                f"Explorers are controlled by the {status.minister_types[constants.SCIENCE_MINISTER].name}.",
-                "An explorer combines with colonists to form an expedition, which can explore new tiles.",
-            ],
-        },
-    ).link_group_type(status.unit_types[constants.EXPEDITION])
+        ).link_group_type(status.unit_types[constants.EXPEDITION])
 
-    unit_types.group_type(
-        False,
-        {
-            "key": constants.CARAVAN,
-            "name": "caravan",
-            "controlling_minister_type": status.minister_types[
-                constants.TERRAN_AFFAIRS_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.GROUP_PERMISSION: True,
-                constants.CARAVAN_PERMISSION: True,
+        unit_types.group_type(
+            False,
+            {
+                "key": constants.MISSIONARIES,
+                "name": "missionaries",
+                "controlling_minister_type": status.minister_types[
+                    constants.TERRAN_AFFAIRS_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.GROUP_PERMISSION: True,
+                    constants.MISSIONARIES_PERMISSION: True,
+                },
+                "can_recruit": False,
             },
-            "can_recruit": False,
-            "inventory_capacity": 9,
-        },
-    )
-    unit_types.officer_type(
-        False,
-        {
-            "key": constants.MERCHANT,
-            "name": "merchant",
-            "controlling_minister_type": status.minister_types[
-                constants.TERRAN_AFFAIRS_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.OFFICER_PERMISSION: True,
-                constants.MERCHANT_PERMISSION: True,
+        )
+        unit_types.officer_type(
+            False,
+            {
+                "key": constants.EVANGELIST,
+                "name": "evangelist",
+                "controlling_minister_type": status.minister_types[
+                    constants.TERRAN_AFFAIRS_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.OFFICER_PERMISSION: True,
+                    constants.EVANGELIST_PERMISSION: True,
+                },
+                "can_recruit": True,
+                "recruitment_verb": "hire",
+                "recruitment_cost": 5,
+                "description": [
+                    f"Evangelists are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally conduct religious campaigns and public relations campaigns on Earth.",
+                    "An evangelist combines with church volunteers to form missionaries, which can build missions.",
+                ],
             },
-            "can_recruit": True,
-            "recruitment_verb": "hire",
-            "recruitment_cost": 5,
-            "description": [
-                f"Merchants are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally search for loans and conduct advertising campaigns on Earth.",
-                "A merchant combines with colonists to form a caravan, which can trade and build trading posts.",
-            ],
-        },
-    ).link_group_type(status.unit_types[constants.CARAVAN])
+        ).link_group_type(status.unit_types[constants.MISSIONARIES])
 
-    unit_types.group_type(
-        False,
-        {
-            "key": constants.MISSIONARIES,
-            "name": "missionaries",
-            "controlling_minister_type": status.minister_types[
-                constants.TERRAN_AFFAIRS_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.GROUP_PERMISSION: True,
-                constants.MISSIONARIES_PERMISSION: True,
+        unit_types.group_type(
+            False,
+            {
+                "key": constants.BATTALION,
+                "name": "battalion",
+                "controlling_minister_type": status.minister_types[
+                    constants.SPACE_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.GROUP_PERMISSION: True,
+                    constants.BATTALION_PERMISSION: True,
+                },
+                "can_recruit": False,
             },
-            "can_recruit": False,
-        },
-    )
-    unit_types.officer_type(
-        False,
-        {
-            "key": constants.EVANGELIST,
-            "name": "evangelist",
-            "controlling_minister_type": status.minister_types[
-                constants.TERRAN_AFFAIRS_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.OFFICER_PERMISSION: True,
-                constants.EVANGELIST_PERMISSION: True,
+        )
+        unit_types.officer_type(
+            False,
+            {
+                "key": constants.MAJOR,
+                "name": "major",
+                "controlling_minister_type": status.minister_types[
+                    constants.SPACE_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.OFFICER_PERMISSION: True,
+                    constants.MAJOR_PERMISSION: True,
+                },
+                "can_recruit": True,
+                "recruitment_verb": "hire",
+                "recruitment_cost": 5,
+                "description": [
+                    f"Majors are controlled by the {status.minister_types[constants.SPACE_MINISTER].name}.",
+                    "A major combines with colonists to form a battalion, which has a very high combat strength, and can build forts and attack enemies.",
+                ],
             },
-            "can_recruit": True,
-            "recruitment_verb": "hire",
-            "recruitment_cost": 5,
-            "description": [
-                f"Evangelists are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally conduct religious campaigns and public relations campaigns on Earth.",
-                "An evangelist combines with church volunteers to form missionaries, which can build missions.",
-            ],
-        },
-    ).link_group_type(status.unit_types[constants.MISSIONARIES])
+        ).link_group_type(status.unit_types[constants.BATTALION])
 
-    unit_types.group_type(
-        False,
-        {
-            "key": constants.BATTALION,
-            "name": "battalion",
-            "controlling_minister_type": status.minister_types[
-                constants.SPACE_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.GROUP_PERMISSION: True,
-                constants.BATTALION_PERMISSION: True,
+        unit_types.group_type(
+            False,
+            {
+                "key": constants.PORTERS,
+                "name": "porters",
+                "controlling_minister_type": status.minister_types[
+                    constants.TRANSPORTATION_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.GROUP_PERMISSION: True,
+                    constants.PORTERS_PERMISSION: True,
+                },
+                "can_recruit": False,
+                "inventory_capacity": 9,
+                "number": 2,
             },
-            "can_recruit": False,
-        },
-    )
-    unit_types.officer_type(
-        False,
-        {
-            "key": constants.MAJOR,
-            "name": "major",
-            "controlling_minister_type": status.minister_types[
-                constants.SPACE_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.OFFICER_PERMISSION: True,
-                constants.MAJOR_PERMISSION: True,
+        )
+        unit_types.officer_type(
+            False,
+            {
+                "key": constants.DRIVER,
+                "name": "driver",
+                "controlling_minister_type": status.minister_types[
+                    constants.TRANSPORTATION_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.OFFICER_PERMISSION: True,
+                    constants.DRIVER_PERMISSION: True,
+                },
+                "can_recruit": True,
+                "recruitment_verb": "hire",
+                "recruitment_cost": 5,
+                "description": [
+                    f"Drivers are controlled by the {status.minister_types[constants.TRANSPORTATION_MINISTER].name}.",
+                    "A driver combines with colonists to form porters, which can transport items and move quickly.",
+                ],
             },
-            "can_recruit": True,
-            "recruitment_verb": "hire",
-            "recruitment_cost": 5,
-            "description": [
-                f"Majors are controlled by the {status.minister_types[constants.SPACE_MINISTER].name}.",
-                "A major combines with colonists to form a battalion, which has a very high combat strength, and can build forts and attack enemies.",
-            ],
-        },
-    ).link_group_type(status.unit_types[constants.BATTALION])
+        ).link_group_type(status.unit_types[constants.PORTERS])
+
+        unit_types.group_type(
+            False,
+            {
+                "key": constants.WORK_CREW,
+                "name": "work crew",
+                "controlling_minister_type": status.minister_types[
+                    constants.INDUSTRY_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.GROUP_PERMISSION: True,
+                    constants.WORK_CREW_PERMISSION: True,
+                },
+                "can_recruit": False,
+            },
+        )
+        unit_types.officer_type(
+            False,
+            {
+                "key": constants.FOREMAN,
+                "name": "foreman",
+                "controlling_minister_type": status.minister_types[
+                    constants.INDUSTRY_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.OFFICER_PERMISSION: True,
+                    constants.FOREMAN_PERMISSION: True,
+                },
+                "can_recruit": True,
+                "recruitment_verb": "hire",
+                "recruitment_cost": 5,
+                "description": [
+                    f"Foremen are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}.",
+                    "A foreman combines with colonists to form a work crew, which can produce resources when attached to a production facility.",
+                ],
+            },
+        ).link_group_type(status.unit_types[constants.WORK_CREW])
 
     unit_types.group_type(
         False,
@@ -993,86 +1034,6 @@ def unit_types_config():
     unit_types.group_type(
         False,
         {
-            "key": constants.PORTERS,
-            "name": "porters",
-            "controlling_minister_type": status.minister_types[
-                constants.TRANSPORTATION_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.GROUP_PERMISSION: True,
-                constants.PORTERS_PERMISSION: True,
-            },
-            "can_recruit": False,
-            "inventory_capacity": 9,
-            "number": 2,
-        },
-    )
-    unit_types.officer_type(
-        False,
-        {
-            "key": constants.DRIVER,
-            "name": "driver",
-            "controlling_minister_type": status.minister_types[
-                constants.TRANSPORTATION_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.OFFICER_PERMISSION: True,
-                constants.DRIVER_PERMISSION: True,
-            },
-            "can_recruit": True,
-            "recruitment_verb": "hire",
-            "recruitment_cost": 5,
-            "description": [
-                f"Drivers are controlled by the {status.minister_types[constants.TRANSPORTATION_MINISTER].name}.",
-                "A driver combines with colonists to form porters, which can transport items and move quickly.",
-            ],
-        },
-    ).link_group_type(status.unit_types[constants.PORTERS])
-
-    unit_types.group_type(
-        False,
-        {
-            "key": constants.WORK_CREW,
-            "name": "work crew",
-            "controlling_minister_type": status.minister_types[
-                constants.INDUSTRY_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.GROUP_PERMISSION: True,
-                constants.WORK_CREW_PERMISSION: True,
-            },
-            "can_recruit": False,
-        },
-    )
-    unit_types.officer_type(
-        False,
-        {
-            "key": constants.FOREMAN,
-            "name": "foreman",
-            "controlling_minister_type": status.minister_types[
-                constants.INDUSTRY_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.OFFICER_PERMISSION: True,
-                constants.FOREMAN_PERMISSION: True,
-            },
-            "can_recruit": True,
-            "recruitment_verb": "hire",
-            "recruitment_cost": 5,
-            "description": [
-                f"Foremen are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}.",
-                "A foreman combines with colonists to form a work crew, which can produce resources when attached to a production facility.",
-            ],
-        },
-    ).link_group_type(status.unit_types[constants.WORK_CREW])
-
-    unit_types.group_type(
-        False,
-        {
             "key": constants.CONSTRUCTION_CREW,
             "name": "construction crew",
             "controlling_minister_type": status.minister_types[
@@ -1108,6 +1069,48 @@ def unit_types_config():
             ],
         },
     ).link_group_type(status.unit_types[constants.CONSTRUCTION_CREW])
+
+    merchant_officer_type = unit_types.officer_type(
+        False,
+        {
+            "key": constants.MERCHANT,
+            "name": "merchant",
+            "controlling_minister_type": status.minister_types[
+                constants.TERRAN_AFFAIRS_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.OFFICER_PERMISSION: True,
+                constants.MERCHANT_PERMISSION: True,
+            },
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Merchants are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally search for loans and conduct advertising campaigns on Earth.",
+                "A merchant combines with colonists to form a caravan, which can trade and build trading posts.",
+            ],
+        },
+    )
+    if not constants.effect_manager.effect_active("hide_old_units"):
+        caravan_group_type = unit_types.group_type(
+            False,
+            {
+                "key": constants.CARAVAN,
+                "name": "caravan",
+                "controlling_minister_type": status.minister_types[
+                    constants.TERRAN_AFFAIRS_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.GROUP_PERMISSION: True,
+                    constants.CARAVAN_PERMISSION: True,
+                },
+                "can_recruit": False,
+                "inventory_capacity": 9,
+            },
+        )
+        merchant_officer_type.link_group_type(caravan_group_type)
 
     unit_types.worker_type(
         False,
@@ -1895,9 +1898,9 @@ def earth_screen():
             "direction": "vertical",
         }
     )
+    purchase_button_grid_height = 7
 
-    recruitment_index = 0
-    for recruitment_index, recruitment_type in enumerate(status.recruitment_types):
+    for recruitment_type in status.recruitment_types:
         constants.actor_creation_manager.create_interface_element(
             {
                 "width": scaling.scale_width(100),
@@ -1906,7 +1909,7 @@ def earth_screen():
                 "parent_collection": earth_purchase_buttons,
                 "recruitment_type": recruitment_type,
                 "member_config": {
-                    "second_dimension_coordinate": -1 * (recruitment_index // 7)
+                    "second_dimension_coordinate": 0  # -1 * (len(earth_purchase_buttons.members) // purchase_button_grid_height)
                 },
             }
         )
@@ -1921,11 +1924,10 @@ def earth_screen():
                 "parent_collection": earth_purchase_buttons,
                 "item_type": purchase_item_type,
                 "member_config": {
-                    "second_dimension_coordinate": -1 * (recruitment_index // 8)
+                    "second_dimension_coordinate": -1  # -1 * (len(earth_purchase_buttons.members) // purchase_button_grid_height)
                 },  # Re-uses recruitment index from previous loop
             }
         )
-        recruitment_index += 1
 
 
 def ministers_screen():
