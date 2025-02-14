@@ -52,11 +52,11 @@ class group(pmob):
             self.worker,
             self.officer,
         ]:  # Merges individual inventory to group inventory and clears individual inventory
-            for current_commodity in current_mob.inventory:
+            for current_item_type in current_mob.get_held_items():
                 self.change_inventory(
-                    current_commodity, current_mob.get_inventory(current_commodity)
+                    current_item_type, current_mob.get_inventory(current_item_type)
                 )
-                current_mob.set_inventory(current_commodity, 0)
+                current_mob.set_inventory(current_item_type, 0)
 
         if not from_save:
             for equipment in set(self.worker.equipment.keys()).union(
@@ -392,7 +392,7 @@ class group(pmob):
     def die(self, death_type="violent"):
         """
         Description:
-            Removes this object from relevant lists, prevents it from further appearing in or affecting the program, deselects it, and drops any commodities it is carrying. Unlike remove, this is used when the group dies because it
+            Removes this object from relevant lists, prevents it from further appearing in or affecting the program, deselects it, and drops any items it is carrying. Unlike remove, this is used when the group dies because it
                 also removes its worker and officer
         Input:
             string death_type == 'violent': Type of death for this unit, determining the type of sound played

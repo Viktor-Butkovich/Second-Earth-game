@@ -312,8 +312,8 @@ transaction_descriptions: Dict[str, str] = {
     "production": "production",
     "bribery": "bribery",
     "loan_interest": "loan interest",
-    "inventory_attrition": "missing commodities",
-    "sold_commodities": "commodity sales",
+    "inventory_attrition": "missing items",
+    "sold_items": "item sales",
     "worker_upkeep": "worker upkeep",
     "subsidies": "subsidies",
     "trial_compensation": "trial compensation",
@@ -385,33 +385,6 @@ terrain_build_cost_multiplier_dict: Dict[str, int] = {
     "desert": 2,
 }
 
-commodity_types: List[str] = [
-    "consumer goods",
-    "coffee",
-    "copper",
-    "diamond",
-    "exotic wood",
-    "fruit",
-    "gold",
-    "iron",
-    "ivory",
-    "rubber",
-]
-collectable_resources: List[str] = [
-    "coffee",
-    "copper",
-    "diamond",
-    "exotic wood",
-    "fruit",
-    "gold",
-    "iron",
-    "ivory",
-    "rubber",
-]
-item_prices: Dict[str, int] = {}
-sold_commodities: Dict[str, int] = {}
-commodities_produced: Dict[str, int] = {}
-attempted_commodities: List[str] = []
 resource_building_dict: Dict[str, str] = {
     "coffee": "plantation",
     "copper": "mine",
@@ -680,7 +653,7 @@ MAJOR: str = "major"
 ASTRONAUT_COMMANDER: str = "astronaut_commander"
 PORTERS: str = "porters"
 WORK_CREW: str = "work_crew"
-CONSTRUCTION_GANG: str = "construction_gang"
+CONSTRUCTION_CREW: str = "construction_crew"
 CARAVAN: str = "caravan"
 MISSIONARIES: str = "missionaries"
 EXPEDITION: str = "expedition"
@@ -719,7 +692,7 @@ CYCLE_SAME_TILE_BUTTON: str = "cycle_same_tile_button"
 FIRE_UNIT_BUTTON: str = "fire_unit_button"
 SWITCH_GAME_MODE_BUTTON: str = "switch_game_mode_button"
 CYCLE_AVAILABLE_MINISTERS_BUTTON: str = "cycle_available_ministers_button"
-COMMODITY_BUTTON: str = "commodity_button"
+SELLABLE_ITEM_BUTTON: str = "sellable_item_button"
 SHOW_PREVIOUS_REPORTS_BUTTON: str = "show_previous_reports_button"
 TAB_BUTTON: str = "tab_button"
 REORGANIZE_UNIT_BUTTON: str = "reorganize_unit_button"
@@ -738,11 +711,11 @@ WAKE_UP_ALL_BUTTON: str = "wake_up_all_button"
 EXECUTE_MOVEMENT_ROUTES_BUTTON: str = "execute_movement_routes_button"
 GENERATE_CRASH_BUTTON: str = "generate_crash_button"
 USE_EACH_EQUIPMENT_BUTTON: str = "use_each_equipment_button"
-PICK_UP_EACH_COMMODITY_BUTTON: str = "pick_up_each_commodity_button"
-SELL_EACH_COMMODITY_BUTTON: str = "sell_each_commodity_button"
-DROP_EACH_COMMODITY_BUTTON: str = "drop_each_commodity_button"
-SELL_COMMODITY_BUTTON: str = "sell_commodity_button"
-SELL_ALL_COMMODITY_BUTTON: str = "sell_all_commodity_button"
+PICK_UP_EACH_ITEM_BUTTON: str = "pick_up_each_item_button"
+SELL_EACH_ITEM_BUTTON: str = "sell_each_item_button"
+DROP_EACH_ITEM_BUTTON: str = "drop_each_item_button"
+SELL_ITEM_BUTTON: str = "sell_item_button"
+SELL_ALL_ITEM_BUTTON: str = "sell_all_item_button"
 USE_EQUIPMENT_BUTTON: str = "use_equipment_button"
 REMOVE_EQUIPMENT_BUTTON: str = "remove_equipment_button"
 RENAME_SETTLEMENT_BUTTON: str = "rename_settlement_button"
@@ -816,7 +789,7 @@ SAFE_CLICK_PANEL_ELEMENT: str = "safe_click_panel_element"
 LABEL: str = "label"
 VALUE_LABEL: str = "value_label"
 MONEY_LABEL: str = "money_label"
-COMMODITY_PRICES_LABEL: str = "commodity_prices_label"
+ITEM_PRICES_LABEL: str = "item_prices_label"
 MULTI_LINE_LABEL: str = "multi_line_label"
 ACTOR_DISPLAY_LABEL: str = "actor_display_label"
 ACTOR_TOOLTIP_LABEL: str = "actor_tooltip_label"
@@ -919,6 +892,7 @@ DICE_ROLLING_NOTIFICATION: str = "dice_rolling_notification"
 OFF_TILE_EXPLORATION_NOTIFICATION: str = "off_tile_exploration_notification"
 
 SPACESUITS_EQUIPMENT: str = "spacesuits"
+CONSUMER_GOODS_ITEM: str = "consumer_goods"
 
 PMOB_PERMISSION: str = "pmob"
 NPMOB_PERMISSION: str = "npmob"

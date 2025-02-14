@@ -90,7 +90,7 @@ class actor_display_label(label):
             input_dict["image_id"] = [
                 "buttons/default_button_alt2.png",
                 {"image_id": "misc/green_circle.png", "size": 0.75},
-                {"image_id": "items/consumer goods.png", "size": 0.75},
+                {"image_id": "items/consumer_goods.png", "size": 0.75},
             ]
             input_dict["init_type"] = constants.TOGGLE_BUTTON
             input_dict["toggle_variable"] = "wait_until_full"
@@ -139,7 +139,7 @@ class actor_display_label(label):
                 input_dict["image_id"] = [
                     "buttons/default_button_alt2.png",
                     {"image_id": "misc/green_circle.png", "size": 0.75},
-                    {"image_id": "items/consumer goods.png", "size": 0.75},
+                    {"image_id": "items/consumer_goods.png", "size": 0.75},
                 ]
                 input_dict["button_type"] = {
                     "on_click": (
@@ -151,12 +151,12 @@ class actor_display_label(label):
                 self.add_attached_button(input_dict)
             else:
                 input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
-                for equipment_type in status.equipment_types:
+                for equipment_key, equipment_type in status.equipment_types.items():
                     input_dict["equipment_type"] = equipment_type
                     input_dict["image_id"] = [
                         "buttons/default_button.png",
                         "misc/green_circle.png",
-                        f"items/{equipment_type}.png",
+                        f"items/{equipment_key}.png",
                     ]
                     self.add_attached_button(input_dict)
 
@@ -276,27 +276,27 @@ class actor_display_label(label):
                 input_dict["image_id"] = "buttons/use_equipment_button.png"
                 self.add_attached_button(input_dict)
 
-                input_dict["init_type"] = constants.PICK_UP_EACH_COMMODITY_BUTTON
-                input_dict["image_id"] = "buttons/commodity_drop_each_button.png"
+                input_dict["init_type"] = constants.PICK_UP_EACH_ITEM_BUTTON
+                input_dict["image_id"] = "buttons/item_drop_each_button.png"
                 self.add_attached_button(input_dict)
 
-                input_dict["init_type"] = constants.SELL_EACH_COMMODITY_BUTTON
-                input_dict["image_id"] = "buttons/commodity_sell_each_button.png"
+                input_dict["init_type"] = constants.SELL_EACH_ITEM_BUTTON
+                input_dict["image_id"] = "buttons/item_sell_each_button.png"
                 self.add_attached_button(input_dict)
 
             elif self.actor_label_type == constants.MOB_INVENTORY_CAPACITY_LABEL:
-                input_dict["init_type"] = constants.DROP_EACH_COMMODITY_BUTTON
-                input_dict["image_id"] = "buttons/commodity_pick_up_each_button.png"
+                input_dict["init_type"] = constants.DROP_EACH_ITEM_BUTTON
+                input_dict["image_id"] = "buttons/item_pick_up_each_button.png"
                 self.add_attached_button(input_dict)
 
                 if flags.enable_equipment_panel:
                     input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
-                    for equipment_type in status.equipment_types:
+                    for equipment_key, equipment_type in status.equipment_types.items():
                         input_dict["equipment_type"] = equipment_type
                         input_dict["image_id"] = [
                             "buttons/default_button.png",
                             "misc/green_circle.png",
-                            f"items/{equipment_type}.png",
+                            f"items/{equipment_key}.png",
                         ]
                         self.add_attached_button(input_dict)
 
@@ -414,21 +414,31 @@ class actor_display_label(label):
             self.message_start = "Quantity: "
             if self.actor_type == constants.MOB_ACTOR_TYPE:
                 input_dict["init_type"] = constants.ANONYMOUS_BUTTON
-                input_dict["image_id"] = "buttons/commodity_pick_up_button.png"
+                # constants.DROP_ITEM_BUTTON - helps to find anonymous button without constant type
+                input_dict["image_id"] = "buttons/item_pick_up_button.png"
                 input_dict["button_type"] = {
                     "on_click": (
                         actor_utility.callback,
-                        ["displayed_mob_inventory", "transfer", 1],
+                        [
+                            "displayed_mob_inventory",
+                            "transfer",
+                            1,
+                        ],  # item_icon.transfer(
                     ),
                     "tooltip": ["Orders the selected unit to drop this item"],
                 }
                 self.add_attached_button(input_dict)
 
-                input_dict["image_id"] = "buttons/commodity_pick_up_all_button.png"
+                # constants.DROP_ALL_ITEM_BUTTON
+                input_dict["image_id"] = "buttons/item_pick_up_all_button.png"
                 input_dict["button_type"] = {
                     "on_click": (
                         actor_utility.callback,
-                        ["displayed_mob_inventory", "transfer", "all"],
+                        [
+                            "displayed_mob_inventory",
+                            "transfer",
+                            None,
+                        ],  # item_icon.transfer(
                     ),
                     "tooltip": ["Orders the selected unit to drop all of this item"],
                 }
@@ -437,21 +447,31 @@ class actor_display_label(label):
             elif self.actor_type == constants.TILE_ACTOR_TYPE:
                 original_input_dict = input_dict.copy()
                 input_dict["init_type"] = constants.ANONYMOUS_BUTTON
-                input_dict["image_id"] = "buttons/commodity_drop_button.png"
+                # constants.PICK_UP_ITEM_BUTTON
+                input_dict["image_id"] = "buttons/item_drop_button.png"
                 input_dict["button_type"] = {
                     "on_click": (
                         actor_utility.callback,
-                        ["displayed_tile_inventory", "transfer", 1],
+                        [
+                            "displayed_tile_inventory",
+                            "transfer",
+                            1,
+                        ],  # item_icon.transfer(
                     ),
                     "tooltip": ["Orders the selected unit to pick up this item"],
                 }
                 self.add_attached_button(input_dict)
 
-                input_dict["image_id"] = "buttons/commodity_drop_all_button.png"
+                # constants.PICK_UP_ALL_ITEM_BUTTON
+                input_dict["image_id"] = "buttons/item_drop_all_button.png"
                 input_dict["button_type"] = {
                     "on_click": (
                         actor_utility.callback,
-                        ["displayed_tile_inventory", "transfer", "all"],
+                        [
+                            "displayed_tile_inventory",
+                            "transfer",
+                            None,
+                        ],  # item_icon.transfer(
                     ),
                     "tooltip": ["Orders the selected unit to pick up all of this item"],
                 }
@@ -460,12 +480,12 @@ class actor_display_label(label):
                 # Add pick up each button to inventory capacity label - if has at least 1 inventory capacity, show button that drops/picks up each type of item at once
 
                 input_dict = original_input_dict
-                input_dict["init_type"] = constants.SELL_COMMODITY_BUTTON
-                input_dict["image_id"] = "buttons/commodity_sell_button.png"
+                input_dict["init_type"] = constants.SELL_ITEM_BUTTON
+                input_dict["image_id"] = "buttons/item_sell_button.png"
                 self.add_attached_button(input_dict)
 
-                input_dict["init_type"] = constants.SELL_ALL_COMMODITY_BUTTON
-                input_dict["image_id"] = "buttons/commodity_sell_all_button.png"
+                input_dict["init_type"] = constants.SELL_ALL_ITEM_BUTTON
+                input_dict["image_id"] = "buttons/item_sell_all_button.png"
                 self.add_attached_button(input_dict)
 
                 input_dict["init_type"] = constants.USE_EQUIPMENT_BUTTON
@@ -491,7 +511,7 @@ class actor_display_label(label):
                 input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
                 input_dict["width"], input_dict["height"] = (ss_size, ss_size)
                 input_dict["change"] = -1
-                input_dict["image_id"] = "buttons/commodity_drop_button.png"
+                input_dict["image_id"] = "buttons/item_drop_button.png"
                 offset = scaling.scale_width(-130)
                 if (
                     self.actor_label_type == constants.WATER_LABEL
@@ -503,7 +523,7 @@ class actor_display_label(label):
                 )
 
                 input_dict["change"] = 1
-                input_dict["image_id"] = "buttons/commodity_pick_up_button.png"
+                input_dict["image_id"] = "buttons/item_pick_up_button.png"
                 if (
                     self.actor_label_type == constants.WATER_LABEL
                     and constants.effect_manager.effect_active("map_customization")
@@ -520,7 +540,7 @@ class actor_display_label(label):
                 )
 
                 input_dict["change"] = -6
-                input_dict["image_id"] = "buttons/commodity_drop_all_button.png"
+                input_dict["image_id"] = "buttons/item_drop_all_button.png"
                 if (
                     self.actor_label_type == constants.WATER_LABEL
                     and constants.effect_manager.effect_active("map_customization")
@@ -536,7 +556,7 @@ class actor_display_label(label):
                 )
 
                 input_dict["change"] = 6
-                input_dict["image_id"] = "buttons/commodity_pick_up_all_button.png"
+                input_dict["image_id"] = "buttons/item_pick_up_all_button.png"
                 if (
                     self.actor_label_type == constants.WATER_LABEL
                     and constants.effect_manager.effect_active("map_customization")
@@ -603,13 +623,13 @@ class actor_display_label(label):
                 input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
                 input_dict["width"], input_dict["height"] = (ss_size, ss_size)
                 input_dict["change"] = -1 * change_magnitude
-                input_dict["image_id"] = "buttons/commodity_drop_button.png"
+                input_dict["image_id"] = "buttons/item_drop_button.png"
                 self.add_attached_button(
                     input_dict, member_config={"order_exempt": True, "x_offset": offset}
                 )
 
                 input_dict["change"] = change_magnitude
-                input_dict["image_id"] = "buttons/commodity_pick_up_button.png"
+                input_dict["image_id"] = "buttons/item_pick_up_button.png"
                 self.add_attached_button(
                     input_dict,
                     member_config={
@@ -628,7 +648,7 @@ class actor_display_label(label):
                 else:
                     change_magnitude = 1000
                 input_dict["change"] = -1 * change_magnitude
-                input_dict["image_id"] = "buttons/commodity_drop_all_button.png"
+                input_dict["image_id"] = "buttons/item_drop_all_button.png"
                 self.add_attached_button(
                     input_dict,
                     member_config={
@@ -639,7 +659,7 @@ class actor_display_label(label):
                 )
 
                 input_dict["change"] = change_magnitude
-                input_dict["image_id"] = "buttons/commodity_pick_up_all_button.png"
+                input_dict["image_id"] = "buttons/item_pick_up_all_button.png"
                 self.add_attached_button(
                     input_dict,
                     member_config={
@@ -792,26 +812,28 @@ class actor_display_label(label):
             if self.actor_label_type == constants.MOB_INVENTORY_CAPACITY_LABEL:
                 if self.actor:
                     tooltip_text.append(
-                        f"This unit is currently holding {self.actor.get_inventory_used()} commodities"
+                        f"This unit is currently holding {self.actor.get_inventory_used()} items"
                     )
                     tooltip_text.append(
-                        f"This unit can hold a maximum of {self.actor.inventory_capacity} commodities"
+                        f"This unit can hold a maximum of {self.actor.inventory_capacity} items"
                     )
             elif self.actor_label_type == constants.TILE_INVENTORY_CAPACITY_LABEL:
                 if self.actor:
                     if not self.actor.cell.terrain_handler.visible:
                         tooltip_text.append("This tile has not been explored")
                     elif self.actor.infinite_inventory_capacity:
-                        tooltip_text.append("This tile can hold infinite commodities")
+                        tooltip_text.append(
+                            "This tile can hold an infinite number of items"
+                        )
                     else:
                         tooltip_text.append(
-                            f"This tile currently contains {self.actor.get_inventory_used()} commodities"
+                            f"This tile currently contains an inventory of {self.actor.get_inventory_used()} items"
                         )
                         tooltip_text.append(
-                            f"This tile can retain a maximum of {self.actor.inventory_capacity} commodities"
+                            f"This tile can retain a maximum inventory of {self.actor.inventory_capacity} items"
                         )
                         tooltip_text.append(
-                            "If this tile is holding commodities exceeding its capacity before resource production at the end of the turn, extra commodities will be lost"
+                            "If this tile's inventory exceeds its capacity before resource production at the end of the turn, extra items will be lost"
                         )
             self.set_tooltip(tooltip_text)
 
@@ -911,7 +933,7 @@ class actor_display_label(label):
         elif self.actor_label_type == constants.BUILDING_WORK_CREWS_LABEL:
             tooltip_text = []
             tooltip_text.append(
-                "Increase work crew capacity by upgrading the building's scale with a construction gang"
+                "Increase work crew capacity by upgrading the building's scale with a construction crew"
             )
             if self.attached_building:
                 tooltip_text.append(
@@ -926,10 +948,10 @@ class actor_display_label(label):
         elif self.actor_label_type == constants.BUILDING_EFFICIENCY_LABEL:
             tooltip_text = [self.message]
             tooltip_text.append(
-                "Each work crew attached to this building can produce up to the building efficiency in commodities each turn"
+                "Each work crew attached to this building can produce up to the building efficiency in resources each turn"
             )
             tooltip_text.append(
-                "Increase work crew efficiency by upgrading the building's efficiency with a construction gang"
+                "Increase work crew efficiency by upgrading the building's efficiency with a construction crew"
             )
             self.set_tooltip(tooltip_text)
 
@@ -1487,12 +1509,12 @@ class actor_display_label(label):
 
             elif self.actor_label_type == constants.INVENTORY_NAME_LABEL:
                 self.set_label(
-                    f"{self.message_start}{utility.capitalize(new_actor.current_item)}"
+                    f"{self.message_start}{utility.capitalize(new_actor.current_item.name)}"
                 )
 
             elif self.actor_label_type == constants.INVENTORY_QUANTITY_LABEL:
                 self.set_label(
-                    f"{self.message_start}{str(new_actor.actor.get_inventory(new_actor.current_item))}"
+                    f"{self.message_start}{new_actor.actor.get_inventory(new_actor.current_item)}"
                 )
 
             elif self.actor_label_type == constants.SETTLEMENT:
@@ -2033,7 +2055,7 @@ class building_work_crews_label(actor_display_label):
 
 class building_efficiency_label(actor_display_label):
     """
-    Label that shows a production building's efficiency, which is the number of attempts work crews at the building have to produce commodities
+    Label that shows a production building's efficiency, which is the number of attempts work crews at the building have to produce resources
     """
 
     def __init__(self, input_dict):

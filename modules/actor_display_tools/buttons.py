@@ -3,6 +3,7 @@
 import random
 from typing import Dict, Any
 from modules.interface_types.buttons import button
+from modules.actor_types import buildings
 from modules.util import (
     main_loop_utility,
     actor_utility,
@@ -1038,7 +1039,7 @@ class work_crew_to_building_button(button):
         """
         self.building_type = input_dict["building_type"]
         self.attached_work_crew = None
-        self.attached_building = None
+        self.attached_building: buildings.resource_building = None
         super().__init__(input_dict)
 
     def update_info(self):
@@ -1089,7 +1090,7 @@ class work_crew_to_building_button(button):
             if self.building_type == constants.RESOURCE:
                 self.set_tooltip(
                     [
-                        f"Assigns the selected work crew to the {self.attached_building.name}, producing {self.attached_building.resource_type} over time."
+                        f"Assigns the selected work crew to the {self.attached_building.name}, producing {self.attached_building.resource_type.name} over time."
                     ]
                 )
             else:
@@ -1098,7 +1099,7 @@ class work_crew_to_building_button(button):
             if self.building_type == constants.RESOURCE:
                 self.set_tooltip(
                     [
-                        "Assigns the selected work crew to a resource building, producing commodities over time."
+                        "Assigns the selected work crew to a resource building, producing resources over time."
                     ]
                 )
         else:

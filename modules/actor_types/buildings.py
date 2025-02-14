@@ -5,7 +5,7 @@ import random
 from typing import Dict
 from modules.actor_types.actors import actor
 from modules.util import utility, scaling, actor_utility, text_utility, minister_utility
-from modules.constructs import building_types
+from modules.constructs import building_types, item_types
 from modules.constants import constants, status, flags
 
 
@@ -145,7 +145,7 @@ class building(actor):
             for current_work_crew in self.contained_work_crews:
                 tooltip_text.append("    " + current_work_crew.name)
             tooltip_text.append(
-                f"Lets {self.upgrade_fields[constants.RESOURCE_SCALE]} attached work crews each attempt to produce {self.upgrade_fields[constants.RESOURCE_EFFICIENCY]} units of {self.resource_type} each turn"
+                f"Lets {self.upgrade_fields[constants.RESOURCE_SCALE]} attached work crews each attempt to produce {self.upgrade_fields[constants.RESOURCE_EFFICIENCY]} units of {self.resource_type.name} each turn"
             )
         elif self.building_type == constants.SLUMS:
             tooltip_text.append(
@@ -283,9 +283,9 @@ class building(actor):
                     6: (1, 1),  # top right
                 }
                 if scale > len(self.contained_work_crews):
-                    resource_image_id = f"buildings/{constants.resource_building_dict[self.resource_type]}_no_work_crew.png"
+                    resource_image_id = f"buildings/{constants.resource_building_dict[self.resource_type.key]}_no_work_crew.png"
                 else:
-                    resource_image_id = f"buildings/{constants.resource_building_dict[self.resource_type]}.png"
+                    resource_image_id = f"buildings/{constants.resource_building_dict[self.resource_type.key]}.png"
                 return_list.append(
                     {
                         "image_id": resource_image_id,
@@ -478,7 +478,7 @@ class infrastructure_building(building):
 
 class warehouses(building):
     """
-    Buiding attached to a port, train station, and/or resource production facility that stores commodities
+    Buiding attached to a port, train station, and/or resource production facility that stores items
     """
 
     def __init__(self, from_save, input_dict):
@@ -541,7 +541,7 @@ class warehouses(building):
 
 class resource_building(building):
     """
-    Building in a resource tile that allows work crews to attach to this building to produce commodities over time
+    Building in a resource tile that allows work crews to attach to this building to produce resources over time
     """
 
     def __init__(self, from_save, input_dict):
@@ -557,15 +557,23 @@ class resource_building(building):
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this building's name
-                'resource_type': string value - Type of resource produced by this building, like 'exotic wood'
+                'resource_type': item_type value - Type of resource produced by this building, like "Gold"
                 'modes': string list value - Game modes during which this building's images can appear
                 'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
                 'scale': int value - Required if from save, maximum number of work crews that can be attached to this building
-                'efficiency': int value - Required if from save, number of rolls made by work crews each turn to produce commodities at this building
+                'efficiency': int value - Required if from save, number of rolls made by work crews each turn to produce resources at this building
         Output:
             None
         """
-        self.resource_type = input_dict["resource_type"]
+        if from_save:
+            self.resource_type: item_types.item_type = status.item_types[
+                input_dict["resource_type"]
+            ]  # If from save, uses saved key
+        else:
+            self.resource_type: item_types.item_type = input_dict[
+                "resource_type"
+            ]  # If during game, uses existing item type
+        # Continue this conversion
         self.num_upgrades = (
             self.upgrade_fields[constants.RESOURCE_SCALE]
             + self.upgrade_fields[constants.RESOURCE_EFFICIENCY]
@@ -587,10 +595,10 @@ class resource_building(building):
                 'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
                 'resource_type': string value - Type of resource produced by this building, like 'exotic wood'
                 'scale': int value - Maximum number of work crews that can be attached to this building
-                'efficiency': int value - Number of rolls made by work crews each turn to produce commodities at this building
+                'efficiency': int value - Number of rolls made by work crews each turn to produce resources at this building
         """
         save_dict = super().to_save_dict()
-        save_dict["resource_type"] = self.resource_type
+        save_dict["resource_type"] = self.resource_type.key
         return save_dict
 
     def eject_work_crews(self):
@@ -751,7 +759,7 @@ class resource_building(building):
     def produce(self):
         """
         Description:
-            Orders each work crew attached to this building to attempt producing commodities at the end of a turn. Based on work crew experience and minister skill/corruption, each work crew can produce a number of commodities up to the
+            Orders each work crew attached to this building to attempt producing resources at the end of a turn. Based on work crew experience and minister skill/corruption, each work crew can produce a number of resources up to the
                 building's efficiency
         Input:
             None

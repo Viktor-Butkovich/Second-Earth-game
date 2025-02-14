@@ -195,7 +195,9 @@ class item_icon(button):
             if (
                 self.in_inventory_capacity
             ):  # if inventory capacity 9 >= index 8 + 1, allow. If inventory capacity 9 >= index 9 + 1, disallow
-                self.current_item = new_actor.check_inventory(display_index)
+                self.current_item: item_types.item_type = new_actor.check_inventory(
+                    display_index
+                )
                 if self.current_item:
                     if (
                         new_actor.inventory_capacity >= display_index + 1
@@ -205,14 +207,14 @@ class item_icon(button):
                             utility.combine(
                                 self.default_image_id,
                                 "misc/green_circle.png",
-                                "items/" + self.current_item + ".png",
+                                f"items/{self.current_item.key}.png",
                             )
                         )
                     else:  # If item over capacity
                         self.image.set_image(
                             [
                                 "misc/green_circle.png",
-                                "items/" + self.current_item + ".png",
+                                f"items/{self.current_item.key}.png",
                                 "misc/warning_icon.png",
                             ]
                         )
@@ -271,13 +273,9 @@ class item_icon(button):
             None
         """
         if self.current_item:
-            if self.current_item in status.equipment_types:
-                self.set_tooltip(
-                    [self.current_item.capitalize()]
-                    + status.equipment_types[self.current_item].description
-                )
-            else:
-                self.set_tooltip([self.current_item.capitalize()])
+            self.set_tooltip(
+                [self.current_item.name.capitalize()] + self.current_item.description
+            )
         else:
             self.set_tooltip(["Empty"])
 
@@ -309,14 +307,20 @@ class item_icon(button):
                 getattr(status, f"{self.actor_type}_info_display"), None
             )
 
-    def transfer(self, amount):  # calling transfer but not doing anything from mob
+    def transfer(
+        self, amount: int = None
+    ) -> None:  # calling transfer but not doing anything from mob
         """
         Description:
             Drops or picks up the inputted amount of this tile's current item type, depending on if this is a tile or mob item icon
         Input:
-            str/int amount: Amount of item to transfer, either 'all' or a number
+            int amount: Amount of item to transfer, or None if transferring all
         Output:
             None
         """
-        item_types.transfer(self.current_item, amount, self.actor_type)
+        item_types.transfer(
+            transferred_item=self.current_item,
+            amount=amount,
+            source_type=self.actor_type,
+        )
         self.on_click()

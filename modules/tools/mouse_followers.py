@@ -50,7 +50,7 @@ class mouse_follower_template(free_image):
         """
         if (
             flags.choosing_destination
-            or flags.choosing_advertised_commodity
+            or flags.choosing_advertised_item
             or flags.drawing_automatic_route
         ):
             self.update()

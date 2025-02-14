@@ -321,7 +321,7 @@ class vehicle(pmob):
     def die(self, death_type="violent"):
         """
         Description:
-            Removes this object from relevant lists, prevents it from further appearing in or affecting the program, deselects it, and drops any commodities it is carrying. Also removes all of this vehicle's passengers
+            Removes this object from relevant lists, prevents it from further appearing in or affecting the program, deselects it, and drops any items it is carrying. Also removes all of this vehicle's passengers
         Input:
             string death_type == 'violent': Type of death for this unit, determining the type of sound played
         Output:

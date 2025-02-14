@@ -56,7 +56,9 @@ class world_grid(grid):
         """
         if from_save:
             for cell in self.get_flat_cell_list():
-                cell.terrain_handler.set_resource(cell.save_dict["resource"])
+                cell.terrain_handler.set_resource(
+                    status.item_types.get(cell.save_dict["resource"], None)
+                )
         else:
             self.generate_poles_and_equator()
             self.world_handler.update_clouds(estimated_temperature=True)

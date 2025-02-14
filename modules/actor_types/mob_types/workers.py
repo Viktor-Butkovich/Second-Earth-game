@@ -9,7 +9,7 @@ from modules.constants import constants, status, flags
 
 class worker(pmob):
     """
-    pmob that is required for resource buildings to produce commodities, officers to form group, and vehicles to function
+    pmob that is required for officers to form groups
     """
 
     def __init__(self, from_save, input_dict, original_constructor: bool = True):

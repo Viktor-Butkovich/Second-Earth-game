@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Any
 from modules.util import (
     actor_utility,
     text_utility,
@@ -27,19 +27,69 @@ class item_type:
             None
         """
         self.key: str = input_dict["equipment_type"]
+        status.item_types[self.key] = self
         self.description: List[str] = input_dict.get("description", [])
+
         self.can_purchase: bool = input_dict.get("can_purchase", False)
+        self.can_sell: bool = input_dict.get("can_sell", False)
         self.price: float = input_dict.get("price", 5.0)
+
+        self.amount_sold_this_turn: int = input_dict.get("amount_sold_this_turn", 0)
+        self.production_attempted_this_turn: bool = False
+        self.amount_produced_this_turn: int = input_dict.get(
+            "amount_produced_this_turn", 0
+        )
+
+        self.allow_price_variation: bool = input_dict.get(
+            "allow_price_variation", False
+        )
         self.item_image: dict = input_dict.get("item_image", None)
+        self.name: str = input_dict.get("name", self.key).replace("_", " ")
+
+    def apply_save_dict(self, save_dict: Dict[str, Any]) -> None:
+        """
+        Description:
+            Uses a save dict to set this object's values
+        Input:
+            dictionary save_dict: Dictionary containing the values to set
+        Output:
+            None
+        """
+        # Key used to choose which item type to apply save dict to
+        self.amount_sold_this_turn = save_dict["amount_sold_this_turn"]
+        self.amount_produced_this_turn = save_dict["amount_produced_this_turn"]
+        self.production_attempted_this_turn = save_dict[
+            "production_attempted_this_turn"
+        ]
+        self.price = save_dict["price"]
+
+    def to_save_dict(self) -> Dict[str, Any]:
+        """
+        Description:
+            Uses this object's values to create a dictionary that can be saved and used as input to recreate it on loading
+        Input:
+            None
+        Output:
+            dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
+        """
+        return {
+            "key": self.key,
+            "amount_sold_this_turn": self.amount_sold_this_turn,
+            "amount_produced_this_turn": self.amount_produced_this_turn,
+            "production_attempted_this_turn": self.production_attempted_this_turn,
+            "price": self.price,
+        }
 
 
-def transfer(item_type: str, amount, source_type: str) -> None:
+def transfer(
+    source_type: str, transferred_item: item_type = None, amount: int = None
+) -> None:
     """
     Description:
         Transfers amount of item type from the source inventory to the other (tile to mob and vice versa, if picking up or dropping)
     Input:
-        string item_type: Type of item to transfer, like 'diamond' or 'rifles'
-        int/str amount: Amount of item to transfer, or 'all' if transferring all
+        item_type transferred_item: Type of item to transfer, like diamond or spacesuits, or None if transferring each type
+        int/str amount: Amount of item to transfer, or None if transferring all of the type
         string source_type: Item origin, like 'tile_inventory' or 'mob_inventory'
     Output:
         None
@@ -54,27 +104,13 @@ def transfer(item_type: str, amount, source_type: str) -> None:
                 and displayed_mob.get_permission(constants.PMOB_PERMISSION)
                 and displayed_mob.get_cell().tile == displayed_tile
             ):
-                if amount == "all":
+                if (
+                    amount == None and transferred_item != None
+                ):  # If transferring all of a specific item type
                     if source_type == "tile_inventory":
-                        amount = displayed_tile.get_inventory(item_type)
+                        amount = displayed_tile.get_inventory(transferred_item)
                     elif source_type == "mob_inventory":
-                        amount = displayed_mob.get_inventory(item_type)
-                elif (
-                    source_type == "mob_inventory"
-                    and amount > displayed_mob.get_inventory(item_type)
-                ):
-                    text_utility.print_to_screen(
-                        f"This unit does not have enough {item_type} to transfer."
-                    )
-                    return
-                elif (
-                    source_type == "tile_inventory"
-                    and amount > displayed_tile.get_inventory(item_type)
-                ):
-                    text_utility.print_to_screen(
-                        f"This tile does not have enough {item_type} to transfer."
-                    )
-                    return
+                        amount = displayed_mob.get_inventory(transferred_item)
 
                 if displayed_mob.all_permissions(
                     constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
@@ -87,16 +123,19 @@ def transfer(item_type: str, amount, source_type: str) -> None:
                     return
 
                 if source_type == "tile_inventory":
-                    if displayed_mob.get_inventory_remaining(amount) < 0:
+                    if (
+                        amount != None
+                        and displayed_mob.get_inventory_remaining(amount) < 0
+                    ):
                         amount = displayed_mob.get_inventory_remaining()
                         if amount == 0:
-                            if item_type == "each":
+                            if transferred_item == None:  # If transferring all types
                                 text_utility.print_to_screen(
                                     "This unit can not pick up any items."
                                 )
                             else:
                                 text_utility.print_to_screen(
-                                    f"This unit can not pick up {item_type}."
+                                    f"This unit can not pick up {transferred_item.name}."
                                 )
                             return
 
@@ -109,9 +148,9 @@ def transfer(item_type: str, amount, source_type: str) -> None:
                 elif source_type == "mob_inventory":
                     source = status.displayed_mob
                     destination = status.displayed_tile
-                if item_type == "each":
-                    for item in source.inventory.copy():
-                        amount = source.inventory[item]
+                if transferred_item == None:  # If transferring all types
+                    for item in source.get_held_items():
+                        amount = source.get_inventory(item)
                         if (
                             destination.get_inventory_remaining(amount) < 0
                             and destination == status.displayed_mob
@@ -120,8 +159,8 @@ def transfer(item_type: str, amount, source_type: str) -> None:
                         destination.change_inventory(item, amount)
                         source.change_inventory(item, amount * -1)
                 else:
-                    destination.change_inventory(item_type, amount)
-                    source.change_inventory(item_type, amount * -1)
+                    destination.change_inventory(transferred_item, amount)
+                    source.change_inventory(transferred_item, amount * -1)
 
                 if source_type == "tile_inventory":  # Pick up item(s)
                     actor_utility.select_interface_tab(
@@ -145,11 +184,11 @@ def transfer(item_type: str, amount, source_type: str) -> None:
 
             elif source_type == "mob_inventory":
                 text_utility.print_to_screen(
-                    "There is no tile to transfer this commodity to."
+                    "There is no tile to transfer this item to."
                 )
             elif source_type == "tile_inventory":
                 text_utility.print_to_screen(
-                    "There is no unit to transfer this commodity to."
+                    "There is no unit to transfer this item to."
                 )
     else:
-        text_utility.print_to_screen("You are busy and cannot transfer commodities.")
+        text_utility.print_to_screen("You are busy and cannot transfer items.")

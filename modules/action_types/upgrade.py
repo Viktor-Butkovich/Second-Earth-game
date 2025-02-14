@@ -8,7 +8,7 @@ from modules.constants import constants, status, flags
 
 class upgrade(action.action):
     """
-    Action for construction gang to upgrade a particular aspect of a building
+    Action for construction crew to upgrade a particular aspect of a building
     """
 
     def initial_setup(self, **kwargs):

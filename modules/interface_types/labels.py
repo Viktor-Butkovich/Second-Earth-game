@@ -1,8 +1,10 @@
 # Contains functionality for labels
 
 import pygame
+from typing import List
 from modules.interface_types.buttons import button
 from modules.util import scaling, text_utility, utility, market_utility
+from modules.constructs import item_types
 from modules.constants import constants, status, flags
 
 
@@ -293,7 +295,7 @@ class money_label_template(value_label):
         if total_sale_revenue > 0:
             tooltip_text.append("")
             tooltip_text.append(
-                f"Your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} has been ordered to sell commodities at the end of the turn for an estimated total of {total_sale_revenue} money"
+                f"Your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} has been ordered to sell items at the end of the turn for an estimated total of {total_sale_revenue} money"
             )
 
         tooltip_text.append("")
@@ -314,9 +316,9 @@ class money_label_template(value_label):
         self.set_tooltip(tooltip_text)
 
 
-class commodity_prices_label_template(label):
+class item_prices_label_template(label):
     """
-    Label that shows the price of each commodity. Unlike most labels, its message is a list of strings rather than a string, allowing it to have a line for each commodity
+    Label that shows the price of each item. Unlike most labels, its message is a list of strings rather than a string, allowing it to have a line for each item
     """
 
     def __init__(self, input_dict):
@@ -346,28 +348,29 @@ class commodity_prices_label_template(label):
     def update_label(self):
         """
         Description:
-            Updates the values shown by this label when commodity prices change
+            Updates the values shown by this label when item prices change
         Input:
             None
         Output:
             None
         """
         message = ["Prices: "]
-        widest_commodity_width = 0
-        for current_commodity in constants.commodity_types:
-            widest_commodity_width = max(
-                widest_commodity_width, self.font.calculate_size(current_commodity)
-            )
-        for current_commodity in constants.commodity_types:
+        market_items: List[item_types.item_type] = [
+            current_item_type
+            for current_item_type in status.item_types.values()
+            if current_item_type.can_sell or current_item_type.can_purchase
+        ]
+        widest_name_width = max(
+            [self.font.calculate_size(item_type.name) for item_type in market_items]
+        )
+        for current_item_type in market_items:
             current_line = ""
             while (
-                self.font.calculate_size(current_line + current_commodity)
-                < widest_commodity_width
+                self.font.calculate_size(f"{current_line}{current_item_type.name}")
+                < widest_name_width
             ):
                 current_line += " "
-            current_line += (
-                current_commodity + ": " + str(constants.item_prices[current_commodity])
-            )
+            current_line += f"{current_item_type.name}: {current_item_type.price}"
             message.append(current_line)
         self.set_label(message)
 

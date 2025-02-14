@@ -1,7 +1,7 @@
 # Contains functionality for mobs
 
 import pygame, random
-from modules.constructs import images, unit_types, ministers
+from modules.constructs import images, unit_types, ministers, item_types
 from modules.util import (
     utility,
     actor_utility,
@@ -1030,21 +1030,44 @@ class mob(actor):
             tooltip_list.append("This unit is in sentry mode")
 
         if self.get_permission(constants.PMOB_PERMISSION):
-            held_commodities = self.get_held_commodities()
-            if held_commodities:
+            held_items: List[item_types.item_type] = self.get_held_items()
+            if held_items:
                 tooltip_list.append("Inventory:")
-                for commodity in held_commodities:
+                for item_type in held_items:
                     tooltip_list.append(
-                        "    " + commodity + ": " + str(self.get_inventory(commodity))
+                        f"{item_type.name}: {self.get_inventory(item_type)}"
                     )
             if len(self.base_automatic_route) > 1:
                 start_coordinates = self.base_automatic_route[0]
                 end_coordinates = self.base_automatic_route[-1]
                 tooltip_list.append(
-                    f"This unit has a designated movement route of length {len(self.base_automatic_route)}, picking up commodities at ({start_coordinates[0]}, {start_coordinates[1]}) and dropping them off at ({end_coordinates[0]}, {end_coordinates[1]})"
+                    f"This unit has a designated movement route of length {len(self.base_automatic_route)}, picking up items at ({start_coordinates[0]}, {start_coordinates[1]}) and dropping them off at ({end_coordinates[0]}, {end_coordinates[1]})"
                 )
 
         self.set_tooltip(tooltip_list)
+
+    def drop_inventory(self):
+        """
+        Description:
+            Drops each item held in this actor's inventory into its current tile
+        Input:
+            None
+        Output:
+            None
+        """
+        for current_item in self.get_held_items():
+            self.get_cell().tile.change_inventory(
+                current_item, self.get_inventory(current_item)
+            )
+            self.set_inventory(current_item, 0)
+        if self.actor_type == constants.MOB_ACTOR_TYPE and self.get_permission(
+            constants.PMOB_PERMISSION
+        ):
+            for current_equipment in self.equipment.copy():
+                if self.equipment[current_equipment]:
+                    self.get_cell().tile.change_inventory(current_equipment, 1)
+                    status.equipment_types[current_equipment].unequip(self)
+            self.equipment = {}
 
     def remove(self):
         """

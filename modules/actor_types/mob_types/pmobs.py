@@ -5,6 +5,7 @@ import random
 from typing import Dict
 from modules.actor_types.mobs import mob
 from modules.util import text_utility, utility, actor_utility, minister_utility
+from modules.constructs import item_types
 from modules.constants import constants, status, flags
 
 
@@ -368,7 +369,8 @@ class pmob(mob):
             ) or (
                 (not self.wait_until_full)
                 and (
-                    len(self.get_cell().tile.get_held_commodities(True)) > 0
+                    len(self.get_cell().tile.get_held_items(ignore_consumer_goods=True))
+                    > 0
                     or self.get_inventory_used() > 0
                 )
             ):  # only start round trip if there is something to deliver, either from tile or in inventory already
@@ -392,8 +394,8 @@ class pmob(mob):
     def follow_automatic_route(self):
         """
         Description:
-            Moves along this unit's in-progress movement route until it cannot complete the next step. A unit will wait for commodities to transport from the start, then pick them up and move along the path, picking up others along
-                the way. At the end of the path, it drops all commodities and moves back towards the start
+            Moves along this unit's in-progress movement route until it cannot complete the next step. A unit will wait for items to transport from the start, then pick them up and move along the path, picking up others along
+                the way. At the end of the path, it drops all items and moves back towards the start
         Input:
             None
         Output:
@@ -404,7 +406,7 @@ class pmob(mob):
             while self.can_follow_automatic_route():
                 next_step = self.in_progress_automatic_route[0]
                 if next_step == "start":
-                    self.pick_up_all_commodities(True)
+                    self.pick_up_all_items(True)
                 elif next_step == "end":
                     self.drop_inventory()
                 else:
@@ -418,10 +420,10 @@ class pmob(mob):
                     ):
                         if (
                             self.get_next_automatic_stop() == "end"
-                        ):  # only pick up commodities on way to end
-                            self.pick_up_all_commodities(
+                        ):  # Only pick up items on way to end
+                            self.pick_up_all_items(
                                 True
-                            )  # attempt to pick up commodities both before and after moving
+                            )  # Attempt to pick up items both before and after moving
                     x_change = next_step[0] - self.x
                     y_change = next_step[1] - self.y
                     self.move(x_change, y_change)
@@ -435,8 +437,8 @@ class pmob(mob):
                     ):
                         if (
                             self.get_next_automatic_stop() == "end"
-                        ):  # only pick up commodities on way to end
-                            self.pick_up_all_commodities(True)
+                        ):  # only pick up items on way to end
+                            self.pick_up_all_items(True)
                 progressed = True
                 self.in_progress_automatic_route.append(
                     self.in_progress_automatic_route.pop(0)
@@ -458,10 +460,10 @@ class pmob(mob):
                 return current_stop
         return None
 
-    def pick_up_all_commodities(self, ignore_consumer_goods=False):
+    def pick_up_all_items(self, ignore_consumer_goods=False):
         """
         Description:
-            Adds as many local commodities to this unit's inventory as possible, possibly choosing not to pick up consumer goods based on the inputted boolean
+            Adds as many local items to this unit's inventory as possible, possibly choosing not to pick up consumer goods based on the inputted boolean
         Input:
             boolean ignore_consumer_goods = False: Whether to not pick up consumer goods from this unit's tile
         Output:
@@ -470,11 +472,17 @@ class pmob(mob):
         tile = self.get_cell().tile
         while (
             self.get_inventory_remaining() > 0
-            and len(tile.get_held_commodities(ignore_consumer_goods)) > 0
+            and len(tile.get_held_items(ignore_consumer_goods=ignore_consumer_goods))
+            > 0
         ):
-            commodity = tile.get_held_commodities(ignore_consumer_goods)[0]
-            self.change_inventory(commodity, 1)
-            tile.change_inventory(commodity, -1)
+            items_present = tile.get_held_items(
+                ignore_consumer_goods=ignore_consumer_goods
+            )
+            amount_transferred = min(
+                self.get_inventory_remaining(), tile.get_inventory(items_present[0])
+            )
+            self.change_inventory(items_present[0], amount_transferred)
+            tile.change_inventory(items_present[0], -amount_transferred)
 
     def clear_automatic_route(self):
         """
@@ -729,7 +737,7 @@ class pmob(mob):
     def remove(self):
         """
         Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also deselects this mob and drops any commodities it is carrying
+            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also deselects this mob and drops any items it is carrying
         Input:
             None
         Output:
@@ -737,9 +745,9 @@ class pmob(mob):
         """
         if self.get_cell() and self.get_cell().tile:  # Drop inventory on death
             current_tile = self.get_cell().tile
-            for current_commodity in constants.commodity_types:
+            for current_item_type in self.get_held_items():
                 current_tile.change_inventory(
-                    current_commodity, self.get_inventory(current_commodity)
+                    current_item_type, self.get_inventory(current_item_type)
                 )
         self.remove_from_turn_queue()
         super().remove()
@@ -811,17 +819,17 @@ class pmob(mob):
             self.manage_inventory_attrition()  # do an inventory check when crossing ocean, using the destination's terrain
             self.end_turn_destination = None
 
-    def set_inventory(self, commodity, new_value):
+    def set_inventory(self, item: item_types.item_type, new_value: int) -> None:
         """
         Description:
-            Sets the number of commodities of a certain type held by this mob. Also ensures that the mob info display is updated correctly
+            Sets the number of items of a certain type held by this mob. Also ensures that the mob info display is updated correctly
         Input:
-            string commodity: Type of commodity to set the inventory of
-            int new_value: Amount of commodities of the inputted type to set inventory to
+            item_type item: Item type to set the inventory of
+            int new_value: Amount of items of the inputted type to set inventory to
         Output:
             None
         """
-        super().set_inventory(commodity, new_value)
+        super().set_inventory(item, new_value)
         if status.displayed_mob == self:
             actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
 
@@ -856,7 +864,7 @@ class pmob(mob):
     def embark_vehicle(self, vehicle, focus=True):
         """
         Description:
-            Hides this mob and embarks it on the inputted vehicle as a passenger. Any commodities held by this mob are put on the vehicle if there is cargo space, or dropped in its tile if there is no cargo space
+            Hides this mob and embarks it on the inputted vehicle as a passenger. Any items held by this mob are put on the vehicle if there is cargo space, or dropped in its tile if there is no cargo space
         Input:
             vehicle vehicle: vehicle that this mob becomes a passenger of
             boolean focus = False: Whether this action is being "focused on" by the player or done automatically
@@ -864,16 +872,16 @@ class pmob(mob):
             None
         """
         self.vehicle = vehicle
-        for (
-            current_commodity
-        ) in self.get_held_commodities():  # gives inventory to vehicle
-            num_held = self.get_inventory(current_commodity)
-            for current_commodity_unit in range(num_held):
-                if vehicle.get_inventory_remaining() > 0:
-                    vehicle.change_inventory(current_commodity, 1)
-                else:
-                    self.get_cell().tile.change_inventory(current_commodity, 1)
-            self.inventory = {}
+        for current_item in self.get_held_items():  # Give inventory to vehicle
+            amount_held = self.get_inventory(current_item)
+
+            amount_transferred = min(vehicle.get_inventory_remaining(), amount_held)
+            vehicle.change_inventory(current_item, amount_transferred)
+
+            amount_dropped = amount_held - amount_transferred
+            self.get_cell().tile.change_inventory(current_item, amount_dropped)
+
+        self.inventory = {}
         self.hide_images()
         self.remove_from_turn_queue()
         vehicle.contained_mobs.append(self)

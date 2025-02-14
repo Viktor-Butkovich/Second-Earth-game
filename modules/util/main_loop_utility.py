@@ -116,7 +116,7 @@ def action_possible():
         status.displayed_notification
         or (not flags.player_turn)
         or flags.choosing_destination
-        or flags.choosing_advertised_commodity
+        or flags.choosing_advertised_item
         or flags.drawing_automatic_route
     )
 
@@ -431,13 +431,13 @@ def manage_lmb_down(clicked_button):
     if (
         action_possible()
         or flags.choosing_destination
-        or flags.choosing_advertised_commodity
+        or flags.choosing_advertised_item
         or flags.drawing_automatic_route
     ):
         if not clicked_button and (
             not (
                 flags.choosing_destination
-                or flags.choosing_advertised_commodity
+                or flags.choosing_advertised_item
                 or flags.drawing_automatic_route
             )
         ):  # Do not do selecting operations if user was trying to click a button # and action_possible()
@@ -517,8 +517,8 @@ def manage_lmb_down(clicked_button):
                                 )
             flags.choosing_destination = False
 
-        elif (not clicked_button) and flags.choosing_advertised_commodity:
-            flags.choosing_advertised_commodity = False
+        elif (not clicked_button) and flags.choosing_advertised_item:
+            flags.choosing_advertised_item = False
 
         elif (not clicked_button) and flags.drawing_automatic_route:
             for current_grid in status.grid_list:  # destination_grids:

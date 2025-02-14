@@ -141,6 +141,9 @@ class sound_manager_template:
         Output:
             Channel: Returns the pygame mixer Channel object that the sound was played on
         """
+        if not file_name:
+            return None
+
         try:
             current_sound = pygame.mixer.Sound(f"sounds/{file_name}.ogg")
         except:
@@ -150,12 +153,13 @@ class sound_manager_template:
             current_sound = self.apply_radio_effect(current_sound)
 
         channel = current_sound.play()
-        try:
-            channel.set_volume(volume)
-        except:
-            raise Exception(
-                f"Error: Could not set volume to {volume} for sound {file_name}"
-            )
+        if channel:
+            try:
+                channel.set_volume(volume)
+            except:
+                raise Exception(
+                    f"Error: Could not set volume to {volume} for sound {file_name}"
+                )
         return channel
 
     def queue_sound(

@@ -994,7 +994,7 @@ class minister:
     def estimate_expected(self, base, allow_decimals=True):
         """
         Description:
-            Calculates and returns an expected number within a certain range of the inputted base amount, with accuracy based on this minister's skill. A prosecutor will attempt to estimate what the output of production, commodity
+            Calculates and returns an expected number within a certain range of the inputted base amount, with accuracy based on this minister's skill. A prosecutor will attempt to estimate what the output of production, item
                 sales, etc. should be
         Input:
             double base: Target amount that estimate is approximating

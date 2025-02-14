@@ -52,8 +52,6 @@ class save_load_manager_template:
         self.copied_constants.append("money")
         self.copied_constants.append("evil")
         self.copied_constants.append("fear")
-        self.copied_constants.append("sold_commodities")
-        self.copied_constants.append("item_prices")
 
         self.copied_statuses = []
         self.copied_statuses.append("previous_production_report")
@@ -87,21 +85,21 @@ class save_load_manager_template:
             round(0.75 * status.strategic_map_grid.coordinate_width),
             round(0.75 * status.strategic_map_grid.coordinate_height),
         )
-
-        for current_commodity in constants.commodity_types:
-            if current_commodity != "consumer goods":
-                price = round((random.randrange(1, 7) + random.randrange(1, 7)) / 2)
-                increase = 0
-                if current_commodity == "gold":
-                    increase = random.randrange(1, 7)
-                elif current_commodity == "diamond":
-                    increase = random.randrange(1, 7) + random.randrange(1, 7)
-                price += increase
-                market_utility.set_price(current_commodity, price)  # 2-5
+        for current_item in status.item_types.values():
+            if current_item.key == constants.CONSUMER_GOODS_ITEM:
+                market_utility.set_price(
+                    current_item, constants.consumer_goods_starting_price
+                )
             else:
                 market_utility.set_price(
-                    current_commodity, constants.consumer_goods_starting_price
-                )
+                    current_item,
+                    round((random.randrange(1, 7) + random.randrange(1, 7)) / 2),
+                )  # 2-5
+
+        for item_type in status.item_types.values():
+            item_type.amount_produced_this_turn = 0
+            item_type.amount_sold_this_turn = 0
+            item_type.production_attempted_this_turn = False
 
         flags.player_turn = True
         status.previous_financial_report = None
@@ -113,9 +111,6 @@ class save_load_manager_template:
         for key, worker_type in status.worker_types.items():
             worker_type.reset()
         actor_utility.reset_action_prices()
-        for current_commodity in constants.commodity_types:
-            constants.sold_commodities[current_commodity] = 0
-        constants.attempted_commodities = []
         flags.prosecution_bribed_judge = False
 
         constants.money_tracker.reset_transaction_history()
@@ -183,6 +178,10 @@ class save_load_manager_template:
             if unit_type.save_changes
         ]
 
+        saved_item_types = [
+            item_type.to_save_dict() for key, item_type in status.item_types.items()
+        ]
+
         saved_actor_dicts = []
         for current_pmob in status.pmob_list:
             if not current_pmob.any_permissions(
@@ -220,6 +219,7 @@ class save_load_manager_template:
             pickle.dump(saved_unit_types, handle)
             pickle.dump(saved_actor_dicts, handle)
             pickle.dump(saved_minister_dicts, handle)
+            pickle.dump(saved_item_types, handle)
             handle.close()
         text_utility.print_to_screen("Game successfully saved to " + file_path)
 
@@ -251,6 +251,7 @@ class save_load_manager_template:
                 saved_worker_types = pickle.load(handle)
                 saved_actor_dicts = pickle.load(handle)
                 saved_minister_dicts = pickle.load(handle)
+                saved_item_types = pickle.load(handle)
                 handle.close()
         except:
             text_utility.print_to_screen("There is no " + file_path + " save file yet.")
@@ -298,9 +299,15 @@ class save_load_manager_template:
             )
         for current_actor_dict in saved_actor_dicts:
             constants.actor_creation_manager.create(True, current_actor_dict)
+
+        for current_item_type_dict in saved_item_types:
+            status.item_types[current_item_type_dict["key"]].apply_save_dict(
+                current_item_type_dict
+            )
+
         constants.available_minister_left_index = -2
         minister_utility.update_available_minister_display()
-        status.commodity_prices_label.update_label()
+        status.item_prices_label.update_label()
 
         status.minimap_grid.calibrate(
             round(0.75 * status.strategic_map_grid.coordinate_width),

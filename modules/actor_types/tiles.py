@@ -2,9 +2,11 @@
 
 import pygame
 import random
+from typing import Tuple
 from modules.constructs import images
 from modules.util import utility, actor_utility, main_loop_utility
 from modules.actor_types.actors import actor
+from modules.constructs import item_types
 from modules.constants import constants, status, flags
 
 
@@ -36,6 +38,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             input_dict["grid"]
         ]  # Give actor a 1-item list of grids as input
         self.name_icon = None
+        self.resource: item_types.item_type = None
         super().__init__(from_save, input_dict, original_constructor=False)
         self.set_name(input_dict["name"])
         self.image_dict = {"default": input_dict["image"]}
@@ -68,11 +71,12 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 self.inventory = self.cell.save_dict["inventory"]
             if (
                 self.grid.grid_type == constants.EARTH_GRID_TYPE
-            ):  # Earth should be able to hold commodities despite not being terrain
+            ):  # Earth should be able to hold items despite not being terrain
                 self.infinite_inventory_capacity = True
                 if constants.effect_manager.effect_active("infinite_commodities"):
-                    for current_commodity in constants.commodity_types:
-                        self.inventory[current_commodity] = 10
+                    for current_item_type in status.item_types.values():
+                        if current_item_type.can_sell:
+                            self.inventory[current_item_type.key] = 10
         else:
             self.terrain = None
         self.finish_init(original_constructor, from_save, input_dict)
@@ -195,42 +199,46 @@ class tile(actor):  # to do: make terrain tiles a subclass
     def remove_excess_inventory(self):
         """
         Description:
-            Removes random excess commodities from this tile until the number of commodities fits in this tile's inventory capacity
+            Removes random excess items from this tile until the number of items fits in this tile's inventory capacity
         Input:
             None
         Output:
             None
         """
         if not self.infinite_inventory_capacity:
-            inventory_used = self.get_inventory_used()
-            amount_to_remove = inventory_used - self.inventory_capacity
+            amount_to_remove = self.get_inventory_used() - self.inventory_capacity
             if amount_to_remove > 0:
-                commodity_types = self.get_held_commodities()
-                amount_removed = 0
-                while amount_removed < amount_to_remove:
-                    commodity_removed = random.choice(commodity_types)
-                    if self.get_inventory(commodity_removed) > 0:
-                        self.change_inventory(commodity_removed, -1)
-                        amount_removed += 1
+                items_held = []
+                for current_item_type in self.get_held_items():
+                    items_held += [current_item_type] * self.get_inventory(
+                        current_item_type
+                    )
+                item_types_removed = random.sample(
+                    population=items_held, k=amount_to_remove
+                )
+                for (
+                    current_item_type
+                ) in item_types_removed:  # Randomly remove amount_to_remove items
+                    self.change_inventory(current_item_type, -1)
 
-    def set_inventory(self, commodity, new_value):
+    def set_inventory(self, item: item_types.item_type, new_value: int) -> None:
         """
         Description:
-            Sets the number of commodities of a certain type held by this tile. Also ensures that the tile info display is updated correctly
+            Sets the number of items of a certain type held by this tile. Also ensures that the tile info display is updated correctly
         Input:
-            string commodity: Type of commodity to set the inventory of
-            int new_value: Amount of commodities of the inputted type to set inventory to
+            item_type item: Type of item to set the inventory of
+            int new_value: Amount of items of the inputted type to set inventory to
         Output:
             None
         """
-        super().set_inventory(commodity, new_value)
+        super().set_inventory(item, new_value)
         equivalent_tiles = self.get_equivalent_tiles()
         for tile in equivalent_tiles:
-            tile.inventory[commodity] = new_value
+            tile.inventory[item.key] = new_value
         if status.displayed_tile in [self] + equivalent_tiles:
             actor_utility.calibrate_actor_info_display(status.tile_info_display, self)
 
-    def get_main_grid_coordinates(self):
+    def get_main_grid_coordinates(self) -> Tuple[int, int]:
         """
         Description:
             Returns the coordinates cooresponding to this tile on the strategic map grid. If this tile is already on the strategic map grid, just returns this tile's coordinates
@@ -527,12 +535,14 @@ class tile(actor):  # to do: make terrain tiles a subclass
             actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
             actor_utility.calibrate_actor_info_display(status.tile_info_display, self)
 
-    def set_resource(self, new_resource, update_image_bundle=True):
+    def set_resource(
+        self, new_resource: item_types.item_type, update_image_bundle=True
+    ):
         """
         Description:
             Sets the resource type of this tile to the inputted value, removing or creating resource icons as needed
         Input:
-            string new_resource: The new resource type of this tile, like 'exotic wood'
+            item_type new_resource: The new resource type of this tile, like "Gold" or None
             boolean update_image_bundle: Whether to update the image bundle - if multiple sets are being used on a tile, optimal to only update after the last one
         Output:
             None
@@ -622,7 +632,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
 
             if self.cell.terrain_handler.resource:  # If resource present, show resource
                 tooltip_message.append(
-                    f"This tile has {utility.generate_article(self.cell.terrain_handler.resource)} {self.cell.terrain_handler.resource} resource"
+                    f"This tile has {utility.generate_article(self.cell.terrain_handler.resource.name)} {self.cell.terrain_handler.resource.name} resource"
                 )
             for terrain_feature in self.cell.terrain_handler.terrain_features:
                 if status.terrain_feature_types[terrain_feature].visible:

@@ -33,7 +33,7 @@ from modules.interface_types.inventory_interface import item_icon
 from modules.interface_types.instructions import instructions_page
 from modules.interface_types.dice import die
 from modules.interface_types.labels import (
-    commodity_prices_label_template,
+    item_prices_label_template,
     multi_line_label,
     label,
 )
@@ -79,7 +79,7 @@ building_types: Dict[str, building_type] = {}
 unit_types: Dict[str, unit_type] = {}
 worker_types: Dict[str, worker_type] = {}
 recruitment_types: List[unit_type] = []
-item_type: Dict[str, item_type] = {}
+item_types: Dict[str, item_type] = {}
 equipment_types: Dict[str, equipment_type] = {}
 minister_types: Dict[str, minister_type] = {}
 terrain_feature_types: Dict[str, terrain_feature_type] = {}
@@ -134,7 +134,7 @@ settlement_collection: ordered_collection = None
 local_conditions_collection: ordered_collection = None
 global_conditions_collection: ordered_collection = None
 temperature_breakdown_collection: ordered_collection = None
-commodity_prices_label: commodity_prices_label_template = None
+item_prices_label: item_prices_label_template = None
 reorganize_group_left_button: reorganize_unit_button = None
 reorganize_group_right_button: reorganize_unit_button = None
 reorganize_vehicle_left_button: reorganize_unit_button = None

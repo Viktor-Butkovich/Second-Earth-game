@@ -9,7 +9,7 @@ from modules.util import (
     actor_utility,
     minister_utility,
 )
-from modules.constructs import unit_types
+from modules.constructs import unit_types, item_types
 from modules.constants import constants, status, flags
 
 
@@ -93,7 +93,7 @@ class recruitment_button(button):
 
 class buy_item_button(button):
     """
-    Button that buys a unit of commodity_type when clicked and has an image matching that of its commodity
+    Button that buys a unit of item when clicked and has an image matching that of its item
     """
 
     def __init__(self, input_dict):
@@ -110,11 +110,11 @@ class buy_item_button(button):
                 'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
                 'button_type': string value - Determines the function of this button, like 'end turn'
                 'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'commodity_type': string value - Type of commodity that this button buys, like 'consumer goods'
+                'item_type': string value - Key for the item type that this button buys, like "consumer_goods"
         Output:
             None
         """
-        self.item_type = input_dict["item_type"]
+        self.item_type: item_types.item_type = input_dict["item_type"]
         input_dict["image_id"] = [
             {
                 "image_id": "buttons/default_button_alt.png",
@@ -126,7 +126,7 @@ class buy_item_button(button):
                 "detail_level": constants.BUTTON_DETAIL_LEVEL,
             },
             {
-                "image_id": f"items/{self.item_type}.png",
+                "image_id": f"items/{self.item_type.key}.png",
                 "size": 0.75,
                 "detail_level": constants.BUTTON_DETAIL_LEVEL,
             },
@@ -137,15 +137,14 @@ class buy_item_button(button):
     def on_click(self):
         """
         Description:
-            Controls this button's behavior when clicked. This type of button buys a unit of the item_type commodity
+            Controls this button's behavior when clicked. This type of button buys a unit of the item
         Input:
             None
         Output:
             None
         """
         if main_loop_utility.action_possible():
-            cost = constants.item_prices[self.item_type]
-            if constants.money_tracker.get() >= cost:
+            if constants.money_tracker.get() >= self.item_type.price:
                 if minister_utility.positions_filled():
                     actor_utility.calibrate_actor_info_display(
                         status.tile_info_display,
@@ -153,24 +152,24 @@ class buy_item_button(button):
                     )
                     status.earth_grid.cell_list[0][0].tile.change_inventory(
                         self.item_type, 1
-                    )  # adds 1 of commodity type to
-                    constants.money_tracker.change(-1 * cost, "items")
-                    if self.item_type.endswith("s"):
+                    )  # Adds 1 of item bought to local tile
+                    constants.money_tracker.change(-1 * self.item_type.price, "items")
+                    if self.item_type.name.endswith("s"):
                         text_utility.print_to_screen(
-                            f"You spent {cost} money to buy 1 unit of {self.item_type}."
+                            f"You spent {self.item_type.price} money to buy 1 unit of {self.item_type.name}."
                         )
                     else:
                         text_utility.print_to_screen(
-                            f"You spent {cost} money to buy 1 {self.item_type}."
+                            f"You spent {self.item_type.price} money to buy 1 {self.item_type.name}."
                         )
                     if (
                         random.randrange(1, 7) == 1
-                        and self.item_type in constants.commodity_types
+                        and self.item_type.allow_price_variation
                     ):  # 1/6 chance
-                        market_utility.change_price(self.item_type, 1)
                         text_utility.print_to_screen(
-                            f"The price of {self.item_type} has increased from {cost} to {cost + 1}."
+                            f"The price of {self.item_type.name} has increased from {self.item_type.price} to {self.item_type.price + 1}."
                         )
+                        market_utility.change_price(self.item_type, 1)
                     for linked_tab in status.tile_tabbed_collection.tabbed_members:
                         linked_tab_button = linked_tab.linked_tab_button
                         if linked_tab_button.identifier == constants.INVENTORY_PANEL:
@@ -178,31 +177,30 @@ class buy_item_button(button):
                             pass
             else:
                 text_utility.print_to_screen(
-                    "You do not have enough money to purchase this commodity"
+                    "You do not have enough money to purchase this item"
                 )
         else:
             text_utility.print_to_screen(
-                "You are busy and cannot purchase " + self.item_type + "."
+                f"You are busy and cannot purchase {self.item_type.name}."
             )
 
     def update_tooltip(self):
         """
         Description:
-            Sets this image's tooltip to what it should be, depending on its button_type. This type of button has a tooltip describing the commodity that it buys and its price
+            Sets this image's tooltip to what it should be, depending on its button_type. This type of button has a tooltip describing the item that it buys and its price
         Input:
             None
         Output:
             None
         """
         new_tooltip = []
-        if self.item_type.endswith("s"):
+        if self.item_type.name.endswith("s"):
             new_tooltip.append(
-                f"Purchases 1 unit of {self.item_type} for {constants.item_prices[self.item_type]} money."
+                f"Purchases 1 unit of {self.item_type.name} for {self.item_type.price} money."
             )
         else:
             new_tooltip.append(
-                f"Purchases 1 {self.item_type} for {constants.item_prices[self.item_type]} money."
+                f"Purchases 1 {self.item_type.name} for {self.item_type.price} money."
             )
-        if self.item_type in status.equipment_types:
-            new_tooltip += status.equipment_types[self.item_type].description
+        new_tooltip += self.item_type.description
         self.set_tooltip(new_tooltip)

@@ -5,9 +5,8 @@ from modules.setup import (
     setup,
     manage_crash,
     misc,
-    equipment_types_config,
+    item_types_config,
     terrain_feature_types_config,
-    commodities,
     minister_types_config,
     building_types_config,
     unit_types_config,
@@ -35,9 +34,8 @@ from modules.setup import (
 try:
     setup(
         misc,
-        equipment_types_config,
+        item_types_config,
         terrain_feature_types_config,
-        commodities,
         minister_types_config,
         building_types_config,
         unit_types_config,
@@ -425,8 +423,8 @@ except Exception:  # Displays error message and records error message in crash l
 #       Would likely just require a mutation operator and a genome of the required weights
 
 # Upcoming work queue:
-# Finally ready to add new resources! Next major step is to add basic economic mechanics, now that the baseline terraforming is functional
-#   First add an item_type class, which should be inherited by equipment_type and resource_type (doesn't exist yet)
+# Add demo mode, in addition to release and dev
+# Next major step is to add basic economic mechanics, now that the baseline terraforming is functional
 # Add new resource types, with colonist upkeep, buying on Earth, transporting, and using to build when it is in the builder's tile
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
@@ -448,7 +446,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Possibly show solation as brightness on each tile (shouldn't affect albedo)
 # Add task-specific unit voicelines, with separate unit and minister voice sets
 # Add modern minister outfits
-# Add crater terrain variants
+# Add crater and flood basalt terrain variants
 # Try out fuzzy logic for planetary simulation
 #
 # Fix this rare crash

@@ -74,6 +74,7 @@ class expedition(group):
         Output:
             None
         """
+        return
         self.current_action_type = "exploration"  # used in action notification to tell whether off tile notification should explore tile or not
         cardinal_directions = {
             "up": "north",

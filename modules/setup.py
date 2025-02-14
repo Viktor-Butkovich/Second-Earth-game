@@ -11,6 +11,7 @@ from modules.constructs import (
     building_types,
     equipment_types,
     terrain_feature_types,
+    item_types,
 )
 from modules.tools.data_managers import (
     notification_manager_template,
@@ -181,14 +182,16 @@ def misc():
             "init_type": constants.LOADING_IMAGE_TEMPLATE_IMAGE,
         }
     )
+    loading_screen_banner_width = 1400
     status.loading_screen_quote_banner = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(
-                    constants.default_display_width / 2 - 650,
+                    constants.default_display_width / 2
+                    - (loading_screen_banner_width // 2),
                     constants.default_display_height / 2 - 500,
                 ),
-                "ideal_width": scaling.scale_width(1300),
+                "ideal_width": scaling.scale_width(loading_screen_banner_width),
                 "minimum_height": 50,
                 "image_id": "misc/empty.png",
                 "init_type": constants.MULTI_LINE_LABEL,
@@ -352,15 +355,54 @@ def misc():
     # ) # rect at original location prevents collection from moving unintentionally when resizing
 
 
-def equipment_types_config():
+def item_types_config():
     """
     Description:
-        Defines equipment type templates
+        Defines item type templates
     Input:
         None
     Output:
         None
     """
+    item_types.item_type(
+        {
+            "equipment_type": constants.CONSUMER_GOODS_ITEM,
+            "can_purchase": True,
+            "price": constants.consumer_goods_starting_price,
+            "can_sell": True,
+            "price": constants.consumer_goods_starting_price,
+            "description": ["Placeholder consumer goods description"],
+            "item_image": "items/consumer_goods.png",
+            "allow_price_variation": True,
+        }
+    )
+
+    item_types.item_type(
+        {
+            "equipment_type": "iron",
+            "can_purchase": True,
+            "price": constants.consumer_goods_starting_price,
+            "can_sell": True,
+            "price": 5,
+            "description": ["Placeholder idk description"],
+            "item_image": "items/consumer_goods.png",
+            "allow_price_variation": True,
+        }
+    )
+
+    item_types.item_type(
+        {
+            "equipment_type": "gold",
+            "can_purchase": True,
+            "price": constants.consumer_goods_starting_price,
+            "can_sell": True,
+            "price": 5,
+            "description": ["Placeholder idk description"],
+            "item_image": "items/consumer_goods.png",
+            "allow_price_variation": True,
+        }
+    )
+
     equipment_types.equipment_type(
         {
             "equipment_type": constants.SPACESUITS_EQUIPMENT,
@@ -481,28 +523,6 @@ def actions():
     # action imports hardcoded here, alternative to needing to keep module files in .exe version
 
 
-def commodities():
-    """
-    Description:
-        Defines commodities with associated buildings and icons, along with buildings
-    Input:
-        None
-    Output:
-        None
-    """
-    for current_commodity in constants.commodity_types:
-        constants.item_prices[current_commodity] = 0
-        constants.sold_commodities[current_commodity] = 0
-
-    for current_commodity in constants.collectable_resources:
-        constants.commodities_produced[current_commodity] = 0
-
-    for current_equipment in status.equipment_types:
-        constants.item_prices[current_equipment] = status.equipment_types[
-            current_equipment
-        ].price
-
-
 def minister_types_config():
     """
     Description:
@@ -559,7 +579,7 @@ def minister_types_config():
             "name": "Minister of Industry",
             "skill_type": constants.INDUSTRY_SKILL,
             "description": [
-                "Industry-oriented units include construction gangs and work crews."
+                "Industry-oriented units include construction crews and work crews."
             ],
         }
     )
@@ -1006,7 +1026,7 @@ def unit_types_config():
             "recruitment_cost": 5,
             "description": [
                 f"Drivers are controlled by the {status.minister_types[constants.TRANSPORTATION_MINISTER].name}.",
-                "A driver combines with colonists to form porters, which can transport commodities and move quickly.",
+                "A driver combines with colonists to form porters, which can transport items and move quickly.",
             ],
         },
     ).link_group_type(status.unit_types[constants.PORTERS])
@@ -1045,7 +1065,7 @@ def unit_types_config():
             "recruitment_cost": 5,
             "description": [
                 f"Foremen are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}.",
-                "A foreman combines with colonists to form a work crew, which can produce commodities when attached to a production facility.",
+                "A foreman combines with colonists to form a work crew, which can produce resources when attached to a production facility.",
             ],
         },
     ).link_group_type(status.unit_types[constants.WORK_CREW])
@@ -1053,8 +1073,8 @@ def unit_types_config():
     unit_types.group_type(
         False,
         {
-            "key": constants.CONSTRUCTION_GANG,
-            "name": "construction gang",
+            "key": constants.CONSTRUCTION_CREW,
+            "name": "construction crew",
             "controlling_minister_type": status.minister_types[
                 constants.INDUSTRY_MINISTER
             ],
@@ -1084,10 +1104,10 @@ def unit_types_config():
             "recruitment_cost": 5,
             "description": [
                 f"Engineers are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}.",
-                "An engineer combines with colonists to form a construction gang, which can build buildings, roads, railroads, and trains.",
+                "An engineer combines with colonists to form a construction crew, which can build buildings, roads, railroads, and trains.",
             ],
         },
-    ).link_group_type(status.unit_types[constants.CONSTRUCTION_GANG])
+    ).link_group_type(status.unit_types[constants.CONSTRUCTION_CREW])
 
     unit_types.worker_type(
         False,
@@ -1114,7 +1134,7 @@ def unit_types_config():
                 "Colonists represent a large group of workers, and are required for most tasks. ",
                 "Colonists must work near their housing, and require upkeep each turn in food, air, water, and goods. ",
                 "Officers can be attached to colonists to form groups, which can perform actions. ",
-                "For example, an engineer combined with colonists forms a construction gang, which can construct buildings. ",
+                "For example, an engineer combined with colonists forms a construction crew, which can construct buildings. ",
             ],
             "number": 2,
         },
@@ -1890,11 +1910,9 @@ def earth_screen():
                 },
             }
         )
-    for purchase_item_type in ["consumer goods"] + [
-        equipment_type.key
-        for equipment_type in status.equipment_types.values()
-        if equipment_type.can_purchase
-    ]:  # Creates purchase button for items from earth
+    for (
+        purchase_item_type
+    ) in status.item_types.values():  # Creates purchase button for items from earth
         constants.actor_creation_manager.create_interface_element(
             {
                 "width": scaling.scale_width(100),
@@ -2686,27 +2704,34 @@ def tile_interface():
 def inventory_interface():
     """
     Description:
-        Initializes the commodity prices display and both mob/tile tabbed collections and inventory interfaces
+        Initializes the item prices display and both mob/tile tabbed collections and inventory interfaces
     Input:
         None
     Output:
         None
     """
-    commodity_prices_x, commodity_prices_y = (1000, 100)
-    commodity_prices_height = 35 + (30 * len(constants.commodity_types))
-    commodity_prices_width = 200
+    item_prices_x, item_prices_y = (1000, 100)
+    item_prices_height = 35 + (
+        30
+        * len(
+            [
+                current_item_type
+                for current_item_type in status.item_types.values()
+                if current_item_type.can_sell
+            ]
+        )
+    )
+    item_prices_width = 200
 
-    status.commodity_prices_label = (
+    status.item_prices_label = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "coordinates": scaling.scale_coordinates(
-                    commodity_prices_x, commodity_prices_y
-                ),
-                "minimum_width": scaling.scale_width(commodity_prices_width),
-                "height": scaling.scale_height(commodity_prices_height),
+                "coordinates": scaling.scale_coordinates(item_prices_x, item_prices_y),
+                "minimum_width": scaling.scale_width(item_prices_width),
+                "height": scaling.scale_height(item_prices_height),
                 "modes": [constants.EARTH_MODE],
-                "image_id": "misc/commodity_prices_label.png",
-                "init_type": constants.COMMODITY_PRICES_LABEL,
+                "image_id": "misc/item_prices_label.png",
+                "init_type": constants.ITEM_PRICES_LABEL,
             }
         )
     )
@@ -2715,23 +2740,24 @@ def inventory_interface():
         "width": scaling.scale_width(30),
         "height": scaling.scale_height(30),
         "modes": [constants.EARTH_MODE],
-        "init_type": constants.COMMODITY_BUTTON,
+        "init_type": constants.SELLABLE_ITEM_BUTTON,
     }
-    for current_index in range(
-        len(constants.commodity_types)
-    ):  # commodity prices on Earth
-        input_dict["coordinates"] = scaling.scale_coordinates(
-            commodity_prices_x - 35,
-            commodity_prices_y + commodity_prices_height - 65 - (30 * current_index),
-        )
-        input_dict["image_id"] = [
-            "misc/green_circle.png",
-            "items/" + constants.commodity_types[current_index] + ".png",
-        ]
-        input_dict["commodity"] = constants.commodity_types[current_index]
-        new_commodity_button = (
-            constants.actor_creation_manager.create_interface_element(input_dict)
-        )
+    current_index = 0
+    for current_item_type in status.item_types.values():
+        if current_item_type.can_sell:
+            input_dict["coordinates"] = scaling.scale_coordinates(
+                item_prices_x - 35,
+                item_prices_y + item_prices_height - 65 - (30 * current_index),
+            )
+            input_dict["image_id"] = [
+                "misc/green_circle.png",
+                f"items/{current_item_type.key}.png",
+            ]
+            input_dict["item_type"] = current_item_type
+            new_sellable_item_button = (
+                constants.actor_creation_manager.create_interface_element(input_dict)
+            )
+            current_index += 1
 
     status.mob_inventory_collection = (
         constants.actor_creation_manager.create_interface_element(
@@ -2745,7 +2771,7 @@ def inventory_interface():
                     "button_image_id": [
                         "buttons/default_button_alt2.png",
                         {"image_id": "misc/green_circle.png", "size": 0.75},
-                        {"image_id": "items/consumer goods.png", "size": 0.75},
+                        {"image_id": "items/consumer_goods.png", "size": 0.75},
                     ],
                     "identifier": constants.INVENTORY_PANEL,
                     "tab_name": "cargo",
@@ -2907,7 +2933,7 @@ def inventory_interface():
                     "button_image_id": [
                         "buttons/default_button_alt2.png",
                         {"image_id": "misc/green_circle.png", "size": 0.75},
-                        {"image_id": "items/consumer goods.png", "size": 0.75},
+                        {"image_id": "items/consumer_goods.png", "size": 0.75},
                     ],
                     "identifier": constants.INVENTORY_PANEL,
                     "tab_name": "warehouses",
