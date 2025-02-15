@@ -50,6 +50,7 @@ class mob(actor):
         self.actor_type = constants.MOB_ACTOR_TYPE
         self.end_turn_destination = None
         self.habitability = constants.HABITABILITY_PERFECT
+        self.ambient_sound_channel: pygame.mixer.Channel = None
         super().__init__(from_save, input_dict, original_constructor=False)
         if isinstance(input_dict["image"], str):
             self.image_dict = {"default": input_dict["image"]}
@@ -261,6 +262,10 @@ class mob(actor):
             and self.get_cell()
         ):
             self.update_habitability()
+        if task == constants.TRAVELING_PERMISSION and self.get_permission(
+            constants.SPACESHIP_PERMISSION
+        ):
+            self.start_ambient_sound()
 
     def all_permissions(self, *tasks: str) -> bool:
         """
@@ -1013,7 +1018,7 @@ class mob(actor):
         if self.end_turn_destination:
             if self.end_turn_destination.cell.grid == status.strategic_map_grid:
                 tooltip_list.append(
-                    f"This unit has been issued an order to travel to ({self.end_turn_destination.cell.x}, {self.end_turn_destination.cell.y}) in Africa at the end of the turn"
+                    f"This unit has been issued an order to travel to ({self.end_turn_destination.cell.x}, {self.end_turn_destination.cell.y}) on {status.strategic_map_grid.world_handler.name} at the end of the turn"
                 )
             else:
                 tooltip_list.append(
@@ -1065,7 +1070,9 @@ class mob(actor):
         ):
             for current_equipment in self.equipment.copy():
                 if self.equipment[current_equipment]:
-                    self.get_cell().tile.change_inventory(current_equipment, 1)
+                    self.get_cell().tile.change_inventory(
+                        status.equipment_types[current_equipment], 1
+                    )
                     status.equipment_types[current_equipment].unequip(self)
             self.equipment = {}
 
@@ -1211,48 +1218,55 @@ class mob(actor):
             )
         return False
 
-    def selection_sound(self):
+    def selection_sound(self) -> pygame.mixer.Channel:
         """
         Description:
             Plays a sound when this unit is selected, with a varying sound based on this unit's type
         Input:
             None
         Output:
+            pygame.mixer.Channel: Returns the channel that the sound was played on, if any
+        """
+        channel = None
+        if self.all_permissions(
+            constants.PMOB_PERMISSION, constants.VEHICLE_PERMISSION
+        ):
+            if self.get_permission(constants.ACTIVE_PERMISSION):
+                if self.get_permission(constants.TRAIN_PERMISSION):
+                    channel = constants.sound_manager.play_sound("effects/train_horn")
+        officer = None
+        if self.get_permission(constants.OFFICER_PERMISSION):
+            officer = self
+        elif self.get_permission(constants.GROUP_PERMISSION):
+            officer = self.officer
+        elif self.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
+            officer = self.crew.officer
+        if officer:
+            channel = constants.sound_manager.play_sound(
+                utility.get_voice_line(officer, "acknowledgement"),
+                radio_effect=self.get_radio_effect(),
+            )
+        return channel
+
+    def travel_sound(self, allow_fadeout=True):
+        """
+        Description:
+            Plays a sound when this unit starts traveling between grids, with a varying sound based on this unit's type
+        Input:
+            None
+        Output:
             None
         """
-        possible_sounds = []
-        if self.get_permission(constants.PMOB_PERMISSION):
-            if self.get_permission(
-                constants.VEHICLE_PERMISSION
-            ):  # Overlaps with voices if crewed
-                if self.get_permission(constants.ACTIVE_PERMISSION):
-                    if self.get_permission(constants.TRAIN_PERMISSION):
-                        constants.sound_manager.play_sound("effects/train_horn")
-                        return
-                    else:
-                        constants.sound_manager.play_sound("effects/foghorn")
-                else:
-                    return
-
-            if self.any_permissions(
-                constants.OFFICER_PERMISSION,
-                constants.GROUP_PERMISSION,
-                constants.VEHICLE_PERMISSION,
-            ):
-                if self.any_permissions(
-                    constants.BATTALION_PERMISSION, constants.MAJOR_PERMISSION
-                ):
-                    constants.sound_manager.play_sound("effects/bolt_action_2")
-
-                possible_sounds = ["voices/sir 1", "voices/sir 2", "voices/sir 3"]
-                if self.all_permissions(
-                    constants.VEHICLE_PERMISSION, constants.SPACESHIP_PERMISSION
-                ):
-                    possible_sounds.append("voices/steady she goes")
-        if possible_sounds:
-            constants.sound_manager.play_sound(
-                random.choice(possible_sounds), radio_effect=self.get_radio_effect()
-            )
+        if allow_fadeout:
+            constants.sound_manager.fadeout(400)
+        if self.get_permission(constants.SPACESHIP_PERMISSION):
+            channel = self.selection_sound()
+            constants.sound_manager.queue_sound(
+                "effects/spaceship_launch", channel, volume=1.0
+            )  # Play spaceship launch after radio acknowledgement
+        else:
+            constants.sound_manager.play_sound("effects/ocean_splashing")
+            constants.sound_manager.play_sound("effects/ship_propeller")
 
     def movement_sound(self, allow_fadeout=True):
         """
@@ -1270,26 +1284,34 @@ class mob(actor):
                     constants.sound_manager.fadeout(400)
                 if self.get_permission(constants.TRAIN_PERMISSION):
                     possible_sounds.append("effects/train_moving")
+                elif self.get_permission(constants.SPACESHIP_PERMISSION):
+                    possible_sounds.append("effects/spaceship_moving")
                 else:
                     constants.sound_manager.play_sound("effects/ocean_splashing")
                     possible_sounds.append("effects/ship_propeller")
-            elif self.get_cell() and self.get_cell().terrain_handler.terrain == "water":
-                local_infrastructure = self.get_cell().get_intact_building(
-                    constants.INFRASTRUCTURE
-                )
-                if (
-                    local_infrastructure
-                    and local_infrastructure.is_bridge
-                    and (
-                        local_infrastructure.is_road or local_infrastructure.is_railroad
-                    )
-                    and not self.get_permission(constants.SWIM_PERMISSION)
-                ):  # If walking on bridge
-                    possible_sounds.append("effects/footsteps")
-                else:
-                    possible_sounds.append("effects/river_splashing")
             else:
-                possible_sounds.append("effects/footsteps")
+                if (
+                    self.get_cell()
+                    and self.get_cell().terrain_handler.terrain == "water"
+                ):
+                    local_infrastructure = self.get_cell().get_intact_building(
+                        constants.INFRASTRUCTURE
+                    )
+                    if (
+                        local_infrastructure
+                        and local_infrastructure.is_bridge
+                        and (
+                            local_infrastructure.is_road
+                            or local_infrastructure.is_railroad
+                        )
+                        and not self.get_permission(constants.SWIM_PERMISSION)
+                    ):  # If walking on bridge
+                        possible_sounds.append("effects/footsteps")
+                    else:
+                        possible_sounds.append("effects/river_splashing")
+                else:
+                    possible_sounds.append("effects/footsteps")
+                self.selection_sound()
         if possible_sounds:
             constants.sound_manager.play_sound(random.choice(possible_sounds))
 
@@ -1306,6 +1328,7 @@ class mob(actor):
         if self.get_permission(constants.PMOB_PERMISSION) and self.sentry_mode:
             self.set_sentry_mode(False)
         self.end_turn_destination = None  # Cancels planned movements
+        status.displayed_mob.set_permission(constants.TRAVELING_PERMISSION, False)
         self.change_movement_points(-1 * self.get_movement_cost(x_change, y_change))
         if self.get_permission(constants.PMOB_PERMISSION):
             previous_cell = self.get_cell()
@@ -1325,14 +1348,6 @@ class mob(actor):
             constants.PMOB_PERMISSION
         ):  # Do an inventory attrition check when moving, using the destination's terrain
             self.manage_inventory_attrition()
-            if not (
-                self.get_cell() == None
-                or self.get_permission(constants.VEHICLE_PERMISSION)
-            ):
-                constants.sound_manager.play_sound(
-                    random.choice(["voices/forward march 1", "voices/forward march 2"]),
-                    radio_effect=self.get_radio_effect(),
-                )
 
         self.last_move_direction = (x_change, y_change)
         self.on_move()
@@ -1409,3 +1424,33 @@ class mob(actor):
         """
         for current_image in self.images:
             current_image.add_to_cell()
+
+    def start_ambient_sound(self):
+        """
+        Description:
+            Starts the ambient sound for this unit, continuing looping sound until invalid or the unit is deselected
+        Input:
+            None
+        Output:
+            None
+        """
+        self.stop_ambient_sound()
+        if self.all_permissions(
+            constants.SPACESHIP_PERMISSION, constants.TRAVELING_PERMISSION
+        ):
+            self.ambient_sound_channel = constants.sound_manager.start_looping_sound(
+                "effects/spaceship_engine", volume=0.5
+            )
+
+    def stop_ambient_sound(self):
+        """
+        Description:
+            Stops any ambient sound for this unit when the sound is invalid or the unit is deselected
+        Input:
+            None
+        Output:
+            None
+        """
+        if self.ambient_sound_channel:
+            constants.sound_manager.stop_looping_sound(self.ambient_sound_channel)
+            self.ambient_sound_channel = None

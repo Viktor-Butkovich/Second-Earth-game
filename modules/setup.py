@@ -1799,22 +1799,29 @@ def buttons():
     lhs_menu_collection.add_member(cycle_units_button)
     del input_dict["keybind_id"]
 
-    input_dict["coordinates"] = (scaling.scale_width(165), input_dict["coordinates"][1])
-    input_dict["modes"] = [constants.STRATEGIC_MODE, constants.EARTH_MODE]
-    input_dict["image_id"] = "buttons/disable_sentry_mode_button.png"
-    input_dict["init_type"] = constants.WAKE_UP_ALL_BUTTON
-    wake_up_all_button = constants.actor_creation_manager.create_interface_element(
-        input_dict
-    )
-    lhs_menu_collection.add_member(wake_up_all_button)
+    if not constants.effect_manager.effect_active("hide_old_buttons"):
+        input_dict["coordinates"] = (
+            scaling.scale_width(165),
+            input_dict["coordinates"][1],
+        )
+        input_dict["modes"] = [constants.STRATEGIC_MODE, constants.EARTH_MODE]
+        input_dict["image_id"] = "buttons/disable_sentry_mode_button.png"
+        input_dict["init_type"] = constants.WAKE_UP_ALL_BUTTON
+        wake_up_all_button = constants.actor_creation_manager.create_interface_element(
+            input_dict
+        )
+        lhs_menu_collection.add_member(wake_up_all_button)
 
-    input_dict["coordinates"] = (scaling.scale_width(220), input_dict["coordinates"][1])
-    input_dict["image_id"] = "buttons/execute_movement_routes_button.png"
-    input_dict["init_type"] = constants.EXECUTE_MOVEMENT_ROUTES_BUTTON
-    execute_movement_routes_button = (
-        constants.actor_creation_manager.create_interface_element(input_dict)
-    )
-    lhs_menu_collection.add_member(execute_movement_routes_button)
+        input_dict["coordinates"] = (
+            scaling.scale_width(220),
+            input_dict["coordinates"][1],
+        )
+        input_dict["image_id"] = "buttons/execute_movement_routes_button.png"
+        input_dict["init_type"] = constants.EXECUTE_MOVEMENT_ROUTES_BUTTON
+        execute_movement_routes_button = (
+            constants.actor_creation_manager.create_interface_element(input_dict)
+        )
+        lhs_menu_collection.add_member(execute_movement_routes_button)
 
     input_dict["coordinates"] = scaling.scale_coordinates(
         constants.default_display_width - 55, constants.default_display_height - 55

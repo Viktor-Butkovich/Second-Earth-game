@@ -320,3 +320,45 @@ class sound_manager_template:
             None
         """
         self.play_random_music(self.previous_state, self.previous_song)
+
+    def start_looping_sound(self, file_name: str, volume: float = 0.3):
+        """
+        Description:
+            Loops the sound effect from the inputted file until told to stop
+        Input:
+            string file_name: Name of .ogg/.wav file to play sound of
+            double volume = 0.3: Volume from 0.0 to 1.0 to play sound at - mixer usually uses a default of 1.0
+            bool radio_effect = False: Whether to apply a radio effect to the sound
+        Output:
+            Channel: Returns the pygame mixer Channel object that the sound is played on
+                Make sure this channel is tracked to allow stopping it later
+        """
+        if not file_name:
+            return None
+
+        try:
+            current_sound = pygame.mixer.Sound(f"sounds/{file_name}.ogg")
+        except:
+            current_sound = pygame.mixer.Sound(f"sounds/{file_name}.wav")
+
+        channel = current_sound.play(loops=-1)
+        if channel:
+            try:
+                channel.set_volume(volume)
+            except:
+                raise Exception(
+                    f"Error: Could not set volume to {volume} for sound {file_name}"
+                )
+        return channel
+
+    def stop_looping_sound(self, channel: pygame.mixer.Channel):
+        """
+        Description:
+            Stops the looping sound on the given channel - use to stop a looped sound
+        Input:
+            Channel channel: Pygame mixer channel to stop the sound on
+        Output:
+            None
+        """
+        if channel:
+            channel.fadeout(2000)

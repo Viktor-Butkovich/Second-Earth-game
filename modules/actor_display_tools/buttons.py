@@ -11,6 +11,7 @@ from modules.util import (
     trial_utility,
     text_utility,
     game_transitions,
+    utility,
 )
 from modules.constructs import minister_types
 from modules.constants import constants, status, flags
@@ -1165,6 +1166,9 @@ class switch_theatre_button(button):
                     game_transitions.set_game_mode(constants.STRATEGIC_MODE)
                 current_mob.clear_automatic_route()
                 current_mob.end_turn_destination = None
+                status.displayed_mob.set_permission(
+                    constants.TRAVELING_PERMISSION, False
+                )
                 current_mob.add_to_turn_queue()
                 flags.choosing_destination = True
             else:
@@ -1648,7 +1652,7 @@ class automatic_route_button(button):
                         )
             else:
                 text_utility.print_to_screen(
-                    "You can only create movement routes in Africa."
+                    f"You can only create movement routes on a planetary surface."
                 )
         else:
             if self.button_type == constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON:
@@ -1925,9 +1929,10 @@ class help_button(button):
                     message,
                     override_input_dict={
                         "audio": {
-                            "sound_id": status.current_ministers[
-                                constants.ECOLOGY_MINISTER
-                            ].get_voice_line("acknowledgement"),
+                            "sound_id": utility.get_voice_line(
+                                status.current_ministers[constants.ECOLOGY_MINISTER],
+                                "acknowledgement",
+                            ),
                             "radio_effect": status.current_ministers[
                                 constants.ECOLOGY_MINISTER
                             ].get_radio_effect(),

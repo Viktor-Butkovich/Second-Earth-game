@@ -1,6 +1,7 @@
 # Contains functionality for officer units
 
 import random
+from modules.util import utility
 from modules.actor_types.mob_types.pmobs import pmob
 from modules.constants import constants, status, flags
 
@@ -45,6 +46,12 @@ class officer(pmob):
             )
         else:
             self.character_info = input_dict["character_info"]
+        self.voice_set, self.voice_lines = utility.extract_voice_set(
+            self.character_info["masculine"],
+            voice_set=self.character_info.get("voice_set", None),
+        )
+        self.last_voice_line: str = None
+        self.character_info["voice_set"] = self.voice_set
         self.group = None
         super().__init__(from_save, input_dict, original_constructor=False)
         if not from_save:

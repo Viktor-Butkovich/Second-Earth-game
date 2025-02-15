@@ -82,8 +82,6 @@ class minister:
             self.corruption_evidence: int = input_dict["corruption_evidence"]
             self.fabricated_evidence: int = input_dict["fabricated_evidence"]
             self.just_removed: bool = input_dict["just_removed"]
-            self.voice_set = input_dict["voice_set"]
-            self.voice_setup(from_save)
             if self.current_position:
                 self.appoint(self.current_position)
             else:
@@ -119,7 +117,6 @@ class minister:
             )  # 1-6 for lowborn, 5-10 for middle, 25-30 for high, 125-130 for very high
             self.current_position: minister_types.minister_type = None
             self.skill_setup()
-            self.voice_setup()
             self.interests_setup()
             self.corruption_setup()
             status.available_minister_list.append(self)
@@ -132,6 +129,10 @@ class minister:
             self.corruption_evidence: int = 0
             self.fabricated_evidence: int = 0
             self.just_removed: bool = False
+        self.voice_set, self.voice_lines = utility.extract_voice_set(
+            self.masculine, voice_set=input_dict.get("voice_set", None)
+        )
+        self.last_voice_line: str = None
         minister_utility.update_available_minister_display()
         self.stolen_already: bool = False
         self.update_tooltip()
@@ -357,7 +358,9 @@ class minister:
                         evidence_message,
                         override_input_dict={
                             "audio": {
-                                "sound_id": prosecutor.get_voice_line("evidence"),
+                                "sound_id": utility.get_voice_line(
+                                    prosecutor, "evidence"
+                                ),
                                 "radio_effect": prosecutor.get_radio_effect(),
                             },
                         },
@@ -740,34 +743,6 @@ class minister:
                 self.update_tooltip()
             if status.displayed_minister == self:
                 minister_utility.calibrate_minister_info_display(self)
-
-    def voice_setup(self, from_save: bool = False):
-        """
-        Description:
-            Gathers a set of voice lines for this minister, either using a saved voice set or a random new one
-        Input:
-            boolean from_save=False: Whether this minister is being loaded and has an existing voice set that should be used
-        Output:
-            None
-        """
-        if not from_save:
-            if self.masculine:
-                self.voice_set = f"masculine/{random.choice(os.listdir('sounds/voices/voice sets/masculine'))}"
-            else:
-                self.voice_set = f"feminine/{random.choice(os.listdir('sounds/voices/voice sets/feminine'))}"
-        self.voice_lines = {
-            "acknowledgement": [],
-            "fired": [],
-            "evidence": [],
-            "hired": [],
-        }
-        self.last_voice_line: str = None
-        folder_path = "voices/voice sets/" + self.voice_set
-        for file_name in os.listdir("sounds/" + folder_path):
-            for key in self.voice_lines:
-                if file_name.startswith(key):
-                    file_name = file_name[:-4]  # cuts off last 4 characters - .ogg/.wav
-                    self.voice_lines[key].append(folder_path + "/" + file_name)
 
     def interests_setup(self):
         """
@@ -1191,7 +1166,7 @@ class minister:
                 )
             else:
                 text += f"/n /n"
-            audio = self.get_voice_line("hired")
+            audio = utility.get_voice_line(self, "hired")
 
         elif event == "fired":
             multiplier = random.randrange(8, 13) / 10.0  # 0.8-1.2
@@ -1234,7 +1209,7 @@ class minister:
             text += random.choice(conclusion_options)
             text += f"/n /n /nYou have lost {abs(public_opinion_change)} public opinion. /n /n"
             text += self.name + " has been fired and removed from the game. /n /n"
-            audio = self.get_voice_line("fired")
+            audio = utility.get_voice_line(self, "fired")
 
         elif event == "prison":
             text += "From: " + self.name + " /n /n"
@@ -1249,7 +1224,7 @@ class minister:
 
             text += random.choice(intro_options)
             text += f" /n /n /n{self.name} is now in prison and has been removed from the game. /n /n"
-            audio = self.get_voice_line("fired")
+            audio = utility.get_voice_line(self, "fired")
 
         elif event == "retirement":
             if not self.current_position:
@@ -1373,5 +1348,5 @@ class minister:
         """
         if len(self.voice_lines[type]) > 0:
             constants.sound_manager.play_sound(
-                self.get_voice_line(type), radio_effect=self.get_radio_effect()
+                utility.get_voice_line(self, type), radio_effect=self.get_radio_effect()
             )

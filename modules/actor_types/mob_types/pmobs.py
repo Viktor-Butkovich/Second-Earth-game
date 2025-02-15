@@ -63,6 +63,9 @@ class pmob(mob):
                 self.end_turn_destination = end_turn_destination_grid.find_cell(
                     end_turn_destination_x, end_turn_destination_y
                 ).tile
+                self.set_permission(
+                    constants.TRAVELING_PERMISSION, True, update_image=False
+                )
             self.default_name = input_dict["default_name"]
             self.set_name(self.default_name)
             self.set_automatically_replace(input_dict["automatically_replace"])
@@ -178,6 +181,9 @@ class pmob(mob):
                 self.set_permission(constants.DISORGANIZED_PERMISSION, True)
         vehicle.set_crew(None)
         vehicle.end_turn_destination = None
+        status.displayed_mob.set_permission(
+            constants.TRAVELING_PERMISSION, False, update_image=False
+        )
         vehicle.remove_from_turn_queue()
         self.update_image_bundle()
         self.select()
@@ -818,6 +824,8 @@ class pmob(mob):
             )
             self.manage_inventory_attrition()  # do an inventory check when crossing ocean, using the destination's terrain
             self.end_turn_destination = None
+            self.set_permission(constants.TRAVELING_PERMISSION, False)
+            self.movement_sound()
 
     def set_inventory(self, item: item_types.item_type, new_value: int) -> None:
         """

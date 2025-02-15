@@ -130,6 +130,9 @@ class vehicle(pmob):
         ):
             image_id_list.remove(self.image_dict["default"])
             image_id_list.append(self.image_dict["uncrewed"])
+        elif self.get_permission(constants.TRAVELING_PERMISSION):
+            image_id_list.remove(self.image_dict["default"])
+            image_id_list.append(self.image_dict["moving"])
         return image_id_list
 
     def manage_health_attrition(self, current_cell="default"):

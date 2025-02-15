@@ -9,9 +9,12 @@
       "allow_toggle_clouds",
       "allow_toggle_fog_of_war",
       "skip_start_of_turn",
+      "hide_old_buttons",
+      "hide_old_units",
       "skip_intro"
    ],
    "effects": [
+      "hide_old_buttons",
       "hide_old_units",
       "skip_start_of_turn",
       "map_customization",

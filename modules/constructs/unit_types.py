@@ -298,20 +298,22 @@ class vehicle_type(unit_type):
         """
         super().__init__(from_save, input_dict)
         self.uncrewed_image_id = f"mobs/{self.key}/uncrewed.png"
+        self.moving_image_id = f"mobs/{self.key}/moving.png"
 
     def generate_input_dict(self) -> Dict:
         """
         Description:
-            Generates an input dict to create a worker of this type
+            Generates an input dict to create a unit of this type
         Input:
             None
         Output:
-            dictionary: Returns dictionary with standard entries for this worker type
+            dictionary: Returns dictionary with standard entries for this unit type
         """
         input_dict = super().generate_input_dict()
         input_dict["image_dict"] = {
             "default": self.image_id,
             "uncrewed": self.uncrewed_image_id,
+            "moving": self.moving_image_id,
         }
         input_dict["crew"] = None
         return input_dict

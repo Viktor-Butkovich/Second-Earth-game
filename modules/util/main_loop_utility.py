@@ -498,7 +498,10 @@ def manage_lmb_down(clicked_button):
                                 status.displayed_mob.end_turn_destination = (
                                     target_cell.tile
                                 )
-                                status.displayed_mob.movement_sound(allow_fadeout=False)
+                                status.displayed_mob.set_permission(
+                                    constants.TRAVELING_PERMISSION, True
+                                )
+                                status.displayed_mob.travel_sound(allow_fadeout=False)
                                 flags.show_selection_outlines = True
                                 constants.last_selection_outline_switch = (
                                     constants.current_time

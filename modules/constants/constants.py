@@ -547,7 +547,7 @@ else:
     BUNDLE_IMAGE_DETAIL_LEVEL: float = 0.5
     BUTTON_DETAIL_LEVEL: float = 1.0
     GLOBE_PROJECTION_DETAIL_LEVEL: float = 1.0
-    TERRAIN_DETAIL_LEVEL: float = 0.5
+    TERRAIN_DETAIL_LEVEL: float = 0.4
     CLOUDS_DETAIL_LEVEL: float = 0.15
 
 TERRAIN_KNOWLEDGE: str = "terrain"
@@ -903,6 +903,7 @@ IN_GROUP_PERMISSION: str = "in_group"
 IN_BUILDING_PERMISSION: str = "in_building"
 TRAIN_PERMISSION: str = "train"
 TRAVEL_PERMISSION: str = "travel"
+TRAVELING_PERMISSION: str = "traveling"
 MOVEMENT_DISABLED_PERMISSION: str = "movement_disabled"
 INFINITE_MOVEMENT_PERMISSION: str = "infinite_movement"
 CONSTANT_MOVEMENT_COST_PERMISSION: str = "constant_movement_cost"
