@@ -72,11 +72,11 @@ class embark_all_passengers_button(button):
                     ) and not passenger.get_permission(
                         constants.VEHICLE_PERMISSION
                     ):  # vehicles and enemies won't be picked up as passengers
-                        passenger.embark_vehicle(vehicle)
-                constants.sound_manager.play_sound(
-                    f"voices/all aboard {random.randrange(1, 4)}",
-                    radio_effect=vehicle.get_radio_effect(),
-                )
+                        passenger.embark_vehicle(
+                            vehicle,
+                            focus=contained_mob
+                            == vehicle.get_cell().contained_mobs[-1],
+                        )
         else:
             text_utility.print_to_screen(
                 "You are busy and cannot embark all passengers."
@@ -812,10 +812,6 @@ class embark_vehicle_button(button):
                         if vehicle.sentry_mode:
                             vehicle.set_sentry_mode(False)
                         rider.embark_vehicle(vehicle)
-                        constants.sound_manager.play_sound(
-                            f"voices/all aboard {random.randrange(1, 4)}",
-                            radio_effect=vehicle.get_radio_effect(),
-                        )
             else:
                 text_utility.print_to_screen(
                     f"You must select a unit in the same tile as a crewed vehicle to embark."
@@ -836,10 +832,6 @@ class embark_vehicle_button(button):
         constants.notification_manager.clear_notification_queue()  # Skip remaining embark notifications
         vehicle.set_sentry_mode(False)
         rider.embark_vehicle(vehicle)
-        constants.sound_manager.play_sound(
-            f"voices/all aboard {random.randrange(1, 4)}",
-            radio_effect=vehicle.get_radio_effect(),
-        )
 
     def skip_embark_vehicle(self, rider, vehicles, index):
         """

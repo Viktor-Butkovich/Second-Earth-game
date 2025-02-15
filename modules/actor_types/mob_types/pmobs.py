@@ -161,6 +161,9 @@ class pmob(mob):
                 status.mob_info_display, None, override_exempt=True
             )
             vehicle.select()
+            constants.sound_manager.play_sound(
+                "effects/spaceship_activation", volume=1.0
+            )
 
     def uncrew_vehicle(self, vehicle):
         """
@@ -188,6 +191,7 @@ class pmob(mob):
         self.update_image_bundle()
         self.select()
         self.add_to_turn_queue()
+        constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)
         self.update_habitability()
 
     def on_move(self):
@@ -903,8 +907,7 @@ class pmob(mob):
                 status.mob_info_display, None, override_exempt=True
             )
             vehicle.select()
-        if not flags.loading_save:
-            self.movement_sound()
+            constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)
         self.clear_automatic_route()
 
     def disembark_vehicle(self, vehicle, focus=True):
@@ -943,8 +946,7 @@ class pmob(mob):
         self.add_to_turn_queue()
         if focus:
             self.select()
-            self.movement_sound()
-        self.on_move()
+            constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)
         self.update_habitability()
 
     def get_worker(self) -> "pmob":

@@ -423,7 +423,7 @@ except Exception:  # Displays error message and records error message in crash l
 #       Would likely just require a mutation operator and a genome of the required weights
 
 # Upcoming work queue:
-# Add embark/disembark stepping on metal floor sounds, as well as device turning on for crewing sound
+# Add an ambient engine sound for non-traveling spaceship
 # Next major step is to add basic economic mechanics, now that the baseline terraforming is functional
 # Add new resource types, with colonist upkeep, buying on Earth, transporting, and using to build when it is in the builder's tile
 # Allow building basic buildings like mines, farms, etc. with work crew functionality

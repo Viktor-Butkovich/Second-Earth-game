@@ -299,7 +299,9 @@ class vehicle(pmob):
         """
         while len(self.contained_mobs) > 0:
             current_mob = self.contained_mobs.pop(0)
-            current_mob.disembark_vehicle(self, focus=focus)
+            current_mob.disembark_vehicle(
+                self, focus=focus and len(self.contained_mobs) == 1
+            )  # Only focus on the last
             if (not flags.player_turn) or flags.enemy_combat_phase:
                 self.ejected_passengers.append(current_mob)
 
