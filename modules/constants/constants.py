@@ -547,7 +547,7 @@ else:
     BUNDLE_IMAGE_DETAIL_LEVEL: float = 0.5
     BUTTON_DETAIL_LEVEL: float = 1.0
     GLOBE_PROJECTION_DETAIL_LEVEL: float = 1.0
-    TERRAIN_DETAIL_LEVEL: float = 0.4
+    TERRAIN_DETAIL_LEVEL: float = 0.5
     CLOUDS_DETAIL_LEVEL: float = 0.15
 
 TERRAIN_KNOWLEDGE: str = "terrain"

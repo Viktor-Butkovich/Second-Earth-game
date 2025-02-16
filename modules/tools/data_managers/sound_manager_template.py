@@ -340,8 +340,8 @@ class sound_manager_template:
             current_sound = pygame.mixer.Sound(f"sounds/{file_name}.ogg")
         except:
             current_sound = pygame.mixer.Sound(f"sounds/{file_name}.wav")
-
-        channel = current_sound.play(loops=-1)
+        channel = pygame.mixer.find_channel(force=True)
+        channel.play(current_sound, loops=-1)
         if channel:
             try:
                 channel.set_volume(volume)

@@ -51,6 +51,7 @@ class mob(actor):
         self.end_turn_destination = None
         self.habitability = constants.HABITABILITY_PERFECT
         self.ambient_sound_channel: pygame.mixer.Channel = None
+        self.locked_ambient_sound: bool = False
         super().__init__(from_save, input_dict, original_constructor=False)
         if isinstance(input_dict["image"], str):
             self.image_dict = {"default": input_dict["image"]}
@@ -840,10 +841,12 @@ class mob(actor):
             None
         """
         if status.displayed_mob == self:
+            self.locked_ambient_sound = True
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, None, override_exempt=True
             )
             self.select()
+            self.locked_ambient_sound = False
 
     def select(self):
         """
@@ -1248,7 +1251,7 @@ class mob(actor):
             )
         return channel
 
-    def travel_sound(self, allow_fadeout=True):
+    def travel_sound(self):
         """
         Description:
             Plays a sound when this unit starts traveling between grids, with a varying sound based on this unit's type
@@ -1257,8 +1260,6 @@ class mob(actor):
         Output:
             None
         """
-        if allow_fadeout:
-            constants.sound_manager.fadeout(400)
         if self.get_permission(constants.SPACESHIP_PERMISSION):
             channel = self.selection_sound()
             constants.sound_manager.queue_sound(
@@ -1268,7 +1269,7 @@ class mob(actor):
             constants.sound_manager.play_sound("effects/ocean_splashing")
             constants.sound_manager.play_sound("effects/ship_propeller")
 
-    def movement_sound(self, allow_fadeout=True):
+    def movement_sound(self):
         """
         Description:
             Plays a sound when this unit moves or embarks/disembarks a vehicle, with a varying sound based on this unit's type
@@ -1280,8 +1281,6 @@ class mob(actor):
         possible_sounds = []
         if self.get_permission(constants.PMOB_PERMISSION) or self.visible():
             if self.get_permission(constants.VEHICLE_PERMISSION):
-                if allow_fadeout and constants.sound_manager.busy():
-                    constants.sound_manager.fadeout(400)
                 if self.get_permission(constants.TRAIN_PERMISSION):
                     possible_sounds.append("effects/train_moving")
                 elif self.get_permission(constants.SPACESHIP_PERMISSION):
@@ -1434,13 +1433,25 @@ class mob(actor):
         Output:
             None
         """
-        self.stop_ambient_sound()
-        if self.all_permissions(
-            constants.SPACESHIP_PERMISSION, constants.TRAVELING_PERMISSION
-        ):
-            self.ambient_sound_channel = constants.sound_manager.start_looping_sound(
-                "effects/spaceship_engine", volume=0.5
-            )
+        if self == status.displayed_mob and not self.locked_ambient_sound:
+            if self.all_permissions(
+                constants.SPACESHIP_PERMISSION, constants.ACTIVE_VEHICLE_PERMISSION
+            ):
+                if self.get_permission(constants.TRAVELING_PERMISSION):
+                    sound = "effects/spaceship_engine"
+                    volume = 0.8
+                else:
+                    sound = "effects/spaceship_idling"
+                    volume = 0.3
+                if self.ambient_sound_channel:
+                    constants.sound_manager.stop_looping_sound(
+                        self.ambient_sound_channel
+                    )
+                self.ambient_sound_channel = (
+                    constants.sound_manager.start_looping_sound(sound, volume=volume)
+                )
+            else:
+                self.stop_ambient_sound()
 
     def stop_ambient_sound(self):
         """
@@ -1451,6 +1462,6 @@ class mob(actor):
         Output:
             None
         """
-        if self.ambient_sound_channel:
+        if self.ambient_sound_channel and not self.locked_ambient_sound:
             constants.sound_manager.stop_looping_sound(self.ambient_sound_channel)
             self.ambient_sound_channel = None

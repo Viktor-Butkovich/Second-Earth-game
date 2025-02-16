@@ -1145,9 +1145,16 @@ class button(interface_elements.interface_element):
                                 if not status.displayed_mob.equipment.get(
                                     equipment_type.key, False
                                 ):
-                                    # If equpiment in tile, equippable by this unit, and not already equipped, equip it
+                                    # If equipment in tile, equippable by this unit, and not already equipped, equip it
+                                    radio_effect = (
+                                        status.displayed_mob.get_radio_effect()
+                                    )
                                     equipment_type.equip(status.displayed_mob)
-                                    status.displayed_mob.selection_sound()
+                                    if (
+                                        radio_effect
+                                        != status.displayed_mob.get_radio_effect()
+                                    ):  # If radio effect changed, play new voice line
+                                        status.displayed_mob.selection_sound()
                                     status.displayed_tile.change_inventory(
                                         equipment_type, -1
                                     )
@@ -1182,9 +1189,13 @@ class button(interface_elements.interface_element):
                     equipment = self.attached_label.actor.current_item
                     if equipment.check_requirement(status.displayed_mob):
                         if not status.displayed_mob.equipment.get(equipment.key, False):
+                            radio_effect = status.displayed_mob.get_radio_effect()
                             equipment.equip(status.displayed_mob)
-                            status.displayed_mob.selection_sound()
-                            status.displayed_tile.change_inventory(equipment_type, -1)
+                            if (
+                                radio_effect != status.displayed_mob.get_radio_effect()
+                            ):  # If radio effect changed, play new voice line
+                                status.displayed_mob.selection_sound()
+                            status.displayed_tile.change_inventory(equipment, -1)
                             actor_utility.calibrate_actor_info_display(
                                 status.tile_info_display, status.displayed_tile
                             )
@@ -1226,8 +1237,12 @@ class button(interface_elements.interface_element):
 
         elif self.button_type == constants.REMOVE_EQUIPMENT_BUTTON:
             if main_loop_utility.action_possible():
+                radio_effect = status.displayed_mob.get_radio_effect()
                 self.equipment_type.unequip(status.displayed_mob)
-                status.displayed_mob.selection_sound()
+                if (
+                    radio_effect != status.displayed_mob.get_radio_effect()
+                ):  # If radio effect changed, play new voice line
+                    status.displayed_mob.selection_sound()
                 status.displayed_tile.change_inventory(self.equipment_type, 1)
                 actor_utility.calibrate_actor_info_display(
                     status.mob_info_display, status.displayed_mob

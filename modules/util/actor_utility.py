@@ -158,13 +158,14 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
             select_default_tab(status.tile_tabbed_collection, status.displayed_tile)
 
     elif info_display == status.mob_info_display:
-        if new_actor != status.displayed_mob:
+        changed_displayed_mob = new_actor != status.displayed_mob
+        if changed_displayed_mob:
             if status.displayed_mob:
                 status.displayed_mob.stop_ambient_sound()
             calibrate_actor_info_display(status.mob_inventory_info_display, None)
-            if new_actor:
-                new_actor.start_ambient_sound()
         status.displayed_mob = new_actor
+        if changed_displayed_mob and new_actor:
+            new_actor.start_ambient_sound()
         select_default_tab(status.mob_tabbed_collection, new_actor)
         if new_actor and new_actor.get_cell().tile == status.displayed_tile:
             for current_same_tile_icon in status.same_tile_icon_list:

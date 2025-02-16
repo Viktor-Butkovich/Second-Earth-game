@@ -161,8 +161,9 @@ class pmob(mob):
                 status.mob_info_display, None, override_exempt=True
             )
             vehicle.select()
+            constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)
             constants.sound_manager.play_sound(
-                "effects/spaceship_activation", volume=1.0
+                "effects/spaceship_activation", volume=0.6
             )
 
     def uncrew_vehicle(self, vehicle):
