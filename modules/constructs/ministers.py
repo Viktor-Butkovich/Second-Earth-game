@@ -109,6 +109,21 @@ class minister:
             ) = constants.character_manager.generate_name(
                 self.ethnicity, self.masculine
             )
+
+            while constants.effect_manager.effect_active(
+                "omit_default_names"
+            ) and "default" in [
+                self.first_name,
+                self.last_name,
+            ]:  # Prevent any default first or last names
+                self.ethnicity = constants.character_manager.generate_ethnicity()
+                (
+                    self.first_name,
+                    self.last_name,
+                ) = constants.character_manager.generate_name(
+                    self.ethnicity, self.masculine
+                )
+
             self.name = self.first_name + " " + self.last_name
             self.personal_savings: float = 5 ** (
                 self.status_number - 1

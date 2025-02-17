@@ -8,11 +8,13 @@
         "allow_toggle_clouds",
         "allow_toggle_fog_of_war",
         "skip_start_of_turn",
+        "omit_default_names",
         "hide_old_units",
         "hide_old_buttons",
         "skip_intro"
     ],
     "effects": [
+        "omit_default_names",
         "hide_old_buttons",
         "hide_old_units",
         "skip_start_of_turn",

@@ -39,11 +39,20 @@ class officer(pmob):
                 "ethnicity"
             ] = constants.character_manager.generate_ethnicity()
             self.character_info["masculine"] = random.choice([True, False])
-            self.character_info["name"] = " ".join(
-                constants.character_manager.generate_name(
+            name = constants.character_manager.generate_name(
+                self.character_info["ethnicity"], self.character_info["masculine"]
+            )
+            while (
+                constants.effect_manager.effect_active("omit_default_names")
+                and "default" in name
+            ):  # Prevent any default first or last names
+                self.character_info[
+                    "ethnicity"
+                ] = constants.character_manager.generate_ethnicity()
+                name = constants.character_manager.generate_name(
                     self.character_info["ethnicity"], self.character_info["masculine"]
                 )
-            )
+            self.character_info["name"] = " ".join(name)
         else:
             self.character_info = input_dict["character_info"]
         self.voice_set, self.voice_lines = utility.extract_voice_set(
