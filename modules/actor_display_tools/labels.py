@@ -507,69 +507,66 @@ class actor_display_label(label):
                 )
                 + ": "
             )
-            if constants.effect_manager.effect_active("god_mode"):
-                input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
-                input_dict["width"], input_dict["height"] = (ss_size, ss_size)
-                input_dict["change"] = -1
-                input_dict["image_id"] = "buttons/item_drop_button.png"
-                offset = scaling.scale_width(-130)
-                if (
-                    self.actor_label_type == constants.WATER_LABEL
-                    and constants.effect_manager.effect_active("map_customization")
-                ):
-                    input_dict["keybind_id"] = pygame.K_q
-                self.add_attached_button(
-                    input_dict, member_config={"order_exempt": True, "x_offset": offset}
-                )
+            input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
+            input_dict["width"], input_dict["height"] = (ss_size, ss_size)
+            input_dict["change"] = -1
+            input_dict["image_id"] = "buttons/item_drop_button.png"
+            offset = scaling.scale_width(-130)
+            if (
+                self.actor_label_type == constants.WATER_LABEL
+                and constants.effect_manager.effect_active("map_customization")
+            ):
+                input_dict["keybind_id"] = pygame.K_q
+            self.add_attached_button(
+                input_dict, member_config={"order_exempt": True, "x_offset": offset}
+            )
 
-                input_dict["change"] = 1
-                input_dict["image_id"] = "buttons/item_pick_up_button.png"
-                if (
-                    self.actor_label_type == constants.WATER_LABEL
-                    and constants.effect_manager.effect_active("map_customization")
-                ):
-                    input_dict["keybind_id"] = pygame.K_w
-                self.add_attached_button(
-                    input_dict,
-                    member_config={
-                        "order_exempt": True,
-                        "x_offset": offset
-                        + input_dict["width"]
-                        + scaling.scale_width(5),
-                    },
-                )
+            input_dict["change"] = 1
+            input_dict["image_id"] = "buttons/item_pick_up_button.png"
+            if (
+                self.actor_label_type == constants.WATER_LABEL
+                and constants.effect_manager.effect_active("map_customization")
+            ):
+                input_dict["keybind_id"] = pygame.K_w
+            self.add_attached_button(
+                input_dict,
+                member_config={
+                    "order_exempt": True,
+                    "x_offset": offset + input_dict["width"] + scaling.scale_width(5),
+                },
+            )
 
-                input_dict["change"] = -6
-                input_dict["image_id"] = "buttons/item_drop_all_button.png"
-                if (
-                    self.actor_label_type == constants.WATER_LABEL
-                    and constants.effect_manager.effect_active("map_customization")
-                ):
-                    input_dict["keybind_id"] = pygame.K_e
-                self.add_attached_button(
-                    input_dict,
-                    member_config={
-                        "order_exempt": True,
-                        "x_offset": offset
-                        + (input_dict["width"] + scaling.scale_width(5)) * 2,
-                    },
-                )
+            input_dict["change"] = -6
+            input_dict["image_id"] = "buttons/item_drop_all_button.png"
+            if (
+                self.actor_label_type == constants.WATER_LABEL
+                and constants.effect_manager.effect_active("map_customization")
+            ):
+                input_dict["keybind_id"] = pygame.K_e
+            self.add_attached_button(
+                input_dict,
+                member_config={
+                    "order_exempt": True,
+                    "x_offset": offset
+                    + (input_dict["width"] + scaling.scale_width(5)) * 2,
+                },
+            )
 
-                input_dict["change"] = 6
-                input_dict["image_id"] = "buttons/item_pick_up_all_button.png"
-                if (
-                    self.actor_label_type == constants.WATER_LABEL
-                    and constants.effect_manager.effect_active("map_customization")
-                ):
-                    input_dict["keybind_id"] = pygame.K_r
-                self.add_attached_button(
-                    input_dict,
-                    member_config={
-                        "order_exempt": True,
-                        "x_offset": offset
-                        + (input_dict["width"] + scaling.scale_width(5)) * 3,
-                    },
-                )
+            input_dict["change"] = 6
+            input_dict["image_id"] = "buttons/item_pick_up_all_button.png"
+            if (
+                self.actor_label_type == constants.WATER_LABEL
+                and constants.effect_manager.effect_active("map_customization")
+            ):
+                input_dict["keybind_id"] = pygame.K_r
+            self.add_attached_button(
+                input_dict,
+                member_config={
+                    "order_exempt": True,
+                    "x_offset": offset
+                    + (input_dict["width"] + scaling.scale_width(5)) * 3,
+                },
+            )
 
         elif self.actor_label_type == constants.LOCAL_AVERAGE_TEMPERATURE_LABEL:
             self.message_start = "(Average "
@@ -614,7 +611,7 @@ class actor_display_label(label):
                 self.actor_label_type.removesuffix("_label")
                 in constants.ATMOSPHERE_COMPONENTS
                 or self.actor_label_type == constants.AVERAGE_WATER_LABEL
-            ) and constants.effect_manager.effect_active("god_mode"):
+            ):
                 offset = scaling.scale_width(-130)
                 if self.actor_label_type == constants.GHG_LABEL:
                     change_magnitude = 1

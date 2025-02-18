@@ -1782,6 +1782,16 @@ def buttons():
             constants.actor_creation_manager.create_interface_element(input_dict)
         )
 
+    if constants.effect_manager.effect_active("allow_toggle_god_mode"):
+        input_dict["init_type"] = constants.TOGGLE_BUTTON
+        input_dict["toggle_variable"] = "god_mode"
+        input_dict["attached_to_actor"] = False
+        input_dict["modes"] = [constants.STRATEGIC_MODE]
+        input_dict["image_id"] = "buttons/toggle_god_mode_button.png"
+        rhs_menu_collection.add_member(
+            constants.actor_creation_manager.create_interface_element(input_dict)
+        )
+
     input_dict["coordinates"] = scaling.scale_coordinates(
         110, constants.default_display_height - 50
     )

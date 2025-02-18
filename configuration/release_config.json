@@ -3,7 +3,7 @@
       "fullscreen",
       "allow_planet_mask",
       "map_modes",
-      "god_mode",
+      "allow_toggle_god_mode",
       "link_inventory_tabs",
       "allow_presets",
       "allow_toggle_clouds",
@@ -14,6 +14,7 @@
       "skip_intro"
    ],
    "effects": [
+      "allow_toggle_god_mode",
       "omit_default_names",
       "hide_old_buttons",
       "hide_old_units",

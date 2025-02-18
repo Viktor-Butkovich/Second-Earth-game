@@ -1861,6 +1861,8 @@ class change_parameter_button(button):
         Output:
             boolean: Returns True if this button is a local parameter button or is a global parameter button for the planet grid, otherwise returns False
         """
+        if not constants.effect_manager.effect_active("god_mode"):
+            return False
         if (
             self.attached_label.actor_label_type == constants.AVERAGE_WATER_LABEL
             or self.attached_label.actor_label_type.removesuffix("_label")

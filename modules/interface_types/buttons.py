@@ -377,7 +377,7 @@ class button(interface_elements.interface_element):
             if status.displayed_tile:
                 self.set_tooltip(
                     [
-                        f"Orders the selected unit to equip {self.attached_label.actor.current_item}"
+                        f"Orders the selected unit to equip {self.attached_label.actor.current_item.name}"
                     ]
                 )
 

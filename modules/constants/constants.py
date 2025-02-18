@@ -433,6 +433,11 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
         "True": "Currently showing clouds, even on explored tiles",
         "False": "Currently showing clouds on unexplored tiles only",
     },
+    "god_mode": {
+        "default": "Toggles god mode, allowing manual control of planetary global/local parameters",
+        "True": "God mode currently enabled",
+        "False": "God mode currently disabled",
+    },
     "earth_preset": {
         "default": "Creates an Earth-like planet",
         "True": "Earth-like planet creation enabled",

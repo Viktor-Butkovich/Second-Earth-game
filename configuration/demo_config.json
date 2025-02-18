@@ -1,7 +1,5 @@
 {
     "active_effects": [
-        "fullscreen",
-        "allow_planet_mask",
         "map_modes",
         "link_inventory_tabs",
         "allow_presets",
@@ -11,9 +9,11 @@
         "omit_default_names",
         "hide_old_units",
         "hide_old_buttons",
+        "allow_toggle_god_mode",
         "skip_intro"
     ],
     "effects": [
+        "allow_toggle_god_mode",
         "omit_default_names",
         "hide_old_buttons",
         "hide_old_units",
