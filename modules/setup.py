@@ -106,7 +106,7 @@ def misc():
             "descriptor": "default",
             "name": constants.small_font_name,
             "size": constants.font_size,
-            "color": "black",
+            "color": constants.COLOR_BLACK,
         }
     )
     fonts.font(
@@ -114,7 +114,7 @@ def misc():
             "descriptor": "white",
             "name": constants.small_font_name,
             "size": constants.font_size,
-            "color": "white",
+            "color": constants.COLOR_WHITE,
         }
     )
     fonts.font(
@@ -122,7 +122,7 @@ def misc():
             "descriptor": "default_notification",
             "name": constants.font_name,
             "size": constants.notification_font_size,
-            "color": "black",
+            "color": constants.COLOR_BLACK,
         }
     )
     fonts.font(
@@ -130,7 +130,7 @@ def misc():
             "descriptor": "white_notification",
             "name": constants.font_name,
             "size": constants.notification_font_size,
-            "color": "white",
+            "color": constants.COLOR_WHITE,
         }
     )
     fonts.font(
@@ -138,7 +138,7 @@ def misc():
             "descriptor": "large_notification",
             "name": constants.font_name,
             "size": scaling.scale_height(30),
-            "color": "black",
+            "color": constants.COLOR_BLACK,
         }
     )
     fonts.font(
@@ -146,7 +146,7 @@ def misc():
             "descriptor": "large_white_notification",
             "name": constants.font_name,
             "size": scaling.scale_height(30),
-            "color": "white",
+            "color": constants.COLOR_WHITE,
         }
     )
     fonts.font(
@@ -154,7 +154,7 @@ def misc():
             "descriptor": "max_detail_white",
             "name": "helvetica",
             "size": scaling.scale_height(100),
-            "color": "white",
+            "color": constants.COLOR_WHITE,
         }
     )
     fonts.font(
@@ -162,7 +162,7 @@ def misc():
             "descriptor": "max_detail_black",
             "name": "helvetica",
             "size": scaling.scale_height(100),
-            "color": "black",
+            "color": constants.COLOR_BLACK,
         }
     )
 
@@ -372,7 +372,7 @@ def item_types_config():
             "price": constants.consumer_goods_starting_price,
             "description": ["Placeholder consumer goods description"],
             "item_image": "items/consumer_goods.png",
-            "background_color": constants.color_dict["green_icon"],
+            "background_color": constants.color_dict[constants.COLOR_GREEN_ICON],
             "allow_price_variation": True,
         }
     )
@@ -385,7 +385,7 @@ def item_types_config():
             "price": 5,
             "description": ["Placeholder fuel description"],
             "item_image": "items/fuel.png",
-            "background_color": constants.color_dict["purple"],
+            "background_color": constants.color_dict[constants.COLOR_PURPLE],
             "allow_price_variation": True,
         }
     )
@@ -398,7 +398,7 @@ def item_types_config():
             "price": 5,
             "description": ["Placeholder food description"],
             "item_image": "items/food.png",
-            "background_color": constants.color_dict["yellow"],
+            "background_color": constants.color_dict[constants.COLOR_YELLOW],
             "allow_price_variation": True,
         }
     )
@@ -411,7 +411,7 @@ def item_types_config():
             "price": 5,
             "description": ["Placeholder water description"],
             "item_image": "items/water.png",
-            "background_color": constants.color_dict["blue"],
+            "background_color": constants.color_dict[constants.COLOR_BLUE],
             "allow_price_variation": True,
         }
     )
@@ -424,7 +424,7 @@ def item_types_config():
             "price": 5,
             "description": ["Placeholder air description"],
             "item_image": "items/air.png",
-            "background_color": constants.color_dict["light gray"],
+            "background_color": constants.color_dict[constants.COLOR_LIGHT_GRAY],
             "allow_price_variation": True,
         }
     )
@@ -1957,9 +1957,9 @@ def earth_screen():
                 },
             }
         )
-    for (
-        purchase_item_type
-    ) in status.item_types.values():  # Creates purchase button for items from earth
+    for purchase_item_type in reversed(
+        list(status.item_types.values())
+    ):  # Creates purchase button for items from earth in reverse order
         constants.actor_creation_manager.create_interface_element(
             {
                 "width": scaling.scale_width(100),
@@ -2005,7 +2005,7 @@ def ministers_screen():
         "width": scaling.scale_width(portrait_icon_width),
         "height": scaling.scale_height(portrait_icon_width),
         "modes": [constants.MINISTERS_MODE],
-        "color": "gray",
+        "color": constants.COLOR_GRAY,
         "init_type": constants.MINISTER_PORTRAIT_IMAGE,
     }
     for current_index, minister_type_tuple in enumerate(status.minister_types.items()):
@@ -2098,7 +2098,7 @@ def ministers_screen():
                 "height": scaling.scale_height(portrait_icon_width),
                 "modes": [constants.MINISTERS_MODE],
                 "init_type": constants.MINISTER_PORTRAIT_IMAGE,
-                "color": "gray",
+                "color": constants.COLOR_GRAY,
                 "minister_type": None,
             }
         )
@@ -2123,7 +2123,7 @@ def ministers_screen():
                 "height": scaling.scale_height(portrait_icon_width),
                 "modes": [],
                 "init_type": constants.MINISTER_PORTRAIT_IMAGE,
-                "color": "gray",
+                "color": constants.COLOR_GRAY,
                 "minister_type": None,
             }
         )
@@ -2189,7 +2189,7 @@ def trial_screen():
             "height": scaling.scale_height(button_separation * 2 - 5),
             "init_type": constants.MINISTER_PORTRAIT_IMAGE,
             "minister_type": None,
-            "color": "gray",
+            "color": constants.COLOR_GRAY,
             "parent_collection": status.defense_info_display,
         }
     )
@@ -2266,7 +2266,7 @@ def trial_screen():
                 "height": scaling.scale_height(button_separation * 2 - 5),
                 "init_type": constants.MINISTER_PORTRAIT_IMAGE,
                 "minister_type": None,
-                "color": "gray",
+                "color": constants.COLOR_GRAY,
                 "parent_collection": status.prosecution_info_display,
             }
         )
@@ -2630,7 +2630,7 @@ def tile_interface():
         "init_type": constants.SAME_TILE_ICON,
         "image_id": "buttons/default_button.png",
         "is_last": False,
-        "color": "gray",
+        "color": constants.COLOR_GRAY,
         "parent_collection": same_tile_ordered_collection,
     }
 
@@ -2650,7 +2650,7 @@ def tile_interface():
             "image_id": "buttons/default_button.png",
             "index": 3,
             "is_last": True,
-            "color": "gray",
+            "color": constants.COLOR_GRAY,
             "parent_collection": same_tile_ordered_collection,
         }
     )

@@ -607,7 +607,11 @@ class terrain_handler:
                 )
             return color_filter
         else:
-            return {"red": 1, "green": 1, "blue": 1}
+            return {
+                constants.COLOR_RED: 1,
+                constants.COLOR_GREEN: 1,
+                constants.COLOR_BLUE: 1,
+            }
 
     def get_world_handler(self) -> world_handlers.world_handler:
         """

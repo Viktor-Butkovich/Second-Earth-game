@@ -66,7 +66,7 @@ class die(button):
             )
         else:
             input_dict["image_id"] = "misc/dice/impossible.png"
-        input_dict["color"] = "white"
+        input_dict["color"] = constants.COLOR_WHITE
         input_dict["button_type"] = "die"
         super().__init__(input_dict)
         status.dice_list.append(self)
@@ -83,10 +83,10 @@ class die(button):
         else:
             if self.result_outcome_dict["min_success"] <= 0:  # if green combat die
                 self.outline_color = self.outcome_color_dict["success"]
-                self.special_die_type = "green"
+                self.special_die_type = constants.COLOR_GREEN
             else:  # if red combat die
                 self.outline_color = self.outcome_color_dict["fail"]
-                self.special_die_type = "red"
+                self.special_die_type = constants.COLOR_RED
         self.in_notification = True  # dice are attached to notifications and should be drawn over other buttons
 
     def on_click(self):
@@ -265,7 +265,10 @@ class die(button):
                 )
             else:
                 pygame.draw.rect(
-                    constants.game_display, constants.color_dict["black"], self.Rect, 6
+                    constants.game_display,
+                    constants.color_dict[constants.COLOR_BLACK],
+                    self.Rect,
+                    6,
                 )
 
     def remove(self):

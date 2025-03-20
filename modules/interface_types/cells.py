@@ -524,7 +524,7 @@ class cell:
         green = current_color[1]
         blue = current_color[2]
         if not self.terrain_handler.visible:
-            red, green, blue = constants.color_dict["blonde"]
+            red, green, blue = constants.color_dict[constants.COLOR_BLONDE]
         pygame.draw.rect(constants.game_display, (red, green, blue), self.Rect)
         if self.tile:
             for current_image in self.tile.images:

@@ -249,7 +249,7 @@ class item_icon(button):
             if self == getattr(status, f"displayed_{self.actor_type}"):
                 pygame.draw.rect(
                     constants.game_display,
-                    constants.color_dict["bright green"],
+                    constants.color_dict[constants.COLOR_BRIGHT_GREEN],
                     self.outline,
                     width=2,
                 )

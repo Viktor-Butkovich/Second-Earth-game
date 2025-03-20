@@ -266,13 +266,13 @@ def draw_text_box():
     x, y = (0, constants.display_height - constants.text_box_height)
     pygame.draw.rect(
         constants.game_display,
-        constants.color_dict["white"],
+        constants.color_dict[constants.COLOR_WHITE],
         (x, y, text_box_width, constants.text_box_height),
     )  # draws white rect to prevent overlapping
     if flags.typing:
-        color = "red"
+        color = constants.COLOR_RED
     else:
-        color = "black"
+        color = constants.COLOR_BLACK
     pygame.draw.rect(
         constants.game_display,
         constants.color_dict[color],

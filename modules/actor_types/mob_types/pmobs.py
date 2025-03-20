@@ -44,7 +44,7 @@ class pmob(mob):
         """
         self.sentry_mode = False
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.selection_outline_color = "bright green"
+        self.selection_outline_color = constants.COLOR_BRIGHT_GREEN
         status.pmob_list.append(self)
         self.equipment = {}
         for current_equipment in input_dict.get("equipment", {}):
@@ -800,11 +800,11 @@ class pmob(mob):
                                 .tile
                             )
                             if current_coordinates == start_coordinates:
-                                color = "purple"
+                                color = constants.COLOR_PURPLE
                             elif current_coordinates == end_coordinates:
-                                color = "yellow"
+                                color = constants.COLOR_YELLOW
                             else:
-                                color = "bright blue"
+                                color = constants.COLOR_BRIGHT_BLUE
                             current_tile.draw_destination_outline(color)
                             for equivalent_tile in current_tile.get_equivalent_tiles():
                                 equivalent_tile.draw_destination_outline(color)

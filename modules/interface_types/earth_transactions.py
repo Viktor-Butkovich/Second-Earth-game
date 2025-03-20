@@ -195,13 +195,8 @@ class buy_item_button(button):
             None
         """
         new_tooltip = []
-        if self.item_type.name.endswith("s"):
-            new_tooltip.append(
-                f"Purchases 1 unit of {self.item_type.name} for {self.item_type.price} money."
-            )
-        else:
-            new_tooltip.append(
-                f"Purchases 1 {self.item_type.name} for {self.item_type.price} money."
-            )
+        new_tooltip.append(
+            f"Purchases 1 unit of {self.item_type.name} for {self.item_type.price} money."
+        )
         new_tooltip += self.item_type.description
         self.set_tooltip(new_tooltip)

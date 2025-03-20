@@ -265,9 +265,9 @@ class image_bundle(image):
         combined_surface = pygame.Surface(
             (self.width, self.height), pygame.HWSURFACE | pygame.DOUBLEBUF
         )  # has strange interaction with smoke effects
-        combined_surface.fill(constants.color_dict["transparent"])
+        combined_surface.fill(constants.color_dict[constants.COLOR_TRANSPARENT])
         combined_surface.set_colorkey(
-            constants.color_dict["transparent"], pygame.RLEACCEL
+            constants.color_dict[constants.COLOR_TRANSPARENT], pygame.RLEACCEL
         )
         blit_sequence = self.get_blit_sequence()
         if blit_sequence:
@@ -729,7 +729,7 @@ class bundle_image:
                         red = round(
                             max(
                                 min(
-                                    self.color_filter.get("red", 1) * red,
+                                    self.color_filter.get(constants.COLOR_RED, 1) * red,
                                     255,
                                 ),
                                 0,
@@ -738,7 +738,8 @@ class bundle_image:
                         green = round(
                             max(
                                 min(
-                                    self.color_filter.get("green", 1) * green,
+                                    self.color_filter.get(constants.COLOR_GREEN, 1)
+                                    * green,
                                     255,
                                 ),
                                 0,
@@ -747,7 +748,8 @@ class bundle_image:
                         blue = round(
                             max(
                                 min(
-                                    self.color_filter.get("blue", 1) * blue,
+                                    self.color_filter.get(constants.COLOR_BLUE, 1)
+                                    * blue,
                                     255,
                                 ),
                                 0,
@@ -1171,11 +1173,13 @@ class tooltip_free_image(free_image):
             self.tooltip_outline.y = self.tooltip_box.y - self.tooltip_outline_width
             pygame.draw.rect(
                 constants.game_display,
-                constants.color_dict["black"],
+                constants.color_dict[constants.COLOR_BLACK],
                 self.tooltip_outline,
             )
             pygame.draw.rect(
-                constants.game_display, constants.color_dict["white"], self.tooltip_box
+                constants.game_display,
+                constants.color_dict[constants.COLOR_WHITE],
+                self.tooltip_box,
             )
             for text_line_index in range(len(self.tooltip_text)):
                 text_line = self.tooltip_text[text_line_index]

@@ -210,7 +210,8 @@ class dice_rolling_notification(action_notification):
             max_die = 0
             for current_die in status.dice_list:
                 if not (
-                    not current_die.normal_die and current_die.special_die_type == "red"
+                    not current_die.normal_die
+                    and current_die.special_die_type == constants.COLOR_RED
                 ):  # do not include enemy dice in this calculation
                     if current_die.roll_result > max_roll:
                         max_roll = current_die.roll_result
@@ -218,18 +219,19 @@ class dice_rolling_notification(action_notification):
                 if (
                     not current_die.normal_die
                 ):  # change highlight color of special dice to show that roll is complete
-                    if current_die.special_die_type == "green":
+                    if current_die.special_die_type == constants.COLOR_GREEN:
                         current_die.outline_color = current_die.outcome_color_dict[
                             "crit_success"
                         ]
-                    elif current_die.special_die_type == "red":
+                    elif current_die.special_die_type == constants.COLOR_RED:
                         current_die.outline_color = current_die.outcome_color_dict[
                             "crit_fail"
                         ]
 
             for current_die in status.dice_list:
                 if not (
-                    not current_die.normal_die and current_die.special_die_type == "red"
+                    not current_die.normal_die
+                    and current_die.special_die_type == constants.COLOR_RED
                 ):
                     if not current_die == max_die:
                         current_die.normal_die = True

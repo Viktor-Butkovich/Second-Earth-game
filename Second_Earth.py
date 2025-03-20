@@ -425,7 +425,6 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Replace color strings with constant keys
 # Next major step is to add basic economic mechanics, now that the baseline terraforming is functional
 # Decided that colonists consume energy - should stored energy be equivalent to fuel, or not?
 #   Possibly 1-way - fuel can be spent to create energy, but energy cannot be trivially spent to be stored as fuel

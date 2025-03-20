@@ -33,8 +33,8 @@ class tile(actor):  # to do: make terrain tiles a subclass
         """
         status.tile_list.append(self)
         self.actor_type = constants.TILE_ACTOR_TYPE
-        self.selection_outline_color = "yellow"
-        self.actor_match_outline_color = "white"
+        self.selection_outline_color = constants.COLOR_YELLOW
+        self.actor_match_outline_color = constants.COLOR_WHITE
         input_dict["grids"] = [
             input_dict["grid"]
         ]  # Give actor a 1-item list of grids as input

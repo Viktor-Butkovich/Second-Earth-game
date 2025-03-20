@@ -47,7 +47,7 @@ class item_type:
             "item_image", "items/consumer_goods.png"
         )  # Basic image that can be used in icons
         self.background_color: tuple = input_dict.get(
-            "background_color", constants.color_dict["green_icon"]
+            "background_color", constants.color_dict[constants.COLOR_GREEN_ICON]
         )
         self.name: str = input_dict.get("name", self.key).replace("_", " ")
 

@@ -781,7 +781,7 @@ class button(interface_elements.interface_element):
             if self.showing_outline and allow_show_outline:
                 pygame.draw.rect(
                     constants.game_display,
-                    constants.color_dict["white"],
+                    constants.color_dict[constants.COLOR_WHITE],
                     self.outline,
                     width=2,
                 )
@@ -792,7 +792,7 @@ class button(interface_elements.interface_element):
                 self.has_keybind
             ):  # The key to which a button is bound will appear on the button's image
                 message = self.keybind_name
-                color = "white"
+                color = constants.COLOR_WHITE
                 textsurface = constants.myfont.pygame_font.render(
                     message, False, constants.color_dict[color]
                 )
@@ -834,11 +834,13 @@ class button(interface_elements.interface_element):
             self.tooltip_outline.y = self.tooltip_box.y - self.tooltip_outline_width
             pygame.draw.rect(
                 constants.game_display,
-                constants.color_dict["black"],
+                constants.color_dict[constants.COLOR_BLACK],
                 self.tooltip_outline,
             )
             pygame.draw.rect(
-                constants.game_display, constants.color_dict["white"], self.tooltip_box
+                constants.game_display,
+                constants.color_dict[constants.COLOR_WHITE],
+                self.tooltip_box,
             )
             for text_line_index in range(len(self.tooltip_text)):
                 text_line = self.tooltip_text[text_line_index]
@@ -1844,13 +1846,13 @@ class same_tile_icon(button):
                 if status.displayed_tile.cell.contained_mobs[0] == status.displayed_mob:
                     pygame.draw.rect(
                         constants.game_display,
-                        constants.color_dict["bright green"],
+                        constants.color_dict[constants.COLOR_BRIGHT_GREEN],
                         self.outline,
                     )
                 else:
                     pygame.draw.rect(
                         constants.game_display,
-                        constants.color_dict["white"],
+                        constants.color_dict[constants.COLOR_WHITE],
                         self.outline,
                     )
             super().draw()
@@ -2164,7 +2166,7 @@ class minister_portrait_image(button):
             ):
                 pygame.draw.rect(
                     constants.game_display,
-                    constants.color_dict["bright green"],
+                    constants.color_dict[constants.COLOR_BRIGHT_GREEN],
                     self.outline,
                 )
         super().draw(

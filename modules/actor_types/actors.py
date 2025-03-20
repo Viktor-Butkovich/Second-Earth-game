@@ -534,12 +534,12 @@ class actor:
         )
         pygame.draw.rect(
             constants.game_display,
-            constants.color_dict["black"],
+            constants.color_dict[constants.COLOR_BLACK],
             tooltip_image.tooltip_outline,
         )
         pygame.draw.rect(
             constants.game_display,
-            constants.color_dict["white"],
+            constants.color_dict[constants.COLOR_WHITE],
             tooltip_image.tooltip_box,
         )
         for text_line_index in range(len(tooltip_image.tooltip_text)):

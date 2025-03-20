@@ -1522,7 +1522,7 @@ def create_grid(
                 "width": scaling.scale_width(constants.minimap_grid_pixel_width),
                 "height": scaling.scale_height(constants.minimap_grid_pixel_height),
                 "coordinate_size": constants.minimap_grid_coordinate_size,
-                "external_line_color": "bright red",
+                "external_line_color": constants.COLOR_BRIGHT_RED,
                 "attached_grid": status.strategic_map_grid,
             }
         )
