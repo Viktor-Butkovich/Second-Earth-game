@@ -790,13 +790,6 @@ class actor_display_label(label):
             if self.actor:
                 self.actor.update_tooltip()
                 tooltip_text = self.actor.tooltip_text
-                if (
-                    self.actor.actor_type == constants.TILE_ACTOR_TYPE
-                ):  # show tooltips of buildings in tile
-                    for current_building in self.actor.cell.get_buildings():
-                        current_building.update_tooltip()
-                        tooltip_text.append("")
-                        tooltip_text += current_building.tooltip_text
                 self.set_tooltip(tooltip_text)
             elif self.default_tooltip_text:
                 self.set_tooltip(self.default_tooltip_text)

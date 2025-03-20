@@ -280,7 +280,7 @@ class cell:
         """
         return [
             contained_building
-            for contained_building in self.contained_buildings
+            for key, contained_building in self.contained_buildings.items()
             if contained_building
         ]
 

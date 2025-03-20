@@ -31,6 +31,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
+        status.tile_list.append(self)
         self.actor_type = constants.TILE_ACTOR_TYPE
         self.selection_outline_color = "yellow"
         self.actor_match_outline_color = "white"
@@ -145,6 +146,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         super().remove()
+        status.tile_list = utility.remove_from_list(status.tile_list, self)
         if self.name_icon:
             self.name_icon.remove()
 
@@ -630,17 +632,6 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 else:
                     tooltip_message.append(f"    Terrain unknown")
 
-            if self.cell.terrain_handler.resource:  # If resource present, show resource
-                tooltip_message.append(
-                    f"This tile has {utility.generate_article(self.cell.terrain_handler.resource.name)} {self.cell.terrain_handler.resource.name} resource"
-                )
-            for terrain_feature in self.cell.terrain_handler.terrain_features:
-                if status.terrain_feature_types[terrain_feature].visible:
-                    tooltip_message += status.terrain_feature_types[
-                        terrain_feature
-                    ].description
-        elif self.grid.is_abstract_grid:
-            tooltip_message.append(self.name)
         if self.cell.terrain_handler.get_world_handler():
             overall_habitability = self.cell.terrain_handler.get_known_habitability()
             if (not self.cell.grid.is_abstract_grid) and (
@@ -654,6 +645,27 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 tooltip_message.append(
                     f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability]}"
                 )
+
+        if self.show_terrain:
+            for current_building in self.cell.get_buildings():
+                current_building.update_tooltip()
+                tooltip_message.append("")
+                tooltip_message += current_building.tooltip_text
+
+            if self.cell.terrain_handler.resource:  # If resource present, show resource
+                tooltip_message.append("")
+                tooltip_message.append(
+                    f"This tile has {utility.generate_article(self.cell.terrain_handler.resource.name)} {self.cell.terrain_handler.resource.name} resource"
+                )
+            for terrain_feature in self.cell.terrain_handler.terrain_features:
+                if status.terrain_feature_types[terrain_feature].visible:
+                    tooltip_message.append("")
+                    tooltip_message += status.terrain_feature_types[
+                        terrain_feature
+                    ].description
+        elif self.grid.is_abstract_grid:
+            tooltip_message.append(self.name)
+
         self.set_tooltip(tooltip_message)
 
     def set_coordinates(self, x, y):
