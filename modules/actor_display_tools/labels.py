@@ -89,8 +89,19 @@ class actor_display_label(label):
             del input_dict["keybind_id"]
             input_dict["image_id"] = [
                 "buttons/default_button_alt2.png",
-                {"image_id": "misc/green_circle.png", "size": 0.75},
-                {"image_id": "items/consumer_goods.png", "size": 0.75},
+                {
+                    "image_id": "misc/circle.png",
+                    "green_screen": status.item_types[
+                        constants.CONSUMER_GOODS_ITEM
+                    ].background_color,
+                    "size": 0.75,
+                },
+                {
+                    "image_id": status.item_types[
+                        constants.CONSUMER_GOODS_ITEM
+                    ].item_image,
+                    "size": 0.75,
+                },
             ]
             input_dict["init_type"] = constants.TOGGLE_BUTTON
             input_dict["toggle_variable"] = "wait_until_full"
@@ -138,8 +149,19 @@ class actor_display_label(label):
                 input_dict["init_type"] = constants.ANONYMOUS_BUTTON
                 input_dict["image_id"] = [
                     "buttons/default_button_alt2.png",
-                    {"image_id": "misc/green_circle.png", "size": 0.75},
-                    {"image_id": "items/consumer_goods.png", "size": 0.75},
+                    {
+                        "image_id": "misc/circle.png",
+                        "green_screen": status.item_types[
+                            constants.CONSUMER_GOODS_ITEM
+                        ].background_color,
+                        "size": 0.75,
+                    },
+                    {
+                        "image_id": status.item_types[
+                            constants.CONSUMER_GOODS_ITEM
+                        ].item_image,
+                        "size": 0.75,
+                    },
                 ]
                 input_dict["button_type"] = {
                     "on_click": (
@@ -155,8 +177,11 @@ class actor_display_label(label):
                     input_dict["equipment_type"] = equipment_type
                     input_dict["image_id"] = [
                         "buttons/default_button.png",
-                        "misc/green_circle.png",
-                        f"items/{equipment_key}.png",
+                        {
+                            "image_id": "misc/circle.png",
+                            "green_screen": equipment_type.background_color,
+                        },
+                        equipment_type.item_image,
                     ]
                     self.add_attached_button(input_dict)
 
@@ -295,8 +320,11 @@ class actor_display_label(label):
                         input_dict["equipment_type"] = equipment_type
                         input_dict["image_id"] = [
                             "buttons/default_button.png",
-                            "misc/green_circle.png",
-                            f"items/{equipment_key}.png",
+                            {
+                                "image_id": "misc/circle.png",
+                                "green_screen": equipment_type.background_color,
+                            },
+                            equipment_type.item_image,
                         ]
                         self.add_attached_button(input_dict)
 

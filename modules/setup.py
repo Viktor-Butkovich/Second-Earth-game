@@ -368,37 +368,63 @@ def item_types_config():
         {
             "equipment_type": constants.CONSUMER_GOODS_ITEM,
             "can_purchase": True,
-            "price": constants.consumer_goods_starting_price,
             "can_sell": True,
             "price": constants.consumer_goods_starting_price,
             "description": ["Placeholder consumer goods description"],
             "item_image": "items/consumer_goods.png",
+            "background_color": constants.color_dict["green_icon"],
             "allow_price_variation": True,
         }
     )
 
     item_types.item_type(
         {
-            "equipment_type": "iron",
+            "equipment_type": constants.FUEL_ITEM,
             "can_purchase": True,
-            "price": constants.consumer_goods_starting_price,
             "can_sell": True,
             "price": 5,
-            "description": ["Placeholder idk description"],
-            "item_image": "items/consumer_goods.png",
+            "description": ["Placeholder fuel description"],
+            "item_image": "items/fuel.png",
+            "background_color": constants.color_dict["purple"],
             "allow_price_variation": True,
         }
     )
 
     item_types.item_type(
         {
-            "equipment_type": "gold",
+            "equipment_type": constants.FOOD_ITEM,
             "can_purchase": True,
-            "price": constants.consumer_goods_starting_price,
             "can_sell": True,
             "price": 5,
-            "description": ["Placeholder idk description"],
-            "item_image": "items/consumer_goods.png",
+            "description": ["Placeholder food description"],
+            "item_image": "items/food.png",
+            "background_color": constants.color_dict["yellow"],
+            "allow_price_variation": True,
+        }
+    )
+
+    item_types.item_type(
+        {
+            "equipment_type": constants.WATER_ITEM,
+            "can_purchase": True,
+            "can_sell": True,
+            "price": 5,
+            "description": ["Placeholder water description"],
+            "item_image": "items/water.png",
+            "background_color": constants.color_dict["blue"],
+            "allow_price_variation": True,
+        }
+    )
+
+    item_types.item_type(
+        {
+            "equipment_type": constants.AIR_ITEM,
+            "can_purchase": True,
+            "can_sell": True,
+            "price": 5,
+            "description": ["Placeholder air description"],
+            "item_image": "items/air.png",
+            "background_color": constants.color_dict["light gray"],
             "allow_price_variation": True,
         }
     )
@@ -424,7 +450,8 @@ def item_types_config():
                 "Human units without spacesuits in deadly conditions cannot perform actions and will die at the end of the turn",
                 # "By default, solitary officers are assumed to be wearing personal spacesuits",
             ],
-            "item_image": {
+            "item_image": "items/spacesuits.png",  # Used for icons
+            "equipment_image": {  # Used as mob image components
                 constants.FULL_BODY_PORTRAIT_SECTION: "mobs/spacesuits/spacesuit_body.png",
                 constants.HAT_PORTRAIT_SECTION: "ministers/portraits/hat/spacesuit/spacesuit_helmet.png",
                 constants.HAIR_PORTRAIT_SECTION: "misc/empty.png",
@@ -2769,7 +2796,10 @@ def inventory_interface():
                 item_prices_y + item_prices_height - 65 - (30 * current_index),
             )
             input_dict["image_id"] = [
-                "misc/green_circle.png",
+                {
+                    "image_id": "misc/circle.png",
+                    "green_screen": current_item_type.background_color,
+                },
                 f"items/{current_item_type.key}.png",
             ]
             input_dict["item_type"] = current_item_type
@@ -2789,8 +2819,19 @@ def inventory_interface():
                     "tabbed": True,
                     "button_image_id": [
                         "buttons/default_button_alt2.png",
-                        {"image_id": "misc/green_circle.png", "size": 0.75},
-                        {"image_id": "items/consumer_goods.png", "size": 0.75},
+                        {
+                            "image_id": "misc/circle.png",
+                            "green_screen": status.item_types[
+                                constants.CONSUMER_GOODS_ITEM
+                            ].background_color,
+                            "size": 0.75,
+                        },
+                        {
+                            "image_id": status.item_types[
+                                constants.CONSUMER_GOODS_ITEM
+                            ].item_image,
+                            "size": 0.75,
+                        },
                     ],
                     "identifier": constants.INVENTORY_PANEL,
                     "tab_name": "cargo",
@@ -2951,8 +2992,19 @@ def inventory_interface():
                     "tabbed": True,
                     "button_image_id": [
                         "buttons/default_button_alt2.png",
-                        {"image_id": "misc/green_circle.png", "size": 0.75},
-                        {"image_id": "items/consumer_goods.png", "size": 0.75},
+                        {
+                            "image_id": "misc/circle.png",
+                            "green_screen": status.item_types[
+                                constants.CONSUMER_GOODS_ITEM
+                            ].background_color,
+                            "size": 0.75,
+                        },
+                        {
+                            "image_id": status.item_types[
+                                constants.CONSUMER_GOODS_ITEM
+                            ].item_image,
+                            "size": 0.75,
+                        },
                     ],
                     "identifier": constants.INVENTORY_PANEL,
                     "tab_name": "warehouses",

@@ -247,11 +247,12 @@ def generate_resource_icon(tile):
         string/list: Returns string or list image id for tile's resource icon
     """
     image_id = [
-        {"image_id": "misc/green_circle.png", "size": 0.75},
         {
-            "image_id": "items/" + tile.cell.terrain_handler.resource + ".png",
+            "image_id": "misc/circle.png",
+            "green_screen": tile.cell.terrain_handler.resource.background_color,
             "size": 0.75,
         },
+        {"image_id": tile.cell.terrain_handler.resource.item_image, "size": 0.75},
     ]
 
     if bool(tile.cell.get_buildings()):  # Make small icon if tile has any buildings

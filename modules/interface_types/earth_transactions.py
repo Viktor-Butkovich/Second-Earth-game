@@ -121,12 +121,13 @@ class buy_item_button(button):
                 "detail_level": constants.BUTTON_DETAIL_LEVEL,
             },
             {
-                "image_id": "misc/green_circle.png",
+                "image_id": "misc/circle.png",
+                "green_screen": self.item_type.background_color,
                 "size": 0.75,
                 "detail_level": constants.BUTTON_DETAIL_LEVEL,
             },
             {
-                "image_id": f"items/{self.item_type.key}.png",
+                "image_id": self.item_type.item_image,
                 "size": 0.75,
                 "detail_level": constants.BUTTON_DETAIL_LEVEL,
             },

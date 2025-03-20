@@ -898,6 +898,10 @@ OFF_TILE_EXPLORATION_NOTIFICATION: str = "off_tile_exploration_notification"
 
 SPACESUITS_EQUIPMENT: str = "spacesuits"
 CONSUMER_GOODS_ITEM: str = "consumer_goods"
+FUEL_ITEM: str = "fuel"
+FOOD_ITEM: str = "food"
+WATER_ITEM: str = "water"
+AIR_ITEM: str = "air"
 
 PMOB_PERMISSION: str = "pmob"
 NPMOB_PERMISSION: str = "npmob"

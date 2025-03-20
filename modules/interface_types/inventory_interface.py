@@ -204,17 +204,23 @@ class item_icon(button):
                         or new_actor.infinite_inventory_capacity
                     ):  # If item in capacity
                         self.image.set_image(
-                            utility.combine(
-                                self.default_image_id,
-                                "misc/green_circle.png",
-                                f"items/{self.current_item.key}.png",
-                            )
+                            [
+                                self.default_image_id,  # Background image for warehouse slots
+                                {
+                                    "image_id": "misc/circle.png",
+                                    "green_screen": self.current_item.background_color,
+                                },
+                                {"image_id": self.current_item.item_image},
+                            ]
                         )
                     else:  # If item over capacity
                         self.image.set_image(
                             [
-                                "misc/green_circle.png",
-                                f"items/{self.current_item.key}.png",
+                                {
+                                    "image_id": "misc/circle.png",
+                                    "green_screen": self.current_item.background_color,
+                                },
+                                {"image_id": self.current_item.item_image},
                                 "misc/warning_icon.png",
                             ]
                         )

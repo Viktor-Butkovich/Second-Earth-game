@@ -151,7 +151,11 @@ class advertising_campaign(action.campaign):
             return_list.append(
                 action_utility.generate_free_image_input_dict(
                     [
-                        {"image_id": "misc/green_circle.png", "size": 0.75},
+                        {
+                            "image_id": "misc/circle.png",
+                            "green_screen": self.target_unadvertised_item.background_color,
+                            "size": 0.75,
+                        },
                         {
                             "image_id": f"items/{self.target_unadvertised_item.key}.png",
                             "size": 0.75,
@@ -176,7 +180,11 @@ class advertising_campaign(action.campaign):
             return_list.append(
                 action_utility.generate_free_image_input_dict(
                     [
-                        {"image_id": "misc/green_circle.png", "size": 0.75},
+                        {
+                            "image_id": "misc/circle.png",
+                            "green_screen": self.target_item.background_color,
+                            "size": 0.75,
+                        },
                         {
                             "image_id": f"items/{self.target_item.key}.png",
                             "size": 0.75,

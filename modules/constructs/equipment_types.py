@@ -1,7 +1,7 @@
 # Contains functionality for equipment type templates
 
 import random
-from typing import Dict, List
+from typing import Dict, List, Any
 from modules.constructs import item_types
 from modules.constants import constants, status, flags
 
@@ -34,6 +34,8 @@ class equipment_type(item_types.item_type):
         requirements_type, requirements = input_dict.get("requirements", [None])
         self.requirements_type: str = requirements_type
         self.requirements: List[str] = requirements
+
+        self.equipment_image: Dict[str, Any] = input_dict.get("equipment_image", None)
 
     def apply_modifier(self, action_type: str) -> int:
         """

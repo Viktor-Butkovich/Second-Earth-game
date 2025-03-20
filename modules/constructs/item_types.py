@@ -43,7 +43,12 @@ class item_type:
         self.allow_price_variation: bool = input_dict.get(
             "allow_price_variation", False
         )
-        self.item_image: dict = input_dict.get("item_image", None)
+        self.item_image: str = input_dict.get(
+            "item_image", "items/consumer_goods.png"
+        )  # Basic image that can be used in icons
+        self.background_color: tuple = input_dict.get(
+            "background_color", constants.color_dict["green_icon"]
+        )
         self.name: str = input_dict.get("name", self.key).replace("_", " ")
 
     def apply_save_dict(self, save_dict: Dict[str, Any]) -> None:
