@@ -2,6 +2,7 @@
 
 import pygame
 import random
+import math
 from modules.util import (
     text_utility,
     utility,
@@ -160,7 +161,10 @@ class actor:
             int: Number of items held by this actor
         """
         return sum(
-            [self.get_inventory(item_type) for item_type in self.get_held_items()]
+            [
+                math.ceil(self.get_inventory(item_type))
+                for item_type in self.get_held_items()
+            ]
         )
 
     def get_inventory(self, item: item_types.item_type) -> float:
@@ -188,7 +192,7 @@ class actor:
         """
         current_index: int = 0
         for item_type in self.get_held_items():
-            current_index += self.get_inventory(item_type)
+            current_index += math.ceil(self.get_inventory(item_type))
             if current_index > index:
                 return item_type
         return None
@@ -205,18 +209,22 @@ class actor:
         """
         self.set_inventory(item, self.inventory.get(item.key, 0) + change)
 
-    def set_inventory(self, item: item_types.item_type, new_value: int) -> None:
+    def set_inventory(self, item: item_types.item_type, new_value: float) -> None:
         """
         Description:
             Sets the number of items of a certain type held by this actor
         Input:
             item_type item: Type of item to set the inventory of
-            int new_value: Amount of items of the inputted type to set inventory to
+            int new_value: Numerical amount of items of the inputted type to set inventory to
         Output:
             None
         """
-        self.inventory[item.key] = new_value
-        if new_value <= 0:
+        self.inventory[item.key] = round(new_value, 2)
+        if round(new_value) == self.inventory[item.key]:
+            self.inventory[item.key] = round(
+                new_value
+            )  # If new value is an integer, set inventory to integer
+        if round(new_value, 2) <= 0:
             del self.inventory[item.key]
 
     def get_held_items(self, ignore_consumer_goods=False) -> List[item_types.item_type]:

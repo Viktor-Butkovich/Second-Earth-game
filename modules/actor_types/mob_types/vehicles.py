@@ -71,7 +71,7 @@ class vehicle(pmob):
             dictionary: Returns the item upkeep requirements for this unit type
         """
         return utility.add_dicts(
-            self.unit_type.item_upkeep,
+            super().get_item_upkeep(),
             *[
                 current_sub_mob.get_item_upkeep()
                 for current_sub_mob in self.get_sub_mobs()

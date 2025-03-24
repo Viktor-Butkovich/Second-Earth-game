@@ -27,6 +27,7 @@ def end_turn():
     """
     actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
     actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
+    manage_upkeep()
     remove_excess_inventory()
     manage_environmental_conditions()
     flags.player_turn = False
@@ -160,7 +161,6 @@ def start_player_turn(first_turn=False):
         reset_mobs("pmobs")
         if not constants.effect_manager.effect_active("skip_start_of_turn"):
             manage_public_opinion()
-            manage_upkeep()
             manage_loans()
             manage_worker_price_changes()
             manage_item_sales()
@@ -412,8 +412,20 @@ def manage_upkeep():
         item_upkeep = current_tile.get_item_upkeep()
         item_request = current_tile.create_item_request(item_upkeep)
         if constants.effect_manager.effect_active("track_item_requests"):
-            print(f"Upkeep: {item_upkeep}")
-            print(f"Request: {item_request}")
+            if current_tile.show_terrain:
+                name = f"({current_tile.x}, {current_tile.y})"
+            else:
+                name = current_tile.name.capitalize()
+            print(f"{name} total upkeep {item_upkeep}")
+            print(f"{name} requesting external {item_request}")
+        for current_mob in current_tile.cell.contained_mobs:
+            missing_upkeep = current_mob.consume_items(current_mob.get_item_upkeep())
+            if constants.effect_manager.effect_active("track_item_requests"):
+                if missing_upkeep:
+                    print(f"Attempted to consume {current_mob.get_item_upkeep()}")
+                    print(f"Missing {missing_upkeep}")
+                else:
+                    print(f"Successfully consumed {current_mob.get_item_upkeep()}")
 
     total_money_upkeep = market_utility.calculate_total_worker_upkeep()
     constants.money_tracker.change(round(-1 * total_money_upkeep, 2), "worker_upkeep")

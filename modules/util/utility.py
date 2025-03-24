@@ -371,7 +371,7 @@ def add_dicts(*args: Dict[str, float]) -> Dict[str, float]:
         dict: Returns the sum of the inputted dictionaries
     """
     return_dict = {
-        key: round(sum(dictionary.get(key, 0) for dictionary in args), 1)
+        key: round(sum(dictionary.get(key, 0) for dictionary in args), 2)
         for dictionary in args
         for key in dictionary
     }
@@ -390,5 +390,7 @@ def subtract_dicts(
     Output:
         dict: Returns the result of subtracting the second dictionary from the first dictionary
     """
-    return_dict = {key: dict_1.get(key, 0) - dict_2.get(key, 0) for key in dict_1}
+    return_dict = {
+        key: round(dict_1.get(key, 0) - dict_2.get(key, 0), 2) for key in dict_1
+    }
     return return_dict

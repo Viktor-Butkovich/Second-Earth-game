@@ -1976,18 +1976,19 @@ def earth_screen():
     for purchase_item_type in reversed(
         list(status.item_types.values())
     ):  # Creates purchase button for items from earth in reverse order
-        constants.actor_creation_manager.create_interface_element(
-            {
-                "width": scaling.scale_width(100),
-                "height": scaling.scale_height(100),
-                "init_type": constants.BUY_ITEM_BUTTON,
-                "parent_collection": earth_purchase_buttons,
-                "item_type": purchase_item_type,
-                "member_config": {
-                    "second_dimension_coordinate": -1  # -1 * (len(earth_purchase_buttons.members) // purchase_button_grid_height)
-                },  # Re-uses recruitment index from previous loop
-            }
-        )
+        if purchase_item_type.can_purchase:
+            constants.actor_creation_manager.create_interface_element(
+                {
+                    "width": scaling.scale_width(100),
+                    "height": scaling.scale_height(100),
+                    "init_type": constants.BUY_ITEM_BUTTON,
+                    "parent_collection": earth_purchase_buttons,
+                    "item_type": purchase_item_type,
+                    "member_config": {
+                        "second_dimension_coordinate": -1  # -1 * (len(earth_purchase_buttons.members) // purchase_button_grid_height)
+                    },  # Re-uses recruitment index from previous loop
+                }
+            )
 
 
 def ministers_screen():

@@ -164,8 +164,12 @@ def transfer(
                         destination.change_inventory(item, amount)
                         source.change_inventory(item, amount * -1)
                 else:
-                    destination.change_inventory(transferred_item, amount)
-                    source.change_inventory(transferred_item, amount * -1)
+                    amount_transferred = min(
+                        source.get_inventory(transferred_item), amount
+                    )
+                    # In some cases, a button to transfer x amount of an item may be clicked when less than x is available
+                    destination.change_inventory(transferred_item, amount_transferred)
+                    source.change_inventory(transferred_item, amount_transferred * -1)
 
                 if source_type == "tile_inventory":  # Pick up item(s)
                     actor_utility.select_interface_tab(

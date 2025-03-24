@@ -100,7 +100,7 @@ class group(pmob):
             dictionary: Returns the item upkeep requirements for this unit type
         """
         return utility.add_dicts(
-            self.unit_type.item_upkeep,
+            super().get_item_upkeep(),
             self.worker.get_item_upkeep(),
             self.officer.get_item_upkeep(),
         )

@@ -1,9 +1,10 @@
 # Contains inventory-specific interface classes
 
 import pygame
+import math
 from modules.interface_types.interface_elements import ordered_collection
 from modules.interface_types.buttons import button
-from modules.util import actor_utility, utility
+from modules.util import actor_utility
 from modules.constructs import item_types
 from modules.constants import constants, status, flags
 
@@ -49,12 +50,12 @@ class inventory_grid(ordered_collection):
             None
         """
         actor_type: str = self.get_actor_type()
-        actor = getattr(status, "displayed_" + actor_type)
+        actor = getattr(status, f"displayed_{actor_type}")
         actor_utility.calibrate_actor_info_display(
-            getattr(status, actor_type + "_info_display"), actor
+            getattr(status, f"{actor_type}_info_display"), actor
         )
         actor_utility.calibrate_actor_info_display(
-            getattr(status, actor_type + "_inventory_info_display"), None
+            getattr(status, f"{actor_type}_inventory_info_display"), None
         )
         return
 
@@ -203,27 +204,38 @@ class item_icon(button):
                         new_actor.inventory_capacity >= display_index + 1
                         or new_actor.infinite_inventory_capacity
                     ):  # If item in capacity
-                        self.image.set_image(
-                            [
-                                self.default_image_id,  # Background image for warehouse slots
-                                {
-                                    "image_id": "misc/circle.png",
-                                    "green_screen": self.current_item.background_color,
-                                },
-                                {"image_id": self.current_item.item_image},
-                            ]
-                        )
+                        image_id = [
+                            self.default_image_id,  # Background image for warehouse slots
+                            {
+                                "image_id": "misc/circle.png",
+                                "green_screen": self.current_item.background_color,
+                            },
+                            {"image_id": self.current_item.item_image},
+                        ]
                     else:  # If item over capacity
-                        self.image.set_image(
-                            [
+                        image_id = [
+                            {
+                                "image_id": "misc/circle.png",
+                                "green_screen": self.current_item.background_color,
+                            },
+                            {"image_id": self.current_item.item_image},
+                            "misc/warning_icon.png",
+                        ]
+                    stored_amount = new_actor.get_inventory(self.current_item)
+                    if (
+                        round(stored_amount) != stored_amount
+                    ):  # If decimal amount being held
+                        if (
+                            new_actor.check_inventory(display_index + 1)
+                            != self.current_item
+                        ):  # If next index is a different type, show shader for decimal amount
+                            image_id.append(
                                 {
-                                    "image_id": "misc/circle.png",
-                                    "green_screen": self.current_item.background_color,
-                                },
-                                {"image_id": self.current_item.item_image},
-                                "misc/warning_icon.png",
-                            ]
-                        )
+                                    "image_id": f"items/fill_meters/{round((stored_amount - math.floor(stored_amount)) * 10)}.png",
+                                    "alpha": 255 // 2,
+                                }
+                            )  # Show fill meter 1-9 depending on tenth's place
+                    self.image.set_image(image_id)
                 else:
                     self.image.set_image(self.default_image_id)
                     if (
