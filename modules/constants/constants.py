@@ -353,6 +353,7 @@ COLOR_BRIGHT_GREEN_2: str = "bright_green_2"
 COLOR_BRIGHT_BLUE_2: str = "bright_blue_2"
 COLOR_PURPLE_2: str = "purple_2"
 COLOR_ORANGE: str = "orange"
+COLOR_FIRE_ORANGE: str = "fire_orange"
 COLOR_GREEN_SCREEN_1: str = "green_screen_1"
 COLOR_GREEN_SCREEN_2: str = "green_screen_2"
 COLOR_GREEN_SCREEN_3: str = "green_screen_3"
@@ -384,6 +385,7 @@ color_dict: Dict[str, tuple[int, int, int]] = {
     COLOR_BRIGHT_BLUE_2: (41, 168, 255),
     COLOR_PURPLE_2: (201, 98, 255),
     COLOR_ORANGE: (255, 157, 77),
+    COLOR_FIRE_ORANGE: (245, 66, 0),
     COLOR_GREEN_SCREEN_1: (62, 82, 82),
     COLOR_GREEN_SCREEN_2: (70, 70, 92),
     COLOR_GREEN_SCREEN_3: (110, 107, 3),
@@ -937,6 +939,7 @@ OFF_TILE_EXPLORATION_NOTIFICATION: str = "off_tile_exploration_notification"
 SPACESUITS_EQUIPMENT: str = "spacesuits"
 CONSUMER_GOODS_ITEM: str = "consumer_goods"
 FUEL_ITEM: str = "fuel"
+ENERGY_ITEM: str = "energy"
 FOOD_ITEM: str = "food"
 WATER_ITEM: str = "water"
 AIR_ITEM: str = "air"

@@ -2,8 +2,9 @@
 
 import random
 import math
+from typing import Dict
 from modules.actor_types.mob_types.pmobs import pmob
-from modules.util import actor_utility, minister_utility
+from modules.util import actor_utility, minister_utility, utility
 from modules.constants import constants, status, flags
 
 
@@ -88,6 +89,21 @@ class group(pmob):
         if self.get_permission(constants.EXPEDITION_PERMISSION):
             self.on_move()
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def get_item_upkeep(self) -> Dict[str, float]:
+        """
+        Description:
+            Returns the item upkeep requirements for this unit type, recursively adding the upkeep requirements of sub-mobs
+        Input:
+            None
+        Output:
+            dictionary: Returns the item upkeep requirements for this unit type
+        """
+        return utility.add_dicts(
+            self.unit_type.item_upkeep,
+            self.worker.get_item_upkeep(),
+            self.officer.get_item_upkeep(),
+        )
 
     def permissions_setup(self) -> None:
         """

@@ -1,5 +1,4 @@
 # Contains miscellaneous functions, like removing an item from a list or finding the distance between 2 points
-
 import random
 import os
 from typing import List, Tuple, Dict
@@ -360,3 +359,36 @@ def get_voice_line(unit, type):
             selected_line = random.choice(unit.voice_lines[type])
     unit.last_voice_line = selected_line
     return selected_line
+
+
+def add_dicts(*args: Dict[str, float]) -> Dict[str, float]:
+    """
+    Description:
+        Adds any number of inputted dictionaries together, returning the result
+    Input:
+        *args: Any number of inputted dictionaries with numerical values
+    Output:
+        dict: Returns the sum of the inputted dictionaries
+    """
+    return_dict = {
+        key: round(sum(dictionary.get(key, 0) for dictionary in args), 1)
+        for dictionary in args
+        for key in dictionary
+    }
+    return return_dict
+
+
+def subtract_dicts(
+    dict_1: Dict[str, float], dict_2: Dict[str, float]
+) -> Dict[str, float]:
+    """
+    Description:
+        Subtracts the second inputted dictionary from the first inputted dictionary, returning the result
+    Input:
+        dict dict_1: Dictionary with numerical values to subtract from
+        dict dict_2: Dictionary with numerical values to subtract
+    Output:
+        dict: Returns the result of subtracting the second dictionary from the first dictionary
+    """
+    return_dict = {key: dict_1.get(key, 0) - dict_2.get(key, 0) for key in dict_1}
+    return return_dict

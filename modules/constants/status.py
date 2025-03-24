@@ -86,6 +86,7 @@ terrain_feature_types: Dict[str, terrain_feature_type] = {}
 flag_icon_list: List[button] = []
 grid_list: List[grid] = []
 tile_list: List[tile] = []
+main_tile_list: List[tile] = []
 text_list: List[str] = []
 free_image_list: List[free_image] = []
 minister_image_list: List[Any] = []

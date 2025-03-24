@@ -2,7 +2,7 @@
 
 import pygame
 import random
-from typing import Tuple
+from typing import Tuple, Dict, List
 from modules.constructs import images
 from modules.util import utility, actor_utility, main_loop_utility
 from modules.actor_types.actors import actor
@@ -64,6 +64,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
             )  # terrain is a property of the cell, being stored information rather than appearance, same for resource, set these in cell
             if self.cell.grid.from_save:
                 self.inventory = self.cell.save_dict["inventory"]
+            status.main_tile_list.append(
+                self
+            )  # List of all tiles that can be interacted with, and don't purely exist for visual purposes - 1:1 correspondence with terrain handlers
 
         elif self.grid.grid_type in constants.abstract_grid_type_list:
             self.cell.tile = self
@@ -78,6 +81,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     for current_item_type in status.item_types.values():
                         if current_item_type.can_sell:
                             self.inventory[current_item_type.key] = 10
+            status.main_tile_list.append(
+                self
+            )  # List of all tiles that can be interacted with, and don't purely exist for visual purposes - 1:1 correspondence with terrain handlers
         else:
             self.terrain = None
         self.finish_init(original_constructor, from_save, input_dict)
@@ -147,6 +153,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         """
         super().remove()
         status.tile_list = utility.remove_from_list(status.tile_list, self)
+        status.main_tile_list = utility.remove_from_list(status.main_tile_list, self)
         if self.name_icon:
             self.name_icon.remove()
 
@@ -197,6 +204,49 @@ class tile(actor):  # to do: make terrain tiles a subclass
         if not recursive:
             for tile in self.get_equivalent_tiles():
                 tile.draw_actor_match_outline(recursive=True)
+
+    def get_all_local_inventory(self) -> Dict[str, float]:
+        """
+        Description:
+            Returns a dictionary of all items held by this tile and local mobs
+        Input:
+            None
+        Output:
+            None
+        """
+        return utility.add_dicts(
+            self.inventory, *[mob.inventory for mob in self.cell.contained_mobs]
+        )
+
+    def create_item_request(self, required_items: Dict[str, float]) -> Dict[str, float]:
+        """
+        Description:
+            Given a dictionary of required items with amounts, create a dictionary of the amount of items that need to be externally sourced to meet the requirements
+        Input:
+            Dict[str, float] required_items: Dictionary of required items with amounts
+        Output:
+            Dict[str, float]: Dictionary of items with amounts that need to be externally sourced to meet the requirements
+        """
+        return {
+            key: value
+            for key, value in utility.subtract_dicts(
+                required_items, self.get_all_local_inventory()
+            ).items()
+            if value > 0
+        }
+
+    def get_item_upkeep(self) -> Dict[str, float]:
+        """
+        Description:
+            Returns the item upkeep requirements for all units in this tile
+        Input:
+            None
+        Output:
+            dictionary: Returns the item upkeep requirements for all units in this tile
+        """
+        return utility.add_dicts(
+            *[mob.get_item_upkeep() for mob in self.cell.contained_mobs]
+        )
 
     def remove_excess_inventory(self):
         """
@@ -585,7 +635,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         tooltip_message = []
-        if self.show_terrain:
+        if self.grid.is_abstract_grid:
+            tooltip_message.append(self.name)
+        elif self.show_terrain:
             coordinates = self.get_main_grid_coordinates()
             tooltip_message.append(f"Coordinates: ({coordinates[0]}, {coordinates[1]})")
             if self.cell.terrain_handler.terrain:
@@ -639,11 +691,11 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
             ):
                 tooltip_message.append(
-                    f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability]} (estimated)"
+                    f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability].capitalize()} (estimated)"
                 )
             else:
                 tooltip_message.append(
-                    f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability]}"
+                    f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability].capitalize()}"
                 )
 
         if self.show_terrain:
@@ -663,8 +715,26 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     tooltip_message += status.terrain_feature_types[
                         terrain_feature
                     ].description
-        elif self.grid.is_abstract_grid:
-            tooltip_message.append(self.name)
+
+        held_items: List[item_types.item_type] = self.get_held_items()
+        if (
+            held_items
+            or self.inventory_capacity > 0
+            or self.infinite_inventory_capacity
+        ):
+            if self.infinite_inventory_capacity:
+                tooltip_message.append(f"Inventory: {self.get_inventory_used()}")
+            else:
+                tooltip_message.append(
+                    f"Inventory: {self.get_inventory_used()}/{self.inventory_capacity}"
+                )
+            if not held_items:
+                tooltip_message.append("    None")
+            else:
+                for item_type in held_items:
+                    tooltip_message.append(
+                        f"    {item_type.name.capitalize()}: {self.get_inventory(item_type)}"
+                    )
 
         self.set_tooltip(tooltip_message)
 

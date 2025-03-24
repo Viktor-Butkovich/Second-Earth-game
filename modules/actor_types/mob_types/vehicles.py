@@ -1,9 +1,9 @@
 # Contains functionality for vehicle units
 
 import random
-from typing import List
+from typing import List, Dict
 from modules.actor_types.mob_types.pmobs import pmob
-from modules.util import text_utility, minister_utility
+from modules.util import text_utility, minister_utility, utility
 from modules.constants import constants, status, flags
 
 
@@ -60,6 +60,23 @@ class vehicle(pmob):
         if not self.get_permission(constants.ACTIVE_PERMISSION):
             self.remove_from_turn_queue()
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def get_item_upkeep(self) -> Dict[str, float]:
+        """
+        Description:
+            Returns the item upkeep requirements for this unit type, recursively adding the upkeep requirements of sub-mobs
+        Input:
+            None
+        Output:
+            dictionary: Returns the item upkeep requirements for this unit type
+        """
+        return utility.add_dicts(
+            self.unit_type.item_upkeep,
+            *[
+                current_sub_mob.get_item_upkeep()
+                for current_sub_mob in self.get_sub_mobs()
+            ],
+        )
 
     def permissions_setup(self) -> None:
         """

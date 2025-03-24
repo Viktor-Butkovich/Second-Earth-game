@@ -67,6 +67,7 @@ class unit_type:
             self.required_infrastructure: building_types.building_type = input_dict.get(
                 "required_infrastructure", None
             )
+            self.item_upkeep: Dict[str, float] = input_dict.get("item_upkeep", {})
 
             status.unit_types[self.key] = self
         return

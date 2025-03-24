@@ -132,7 +132,7 @@ class actor:
                     status.tile_info_display, self
                 )
 
-    def get_inventory_remaining(self, possible_amount_added=0) -> int:
+    def get_inventory_remaining(self, possible_amount_added=0) -> float:
         """
         Description:
             By default, returns amount of inventory space remaining. If input received, returns amount of space remaining in inventory if the inputted number of items were added to it.
@@ -150,7 +150,7 @@ class actor:
                 - possible_amount_added
             )
 
-    def get_inventory_used(self) -> int:
+    def get_inventory_used(self) -> float:
         """
         Description:
             Returns the number of items held by this actor
@@ -163,14 +163,14 @@ class actor:
             [self.get_inventory(item_type) for item_type in self.get_held_items()]
         )
 
-    def get_inventory(self, item: item_types.item_type) -> int:
+    def get_inventory(self, item: item_types.item_type) -> float:
         """
         Description:
             Returns the number of items of the inputted type held by this actor
         Input:
             item_type item: Type of item to check inventory for
         Output:
-            int: Number of items of the inputted type held by this actor
+            float: Number of items of the inputted type held by this actor
         """
         return self.inventory.get(item.key, 0)
 

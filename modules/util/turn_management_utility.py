@@ -155,7 +155,7 @@ def start_player_turn(first_turn=False):
         for current_building in status.building_list:
             if current_building.building_type == constants.RESOURCE:
                 current_building.reattach_work_crews()
-        manage_attrition()  # have attrition before or after enemy turn? Before upkeep?
+        manage_attrition()  # Have attrition before or after enemy turn? Before upkeep?
         manage_production()
         reset_mobs("pmobs")
         if not constants.effect_manager.effect_active("skip_start_of_turn"):
@@ -165,7 +165,7 @@ def start_player_turn(first_turn=False):
             manage_worker_price_changes()
             manage_item_sales()
             manage_ministers()
-            manage_subsidies()  # subsidies given after public opinion changes
+            manage_subsidies()  # Note that subsidies are managed after public opinion changes
             manage_financial_report()
         actor_utility.reset_action_prices()
         game_end_check()
@@ -404,8 +404,19 @@ def manage_upkeep():
     Output:
         None
     """
-    total_upkeep = market_utility.calculate_total_worker_upkeep()
-    constants.money_tracker.change(round(-1 * total_upkeep, 2), "worker_upkeep")
+    for current_tile in [
+        current_tile
+        for current_tile in status.main_tile_list
+        if current_tile.cell.contained_mobs
+    ]:
+        item_upkeep = current_tile.get_item_upkeep()
+        item_request = current_tile.create_item_request(item_upkeep)
+        if constants.effect_manager.effect_active("track_item_requests"):
+            print(f"Upkeep: {item_upkeep}")
+            print(f"Request: {item_request}")
+
+    total_money_upkeep = market_utility.calculate_total_worker_upkeep()
+    constants.money_tracker.change(round(-1 * total_money_upkeep, 2), "worker_upkeep")
 
 
 def manage_loans():

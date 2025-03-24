@@ -82,6 +82,12 @@ except Exception:  # Displays error message and records error message in crash l
     Grant free upkeep/housing to any units on Earth - functionally unlimited
     Possibly require different types of food for health bonuses
     Insufficient goods or energy is unpleasant but does not cause instant death
+    Resource icons:
+        Water: Office water cooler
+        Air/any gas: Oxygen tank w/ pressure meter, background varies with gas type
+        Food: Loaf of bread
+        Fuel: Red gas canister or propane tank
+        Stored energy: Battery
 2. Add new building types, including modules that can be transported and worked while on a vehicle
     Modules should take more than 1 inventory capacity each
     Possibly allow pre-upgraded modules?
@@ -395,6 +401,14 @@ except Exception:  # Displays error message and records error message in crash l
         Ideally variants of high-roughness terrains that will occur if certain local features are present
     Add vegetation terrains, with Earth-dominated and alien-dominated variants
         Appearance should possibly depend on organisms present
+24. Supply chain system
+    Allow a tile to "request" a list of items - this will use the logistics system to see if the required items can be delivered (or are in the tile already)
+    This returns an order form with the items requested and where they will come from - if it is sufficient, the deliveries are attempted
+    Once deliveries are complete, the unit will attempt to consume the required items
+    When consuming items, the unit will first look in the tile's inventory, then its own inventory, then the inventories of other local units
+    This request/delivery/consumption system can be used for any item spending, and can encapsulate the warehouse/delivery system from spending systems
+    If necessary, use a graph algorithm to find the optimal way to fill as many requests as possible, given current item locations
+    May require encoding the grid w/ transportation routes as a graph - can be re-purposed for movement calculations as well
 """
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.

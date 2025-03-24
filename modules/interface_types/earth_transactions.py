@@ -154,6 +154,13 @@ class buy_item_button(button):
                     status.earth_grid.cell_list[0][0].tile.change_inventory(
                         self.item_type, 1
                     )  # Adds 1 of item bought to local tile
+
+                    actor_utility.calibrate_actor_info_display(
+                        status.tile_inventory_info_display,
+                        status.displayed_tile_inventory,
+                    )
+                    # Update currently selected item icon with new contents and item quantity
+
                     constants.money_tracker.change(-1 * self.item_type.price, "items")
                     if self.item_type.name.endswith("s"):
                         text_utility.print_to_screen(

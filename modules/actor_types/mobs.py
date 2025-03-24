@@ -92,6 +92,17 @@ class mob(actor):
                 self.creation_turn = constants.turn
         self.finish_init(original_constructor, from_save, input_dict)
 
+    def get_item_upkeep(self) -> Dict[str, float]:
+        """
+        Description:
+            Returns the item upkeep requirements for this unit type
+        Input:
+            None
+        Output:
+            dictionary: Returns the item upkeep requirements for this unit type
+        """
+        return self.unit_type.item_upkeep
+
     def get_radio_effect(self) -> bool:
         """
         Description:
@@ -1006,8 +1017,35 @@ class mob(actor):
         else:
             tooltip_list.append("Movement points: ???")
 
-        if self.equipment:
-            tooltip_list.append(f"Equipment: {', '.join(self.equipment.keys())}")
+        if self.get_permission(constants.PMOB_PERMISSION):
+            held_items: List[item_types.item_type] = self.get_held_items()
+            if held_items or self.inventory_capacity > 0:
+                tooltip_list.append(
+                    f"Inventory: {self.get_inventory_used()}/{self.inventory_capacity}"
+                )
+                for item_type in held_items:
+                    tooltip_list.append(
+                        f"    {item_type.name.capitalize()}: {self.get_inventory(item_type)}"
+                    )
+            if len(self.base_automatic_route) > 1:
+                start_coordinates = self.base_automatic_route[0]
+                end_coordinates = self.base_automatic_route[-1]
+                tooltip_list.append(
+                    f"This unit has a designated movement route of length {len(self.base_automatic_route)}, picking up items at ({start_coordinates[0]}, {start_coordinates[1]}) and dropping them off at ({end_coordinates[0]}, {end_coordinates[1]})"
+                )
+
+            if self.equipment:
+                tooltip_list.append(f"Equipment: {', '.join(self.equipment.keys())}")
+
+            item_upkeep = self.get_item_upkeep()
+            if item_upkeep:
+                tooltip_list.append(f"Item upkeep per turn:")
+                for item_type_key, amount_required in item_upkeep.items():
+                    tooltip_list.append(
+                        f"    {status.item_types[item_type_key].name.capitalize()}: {amount_required}"
+                    )
+            else:
+                tooltip_list.append("Item upkeep per turn: None")
 
         if self.get_permission(constants.DISORGANIZED_PERMISSION):
             tooltip_list.append(
@@ -1036,21 +1074,6 @@ class mob(actor):
             tooltip_list.append("You do not control this unit")
         elif self.get_permission(constants.PMOB_PERMISSION) and self.sentry_mode:
             tooltip_list.append("This unit is in sentry mode")
-
-        if self.get_permission(constants.PMOB_PERMISSION):
-            held_items: List[item_types.item_type] = self.get_held_items()
-            if held_items:
-                tooltip_list.append("Inventory:")
-                for item_type in held_items:
-                    tooltip_list.append(
-                        f"{item_type.name}: {self.get_inventory(item_type)}"
-                    )
-            if len(self.base_automatic_route) > 1:
-                start_coordinates = self.base_automatic_route[0]
-                end_coordinates = self.base_automatic_route[-1]
-                tooltip_list.append(
-                    f"This unit has a designated movement route of length {len(self.base_automatic_route)}, picking up items at ({start_coordinates[0]}, {start_coordinates[1]}) and dropping them off at ({end_coordinates[0]}, {end_coordinates[1]})"
-                )
 
         self.set_tooltip(tooltip_list)
 

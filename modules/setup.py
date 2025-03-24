@@ -385,8 +385,19 @@ def item_types_config():
             "price": 5,
             "description": ["Placeholder fuel description"],
             "item_image": "items/fuel.png",
-            "background_color": constants.color_dict[constants.COLOR_PURPLE],
+            "background_color": constants.color_dict[constants.COLOR_FIRE_ORANGE],
             "allow_price_variation": True,
+        }
+    )
+
+    item_types.item_type(
+        {
+            "equipment_type": constants.ENERGY_ITEM,
+            "can_purchase": False,
+            "can_sell": False,
+            "description": ["Placeholder energy description"],
+            "item_image": "items/energy.png",
+            "background_color": constants.color_dict[constants.COLOR_PURPLE],
         }
     )
 
@@ -1097,7 +1108,24 @@ def unit_types_config():
         },
     ).link_group_type(status.unit_types[constants.CONSTRUCTION_CREW])
 
-    merchant_officer_type = unit_types.officer_type(
+    caravan_group_type = unit_types.group_type(
+        False,
+        {
+            "key": constants.CARAVAN,
+            "name": "caravan",
+            "controlling_minister_type": status.minister_types[
+                constants.TERRAN_AFFAIRS_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.GROUP_PERMISSION: True,
+                constants.CARAVAN_PERMISSION: True,
+            },
+            "can_recruit": False,
+            "inventory_capacity": 9,
+        },
+    )
+    unit_types.officer_type(
         False,
         {
             "key": constants.MERCHANT,
@@ -1118,26 +1146,7 @@ def unit_types_config():
                 "A merchant combines with colonists to form a caravan, which can trade and build trading posts.",
             ],
         },
-    )
-    if not constants.effect_manager.effect_active("hide_old_units"):
-        caravan_group_type = unit_types.group_type(
-            False,
-            {
-                "key": constants.CARAVAN,
-                "name": "caravan",
-                "controlling_minister_type": status.minister_types[
-                    constants.TERRAN_AFFAIRS_MINISTER
-                ],
-                "permissions": {
-                    constants.PMOB_PERMISSION: True,
-                    constants.GROUP_PERMISSION: True,
-                    constants.CARAVAN_PERMISSION: True,
-                },
-                "can_recruit": False,
-                "inventory_capacity": 9,
-            },
-        )
-        merchant_officer_type.link_group_type(caravan_group_type)
+    ).link_group_type(caravan_group_type)
 
     unit_types.worker_type(
         False,
@@ -1154,6 +1163,13 @@ def unit_types_config():
                 constants.CREW_TRAIN_PERMISSION: True,
             },
             "upkeep": 6.0,
+            "item_upkeep": {
+                constants.FOOD_ITEM: 0.1,
+                constants.WATER_ITEM: 0.1,
+                constants.AIR_ITEM: 0.1,
+                constants.CONSUMER_GOODS_ITEM: 0.1,
+                constants.ENERGY_ITEM: 0.1,
+            },
             "upkeep_variance": True,
             "save_changes": True,
             "can_recruit": True,
