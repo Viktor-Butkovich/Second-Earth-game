@@ -127,7 +127,7 @@ class worker(pmob):
         self.hide_images()
         self.remove_from_turn_queue()
 
-    def leave_group(self, group):
+    def leave_group(self, group, focus=True):
         """
         Description:
             Reveals this worker when its group is disbanded, allowing it to be directly interacted with. Does not select this worker, meaning that the officer will be selected rather than the worker when a group is disbanded
@@ -146,6 +146,8 @@ class worker(pmob):
             group.get_permission(constants.DISORGANIZED_PERMISSION),
         )
         self.go_to_grid(self.get_cell().grid, (self.x, self.y))
+        if focus:
+            self.select()
         if self.movement_points > 0:
             self.add_to_turn_queue()
         self.update_image_bundle()

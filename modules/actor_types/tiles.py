@@ -237,7 +237,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             if value > 0
         }
 
-    def get_item_upkeep(self) -> Dict[str, float]:
+    def get_item_upkeep(self, recurse: bool = False) -> Dict[str, float]:
         """
         Description:
             Returns the item upkeep requirements for all units in this tile
@@ -247,7 +247,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             dictionary: Returns the item upkeep requirements for all units in this tile
         """
         return utility.add_dicts(
-            *[mob.get_item_upkeep() for mob in self.cell.contained_mobs]
+            *[mob.get_item_upkeep(recurse=recurse) for mob in self.cell.contained_mobs]
         )
 
     def remove_excess_inventory(self):

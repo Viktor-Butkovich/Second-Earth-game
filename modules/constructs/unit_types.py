@@ -68,6 +68,9 @@ class unit_type:
                 "required_infrastructure", None
             )
             self.item_upkeep: Dict[str, float] = input_dict.get("item_upkeep", {})
+            self.missing_upkeep_penalties: Dict[str, float] = input_dict.get(
+                "missing_upkeep_penalties", {}
+            )
 
             status.unit_types[self.key] = self
         return

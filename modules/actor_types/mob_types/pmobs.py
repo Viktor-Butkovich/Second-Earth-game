@@ -2,7 +2,7 @@
 
 import pygame
 import random
-from typing import Dict
+from typing import Dict, List
 from modules.actor_types.mobs import mob
 from modules.util import text_utility, utility, actor_utility, minister_utility
 from modules.constructs import item_types
@@ -47,6 +47,8 @@ class pmob(mob):
         self.selection_outline_color = constants.COLOR_BRIGHT_GREEN
         status.pmob_list.append(self)
         self.equipment = {}
+        self.upkeep_missing_penalty: str = None
+        self.item_upkeep_present: Dict[str, bool] = {}
         for current_equipment in input_dict.get("equipment", {}):
             if input_dict.get("equipment", {}).get(current_equipment, False):
                 status.equipment_types[current_equipment].equip(self)
@@ -166,7 +168,7 @@ class pmob(mob):
                 "effects/spaceship_activation", volume=0.6
             )
 
-    def uncrew_vehicle(self, vehicle):
+    def uncrew_vehicle(self, vehicle, focus: bool = True):
         """
         Description:
             Orders this worker to stop crewing the inputted vehicle, making this worker independent from the vehicle and preventing the vehicle from functioning
@@ -185,15 +187,205 @@ class pmob(mob):
                 self.set_permission(constants.DISORGANIZED_PERMISSION, True)
         vehicle.set_crew(None)
         vehicle.end_turn_destination = None
-        status.displayed_mob.set_permission(
+        vehicle.set_permission(
             constants.TRAVELING_PERMISSION, False, update_image=False
         )
         vehicle.remove_from_turn_queue()
         self.update_image_bundle()
-        self.select()
+        if focus:
+            self.select()
+            constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)
         self.add_to_turn_queue()
-        constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)
         self.update_habitability()
+
+    def get_item_upkeep(self, recurse: bool = False) -> Dict[str, float]:
+        """
+        Description:
+            Returns the item upkeep requirements for this unit type
+        Input:
+            None
+        Output:
+            dictionary: Returns the item upkeep requirements for this unit type
+        """
+        if not self.get_permission(
+            constants.SURVIVABLE_PERMISSION
+        ):  # Don't pay upkeep if in deadly conditions - unit dies before upkeep is paid
+            if not (
+                self.any_permissions(
+                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
+                )
+                and self.get_permission(constants.IN_GROUP_PERMISSION)
+            ):
+                return {}
+        return self.unit_type.item_upkeep
+
+    def consume_items(self, items: Dict[str, float]) -> Dict[str, float]:
+        """
+        Description:
+            Attempts to consume the inputted items from the inventories of actors in this unit's tile
+                First checks the tile's warehouses, followed by this unit's inventory, followed by other present units' inventories
+        Input:
+            dictionary items: Dictionary of item type keys and quantities to consume
+        Output:
+            dictionary: Returns a dictionary of item type keys and quantities that were not available to be consumed
+        """
+        missing_consumption = {}
+        for item_key, consumption_remaining in items.items():
+            item_type = status.item_types[item_key]
+            for present_actor in [self.get_cell().tile, self] + [
+                current_mob
+                for current_mob in self.get_cell().contained_mobs
+                if current_mob != self
+            ]:
+                if consumption_remaining <= 0:
+                    break
+                availability = present_actor.get_inventory(item_type)
+                consumption = min(consumption_remaining, availability)
+                present_actor.change_inventory(item_type, -consumption)
+                consumption_remaining -= consumption
+                consumption_remaining = round(consumption_remaining, 2)
+            if consumption_remaining > 0:
+                missing_consumption[item_key] = consumption_remaining
+        return missing_consumption
+
+    def item_present(self, item_type: item_types.item_type) -> bool:
+        """
+        Description:
+            Returns whether the inputted item type is present anywhere in this unit's tile
+        Input:
+            item_type item_type: Item type to check for
+        Output:
+            bool: Returns whether the inputted item type is present anywhere in this unit's tile
+        """
+        for present_actor in [self.get_cell().tile, self] + [
+            current_mob
+            for current_mob in self.get_cell().contained_mobs
+            if current_mob != self
+        ]:
+            if present_actor.get_inventory(item_type) > 0:
+                return True
+        return False
+
+    def consume_item_upkeep(self) -> None:
+        """
+        Description:
+            Consumes all available items required for this unit's item upkeep, logging an upkeep missing penalty for the most important missing item type
+                Item upkeep of sub-mobs needs to be handled separately
+        Input:
+            None
+        Output:
+            None
+        """
+        missing_upkeep = self.consume_items(self.get_item_upkeep(recurse=False))
+        for (
+            item_key,
+            item_present,
+        ) in (
+            self.item_upkeep_present.items()
+        ):  # Register missing upkeep of 0 if none was present - allows officer attrition if no items present
+            if not item_present:
+                missing_upkeep[item_key] = missing_upkeep.get(item_key, 0)
+        self.upkeep_missing_penalty = max(
+            [constants.UPKEEP_MISSING_PENALTY_NONE]
+            + [
+                self.unit_type.missing_upkeep_penalties[item_key]
+                for item_key in missing_upkeep
+            ]
+        )
+        # Get the most severe penalty of the resource types with any missed upkeep
+        if constants.effect_manager.effect_active("track_item_requests"):
+            if missing_upkeep:
+                print(
+                    f"{self.name} attempted to consume {self.get_item_upkeep(recurse=False)}"
+                )
+                print(
+                    f"{self.name} missing {missing_upkeep}, invoking upkeep penalty {constants.UPKEEP_MISSING_PENALTY_CODES[self.upkeep_missing_penalty]}"
+                )
+            else:
+                print(
+                    f"{self.name} successfully consumed {self.get_item_upkeep(recurse=False)}"
+                )
+        for current_sub_mob in self.get_sub_mobs():
+            current_sub_mob.consume_item_upkeep()
+
+    def check_item_availability(self) -> None:
+        """
+        Description:
+            Checks whether any of the items required for this unit's item upkeep are present (regardless of amount)
+        Input:
+            None
+        Output:
+            None
+        """
+        self.item_upkeep_present = {}
+        for item_key in self.get_item_upkeep():
+            self.item_upkeep_present[item_key] = self.item_present(
+                status.item_types[item_key]
+            )
+            # Note whether any of the item type was present - officers require the presence of items, but don't consume them
+            # In the future, check if any of the item type is present in the local supply network
+        for current_sub_mob in self.get_sub_mobs():
+            current_sub_mob.check_item_availability()
+
+    def resolve_upkeep_missing_penalty(self) -> None:
+        """
+        Description:
+            Apply an effect based on the most severe upkeep missing penalty type due to missing item upkeep from earlier in the turn (if any)
+        Input:
+            None
+        Output:
+            None
+        """
+        if self.upkeep_missing_penalty == constants.UPKEEP_MISSING_PENALTY_DEATH:
+            self.die()
+        else:
+            pass  # Apply non-death penalties
+
+    def get_sub_mobs(self) -> List["pmob"]:
+        """
+        Description:
+            Returns a list of units managed by this unit
+        Input:
+            None
+        Output:
+            list: Returns a list of units managed by this unit
+        """
+        return []
+
+    def die(self, death_type="violent"):
+        """
+        Description:
+            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Used instead of remove to improve consistency with groups/vehicles, whose die and remove have different
+                functionalities
+        Input:
+            string death_type == 'violent': Type of death for this unit, determining the type of sound played
+        Output:
+            None
+        """
+        reembarked_units = None
+        if self.get_permission(constants.IN_GROUP_PERMISSION):
+            moved_unit = self.group
+        else:
+            moved_unit = self
+        if moved_unit.get_permission(constants.IN_VEHICLE_PERMISSION):
+            if moved_unit.vehicle.crew == moved_unit:
+                moved_unit.vehicle.eject_passengers(focus=False)
+                moved_unit.vehicle.drop_inventory()
+                moved_unit.uncrew_vehicle(moved_unit.vehicle, focus=False)
+            else:
+                if self.get_permission(constants.IN_GROUP_PERMISSION):
+                    if self.get_permission(constants.OFFICER_PERMISSION):
+                        reembarked_units = (self.group.worker, self.group.vehicle)
+                    else:
+                        reembarked_units = (self.group.officer, self.group.vehicle)
+                moved_unit.disembark_vehicle(moved_unit.vehicle, focus=False)
+        if self.get_permission(constants.IN_GROUP_PERMISSION):
+            self.group.disband(focus=False)
+        super().die()
+        if (
+            reembarked_units
+        ):  # If group member passenger dies, reembark other group member
+            reembarked_units[0].embark_vehicle(reembarked_units[1], focus=False)
 
     def on_move(self):
         """

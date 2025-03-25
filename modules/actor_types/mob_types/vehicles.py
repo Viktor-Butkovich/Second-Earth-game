@@ -35,7 +35,8 @@ class vehicle(pmob):
             None
         """
         input_dict["image"] = input_dict["image_dict"]["default"]
-        self.contained_mobs = []
+        self.crew: pmob = None
+        self.contained_mobs: List[pmob] = []
         self.ejected_crew = None
         self.ejected_passengers = []
         super().__init__(from_save, input_dict, original_constructor=False)
@@ -61,22 +62,25 @@ class vehicle(pmob):
             self.remove_from_turn_queue()
         self.finish_init(original_constructor, from_save, input_dict)
 
-    def get_item_upkeep(self) -> Dict[str, float]:
+    def get_item_upkeep(self, recurse: bool = False) -> Dict[str, float]:
         """
         Description:
-            Returns the item upkeep requirements for this unit type, recursively adding the upkeep requirements of sub-mobs
+            Returns the item upkeep requirements for this unit type, optionally recursively adding the upkeep requirements of sub-mobs
         Input:
             None
         Output:
             dictionary: Returns the item upkeep requirements for this unit type
         """
-        return utility.add_dicts(
-            super().get_item_upkeep(),
-            *[
-                current_sub_mob.get_item_upkeep()
-                for current_sub_mob in self.get_sub_mobs()
-            ],
-        )
+        if recurse:
+            return utility.add_dicts(
+                super().get_item_upkeep(recurse=recurse),
+                *[
+                    current_sub_mob.get_item_upkeep(recurse=recurse)
+                    for current_sub_mob in self.get_sub_mobs()
+                ],
+            )
+        else:
+            return super().get_item_upkeep(recurse=recurse)
 
     def permissions_setup(self) -> None:
         """
@@ -281,18 +285,18 @@ class vehicle(pmob):
     def get_sub_mobs(self) -> List[pmob]:
         """
         Description:
-            Returns a list of units managed by this vehicle
+            Returns a list of units managed by this unit
         Input:
             None
         Output:
-            list: Returns a list of units managed by this vehicle
+            list: Returns a list of units managed by this unit
         """
         if self.crew:
             return [self.crew] + self.contained_mobs
         else:
             return self.contained_mobs
 
-    def eject_crew(self):
+    def eject_crew(self, focus=True):
         """
         Description:
             Removes this vehicle's crew
@@ -303,7 +307,7 @@ class vehicle(pmob):
         """
         if self.crew:
             self.ejected_crew = self.crew
-            self.crew.uncrew_vehicle(self)
+            self.crew.uncrew_vehicle(self, focus=focus)
 
     def eject_passengers(self, focus=True):
         """
@@ -349,10 +353,9 @@ class vehicle(pmob):
         Output:
             None
         """
+        self.eject_passengers(focus=False)
+        self.eject_crew(focus=False)
         super().die(death_type)
-        for current_sub_mob in self.get_sub_mobs():
-            current_sub_mob.die()
-        self.set_crew(None)
 
     def fire(self):
         """

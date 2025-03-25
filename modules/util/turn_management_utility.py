@@ -27,8 +27,9 @@ def end_turn():
     """
     actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
     actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
-    manage_upkeep()
+    manage_upkeep_expenditure()
     remove_excess_inventory()
+    manage_missing_upkeep_penalties()
     manage_environmental_conditions()
     flags.player_turn = False
     status.player_turn_queue = []
@@ -395,7 +396,7 @@ def manage_production_report(
         industry_minister.display_message(text)
 
 
-def manage_upkeep():
+def manage_upkeep_expenditure() -> None:
     """
     Description:
         Pays upkeep for all units at the end of a turn. Currently, only workers cost upkeep
@@ -409,7 +410,7 @@ def manage_upkeep():
         for current_tile in status.main_tile_list
         if current_tile.cell.contained_mobs
     ]:
-        item_upkeep = current_tile.get_item_upkeep()
+        item_upkeep = current_tile.get_item_upkeep(recurse=True)
         item_request = current_tile.create_item_request(item_upkeep)
         if constants.effect_manager.effect_active("track_item_requests"):
             if current_tile.show_terrain:
@@ -419,16 +420,26 @@ def manage_upkeep():
             print(f"{name} total upkeep {item_upkeep}")
             print(f"{name} requesting external {item_request}")
         for current_mob in current_tile.cell.contained_mobs:
-            missing_upkeep = current_mob.consume_items(current_mob.get_item_upkeep())
-            if constants.effect_manager.effect_active("track_item_requests"):
-                if missing_upkeep:
-                    print(f"Attempted to consume {current_mob.get_item_upkeep()}")
-                    print(f"Missing {missing_upkeep}")
-                else:
-                    print(f"Successfully consumed {current_mob.get_item_upkeep()}")
+            current_mob.check_item_availability()
+        for current_mob in current_tile.cell.contained_mobs:
+            current_mob.consume_item_upkeep()
 
     total_money_upkeep = market_utility.calculate_total_worker_upkeep()
     constants.money_tracker.change(round(-1 * total_money_upkeep, 2), "worker_upkeep")
+
+
+def manage_missing_upkeep_penalties() -> None:
+    """
+    Description:
+        Resolves any penalties for missed upkeep
+            Note that upkeep missing penalties are handled for all mobs, while upkeep expenditure is managed at a tile-level with recursive calculations for sub-mobs
+    Input:
+        None
+    Output:
+        None
+    """
+    for current_pmob in status.pmob_list.copy():
+        current_pmob.resolve_upkeep_missing_penalty()
 
 
 def manage_loans():

@@ -944,6 +944,15 @@ FOOD_ITEM: str = "food"
 WATER_ITEM: str = "water"
 AIR_ITEM: str = "air"
 
+UPKEEP_MISSING_PENALTY_DEATH: str = 2  # Highest penalty takes precedent
+UPKEEP_MISSING_PENALTY_MORALE: str = 1
+UPKEEP_MISSING_PENALTY_NONE: str = 0
+UPKEEP_MISSING_PENALTY_CODES: Dict[str, int] = {
+    2: "death",
+    1: "morale",
+    0: "none",
+}
+
 PMOB_PERMISSION: str = "pmob"
 NPMOB_PERMISSION: str = "npmob"
 VEHICLE_PERMISSION: str = "vehicle"

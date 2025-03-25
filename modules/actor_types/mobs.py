@@ -92,56 +92,6 @@ class mob(actor):
                 self.creation_turn = constants.turn
         self.finish_init(original_constructor, from_save, input_dict)
 
-    def get_item_upkeep(self) -> Dict[str, float]:
-        """
-        Description:
-            Returns the item upkeep requirements for this unit type
-        Input:
-            None
-        Output:
-            dictionary: Returns the item upkeep requirements for this unit type
-        """
-        if not self.get_permission(
-            constants.SURVIVABLE_PERMISSION
-        ):  # Don't pay upkeep if in deadly conditions - unit dies before upkeep is paid
-            if not (
-                self.any_permissions(
-                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
-                )
-                and self.get_permission(constants.IN_GROUP_PERMISSION)
-            ):
-                return {}
-        return self.unit_type.item_upkeep
-
-    def consume_items(self, items: Dict[str, float]) -> Dict[str, float]:
-        """
-        Description:
-            Attempts to consume the inputted items from the inventories of actors in this unit's tile
-                First checks the tile's warehouses, followed by this unit's inventory, followed by other present units' inventories
-        Input:
-            dictionary items: Dictionary of item type keys and quantities to consume
-        Output:
-            dictionary: Returns a dictionary of item type keys and quantities that were not available to be consumed
-        """
-        missing_consumption = {}
-        for item_key, consumption_remaining in items.items():
-            item_type = status.item_types[item_key]
-            for present_actor in [self.get_cell().tile, self] + [
-                current_mob
-                for current_mob in self.get_cell().contained_mobs
-                if current_mob != self
-            ]:
-                if consumption_remaining <= 0:
-                    break
-                availability = present_actor.get_inventory(item_type)
-                consumption = min(consumption_remaining, availability)
-                present_actor.change_inventory(item_type, -consumption)
-                consumption_remaining -= consumption
-                consumption_remaining = round(consumption_remaining, 2)
-            if consumption_remaining > 0:
-                missing_consumption[item_key] = consumption_remaining
-        return missing_consumption
-
     def get_radio_effect(self) -> bool:
         """
         Description:
@@ -1076,7 +1026,7 @@ class mob(actor):
             if self.equipment:
                 tooltip_list.append(f"Equipment: {', '.join(self.equipment.keys())}")
 
-            item_upkeep = self.get_item_upkeep()
+            item_upkeep = self.get_item_upkeep(recurse=True)
             if item_upkeep:
                 tooltip_list.append(f"Item upkeep per turn:")
                 for item_type_key, amount_required in item_upkeep.items():

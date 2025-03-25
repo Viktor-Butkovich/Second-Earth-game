@@ -2,7 +2,7 @@
 
 import random
 import math
-from typing import Dict
+from typing import Dict, List
 from modules.actor_types.mob_types.pmobs import pmob
 from modules.util import actor_utility, minister_utility, utility
 from modules.constants import constants, status, flags
@@ -37,13 +37,13 @@ class group(pmob):
             None
         """
         if not from_save:
-            self.worker = input_dict["worker"]
-            self.officer = input_dict["officer"]
+            self.worker: pmob = input_dict["worker"]
+            self.officer: pmob = input_dict["officer"]
         else:
-            self.worker = constants.actor_creation_manager.create(
+            self.worker: pmob = constants.actor_creation_manager.create(
                 True, input_dict["worker"]
             )
-            self.officer = constants.actor_creation_manager.create(
+            self.officer: pmob = constants.actor_creation_manager.create(
                 True, input_dict["officer"]
             )
         super().__init__(from_save, input_dict, original_constructor=False)
@@ -90,20 +90,34 @@ class group(pmob):
             self.on_move()
         self.finish_init(original_constructor, from_save, input_dict)
 
-    def get_item_upkeep(self) -> Dict[str, float]:
+    def get_item_upkeep(self, recurse: bool = False) -> Dict[str, float]:
         """
         Description:
-            Returns the item upkeep requirements for this unit type, recursively adding the upkeep requirements of sub-mobs
+            Returns the item upkeep requirements for this unit type, optionally recursively adding the upkeep requirements of sub-mobs
         Input:
             None
         Output:
             dictionary: Returns the item upkeep requirements for this unit type
         """
-        return utility.add_dicts(
-            super().get_item_upkeep(),
-            self.worker.get_item_upkeep(),
-            self.officer.get_item_upkeep(),
-        )
+        if recurse:
+            return utility.add_dicts(
+                super().get_item_upkeep(recurse=recurse),
+                self.worker.get_item_upkeep(recurse=recurse),
+                self.officer.get_item_upkeep(recurse=recurse),
+            )
+        else:
+            return super().get_item_upkeep(recurse=recurse)
+
+    def get_sub_mobs(self) -> List[pmob]:
+        """
+        Description:
+            Returns a list of units managed by this unit
+        Input:
+            None
+        Output:
+            list: Returns a list of units managed by this unit
+        """
+        return [self.worker, self.officer]
 
     def permissions_setup(self) -> None:
         """
@@ -281,16 +295,7 @@ class group(pmob):
                 self.worker.replace(self)
                 self.worker.death_sound()
             else:
-                if self.get_permission(constants.IN_VEHICLE_PERMISSION):
-                    self.disembark_vehicle(zoom_destination)
-                elif self.get_permission(constants.IN_BUILDING_PERMISSION):
-                    self.leave_building(zoom_destination)
-                officer = self.officer
-                worker = self.worker
-                self.disband()
                 worker.attrition_death(False)
-                if self.get_permission(constants.IN_VEHICLE_PERMISSION):
-                    officer.embark_vehicle(zoom_destination)
 
         constants.notification_manager.display_notification(
             {
@@ -372,7 +377,7 @@ class group(pmob):
         self.worker.go_to_grid(new_grid, new_coordinates)
         self.worker.join_group(self)
 
-    def disband(self):
+    def disband(self, focus=True):
         """
         Description:
             Separates this group into its officer and worker, destroying the group
@@ -390,7 +395,7 @@ class group(pmob):
                     status.equipment_types[equipment].unequip(self)
                     status.equipment_types[equipment].equip(self.officer)
         self.drop_inventory()
-        self.worker.leave_group(self)
+        self.worker.leave_group(self, focus=False)
 
         movement_ratio_remaining = self.movement_points / self.max_movement_points
         self.worker.set_movement_points(
@@ -399,7 +404,7 @@ class group(pmob):
         self.officer.status_icons = self.status_icons
         for current_status_icon in self.status_icons:
             current_status_icon.actor = self.officer
-        self.officer.leave_group(self)
+        self.officer.leave_group(self, focus=focus)
         self.officer.set_movement_points(
             math.floor(movement_ratio_remaining * self.officer.max_movement_points)
         )
