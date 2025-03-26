@@ -312,7 +312,7 @@ transaction_descriptions: Dict[str, str] = {
     "production": "production",
     "bribery": "bribery",
     "loan_interest": "loan interest",
-    "inventory_attrition": "missing items",
+    "inventory_attrition": "logistical incidents",
     "sold_items": "item sales",
     "worker_upkeep": "worker upkeep",
     "subsidies": "subsidies",
@@ -930,7 +930,6 @@ MOUSE_FOLLOWER_IMAGE: str = "mouse_follower_image"
 DIRECTIONAL_INDICATOR_IMAGE: str = "directional_indicator_image"
 
 NOTIFICATION: str = "notification"
-ZOOM_NOTIFICATION: str = "zoom_notification"
 CHOICE_NOTIFICATION: str = "choice_notification"
 ACTION_NOTIFICATION: str = "action_notification"
 DICE_ROLLING_NOTIFICATION: str = "dice_rolling_notification"

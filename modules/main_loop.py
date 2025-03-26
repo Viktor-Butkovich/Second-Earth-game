@@ -346,7 +346,6 @@ def main_loop():
                     )
                 main_loop_utility.update_display()
                 flags.enemy_combat_phase = True
-                flags.player_turn = True
                 turn_management_utility.manage_combat()
 
             if False:  # Enemy movement logic

@@ -55,6 +55,33 @@ class notification(multi_line_label):
         if self.on_remove == None:
             self.on_remove = []
 
+        if input_dict.get("zoom_destination", None):
+            target = input_dict["zoom_destination"]
+            if target.actor_type == constants.BUILDING_ACTOR_TYPE:
+                target = target.cell.tile
+
+            if target.actor_type == constants.TILE_ACTOR_TYPE:
+                actor_utility.calibrate_actor_info_display(
+                    status.mob_info_display, None
+                )
+                actor_utility.calibrate_actor_info_display(
+                    status.tile_info_display, target
+                )
+                for mini_grid in target.cell.grid.mini_grids:
+                    mini_grid.calibrate(target.x, target.y)
+            elif target.actor_type == constants.MOB_ACTOR_TYPE:
+                if (
+                    target.get_cell()
+                ):  # If non-hidden mob, move to front of tile and select
+                    target.select()
+                else:  # If hidden mob, move to location and select tile
+                    for mini_grid in target.grids[0].mini_grids:
+                        mini_grid.calibrate(target.x, target.y)
+                    actor_utility.calibrate_actor_info_display(
+                        status.tile_info_display,
+                        target.grids[0].find_cell(target.x, target.y).tile,
+                    )
+
     def format_message(self):
         """
         Description:
@@ -112,50 +139,3 @@ class notification(multi_line_label):
             current_on_remove[0](*current_on_remove[1])
         super().remove()
         status.displayed_notification = None
-
-
-class zoom_notification(notification):
-    """
-    Notification that selects a certain tile or mob and moves the minimap to it when first displayed
-    """
-
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'message': string value - Default text for this label, with lines separated by /n
-                'ideal_width': int value - Pixel width that this label will try to retain. Each time a word is added to the label, if the word extends past the ideal width, the next line
-                    will be started
-                'minimum_height': int value - Minimum pixel height of this label. Its height will increase if the contained text would extend past the bottom of the label
-                'target': actor value - Tile or mob to select and move the minimap to when this notification is first displayed
-        Output:
-            None
-        """
-        super().__init__(input_dict)
-        target = input_dict["target"]
-        if target.actor_type == constants.BUILDING_ACTOR_TYPE:
-            target = target.cell.tile
-
-        if target.actor_type == constants.TILE_ACTOR_TYPE:
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
-            actor_utility.calibrate_actor_info_display(status.tile_info_display, target)
-            for mini_grid in target.cell.grid.mini_grids:
-                mini_grid.calibrate(target.x, target.y)
-        elif target.actor_type == constants.MOB_ACTOR_TYPE:
-            if target.get_cell():  # If non-hidden mob, move to front of tile and select
-                target.select()
-            else:  # If hidden mob, move to location and select tile
-                for mini_grid in target.grids[0].mini_grids:
-                    mini_grid.calibrate(target.x, target.y)
-                actor_utility.calibrate_actor_info_display(
-                    status.tile_info_display,
-                    target.grids[0].find_cell(target.x, target.y).tile,
-                )

@@ -7,6 +7,7 @@ from typing import Tuple, Dict, List
 from modules.constructs import images
 from modules.util import utility, actor_utility, main_loop_utility
 from modules.actor_types.actors import actor
+from modules.interface_types import cells
 from modules.constructs import item_types
 from modules.constants import constants, status, flags
 
@@ -101,6 +102,17 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             "name"
                         ]
                     )
+
+    def get_cell(self) -> cells.cell:
+        """
+        Description:
+            Returns the cell this tile is currently in
+        Input:
+            None
+        Output:
+            cell: Returns the cell this tile is currently in
+        """
+        return self.cell
 
     def set_name(self, new_name):
         """
@@ -259,6 +271,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
+        lost_items: Dict[str, float] = {}
         if not self.infinite_inventory_capacity:
             amount_to_remove = self.get_inventory_used() - self.inventory_capacity
             if amount_to_remove > 0:
@@ -271,6 +284,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     if (
                         decimal_amount > 0
                     ):  # Best to remove partially consumed items first, since they each take an entire inventory slot
+                        lost_items[current_item_type.key] = (
+                            lost_items.get(current_item_type.key, 0) + decimal_amount
+                        )
                         self.change_inventory(current_item_type, -decimal_amount)
                         amount_to_remove -= 1
                     if amount_to_remove <= 0:
@@ -287,7 +303,22 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 for (
                     current_item_type
                 ) in item_types_removed:  # Randomly remove amount_to_remove items
+                    lost_items[current_item_type.key] = (
+                        lost_items.get(current_item_type.key, 0) + 1
+                    )
                     self.change_inventory(current_item_type, -1)
+        if sum(lost_items.values()) > 0:
+            if sum(lost_items.values()) == 1:
+                was_word = "was"
+            else:
+                was_word = "were"
+            status.logistics_incident_list.append(
+                {
+                    "unit": self,
+                    "cell": self.get_cell(),
+                    "explanation": f"{actor_utility.summarize_amount_dict(lost_items)} {was_word} lost due to insufficient storage space.",
+                }
+            )
 
     def set_inventory(self, item: item_types.item_type, new_value: int) -> None:
         """

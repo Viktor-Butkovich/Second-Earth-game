@@ -832,24 +832,24 @@ def unit_types_config():
     """
     standard_officer_upkeep = (
         {  # 0 upkeep denotes requiring the presence of an item, without spending it
-            constants.FOOD_ITEM: 0,
-            constants.WATER_ITEM: 0,
             constants.AIR_ITEM: 0,
+            constants.WATER_ITEM: 0,
+            constants.FOOD_ITEM: 0,
             constants.CONSUMER_GOODS_ITEM: 0,
             constants.ENERGY_ITEM: 0,
         }
     )
     standard_colonist_upkeep = {
-        constants.FOOD_ITEM: 0.1,
-        constants.WATER_ITEM: 0.1,
         constants.AIR_ITEM: 0.1,
+        constants.WATER_ITEM: 0.1,
+        constants.FOOD_ITEM: 0.1,
         constants.CONSUMER_GOODS_ITEM: 0.1,
         constants.ENERGY_ITEM: 0.1,
     }
     standard_missing_upkeep_penalties = {
-        constants.FOOD_ITEM: constants.UPKEEP_MISSING_PENALTY_DEATH,
-        constants.WATER_ITEM: constants.UPKEEP_MISSING_PENALTY_DEATH,
         constants.AIR_ITEM: constants.UPKEEP_MISSING_PENALTY_DEATH,
+        constants.WATER_ITEM: constants.UPKEEP_MISSING_PENALTY_DEATH,
+        constants.FOOD_ITEM: constants.UPKEEP_MISSING_PENALTY_DEATH,
         constants.CONSUMER_GOODS_ITEM: constants.UPKEEP_MISSING_PENALTY_MORALE,
         constants.ENERGY_ITEM: constants.UPKEEP_MISSING_PENALTY_MORALE,
     }

@@ -180,12 +180,10 @@ class notification_manager_template:
         )
         self.update_notification_layout(height)
 
-        if "notification_type" in notification_dict:
+        if notification_dict.get("notification_type", None):
             notification_type = notification_dict["notification_type"]
-        elif "choices" in notification_dict:
+        elif notification_dict.get("choices", None):
             notification_type = constants.CHOICE_NOTIFICATION
-        elif "zoom_destination" in notification_dict:
-            notification_type = constants.ZOOM_NOTIFICATION
         else:
             notification_type = constants.NOTIFICATION
 
@@ -232,6 +230,7 @@ class notification_manager_template:
             "attached_interface_elements": attached_interface_elements,
             "transfer_interface_elements": transfer_interface_elements,
             "extra_parameters": extra_parameters,
+            "zoom_destination": notification_dict.get("zoom_destination", None),
         }
 
         input_dict["on_reveal"] = notification_dict.get("on_reveal", None)
@@ -242,9 +241,6 @@ class notification_manager_template:
             del input_dict["notification_dice"]
             input_dict["button_types"] = notification_dict["choices"]
             input_dict["choice_info_dict"] = input_dict["extra_parameters"]
-        elif notification_type == constants.ZOOM_NOTIFICATION:
-            del input_dict["notification_dice"]
-            input_dict["target"] = notification_dict["zoom_destination"]
         new_notification = constants.actor_creation_manager.create_interface_element(
             input_dict
         )

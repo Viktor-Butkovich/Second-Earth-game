@@ -27,14 +27,94 @@ def end_turn():
     """
     actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
     actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
+    status.logistics_incident_list = []
     manage_upkeep_expenditure()
     remove_excess_inventory()
-    manage_missing_upkeep_penalties()
-    manage_environmental_conditions()
     flags.player_turn = False
     status.player_turn_queue = []
     prepare_planet_rotation()
     start_enemy_turn()
+
+
+def start_player_turn(first_turn=False):
+    """
+    Description:
+        Starts the player's turn, resetting their units to maximum movement points, adjusting prices, paying upkeep, etc.
+    Input:
+        None
+        first_turn = False: Whether this is the first turn - do not pay upkeep, etc. when the game first starts
+    Output:
+        None
+    """
+    (
+        status.previous_production_report,
+        status.previous_sales_report,
+        status.previous_financial_report,
+    ) = (None, None, None)
+    for current_pmob in status.pmob_list:
+        current_pmob.end_turn_move()  # Make sure no units that suffered attrition move when they shouldn't have
+    text_utility.print_to_screen("")
+    text_utility.print_to_screen("Turn " + str(constants.turn + 1))
+    if not first_turn:
+        constants.notification_manager.set_lock(
+            True
+        )  # Don't attempt to show notifications until all processing completed
+        main_loop_utility.update_display()
+        for current_pmob in status.pmob_list:
+            if current_pmob.get_permission(constants.VEHICLE_PERMISSION):
+                current_pmob.reembark()
+        for current_building in status.building_list:
+            if current_building.building_type == constants.RESOURCE:
+                current_building.reattach_work_crews()
+        manage_missing_upkeep_penalties()
+        manage_environmental_conditions()
+        print("managing attrition", flags.player_turn)
+        manage_attrition()  # Have attrition before or after enemy turn? Before upkeep?
+        print("finishing attrition", flags.player_turn)
+        manage_logistics_report()
+        manage_production()
+        reset_mobs("pmobs")
+        if not constants.effect_manager.effect_active("skip_start_of_turn"):
+            manage_public_opinion()
+            manage_loans()
+            manage_worker_price_changes()
+            manage_item_sales()
+            manage_ministers()
+            manage_subsidies()  # Note that subsidies are managed after public opinion changes
+            manage_financial_report()
+        actor_utility.reset_action_prices()
+        game_end_check()
+        status.strategic_map_grid.world_handler.update_clouds()
+        for i in range(5):  # Change to equilibrium
+            status.strategic_map_grid.world_handler.update_target_average_temperature(
+                update_albedo=True
+            )
+            status.strategic_map_grid.world_handler.change_to_temperature_target()
+        status.strategic_map_grid.world_handler.update_sky_color(update_water=True)
+        status.strategic_map_grid.world_handler.update_clouds()
+        constants.notification_manager.set_lock(False)
+
+    flags.player_turn = (
+        True  # player_turn also set to True in main_loop when enemies done moving
+    )
+    flags.enemy_combat_phase = False
+    constants.turn_tracker.change(1)
+
+    if not first_turn:
+        market_utility.adjust_prices()
+
+    status.minimap_grid.calibrate(
+        status.minimap_grid.center_x,
+        status.minimap_grid.center_y,
+        calibrate_center=False,
+    )
+    actor_utility.calibrate_actor_info_display(
+        status.tile_info_display, status.displayed_tile
+    )
+    actor_utility.calibrate_actor_info_display(
+        status.mob_info_display, status.displayed_mob
+    )
+    constants.achievement_manager.check_achievements("start of turn")
 
 
 def prepare_planet_rotation():
@@ -127,93 +207,6 @@ def start_enemy_turn():
     # the manage_combat function starts the player turn
 
 
-def start_player_turn(first_turn=False):
-    """
-    Description:
-        Starts the player's turn, resetting their units to maximum movement points, adjusting prices, paying upkeep, etc.
-    Input:
-        None
-        first_turn = False: Whether this is the first turn - do not pay upkeep, etc. when the game first starts
-    Output:
-        None
-    """
-    (
-        status.previous_production_report,
-        status.previous_sales_report,
-        status.previous_financial_report,
-    ) = (None, None, None)
-    for current_pmob in status.pmob_list:
-        current_pmob.end_turn_move()  # Make sure no units that suffered attrition move when they shouldn't have
-    text_utility.print_to_screen("")
-    text_utility.print_to_screen("Turn " + str(constants.turn + 1))
-    if not first_turn:
-        constants.notification_manager.set_lock(
-            True
-        )  # Don't attempt to show notifications until all processing completed
-        main_loop_utility.update_display()
-        for current_pmob in status.pmob_list:
-            if current_pmob.get_permission(constants.VEHICLE_PERMISSION):
-                current_pmob.reembark()
-        for current_building in status.building_list:
-            if current_building.building_type == constants.RESOURCE:
-                current_building.reattach_work_crews()
-        manage_attrition()  # Have attrition before or after enemy turn? Before upkeep?
-        manage_production()
-        reset_mobs("pmobs")
-        if not constants.effect_manager.effect_active("skip_start_of_turn"):
-            manage_public_opinion()
-            manage_loans()
-            manage_worker_price_changes()
-            manage_item_sales()
-            manage_ministers()
-            manage_subsidies()  # Note that subsidies are managed after public opinion changes
-            manage_financial_report()
-        actor_utility.reset_action_prices()
-        game_end_check()
-        status.strategic_map_grid.world_handler.update_clouds()
-        for i in range(5):  # Change to equilibrium
-            status.strategic_map_grid.world_handler.update_target_average_temperature(
-                update_albedo=True
-            )
-            status.strategic_map_grid.world_handler.change_to_temperature_target()
-        status.strategic_map_grid.world_handler.update_sky_color(update_water=True)
-        status.strategic_map_grid.world_handler.update_clouds()
-        constants.notification_manager.set_lock(False)
-
-    flags.player_turn = (
-        True  # player_turn also set to True in main_loop when enemies done moving
-    )
-    flags.enemy_combat_phase = False
-    constants.turn_tracker.change(1)
-
-    if not first_turn:
-        market_utility.adjust_prices()
-
-    # if status.displayed_mob == None or status.displayed_mob.get_permission(
-    #    constants.NPMOB_PERMISSION
-    # ):
-    #    game_transitions.cycle_player_turn(True)
-
-    # if status.displayed_mob:
-    #    status.displayed_mob.select()
-    # else:
-    #    actor_utility.calibrate_actor_info_display(
-    #        status.mob_info_display, None, override_exempt=True
-    #    )
-    status.minimap_grid.calibrate(
-        status.minimap_grid.center_x,
-        status.minimap_grid.center_y,
-        calibrate_center=False,
-    )
-    actor_utility.calibrate_actor_info_display(
-        status.tile_info_display, status.displayed_tile
-    )
-    actor_utility.calibrate_actor_info_display(
-        status.mob_info_display, status.displayed_mob
-    )
-    constants.achievement_manager.check_achievements("start of turn")
-
-
 def reset_mobs(mob_type):
     """
     Description:
@@ -253,29 +246,65 @@ def manage_attrition():
     Output:
         None
     """
-    for current_pmob in status.pmob_list:
-        if not current_pmob.any_permissions(
-            constants.IN_VEHICLE_PERMISSION,
-            constants.IN_GROUP_PERMISSION,
-            constants.IN_BUILDING_PERMISSION,
-        ):  # Vehicles, groups, and buildings handle attrition for their submobs
-            current_pmob.manage_health_attrition()
-    for current_building in status.building_list:
-        if current_building.building_type == constants.RESOURCE:
-            current_building.manage_health_attrition()
+    for current_pmob in status.pmob_list.copy():
+        current_pmob.manage_health_attrition()
+        if current_pmob.get_held_items():
+            current_pmob.manage_inventory_attrition()
 
-    for current_pmob in status.pmob_list:
-        current_pmob.manage_inventory_attrition()
+    for current_tile in status.main_tile_list:
+        if current_tile.get_held_items():
+            current_tile.manage_inventory_attrition()
 
-    terrain_cell_lists = [status.strategic_map_grid.get_flat_cell_list()]
-    for current_grid in status.grid_list:
-        if current_grid.grid_type in constants.abstract_grid_type_list:
-            terrain_cell_lists.append([current_grid.cell_list[0][0]])
-    for cell_list in terrain_cell_lists:
-        for current_cell in cell_list:
-            current_tile = current_cell.tile
-            if len(current_tile.get_held_items()) > 0:
-                current_tile.manage_inventory_attrition()
+
+def manage_logistics_report() -> None:
+    """
+    Description:
+        Displays an attrition report at the end of the turn, showing reports of attrition at each location
+    Input:
+        Dict[str, item_types.item_type] expected_production: The expected production of each item type
+    Output:
+        None
+    """
+    transportation_minister = minister_utility.get_minister(
+        constants.TRANSPORTATION_MINISTER
+    )
+    attrition_binned_by_cell = {}
+    for attrition_cause_dict in status.logistics_incident_list:
+        attrition_binned_by_cell[
+            str(attrition_cause_dict.get("cell"))
+        ] = attrition_binned_by_cell.get(str(attrition_cause_dict.get("cell")), []) + [
+            attrition_cause_dict
+        ]
+    for local_logistics_incident_list in attrition_binned_by_cell.values():
+        remaining_incidents = local_logistics_incident_list
+        n = 5
+        while remaining_incidents:
+            first_n_incidents = remaining_incidents[:n]
+            remaining_incidents = remaining_incidents[n:]
+            cell = local_logistics_incident_list[0].get("cell")
+            if len(local_logistics_incident_list) == 1:
+                text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports a logistical incident "
+            else:
+                text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports the following logistical incidents "
+
+            if cell.grid.is_abstract_grid:
+                text += f"in orbit of {cell.grid.name}: /n /n"
+            elif cell.tile.name != "default":
+                text += f"at {cell.tile.name}: /n /n"
+            else:
+                text += f"at ({cell.x}, {cell.y}): /n /n"
+
+            for local_logistics_incident in first_n_incidents:
+                text += f"{local_logistics_incident.get('explanation')} /n /n"
+
+            if remaining_incidents:
+                if len(remaining_incidents) == 1:
+                    text += f"({len(remaining_incidents)} more incident on following pages) /n /n"
+                else:
+                    text += f"({len(remaining_incidents)} more incidents on following pages) /n /n"
+            transportation_minister.display_message(
+                text, override_input_dict={"zoom_destination": cell.tile}
+            )
 
 
 def remove_excess_inventory():
@@ -287,15 +316,9 @@ def remove_excess_inventory():
     Output:
         None
     """
-    terrain_cell_lists = [status.strategic_map_grid.get_flat_cell_list()]
-    for current_grid in status.grid_list:
-        if current_grid.grid_type in constants.abstract_grid_type_list:
-            terrain_cell_lists.append([current_grid.cell_list[0][0]])
-    for cell_list in terrain_cell_lists:
-        for current_cell in cell_list:
-            current_tile = current_cell.tile
-            if current_tile.inventory:
-                current_tile.remove_excess_inventory()
+    for current_tile in status.main_tile_list:
+        if current_tile.inventory:
+            current_tile.remove_excess_inventory()
 
 
 def manage_environmental_conditions():
@@ -366,6 +389,10 @@ def manage_production_report(
     """
     Description:
         Displays a production report at the end of the turn, showing expected and actual production for each item the company has the capacity to produce
+    Input:
+        Dict[str, item_types.item_type] expected_production: The expected production of each item type
+    Output:
+        None
     """
     industry_minister = minister_utility.get_minister(constants.INDUSTRY_MINISTER)
     attempted_item_types = [

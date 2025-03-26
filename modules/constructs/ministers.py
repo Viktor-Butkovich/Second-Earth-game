@@ -290,7 +290,7 @@ class minister:
             None
         """
         input_dict = {
-            "message": text + "Click to remove this notification. /n /n",
+            "message": text,
             "notification_type": constants.ACTION_NOTIFICATION,
             "attached_interface_elements": self.generate_icon_input_dicts(
                 alignment="left"
@@ -300,6 +300,8 @@ class minister:
         }
         if override_input_dict:
             input_dict.update(override_input_dict)
+        if input_dict.get("notification_type") == constants.ACTION_NOTIFICATION:
+            input_dict["message"] += "Click to remove this notification. /n /n"
         constants.notification_manager.display_notification(input_dict)
 
     def can_pay(self, value):
@@ -367,7 +369,7 @@ class minister:
                     evidence_message = ""
                     evidence_message += f"Prosecutor {prosecutor.name} suspects that {self.current_position.name} {self.name} just engaged in corrupt activity relating to "
                     evidence_message += f"{constants.transaction_descriptions[theft_type]} and has filed a piece of evidence against them. /n /n"
-                    evidence_message += f"There are now {self.corruption_evidence} piece{utility.generate_plural(self.corruption_evidence)} of evidence against {self.name}. /n /n"
+                    evidence_message += f"There {utility.conjugate('be', amount=self.corruption_evidence)} now {self.corruption_evidence} piece{utility.generate_plural(self.corruption_evidence)} of evidence against {self.name}. /n /n"
                     evidence_message += "Each piece of evidence can help in a trial to remove a corrupt minister from office. /n /n"
                     prosecutor.display_message(
                         evidence_message,

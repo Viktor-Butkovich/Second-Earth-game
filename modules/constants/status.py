@@ -109,6 +109,7 @@ dice_list: List[die] = []
 draw_list: List[Any] = []
 same_tile_icon_list: List[same_tile_icon] = []
 directional_indicator_image_list: List[directional_indicator_image] = []
+logistics_incident_list: List[Dict[str, Any]] = []
 
 loading_image: image = None
 loading_screen_quote_banner: multi_line_label = None

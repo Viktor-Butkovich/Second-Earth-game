@@ -48,6 +48,7 @@ class pmob(mob):
         status.pmob_list.append(self)
         self.equipment = {}
         self.upkeep_missing_penalty: str = None
+        self.upkeep_missing_item_key: str = None
         self.item_upkeep_present: Dict[str, bool] = {}
         for current_equipment in input_dict.get("equipment", {}):
             if input_dict.get("equipment", {}).get(current_equipment, False):
@@ -285,13 +286,15 @@ class pmob(mob):
         ):  # Register missing upkeep of 0 if none was present - allows officer attrition if no items present
             if not item_present:
                 missing_upkeep[item_key] = missing_upkeep.get(item_key, 0)
-        self.upkeep_missing_penalty = max(
-            [constants.UPKEEP_MISSING_PENALTY_NONE]
+        self.upkeep_missing_penalty, self.upkeep_missing_item_key = max(
+            [(constants.UPKEEP_MISSING_PENALTY_NONE, None)]
             + [
-                self.unit_type.missing_upkeep_penalties[item_key]
+                (self.unit_type.missing_upkeep_penalties[item_key], item_key)
                 for item_key in missing_upkeep
-            ]
+            ],
+            key=lambda x: x[0],
         )
+        self.record_upkeep_missing_penalty()
         # Get the most severe penalty of the resource types with any missed upkeep
         if constants.effect_manager.effect_active("track_item_requests"):
             if missing_upkeep:
@@ -326,6 +329,20 @@ class pmob(mob):
             # In the future, check if any of the item type is present in the local supply network
         for current_sub_mob in self.get_sub_mobs():
             current_sub_mob.check_item_availability()
+
+    def record_upkeep_missing_penalty(self) -> None:
+        """
+        Description:
+            Records this unit's most severe upkeep missing penalty as a message to display at the start of the turn
+        Input:
+            None
+        Output:
+            None
+        """
+        if self.upkeep_missing_penalty == constants.UPKEEP_MISSING_PENALTY_DEATH:
+            self.record_logistics_incident(cause=self.upkeep_missing_item_key)
+        else:
+            pass
 
     def resolve_upkeep_missing_penalty(self) -> None:
         """
@@ -838,104 +855,86 @@ class pmob(mob):
             for current_image in self.images:
                 current_image.image.remove_member("veteran_icon")
 
-    def manage_health_attrition(
-        self, current_cell="default"
-    ):  # other versions of manage_health_attrition in group, vehicle, and resource_building
+    def manage_health_attrition(self) -> None:
         """
         Description:
             Checks this mob for health attrition each turn
         Input:
-            string/cell current_cell = 'default': Records which cell the attrition is taking place in, used when a unit is in a building or another mob and does not technically exist in any cell
+            None
         Output:
             None
         """
+        if self.any_permissions(
+            constants.VEHICLE_PERMISSION, constants.GROUP_PERMISSION
+        ):  # Groups and vehicles don't receive attrition - only their components
+            return
+
         if (
             constants.effect_manager.effect_active("boost_attrition")
             and random.randrange(1, 7) >= 4
-        ):
-            self.attrition_death()
+        ):  # Cause very frequent attrition if boost attrition active
+            self.record_logistics_incident(cause="health attrition")
+            self.die()
             return
 
-        if current_cell == "default":
-            current_cell = self.get_cell()
-        elif current_cell == None:
-            return
         if (
-            current_cell.local_attrition()
-            and minister_utility.get_minister(
-                constants.TRANSPORTATION_MINISTER
-            ).no_corruption_roll(6, "health_attrition")
-            == 1
-        ):
-            if random.randrange(1, 7) <= 2:
-                self.attrition_death()
+            self.get_cell().local_attrition() and random.randrange(1, 7) <= 2
+        ):  # If local conditions may cause attrition, 1/3 chance of attrition check
+            if (
+                minister_utility.get_minister(
+                    constants.TRANSPORTATION_MINISTER
+                ).no_corruption_roll(6, "health_attrition")
+                == 1
+            ):  # For attrition check, see if minister fails
+                self.record_logistics_incident(cause="health attrition")
+                self.die()  # If minister fails attrition check, unit dies
 
-    def attrition_death(self, show_notification=True):
+    def record_logistics_incident(
+        self, incident_type="death", cause="health attrition"
+    ):
         """
         Description:
-            Kills this unit, takes away its next turn, and automatically buys a replacement when it fails its rolls for health attrition. If an officer dies, the replacement costs the officer's usual recruitment cost and does not have
-                the previous officer's experience. If a worker dies, the replacement is found and recruited from somewhere else on the map, increasing worker upkeep colony-wide as usual
+            Explains the death of this unit to attrition, logging the explanation in a list of all attrition deaths this turn
         Input:
-            boolean show_notification: Whether a notification should be shown for this death - depending on where this was called, a notification may have already been shown
+            None
         Output:
             None
         """
         constants.evil_tracker.change(1)
-        if (
-            self.any_permissions(
-                constants.OFFICER_PERMISSION, constants.WORKER_PERMISSION
-            )
-            and self.automatically_replace
-        ):
-            if show_notification:
-                if self.get_cell().grid == status.globe_projection_grid:
-                    location_message = f"in orbit of {status.globe_projection_grid.world_handler.name}. "
-                elif self.get_cell().grid == status.earth_grid:
-                    location_message = f"in orbit of Earth. "
-                else:
-                    location_message = f"at ({self.x}, {self.y}). "
-                constants.notification_manager.display_notification(
-                    {
-                        "message": f"{utility.capitalize(self.name)} has died from attrition {location_message}/n /n{self.generate_attrition_replacement_text()}",
-                        "zoom_destination": self,
-                    }
-                )
-            self.set_permission(
-                constants.MOVEMENT_DISABLED_PERMISSION, True, override=True
-            )
-            self.replace()
-            self.death_sound("violent")
-        else:
-            if show_notification:
-                constants.notification_manager.display_notification(
-                    {
-                        "message": f"{utility.capitalize(self.name)} has died from attrition at ({self.x}, {self.y})",
-                        "zoom_destination": self.get_cell().tile,
-                    }
-                )
-
-            self.die()
-
-    def generate_attrition_replacement_text(self):
-        """
-        Description:
-            Generates text to use in attrition replacement notifications when this unit suffers health attrition
-        Input:
-            None
-        Output:
-            Returns text to use in attrition replacement notifications
-        """
-        if (
-            self.get_permission(constants.IN_GROUP_PERMISSION)
-            and self.group.get_permission(constants.IN_VEHICLE_PERMISSION)
-            and self.group == self.group.vehicle.crew
-        ):
-            text = "The crew and vehicle will remain inactive for the next turn as replacements are found. /n /n"
-        else:
-            text = "The unit will remain inactive for the next turn as replacements are found. /n /n"
+        insertion = ""
         if self.get_permission(constants.OFFICER_PERMISSION):
-            text += f"{self.unit_type.recruitment_cost} money has automatically been spent to recruit a replacement officer. /n /n"
-        return text
+            name = f"{self.character_info['name']}"
+            insertion = f" {utility.generate_article(self.name)} {self.name}"
+        else:
+            name = self.name.capitalize()
+
+        if self.get_permission(constants.IN_GROUP_PERMISSION):
+            if (
+                self.group.get_permission(constants.IN_VEHICLE_PERMISSION)
+                and self.group.vehicle.crew == self.group
+            ):
+                name += f",{insertion} within {self.group.name} crewing {self.group.vehicle.name},"
+            elif self.group.get_permission(constants.IN_VEHICLE_PERMISSION):
+                name += f",{insertion} within {self.group.name} aboard {self.group.vehicle.name},"
+            else:
+                name += f",{insertion} within {self.group.name},"
+        elif self.get_permission(constants.IN_VEHICLE_PERMISSION):
+            name += f",{insertion} aboard {self.vehicle.name},"
+        elif insertion:
+            name += f",{insertion},"
+
+        if cause in status.item_types.keys():
+            explanation = f"died to insufficient {status.item_types[cause].name}."
+        elif cause == "health attrition":
+            explanation = f"died to health attrition."
+
+        status.logistics_incident_list.append(
+            {
+                "unit": self,
+                "cell": self.get_cell(),
+                "explanation": f"{name} {explanation}",
+            }
+        )
 
     def remove(self):
         """

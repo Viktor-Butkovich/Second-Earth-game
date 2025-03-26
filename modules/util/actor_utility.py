@@ -4,7 +4,7 @@ import random
 import os
 import pygame
 import math
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from modules.util import utility, text_utility
 from modules.constants import constants, status, flags
 
@@ -656,3 +656,31 @@ def get_temperature_habitability(temperature: int) -> int:
         return constants.HABITABILITY_DANGEROUS
     else:
         return constants.HABITABILITY_DEADLY
+
+
+def summarize_amount_dict(item_dict: Dict[str, float]):
+    """
+    Description:
+        Convert a dictionary of item keys and amounts to a string summary
+    Input:
+        Dict[str, float] item_dict: Dictionary of item keys and amounts, in the format
+            {
+                constants.CONSUMER_GOODS_ITEM_TYPE: 2,
+                constants.FOOD_ITEM_TYPE: 1
+            }
+    Output:
+        str: String summary, in the format "2 units of consumer goods and 1 unit of food"
+    """
+    text = ""
+    for item_type_key, amount in item_dict.items():
+        line = f"{amount} unit{utility.generate_plural(sum(item_dict.values()))} of {status.item_types[item_type_key].name}"
+        if len(item_dict.keys()) == 1:
+            pass
+        elif len(item_dict.keys()) == 2 and item_type_key == list(item_dict.keys())[0]:
+            line += " "
+        elif item_type_key != list(item_dict.keys())[-1]:
+            line += ", "
+        else:
+            line = f"and {line}"
+        text += line
+    return text

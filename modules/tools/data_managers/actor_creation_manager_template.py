@@ -260,7 +260,6 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.MOUSE_FOLLOWER_IMAGE: mouse_followers.mouse_follower_template,
             constants.DIRECTIONAL_INDICATOR_IMAGE: images.directional_indicator_image,
             constants.NOTIFICATION: notifications.notification,
-            constants.ZOOM_NOTIFICATION: notifications.zoom_notification,
             constants.CHOICE_NOTIFICATION: choice_notifications.choice_notification,
             constants.ACTION_NOTIFICATION: action_notifications.action_notification,
             constants.DICE_ROLLING_NOTIFICATION: action_notifications.dice_rolling_notification,

@@ -267,35 +267,24 @@ class actor:
                 self.actor_type == constants.MOB_ACTOR_TYPE
                 and (not self.get_permission(constants.VEHICLE_PERMISSION))
                 and random.randrange(1, 7) <= 1
-            ):  # extra chance of failure when carried by porters/caravan
+            ):  # Extra chance of failure when carried by non-vehicle
                 transportation_minister = minister_utility.get_minister(
                     constants.TRANSPORTATION_MINISTER
                 )
-                if self.actor_type == constants.TILE_ACTOR_TYPE:
-                    current_cell = self.cell
-                elif self.actor_type == constants.MOB_ACTOR_TYPE:
-                    if not self.any_permissions(
-                        constants.IN_BUILDING_PERMISSION,
-                        constants.IN_GROUP_PERMISSION,
-                        constants.IN_VEHICLE_PERMISSION,
-                    ):
-                        current_cell = self.get_cell()
-                    else:
-                        return ()  # only surface-level mobs can have inventories and need to roll for attrition
                 if (
                     random.randrange(1, 7) <= 2
                     and transportation_minister.check_corruption()
                 ):  # 1/18 chance of corruption check to take items - 1/36 chance for most corrupt to steal
                     self.trigger_inventory_attrition(stealing=True)
-                    return ()
+                    return
                 elif (
-                    current_cell.local_attrition("inventory")
+                    self.get_cell().local_attrition("inventory")
                     and transportation_minister.no_corruption_roll(6) < 4
                 ):  # 1/6 chance of doing tile conditions check, if passes minister needs to make a 4+ roll to avoid attrition
                     self.trigger_inventory_attrition()
-                    return ()
+                    return
 
-            # this part of function only reached if no inventory attrition was triggered
+            # This part of function only reached if no inventory attrition was triggered
             if (
                 self.actor_type == constants.MOB_ACTOR_TYPE
                 and self.all_permissions(
@@ -329,67 +318,63 @@ class actor:
             constants.TRANSPORTATION_MINISTER
         )
         lost_items_message = ""
-        lost_items_list: List[Tuple[status.item_type, int]] = []
+        lost_items: Dict[str, float] = {}
         if stealing:
             value_stolen = 0
         for current_item in self.get_held_items():
             initial_amount = self.get_inventory(current_item)
-            amount_lost = random.randrange(0, int(initial_amount / 2) + 2)  # 0-50%
-            if amount_lost > initial_amount:
-                amount_lost = initial_amount
+            amount_lost = min(
+                initial_amount, random.randrange(0, int(initial_amount / 2) + 2)
+            )  # 0-50%
             if amount_lost > 0:
-                lost_items_list.append((current_item, amount_lost))
+                lost_items[current_item.key] = (
+                    lost_items.get(current_item.key, 0) + amount_lost
+                )
                 self.change_inventory(current_item, -1 * amount_lost)
                 if stealing:
                     value_stolen += current_item.price * amount_lost
-                    amount_lost = sum(
-                        random.random() < (1 / 6) for _ in range(amount_lost)
-                    )
                     market_utility.change_price(
                         current_item,
-                        sum([random.randrange(1, 7) <= 1 for _ in range(amount_lost)]),
+                        sum(
+                            [
+                                random.randrange(1, 7) <= 1
+                                for _ in range(math.ceil(amount_lost))
+                            ]
+                        ),
                     )
-        for current_index, (lost_item, amount_lost) in enumerate(lost_items_list):
-            if current_index == 0:
-                is_first = True
-            else:
-                is_first = False
-            if current_index == len(lost_items_list) - 1:
-                is_last = True
-            else:
-                is_last = False
 
-            if amount_lost == 1:
-                unit_word = "unit"
-            else:
-                unit_word = "units"
-            if is_first and is_last:
-                lost_items_message += f"{amount_lost} {unit_word} of {lost_item.name}"
-            elif len(lost_items_list) == 2 and is_first:
-                lost_items_message += f"{amount_lost} {unit_word} of {lost_item.name} "
-            elif not is_last:
-                lost_items_message += f"{amount_lost} {unit_word} of {lost_item.name}, "
-            else:
-                lost_items_message += (
-                    f"and {amount_lost} {unit_word} of {lost_item.name}"
-                )
-        if not lost_items_message == "":
-            if sum([amount_lost for _, amount_lost in lost_items_list]) == 1:
+        if lost_items:  # If at least 1 item stolen
+            if sum(lost_items.values()) == 1:
                 was_word = "was"
             else:
                 was_word = "were"
-            if status.strategic_map_grid in self.grids:
-                location_message = f"at ({self.x}, {self.y})"
-            else:
-                location_message = f"in orbit of {self.grids[0].name}"
 
             if self.actor_type == constants.TILE_ACTOR_TYPE:
-                transportation_minister.display_message(
-                    f"Minister of Transportation {transportation_minister.name} reports that {lost_items_message} {location_message} {was_word} lost, damaged, or misplaced. /n /n"
-                )
+                text = f"{actor_utility.summarize_amount_dict(lost_items)} {was_word} lost, damaged, or misplaced."
             elif self.actor_type == constants.MOB_ACTOR_TYPE:
+                text = f"{actor_utility.summarize_amount_dict(lost_items)} carried by the {self.name} {was_word} lost, damaged, or misplaced."
+
+            if flags.player_turn:
+                intro_text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports a logistical incident "
+                if self.get_cell().grid.is_abstract_grid:
+                    intro_text += f"in orbit of {self.get_cell().grid.name}: /n /n"
+                elif self.get_cell().tile.name != "default":
+                    intro_text += f"at {self.get_cell().tile.name}: /n /n"
+                else:
+                    intro_text += (
+                        f"at ({self.get_cell().x}, {self.get_cell().y}): /n /n"
+                    )
+                text = f"{intro_text}{text} /n /n"
                 transportation_minister.display_message(
-                    f"Minister of Transportation {transportation_minister.name} reports that {lost_items_message} carried by the {self.name} {location_message} {was_word} lost, damaged, or misplaced. /n /n"
+                    text, override_input_dict={"zoom_destination": self}
+                )
+            else:
+                status.logistics_incident_list.append(
+                    {
+                        "unit": self,
+                        "cell": self.get_cell(),
+                        "explanation": text,
+                    }
                 )
         if stealing and value_stolen > 0:
             transportation_minister.steal_money(value_stolen, "inventory_attrition")

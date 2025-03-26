@@ -657,52 +657,6 @@ class resource_building(building):
         )
         super().remove()
 
-    def manage_health_attrition(self, current_cell="default"):
-        """
-        Description:
-            Checks this building's work crews for health attrition each turn
-        Input:
-            string/cell current_cell = 'default': Records which cell the attrition is taking place in, used when a unit is in a building or another mob and does not technically exist in any cell
-        Output:
-            None
-        """
-        if current_cell == "default":
-            current_cell = self.cell
-        transportation_minister = minister_utility.get_minister(
-            constants.TRANSPORTATION_MINISTER
-        )
-        if constants.effect_manager.effect_active("boost_attrition"):
-            worker_attrition_list = [
-                current_work_crew
-                for current_work_crew in self.contained_work_crews
-                if random.randrange(1, 7) >= 4
-            ]
-            officer_attrition_list = [
-                current_work_crew
-                for current_work_crew in self.contained_work_crews
-                if random.randrange(1, 7) >= 4
-            ]
-        else:
-            worker_attrition_list = [
-                current_work_crew
-                for current_work_crew in self.contained_work_crews
-                if current_cell.local_attrition()
-                and transportation_minister.no_corruption_roll(6, "health_attrition")
-                == 1
-            ]
-            officer_attrition_list = [
-                current_work_crew
-                for current_work_crew in self.contained_work_crews
-                if current_cell.local_attrition()
-                and transportation_minister.no_corruption_roll(6, "health_attrition")
-                == 1
-            ]
-
-        for current_work_crew in worker_attrition_list:
-            current_work_crew.attrition_death("worker")
-        for current_work_crew in officer_attrition_list:
-            current_work_crew.attrition_death("officer")
-
     def upgrade(self, upgrade_type):
         """
         Description:
