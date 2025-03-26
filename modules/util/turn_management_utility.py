@@ -27,9 +27,6 @@ def end_turn():
     """
     actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
     actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
-    status.logistics_incident_list = []
-    manage_upkeep_expenditure()
-    remove_excess_inventory()
     flags.player_turn = False
     status.player_turn_queue = []
     prepare_planet_rotation()
@@ -51,8 +48,11 @@ def start_player_turn(first_turn=False):
         status.previous_sales_report,
         status.previous_financial_report,
     ) = (None, None, None)
+    status.logistics_incident_list = []
     for current_pmob in status.pmob_list:
         current_pmob.end_turn_move()  # Make sure no units that suffered attrition move when they shouldn't have
+    manage_upkeep_expenditure()
+    remove_excess_inventory()
     text_utility.print_to_screen("")
     text_utility.print_to_screen("Turn " + str(constants.turn + 1))
     if not first_turn:
@@ -68,9 +68,7 @@ def start_player_turn(first_turn=False):
                 current_building.reattach_work_crews()
         manage_missing_upkeep_penalties()
         manage_environmental_conditions()
-        print("managing attrition", flags.player_turn)
         manage_attrition()  # Have attrition before or after enemy turn? Before upkeep?
-        print("finishing attrition", flags.player_turn)
         manage_logistics_report()
         manage_production()
         reset_mobs("pmobs")
@@ -331,14 +329,11 @@ def manage_environmental_conditions():
         None
     """
     for current_pmob in status.pmob_list.copy():
-        if not current_pmob.get_permission(constants.SURVIVABLE_PERMISSION):
-            if not (
-                current_pmob.any_permissions(
-                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
-                )
-                and current_pmob.get_permission(constants.IN_GROUP_PERMISSION)
-            ):
-                current_pmob.die()
+        if current_pmob.in_deadly_environment():
+            current_pmob.record_logistics_incident(
+                incident_type="death", cause="environmental conditions"
+            )
+            current_pmob.die()
 
 
 def manage_production():

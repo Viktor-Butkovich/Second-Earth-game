@@ -1026,15 +1026,23 @@ class mob(actor):
             if self.equipment:
                 tooltip_list.append(f"Equipment: {', '.join(self.equipment.keys())}")
 
-            item_upkeep = self.get_item_upkeep(recurse=True)
-            if item_upkeep:
-                tooltip_list.append(f"Item upkeep per turn:")
-                for item_type_key, amount_required in item_upkeep.items():
+            item_upkeep = self.get_item_upkeep(recurse=True, earth_exemption=False)
+            top_message = "Item upkeep per turn:"
+            if not item_upkeep:
+                top_message += " None"
+            elif self.get_cell() and self.get_cell().grid == status.earth_grid:
+                top_message += " (exempt while on Earth)"
+            tooltip_list.append(top_message)
+
+            for item_type_key, amount_required in item_upkeep.items():
+                if amount_required == 0:
+                    tooltip_list.append(
+                        f"    Requires access to {status.item_types[item_type_key].name}"
+                    )
+                else:
                     tooltip_list.append(
                         f"    {status.item_types[item_type_key].name.capitalize()}: {amount_required}"
                     )
-            else:
-                tooltip_list.append("Item upkeep per turn: None")
 
         if self.get_permission(constants.DISORGANIZED_PERMISSION):
             tooltip_list.append(

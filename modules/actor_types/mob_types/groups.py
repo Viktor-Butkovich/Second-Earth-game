@@ -90,7 +90,9 @@ class group(pmob):
             self.on_move()
         self.finish_init(original_constructor, from_save, input_dict)
 
-    def get_item_upkeep(self, recurse: bool = False) -> Dict[str, float]:
+    def get_item_upkeep(
+        self, recurse: bool = False, earth_exemption: bool = True
+    ) -> Dict[str, float]:
         """
         Description:
             Returns the item upkeep requirements for this unit type, optionally recursively adding the upkeep requirements of sub-mobs
@@ -101,12 +103,20 @@ class group(pmob):
         """
         if recurse:
             return utility.add_dicts(
-                super().get_item_upkeep(recurse=recurse),
-                self.worker.get_item_upkeep(recurse=recurse),
-                self.officer.get_item_upkeep(recurse=recurse),
+                super().get_item_upkeep(
+                    recurse=recurse, earth_exemption=earth_exemption
+                ),
+                self.worker.get_item_upkeep(
+                    recurse=recurse, earth_exemption=earth_exemption
+                ),
+                self.officer.get_item_upkeep(
+                    recurse=recurse, earth_exemption=earth_exemption
+                ),
             )
         else:
-            return super().get_item_upkeep(recurse=recurse)
+            return super().get_item_upkeep(
+                recurse=recurse, earth_exemption=earth_exemption
+            )
 
     def get_sub_mobs(self) -> List[pmob]:
         """

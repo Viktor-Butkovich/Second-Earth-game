@@ -199,7 +199,9 @@ class pmob(mob):
         self.add_to_turn_queue()
         self.update_habitability()
 
-    def get_item_upkeep(self, recurse: bool = False) -> Dict[str, float]:
+    def get_item_upkeep(
+        self, recurse: bool = False, earth_exemption: bool = True
+    ) -> Dict[str, float]:
         """
         Description:
             Returns the item upkeep requirements for this unit type
@@ -218,7 +220,10 @@ class pmob(mob):
                 and self.get_permission(constants.IN_GROUP_PERMISSION)
             ):
                 return {}
-        return self.unit_type.item_upkeep
+        if earth_exemption and self.get_cell().grid == status.earth_grid:
+            return {}
+        else:
+            return self.unit_type.item_upkeep
 
     def consume_items(self, items: Dict[str, float]) -> Dict[str, float]:
         """
@@ -267,6 +272,25 @@ class pmob(mob):
                 return True
         return False
 
+    def in_deadly_environment(self) -> bool:
+        """
+        Description:
+            Returns whether this unit is imminently going to die to deadly environmental conditions
+        Input:
+            None
+        Output:
+            bool: Returns whether this unit is imminently going to die to deadly environmental conditions
+        """
+        if not self.get_permission(constants.SURVIVABLE_PERMISSION):
+            if not (
+                self.any_permissions(
+                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
+                )
+                and self.get_permission(constants.IN_GROUP_PERMISSION)
+            ):
+                return True
+        return False
+
     def consume_item_upkeep(self) -> None:
         """
         Description:
@@ -277,6 +301,9 @@ class pmob(mob):
         Output:
             None
         """
+        if self.in_deadly_environment():
+            return  # Don't consume upkeep when in instant death conditions
+
         missing_upkeep = self.consume_items(self.get_item_upkeep(recurse=False))
         for (
             item_key,
@@ -925,6 +952,8 @@ class pmob(mob):
 
         if cause in status.item_types.keys():
             explanation = f"died to insufficient {status.item_types[cause].name}."
+        elif cause == "environmental conditions":
+            explanation = f"died to deadly environmental conditions."
         elif cause == "health attrition":
             explanation = f"died to health attrition."
 
