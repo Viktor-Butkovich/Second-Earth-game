@@ -932,3 +932,28 @@ def end_turn_warnings():
                 }
             )
             break
+
+    for current_tile in [
+        current_tile
+        for current_tile in status.main_tile_list
+        if current_tile.cell.contained_mobs
+    ]:
+        item_upkeep = current_tile.get_item_upkeep(recurse=True)
+        item_request = current_tile.create_item_request(item_upkeep)
+        if (
+            item_request
+        ):  # For each tile that cannot meet its upkeep requirements, issue a warning
+            if current_tile.show_terrain and current_tile.name == "default":
+                name = f"({current_tile.x}, {current_tile.y})"
+            else:
+                name = current_tile.name.capitalize()
+            text = f"WARNING: {name} does not have enough items to meet its local upkeep requirements. /n /n"
+            text += f"Required items: {actor_utility.summarize_amount_dict(item_upkeep)} /n /n"
+            text += f"Missing items: {actor_utility.summarize_amount_dict(item_request)} /n /n"
+            text += f"Depending on item type, this deficit may result in unit death or morale penalties. /n /n"
+            constants.notification_manager.display_notification(
+                {
+                    "message": text,
+                    "zoom_destination": current_tile,
+                }
+            )

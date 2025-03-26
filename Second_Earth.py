@@ -439,7 +439,6 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Show warning for tiles that cannot receive sufficient resources for the end of the turn - calculate when end turn is about to be pressed
 # Possibly re-use disorganized status for units w/ insufficient food/water
 # Next major step is to add basic economic mechanics, now that the baseline terraforming is functional
 # Decided that colonists consume energy - should stored energy be equivalent to fuel, or not?
