@@ -440,9 +440,6 @@ except Exception:  # Displays error message and records error message in crash l
 
 # Upcoming work queue:
 # Next major step is to add basic economic mechanics, now that the baseline terraforming is functional
-# Decided that colonists consume energy - should stored energy be equivalent to fuel, or not?
-#   Possibly 1-way - fuel can be spent to create energy, but energy cannot be trivially spent to be stored as fuel
-#   Energy is not a resource that can be stored
 # Add new resource types, with colonist upkeep, buying on Earth, transporting, and using to build when it is in the builder's tile
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface

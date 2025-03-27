@@ -133,6 +133,56 @@ class actor:
                     status.tile_info_display, self
                 )
 
+    def consume_items(self, items: Dict[str, float]) -> Dict[str, float]:
+        """
+        Description:
+            Attempts to consume the inputted items from the inventories of actors in this unit's tile
+                First checks the tile's warehouses, followed by this unit's inventory, followed by other present units' inventories
+        Input:
+            dictionary items: Dictionary of item type keys and quantities to consume
+        Output:
+            dictionary: Returns a dictionary of item type keys and quantities that were not available to be consumed
+        """
+        missing_consumption = {}
+        for item_key, consumption_remaining in items.items():
+            item_type = status.item_types[item_key]
+            for present_actor in [self.get_cell().tile, self] + [
+                current_mob
+                for current_mob in self.get_cell().contained_mobs
+                if current_mob != self
+            ]:
+                if consumption_remaining <= 0:
+                    break
+                availability = present_actor.get_inventory(item_type)
+                consumption = min(consumption_remaining, availability)
+                present_actor.change_inventory(item_type, -consumption)
+                consumption_remaining -= consumption
+                consumption_remaining = round(consumption_remaining, 2)
+            if consumption_remaining > 0:
+                missing_consumption[item_key] = consumption_remaining
+        return missing_consumption
+
+    def item_present(self, item_type: item_types.item_type) -> bool:
+        """
+        Description:
+            Returns whether the inputted item type is present anywhere in this unit's tile
+        Input:
+            item_type item_type: Item type to check for
+        Output:
+            bool: Returns whether the inputted item type is present anywhere in this unit's tile
+        """
+        if item_type == status.item_types[constants.ENERGY_ITEM]:
+            return self.item_present(status.item_types[constants.FUEL_ITEM])
+
+        for present_actor in [self.get_cell().tile, self] + [
+            current_mob
+            for current_mob in self.get_cell().contained_mobs
+            if current_mob != self
+        ]:
+            if present_actor.get_inventory(item_type) > 0:
+                return True
+        return False
+
     def get_inventory_remaining(self, possible_amount_added=0) -> float:
         """
         Description:

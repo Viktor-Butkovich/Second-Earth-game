@@ -435,6 +435,7 @@ def manage_upkeep_expenditure() -> None:
     ]:
         item_upkeep = current_tile.get_item_upkeep(recurse=True)
         item_request = current_tile.create_item_request(item_upkeep)
+        current_tile.fulfill_item_request(item_request.copy())
         if constants.effect_manager.effect_active("track_item_requests"):
             if current_tile.show_terrain:
                 name = f"({current_tile.x}, {current_tile.y})"
@@ -446,6 +447,7 @@ def manage_upkeep_expenditure() -> None:
             current_mob.check_item_availability()
         for current_mob in current_tile.cell.contained_mobs:
             current_mob.consume_item_upkeep()
+        current_tile.set_inventory(status.item_types[constants.ENERGY_ITEM], 0)
 
     total_money_upkeep = market_utility.calculate_total_worker_upkeep()
     constants.money_tracker.change(round(-1 * total_money_upkeep, 2), "worker_upkeep")
@@ -941,6 +943,14 @@ def end_turn_warnings():
     ]:
         item_upkeep = current_tile.get_item_upkeep(recurse=True)
         item_request = current_tile.create_item_request(item_upkeep)
+        if constants.ENERGY_ITEM in item_request:
+            missing_fuel = current_tile.create_item_request(
+                {constants.FUEL_ITEM: item_request[constants.ENERGY_ITEM]}
+            ).get(constants.FUEL_ITEM, 0)
+            if missing_fuel == 0:
+                del item_request[constants.ENERGY_ITEM]
+            else:
+                item_request[constants.ENERGY_ITEM] = missing_fuel
         if (
             item_request
         ):  # For each tile that cannot meet its upkeep requirements, issue a warning

@@ -249,6 +249,29 @@ class tile(actor):  # to do: make terrain tiles a subclass
             if value > 0
         }
 
+    def fulfill_item_request(
+        self, requested_items: Dict[str, float]
+    ) -> Dict[str, float]:
+        """
+        Description:
+            Attempt to externally source the requested items
+        Input:
+            Dict[str, float] requested_items: Dictionary of items with amounts that need to be externally sourced to meet the requirements
+        Output:
+            Dict[str, float]: Dictionary of items with amounts that can not be provided
+        """
+        if constants.ENERGY_ITEM in requested_items:
+            missing_energy = self.consume_items(
+                {constants.FUEL_ITEM: requested_items[constants.ENERGY_ITEM]}
+            ).get(constants.ENERGY_ITEM, 0)
+            # Attempt to consume fuel equal to energy request - returns amount of request that cannot be met
+            self.change_inventory(
+                status.item_types[constants.ENERGY_ITEM],
+                requested_items[constants.ENERGY_ITEM] - missing_energy,
+            )  # Turn fuel into required energy
+            requested_items[constants.ENERGY_ITEM] = missing_energy
+        return requested_items
+
     def get_item_upkeep(
         self, recurse: bool = False, earth_exemption: bool = True
     ) -> Dict[str, float]:
