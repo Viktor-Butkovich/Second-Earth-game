@@ -222,6 +222,16 @@ class pmob(mob):
                 return {}
         if earth_exemption and self.get_cell().grid == status.earth_grid:
             return {}
+        elif (
+            earth_exemption
+            and self.get_cell().terrain_handler.get_unit_habitability()
+            > constants.HABITABILITY_DEADLY
+        ):
+            item_upkeep = self.unit_type.item_upkeep.copy()
+            item_upkeep.pop(
+                constants.AIR_ITEM, None
+            )  # Return a version without air requirements
+            return item_upkeep
         else:
             return self.unit_type.item_upkeep
 
@@ -420,7 +430,7 @@ class pmob(mob):
             self.upkeep_missing_penalty == constants.UPKEEP_MISSING_PENALTY_DEHYDRATION
         ):
             self.set_permission(constants.DEHYDRATION_PERMISSION, True)
-        elif self.upkeep_missing_penalty == constants.STARVATION_PERMISSION:
+        elif self.upkeep_missing_penalty == constants.UPKEEP_MISSING_PENALTY_STARVATION:
             self.set_permission(constants.STARVATION_PERMISSION, True)
         else:
             pass  # Apply non-death penalties

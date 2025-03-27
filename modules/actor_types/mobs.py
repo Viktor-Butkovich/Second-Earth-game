@@ -1061,22 +1061,28 @@ class mob(actor):
                 tooltip_list.append(f"Equipment: {', '.join(self.equipment.keys())}")
 
             item_upkeep = self.get_item_upkeep(recurse=True, earth_exemption=False)
+            show_air_exemption = False
             top_message = "Item upkeep per turn:"
             if not item_upkeep:
                 top_message += " None"
             elif self.get_cell() and self.get_cell().grid == status.earth_grid:
                 top_message += " (exempt while on Earth)"
+            elif (
+                self.get_cell()
+                and self.get_cell().terrain_handler.get_unit_habitability()
+                > constants.HABITABILITY_DEADLY
+            ):
+                show_air_exemption = True
             tooltip_list.append(top_message)
 
             for item_type_key, amount_required in item_upkeep.items():
                 if amount_required == 0:
-                    tooltip_list.append(
-                        f"    Requires access to {status.item_types[item_type_key].name}"
-                    )
+                    message = f"    Requires access to {status.item_types[item_type_key].name}"
                 else:
-                    tooltip_list.append(
-                        f"    {status.item_types[item_type_key].name.capitalize()}: {amount_required}"
-                    )
+                    message = f"    Requires {amount_required} {status.item_types[item_type_key].name}"
+                if show_air_exemption and item_type_key == constants.AIR_ITEM:
+                    message += f" (exempt while in non-deadly atmosphere)"
+                tooltip_list.append(message)
 
         if not self.get_permission(constants.SURVIVABLE_PERMISSION):
             tooltip_list.append(
