@@ -256,14 +256,20 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
                 ) and not dummy_worker.equipment.get(equipment_type, False):
                     status.equipment_types[equipment_type].equip(dummy_worker)
 
-        dummy_input_dict["disorganized"] = worker.get_permission(
+        dummy_input_dict[constants.DISORGANIZED_PERMISSION] = worker.get_permission(
             constants.DISORGANIZED_PERMISSION
         )
-        dummy_input_dict["veteran"] = officer.get_permission(
+        dummy_input_dict[constants.DEHYDRATION_PERMISSION] = worker.get_permission(
+            constants.DEHYDRATION_PERMISSION
+        ) or officer.get_permission(constants.DEHYDRATION_PERMISSION)
+        dummy_input_dict[constants.STARVATION_PERMISSION] = worker.get_permission(
+            constants.STARVATION_PERMISSION
+        ) or officer.get_permission(constants.STARVATION_PERMISSION)
+        dummy_input_dict[constants.VETERAN_PERMISSION] = officer.get_permission(
             constants.VETERAN_PERMISSION
         )
         if dummy_input_dict["unit_type"].key == constants.BATTALION:
-            dummy_input_dict["disorganized"] = True
+            dummy_input_dict[constants.DISORGANIZED_PERMISSION] = True
         dummy_input_dict["name"] = actor_utility.generate_group_name(
             worker, officer, add_veteran=True
         )
@@ -279,8 +285,18 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
             {
                 constants.OFFICER_PERMISSION: False,
                 constants.GROUP_PERMISSION: True,
-                constants.DISORGANIZED_PERMISSION: dummy_input_dict["disorganized"],
-                constants.VETERAN_PERMISSION: dummy_input_dict["veteran"],
+                constants.DISORGANIZED_PERMISSION: dummy_input_dict[
+                    constants.DISORGANIZED_PERMISSION
+                ],
+                constants.DEHYDRATION_PERMISSION: dummy_input_dict[
+                    constants.DEHYDRATION_PERMISSION
+                ],
+                constants.STARVATION_PERMISSION: dummy_input_dict[
+                    constants.STARVATION_PERMISSION
+                ],
+                constants.VETERAN_PERMISSION: dummy_input_dict[
+                    constants.VETERAN_PERMISSION
+                ],
             }
         )
         dummy_input_dict["image_dict"] = {

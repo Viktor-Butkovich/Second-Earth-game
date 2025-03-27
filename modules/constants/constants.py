@@ -943,11 +943,15 @@ FOOD_ITEM: str = "food"
 WATER_ITEM: str = "water"
 AIR_ITEM: str = "air"
 
-UPKEEP_MISSING_PENALTY_DEATH: str = 2  # Highest penalty takes precedent
+UPKEEP_MISSING_PENALTY_DEATH: str = 4  # Highest penalty takes precedent
+UPKEEP_MISSING_PENALTY_DEHYDRATION: str = 3
+UPKEEP_MISSING_PENALTY_STARVATION: str = 2
 UPKEEP_MISSING_PENALTY_MORALE: str = 1
 UPKEEP_MISSING_PENALTY_NONE: str = 0
 UPKEEP_MISSING_PENALTY_CODES: Dict[str, int] = {
-    2: "death",
+    4: "death",
+    3: "dehydration",
+    2: "starvation",
     1: "morale",
     0: "none",
 }
@@ -975,6 +979,8 @@ WORKER_PERMISSION: str = "worker"
 GROUP_PERMISSION: str = "group"
 INIT_COMPLETE_PERMISSION: str = "init_complete"
 DISORGANIZED_PERMISSION: str = "disorganized"
+DEHYDRATION_PERMISSION: str = "dehydration"
+STARVATION_PERMISSION: str = "starvation"
 VETERAN_PERMISSION: str = "veteran"
 DUMMY_PERMISSION: str = "dummy"
 SPACESUITS_PERMISSION: str = "spacesuits"

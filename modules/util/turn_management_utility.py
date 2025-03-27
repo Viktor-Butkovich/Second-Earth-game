@@ -331,7 +331,8 @@ def manage_environmental_conditions():
     for current_pmob in status.pmob_list.copy():
         if current_pmob.in_deadly_environment():
             current_pmob.record_logistics_incident(
-                incident_type="death", cause="environmental conditions"
+                incident_type=constants.UPKEEP_MISSING_PENALTY_DEATH,
+                cause="environmental conditions",
             )
             current_pmob.die()
 

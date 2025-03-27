@@ -83,6 +83,12 @@ class mob(actor):
             self.set_permission(
                 constants.DISORGANIZED_PERMISSION, input_dict.get("disorganized", False)
             )
+            self.set_permission(
+                constants.DEHYDRATION_PERMISSION, input_dict.get("dehydration", False)
+            )
+            self.set_permission(
+                constants.STARVATION_PERMISSION, input_dict.get("starvation", False)
+            )
         else:
             self.unit_type.on_recruit()
             self.reset_movement_points()
@@ -263,10 +269,28 @@ class mob(actor):
             and self.get_cell()
         ):
             self.update_habitability()
-        if task == constants.TRAVELING_PERMISSION and self.get_permission(
+        elif task == constants.TRAVELING_PERMISSION and self.get_permission(
             constants.SPACESHIP_PERMISSION
         ):
             self.start_ambient_sound()
+        elif task == constants.STARVATION_PERMISSION and self.get_permission(
+            constants.IN_GROUP_PERMISSION
+        ):
+            # Group is shown as starving if either component is starving
+            self.group.set_permission(
+                constants.STARVATION_PERMISSION,
+                self.group.worker.get_permission(constants.STARVATION_PERMISSION)
+                or self.group.officer.get_permission(constants.STARVATION_PERMISSION),
+            )
+        elif task == constants.DEHYDRATION_PERMISSION and self.get_permission(
+            constants.IN_GROUP_PERMISSION
+        ):
+            # Group is shown as dehydrated if either component is dehydrated
+            self.group.set_permission(
+                constants.DEHYDRATION_PERMISSION,
+                self.group.worker.get_permission(constants.DEHYDRATION_PERMISSION)
+                or self.group.officer.get_permission(constants.DEHYDRATION_PERMISSION),
+            )
 
     def all_permissions(self, *tasks: str) -> bool:
         """
@@ -410,6 +434,8 @@ class mob(actor):
         save_dict["disorganized"] = self.get_permission(
             constants.DISORGANIZED_PERMISSION
         )
+        save_dict["dehydration"] = self.get_permission(constants.DEHYDRATION_PERMISSION)
+        save_dict["starvation"] = self.get_permission(constants.STARVATION_PERMISSION)
         if hasattr(self, "image_variant"):
             save_dict["image"] = self.image_variants[0]
             save_dict["image_variant"] = self.image_variant
@@ -471,6 +497,14 @@ class mob(actor):
             "disorganized", self.get_permission(constants.DISORGANIZED_PERMISSION)
         ):
             image_id_list.append("misc/disorganized_icon.png")
+        if override_values.get(
+            "dehydration", self.get_permission(constants.DEHYDRATION_PERMISSION)
+        ):
+            image_id_list.append("misc/dehydration_icon.png")
+        if override_values.get(
+            "starvation", self.get_permission(constants.STARVATION_PERMISSION)
+        ):
+            image_id_list.append("misc/starvation_icon.png")
         if not override_values.get(
             "survivable", self.get_permission(constants.SURVIVABLE_PERMISSION)
         ):
@@ -1044,13 +1078,21 @@ class mob(actor):
                         f"    {status.item_types[item_type_key].name.capitalize()}: {amount_required}"
                     )
 
+        if not self.get_permission(constants.SURVIVABLE_PERMISSION):
+            tooltip_list.append(
+                "This unit is in deadly environmental conditions and will die if remaining there at the end of the turn"
+            )
         if self.get_permission(constants.DISORGANIZED_PERMISSION):
             tooltip_list.append(
                 "This unit is currently disorganized, giving a combat penalty until its next turn"
             )
-        if not self.get_permission(constants.SURVIVABLE_PERMISSION):
+        if self.get_permission(constants.DEHYDRATION_PERMISSION):
             tooltip_list.append(
-                "This unit is in deadly environmental conditions and will die if remaining there at the end of the turn"
+                "This unit is dehydrated and will die if not provided sufficient water upkeep this turn"
+            )
+        if self.get_permission(constants.STARVATION_PERMISSION):
+            tooltip_list.append(
+                "This unit is starving and will die if not provided sufficient food upkeep this turn"
             )
 
         if self.end_turn_destination:

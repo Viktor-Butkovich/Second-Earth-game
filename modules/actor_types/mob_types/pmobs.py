@@ -313,6 +313,11 @@ class pmob(mob):
         ):  # Register missing upkeep of 0 if none was present - allows officer attrition if no items present
             if not item_present:
                 missing_upkeep[item_key] = missing_upkeep.get(item_key, 0)
+
+        possible_penalties = [constants.UPKEEP_MISSING_PENALTY_NONE] + [
+            self.unit_type.missing_upkeep_penalties[item_key]
+            for item_key in missing_upkeep
+        ]
         self.upkeep_missing_penalty, self.upkeep_missing_item_key = max(
             [(constants.UPKEEP_MISSING_PENALTY_NONE, None)]
             + [
@@ -321,8 +326,36 @@ class pmob(mob):
             ],
             key=lambda x: x[0],
         )
+
+        if constants.UPKEEP_MISSING_PENALTY_DEHYDRATION in possible_penalties:
+            if self.get_permission(constants.DEHYDRATION_PERMISSION):
+                # If would dehydrate again, die instead
+                self.upkeep_missing_penalty = constants.UPKEEP_MISSING_PENALTY_DEATH
+        else:
+            # If received sufficient water, recover from any existing starvation
+            self.set_permission(constants.DEHYDRATION_PERMISSION, False)
+
+        if constants.UPKEEP_MISSING_PENALTY_STARVATION in possible_penalties:
+            if self.get_permission(constants.STARVATION_PERMISSION):
+                # If would starve again, die instead
+                self.upkeep_missing_penalty = constants.UPKEEP_MISSING_PENALTY_DEATH
+            elif (
+                self.upkeep_missing_penalty
+                == constants.UPKEEP_MISSING_PENALTY_DEHYDRATION
+            ):  # Become starving even if dehydrating (doesn't make sense to only use most severe penalty in this context)
+                self.set_permission(constants.STARVATION_PERMISSION, True)
+                self.record_logistics_incident(
+                    incident_type=constants.UPKEEP_MISSING_PENALTY_STARVATION,
+                    cause=constants.FOOD_ITEM,
+                )
+        else:
+            # If received sufficient food, recover from any existing starvation
+            self.set_permission(constants.STARVATION_PERMISSION, False)
+
         self.record_upkeep_missing_penalty()
+
         # Get the most severe penalty of the resource types with any missed upkeep
+
         if constants.effect_manager.effect_active("track_item_requests"):
             if missing_upkeep:
                 print(
@@ -366,10 +399,11 @@ class pmob(mob):
         Output:
             None
         """
-        if self.upkeep_missing_penalty == constants.UPKEEP_MISSING_PENALTY_DEATH:
-            self.record_logistics_incident(cause=self.upkeep_missing_item_key)
-        else:
-            pass
+        if self.upkeep_missing_penalty != constants.UPKEEP_MISSING_PENALTY_NONE:
+            self.record_logistics_incident(
+                incident_type=self.upkeep_missing_penalty,
+                cause=self.upkeep_missing_item_key,
+            )
 
     def resolve_upkeep_missing_penalty(self) -> None:
         """
@@ -382,6 +416,12 @@ class pmob(mob):
         """
         if self.upkeep_missing_penalty == constants.UPKEEP_MISSING_PENALTY_DEATH:
             self.die()
+        elif (
+            self.upkeep_missing_penalty == constants.UPKEEP_MISSING_PENALTY_DEHYDRATION
+        ):
+            self.set_permission(constants.DEHYDRATION_PERMISSION, True)
+        elif self.upkeep_missing_penalty == constants.STARVATION_PERMISSION:
+            self.set_permission(constants.STARVATION_PERMISSION, True)
         else:
             pass  # Apply non-death penalties
 
@@ -900,7 +940,10 @@ class pmob(mob):
             constants.effect_manager.effect_active("boost_attrition")
             and random.randrange(1, 7) >= 4
         ):  # Cause very frequent attrition if boost attrition active
-            self.record_logistics_incident(cause="health attrition")
+            self.record_logistics_incident(
+                incident_type=constants.UPKEEP_MISSING_PENALTY_DEATH,
+                cause="health attrition",
+            )
             self.die()
             return
 
@@ -913,17 +956,19 @@ class pmob(mob):
                 ).no_corruption_roll(6, "health_attrition")
                 == 1
             ):  # For attrition check, see if minister fails
-                self.record_logistics_incident(cause="health attrition")
+                self.record_logistics_incident(
+                    incident_type=constants.UPKEEP_MISSING_PENALTY_DEATH,
+                    cause="health attrition",
+                )
                 self.die()  # If minister fails attrition check, unit dies
 
-    def record_logistics_incident(
-        self, incident_type="death", cause="health attrition"
-    ):
+    def record_logistics_incident(self, incident_type: int, cause: str):
         """
         Description:
             Explains the death of this unit to attrition, logging the explanation in a list of all attrition deaths this turn
         Input:
-            None
+            int incident_type: Incident type code, such as constants.UPKEEP_MISSING_PENALTY_DEATH
+            string cause: Cause explaining the incident, such as "health attrition" or constants.WATER_ITEM
         Output:
             None
         """
@@ -950,12 +995,24 @@ class pmob(mob):
         elif insertion:
             name += f",{insertion},"
 
-        if cause in status.item_types.keys():
-            explanation = f"died to insufficient {status.item_types[cause].name}."
-        elif cause == "environmental conditions":
-            explanation = f"died to deadly environmental conditions."
-        elif cause == "health attrition":
-            explanation = f"died to health attrition."
+        explanation = None
+        if incident_type == constants.UPKEEP_MISSING_PENALTY_DEHYDRATION:
+            explanation = f"entered dehydration due to insufficient {status.item_types[cause].name}."
+        elif incident_type == constants.UPKEEP_MISSING_PENALTY_STARVATION:
+            explanation = f"entered starvation due to insufficient {status.item_types[cause].name}."
+        elif incident_type == constants.UPKEEP_MISSING_PENALTY_DEATH:
+            if cause in status.item_types.keys():
+                explanation = f"died to insufficient {status.item_types[cause].name}."
+            elif cause == "environmental conditions":
+                explanation = f"died to deadly environmental conditions."
+            elif cause == "health attrition":
+                explanation = f"died to health attrition."
+        elif incident_type == constants.UPKEEP_MISSING_PENALTY_MORALE:
+            explanation = (
+                f"lost morale due to insufficient {status.item_types[cause].name}."
+            )
+        if not explanation:
+            raise ValueError(f"Invalid incident type {incident_type}")
 
         status.logistics_incident_list.append(
             {

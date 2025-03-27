@@ -848,8 +848,8 @@ def unit_types_config():
     }
     standard_missing_upkeep_penalties = {
         constants.AIR_ITEM: constants.UPKEEP_MISSING_PENALTY_DEATH,
-        constants.WATER_ITEM: constants.UPKEEP_MISSING_PENALTY_DEATH,
-        constants.FOOD_ITEM: constants.UPKEEP_MISSING_PENALTY_DEATH,
+        constants.WATER_ITEM: constants.UPKEEP_MISSING_PENALTY_DEHYDRATION,
+        constants.FOOD_ITEM: constants.UPKEEP_MISSING_PENALTY_STARVATION,
         constants.CONSUMER_GOODS_ITEM: constants.UPKEEP_MISSING_PENALTY_MORALE,
         constants.ENERGY_ITEM: constants.UPKEEP_MISSING_PENALTY_MORALE,
     }

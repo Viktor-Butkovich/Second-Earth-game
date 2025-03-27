@@ -77,6 +77,16 @@ class group(pmob):
                 constants.DISORGANIZED_PERMISSION,
                 self.worker.get_permission(constants.DISORGANIZED_PERMISSION),
             )
+            self.set_permission(
+                constants.DEHYDRATION_PERMISSION,
+                self.worker.get_permission(constants.DEHYDRATION_PERMISSION)
+                or self.officer.get_permission(constants.STARVATION_PERMISSION),
+            )
+            self.set_permission(
+                constants.STARVATION_PERMISSION,
+                self.worker.get_permission(constants.STARVATION_PERMISSION)
+                or self.officer.get_permission(constants.STARVATION_PERMISSION),
+            )
         if self.officer.get_permission(constants.VETERAN_PERMISSION):
             self.promote()
         if not from_save:
