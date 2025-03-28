@@ -3,6 +3,7 @@
 import random
 from typing import Dict, Any
 from modules.interface_types.buttons import button
+from modules.actor_types import buildings
 from modules.util import (
     main_loop_utility,
     actor_utility,
@@ -10,6 +11,7 @@ from modules.util import (
     trial_utility,
     text_utility,
     game_transitions,
+    utility,
 )
 from modules.constructs import minister_types
 from modules.constants import constants, status, flags
@@ -70,11 +72,11 @@ class embark_all_passengers_button(button):
                     ) and not passenger.get_permission(
                         constants.VEHICLE_PERMISSION
                     ):  # vehicles and enemies won't be picked up as passengers
-                        passenger.embark_vehicle(vehicle)
-                constants.sound_manager.play_sound(
-                    f"voices/all aboard {random.randrange(1, 4)}",
-                    radio_effect=vehicle.get_radio_effect(),
-                )
+                        passenger.embark_vehicle(
+                            vehicle,
+                            focus=contained_mob
+                            == vehicle.get_cell().contained_mobs[-1],
+                        )
         else:
             text_utility.print_to_screen(
                 "You are busy and cannot embark all passengers."
@@ -810,10 +812,6 @@ class embark_vehicle_button(button):
                         if vehicle.sentry_mode:
                             vehicle.set_sentry_mode(False)
                         rider.embark_vehicle(vehicle)
-                        constants.sound_manager.play_sound(
-                            f"voices/all aboard {random.randrange(1, 4)}",
-                            radio_effect=vehicle.get_radio_effect(),
-                        )
             else:
                 text_utility.print_to_screen(
                     f"You must select a unit in the same tile as a crewed vehicle to embark."
@@ -834,10 +832,6 @@ class embark_vehicle_button(button):
         constants.notification_manager.clear_notification_queue()  # Skip remaining embark notifications
         vehicle.set_sentry_mode(False)
         rider.embark_vehicle(vehicle)
-        constants.sound_manager.play_sound(
-            f"voices/all aboard {random.randrange(1, 4)}",
-            radio_effect=vehicle.get_radio_effect(),
-        )
 
     def skip_embark_vehicle(self, rider, vehicles, index):
         """
@@ -1038,7 +1032,7 @@ class work_crew_to_building_button(button):
         """
         self.building_type = input_dict["building_type"]
         self.attached_work_crew = None
-        self.attached_building = None
+        self.attached_building: buildings.resource_building = None
         super().__init__(input_dict)
 
     def update_info(self):
@@ -1089,7 +1083,7 @@ class work_crew_to_building_button(button):
             if self.building_type == constants.RESOURCE:
                 self.set_tooltip(
                     [
-                        f"Assigns the selected work crew to the {self.attached_building.name}, producing {self.attached_building.resource_type} over time."
+                        f"Assigns the selected work crew to the {self.attached_building.name}, producing {self.attached_building.resource_type.name} over time."
                     ]
                 )
             else:
@@ -1098,7 +1092,7 @@ class work_crew_to_building_button(button):
             if self.building_type == constants.RESOURCE:
                 self.set_tooltip(
                     [
-                        "Assigns the selected work crew to a resource building, producing commodities over time."
+                        "Assigns the selected work crew to a resource building, producing resources over time."
                     ]
                 )
         else:
@@ -1164,6 +1158,9 @@ class switch_theatre_button(button):
                     game_transitions.set_game_mode(constants.STRATEGIC_MODE)
                 current_mob.clear_automatic_route()
                 current_mob.end_turn_destination = None
+                status.displayed_mob.set_permission(
+                    constants.TRAVELING_PERMISSION, False
+                )
                 current_mob.add_to_turn_queue()
                 flags.choosing_destination = True
             else:
@@ -1647,7 +1644,7 @@ class automatic_route_button(button):
                         )
             else:
                 text_utility.print_to_screen(
-                    "You can only create movement routes in Africa."
+                    f"You can only create movement routes on a planetary surface."
                 )
         else:
             if self.button_type == constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON:
@@ -1864,6 +1861,8 @@ class change_parameter_button(button):
         Output:
             boolean: Returns True if this button is a local parameter button or is a global parameter button for the planet grid, otherwise returns False
         """
+        if not constants.effect_manager.effect_active("god_mode"):
+            return False
         if (
             self.attached_label.actor_label_type == constants.AVERAGE_WATER_LABEL
             or self.attached_label.actor_label_type.removesuffix("_label")
@@ -1924,9 +1923,10 @@ class help_button(button):
                     message,
                     override_input_dict={
                         "audio": {
-                            "sound_id": status.current_ministers[
-                                constants.ECOLOGY_MINISTER
-                            ].get_voice_line("acknowledgement"),
+                            "sound_id": utility.get_voice_line(
+                                status.current_ministers[constants.ECOLOGY_MINISTER],
+                                "acknowledgement",
+                            ),
                             "radio_effect": status.current_ministers[
                                 constants.ECOLOGY_MINISTER
                             ].get_radio_effect(),

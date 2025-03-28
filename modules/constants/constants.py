@@ -312,8 +312,8 @@ transaction_descriptions: Dict[str, str] = {
     "production": "production",
     "bribery": "bribery",
     "loan_interest": "loan interest",
-    "inventory_attrition": "missing commodities",
-    "sold_commodities": "commodity sales",
+    "inventory_attrition": "logistical incidents",
+    "sold_items": "item sales",
     "worker_upkeep": "worker upkeep",
     "subsidies": "subsidies",
     "trial_compensation": "trial compensation",
@@ -326,44 +326,84 @@ transaction_descriptions: Dict[str, str] = {
 }
 transaction_types: List[str] = [current_key for current_key in transaction_descriptions]
 
+COLOR_BLACK: str = "black"
+COLOR_WHITE: str = "white"
+COLOR_LIGHT_GRAY: str = "light gray"
+COLOR_GRAY: str = "gray"
+COLOR_DARK_GRAY: str = "dark gray"
+COLOR_BRIGHT_RED: str = "bright red"
+COLOR_RED: str = "red"
+COLOR_DARK_RED: str = "dark red"
+COLOR_BRIGHT_GREEN: str = "bright green"
+COLOR_GREEN: str = "green"
+COLOR_DARK_GREEN: str = "dark green"
+COLOR_BRIGHT_BLUE: str = "bright blue"
+COLOR_BLUE: str = "blue"
+COLOR_DARK_BLUE: str = "dark blue"
+COLOR_YELLOW: str = "yellow"
+COLOR_BROWN: str = "brown"
+COLOR_BLONDE: str = "blonde"
+COLOR_PURPLE: str = "purple"
+COLOR_TRANSPARENT: str = "transparent"
+COLOR_GREEN_ICON: str = "green_icon"
+COLOR_YELLOW_ICON: str = "yellow_icon"
+COLOR_RED_ICON: str = "red_icon"
+COLOR_GRAY_2: str = "gray_2"
+COLOR_BRIGHT_GREEN_2: str = "bright_green_2"
+COLOR_BRIGHT_BLUE_2: str = "bright_blue_2"
+COLOR_PURPLE_2: str = "purple_2"
+COLOR_ORANGE: str = "orange"
+COLOR_FIRE_ORANGE: str = "fire_orange"
+COLOR_GREEN_SCREEN_1: str = "green_screen_1"
+COLOR_GREEN_SCREEN_2: str = "green_screen_2"
+COLOR_GREEN_SCREEN_3: str = "green_screen_3"
 color_dict: Dict[str, tuple[int, int, int]] = {
-    "black": (0, 0, 0),
-    "white": (255, 255, 255),
-    "light gray": (230, 230, 230),
-    "gray": (190, 190, 190),
-    "dark gray": (150, 150, 150),
-    "bright red": (255, 0, 0),
-    "red": (200, 0, 0),
-    "dark red": (150, 0, 0),
-    "bright green": (0, 255, 0),
-    "green": (0, 200, 0),
-    "dark green": (0, 150, 0),
-    "bright blue": (0, 0, 255),
-    "blue": (0, 0, 200),
-    "dark blue": (0, 0, 150),
-    "yellow": (255, 255, 0),
-    "brown": (85, 53, 22),
-    "blonde": (188, 175, 123),
-    "purple": (127, 0, 170),
-    "transparent": (1, 1, 1),
-    "green_icon": (15, 154, 54),
-    "yellow_icon": (255, 242, 0),
-    "red_icon": (231, 0, 46),
+    COLOR_BLACK: (0, 0, 0),
+    COLOR_WHITE: (255, 255, 255),
+    COLOR_LIGHT_GRAY: (230, 230, 230),
+    COLOR_GRAY: (190, 190, 190),
+    COLOR_DARK_GRAY: (150, 150, 150),
+    COLOR_BRIGHT_RED: (255, 0, 0),
+    COLOR_RED: (200, 0, 0),
+    COLOR_DARK_RED: (150, 0, 0),
+    COLOR_BRIGHT_GREEN: (0, 255, 0),
+    COLOR_GREEN: (0, 200, 0),
+    COLOR_DARK_GREEN: (0, 150, 0),
+    COLOR_BRIGHT_BLUE: (0, 0, 255),
+    COLOR_BLUE: (0, 0, 200),
+    COLOR_DARK_BLUE: (0, 0, 150),
+    COLOR_YELLOW: (255, 255, 0),
+    COLOR_BROWN: (85, 53, 22),
+    COLOR_BLONDE: (188, 175, 123),
+    COLOR_PURPLE: (127, 0, 170),
+    COLOR_TRANSPARENT: (1, 1, 1),
+    COLOR_GREEN_ICON: (15, 154, 54),
+    COLOR_YELLOW_ICON: (255, 242, 0),
+    COLOR_RED_ICON: (231, 0, 46),
+    COLOR_GRAY_2: (180, 180, 180),
+    COLOR_BRIGHT_GREEN_2: (0, 230, 41),
+    COLOR_BRIGHT_BLUE_2: (41, 168, 255),
+    COLOR_PURPLE_2: (201, 98, 255),
+    COLOR_ORANGE: (255, 157, 77),
+    COLOR_FIRE_ORANGE: (245, 66, 0),
+    COLOR_GREEN_SCREEN_1: (62, 82, 82),
+    COLOR_GREEN_SCREEN_2: (70, 70, 92),
+    COLOR_GREEN_SCREEN_3: (110, 107, 3),
 }
 
 quality_colors: Dict[str, tuple[int, int, int]] = {
-    1: (180, 180, 180),
-    2: (255, 255, 255),
-    3: (0, 230, 41),
-    4: (41, 168, 255),
-    5: (201, 98, 255),
-    6: (255, 157, 77),
+    1: color_dict[COLOR_GRAY_2],
+    2: color_dict[COLOR_WHITE],
+    3: color_dict[COLOR_BRIGHT_GREEN_2],
+    4: color_dict[COLOR_BRIGHT_BLUE_2],
+    5: color_dict[COLOR_PURPLE_2],
+    6: color_dict[COLOR_ORANGE],
 }
 
 green_screen_colors: List[tuple[int, int, int]] = [
-    (62, 82, 82),
-    (70, 70, 92),
-    (110, 107, 3),
+    color_dict[COLOR_GREEN_SCREEN_1],
+    color_dict[COLOR_GREEN_SCREEN_2],
+    color_dict[COLOR_GREEN_SCREEN_3],
 ]
 
 terrain_movement_cost_dict: Dict[str, int] = {
@@ -385,33 +425,6 @@ terrain_build_cost_multiplier_dict: Dict[str, int] = {
     "desert": 2,
 }
 
-commodity_types: List[str] = [
-    "consumer goods",
-    "coffee",
-    "copper",
-    "diamond",
-    "exotic wood",
-    "fruit",
-    "gold",
-    "iron",
-    "ivory",
-    "rubber",
-]
-collectable_resources: List[str] = [
-    "coffee",
-    "copper",
-    "diamond",
-    "exotic wood",
-    "fruit",
-    "gold",
-    "iron",
-    "ivory",
-    "rubber",
-]
-item_prices: Dict[str, int] = {}
-sold_commodities: Dict[str, int] = {}
-commodities_produced: Dict[str, int] = {}
-attempted_commodities: List[str] = []
 resource_building_dict: Dict[str, str] = {
     "coffee": "plantation",
     "copper": "mine",
@@ -459,6 +472,11 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
         "default": "Toggles cloud visibility on explored tiles",
         "True": "Currently showing clouds, even on explored tiles",
         "False": "Currently showing clouds on unexplored tiles only",
+    },
+    "god_mode": {
+        "default": "Toggles god mode, allowing manual control of planetary global/local parameters",
+        "True": "God mode currently enabled",
+        "False": "God mode currently disabled",
     },
     "earth_preset": {
         "default": "Creates an Earth-like planet",
@@ -680,7 +698,7 @@ MAJOR: str = "major"
 ASTRONAUT_COMMANDER: str = "astronaut_commander"
 PORTERS: str = "porters"
 WORK_CREW: str = "work_crew"
-CONSTRUCTION_GANG: str = "construction_gang"
+CONSTRUCTION_CREW: str = "construction_crew"
 CARAVAN: str = "caravan"
 MISSIONARIES: str = "missionaries"
 EXPEDITION: str = "expedition"
@@ -719,7 +737,7 @@ CYCLE_SAME_TILE_BUTTON: str = "cycle_same_tile_button"
 FIRE_UNIT_BUTTON: str = "fire_unit_button"
 SWITCH_GAME_MODE_BUTTON: str = "switch_game_mode_button"
 CYCLE_AVAILABLE_MINISTERS_BUTTON: str = "cycle_available_ministers_button"
-COMMODITY_BUTTON: str = "commodity_button"
+SELLABLE_ITEM_BUTTON: str = "sellable_item_button"
 SHOW_PREVIOUS_REPORTS_BUTTON: str = "show_previous_reports_button"
 TAB_BUTTON: str = "tab_button"
 REORGANIZE_UNIT_BUTTON: str = "reorganize_unit_button"
@@ -738,11 +756,11 @@ WAKE_UP_ALL_BUTTON: str = "wake_up_all_button"
 EXECUTE_MOVEMENT_ROUTES_BUTTON: str = "execute_movement_routes_button"
 GENERATE_CRASH_BUTTON: str = "generate_crash_button"
 USE_EACH_EQUIPMENT_BUTTON: str = "use_each_equipment_button"
-PICK_UP_EACH_COMMODITY_BUTTON: str = "pick_up_each_commodity_button"
-SELL_EACH_COMMODITY_BUTTON: str = "sell_each_commodity_button"
-DROP_EACH_COMMODITY_BUTTON: str = "drop_each_commodity_button"
-SELL_COMMODITY_BUTTON: str = "sell_commodity_button"
-SELL_ALL_COMMODITY_BUTTON: str = "sell_all_commodity_button"
+PICK_UP_EACH_ITEM_BUTTON: str = "pick_up_each_item_button"
+SELL_EACH_ITEM_BUTTON: str = "sell_each_item_button"
+DROP_EACH_ITEM_BUTTON: str = "drop_each_item_button"
+SELL_ITEM_BUTTON: str = "sell_item_button"
+SELL_ALL_ITEM_BUTTON: str = "sell_all_item_button"
 USE_EQUIPMENT_BUTTON: str = "use_equipment_button"
 REMOVE_EQUIPMENT_BUTTON: str = "remove_equipment_button"
 RENAME_SETTLEMENT_BUTTON: str = "rename_settlement_button"
@@ -816,7 +834,7 @@ SAFE_CLICK_PANEL_ELEMENT: str = "safe_click_panel_element"
 LABEL: str = "label"
 VALUE_LABEL: str = "value_label"
 MONEY_LABEL: str = "money_label"
-COMMODITY_PRICES_LABEL: str = "commodity_prices_label"
+ITEM_PRICES_LABEL: str = "item_prices_label"
 MULTI_LINE_LABEL: str = "multi_line_label"
 ACTOR_DISPLAY_LABEL: str = "actor_display_label"
 ACTOR_TOOLTIP_LABEL: str = "actor_tooltip_label"
@@ -912,13 +930,31 @@ MOUSE_FOLLOWER_IMAGE: str = "mouse_follower_image"
 DIRECTIONAL_INDICATOR_IMAGE: str = "directional_indicator_image"
 
 NOTIFICATION: str = "notification"
-ZOOM_NOTIFICATION: str = "zoom_notification"
 CHOICE_NOTIFICATION: str = "choice_notification"
 ACTION_NOTIFICATION: str = "action_notification"
 DICE_ROLLING_NOTIFICATION: str = "dice_rolling_notification"
 OFF_TILE_EXPLORATION_NOTIFICATION: str = "off_tile_exploration_notification"
 
 SPACESUITS_EQUIPMENT: str = "spacesuits"
+CONSUMER_GOODS_ITEM: str = "consumer_goods"
+FUEL_ITEM: str = "fuel"
+ENERGY_ITEM: str = "energy"
+FOOD_ITEM: str = "food"
+WATER_ITEM: str = "water"
+AIR_ITEM: str = "air"
+
+UPKEEP_MISSING_PENALTY_DEATH: str = 4  # Highest penalty takes precedent
+UPKEEP_MISSING_PENALTY_DEHYDRATION: str = 3
+UPKEEP_MISSING_PENALTY_STARVATION: str = 2
+UPKEEP_MISSING_PENALTY_MORALE: str = 1
+UPKEEP_MISSING_PENALTY_NONE: str = 0
+UPKEEP_MISSING_PENALTY_CODES: Dict[str, int] = {
+    4: "death",
+    3: "dehydration",
+    2: "starvation",
+    1: "morale",
+    0: "none",
+}
 
 PMOB_PERMISSION: str = "pmob"
 NPMOB_PERMISSION: str = "npmob"
@@ -929,6 +965,7 @@ IN_GROUP_PERMISSION: str = "in_group"
 IN_BUILDING_PERMISSION: str = "in_building"
 TRAIN_PERMISSION: str = "train"
 TRAVEL_PERMISSION: str = "travel"
+TRAVELING_PERMISSION: str = "traveling"
 MOVEMENT_DISABLED_PERMISSION: str = "movement_disabled"
 INFINITE_MOVEMENT_PERMISSION: str = "infinite_movement"
 CONSTANT_MOVEMENT_COST_PERMISSION: str = "constant_movement_cost"
@@ -942,6 +979,8 @@ WORKER_PERMISSION: str = "worker"
 GROUP_PERMISSION: str = "group"
 INIT_COMPLETE_PERMISSION: str = "init_complete"
 DISORGANIZED_PERMISSION: str = "disorganized"
+DEHYDRATION_PERMISSION: str = "dehydration"
+STARVATION_PERMISSION: str = "starvation"
 VETERAN_PERMISSION: str = "veteran"
 DUMMY_PERMISSION: str = "dummy"
 SPACESUITS_PERMISSION: str = "spacesuits"

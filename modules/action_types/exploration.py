@@ -90,6 +90,7 @@ class exploration(action.action):
         Output:
             string: Returns text for the inputted subject
         """
+        return ""
         text = super().generate_notification_text(subject)
         if subject == "confirmation":
             text += f"Are you sure you want to spend {self.get_price()} money to attempt an exploration to the {self.direction}?"

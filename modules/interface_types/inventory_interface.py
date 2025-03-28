@@ -1,10 +1,11 @@
 # Contains inventory-specific interface classes
 
 import pygame
+import math
 from modules.interface_types.interface_elements import ordered_collection
 from modules.interface_types.buttons import button
-from modules.util import actor_utility, utility
-from modules.constructs import equipment_types
+from modules.util import actor_utility
+from modules.constructs import item_types
 from modules.constants import constants, status, flags
 
 
@@ -49,12 +50,12 @@ class inventory_grid(ordered_collection):
             None
         """
         actor_type: str = self.get_actor_type()
-        actor = getattr(status, "displayed_" + actor_type)
+        actor = getattr(status, f"displayed_{actor_type}")
         actor_utility.calibrate_actor_info_display(
-            getattr(status, actor_type + "_info_display"), actor
+            getattr(status, f"{actor_type}_info_display"), actor
         )
         actor_utility.calibrate_actor_info_display(
-            getattr(status, actor_type + "_inventory_info_display"), None
+            getattr(status, f"{actor_type}_inventory_info_display"), None
         )
         return
 
@@ -195,27 +196,46 @@ class item_icon(button):
             if (
                 self.in_inventory_capacity
             ):  # if inventory capacity 9 >= index 8 + 1, allow. If inventory capacity 9 >= index 9 + 1, disallow
-                self.current_item = new_actor.check_inventory(display_index)
+                self.current_item: item_types.item_type = new_actor.check_inventory(
+                    display_index
+                )
                 if self.current_item:
                     if (
                         new_actor.inventory_capacity >= display_index + 1
                         or new_actor.infinite_inventory_capacity
                     ):  # If item in capacity
-                        self.image.set_image(
-                            utility.combine(
-                                self.default_image_id,
-                                "misc/green_circle.png",
-                                "items/" + self.current_item + ".png",
-                            )
-                        )
+                        image_id = [
+                            self.default_image_id,  # Background image for warehouse slots
+                            {
+                                "image_id": "misc/circle.png",
+                                "green_screen": self.current_item.background_color,
+                            },
+                            {"image_id": self.current_item.item_image},
+                        ]
                     else:  # If item over capacity
-                        self.image.set_image(
-                            [
-                                "misc/green_circle.png",
-                                "items/" + self.current_item + ".png",
-                                "misc/warning_icon.png",
-                            ]
-                        )
+                        image_id = [
+                            {
+                                "image_id": "misc/circle.png",
+                                "green_screen": self.current_item.background_color,
+                            },
+                            {"image_id": self.current_item.item_image},
+                            "misc/warning_icon.png",
+                        ]
+                    stored_amount = new_actor.get_inventory(self.current_item)
+                    if (
+                        round(stored_amount) != stored_amount
+                    ):  # If decimal amount being held
+                        if (
+                            new_actor.check_inventory(display_index + 1)
+                            != self.current_item
+                        ):  # If next index is a different type, show shader for decimal amount
+                            image_id.append(
+                                {
+                                    "image_id": f"items/fill_meters/{round((stored_amount - math.floor(stored_amount)) * 10)}.png",
+                                    "alpha": 255 // 2,
+                                }
+                            )  # Show fill meter 1-9 depending on tenth's place
+                    self.image.set_image(image_id)
                 else:
                     self.image.set_image(self.default_image_id)
                     if (
@@ -241,7 +261,7 @@ class item_icon(button):
             if self == getattr(status, f"displayed_{self.actor_type}"):
                 pygame.draw.rect(
                     constants.game_display,
-                    constants.color_dict["bright green"],
+                    constants.color_dict[constants.COLOR_BRIGHT_GREEN],
                     self.outline,
                     width=2,
                 )
@@ -271,13 +291,9 @@ class item_icon(button):
             None
         """
         if self.current_item:
-            if self.current_item in status.equipment_types:
-                self.set_tooltip(
-                    [self.current_item.capitalize()]
-                    + status.equipment_types[self.current_item].description
-                )
-            else:
-                self.set_tooltip([self.current_item.capitalize()])
+            self.set_tooltip(
+                [self.current_item.name.capitalize()] + self.current_item.description
+            )
         else:
             self.set_tooltip(["Empty"])
 
@@ -309,14 +325,20 @@ class item_icon(button):
                 getattr(status, f"{self.actor_type}_info_display"), None
             )
 
-    def transfer(self, amount):  # calling transfer but not doing anything from mob
+    def transfer(
+        self, amount: int = None
+    ) -> None:  # calling transfer but not doing anything from mob
         """
         Description:
             Drops or picks up the inputted amount of this tile's current item type, depending on if this is a tile or mob item icon
         Input:
-            str/int amount: Amount of item to transfer, either 'all' or a number
+            int amount: Amount of item to transfer, or None if transferring all
         Output:
             None
         """
-        equipment_types.transfer(self.current_item, amount, self.actor_type)
+        item_types.transfer(
+            transferred_item=self.current_item,
+            amount=amount,
+            source_type=self.actor_type,
+        )
         self.on_click()

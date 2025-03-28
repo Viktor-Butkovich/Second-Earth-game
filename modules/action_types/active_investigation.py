@@ -2,7 +2,7 @@
 
 import random
 from typing import Tuple, Dict
-from modules.util import text_utility, minister_utility
+from modules.util import text_utility, minister_utility, utility
 from modules.action_types import action
 from modules.constants import constants, status, flags
 
@@ -247,7 +247,7 @@ class active_investigation(action.campaign):
             if corruption_event:
                 theft_amount, theft_type = corruption_event
                 message += f"    Evidence of a previous theft of {theft_amount} money relating to {constants.transaction_descriptions[theft_type]}. /n"
-                audio = prosecutor.get_voice_line("evidence")
+                audio = utility.get_voice_line(prosecutor, "evidence")
         else:
             message = "The investigation failed to make any significant discoveries. /n"
         message += " /n"

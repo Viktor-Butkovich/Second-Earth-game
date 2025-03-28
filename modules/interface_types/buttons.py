@@ -13,7 +13,7 @@ from modules.util import (
     game_transitions,
     minister_utility,
 )
-from modules.constructs import equipment_types, minister_types
+from modules.constructs import item_types, minister_types, equipment_types
 from modules.interface_types import interface_elements
 from modules.constants import constants, status, flags
 
@@ -332,52 +332,52 @@ class button(interface_elements.interface_element):
             self.set_tooltip(["Ends the current turn"])
 
         elif self.button_type in [
-            constants.SELL_COMMODITY_BUTTON,
-            constants.SELL_ALL_COMMODITY_BUTTON,
-            constants.SELL_EACH_COMMODITY_BUTTON,
+            constants.SELL_ITEM_BUTTON,
+            constants.SELL_ALL_ITEM_BUTTON,
+            constants.SELL_EACH_ITEM_BUTTON,
         ]:
             if status.displayed_tile:
-                if self.button_type == constants.SELL_COMMODITY_BUTTON:
+                if self.button_type == constants.SELL_ITEM_BUTTON:
                     self.set_tooltip(
                         [
-                            f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell 1 unit of {self.attached_label.actor.current_item} for about {constants.item_prices[self.attached_label.actor.current_item]} money at the end of the turn",
-                            "The amount each commodity was sold for is reported at the beginning of your next turn",
-                            f"Each unit of {self.attached_label.actor.current_item} sold has a chance of reducing its sale price",
+                            f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell 1 unit of {self.attached_label.actor.current_item.name} for about {self.attached_label.actor.current_item.price} money at the end of the turn",
+                            "The amount each item was sold for is reported at the beginning of your next turn",
+                            f"Each unit of {self.attached_label.actor.current_item.name} sold has a chance of reducing its sale price",
                         ]
                     )
-                elif self.button_type == constants.SELL_ALL_COMMODITY_BUTTON:
+                elif self.button_type == constants.SELL_ALL_ITEM_BUTTON:
                     num_present = status.displayed_tile.get_inventory(
                         self.attached_label.actor.current_item
                     )
                     self.set_tooltip(
                         [
-                            f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell your entire stockpile of {self.attached_label.actor.current_item} for about {constants.item_prices[self.attached_label.actor.current_item]} money each at the end of the turn, for a total of about {constants.item_prices[self.attached_label.actor.current_item] * num_present} money",
-                            "The amount each commodity was sold for is reported at the beginning of your next turn",
-                            f"Each unit of {self.attached_label.actor.current_item} sold has a chance of reducing its sale price",
+                            f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell your entire stockpile of {self.attached_label.actor.current_item.name} for about {self.attached_label.actor.current_item.price} money each at the end of the turn, for a total of about {self.attached_label.actor.current_item.price * num_present} money",
+                            "The amount each item was sold for is reported at the beginning of your next turn",
+                            f"Each unit of {self.attached_label.actor.current_item.name} sold has a chance of reducing its sale price",
                         ]
                     )
                 else:
                     self.set_tooltip(
                         [
-                            f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell all commodities at the end of the turn, "
-                            f"The amount each commodity was sold for is reported at the beginning of your next turn",
-                            "Each commodity sold has a chance of reducing its sale price",
+                            f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell all items at the end of the turn, "
+                            f"The amount each item was sold for is reported at the beginning of your next turn",
+                            "Each item sold has a chance of reducing its sale price",
                         ]
                     )
             else:
                 self.set_tooltip(["none"])
 
-        elif self.button_type == constants.PICK_UP_EACH_COMMODITY_BUTTON:
+        elif self.button_type == constants.PICK_UP_EACH_ITEM_BUTTON:
             self.set_tooltip(["Orders the selected unit to pick up all items"])
 
-        elif self.button_type == constants.DROP_EACH_COMMODITY_BUTTON:
+        elif self.button_type == constants.DROP_EACH_ITEM_BUTTON:
             self.set_tooltip(["Orders the selected unit to drop all items"])
 
         elif self.button_type == constants.USE_EQUIPMENT_BUTTON:
             if status.displayed_tile:
                 self.set_tooltip(
                     [
-                        f"Orders the selected unit to equip {self.attached_label.actor.current_item}"
+                        f"Orders the selected unit to equip {self.attached_label.actor.current_item.name}"
                     ]
                 )
 
@@ -385,7 +385,7 @@ class button(interface_elements.interface_element):
             if status.displayed_mob:
                 self.set_tooltip(
                     [f"Click to unequip {self.equipment_type}"]
-                    + status.equipment_types[self.equipment_type].description
+                    + self.equipment_type.description
                 )
 
         elif self.button_type == constants.USE_EACH_EQUIPMENT_BUTTON:
@@ -588,8 +588,8 @@ class button(interface_elements.interface_element):
                     "Starts customizing a new movement route for this unit",
                     "Add to the route by clicking on valid tiles adjacent to the current destination",
                     "The start is outlined in purple, the destination is outlined in yellow, and the path is outlined in blue",
-                    "When moving along its route, a unit will pick up as many commodities as possible at the start and drop them at the destination",
-                    "A unit may not be able to move along its route because of enemy units, a lack of movement points, or not having any commodities to pick up at the start",
+                    "When moving along its route, a unit will pick up as many items as possible at the start and drop them at the destination",
+                    "A unit may not be able to move along its route because of enemy units, a lack of movement points, or not having any items to pick up at the start",
                 ]
             )
 
@@ -781,7 +781,7 @@ class button(interface_elements.interface_element):
             if self.showing_outline and allow_show_outline:
                 pygame.draw.rect(
                     constants.game_display,
-                    constants.color_dict["white"],
+                    constants.color_dict[constants.COLOR_WHITE],
                     self.outline,
                     width=2,
                 )
@@ -792,7 +792,7 @@ class button(interface_elements.interface_element):
                 self.has_keybind
             ):  # The key to which a button is bound will appear on the button's image
                 message = self.keybind_name
-                color = "white"
+                color = constants.COLOR_WHITE
                 textsurface = constants.myfont.pygame_font.render(
                     message, False, constants.color_dict[color]
                 )
@@ -834,11 +834,13 @@ class button(interface_elements.interface_element):
             self.tooltip_outline.y = self.tooltip_box.y - self.tooltip_outline_width
             pygame.draw.rect(
                 constants.game_display,
-                constants.color_dict["black"],
+                constants.color_dict[constants.COLOR_BLACK],
                 self.tooltip_outline,
             )
             pygame.draw.rect(
-                constants.game_display, constants.color_dict["white"], self.tooltip_box
+                constants.game_display,
+                constants.color_dict[constants.COLOR_WHITE],
+                self.tooltip_box,
             )
             for text_line_index in range(len(self.tooltip_text)):
                 text_line = self.tooltip_text[text_line_index]
@@ -1072,38 +1074,51 @@ class button(interface_elements.interface_element):
             turn_management_utility.end_turn()
 
         elif self.button_type in [
-            constants.PICK_UP_EACH_COMMODITY_BUTTON,
-            constants.DROP_EACH_COMMODITY_BUTTON,
+            constants.PICK_UP_EACH_ITEM_BUTTON,
+            constants.DROP_EACH_ITEM_BUTTON,
         ]:
-            if self.button_type == constants.PICK_UP_EACH_COMMODITY_BUTTON:
+            if self.button_type == constants.PICK_UP_EACH_ITEM_BUTTON:
                 source_type = "tile_inventory"
             else:
                 source_type = "mob_inventory"
-            equipment_types.transfer("each", "all", source_type)
+            item_types.transfer(
+                source_type, transferred_item=None, amount=None
+            )  # Transfer all of each type
             if status.displayed_tile_inventory:
                 status.displayed_tile_inventory.on_click()
             if status.displayed_mob_inventory:
                 status.displayed_mob_inventory.on_click()
 
         elif self.button_type in [
-            constants.SELL_COMMODITY_BUTTON,
-            constants.SELL_ALL_COMMODITY_BUTTON,
-            constants.SELL_EACH_COMMODITY_BUTTON,
+            constants.SELL_ITEM_BUTTON,
+            constants.SELL_ALL_ITEM_BUTTON,
+            constants.SELL_EACH_ITEM_BUTTON,
         ]:
-            if self.button_type == constants.SELL_EACH_COMMODITY_BUTTON:
-                commodities = constants.collectable_resources
-            else:
-                commodities = [self.attached_label.actor.current_item]
+            if self.button_type == constants.SELL_EACH_ITEM_BUTTON:
+                sold_item_types = [
+                    current_item_type
+                    for current_item_type in status.item_types.values()
+                    if current_item_type.can_sell
+                ]
+            elif self.button_type in [
+                constants.SELL_ITEM_BUTTON,
+                constants.SELL_ALL_ITEM_BUTTON,
+            ]:
+                sold_item_types = [self.attached_label.actor.current_item]
             if minister_utility.positions_filled():
-                for commodity in commodities:
-                    num_present: int = status.displayed_tile.get_inventory(commodity)
+                for current_item_type in sold_item_types:
+                    num_present: int = status.displayed_tile.get_inventory(
+                        current_item_type
+                    )
                     if num_present > 0:
                         num_sold: int
-                        if self.button_type == constants.SELL_COMMODITY_BUTTON:
+                        if self.button_type == constants.SELL_ITEM_BUTTON:
                             num_sold = 1
                         else:
                             num_sold = num_present
-                        market_utility.sell(status.displayed_tile, commodity, num_sold)
+                        market_utility.sell(
+                            status.displayed_tile, current_item_type, num_sold
+                        )
 
                 actor_utility.calibrate_actor_info_display(
                     status.tile_info_display, status.displayed_tile
@@ -1126,17 +1141,24 @@ class button(interface_elements.interface_element):
                 if status.displayed_mob and status.displayed_mob.get_permission(
                     constants.PMOB_PERMISSION
                 ):
-                    for equipment_name, equipment in status.equipment_types.items():
-                        if status.displayed_tile.get_inventory(equipment_name) > 0:
-                            if equipment.check_requirement(status.displayed_mob):
+                    for equipment_type in status.equipment_types.values():
+                        if status.displayed_tile.get_inventory(equipment_type) > 0:
+                            if equipment_type.check_requirement(status.displayed_mob):
                                 if not status.displayed_mob.equipment.get(
-                                    equipment.key, False
+                                    equipment_type.key, False
                                 ):
-                                    # If equpiment in tile, equippable by this unit, and not already equipped, equip it
-                                    equipment.equip(status.displayed_mob)
-                                    status.displayed_mob.selection_sound()
+                                    # If equipment in tile, equippable by this unit, and not already equipped, equip it
+                                    radio_effect = (
+                                        status.displayed_mob.get_radio_effect()
+                                    )
+                                    equipment_type.equip(status.displayed_mob)
+                                    if (
+                                        radio_effect
+                                        != status.displayed_mob.get_radio_effect()
+                                    ):  # If radio effect changed, play new voice line
+                                        status.displayed_mob.selection_sound()
                                     status.displayed_tile.change_inventory(
-                                        equipment.key, -1
+                                        equipment_type, -1
                                     )
                                     actor_utility.calibrate_actor_info_display(
                                         status.tile_info_display, status.displayed_tile
@@ -1166,14 +1188,16 @@ class button(interface_elements.interface_element):
                 if status.displayed_mob and status.displayed_mob.get_permission(
                     constants.PMOB_PERMISSION
                 ):
-                    equipment = status.equipment_types[
-                        self.attached_label.actor.current_item
-                    ]
+                    equipment = self.attached_label.actor.current_item
                     if equipment.check_requirement(status.displayed_mob):
                         if not status.displayed_mob.equipment.get(equipment.key, False):
+                            radio_effect = status.displayed_mob.get_radio_effect()
                             equipment.equip(status.displayed_mob)
-                            status.displayed_mob.selection_sound()
-                            status.displayed_tile.change_inventory(equipment.key, -1)
+                            if (
+                                radio_effect != status.displayed_mob.get_radio_effect()
+                            ):  # If radio effect changed, play new voice line
+                                status.displayed_mob.selection_sound()
+                            status.displayed_tile.change_inventory(equipment, -1)
                             actor_utility.calibrate_actor_info_display(
                                 status.tile_info_display, status.displayed_tile
                             )
@@ -1215,10 +1239,12 @@ class button(interface_elements.interface_element):
 
         elif self.button_type == constants.REMOVE_EQUIPMENT_BUTTON:
             if main_loop_utility.action_possible():
-                status.equipment_types[self.equipment_type].unequip(
-                    status.displayed_mob
-                )
-                status.displayed_mob.selection_sound()
+                radio_effect = status.displayed_mob.get_radio_effect()
+                self.equipment_type.unequip(status.displayed_mob)
+                if (
+                    radio_effect != status.displayed_mob.get_radio_effect()
+                ):  # If radio effect changed, play new voice line
+                    status.displayed_mob.selection_sound()
                 status.displayed_tile.change_inventory(self.equipment_type, 1)
                 actor_utility.calibrate_actor_info_display(
                     status.mob_info_display, status.displayed_mob
@@ -1467,37 +1493,42 @@ class button(interface_elements.interface_element):
                 ):
                     return False
             elif self.button_type in [
-                constants.SELL_COMMODITY_BUTTON,
-                constants.SELL_ALL_COMMODITY_BUTTON,
+                constants.SELL_ITEM_BUTTON,
+                constants.SELL_ALL_ITEM_BUTTON,
             ]:
                 return (
                     status.displayed_tile
                     and status.earth_grid in status.displayed_tile.grids
-                    and self.attached_label.actor.current_item
-                    in constants.collectable_resources
+                    and self.attached_label.actor.current_item.can_sell
                 )
-            elif self.button_type == constants.SELL_EACH_COMMODITY_BUTTON:
+            elif self.button_type == constants.SELL_EACH_ITEM_BUTTON:
                 if (
                     status.displayed_tile
                     and status.earth_grid in status.displayed_tile.grids
                 ):
-                    for commodity in constants.collectable_resources:
-                        if status.displayed_tile.get_inventory(commodity) > 0:
+                    for current_item_type in status.displayed_tile.get_held_items():
+                        if current_item_type.can_sell:
                             return True
                 return False
             elif self.button_type in [
-                constants.PICK_UP_EACH_COMMODITY_BUTTON,
-                constants.DROP_EACH_COMMODITY_BUTTON,
+                constants.PICK_UP_EACH_ITEM_BUTTON,
+                constants.DROP_EACH_ITEM_BUTTON,
             ]:
                 return self.attached_label.actor.get_inventory_used() > 0
             elif self.button_type == constants.USE_EQUIPMENT_BUTTON:
-                return self.attached_label.actor.current_item in status.equipment_types
+                return (
+                    self.attached_label.actor.current_item.key in status.equipment_types
+                )
             elif self.button_type == constants.USE_EACH_EQUIPMENT_BUTTON:
                 if status.displayed_mob:
-                    for equipment_name, equipment in status.equipment_types.items():
-                        if status.displayed_tile.get_inventory(equipment_name) > 0:
-                            if equipment.check_requirement(status.displayed_mob):
-                                return True
+                    held_items = status.displayed_tile.get_held_items()
+                    return any(
+                        [
+                            equipment_type in held_items
+                            and equipment_type.check_requirement(status.displayed_mob)
+                            for equipment_type in status.equipment_types.values()
+                        ]
+                    )
                 return False
             elif self.button_type == constants.RENAME_PLANET_BUTTON:
                 if (
@@ -1536,7 +1567,9 @@ class remove_equipment_button(button):
         Output:
             None
         """
-        self.equipment_type = input_dict["equipment_type"]
+        self.equipment_type: equipment_types.equipment_type = input_dict[
+            "equipment_type"
+        ]
         super().__init__(input_dict)
 
     def can_show(self):
@@ -1551,7 +1584,7 @@ class remove_equipment_button(button):
         return (
             super().can_show()
             and self.attached_label.actor.get_permission(constants.PMOB_PERMISSION)
-            and self.attached_label.actor.equipment.get(self.equipment_type, False)
+            and self.attached_label.actor.equipment.get(self.equipment_type.key, False)
         )
 
 
@@ -1813,13 +1846,13 @@ class same_tile_icon(button):
                 if status.displayed_tile.cell.contained_mobs[0] == status.displayed_mob:
                     pygame.draw.rect(
                         constants.game_display,
-                        constants.color_dict["bright green"],
+                        constants.color_dict[constants.COLOR_BRIGHT_GREEN],
                         self.outline,
                     )
                 else:
                     pygame.draw.rect(
                         constants.game_display,
-                        constants.color_dict["white"],
+                        constants.color_dict[constants.COLOR_WHITE],
                         self.outline,
                     )
             super().draw()
@@ -2133,7 +2166,7 @@ class minister_portrait_image(button):
             ):
                 pygame.draw.rect(
                     constants.game_display,
-                    constants.color_dict["bright green"],
+                    constants.color_dict[constants.COLOR_BRIGHT_GREEN],
                     self.outline,
                 )
         super().draw(
@@ -2404,9 +2437,9 @@ class scroll_button(button):
         )
 
 
-class commodity_button(button):
+class sellable_item_button(button):
     """
-    Button appearing near commodity prices label that can be clicked as a target for advertising campaigns
+    Button appearing near item sell prices label that can be clicked as a target for advertising campaigns
     """
 
     def __init__(self, input_dict):
@@ -2425,11 +2458,11 @@ class commodity_button(button):
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'commodity': string value - Commodity that this button corresponds to
+                'item_type': item_type value - Sellable item type that this button corresponds to
         Output:
             None
         """
-        self.commodity = input_dict["commodity"]
+        self.item_type: item_types.item_type = input_dict["item_type"]
         super().__init__(input_dict)
         self.showing_background = False
         self.outline.width = 0
@@ -2440,39 +2473,36 @@ class commodity_button(button):
     def on_click(self):
         """
         Description:
-            Controls this button's behavior when clicked. When the player is choosing a target for an advertising campaign, clicking on this button starts an advertising campaign for this button's commodity
+            Controls this button's behavior when clicked. When the player is choosing a target for an advertising campaign, clicking on this button starts an advertising campaign for this button's item
         Input:
             None
         Output:
             None
         """
-        if flags.choosing_advertised_commodity:
-            if self.commodity == "consumer goods":
+        if flags.choosing_advertised_item:
+            if self.item_type.key == constants.CONSUMER_GOODS_ITEM:
                 text_utility.print_to_screen("You cannot advertise consumer goods.")
             else:
-                can_advertise = False
-                for current_commodity in constants.collectable_resources:
-                    if (
-                        current_commodity != self.commodity
-                        and constants.item_prices[current_commodity] > 1
-                    ):
-                        can_advertise = True
-                        break
-                if can_advertise:
+                if any(
+                    [
+                        current_item_type.can_sell
+                        and current_item_type.price > 1
+                        and current_item_type != self.item_type
+                        for current_item_type in status.item_types.values()
+                    ]
+                ):
                     status.actions["advertising_campaign"].start(
-                        status.displayed_mob, self.commodity
+                        status.displayed_mob, self.item_type
                     )
                 else:
                     text_utility.print_to_screen(
-                        "You cannot advertise "
-                        + self.commodity
-                        + " because all other commodities are already at the minimum price."
+                        f"You cannot advertise {self.item_type.name} because all other items are already at the minimum price."
                     )
 
     def can_show_tooltip(self):
         """
         Description:
-            Returns whether this button's tooltip can be shown. A commodity button never shows a tooltip
+            Returns whether this button's tooltip can be shown. A sellable item button never shows a tooltip
         Input:
             None
         Output:
@@ -2872,7 +2902,7 @@ class reorganize_unit_button(button):
                         ].contained_mobs
                         or procedure_actors[
                             constants.ACTIVE_VEHICLE_PERMISSION
-                        ].get_held_commodities()
+                        ].get_held_items()
                     ):
                         text_utility.print_to_screen(
                             f"You cannot remove the crew from a {procedure_actors[constants.ACTIVE_VEHICLE_PERMISSION].name} with passengers or cargo."

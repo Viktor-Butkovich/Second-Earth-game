@@ -2,6 +2,7 @@
 
 import pygame
 import random
+import math
 from modules.util import (
     text_utility,
     utility,
@@ -10,14 +11,15 @@ from modules.util import (
     market_utility,
     minister_utility,
 )
+from modules.constructs import item_types
 from modules.interface_types.grids import grid
 from modules.constants import constants, status, flags
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 
 class actor:
     """
-    Object that can exist within certain coordinates on one or more grids and can optionally be able to hold an inventory of commodities
+    Object that can exist within certain coordinates on one or more grids and can optionally be able to hold an inventory of items
     """
 
     def __init__(self, from_save, input_dict, original_constructor=True):
@@ -52,7 +54,7 @@ class actor:
 
         self.infinite_inventory_capacity = False
         self.inventory_capacity = 0
-        self.inventory = input_dict.get("inventory", {})
+        self.inventory: Dict[str, int] = input_dict.get("inventory", {})
         self.finish_init(original_constructor, from_save, input_dict)
 
     def finish_init(
@@ -131,71 +133,102 @@ class actor:
                     status.tile_info_display, self
                 )
 
-    def drop_inventory(self):
+    def consume_items(self, items: Dict[str, float]) -> Dict[str, float]:
         """
         Description:
-            Drops each commodity held in this actor's inventory into its current tile
+            Attempts to consume the inputted items from the inventories of actors in this unit's tile
+                First checks the tile's warehouses, followed by this unit's inventory, followed by other present units' inventories
         Input:
-            None
+            dictionary items: Dictionary of item type keys and quantities to consume
         Output:
-            None
+            dictionary: Returns a dictionary of item type keys and quantities that were not available to be consumed
         """
-        for current_commodity in self.get_held_commodities():
-            self.get_cell().tile.change_inventory(
-                current_commodity, self.get_inventory(current_commodity)
-            )
-            self.set_inventory(current_commodity, 0)
-        if self.actor_type == constants.MOB_ACTOR_TYPE and self.get_permission(
-            constants.PMOB_PERMISSION
-        ):
-            for current_equipment in self.equipment.copy():
-                if self.equipment[current_equipment]:
-                    self.get_cell().tile.change_inventory(current_equipment, 1)
-                    status.equipment_types[current_equipment].unequip(self)
-            self.equipment = {}
+        missing_consumption = {}
+        for item_key, consumption_remaining in items.items():
+            item_type = status.item_types[item_key]
+            for present_actor in [self.get_cell().tile, self] + [
+                current_mob
+                for current_mob in self.get_cell().contained_mobs
+                if current_mob != self
+            ]:
+                if consumption_remaining <= 0:
+                    break
+                availability = present_actor.get_inventory(item_type)
+                consumption = min(consumption_remaining, availability)
+                present_actor.change_inventory(item_type, -consumption)
+                consumption_remaining -= consumption
+                consumption_remaining = round(consumption_remaining, 2)
+            if consumption_remaining > 0:
+                missing_consumption[item_key] = consumption_remaining
+        return missing_consumption
 
-    def get_inventory_remaining(self, possible_amount_added=0):
+    def item_present(self, item_type: item_types.item_type) -> bool:
         """
         Description:
-            By default, returns amount of inventory space remaining. If input received, returns amount of space remaining in inventory if the inputted number of commodities were added to it.
+            Returns whether the inputted item type is present anywhere in this unit's tile
         Input:
-            int possible_amount_added = 0: Amount to add to the current inventory size, allowing inventory remaining after adding a certain number of commodities to be found
+            item_type item_type: Item type to check for
+        Output:
+            bool: Returns whether the inputted item type is present anywhere in this unit's tile
+        """
+        if item_type == status.item_types[constants.ENERGY_ITEM]:
+            return self.item_present(status.item_types[constants.FUEL_ITEM])
+
+        for present_actor in [self.get_cell().tile, self] + [
+            current_mob
+            for current_mob in self.get_cell().contained_mobs
+            if current_mob != self
+        ]:
+            if present_actor.get_inventory(item_type) > 0:
+                return True
+        return False
+
+    def get_inventory_remaining(self, possible_amount_added=0) -> float:
+        """
+        Description:
+            By default, returns amount of inventory space remaining. If input received, returns amount of space remaining in inventory if the inputted number of items were added to it.
+        Input:
+            int possible_amount_added = 0: Amount to add to the current inventory size, allowing inventory remaining after adding a certain number of items to be found
         Output:
             int: Amount of space remaining in inventory after possible_amount_added is added
         """
         if self.infinite_inventory_capacity:
             return 100
-        num_commodities = possible_amount_added  # if not 0, will show how much inventory will be remaining after an inventory change
-        for current_commodity in self.get_held_commodities():
-            num_commodities += self.get_inventory(current_commodity)
-        return self.inventory_capacity - num_commodities
+        else:
+            return (
+                self.inventory_capacity
+                - self.get_inventory_used()
+                - possible_amount_added
+            )
 
-    def get_inventory_used(self):
+    def get_inventory_used(self) -> float:
         """
         Description:
-            Returns the number of commodities held by this actor
+            Returns the number of items held by this actor
         Input:
             None
         Output:
-            int: Number of commodities held by this actor
+            int: Number of items held by this actor
         """
-        num_commodities = 0
-        for current_commodity in self.get_held_commodities():
-            num_commodities += self.get_inventory(current_commodity)
-        return num_commodities
+        return sum(
+            [
+                math.ceil(self.get_inventory(item_type))
+                for item_type in self.get_held_items()
+            ]
+        )
 
-    def get_inventory(self, commodity):
+    def get_inventory(self, item: item_types.item_type) -> float:
         """
         Description:
-            Returns the number of commodities of the inputted type held by this actor
+            Returns the number of items of the inputted type held by this actor
         Input:
-            string commodity: Type of commodity to check inventory for
+            item_type item: Type of item to check inventory for
         Output:
-            int: Number of commodities of the inputted type held by this actor
+            float: Number of items of the inputted type held by this actor
         """
-        return self.inventory.get(commodity, 0)
+        return self.inventory.get(item.key, 0)
 
-    def check_inventory(self, index):
+    def check_inventory(self, index: int) -> item_types.item_type:
         """
         Description:
             Returns the type of item at the inputted index of this actor's inventory, for display purposes
@@ -205,64 +238,68 @@ class actor:
         Input:
             int index: Index of inventory to check
         Output:
-            string: Returns name of the item held at the inputted index of the inventory, or None if no inventory held at that index
+            item_type: Returns the item type held at the inputted index of the inventory, or None if no inventory held at that index
         """
         current_index: int = 0
-        for item_type in self.inventory:
-            current_index += self.inventory.get(item_type, 0)
-            # If holding 1 coffee, increment index by 1, now to current_index=1
-            if (
-                current_index > index
-            ):  # Since index 1 > inputted index 0, return 'coffee'
+        for item_type in self.get_held_items():
+            current_index += math.ceil(self.get_inventory(item_type))
+            if current_index > index:
                 return item_type
         return None
 
-    def change_inventory(self, commodity, change):
+    def change_inventory(self, item: item_types.item_type, change: int) -> None:
         """
         Description:
-            Changes the number of commodities of a certain type held by this actor
+            Changes the number of items of a certain type held by this actor
         Input:
-            string commodity: Type of commodity to change the inventory of
-            int change: Amount of commodities of the inputted type to add. Removes commodities of the inputted type if negative
+            item_type item: Type of item to change the inventory of
+            int change: Amount of items of the inputted type to add. Removes items of the inputted type if negative
         Output:
             None
         """
-        self.set_inventory(commodity, self.inventory.get(commodity, 0) + change)
+        self.set_inventory(item, self.inventory.get(item.key, 0) + change)
 
-    def set_inventory(self, commodity, new_value):
+    def set_inventory(self, item: item_types.item_type, new_value: float) -> None:
         """
         Description:
-            Sets the number of commodities of a certain type held by this actor
+            Sets the number of items of a certain type held by this actor
         Input:
-            string commodity: Type of commodity to set the inventory of
-            int new_value: Amount of commodities of the inputted type to set inventory to
+            item_type item: Type of item to set the inventory of
+            int new_value: Numerical amount of items of the inputted type to set inventory to
         Output:
             None
         """
-        self.inventory[commodity] = new_value
-        if new_value <= 0:
-            del self.inventory[commodity]
+        self.inventory[item.key] = round(new_value, 2)
+        if round(new_value) == self.inventory[item.key]:
+            self.inventory[item.key] = round(
+                new_value
+            )  # If new value is an integer, set inventory to integer
+        if round(new_value, 2) <= 0:
+            del self.inventory[item.key]
 
-    def get_held_commodities(self, ignore_consumer_goods=False):
+    def get_held_items(self, ignore_consumer_goods=False) -> List[item_types.item_type]:
         """
         Description:
-            Returns a list of the types of commodities held by this actor
+            Returns a list of the item types held by this actor
         Input:
             boolean ignore_consumer_goods = False: Whether to include consumer goods from tile
         Output:
-            string list: Types of commodities held by this actor
+            item_type list: Types of item types held by this actor
         """
-        held_commodities = []
-        for current_commodity in self.inventory:
-            if not (ignore_consumer_goods and current_commodity == "consumer goods"):
-                if self.inventory[current_commodity] > 0:
-                    held_commodities.append(current_commodity)
-        return held_commodities
+        return list(
+            [
+                status.item_types[item_key]
+                for item_key in self.inventory.keys()
+                if not (
+                    ignore_consumer_goods and item_key == constants.CONSUMER_GOODS_ITEM
+                )
+            ]
+        )
 
     def manage_inventory_attrition(self):
         """
         Description:
-            Checks this actor for inventory attrition each turn or when it moves while holding commodities
+            Checks this actor for inventory attrition each turn or when it moves while holding items
         Input:
             None
         Output:
@@ -280,35 +317,24 @@ class actor:
                 self.actor_type == constants.MOB_ACTOR_TYPE
                 and (not self.get_permission(constants.VEHICLE_PERMISSION))
                 and random.randrange(1, 7) <= 1
-            ):  # extra chance of failure when carried by porters/caravan
+            ):  # Extra chance of failure when carried by non-vehicle
                 transportation_minister = minister_utility.get_minister(
                     constants.TRANSPORTATION_MINISTER
                 )
-                if self.actor_type == constants.TILE_ACTOR_TYPE:
-                    current_cell = self.cell
-                elif self.actor_type == constants.MOB_ACTOR_TYPE:
-                    if not self.any_permissions(
-                        constants.IN_BUILDING_PERMISSION,
-                        constants.IN_GROUP_PERMISSION,
-                        constants.IN_VEHICLE_PERMISSION,
-                    ):
-                        current_cell = self.get_cell()
-                    else:
-                        return ()  # only surface-level mobs can have inventories and need to roll for attrition
                 if (
                     random.randrange(1, 7) <= 2
                     and transportation_minister.check_corruption()
-                ):  # 1/18 chance of corruption check to take commodities - 1/36 chance for most corrupt to steal
+                ):  # 1/18 chance of corruption check to take items - 1/36 chance for most corrupt to steal
                     self.trigger_inventory_attrition(stealing=True)
-                    return ()
+                    return
                 elif (
-                    current_cell.local_attrition("inventory")
+                    self.get_cell().local_attrition("inventory")
                     and transportation_minister.no_corruption_roll(6) < 4
                 ):  # 1/6 chance of doing tile conditions check, if passes minister needs to make a 4+ roll to avoid attrition
                     self.trigger_inventory_attrition()
-                    return ()
+                    return
 
-            # this part of function only reached if no inventory attrition was triggered
+            # This part of function only reached if no inventory attrition was triggered
             if (
                 self.actor_type == constants.MOB_ACTOR_TYPE
                 and self.all_permissions(
@@ -322,7 +348,7 @@ class actor:
                 self.promote()
                 constants.notification_manager.display_notification(
                     {
-                        "message": "By avoiding losses and damage to the carried commodities, the porters' driver is now a veteran and will have more movement points each turn.",
+                        "message": "By avoiding losses and damage to the carried items, the porters' driver is now a veteran and will have more movement points each turn.",
                     }
                 )
 
@@ -331,86 +357,74 @@ class actor:
     ):  # later add input to see if corruption or real attrition to change how much minister has stolen
         """
         Description:
-            Removes up to half of this unit's stored commodities when inventory attrition occurs. The inventory attrition may result from poor terrain/storage conditions or from the transportation minister stealing commodites. Also
+            Removes up to half of this unit's stored items when inventory attrition occurs. The inventory attrition may result from poor terrain/storage conditions or from the transportation minister stealing commodites. Also
                 displays a zoom notification describing what was lost
         Input:
-            boolean stealing = False: Whether the transportation minister is stealing the commodities
+            boolean stealing = False: Whether the transportation minister is stealing the items
         Output:
             None
         """
         transportation_minister = minister_utility.get_minister(
             constants.TRANSPORTATION_MINISTER
         )
-        lost_commodities_message = ""
-        types_lost_list = []
-        amounts_lost_list = []
+        lost_items_message = ""
+        lost_items: Dict[str, float] = {}
         if stealing:
             value_stolen = 0
-        for current_commodity in self.get_held_commodities():
-            initial_amount = self.get_inventory(current_commodity)
-            amount_lost = random.randrange(0, int(initial_amount / 2) + 2)  # 0-50%
-            if amount_lost > initial_amount:
-                amount_lost = initial_amount
+        for current_item in self.get_held_items():
+            initial_amount = self.get_inventory(current_item)
+            amount_lost = min(
+                initial_amount, random.randrange(0, int(initial_amount / 2) + 2)
+            )  # 0-50%
             if amount_lost > 0:
-                types_lost_list.append(current_commodity)
-                amounts_lost_list.append(amount_lost)
-                self.change_inventory(current_commodity, -1 * amount_lost)
+                lost_items[current_item.key] = (
+                    lost_items.get(current_item.key, 0) + amount_lost
+                )
+                self.change_inventory(current_item, -1 * amount_lost)
                 if stealing:
-                    value_stolen += (
-                        constants.item_prices[current_commodity] * amount_lost
+                    value_stolen += current_item.price * amount_lost
+                    market_utility.change_price(
+                        current_item,
+                        sum(
+                            [
+                                random.randrange(1, 7) <= 1
+                                for _ in range(math.ceil(amount_lost))
+                            ]
+                        ),
                     )
-                    for i in range(amount_lost):
-                        if random.randrange(1, 7) <= 1:  # 1/6 chance
-                            market_utility.change_price(current_commodity, -1)
-        for current_index in range(0, len(types_lost_list)):
-            lost_commodity = types_lost_list[current_index]
-            amount_lost = amounts_lost_list[current_index]
-            if current_index == 0:
-                is_first = True
-            else:
-                is_first = False
-            if current_index == len(types_lost_list) - 1:
-                is_last = True
-            else:
-                is_last = False
 
-            if amount_lost == 1:
-                unit_word = "unit"
-            else:
-                unit_word = "units"
-            if is_first and is_last:
-                lost_commodities_message += (
-                    f"{amount_lost} {unit_word} of {lost_commodity}"
-                )
-            elif len(types_lost_list) == 2 and is_first:
-                lost_commodities_message += (
-                    f"{amount_lost} {unit_word} of {lost_commodity} "
-                )
-            elif not is_last:
-                lost_commodities_message += (
-                    f"{amount_lost} {unit_word} of {lost_commodity}, "
-                )
-            else:
-                lost_commodities_message += (
-                    f"and {amount_lost} {unit_word} of {lost_commodity}"
-                )
-        if not lost_commodities_message == "":
-            if len(types_lost_list) == 1 and amounts_lost_list[0] == 1:
+        if lost_items:  # If at least 1 item stolen
+            if sum(lost_items.values()) == 1:
                 was_word = "was"
             else:
                 was_word = "were"
-            if status.strategic_map_grid in self.grids:
-                location_message = f"at ({self.x}, {self.y})"
-            else:
-                location_message = f"in orbit of {self.grids[0].name}"
 
             if self.actor_type == constants.TILE_ACTOR_TYPE:
-                transportation_minister.display_message(
-                    f"Minister of Transportation {transportation_minister.name} reports that {lost_commodities_message} {location_message} {was_word} lost, damaged, or misplaced. /n /n"
-                )
+                text = f"{actor_utility.summarize_amount_dict(lost_items)} {was_word} lost, damaged, or misplaced."
             elif self.actor_type == constants.MOB_ACTOR_TYPE:
+                text = f"{actor_utility.summarize_amount_dict(lost_items)} carried by the {self.name} {was_word} lost, damaged, or misplaced."
+
+            if flags.player_turn:
+                intro_text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports a logistical incident "
+                if self.get_cell().grid.is_abstract_grid:
+                    intro_text += f"in orbit of {self.get_cell().grid.name}: /n /n"
+                elif self.get_cell().tile.name != "default":
+                    intro_text += f"at {self.get_cell().tile.name}: /n /n"
+                else:
+                    intro_text += (
+                        f"at ({self.get_cell().x}, {self.get_cell().y}): /n /n"
+                    )
+                text = f"{intro_text}{text} /n /n"
                 transportation_minister.display_message(
-                    f"Minister of Transportation {transportation_minister.name} reports that {lost_commodities_message} carried by the {self.name} {location_message} {was_word} lost, damaged, or misplaced. /n /n"
+                    text, override_input_dict={"zoom_destination": self}
+                )
+            else:
+                status.logistics_incident_list.append(
+                    {
+                        "unit": self,
+                        "cell": self.get_cell(),
+                        "explanation": text,
+                    }
                 )
         if stealing and value_stolen > 0:
             transportation_minister.steal_money(value_stolen, "inventory_attrition")
@@ -563,12 +577,12 @@ class actor:
         )
         pygame.draw.rect(
             constants.game_display,
-            constants.color_dict["black"],
+            constants.color_dict[constants.COLOR_BLACK],
             tooltip_image.tooltip_outline,
         )
         pygame.draw.rect(
             constants.game_display,
-            constants.color_dict["white"],
+            constants.color_dict[constants.COLOR_WHITE],
             tooltip_image.tooltip_box,
         )
         for text_line_index in range(len(tooltip_image.tooltip_text)):

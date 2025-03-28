@@ -1,9 +1,9 @@
 # Contains functionality for vehicle units
 
 import random
-from typing import List
+from typing import List, Dict
 from modules.actor_types.mob_types.pmobs import pmob
-from modules.util import text_utility, minister_utility
+from modules.util import text_utility, minister_utility, utility
 from modules.constants import constants, status, flags
 
 
@@ -35,7 +35,8 @@ class vehicle(pmob):
             None
         """
         input_dict["image"] = input_dict["image_dict"]["default"]
-        self.contained_mobs = []
+        self.crew: pmob = None
+        self.contained_mobs: List[pmob] = []
         self.ejected_crew = None
         self.ejected_passengers = []
         super().__init__(from_save, input_dict, original_constructor=False)
@@ -60,6 +61,34 @@ class vehicle(pmob):
         if not self.get_permission(constants.ACTIVE_PERMISSION):
             self.remove_from_turn_queue()
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def get_item_upkeep(
+        self, recurse: bool = False, earth_exemption: bool = True
+    ) -> Dict[str, float]:
+        """
+        Description:
+            Returns the item upkeep requirements for this unit type, optionally recursively adding the upkeep requirements of sub-mobs
+        Input:
+            None
+        Output:
+            dictionary: Returns the item upkeep requirements for this unit type
+        """
+        if recurse:
+            return utility.add_dicts(
+                super().get_item_upkeep(
+                    recurse=recurse, earth_exemption=earth_exemption
+                ),
+                *[
+                    current_sub_mob.get_item_upkeep(
+                        recurse=recurse, earth_exemption=earth_exemption
+                    )
+                    for current_sub_mob in self.get_sub_mobs()
+                ],
+            )
+        else:
+            return super().get_item_upkeep(
+                recurse=recurse, earth_exemption=earth_exemption
+            )
 
     def permissions_setup(self) -> None:
         """
@@ -130,105 +159,10 @@ class vehicle(pmob):
         ):
             image_id_list.remove(self.image_dict["default"])
             image_id_list.append(self.image_dict["uncrewed"])
+        elif self.get_permission(constants.TRAVELING_PERMISSION):
+            image_id_list.remove(self.image_dict["default"])
+            image_id_list.append(self.image_dict["moving"])
         return image_id_list
-
-    def manage_health_attrition(self, current_cell="default"):
-        """
-        Description:
-            Checks this mob, its, crew, and its passengers for health attrition each turn
-        Input:
-            string/cell current_cell = 'default': Records which cell the attrition is taking place in, used when a unit is in a building or another mob and does not technically exist in any cell
-        Output:
-            None
-        """
-        if current_cell == "default":
-            current_cell = self.get_cell()
-        elif not current_cell:
-            return
-
-        transportation_minister = minister_utility.get_minister(
-            constants.TRANSPORTATION_MINISTER
-        )
-        non_replaced_attrition = []
-        for current_sub_mob in self.get_sub_mobs():
-            trigger_attrition = False
-            if (
-                constants.effect_manager.effect_active("boost_attrition")
-                and random.randrange(1, 7) >= 4
-            ):
-                trigger_attrition = True
-            elif (
-                current_cell.local_attrition()
-                and random.randrange(1, 7) >= 4
-                and transportation_minister.no_corruption_roll(6, "health_attrition")
-                == 1
-            ):
-                trigger_attrition = True
-                # Vehicle removes 1/2 of attrition, slightly less than forts, ports, etc.
-            if trigger_attrition:
-                if current_sub_mob == self.crew:  # If crew died of attrition
-                    if not self.crew.automatically_replace:
-                        self.eject_passengers()
-                        self.eject_crew()
-                    self.crew_attrition_death(self.crew)
-                elif current_sub_mob.get_permission(
-                    constants.GROUP_PERMISSION
-                ):  # If group passenger died of attrition
-                    current_sub_mob.attrition_death(
-                        random.choice(["officer", "worker"])
-                    )
-
-                else:  # If non-group passenger died of attrition
-                    text = f"The {current_sub_mob.name} aboard the {self.name} at ({self.x}, {self.y}) have died from attrition. /n /n"
-                    if current_sub_mob.automatically_replace:
-                        text += (
-                            current_sub_mob.generate_attrition_replacement_text()
-                        )  # 'The ' + current_sub_mob.name + ' will remain inactive for the next turn as replacements are found.'
-                        current_sub_mob.replace()
-                        current_sub_mob.set_permission(
-                            constants.MOVEMENT_DISABLED_PERMISSION,
-                            True,
-                            override=True,
-                        )
-                        current_sub_mob.death_sound("violent")
-                    else:
-                        non_replaced_attrition.append(current_sub_mob)
-                    constants.notification_manager.display_notification(
-                        {
-                            "message": text,
-                            "zoom_destination": self,
-                        }
-                    )
-        for current_sub_mob in non_replaced_attrition:
-            current_sub_mob.disembark_vehicle(self, focus=False)
-            current_sub_mob.attrition_death(False)
-
-    def crew_attrition_death(self, crew):
-        """
-        Description:
-            Resolves the vehicle's crew dying from attrition, preventing the vehicle from moving in the next turn and automatically recruiting a new worker
-        Input:
-            None
-        Output:
-            None
-        """
-        # constants.evil_tracker.change(1)
-        # text = f"The {crew.name} crewing the {self.name} at ({self.x}, {self.y}) have died from attrition. /n /n"
-        if crew.automatically_replace:
-            # text += f"The {self.name} will remain inactive for the next turn as replacements are found. /n /n"
-            crew.attrition_death(random.choice(["officer", "worker"]))
-            self.set_permission(
-                constants.MOVEMENT_DISABLED_PERMISSION, True, override=True
-            )
-        else:
-            crew.attrition_death(False)
-        # constants.notification_manager.display_notification(
-        #    {
-        #        "message": text,
-        #        "zoom_destination": self,
-        #    }
-        # )
-        # crew.death_sound("violent")
 
     def move(self, x_change, y_change):
         """
@@ -261,18 +195,18 @@ class vehicle(pmob):
     def get_sub_mobs(self) -> List[pmob]:
         """
         Description:
-            Returns a list of units managed by this vehicle
+            Returns a list of units managed by this unit
         Input:
             None
         Output:
-            list: Returns a list of units managed by this vehicle
+            list: Returns a list of units managed by this unit
         """
         if self.crew:
             return [self.crew] + self.contained_mobs
         else:
             return self.contained_mobs
 
-    def eject_crew(self):
+    def eject_crew(self, focus=True):
         """
         Description:
             Removes this vehicle's crew
@@ -283,7 +217,7 @@ class vehicle(pmob):
         """
         if self.crew:
             self.ejected_crew = self.crew
-            self.crew.uncrew_vehicle(self)
+            self.crew.uncrew_vehicle(self, focus=focus)
 
     def eject_passengers(self, focus=True):
         """
@@ -296,7 +230,9 @@ class vehicle(pmob):
         """
         while len(self.contained_mobs) > 0:
             current_mob = self.contained_mobs.pop(0)
-            current_mob.disembark_vehicle(self, focus=focus)
+            current_mob.disembark_vehicle(
+                self, focus=focus and len(self.contained_mobs) == 1
+            )  # Only focus on the last
             if (not flags.player_turn) or flags.enemy_combat_phase:
                 self.ejected_passengers.append(current_mob)
 
@@ -321,16 +257,15 @@ class vehicle(pmob):
     def die(self, death_type="violent"):
         """
         Description:
-            Removes this object from relevant lists, prevents it from further appearing in or affecting the program, deselects it, and drops any commodities it is carrying. Also removes all of this vehicle's passengers
+            Removes this object from relevant lists, prevents it from further appearing in or affecting the program, deselects it, and drops any items it is carrying. Also removes all of this vehicle's passengers
         Input:
             string death_type == 'violent': Type of death for this unit, determining the type of sound played
         Output:
             None
         """
+        self.eject_passengers(focus=False)
+        self.eject_crew(focus=False)
         super().die(death_type)
-        for current_sub_mob in self.get_sub_mobs():
-            current_sub_mob.die()
-        self.set_crew(None)
 
     def fire(self):
         """

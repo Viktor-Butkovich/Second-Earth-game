@@ -23,11 +23,11 @@ def generate_die_input_dict(
         "max_crit_fail": action.current_max_crit_fail,
     }
     outcome_color_dict = {
-        "success": "dark green",
-        "fail": "dark red",
-        "crit_success": "bright green",
-        "crit_fail": "bright red",
-        "default": "black",
+        "success": constants.COLOR_DARK_GREEN,
+        "fail": constants.COLOR_DARK_RED,
+        "crit_success": constants.COLOR_BRIGHT_GREEN,
+        "crit_fail": constants.COLOR_BRIGHT_RED,
+        "default": constants.COLOR_BLACK,
     }
 
     return_dict = {

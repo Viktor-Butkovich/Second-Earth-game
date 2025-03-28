@@ -82,8 +82,6 @@ class minister:
             self.corruption_evidence: int = input_dict["corruption_evidence"]
             self.fabricated_evidence: int = input_dict["fabricated_evidence"]
             self.just_removed: bool = input_dict["just_removed"]
-            self.voice_set = input_dict["voice_set"]
-            self.voice_setup(from_save)
             if self.current_position:
                 self.appoint(self.current_position)
             else:
@@ -111,6 +109,21 @@ class minister:
             ) = constants.character_manager.generate_name(
                 self.ethnicity, self.masculine
             )
+
+            while constants.effect_manager.effect_active(
+                "omit_default_names"
+            ) and "default" in [
+                self.first_name,
+                self.last_name,
+            ]:  # Prevent any default first or last names
+                self.ethnicity = constants.character_manager.generate_ethnicity()
+                (
+                    self.first_name,
+                    self.last_name,
+                ) = constants.character_manager.generate_name(
+                    self.ethnicity, self.masculine
+                )
+
             self.name = self.first_name + " " + self.last_name
             self.personal_savings: float = 5 ** (
                 self.status_number - 1
@@ -119,7 +132,6 @@ class minister:
             )  # 1-6 for lowborn, 5-10 for middle, 25-30 for high, 125-130 for very high
             self.current_position: minister_types.minister_type = None
             self.skill_setup()
-            self.voice_setup()
             self.interests_setup()
             self.corruption_setup()
             status.available_minister_list.append(self)
@@ -132,6 +144,10 @@ class minister:
             self.corruption_evidence: int = 0
             self.fabricated_evidence: int = 0
             self.just_removed: bool = False
+        self.voice_set, self.voice_lines = utility.extract_voice_set(
+            self.masculine, voice_set=input_dict.get("voice_set", None)
+        )
+        self.last_voice_line: str = None
         minister_utility.update_available_minister_display()
         self.stolen_already: bool = False
         self.update_tooltip()
@@ -274,7 +290,7 @@ class minister:
             None
         """
         input_dict = {
-            "message": text + "Click to remove this notification. /n /n",
+            "message": text,
             "notification_type": constants.ACTION_NOTIFICATION,
             "attached_interface_elements": self.generate_icon_input_dicts(
                 alignment="left"
@@ -284,6 +300,8 @@ class minister:
         }
         if override_input_dict:
             input_dict.update(override_input_dict)
+        if input_dict.get("notification_type") == constants.ACTION_NOTIFICATION:
+            input_dict["message"] += "Click to remove this notification. /n /n"
         constants.notification_manager.display_notification(input_dict)
 
     def can_pay(self, value):
@@ -351,13 +369,15 @@ class minister:
                     evidence_message = ""
                     evidence_message += f"Prosecutor {prosecutor.name} suspects that {self.current_position.name} {self.name} just engaged in corrupt activity relating to "
                     evidence_message += f"{constants.transaction_descriptions[theft_type]} and has filed a piece of evidence against them. /n /n"
-                    evidence_message += f"There are now {self.corruption_evidence} piece{utility.generate_plural(self.corruption_evidence)} of evidence against {self.name}. /n /n"
+                    evidence_message += f"There {utility.conjugate('be', amount=self.corruption_evidence)} now {self.corruption_evidence} piece{utility.generate_plural(self.corruption_evidence)} of evidence against {self.name}. /n /n"
                     evidence_message += "Each piece of evidence can help in a trial to remove a corrupt minister from office. /n /n"
                     prosecutor.display_message(
                         evidence_message,
                         override_input_dict={
                             "audio": {
-                                "sound_id": prosecutor.get_voice_line("evidence"),
+                                "sound_id": utility.get_voice_line(
+                                    prosecutor, "evidence"
+                                ),
                                 "radio_effect": prosecutor.get_radio_effect(),
                             },
                         },
@@ -741,34 +761,6 @@ class minister:
             if status.displayed_minister == self:
                 minister_utility.calibrate_minister_info_display(self)
 
-    def voice_setup(self, from_save: bool = False):
-        """
-        Description:
-            Gathers a set of voice lines for this minister, either using a saved voice set or a random new one
-        Input:
-            boolean from_save=False: Whether this minister is being loaded and has an existing voice set that should be used
-        Output:
-            None
-        """
-        if not from_save:
-            if self.masculine:
-                self.voice_set = f"masculine/{random.choice(os.listdir('sounds/voices/voice sets/masculine'))}"
-            else:
-                self.voice_set = f"feminine/{random.choice(os.listdir('sounds/voices/voice sets/feminine'))}"
-        self.voice_lines = {
-            "acknowledgement": [],
-            "fired": [],
-            "evidence": [],
-            "hired": [],
-        }
-        self.last_voice_line: str = None
-        folder_path = "voices/voice sets/" + self.voice_set
-        for file_name in os.listdir("sounds/" + folder_path):
-            for key in self.voice_lines:
-                if file_name.startswith(key):
-                    file_name = file_name[:-4]  # cuts off last 4 characters - .ogg/.wav
-                    self.voice_lines[key].append(folder_path + "/" + file_name)
-
     def interests_setup(self):
         """
         Description:
@@ -994,7 +986,7 @@ class minister:
     def estimate_expected(self, base, allow_decimals=True):
         """
         Description:
-            Calculates and returns an expected number within a certain range of the inputted base amount, with accuracy based on this minister's skill. A prosecutor will attempt to estimate what the output of production, commodity
+            Calculates and returns an expected number within a certain range of the inputted base amount, with accuracy based on this minister's skill. A prosecutor will attempt to estimate what the output of production, item
                 sales, etc. should be
         Input:
             double base: Target amount that estimate is approximating
@@ -1191,7 +1183,7 @@ class minister:
                 )
             else:
                 text += f"/n /n"
-            audio = self.get_voice_line("hired")
+            audio = utility.get_voice_line(self, "hired")
 
         elif event == "fired":
             multiplier = random.randrange(8, 13) / 10.0  # 0.8-1.2
@@ -1234,7 +1226,7 @@ class minister:
             text += random.choice(conclusion_options)
             text += f"/n /n /nYou have lost {abs(public_opinion_change)} public opinion. /n /n"
             text += self.name + " has been fired and removed from the game. /n /n"
-            audio = self.get_voice_line("fired")
+            audio = utility.get_voice_line(self, "fired")
 
         elif event == "prison":
             text += "From: " + self.name + " /n /n"
@@ -1249,7 +1241,7 @@ class minister:
 
             text += random.choice(intro_options)
             text += f" /n /n /n{self.name} is now in prison and has been removed from the game. /n /n"
-            audio = self.get_voice_line("fired")
+            audio = utility.get_voice_line(self, "fired")
 
         elif event == "retirement":
             if not self.current_position:
@@ -1373,5 +1365,5 @@ class minister:
         """
         if len(self.voice_lines[type]) > 0:
             constants.sound_manager.play_sound(
-                self.get_voice_line(type), radio_effect=self.get_radio_effect()
+                utility.get_voice_line(self, type), radio_effect=self.get_radio_effect()
             )

@@ -52,8 +52,12 @@ class grid(interface_elements.interface_element):
             "coordinate_size", input_dict.get("coordinate_height")
         )
         self.area: int = self.coordinate_width * self.coordinate_height
-        self.internal_line_color = input_dict.get("internal_line_color", "black")
-        self.external_line_color = input_dict.get("external_line_color", "dark gray")
+        self.internal_line_color = input_dict.get(
+            "internal_line_color", constants.COLOR_BLACK
+        )
+        self.external_line_color = input_dict.get(
+            "external_line_color", constants.COLOR_DARK_GRAY
+        )
         self.mini_grids = []
         self.cell_list = [
             [None] * self.coordinate_height for y in range(self.coordinate_width)
@@ -441,7 +445,7 @@ class grid(interface_elements.interface_element):
             self.get_cell_width(),
             self.get_cell_height(),
             self,
-            constants.color_dict["bright green"],
+            constants.color_dict[constants.COLOR_BRIGHT_GREEN],
             save_dict,
         )
 

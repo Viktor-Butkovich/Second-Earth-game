@@ -6,6 +6,7 @@ from modules.constructs.ministers import minister
 from modules.constructs.building_types import building_type
 from modules.constructs.unit_types import unit_type, worker_type
 from modules.constructs.equipment_types import equipment_type
+from modules.constructs.item_types import item_type
 from modules.constructs.minister_types import minister_type
 from modules.constructs.terrain_feature_types import terrain_feature_type
 from modules.constructs.images import image, free_image, directional_indicator_image
@@ -32,7 +33,7 @@ from modules.interface_types.inventory_interface import item_icon
 from modules.interface_types.instructions import instructions_page
 from modules.interface_types.dice import die
 from modules.interface_types.labels import (
-    commodity_prices_label_template,
+    item_prices_label_template,
     multi_line_label,
     label,
 )
@@ -78,11 +79,14 @@ building_types: Dict[str, building_type] = {}
 unit_types: Dict[str, unit_type] = {}
 worker_types: Dict[str, worker_type] = {}
 recruitment_types: List[unit_type] = []
+item_types: Dict[str, item_type] = {}
 equipment_types: Dict[str, equipment_type] = {}
 minister_types: Dict[str, minister_type] = {}
 terrain_feature_types: Dict[str, terrain_feature_type] = {}
 flag_icon_list: List[button] = []
 grid_list: List[grid] = []
+tile_list: List[tile] = []
+main_tile_list: List[tile] = []
 text_list: List[str] = []
 free_image_list: List[free_image] = []
 minister_image_list: List[Any] = []
@@ -105,6 +109,7 @@ dice_list: List[die] = []
 draw_list: List[Any] = []
 same_tile_icon_list: List[same_tile_icon] = []
 directional_indicator_image_list: List[directional_indicator_image] = []
+logistics_incident_list: List[Dict[str, Any]] = []
 
 loading_image: image = None
 loading_screen_quote_banner: multi_line_label = None
@@ -132,7 +137,7 @@ settlement_collection: ordered_collection = None
 local_conditions_collection: ordered_collection = None
 global_conditions_collection: ordered_collection = None
 temperature_breakdown_collection: ordered_collection = None
-commodity_prices_label: commodity_prices_label_template = None
+item_prices_label: item_prices_label_template = None
 reorganize_group_left_button: reorganize_unit_button = None
 reorganize_group_right_button: reorganize_unit_button = None
 reorganize_vehicle_left_button: reorganize_unit_button = None

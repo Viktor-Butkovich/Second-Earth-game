@@ -30,33 +30,18 @@ def update_display():
         # could modify with a layer dictionary to display elements on different layers - currently, drawing elements in order of collection creation is working w/o overlap
         # issues
 
-        for current_mob in status.mob_list:
-            if current_mob.can_show_tooltip():
-                for same_tile_mob in current_mob.get_cell().contained_mobs:
-                    if (
-                        same_tile_mob.can_show_tooltip()
-                        and not same_tile_mob in possible_tooltip_drawers
-                    ):  # if multiple mobs are in the same tile, draw their tooltips in order
-                        possible_tooltip_drawers.append(same_tile_mob)
-
-        for current_building in status.building_list:
-            if current_building.can_show_tooltip():
-                possible_tooltip_drawers.append(current_building)
-
-        for current_actor in status.actor_list:
-            if (
-                current_actor.can_show_tooltip()
-                and not current_actor in possible_tooltip_drawers
-            ):
-                possible_tooltip_drawers.append(
-                    current_actor
-                )  # only one of these will be drawn to prevent overlapping tooltips
+        first_tooltip_tile = next(
+            (tile for tile in status.tile_list if tile.can_show_tooltip()), None
+        )  # Find the first tile that can draw a tooltip
+        if first_tooltip_tile:
+            possible_tooltip_drawers.append(first_tooltip_tile)
+            possible_tooltip_drawers += first_tooltip_tile.cell.contained_mobs
 
         notification_tooltip_button = None
         for current_button in status.button_list:
             if (
                 current_button.can_show_tooltip()
-            ):  # while multiple actor tooltips can be shown at once, if a button tooltip is showing no other tooltips should be showing
+            ):  # While multiple actor tooltips can be shown at once, if a button tooltip is showing no other tooltips should be showing
                 if (
                     current_button.in_notification
                     and current_button != status.current_instructions_page
@@ -116,7 +101,7 @@ def action_possible():
         status.displayed_notification
         or (not flags.player_turn)
         or flags.choosing_destination
-        or flags.choosing_advertised_commodity
+        or flags.choosing_advertised_item
         or flags.drawing_automatic_route
     )
 
@@ -281,13 +266,13 @@ def draw_text_box():
     x, y = (0, constants.display_height - constants.text_box_height)
     pygame.draw.rect(
         constants.game_display,
-        constants.color_dict["white"],
+        constants.color_dict[constants.COLOR_WHITE],
         (x, y, text_box_width, constants.text_box_height),
     )  # draws white rect to prevent overlapping
     if flags.typing:
-        color = "red"
+        color = constants.COLOR_RED
     else:
-        color = "black"
+        color = constants.COLOR_BLACK
     pygame.draw.rect(
         constants.game_display,
         constants.color_dict[color],
@@ -431,13 +416,13 @@ def manage_lmb_down(clicked_button):
     if (
         action_possible()
         or flags.choosing_destination
-        or flags.choosing_advertised_commodity
+        or flags.choosing_advertised_item
         or flags.drawing_automatic_route
     ):
         if not clicked_button and (
             not (
                 flags.choosing_destination
-                or flags.choosing_advertised_commodity
+                or flags.choosing_advertised_item
                 or flags.drawing_automatic_route
             )
         ):  # Do not do selecting operations if user was trying to click a button # and action_possible()
@@ -498,7 +483,10 @@ def manage_lmb_down(clicked_button):
                                 status.displayed_mob.end_turn_destination = (
                                     target_cell.tile
                                 )
-                                status.displayed_mob.movement_sound(allow_fadeout=False)
+                                status.displayed_mob.set_permission(
+                                    constants.TRAVELING_PERMISSION, True
+                                )
+                                status.displayed_mob.travel_sound()
                                 flags.show_selection_outlines = True
                                 constants.last_selection_outline_switch = (
                                     constants.current_time
@@ -517,8 +505,8 @@ def manage_lmb_down(clicked_button):
                                 )
             flags.choosing_destination = False
 
-        elif (not clicked_button) and flags.choosing_advertised_commodity:
-            flags.choosing_advertised_commodity = False
+        elif (not clicked_button) and flags.choosing_advertised_item:
+            flags.choosing_advertised_item = False
 
         elif (not clicked_button) and flags.drawing_automatic_route:
             for current_grid in status.grid_list:  # destination_grids:

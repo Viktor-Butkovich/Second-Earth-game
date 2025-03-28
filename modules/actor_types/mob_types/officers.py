@@ -1,6 +1,7 @@
 # Contains functionality for officer units
 
 import random
+from modules.util import utility
 from modules.actor_types.mob_types.pmobs import pmob
 from modules.constants import constants, status, flags
 
@@ -38,13 +39,28 @@ class officer(pmob):
                 "ethnicity"
             ] = constants.character_manager.generate_ethnicity()
             self.character_info["masculine"] = random.choice([True, False])
-            self.character_info["name"] = " ".join(
-                constants.character_manager.generate_name(
+            name = constants.character_manager.generate_name(
+                self.character_info["ethnicity"], self.character_info["masculine"]
+            )
+            while (
+                constants.effect_manager.effect_active("omit_default_names")
+                and "default" in name
+            ):  # Prevent any default first or last names
+                self.character_info[
+                    "ethnicity"
+                ] = constants.character_manager.generate_ethnicity()
+                name = constants.character_manager.generate_name(
                     self.character_info["ethnicity"], self.character_info["masculine"]
                 )
-            )
+            self.character_info["name"] = " ".join(name)
         else:
             self.character_info = input_dict["character_info"]
+        self.voice_set, self.voice_lines = utility.extract_voice_set(
+            self.character_info["masculine"],
+            voice_set=self.character_info.get("voice_set", None),
+        )
+        self.last_voice_line: str = None
+        self.character_info["voice_set"] = self.voice_set
         self.group = None
         super().__init__(from_save, input_dict, original_constructor=False)
         if not from_save:
@@ -115,7 +131,7 @@ class officer(pmob):
         self.hide_images()
         self.remove_from_turn_queue()
 
-    def leave_group(self, group):
+    def leave_group(self, group, focus=True):
         """
         Description:
             Reveals this officer when its group is disbanded, allowing it to be directly interacted with. Also selects this officer, rather than the group's worker
@@ -130,6 +146,7 @@ class officer(pmob):
         self.y = group.y
         self.show_images()
         self.go_to_grid(self.get_cell().grid, (self.x, self.y))
-        self.select()
+        if focus:
+            self.select()
         if self.movement_points > 0:
             self.add_to_turn_queue()

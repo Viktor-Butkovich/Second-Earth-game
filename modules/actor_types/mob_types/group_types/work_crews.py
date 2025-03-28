@@ -2,6 +2,7 @@
 
 import random
 from modules.actor_types.mob_types.groups import group
+from modules.actor_types.buildings import resource_building
 from modules.util import actor_utility, utility, market_utility
 from modules.constants import constants, status, flags
 
@@ -14,7 +15,7 @@ class work_crew(group):
     def work_building(self, building):
         """
         Description:
-            Orders this work crew to work in the inputted building, attaching this work crew to the building and allowing the building to function. A resource production building with an attached work crew produces a commodity every
+            Orders this work crew to work in the inputted building, attaching this work crew to the building and allowing the building to function. A resource production building with an attached work crew produces an item every
                 turn
         Input:
             building building: building to which this work crew is attached
@@ -55,11 +56,11 @@ class work_crew(group):
         )
         self.select()
 
-    def attempt_production(self, building):
+    def attempt_production(self, current_building: resource_building):
         """
         Description:
-            Attempts to produce commodities at a production building at the end of a turn. A work crew makes a number of rolls equal to the building's efficiency level, and each successful roll produces a unit of the building's
-                commodity. Each roll has a success chance based on the work crew's experience and its minister's skill/corruption levels. Promotes foreman to veteran on critical success
+            Attempts to produce resources at a production building at the end of a turn. A work crew makes a number of rolls equal to the building's efficiency level, and each successful roll produces a unit of the building's
+                item. Each roll has a success chance based on the work crew's experience and its minister's skill/corruption levels. Promotes foreman to veteran on critical success
         Input:
             building building: building in which this work crew is working
         Output:
@@ -69,10 +70,9 @@ class work_crew(group):
         if (
             self.movement_points >= 1
         ):  # Do not attempt production if unit already did something this turn or suffered from attrition
-            if not building.resource_type in constants.attempted_commodities:
-                constants.attempted_commodities.append(building.resource_type)
+            current_building.resource_type.production_attempted_this_turn = True
             for current_attempt in range(
-                building.upgrade_fields[constants.RESOURCE_EFFICIENCY]
+                current_building.upgrade_fields[constants.RESOURCE_EFFICIENCY]
             ):
                 if self.get_permission(constants.VETERAN_PERMISSION):
                     results = [
@@ -85,8 +85,10 @@ class work_crew(group):
 
                 if roll_result >= 4:  # 4+ required on D6 for production
                     if not self.controlling_minister.check_corruption():
-                        building.cell.tile.change_inventory(building.resource_type, 1)
-                        constants.commodities_produced[building.resource_type] += 1
+                        current_building.cell.tile.change_inventory(
+                            current_building.resource_type, 1
+                        )
+                        current_building.resource_type.amount_produced_this_turn += 1
 
                         if (
                             not self.get_permission(constants.VETERAN_PERMISSION)
@@ -94,15 +96,15 @@ class work_crew(group):
                             self.promote()
                             constants.notification_manager.display_notification(
                                 {
-                                    "message": f"The work crew working in the {building.name} at ({building.cell.x}, {building.cell.y}) has become a veteran and will be more successful in future production attempts. /n /n",
-                                    "zoom_destination": building.cell.tile,
+                                    "message": f"The work crew working in the {current_building.name} at ({current_building.cell.x}, {current_building.cell.y}) has become a veteran and will be more successful in future production attempts. /n /n",
+                                    "zoom_destination": current_building.cell.tile,
                                 }
                             )
                     else:
-                        value_stolen += constants.item_prices[building.resource_type]
+                        value_stolen += current_building.resource_type.price
             if value_stolen > 0:
                 self.controlling_minister.steal_money(
                     value_stolen, "production"
-                )  # minister steals value of commodities
+                )  # Minister steals value of resources produced
                 if random.randrange(1, 7) <= 1:  # 1/6 chance
-                    market_utility.change_price(building.resource_type, -1)
+                    market_utility.change_price(current_building.resource_type, -1)

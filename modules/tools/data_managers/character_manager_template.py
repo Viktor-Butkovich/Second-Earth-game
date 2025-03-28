@@ -894,14 +894,16 @@ class character_manager_template:
         weights = self.country_ethnicity_dict[country_of_origin]["ethnic_group_weights"]
         return random.choices(choices, weights, k=1)[0]
 
-    def generate_name(self, ethnicity: str = None, masculine: bool = False) -> str:
+    def generate_name(
+        self, ethnicity: str = None, masculine: bool = False
+    ) -> Tuple[str, str]:
         """
         Description:
             Generates a name for a character based on their ethnicity
         Input:
             string ethnicity: Ethnicity of the character
         Output:
-            string: Returns name for a character
+            string tuple: Returns first and last name for a character
         """
         if not ethnicity:
             ethnicity = self.generate_ethnicity()

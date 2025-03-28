@@ -39,7 +39,7 @@ class panel(button):
         Output:
             string: Returns None to designate that this click did nothing - still prevents units from deselected but also allows other buttons to be clicked
         """
-        flags.choosing_advertised_commodity = False
+        flags.choosing_advertised_item = False
         flags.choosing_destination = False
         return None
 

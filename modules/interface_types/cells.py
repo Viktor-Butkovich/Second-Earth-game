@@ -39,7 +39,7 @@ class cell:
             self.pixel_x, self.pixel_y - self.height, self.width, self.height
         )  # (left, top, width, height)
         self.grid.cell_list[x][y] = self
-        self.tile = None
+        self.tile: status.tile = None
         self.settlement = None
         self.terrain_handler: terrain_handlers.terrain_handler = None
         self.contained_mobs: list = []
@@ -111,7 +111,7 @@ class cell:
                 'terrain_variant': int value - Variant number to use for image file path, like mountains_0
                 'terrain feature': string/boolean dictionary value - Dictionary containing a True entry for each terrain feature type in this cell
                 'resource': string value - Resource type of this cell and its tile, like 'exotic wood'
-                'inventory': string/string dictionary value - Version of the inventory dictionary of this cell's tile only containing commodity types with 1+ units held
+                'inventory': string/string dictionary value - Version of the inventory dictionary of this cell's tile only containing item types with 1+ units held
         """
         save_dict = {}
         save_dict["coordinates"] = (self.x, self.y)
@@ -161,7 +161,7 @@ class cell:
     def local_attrition(self, attrition_type="health"):
         """
         Description:
-            Returns the result of a roll that determines if a given unit or set of stored commodities should suffer attrition based on this cell's terrain and buildings. Bad terrain increases attrition frequency while infrastructure
+            Returns the result of a roll that determines if a given unit or set of stored items should suffer attrition based on this cell's terrain and buildings. Bad terrain increases attrition frequency while infrastructure
                 decreases it
         Input:
             string attrition_type = 'health': 'health' or 'inventory', refers to type of attrition being tested for. Used because inventory attrition can occur on Earth but not health attrition
@@ -280,7 +280,7 @@ class cell:
         """
         return [
             contained_building
-            for contained_building in self.contained_buildings
+            for key, contained_building in self.contained_buildings.items()
             if contained_building
         ]
 
@@ -524,7 +524,7 @@ class cell:
         green = current_color[1]
         blue = current_color[2]
         if not self.terrain_handler.visible:
-            red, green, blue = constants.color_dict["blonde"]
+            red, green, blue = constants.color_dict[constants.COLOR_BLONDE]
         pygame.draw.rect(constants.game_display, (red, green, blue), self.Rect)
         if self.tile:
             for current_image in self.tile.images:

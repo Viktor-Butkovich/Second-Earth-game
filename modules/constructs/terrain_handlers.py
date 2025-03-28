@@ -1,7 +1,7 @@
 import random
 from typing import List, Dict, Any
 from modules.util import actor_utility
-from modules.constructs import world_handlers
+from modules.constructs import world_handlers, item_types
 from modules.constants import constants, status, flags
 
 
@@ -48,7 +48,9 @@ class terrain_handler:
         self.minima = {constants.TEMPERATURE: -6}
         self.maxima = {constants.TEMPERATURE: 11}
         self.terrain: str = constants.terrain_manager.classify(self.terrain_parameters)
-        self.resource: str = input_dict.get("resource", None)
+        self.resource: item_types.item_type = status.item_types.get(
+            input_dict.get("resource", None), None
+        )
         self.visible: bool = input_dict.get("visible", True)
         self.default_cell = attached_cell
         self.attached_cells: list = []
@@ -418,7 +420,7 @@ class terrain_handler:
                 'terrain_variant': int value - Variant number to use for image file path, like mountains_0
                 'terrain_features': string/boolean dictionary value - Dictionary containing an entry for each terrain feature in this handler's cells
                 'terrain_parameters': string/int dictionary value - Dictionary containing 1-6 parameters for this handler's cells, like 'temperature': 1
-                'resource': string value - Resource type of this handler's cells and their tiles, like 'exotic wood'
+                'resource': string value - Item type key of natural resource in this terrain handler, like "Gold" or None
                 'local_weather_offset': float value - Temperature offset of this handler's cells from the usual at the same location
         """
         save_dict = {}
@@ -426,7 +428,10 @@ class terrain_handler:
         save_dict["terrain_features"] = self.terrain_features
         save_dict["terrain_parameters"] = self.terrain_parameters
         save_dict["terrain"] = self.terrain
-        save_dict["resource"] = self.resource
+        if self.resource:
+            save_dict["resource"] = self.resource.key
+        else:
+            save_dict["resource"] = None
         save_dict[
             "north_pole_distance_multiplier"
         ] = self.north_pole_distance_multiplier
@@ -479,12 +484,12 @@ class terrain_handler:
             if cell.tile:
                 cell.tile.set_terrain(self.terrain, update_image_bundle=False)
 
-    def set_resource(self, new_resource) -> None:
+    def set_resource(self, new_resource: item_types.item_type) -> None:
         """
         Description:
             Sets this handler's resource type
         Input:
-            string new_terrain: New resource type for this handler's cells and their tiles, like 'rubber'
+            item_type new_resource: New resource type for this handler's cells and their tiles, like "Gold" or None
         Output:
             None
         """
@@ -602,7 +607,11 @@ class terrain_handler:
                 )
             return color_filter
         else:
-            return {"red": 1, "green": 1, "blue": 1}
+            return {
+                constants.COLOR_RED: 1,
+                constants.COLOR_GREEN: 1,
+                constants.COLOR_BLUE: 1,
+            }
 
     def get_world_handler(self) -> world_handlers.world_handler:
         """

@@ -2,8 +2,9 @@
 
 import random
 import math
+from typing import Dict, List
 from modules.actor_types.mob_types.pmobs import pmob
-from modules.util import actor_utility, minister_utility
+from modules.util import actor_utility, minister_utility, utility
 from modules.constants import constants, status, flags
 
 
@@ -36,13 +37,13 @@ class group(pmob):
             None
         """
         if not from_save:
-            self.worker = input_dict["worker"]
-            self.officer = input_dict["officer"]
+            self.worker: pmob = input_dict["worker"]
+            self.officer: pmob = input_dict["officer"]
         else:
-            self.worker = constants.actor_creation_manager.create(
+            self.worker: pmob = constants.actor_creation_manager.create(
                 True, input_dict["worker"]
             )
-            self.officer = constants.actor_creation_manager.create(
+            self.officer: pmob = constants.actor_creation_manager.create(
                 True, input_dict["officer"]
             )
         super().__init__(from_save, input_dict, original_constructor=False)
@@ -52,11 +53,11 @@ class group(pmob):
             self.worker,
             self.officer,
         ]:  # Merges individual inventory to group inventory and clears individual inventory
-            for current_commodity in current_mob.inventory:
+            for current_item_type in current_mob.get_held_items():
                 self.change_inventory(
-                    current_commodity, current_mob.get_inventory(current_commodity)
+                    current_item_type, current_mob.get_inventory(current_item_type)
                 )
-                current_mob.set_inventory(current_commodity, 0)
+                current_mob.set_inventory(current_item_type, 0)
 
         if not from_save:
             for equipment in set(self.worker.equipment.keys()).union(
@@ -76,6 +77,16 @@ class group(pmob):
                 constants.DISORGANIZED_PERMISSION,
                 self.worker.get_permission(constants.DISORGANIZED_PERMISSION),
             )
+            self.set_permission(
+                constants.DEHYDRATION_PERMISSION,
+                self.worker.get_permission(constants.DEHYDRATION_PERMISSION)
+                or self.officer.get_permission(constants.STARVATION_PERMISSION),
+            )
+            self.set_permission(
+                constants.STARVATION_PERMISSION,
+                self.worker.get_permission(constants.STARVATION_PERMISSION)
+                or self.officer.get_permission(constants.STARVATION_PERMISSION),
+            )
         if self.officer.get_permission(constants.VETERAN_PERMISSION):
             self.promote()
         if not from_save:
@@ -88,6 +99,45 @@ class group(pmob):
         if self.get_permission(constants.EXPEDITION_PERMISSION):
             self.on_move()
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def get_item_upkeep(
+        self, recurse: bool = False, earth_exemption: bool = True
+    ) -> Dict[str, float]:
+        """
+        Description:
+            Returns the item upkeep requirements for this unit type, optionally recursively adding the upkeep requirements of sub-mobs
+        Input:
+            None
+        Output:
+            dictionary: Returns the item upkeep requirements for this unit type
+        """
+        if recurse:
+            return utility.add_dicts(
+                super().get_item_upkeep(
+                    recurse=recurse, earth_exemption=earth_exemption
+                ),
+                self.worker.get_item_upkeep(
+                    recurse=recurse, earth_exemption=earth_exemption
+                ),
+                self.officer.get_item_upkeep(
+                    recurse=recurse, earth_exemption=earth_exemption
+                ),
+            )
+        else:
+            return super().get_item_upkeep(
+                recurse=recurse, earth_exemption=earth_exemption
+            )
+
+    def get_sub_mobs(self) -> List[pmob]:
+        """
+        Description:
+            Returns a list of units managed by this unit
+        Input:
+            None
+        Output:
+            list: Returns a list of units managed by this unit
+        """
+        return [self.worker, self.officer]
 
     def permissions_setup(self) -> None:
         """
@@ -159,129 +209,6 @@ class group(pmob):
         self.worker.x = self.x
         self.worker.y = self.y
         self.on_move()
-
-    def manage_health_attrition(self, current_cell="default"):
-        """
-        Description:
-            Checks this mob for health attrition each turn. A group's worker and officer each roll for attrition independently, but the group itself cannot suffer attrition
-        Input:
-            string/cell current_cell = 'default': Records which cell the attrition is taking place in, used when a unit is in a building or another mob and does not technically exist in any cell
-        Output:
-            None
-        """
-        if constants.effect_manager.effect_active("boost_attrition"):
-            if random.randrange(1, 7) >= 4:
-                self.attrition_death("officer")
-            if random.randrange(1, 7) >= 4:
-                self.attrition_death("worker")
-            return
-
-        if current_cell == "default":
-            current_cell = self.get_cell()
-        elif not current_cell:
-            return
-
-        transportation_minister = minister_utility.get_minister(
-            constants.TRANSPORTATION_MINISTER
-        )
-
-        if (
-            current_cell.local_attrition()
-            and transportation_minister.no_corruption_roll(6, "health_attrition") == 1
-        ):
-            self.attrition_death("officer")
-        if (
-            current_cell.local_attrition()
-            and transportation_minister.no_corruption_roll(6, "health_attrition") == 1
-        ):
-            self.attrition_death("worker")
-
-    def attrition_death(self, target):
-        """
-        Description:
-            Resolves either the group's worker or officer dying from attrition, preventing the group from moving in the next turn and automatically recruiting a new one
-        Input:
-            None
-        Output:
-            None
-        """
-        constants.evil_tracker.change(1)
-        self.set_permission(constants.MOVEMENT_DISABLED_PERMISSION, True, override=True)
-        if self.get_permission(constants.IN_VEHICLE_PERMISSION):
-            zoom_destination = self.vehicle
-            if self.vehicle.crew == self:
-                destination_message = (
-                    f" from the {self.name} crewing the {zoom_destination.name} "
-                )
-            else:
-                destination_message = (
-                    f" from the {self.name} aboard the {zoom_destination.name} "
-                )
-        elif self.get_permission(constants.IN_BUILDING_PERMISSION):
-            zoom_destination = self.building.cell.get_intact_building(
-                constants.RESOURCE
-            )
-            destination_message = (
-                f" from the {self.name} in the {zoom_destination.name} "
-            )
-        else:
-            zoom_destination = self
-            destination_message = f" from the {self.name} "
-
-        if self.get_cell().grid == status.globe_projection_grid:
-            location_message = (
-                f"in orbit of {status.globe_projection_grid.world_handler.name} "
-            )
-        elif self.get_cell().grid == status.earth_grid:
-            location_message = f"in orbit of Earth "
-        else:
-            location_message = f"at ({self.x}, {self.y}) "
-        destination_message += location_message
-
-        if target == "officer":
-            text = f"The {self.officer.name}{destination_message}has died from attrition. /n /n"
-            if self.officer.automatically_replace:
-                text += (
-                    self.officer.generate_attrition_replacement_text()
-                )  # 'The ' + self.name + ' will remain inactive for the next turn as a replacement is found. /n /n'
-                self.officer.replace(self)
-                self.officer.death_sound()
-            else:
-                if self.get_permission(constants.IN_VEHICLE_PERMISSION):
-                    self.disembark_vehicle(zoom_destination)
-                elif self.get_permission(constants.IN_BUILDING_PERMISSION):
-                    self.leave_building(zoom_destination)
-                officer = self.officer
-                worker = self.worker
-                self.disband()
-                officer.attrition_death(False)
-                if self.get_permission(constants.IN_VEHICLE_PERMISSION):
-                    worker.embark_vehicle(zoom_destination)
-
-        elif target == "worker":
-            text = f"The {self.worker.name}{destination_message}have died from attrition. /n /n"
-            if self.worker.automatically_replace:
-                text += self.worker.generate_attrition_replacement_text()
-                self.worker.replace(self)
-                self.worker.death_sound()
-            else:
-                if self.get_permission(constants.IN_VEHICLE_PERMISSION):
-                    self.disembark_vehicle(zoom_destination)
-                elif self.get_permission(constants.IN_BUILDING_PERMISSION):
-                    self.leave_building(zoom_destination)
-                officer = self.officer
-                worker = self.worker
-                self.disband()
-                worker.attrition_death(False)
-                if self.get_permission(constants.IN_VEHICLE_PERMISSION):
-                    officer.embark_vehicle(zoom_destination)
-
-        constants.notification_manager.display_notification(
-            {
-                "message": text,
-                "zoom_destination": zoom_destination,
-            }
-        )
 
     def fire(self):
         """
@@ -356,7 +283,7 @@ class group(pmob):
         self.worker.go_to_grid(new_grid, new_coordinates)
         self.worker.join_group(self)
 
-    def disband(self):
+    def disband(self, focus=True):
         """
         Description:
             Separates this group into its officer and worker, destroying the group
@@ -374,7 +301,7 @@ class group(pmob):
                     status.equipment_types[equipment].unequip(self)
                     status.equipment_types[equipment].equip(self.officer)
         self.drop_inventory()
-        self.worker.leave_group(self)
+        self.worker.leave_group(self, focus=False)
 
         movement_ratio_remaining = self.movement_points / self.max_movement_points
         self.worker.set_movement_points(
@@ -383,7 +310,7 @@ class group(pmob):
         self.officer.status_icons = self.status_icons
         for current_status_icon in self.status_icons:
             current_status_icon.actor = self.officer
-        self.officer.leave_group(self)
+        self.officer.leave_group(self, focus=focus)
         self.officer.set_movement_points(
             math.floor(movement_ratio_remaining * self.officer.max_movement_points)
         )
@@ -392,7 +319,7 @@ class group(pmob):
     def die(self, death_type="violent"):
         """
         Description:
-            Removes this object from relevant lists, prevents it from further appearing in or affecting the program, deselects it, and drops any commodities it is carrying. Unlike remove, this is used when the group dies because it
+            Removes this object from relevant lists, prevents it from further appearing in or affecting the program, deselects it, and drops any items it is carrying. Unlike remove, this is used when the group dies because it
                 also removes its worker and officer
         Input:
             string death_type == 'violent': Type of death for this unit, determining the type of sound played

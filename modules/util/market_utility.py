@@ -1,6 +1,7 @@
-# Contains functions that manage market prices and sale of commodities
+# Contains functions that manage market prices and sale of items
 
 import random
+from modules.constructs import item_types
 from modules.util import text_utility, utility
 from modules.constants import constants, status, flags
 
@@ -8,102 +9,87 @@ from modules.constants import constants, status, flags
 def adjust_prices():
     """
     Description:
-        Increases the prices of 2 normal commodities by 1 and decreases the price of 1 normal commodity by 1. Also has a 1/3 chance to decrease the cost of consumer goods by 1 and a 1/6 chance to increase the cost of consumer goods by 1
+        Randomly changes prices of several items each turn
     Input:
         None
     Output:
         None
     """
-    num_increased = 4
+    num_increased = 2  # Modify these to change long-term price trends
     num_decreased = 2
-    for i in range(num_increased):
-        changed_commodity = random.choice(constants.commodity_types)
-        while changed_commodity == "consumer goods":
-            changed_commodity = random.choice(
-                constants.commodity_types
-            )  # consumer goods price is changed separately and should not be changed here
-        change_price(changed_commodity, 1)
-    for i in range(num_decreased):
-        changed_commodity = random.choice(constants.commodity_types)
-        while changed_commodity == "consumer goods":
-            changed_commodity = random.choice(
-                constants.commodity_types
-            )  # consumer goods price is changed separately and should not be changed here
-        change_price(changed_commodity, -1)
-
-    consumer_goods_roll = random.randrange(1, 7)
-
-    if consumer_goods_roll == 1:
-        change_price("consumer goods", 1)
-    elif consumer_goods_roll >= 4:
-        change_price("consumer goods", -1)
+    variable_item_types = [
+        item_type
+        for item_type in status.item_types.values()
+        if item_type.allow_price_variation
+    ]
+    if variable_item_types:
+        for i in range(num_increased):
+            change_price(random.choice(variable_item_types), 1)
+        for i in range(num_decreased):
+            change_price(random.choice(variable_item_types), -1)
 
 
-def change_price(changed_commodity, num_change):
+def change_price(changed_item: item_types.item_type, num_change):
     """
     Description:
-        Changes the price of the inputted commodity by the inputted amount
+        Changes the sell price of the inputted item type by the inputted amount
     Input:
-        string changed_commodity: Type of commodity whose price changes, like 'exotic wood'
-        int num_change: Amount the price of the inputted commodity increases
+        item_type changed_item: Type of item whose sell price changes, like 'exotic wood'
+        int num_change: Amount the price of the inputted item increases
     Output:
         None
     """
-    constants.item_prices[changed_commodity] += num_change
-    if constants.item_prices[changed_commodity] < 1:
-        constants.item_prices[changed_commodity] = 1
-    status.commodity_prices_label.update_label()
+    changed_item.price = max(1, changed_item.price + num_change)
+    status.item_prices_label.update_label()
     constants.money_label.check_for_updates()
 
 
-def set_price(changed_commodity, new_value):
+def set_price(changed_item: item_types.item_type, new_value):
     """
     Description:
-        Sets the price of the inputted commodity to the inputted amount
+        Sets the price of the inputted item to the inputted amount
     Input:
-        string changed_commodity: Type of commodity whose price changes, like 'exotic wood'
-        int new_value: New price of the inputted commodity
+        string changed_item: Item type whose price changes, like "gold""
+        int new_value: New price of the inputted item type
     Output:
         None
     """
-    constants.item_prices[changed_commodity] = new_value
-    if constants.item_prices[changed_commodity] < 1:
-        constants.item_prices[changed_commodity] = 1
-    status.commodity_prices_label.update_label()
+    changed_item.price = max(1, new_value)
+    status.item_prices_label.update_label()
 
 
-def sell(seller, sold_commodity, num_sold):
+def sell(seller, sold_item: item_types.item_type, num_sold):
     """
     Description:
-        Sells the inputted amount of the inputted commodity from the inputted actor's inventory, removing it from the inventory and giving an amount of money corresponding to the commodity's price. Each unit sold also has a 1/6 chance
-            to decrease the price of the commodity by 1
+        Sells the inputted amount of the inputted item type from the inputted actor's inventory, removing it from the inventory and giving an amount of money corresponding to the item's price. Each unit sold also has a 1/6 chance
+            to decrease the price of the item type by 1
     Input:
-        actor seller: actor whose inventory the sold commodity is removed from
-        string sold_commodity: Type of commodity that is sold, like 'exotic wood'
-        int num_sold: Number of units of the commodity sold
+        actor seller: actor whose inventory the sold item type is removed from
+        item_type sold_item: Item type that is sold, like "gold"
+        int num_sold: Number of units of the item sold
     Output:
         None
     """
-    constants.sold_commodities[sold_commodity] += num_sold
-    seller.change_inventory(sold_commodity, -1 * num_sold)
+    sold_item.amount_sold_this_turn += num_sold
+    seller.change_inventory(sold_item, -1 * num_sold)
     constants.money_label.check_for_updates()
 
 
 def calculate_total_sale_revenue():
     """
     Description:
-        Calculates and returns the total estimated revenue from sold commodities this turn
+        Calculates and returns the total estimated revenue from sold items this turn
     Input:
         None
     Output:
-        int: Returns the total estimated revenue from sold commodities this turn
+        int: Returns the total estimated revenue from sold items this turn
     """
-    total_sale_price = 0
-    for commodity in constants.commodity_types:
-        total_sale_price += (
-            constants.sold_commodities[commodity] * constants.item_prices[commodity]
-        )
-    return total_sale_price
+    return sum(
+        [
+            item_type.amount_sold_this_turn * item_type.price
+            for item_type in status.item_types.values()
+        ]
+    )
 
 
 def attempt_worker_upkeep_change(change_type, worker_type):

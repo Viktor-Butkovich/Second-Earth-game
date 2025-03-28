@@ -1,7 +1,7 @@
 # Contains functionality for mobs
 
 import pygame, random
-from modules.constructs import images, unit_types, ministers
+from modules.constructs import images, unit_types, ministers, item_types
 from modules.util import (
     utility,
     actor_utility,
@@ -50,6 +50,8 @@ class mob(actor):
         self.actor_type = constants.MOB_ACTOR_TYPE
         self.end_turn_destination = None
         self.habitability = constants.HABITABILITY_PERFECT
+        self.ambient_sound_channel: pygame.mixer.Channel = None
+        self.locked_ambient_sound: bool = False
         super().__init__(from_save, input_dict, original_constructor=False)
         if isinstance(input_dict["image"], str):
             self.image_dict = {"default": input_dict["image"]}
@@ -80,6 +82,12 @@ class mob(actor):
             self.creation_turn = input_dict["creation_turn"]
             self.set_permission(
                 constants.DISORGANIZED_PERMISSION, input_dict.get("disorganized", False)
+            )
+            self.set_permission(
+                constants.DEHYDRATION_PERMISSION, input_dict.get("dehydration", False)
+            )
+            self.set_permission(
+                constants.STARVATION_PERMISSION, input_dict.get("starvation", False)
             )
         else:
             self.unit_type.on_recruit()
@@ -261,6 +269,28 @@ class mob(actor):
             and self.get_cell()
         ):
             self.update_habitability()
+        elif task == constants.TRAVELING_PERMISSION and self.get_permission(
+            constants.SPACESHIP_PERMISSION
+        ):
+            self.start_ambient_sound()
+        elif task == constants.STARVATION_PERMISSION and self.get_permission(
+            constants.IN_GROUP_PERMISSION
+        ):
+            # Group is shown as starving if either component is starving
+            self.group.set_permission(
+                constants.STARVATION_PERMISSION,
+                self.group.worker.get_permission(constants.STARVATION_PERMISSION)
+                or self.group.officer.get_permission(constants.STARVATION_PERMISSION),
+            )
+        elif task == constants.DEHYDRATION_PERMISSION and self.get_permission(
+            constants.IN_GROUP_PERMISSION
+        ):
+            # Group is shown as dehydrated if either component is dehydrated
+            self.group.set_permission(
+                constants.DEHYDRATION_PERMISSION,
+                self.group.worker.get_permission(constants.DEHYDRATION_PERMISSION)
+                or self.group.officer.get_permission(constants.DEHYDRATION_PERMISSION),
+            )
 
     def all_permissions(self, *tasks: str) -> bool:
         """
@@ -404,6 +434,8 @@ class mob(actor):
         save_dict["disorganized"] = self.get_permission(
             constants.DISORGANIZED_PERMISSION
         )
+        save_dict["dehydration"] = self.get_permission(constants.DEHYDRATION_PERMISSION)
+        save_dict["starvation"] = self.get_permission(constants.STARVATION_PERMISSION)
         if hasattr(self, "image_variant"):
             save_dict["image"] = self.image_variants[0]
             save_dict["image_variant"] = self.image_variant
@@ -465,6 +497,14 @@ class mob(actor):
             "disorganized", self.get_permission(constants.DISORGANIZED_PERMISSION)
         ):
             image_id_list.append("misc/disorganized_icon.png")
+        if override_values.get(
+            "dehydration", self.get_permission(constants.DEHYDRATION_PERMISSION)
+        ):
+            image_id_list.append("misc/dehydration_icon.png")
+        if override_values.get(
+            "starvation", self.get_permission(constants.STARVATION_PERMISSION)
+        ):
+            image_id_list.append("misc/starvation_icon.png")
         if not override_values.get(
             "survivable", self.get_permission(constants.SURVIVABLE_PERMISSION)
         ):
@@ -835,10 +875,12 @@ class mob(actor):
             None
         """
         if status.displayed_mob == self:
+            self.locked_ambient_sound = True
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, None, override_exempt=True
             )
             self.select()
+            self.locked_ambient_sound = False
 
     def select(self):
         """
@@ -998,22 +1040,71 @@ class mob(actor):
         else:
             tooltip_list.append("Movement points: ???")
 
-        if self.equipment:
-            tooltip_list.append(f"Equipment: {', '.join(self.equipment.keys())}")
+        if self.get_permission(constants.PMOB_PERMISSION):
+            held_items: List[item_types.item_type] = self.get_held_items()
+            if held_items or self.inventory_capacity > 0:
+                tooltip_list.append(
+                    f"Inventory: {self.get_inventory_used()}/{self.inventory_capacity}"
+                )
+                for item_type in held_items:
+                    tooltip_list.append(
+                        f"    {item_type.name.capitalize()}: {self.get_inventory(item_type)}"
+                    )
+            if len(self.base_automatic_route) > 1:
+                start_coordinates = self.base_automatic_route[0]
+                end_coordinates = self.base_automatic_route[-1]
+                tooltip_list.append(
+                    f"This unit has a designated movement route of length {len(self.base_automatic_route)}, picking up items at ({start_coordinates[0]}, {start_coordinates[1]}) and dropping them off at ({end_coordinates[0]}, {end_coordinates[1]})"
+                )
 
+            if self.equipment:
+                tooltip_list.append(f"Equipment: {', '.join(self.equipment.keys())}")
+
+            item_upkeep = self.get_item_upkeep(recurse=True, earth_exemption=False)
+            show_air_exemption = False
+            top_message = "Item upkeep per turn:"
+            if not item_upkeep:
+                top_message += " None"
+            elif self.get_cell() and self.get_cell().grid == status.earth_grid:
+                top_message += " (exempt while on Earth)"
+            elif (
+                self.get_cell()
+                and self.get_cell().terrain_handler.get_unit_habitability()
+                > constants.HABITABILITY_DEADLY
+            ):
+                show_air_exemption = True
+            tooltip_list.append(top_message)
+
+            for item_type_key, amount_required in item_upkeep.items():
+                if amount_required == 0:
+                    message = f"    Requires access to {status.item_types[item_type_key].name}"
+                else:
+                    message = f"    Requires {amount_required} {status.item_types[item_type_key].name}"
+                if show_air_exemption and item_type_key == constants.AIR_ITEM:
+                    message += f" (exempt while in non-deadly atmosphere)"
+                tooltip_list.append(message)
+
+        if not self.get_permission(constants.SURVIVABLE_PERMISSION):
+            tooltip_list.append(
+                "This unit is in deadly environmental conditions and will die if remaining there at the end of the turn"
+            )
         if self.get_permission(constants.DISORGANIZED_PERMISSION):
             tooltip_list.append(
                 "This unit is currently disorganized, giving a combat penalty until its next turn"
             )
-        if not self.get_permission(constants.SURVIVABLE_PERMISSION):
+        if self.get_permission(constants.DEHYDRATION_PERMISSION):
             tooltip_list.append(
-                "This unit is in deadly environmental conditions and will die if remaining there at the end of the turn"
+                "This unit is dehydrated and will die if not provided sufficient water upkeep this turn"
+            )
+        if self.get_permission(constants.STARVATION_PERMISSION):
+            tooltip_list.append(
+                "This unit is starving and will die if not provided sufficient food upkeep this turn"
             )
 
         if self.end_turn_destination:
             if self.end_turn_destination.cell.grid == status.strategic_map_grid:
                 tooltip_list.append(
-                    f"This unit has been issued an order to travel to ({self.end_turn_destination.cell.x}, {self.end_turn_destination.cell.y}) in Africa at the end of the turn"
+                    f"This unit has been issued an order to travel to ({self.end_turn_destination.cell.x}, {self.end_turn_destination.cell.y}) on {status.strategic_map_grid.world_handler.name} at the end of the turn"
                 )
             else:
                 tooltip_list.append(
@@ -1029,22 +1120,32 @@ class mob(actor):
         elif self.get_permission(constants.PMOB_PERMISSION) and self.sentry_mode:
             tooltip_list.append("This unit is in sentry mode")
 
-        if self.get_permission(constants.PMOB_PERMISSION):
-            held_commodities = self.get_held_commodities()
-            if held_commodities:
-                tooltip_list.append("Inventory:")
-                for commodity in held_commodities:
-                    tooltip_list.append(
-                        "    " + commodity + ": " + str(self.get_inventory(commodity))
-                    )
-            if len(self.base_automatic_route) > 1:
-                start_coordinates = self.base_automatic_route[0]
-                end_coordinates = self.base_automatic_route[-1]
-                tooltip_list.append(
-                    f"This unit has a designated movement route of length {len(self.base_automatic_route)}, picking up commodities at ({start_coordinates[0]}, {start_coordinates[1]}) and dropping them off at ({end_coordinates[0]}, {end_coordinates[1]})"
-                )
-
         self.set_tooltip(tooltip_list)
+
+    def drop_inventory(self):
+        """
+        Description:
+            Drops each item held in this actor's inventory into its current tile
+        Input:
+            None
+        Output:
+            None
+        """
+        for current_item in self.get_held_items():
+            self.get_cell().tile.change_inventory(
+                current_item, self.get_inventory(current_item)
+            )
+            self.set_inventory(current_item, 0)
+        if self.actor_type == constants.MOB_ACTOR_TYPE and self.get_permission(
+            constants.PMOB_PERMISSION
+        ):
+            for current_equipment in self.equipment.copy():
+                if self.equipment[current_equipment]:
+                    self.get_cell().tile.change_inventory(
+                        status.equipment_types[current_equipment], 1
+                    )
+                    status.equipment_types[current_equipment].unequip(self)
+            self.equipment = {}
 
     def remove(self):
         """
@@ -1188,50 +1289,55 @@ class mob(actor):
             )
         return False
 
-    def selection_sound(self):
+    def selection_sound(self) -> pygame.mixer.Channel:
         """
         Description:
             Plays a sound when this unit is selected, with a varying sound based on this unit's type
         Input:
             None
         Output:
+            pygame.mixer.Channel: Returns the channel that the sound was played on, if any
+        """
+        channel = None
+        if self.all_permissions(
+            constants.PMOB_PERMISSION, constants.VEHICLE_PERMISSION
+        ):
+            if self.get_permission(constants.ACTIVE_PERMISSION):
+                if self.get_permission(constants.TRAIN_PERMISSION):
+                    channel = constants.sound_manager.play_sound("effects/train_horn")
+        officer = None
+        if self.get_permission(constants.OFFICER_PERMISSION):
+            officer = self
+        elif self.get_permission(constants.GROUP_PERMISSION):
+            officer = self.officer
+        elif self.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
+            officer = self.crew.officer
+        if officer:
+            channel = constants.sound_manager.play_sound(
+                utility.get_voice_line(officer, "acknowledgement"),
+                radio_effect=self.get_radio_effect(),
+            )
+        return channel
+
+    def travel_sound(self):
+        """
+        Description:
+            Plays a sound when this unit starts traveling between grids, with a varying sound based on this unit's type
+        Input:
+            None
+        Output:
             None
         """
-        possible_sounds = []
-        if self.get_permission(constants.PMOB_PERMISSION):
-            if self.get_permission(
-                constants.VEHICLE_PERMISSION
-            ):  # Overlaps with voices if crewed
-                if self.get_permission(constants.ACTIVE_PERMISSION):
-                    if self.get_permission(constants.TRAIN_PERMISSION):
-                        constants.sound_manager.play_sound("effects/train_horn")
-                        return
-                    else:
-                        constants.sound_manager.play_sound("effects/foghorn")
-                else:
-                    return
+        if self.get_permission(constants.SPACESHIP_PERMISSION):
+            channel = self.selection_sound()
+            constants.sound_manager.queue_sound(
+                "effects/spaceship_launch", channel, volume=1.0
+            )  # Play spaceship launch after radio acknowledgement
+        else:
+            constants.sound_manager.play_sound("effects/ocean_splashing")
+            constants.sound_manager.play_sound("effects/ship_propeller")
 
-            if self.any_permissions(
-                constants.OFFICER_PERMISSION,
-                constants.GROUP_PERMISSION,
-                constants.VEHICLE_PERMISSION,
-            ):
-                if self.any_permissions(
-                    constants.BATTALION_PERMISSION, constants.MAJOR_PERMISSION
-                ):
-                    constants.sound_manager.play_sound("effects/bolt_action_2")
-
-                possible_sounds = ["voices/sir 1", "voices/sir 2", "voices/sir 3"]
-                if self.all_permissions(
-                    constants.VEHICLE_PERMISSION, constants.SPACESHIP_PERMISSION
-                ):
-                    possible_sounds.append("voices/steady she goes")
-        if possible_sounds:
-            constants.sound_manager.play_sound(
-                random.choice(possible_sounds), radio_effect=self.get_radio_effect()
-            )
-
-    def movement_sound(self, allow_fadeout=True):
+    def movement_sound(self):
         """
         Description:
             Plays a sound when this unit moves or embarks/disembarks a vehicle, with a varying sound based on this unit's type
@@ -1243,30 +1349,36 @@ class mob(actor):
         possible_sounds = []
         if self.get_permission(constants.PMOB_PERMISSION) or self.visible():
             if self.get_permission(constants.VEHICLE_PERMISSION):
-                if allow_fadeout and constants.sound_manager.busy():
-                    constants.sound_manager.fadeout(400)
                 if self.get_permission(constants.TRAIN_PERMISSION):
                     possible_sounds.append("effects/train_moving")
+                elif self.get_permission(constants.SPACESHIP_PERMISSION):
+                    possible_sounds.append("effects/spaceship_moving")
                 else:
                     constants.sound_manager.play_sound("effects/ocean_splashing")
                     possible_sounds.append("effects/ship_propeller")
-            elif self.get_cell() and self.get_cell().terrain_handler.terrain == "water":
-                local_infrastructure = self.get_cell().get_intact_building(
-                    constants.INFRASTRUCTURE
-                )
-                if (
-                    local_infrastructure
-                    and local_infrastructure.is_bridge
-                    and (
-                        local_infrastructure.is_road or local_infrastructure.is_railroad
-                    )
-                    and not self.get_permission(constants.SWIM_PERMISSION)
-                ):  # If walking on bridge
-                    possible_sounds.append("effects/footsteps")
-                else:
-                    possible_sounds.append("effects/river_splashing")
             else:
-                possible_sounds.append("effects/footsteps")
+                if (
+                    self.get_cell()
+                    and self.get_cell().terrain_handler.terrain == "water"
+                ):
+                    local_infrastructure = self.get_cell().get_intact_building(
+                        constants.INFRASTRUCTURE
+                    )
+                    if (
+                        local_infrastructure
+                        and local_infrastructure.is_bridge
+                        and (
+                            local_infrastructure.is_road
+                            or local_infrastructure.is_railroad
+                        )
+                        and not self.get_permission(constants.SWIM_PERMISSION)
+                    ):  # If walking on bridge
+                        possible_sounds.append("effects/footsteps")
+                    else:
+                        possible_sounds.append("effects/river_splashing")
+                else:
+                    possible_sounds.append("effects/footsteps")
+                self.selection_sound()
         if possible_sounds:
             constants.sound_manager.play_sound(random.choice(possible_sounds))
 
@@ -1283,6 +1395,7 @@ class mob(actor):
         if self.get_permission(constants.PMOB_PERMISSION) and self.sentry_mode:
             self.set_sentry_mode(False)
         self.end_turn_destination = None  # Cancels planned movements
+        status.displayed_mob.set_permission(constants.TRAVELING_PERMISSION, False)
         self.change_movement_points(-1 * self.get_movement_cost(x_change, y_change))
         if self.get_permission(constants.PMOB_PERMISSION):
             previous_cell = self.get_cell()
@@ -1302,14 +1415,6 @@ class mob(actor):
             constants.PMOB_PERMISSION
         ):  # Do an inventory attrition check when moving, using the destination's terrain
             self.manage_inventory_attrition()
-            if not (
-                self.get_cell() == None
-                or self.get_permission(constants.VEHICLE_PERMISSION)
-            ):
-                constants.sound_manager.play_sound(
-                    random.choice(["voices/forward march 1", "voices/forward march 2"]),
-                    radio_effect=self.get_radio_effect(),
-                )
 
         self.last_move_direction = (x_change, y_change)
         self.on_move()
@@ -1386,3 +1491,45 @@ class mob(actor):
         """
         for current_image in self.images:
             current_image.add_to_cell()
+
+    def start_ambient_sound(self):
+        """
+        Description:
+            Starts the ambient sound for this unit, continuing looping sound until invalid or the unit is deselected
+        Input:
+            None
+        Output:
+            None
+        """
+        if self == status.displayed_mob and not self.locked_ambient_sound:
+            if self.all_permissions(
+                constants.SPACESHIP_PERMISSION, constants.ACTIVE_VEHICLE_PERMISSION
+            ):
+                if self.get_permission(constants.TRAVELING_PERMISSION):
+                    sound = "effects/spaceship_engine"
+                    volume = 0.8
+                else:
+                    sound = "effects/spaceship_idling"
+                    volume = 0.3
+                if self.ambient_sound_channel:
+                    constants.sound_manager.stop_looping_sound(
+                        self.ambient_sound_channel
+                    )
+                self.ambient_sound_channel = (
+                    constants.sound_manager.start_looping_sound(sound, volume=volume)
+                )
+            else:
+                self.stop_ambient_sound()
+
+    def stop_ambient_sound(self):
+        """
+        Description:
+            Stops any ambient sound for this unit when the sound is invalid or the unit is deselected
+        Input:
+            None
+        Output:
+            None
+        """
+        if self.ambient_sound_channel and not self.locked_ambient_sound:
+            constants.sound_manager.stop_looping_sound(self.ambient_sound_channel)
+            self.ambient_sound_channel = None

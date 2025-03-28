@@ -2,6 +2,7 @@
 
 import random
 import os
+from typing import Dict
 from modules.util import (
     text_utility,
     actor_utility,
@@ -11,13 +12,14 @@ from modules.util import (
     minister_utility,
     main_loop_utility,
 )
+from modules.constructs import item_types
 from modules.constants import constants, status, flags
 
 
 def end_turn():
     """
     Description:
-        Ends the turn, completing any pending movements, removing any commodities that can't be stored, and doing resource production
+        Ends the turn, completing any pending movements, removing any items that can't be stored, and doing resource production
     Input:
         None
     Output:
@@ -25,12 +27,92 @@ def end_turn():
     """
     actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
     actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
-    remove_excess_inventory()
-    manage_environmental_conditions()
     flags.player_turn = False
     status.player_turn_queue = []
     prepare_planet_rotation()
     start_enemy_turn()
+
+
+def start_player_turn(first_turn=False):
+    """
+    Description:
+        Starts the player's turn, resetting their units to maximum movement points, adjusting prices, paying upkeep, etc.
+    Input:
+        None
+        first_turn = False: Whether this is the first turn - do not pay upkeep, etc. when the game first starts
+    Output:
+        None
+    """
+    (
+        status.previous_production_report,
+        status.previous_sales_report,
+        status.previous_financial_report,
+    ) = (None, None, None)
+    status.logistics_incident_list = []
+    for current_pmob in status.pmob_list:
+        current_pmob.end_turn_move()  # Make sure no units that suffered attrition move when they shouldn't have
+    manage_upkeep_expenditure()
+    remove_excess_inventory()
+    text_utility.print_to_screen("")
+    text_utility.print_to_screen("Turn " + str(constants.turn + 1))
+    if not first_turn:
+        constants.notification_manager.set_lock(
+            True
+        )  # Don't attempt to show notifications until all processing completed
+        main_loop_utility.update_display()
+        for current_pmob in status.pmob_list:
+            if current_pmob.get_permission(constants.VEHICLE_PERMISSION):
+                current_pmob.reembark()
+        for current_building in status.building_list:
+            if current_building.building_type == constants.RESOURCE:
+                current_building.reattach_work_crews()
+        manage_missing_upkeep_penalties()
+        manage_environmental_conditions()
+        manage_attrition()  # Have attrition before or after enemy turn? Before upkeep?
+        manage_logistics_report()
+        manage_production()
+        reset_mobs("pmobs")
+        if not constants.effect_manager.effect_active("skip_start_of_turn"):
+            manage_public_opinion()
+            manage_loans()
+            manage_worker_price_changes()
+            manage_item_sales()
+            manage_ministers()
+            manage_subsidies()  # Note that subsidies are managed after public opinion changes
+            manage_financial_report()
+        actor_utility.reset_action_prices()
+        game_end_check()
+        status.strategic_map_grid.world_handler.update_clouds()
+        for i in range(5):  # Change to equilibrium
+            status.strategic_map_grid.world_handler.update_target_average_temperature(
+                update_albedo=True
+            )
+            status.strategic_map_grid.world_handler.change_to_temperature_target()
+        status.strategic_map_grid.world_handler.update_sky_color(update_water=True)
+        status.strategic_map_grid.world_handler.update_clouds()
+        constants.notification_manager.set_lock(False)
+
+    flags.player_turn = (
+        True  # player_turn also set to True in main_loop when enemies done moving
+    )
+    flags.enemy_combat_phase = False
+    constants.turn_tracker.change(1)
+
+    if not first_turn:
+        market_utility.adjust_prices()
+
+    status.minimap_grid.calibrate(
+        status.minimap_grid.center_x,
+        status.minimap_grid.center_y,
+        calibrate_center=False,
+    )
+    actor_utility.calibrate_actor_info_display(
+        status.tile_info_display, status.displayed_tile
+    )
+    actor_utility.calibrate_actor_info_display(
+        status.mob_info_display, status.displayed_mob
+    )
+    constants.achievement_manager.check_achievements("start of turn")
 
 
 def prepare_planet_rotation():
@@ -123,94 +205,6 @@ def start_enemy_turn():
     # the manage_combat function starts the player turn
 
 
-def start_player_turn(first_turn=False):
-    """
-    Description:
-        Starts the player's turn, resetting their units to maximum movement points, adjusting prices, paying upkeep, etc.
-    Input:
-        None
-        first_turn = False: Whether this is the first turn - do not pay upkeep, etc. when the game first starts
-    Output:
-        None
-    """
-    (
-        status.previous_production_report,
-        status.previous_sales_report,
-        status.previous_financial_report,
-    ) = (None, None, None)
-    for current_pmob in status.pmob_list:
-        current_pmob.end_turn_move()  # Make sure no units that suffered attrition move when they shouldn't have
-    text_utility.print_to_screen("")
-    text_utility.print_to_screen("Turn " + str(constants.turn + 1))
-    if not first_turn:
-        constants.notification_manager.set_lock(
-            True
-        )  # Don't attempt to show notifications until all processing completed
-        main_loop_utility.update_display()
-        for current_pmob in status.pmob_list:
-            if current_pmob.get_permission(constants.VEHICLE_PERMISSION):
-                current_pmob.reembark()
-        for current_building in status.building_list:
-            if current_building.building_type == constants.RESOURCE:
-                current_building.reattach_work_crews()
-        manage_attrition()  # have attrition before or after enemy turn? Before upkeep?
-        manage_production()
-        reset_mobs("pmobs")
-        if not constants.effect_manager.effect_active("skip_start_of_turn"):
-            manage_public_opinion()
-            manage_upkeep()
-            manage_loans()
-            manage_worker_price_changes()
-            manage_commodity_sales()
-            manage_ministers()
-            manage_subsidies()  # subsidies given after public opinion changes
-            manage_financial_report()
-        actor_utility.reset_action_prices()
-        game_end_check()
-        status.strategic_map_grid.world_handler.update_clouds()
-        for i in range(5):  # Change to equilibrium
-            status.strategic_map_grid.world_handler.update_target_average_temperature(
-                update_albedo=True
-            )
-            status.strategic_map_grid.world_handler.change_to_temperature_target()
-        status.strategic_map_grid.world_handler.update_sky_color(update_water=True)
-        status.strategic_map_grid.world_handler.update_clouds()
-        constants.notification_manager.set_lock(False)
-
-    flags.player_turn = (
-        True  # player_turn also set to True in main_loop when enemies done moving
-    )
-    flags.enemy_combat_phase = False
-    constants.turn_tracker.change(1)
-
-    if not first_turn:
-        market_utility.adjust_prices()
-
-    # if status.displayed_mob == None or status.displayed_mob.get_permission(
-    #    constants.NPMOB_PERMISSION
-    # ):
-    #    game_transitions.cycle_player_turn(True)
-
-    # if status.displayed_mob:
-    #    status.displayed_mob.select()
-    # else:
-    #    actor_utility.calibrate_actor_info_display(
-    #        status.mob_info_display, None, override_exempt=True
-    #    )
-    status.minimap_grid.calibrate(
-        status.minimap_grid.center_x,
-        status.minimap_grid.center_y,
-        calibrate_center=False,
-    )
-    actor_utility.calibrate_actor_info_display(
-        status.tile_info_display, status.displayed_tile
-    )
-    actor_utility.calibrate_actor_info_display(
-        status.mob_info_display, status.displayed_mob
-    )
-    constants.achievement_manager.check_achievements("start of turn")
-
-
 def reset_mobs(mob_type):
     """
     Description:
@@ -243,56 +237,86 @@ def reset_mobs(mob_type):
 def manage_attrition():
     """
     Description:
-        Checks each unit and commodity storage location to see if attrition occurs. Health attrition forces parts of units to die and need to be replaced, costing money, removing experience, and preventing them from acting in the next
-            turn. Commodity attrition causes up to half of the commodities stored in a warehouse or carried by a unit to be lost. Both types of attrition are more common in bad terrain and less common in areas with more infrastructure
+        Checks each unit and item storage location to see if attrition occurs. Health attrition forces parts of units to die and need to be replaced, costing money, removing experience, and preventing them from acting in the next
+            turn. Inventory attrition causes up to half of the items stored in a warehouse or carried by a unit to be lost. Both types of attrition are more common in bad terrain and less common in areas with more infrastructure
     Input:
         None
     Output:
         None
     """
-    for current_pmob in status.pmob_list:
-        if not current_pmob.any_permissions(
-            constants.IN_VEHICLE_PERMISSION,
-            constants.IN_GROUP_PERMISSION,
-            constants.IN_BUILDING_PERMISSION,
-        ):  # Vehicles, groups, and buildings handle attrition for their submobs
-            current_pmob.manage_health_attrition()
-    for current_building in status.building_list:
-        if current_building.building_type == constants.RESOURCE:
-            current_building.manage_health_attrition()
+    for current_pmob in status.pmob_list.copy():
+        current_pmob.manage_health_attrition()
+        if current_pmob.get_held_items():
+            current_pmob.manage_inventory_attrition()
 
-    for current_pmob in status.pmob_list:
-        current_pmob.manage_inventory_attrition()
+    for current_tile in status.main_tile_list:
+        if current_tile.get_held_items():
+            current_tile.manage_inventory_attrition()
 
-    terrain_cell_lists = [status.strategic_map_grid.get_flat_cell_list()]
-    for current_grid in status.grid_list:
-        if current_grid.grid_type in constants.abstract_grid_type_list:
-            terrain_cell_lists.append([current_grid.cell_list[0][0]])
-    for cell_list in terrain_cell_lists:
-        for current_cell in cell_list:
-            current_tile = current_cell.tile
-            if len(current_tile.get_held_commodities()) > 0:
-                current_tile.manage_inventory_attrition()
+
+def manage_logistics_report() -> None:
+    """
+    Description:
+        Displays an attrition report at the end of the turn, showing reports of attrition at each location
+    Input:
+        Dict[str, item_types.item_type] expected_production: The expected production of each item type
+    Output:
+        None
+    """
+    transportation_minister = minister_utility.get_minister(
+        constants.TRANSPORTATION_MINISTER
+    )
+    attrition_binned_by_cell = {}
+    for attrition_cause_dict in status.logistics_incident_list:
+        attrition_binned_by_cell[
+            str(attrition_cause_dict.get("cell"))
+        ] = attrition_binned_by_cell.get(str(attrition_cause_dict.get("cell")), []) + [
+            attrition_cause_dict
+        ]
+    for local_logistics_incident_list in attrition_binned_by_cell.values():
+        remaining_incidents = local_logistics_incident_list
+        n = 5
+        while remaining_incidents:
+            first_n_incidents = remaining_incidents[:n]
+            remaining_incidents = remaining_incidents[n:]
+            cell = local_logistics_incident_list[0].get("cell")
+            if len(local_logistics_incident_list) == 1:
+                text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports a logistical incident "
+            else:
+                text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports the following logistical incidents "
+
+            if cell.grid.is_abstract_grid:
+                text += f"in orbit of {cell.grid.name}: /n /n"
+            elif cell.tile.name != "default":
+                text += f"at {cell.tile.name}: /n /n"
+            else:
+                text += f"at ({cell.x}, {cell.y}): /n /n"
+
+            for local_logistics_incident in first_n_incidents:
+                text += f"{local_logistics_incident.get('explanation')} /n /n"
+
+            if remaining_incidents:
+                if len(remaining_incidents) == 1:
+                    text += f"({len(remaining_incidents)} more incident on following pages) /n /n"
+                else:
+                    text += f"({len(remaining_incidents)} more incidents on following pages) /n /n"
+            transportation_minister.display_message(
+                text, override_input_dict={"zoom_destination": cell.tile}
+            )
 
 
 def remove_excess_inventory():
     """
     Description:
-        Removes any commodities that exceed their tile's storage capacities
+        Removes any items that exceed their tile's storage capacities
     Input:
         None
     Output:
         None
     """
-    terrain_cell_lists = [status.strategic_map_grid.get_flat_cell_list()]
-    for current_grid in status.grid_list:
-        if current_grid.grid_type in constants.abstract_grid_type_list:
-            terrain_cell_lists.append([current_grid.cell_list[0][0]])
-    for cell_list in terrain_cell_lists:
-        for current_cell in cell_list:
-            current_tile = current_cell.tile
-            if current_tile.inventory:
-                current_tile.remove_excess_inventory()
+    for current_tile in status.main_tile_list:
+        if current_tile.inventory:
+            current_tile.remove_excess_inventory()
 
 
 def manage_environmental_conditions():
@@ -305,36 +329,34 @@ def manage_environmental_conditions():
         None
     """
     for current_pmob in status.pmob_list.copy():
-        if not current_pmob.get_permission(constants.SURVIVABLE_PERMISSION):
-            if not (
-                current_pmob.any_permissions(
-                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
-                )
-                and current_pmob.get_permission(constants.IN_GROUP_PERMISSION)
-            ):
-                current_pmob.die()
+        if current_pmob.in_deadly_environment():
+            current_pmob.record_logistics_incident(
+                incident_type=constants.UPKEEP_MISSING_PENALTY_DEATH,
+                cause="environmental conditions",
+            )
+            current_pmob.die()
 
 
 def manage_production():
     """
     Description:
-        Orders each work crew in a production building to attempt commodity production and displays a production report of commodities for which production was attempted and how much of each was produced
+        Orders each work crew in a production building to attempt item production and displays a production report of items for which production was attempted and how much of each was produced
     Input:
         None
     Output:
         None
     """
     expected_production = {}
-    for current_commodity in constants.collectable_resources:
-        constants.commodities_produced[current_commodity] = 0
-        expected_production[current_commodity] = 0
+    for current_item in status.item_types.values():
+        current_item.amount_produced_this_turn = 0
+        expected_production[current_item.key] = 0
     for current_resource_building in status.resource_building_list:
         if not current_resource_building.damaged:
             for current_work_crew in current_resource_building.contained_work_crews:
                 if current_work_crew.movement_points >= 1:
                     if current_work_crew.get_permission(constants.VETERAN_PERMISSION):
                         expected_production[
-                            current_resource_building.resource_type
+                            current_resource_building.resource_type.key
                         ] += (
                             0.75
                             * current_resource_building.upgrade_fields[
@@ -343,7 +365,7 @@ def manage_production():
                         )
                     else:
                         expected_production[
-                            current_resource_building.resource_type
+                            current_resource_building.resource_type.key
                         ] += (
                             0.5
                             * current_resource_building.upgrade_fields[
@@ -351,53 +373,53 @@ def manage_production():
                             ]
                         )
             current_resource_building.produce()
-            if (
-                not current_resource_building.resource_type
-                in constants.attempted_commodities
-            ):
-                constants.attempted_commodities.append(
-                    current_resource_building.resource_type
-                )
+            current_resource_building.resource_type.production_attempted_this_turn = (
+                True
+            )
     manage_production_report(expected_production)
 
 
-def manage_production_report(expected_production):
+def manage_production_report(
+    expected_production: Dict[str, item_types.item_type]
+) -> None:
     """
     Description:
-        Displays a production report at the end of the turn, showing expected and actual production for each commodity the company has the capacity to produce
+        Displays a production report at the end of the turn, showing expected and actual production for each item the company has the capacity to produce
+    Input:
+        Dict[str, item_types.item_type] expected_production: The expected production of each item type
+    Output:
+        None
     """
-    attempted_commodities = constants.attempted_commodities
-    displayed_commodities = []
     industry_minister = minister_utility.get_minister(constants.INDUSTRY_MINISTER)
-    if (
-        not len(constants.attempted_commodities) == 0
-    ):  # if any attempted, do production report
-        text = f"{industry_minister.current_position.name} {industry_minister.name} reports the following commodity production: /n /n"
-        while len(displayed_commodities) < len(attempted_commodities):
-            max_produced = 0
-            max_commodity = None
-            for current_commodity in attempted_commodities:
-                if not current_commodity in displayed_commodities:
-                    if (
-                        constants.commodities_produced[current_commodity]
-                        >= max_produced
-                    ):
-                        max_commodity = current_commodity
-                        max_produced = constants.commodities_produced[current_commodity]
-                        expected_production[
-                            max_commodity
-                        ] = minister_utility.get_minister(
-                            constants.SECURITY_MINISTER
-                        ).estimate_expected(
-                            expected_production[max_commodity]
-                        )
-            displayed_commodities.append(max_commodity)
-            text += f"{max_commodity.capitalize()}: {max_produced} (expected {expected_production[max_commodity]}) /n /n"
+    attempted_item_types = [
+        current_item_type
+        for current_item_type in status.item_types.values()
+        if current_item_type.production_attempted_this_turn
+    ]
+    if attempted_item_types:  # If any attempted, create production report
+        text = f"{industry_minister.current_position.name} {industry_minister.name} reports the following resource production: /n /n"
+        messages = []
+        for current_item_type in status.item_types.values():
+            if current_item_type.production_attempted_this_turn:
+                expected_production = minister_utility.get_minister(
+                    constants.SECURITY_MINISTER
+                ).estimate_expected(expected_production[current_item_type.key])
+                messages.append(
+                    (
+                        current_item_type.amount_produced_this_turn,
+                        f"{current_item_type.name.capitalize()}: {current_item_type.amount_produced_this_turn} (expected {expected_production}) /n /n",
+                    )
+                )
+        messages.sort(
+            key=lambda x: x[0], reverse=True
+        )  # Sort by amount produced in descending order
+        for message in messages:
+            text += message[1]
         status.previous_production_report = text
         industry_minister.display_message(text)
 
 
-def manage_upkeep():
+def manage_upkeep_expenditure() -> None:
     """
     Description:
         Pays upkeep for all units at the end of a turn. Currently, only workers cost upkeep
@@ -406,8 +428,43 @@ def manage_upkeep():
     Output:
         None
     """
-    total_upkeep = market_utility.calculate_total_worker_upkeep()
-    constants.money_tracker.change(round(-1 * total_upkeep, 2), "worker_upkeep")
+    for current_tile in [
+        current_tile
+        for current_tile in status.main_tile_list
+        if current_tile.cell.contained_mobs
+    ]:
+        item_upkeep = current_tile.get_item_upkeep(recurse=True)
+        item_request = current_tile.create_item_request(item_upkeep)
+        current_tile.fulfill_item_request(item_request.copy())
+        if constants.effect_manager.effect_active("track_item_requests"):
+            if current_tile.show_terrain:
+                name = f"({current_tile.x}, {current_tile.y})"
+            else:
+                name = current_tile.name.capitalize()
+            print(f"{name} total upkeep {item_upkeep}")
+            print(f"{name} requesting external {item_request}")
+        for current_mob in current_tile.cell.contained_mobs:
+            current_mob.check_item_availability()
+        for current_mob in current_tile.cell.contained_mobs:
+            current_mob.consume_item_upkeep()
+        current_tile.set_inventory(status.item_types[constants.ENERGY_ITEM], 0)
+
+    total_money_upkeep = market_utility.calculate_total_worker_upkeep()
+    constants.money_tracker.change(round(-1 * total_money_upkeep, 2), "worker_upkeep")
+
+
+def manage_missing_upkeep_penalties() -> None:
+    """
+    Description:
+        Resolves any penalties for missed upkeep
+            Note that upkeep missing penalties are handled for all mobs, while upkeep expenditure is managed at a tile-level with recursive calculations for sub-mobs
+    Input:
+        None
+    Output:
+        None
+    """
+    for current_pmob in status.pmob_list.copy():
+        current_pmob.resolve_upkeep_missing_penalty()
 
 
 def manage_loans():
@@ -717,58 +774,56 @@ def game_end_check():
         )
 
 
-def manage_commodity_sales():
+def manage_item_sales():
     """
     Description:
-        Orders the minister of trade to process all commodity sales started in the player's turn, allowing the minister to use skill/corruption to modify how much money is received by the company
+        Orders the minister of trade to process all item sales started in the player's turn, allowing the minister to use skill/corruption to modify how much money is received by the company
     Input:
         None
     Output:
         None
     """
-    sold_commodities = constants.sold_commodities
     trade_minister = minister_utility.get_minister(constants.TERRAN_AFFAIRS_MINISTER)
     money_stolen = 0
     reported_revenue = 0
-    text = f"{trade_minister.current_position.name} {trade_minister.name} reports the following commodity sales: /n /n"
+    text = f"{trade_minister.current_position.name} {trade_minister.name} reports the following item sales: /n /n"
     any_sold = False
-    for current_commodity in constants.commodity_types:
-        if sold_commodities[current_commodity] > 0:
+    for item_type in status.item_types.values():
+        if item_type.amount_sold_this_turn > 0:
             any_sold = True
-            sell_price = constants.item_prices[current_commodity]
-            expected_revenue = sold_commodities[current_commodity] * sell_price
             expected_revenue = minister_utility.get_minister(
                 constants.SECURITY_MINISTER
-            ).estimate_expected(expected_revenue, False)
+            ).estimate_expected(
+                item_type.amount_sold_this_turn * item_type.price, False
+            )
             actual_revenue = 0
-
-            for i in range(sold_commodities[current_commodity]):
-                individual_sell_price = (
-                    sell_price
+            for i in range(item_type.amount_sold_this_turn):
+                individual_price = (
+                    item_type.price
                     + random.randrange(-1, 2)
                     + trade_minister.get_roll_modifier()
                 )
-                if trade_minister.check_corruption() and individual_sell_price > 1:
+                if (
+                    trade_minister.check_corruption() and individual_price > 1
+                ):  # Minister might steal from each sale, but prosecutor only detects at the end
                     money_stolen += 1
-                    individual_sell_price -= 1
-                if individual_sell_price < 1:
-                    individual_sell_price = 1
-                reported_revenue += individual_sell_price
-                actual_revenue += individual_sell_price
+                    individual_price -= 1
+                if individual_price < 1:
+                    individual_price = 1
+                reported_revenue += individual_price
+                actual_revenue += individual_price
                 if random.randrange(1, 7) <= 1:  # 1/6 chance
-                    market_utility.change_price(current_commodity, -1)
-            text += f"{sold_commodities[current_commodity]} {current_commodity} sold for {actual_revenue} money (expected {expected_revenue}) /n /n"
+                    market_utility.change_price(item_type, -1)
+            text += f"{item_type.amount_sold_this_turn} {item_type.name} sold for {actual_revenue} money (expected {expected_revenue}) /n /n"
+            item_type.amount_sold_this_turn = 0
 
-    constants.money_tracker.change(reported_revenue, "sold_commodities")
+    constants.money_tracker.change(reported_revenue, "sold_items")
 
     if any_sold:
         trade_minister.display_message(text)
         status.previous_sales_report = text
     if money_stolen > 0:
-        trade_minister.steal_money(money_stolen, "sold_commodities")
-
-    for current_commodity in constants.commodity_types:
-        constants.sold_commodities[current_commodity] = 0
+        trade_minister.steal_money(money_stolen, "sold_items")
 
 
 def end_turn_warnings():
@@ -798,7 +853,7 @@ def end_turn_warnings():
         ):
             constants.notification_manager.display_notification(
                 {
-                    "message": f"Warning: the warehouses at {current_cell.x}, {current_cell.y} are not sufficient to hold the commodities stored there. /n /nAny commodities exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
+                    "message": f"Warning: the warehouses at {current_cell.x}, {current_cell.y} are not sufficient to hold the items stored there. /n /nAny items exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
                     "zoom_destination": current_cell.tile,
                 }
             )
@@ -812,7 +867,7 @@ def end_turn_warnings():
             ):
                 constants.notification_manager.display_notification(
                     {
-                        "message": f"Warning: the warehouses in {current_grid.cell_list[0][0].tile.name} are not sufficient to hold the commodities stored there. /n /nAny commodities exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
+                        "message": f"Warning: the warehouses in {current_grid.cell_list[0][0].tile.name} are not sufficient to hold the items stored there. /n /nAny items exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
                         "zoom_destination": current_cell.tile,
                     }
                 )
@@ -880,3 +935,36 @@ def end_turn_warnings():
                 }
             )
             break
+
+    for current_tile in [
+        current_tile
+        for current_tile in status.main_tile_list
+        if current_tile.cell.contained_mobs
+    ]:
+        item_upkeep = current_tile.get_item_upkeep(recurse=True)
+        item_request = current_tile.create_item_request(item_upkeep)
+        if constants.ENERGY_ITEM in item_request:
+            missing_fuel = current_tile.create_item_request(
+                {constants.FUEL_ITEM: item_request[constants.ENERGY_ITEM]}
+            ).get(constants.FUEL_ITEM, 0)
+            if missing_fuel == 0:
+                del item_request[constants.ENERGY_ITEM]
+            else:
+                item_request[constants.ENERGY_ITEM] = missing_fuel
+        if (
+            item_request
+        ):  # For each tile that cannot meet its upkeep requirements, issue a warning
+            if current_tile.show_terrain and current_tile.name == "default":
+                name = f"({current_tile.x}, {current_tile.y})"
+            else:
+                name = current_tile.name.capitalize()
+            text = f"WARNING: {name} does not have enough items to meet its local upkeep requirements. /n /n"
+            text += f"Required items: {actor_utility.summarize_amount_dict(item_upkeep)} /n /n"
+            text += f"Missing items: {actor_utility.summarize_amount_dict(item_request)} /n /n"
+            text += f"Depending on item type, this deficit may result in unit death or morale penalties. /n /n"
+            constants.notification_manager.display_notification(
+                {
+                    "message": text,
+                    "zoom_destination": current_tile,
+                }
+            )

@@ -1,6 +1,7 @@
 # Contains miscellaneous functions, like removing an item from a list or finding the distance between 2 points
-
-from typing import List
+import random
+import os
+from typing import List, Tuple, Dict
 from copy import deepcopy
 
 
@@ -307,3 +308,89 @@ def reverse_fahrenheit(temperature: int):
         return (temperature + 40) / 30
     else:
         return (temperature - 15) / 20
+
+
+def extract_voice_set(
+    masculine: bool, voice_set: str = None
+) -> Tuple[str, Dict[str, List[str]]]:
+    """
+    Description:
+        Gathers a set of voice lines for this minister, either using a saved voice set or a random new one
+    Input:
+        boolean masculine: Determines whether the voice set should be masculine or feminine
+        string voice_set = None: If not None, uses this voice set instead of generating a new one
+    Output:
+        None
+    """
+    if not voice_set:
+        if masculine:
+            voice_set = f"masculine/{random.choice(os.listdir('sounds/voices/voice sets/masculine'))}"
+        else:
+            voice_set = f"feminine/{random.choice(os.listdir('sounds/voices/voice sets/feminine'))}"
+    voice_lines = {
+        "acknowledgement": [],
+        "fired": [],
+        "evidence": [],
+        "hired": [],
+    }
+    folder_path = f"voices/voice sets/{voice_set}"
+    for file_name in os.listdir("sounds/" + folder_path):
+        for key in voice_lines:
+            if file_name.startswith(key):
+                file_name = file_name[:-4]  # cuts off last 4 characters - .ogg/.wav
+                voice_lines[key].append(folder_path + "/" + file_name)
+    return voice_set, voice_lines
+
+
+def get_voice_line(unit, type):
+    """
+    Description:
+        Attempts to retrieve one of this minister's voice lines of the inputted type
+    Input:
+        unit: Minister or officer to retrieve voice line for
+        string type: Type of voice line to retrieve
+    Output:
+        string: Returns sound_manager file path of retrieved voice line
+    """
+    selected_line = None
+    if len(unit.voice_lines[type]) > 0:
+        selected_line = random.choice(unit.voice_lines[type])
+        while len(unit.voice_lines[type]) > 1 and selected_line == unit.last_voice_line:
+            selected_line = random.choice(unit.voice_lines[type])
+    unit.last_voice_line = selected_line
+    return selected_line
+
+
+def add_dicts(*args: Dict[str, float]) -> Dict[str, float]:
+    """
+    Description:
+        Adds any number of inputted dictionaries together, returning the result
+    Input:
+        *args: Any number of inputted dictionaries with numerical values
+    Output:
+        dict: Returns the sum of the inputted dictionaries
+    """
+    return_dict = {
+        key: round(sum(dictionary.get(key, 0) for dictionary in args), 2)
+        for dictionary in args
+        for key in dictionary
+    }
+    return return_dict
+
+
+def subtract_dicts(
+    dict_1: Dict[str, float], dict_2: Dict[str, float]
+) -> Dict[str, float]:
+    """
+    Description:
+        Subtracts the second inputted dictionary from the first inputted dictionary, returning the result
+    Input:
+        dict dict_1: Dictionary with numerical values to subtract from
+        dict dict_2: Dictionary with numerical values to subtract
+    Output:
+        dict: Returns the result of subtracting the second dictionary from the first dictionary
+    """
+    return_dict = {
+        key: round(dict_1.get(key, 0) - dict_2.get(key, 0), 2) for key in dict_1
+    }
+    return return_dict

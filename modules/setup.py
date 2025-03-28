@@ -11,6 +11,7 @@ from modules.constructs import (
     building_types,
     equipment_types,
     terrain_feature_types,
+    item_types,
 )
 from modules.tools.data_managers import (
     notification_manager_template,
@@ -105,7 +106,7 @@ def misc():
             "descriptor": "default",
             "name": constants.small_font_name,
             "size": constants.font_size,
-            "color": "black",
+            "color": constants.COLOR_BLACK,
         }
     )
     fonts.font(
@@ -113,7 +114,7 @@ def misc():
             "descriptor": "white",
             "name": constants.small_font_name,
             "size": constants.font_size,
-            "color": "white",
+            "color": constants.COLOR_WHITE,
         }
     )
     fonts.font(
@@ -121,7 +122,7 @@ def misc():
             "descriptor": "default_notification",
             "name": constants.font_name,
             "size": constants.notification_font_size,
-            "color": "black",
+            "color": constants.COLOR_BLACK,
         }
     )
     fonts.font(
@@ -129,7 +130,7 @@ def misc():
             "descriptor": "white_notification",
             "name": constants.font_name,
             "size": constants.notification_font_size,
-            "color": "white",
+            "color": constants.COLOR_WHITE,
         }
     )
     fonts.font(
@@ -137,7 +138,7 @@ def misc():
             "descriptor": "large_notification",
             "name": constants.font_name,
             "size": scaling.scale_height(30),
-            "color": "black",
+            "color": constants.COLOR_BLACK,
         }
     )
     fonts.font(
@@ -145,7 +146,7 @@ def misc():
             "descriptor": "large_white_notification",
             "name": constants.font_name,
             "size": scaling.scale_height(30),
-            "color": "white",
+            "color": constants.COLOR_WHITE,
         }
     )
     fonts.font(
@@ -153,7 +154,7 @@ def misc():
             "descriptor": "max_detail_white",
             "name": "helvetica",
             "size": scaling.scale_height(100),
-            "color": "white",
+            "color": constants.COLOR_WHITE,
         }
     )
     fonts.font(
@@ -161,7 +162,7 @@ def misc():
             "descriptor": "max_detail_black",
             "name": "helvetica",
             "size": scaling.scale_height(100),
-            "color": "black",
+            "color": constants.COLOR_BLACK,
         }
     )
 
@@ -181,14 +182,16 @@ def misc():
             "init_type": constants.LOADING_IMAGE_TEMPLATE_IMAGE,
         }
     )
+    loading_screen_banner_width = 1400
     status.loading_screen_quote_banner = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(
-                    constants.default_display_width / 2 - 650,
+                    constants.default_display_width / 2
+                    - (loading_screen_banner_width // 2),
                     constants.default_display_height / 2 - 500,
                 ),
-                "ideal_width": scaling.scale_width(1300),
+                "ideal_width": scaling.scale_width(loading_screen_banner_width),
                 "minimum_height": 50,
                 "image_id": "misc/empty.png",
                 "init_type": constants.MULTI_LINE_LABEL,
@@ -352,15 +355,91 @@ def misc():
     # ) # rect at original location prevents collection from moving unintentionally when resizing
 
 
-def equipment_types_config():
+def item_types_config():
     """
     Description:
-        Defines equipment type templates
+        Defines item type templates
     Input:
         None
     Output:
         None
     """
+    item_types.item_type(
+        {
+            "equipment_type": constants.CONSUMER_GOODS_ITEM,
+            "can_purchase": True,
+            "can_sell": True,
+            "price": constants.consumer_goods_starting_price,
+            "description": ["Placeholder consumer goods description"],
+            "item_image": "items/consumer_goods.png",
+            "background_color": constants.color_dict[constants.COLOR_GREEN_ICON],
+            "allow_price_variation": True,
+        }
+    )
+
+    item_types.item_type(
+        {
+            "equipment_type": constants.FUEL_ITEM,
+            "can_purchase": True,
+            "can_sell": True,
+            "price": 5,
+            "description": ["Placeholder fuel description"],
+            "item_image": "items/fuel.png",
+            "background_color": constants.color_dict[constants.COLOR_FIRE_ORANGE],
+            "allow_price_variation": True,
+        }
+    )
+
+    item_types.item_type(
+        {
+            "equipment_type": constants.ENERGY_ITEM,
+            "can_purchase": False,
+            "can_sell": False,
+            "description": ["Placeholder energy description"],
+            "item_image": "items/energy.png",
+            "background_color": constants.color_dict[constants.COLOR_PURPLE],
+        }
+    )
+
+    item_types.item_type(
+        {
+            "equipment_type": constants.FOOD_ITEM,
+            "can_purchase": True,
+            "can_sell": True,
+            "price": 5,
+            "description": ["Placeholder food description"],
+            "item_image": "items/food.png",
+            "background_color": constants.color_dict[constants.COLOR_YELLOW],
+            "allow_price_variation": True,
+        }
+    )
+
+    item_types.item_type(
+        {
+            "equipment_type": constants.WATER_ITEM,
+            "can_purchase": True,
+            "can_sell": True,
+            "price": 5,
+            "description": ["Placeholder water description"],
+            "item_image": "items/water.png",
+            "background_color": constants.color_dict[constants.COLOR_BLUE],
+            "allow_price_variation": True,
+        }
+    )
+
+    item_types.item_type(
+        {
+            "equipment_type": constants.AIR_ITEM,
+            "can_purchase": True,
+            "can_sell": True,
+            "price": 5,
+            "description": ["Placeholder air description"],
+            "item_image": "items/air.png",
+            "background_color": constants.color_dict[constants.COLOR_LIGHT_GRAY],
+            "allow_price_variation": True,
+        }
+    )
+
     equipment_types.equipment_type(
         {
             "equipment_type": constants.SPACESUITS_EQUIPMENT,
@@ -382,7 +461,8 @@ def equipment_types_config():
                 "Human units without spacesuits in deadly conditions cannot perform actions and will die at the end of the turn",
                 # "By default, solitary officers are assumed to be wearing personal spacesuits",
             ],
-            "equipment_image": {
+            "item_image": "items/spacesuits.png",  # Used for icons
+            "equipment_image": {  # Used as mob image components
                 constants.FULL_BODY_PORTRAIT_SECTION: "mobs/spacesuits/spacesuit_body.png",
                 constants.HAT_PORTRAIT_SECTION: "ministers/portraits/hat/spacesuit/spacesuit_helmet.png",
                 constants.HAIR_PORTRAIT_SECTION: "misc/empty.png",
@@ -481,28 +561,6 @@ def actions():
     # action imports hardcoded here, alternative to needing to keep module files in .exe version
 
 
-def commodities():
-    """
-    Description:
-        Defines commodities with associated buildings and icons, along with buildings
-    Input:
-        None
-    Output:
-        None
-    """
-    for current_commodity in constants.commodity_types:
-        constants.item_prices[current_commodity] = 0
-        constants.sold_commodities[current_commodity] = 0
-
-    for current_commodity in constants.collectable_resources:
-        constants.commodities_produced[current_commodity] = 0
-
-    for current_equipment in status.equipment_types:
-        constants.item_prices[current_equipment] = status.equipment_types[
-            current_equipment
-        ].price
-
-
 def minister_types_config():
     """
     Description:
@@ -559,7 +617,7 @@ def minister_types_config():
             "name": "Minister of Industry",
             "skill_type": constants.INDUSTRY_SKILL,
             "description": [
-                "Industry-oriented units include construction gangs and work crews."
+                "Industry-oriented units include construction crews and work crews."
             ],
         }
     )
@@ -772,162 +830,236 @@ def unit_types_config():
     Output:
         None
     """
-    unit_types.group_type(
-        False,
-        {
-            "key": constants.EXPEDITION,
-            "name": "expedition",
-            "controlling_minister_type": status.minister_types[
-                constants.SCIENCE_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.GROUP_PERMISSION: True,
-                constants.EXPEDITION_PERMISSION: True,
-            },
-            "can_recruit": False,
-        },
+    standard_officer_upkeep = (
+        {  # 0 upkeep denotes requiring the presence of an item, without spending it
+            constants.AIR_ITEM: 0,
+            constants.WATER_ITEM: 0,
+            constants.FOOD_ITEM: 0,
+            constants.CONSUMER_GOODS_ITEM: 0,
+            constants.ENERGY_ITEM: 0,
+        }
     )
-    unit_types.officer_type(
-        False,
-        {
-            "key": constants.EXPLORER,
-            "name": "explorer",
-            "controlling_minister_type": status.minister_types[
-                constants.SCIENCE_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.OFFICER_PERMISSION: True,
-                constants.EXPLORER_PERMISSION: True,
+    standard_colonist_upkeep = {
+        constants.AIR_ITEM: 0.1,
+        constants.WATER_ITEM: 0.1,
+        constants.FOOD_ITEM: 0.1,
+        constants.CONSUMER_GOODS_ITEM: 0.1,
+        constants.ENERGY_ITEM: 0.1,
+    }
+    standard_missing_upkeep_penalties = {
+        constants.AIR_ITEM: constants.UPKEEP_MISSING_PENALTY_DEATH,
+        constants.WATER_ITEM: constants.UPKEEP_MISSING_PENALTY_DEHYDRATION,
+        constants.FOOD_ITEM: constants.UPKEEP_MISSING_PENALTY_STARVATION,
+        constants.CONSUMER_GOODS_ITEM: constants.UPKEEP_MISSING_PENALTY_MORALE,
+        constants.ENERGY_ITEM: constants.UPKEEP_MISSING_PENALTY_MORALE,
+    }
+    if not constants.effect_manager.effect_active("hide_old_units"):
+        unit_types.group_type(
+            False,
+            {
+                "key": constants.EXPEDITION,
+                "name": "expedition",
+                "controlling_minister_type": status.minister_types[
+                    constants.SCIENCE_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.GROUP_PERMISSION: True,
+                    constants.EXPEDITION_PERMISSION: True,
+                },
+                "can_recruit": False,
             },
-            "can_recruit": True,
-            "recruitment_verb": "hire",
-            "recruitment_cost": 5,
-            "description": [
-                f"Explorers are controlled by the {status.minister_types[constants.SCIENCE_MINISTER].name}.",
-                "An explorer combines with colonists to form an expedition, which can explore new tiles.",
-            ],
-        },
-    ).link_group_type(status.unit_types[constants.EXPEDITION])
+        )
+        unit_types.officer_type(
+            False,
+            {
+                "key": constants.EXPLORER,
+                "name": "explorer",
+                "controlling_minister_type": status.minister_types[
+                    constants.SCIENCE_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.OFFICER_PERMISSION: True,
+                    constants.EXPLORER_PERMISSION: True,
+                },
+                "item_upkeep": standard_officer_upkeep,
+                "missing_upkeep_penalties": standard_missing_upkeep_penalties,
+                "can_recruit": True,
+                "recruitment_verb": "hire",
+                "recruitment_cost": 5,
+                "description": [
+                    f"Explorers are controlled by the {status.minister_types[constants.SCIENCE_MINISTER].name}.",
+                    "An explorer combines with colonists to form an expedition, which can explore new tiles.",
+                ],
+            },
+        ).link_group_type(status.unit_types[constants.EXPEDITION])
 
-    unit_types.group_type(
-        False,
-        {
-            "key": constants.CARAVAN,
-            "name": "caravan",
-            "controlling_minister_type": status.minister_types[
-                constants.TERRAN_AFFAIRS_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.GROUP_PERMISSION: True,
-                constants.CARAVAN_PERMISSION: True,
+        unit_types.group_type(
+            False,
+            {
+                "key": constants.MISSIONARIES,
+                "name": "missionaries",
+                "controlling_minister_type": status.minister_types[
+                    constants.TERRAN_AFFAIRS_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.GROUP_PERMISSION: True,
+                    constants.MISSIONARIES_PERMISSION: True,
+                },
+                "can_recruit": False,
             },
-            "can_recruit": False,
-            "inventory_capacity": 9,
-        },
-    )
-    unit_types.officer_type(
-        False,
-        {
-            "key": constants.MERCHANT,
-            "name": "merchant",
-            "controlling_minister_type": status.minister_types[
-                constants.TERRAN_AFFAIRS_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.OFFICER_PERMISSION: True,
-                constants.MERCHANT_PERMISSION: True,
+        )
+        unit_types.officer_type(
+            False,
+            {
+                "key": constants.EVANGELIST,
+                "name": "evangelist",
+                "controlling_minister_type": status.minister_types[
+                    constants.TERRAN_AFFAIRS_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.OFFICER_PERMISSION: True,
+                    constants.EVANGELIST_PERMISSION: True,
+                },
+                "item_upkeep": standard_officer_upkeep,
+                "missing_upkeep_penalties": standard_missing_upkeep_penalties,
+                "can_recruit": True,
+                "recruitment_verb": "hire",
+                "recruitment_cost": 5,
+                "description": [
+                    f"Evangelists are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally conduct religious campaigns and public relations campaigns on Earth.",
+                    "An evangelist combines with church volunteers to form missionaries, which can build missions.",
+                ],
             },
-            "can_recruit": True,
-            "recruitment_verb": "hire",
-            "recruitment_cost": 5,
-            "description": [
-                f"Merchants are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally search for loans and conduct advertising campaigns on Earth.",
-                "A merchant combines with colonists to form a caravan, which can trade and build trading posts.",
-            ],
-        },
-    ).link_group_type(status.unit_types[constants.CARAVAN])
+        ).link_group_type(status.unit_types[constants.MISSIONARIES])
 
-    unit_types.group_type(
-        False,
-        {
-            "key": constants.MISSIONARIES,
-            "name": "missionaries",
-            "controlling_minister_type": status.minister_types[
-                constants.TERRAN_AFFAIRS_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.GROUP_PERMISSION: True,
-                constants.MISSIONARIES_PERMISSION: True,
+        unit_types.group_type(
+            False,
+            {
+                "key": constants.BATTALION,
+                "name": "battalion",
+                "controlling_minister_type": status.minister_types[
+                    constants.SPACE_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.GROUP_PERMISSION: True,
+                    constants.BATTALION_PERMISSION: True,
+                },
+                "can_recruit": False,
             },
-            "can_recruit": False,
-        },
-    )
-    unit_types.officer_type(
-        False,
-        {
-            "key": constants.EVANGELIST,
-            "name": "evangelist",
-            "controlling_minister_type": status.minister_types[
-                constants.TERRAN_AFFAIRS_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.OFFICER_PERMISSION: True,
-                constants.EVANGELIST_PERMISSION: True,
+        )
+        unit_types.officer_type(
+            False,
+            {
+                "key": constants.MAJOR,
+                "name": "major",
+                "controlling_minister_type": status.minister_types[
+                    constants.SPACE_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.OFFICER_PERMISSION: True,
+                    constants.MAJOR_PERMISSION: True,
+                },
+                "item_upkeep": standard_officer_upkeep,
+                "missing_upkeep_penalties": standard_missing_upkeep_penalties,
+                "can_recruit": True,
+                "recruitment_verb": "hire",
+                "recruitment_cost": 5,
+                "description": [
+                    f"Majors are controlled by the {status.minister_types[constants.SPACE_MINISTER].name}.",
+                    "A major combines with colonists to form a battalion, which has a very high combat strength, and can build forts and attack enemies.",
+                ],
             },
-            "can_recruit": True,
-            "recruitment_verb": "hire",
-            "recruitment_cost": 5,
-            "description": [
-                f"Evangelists are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally conduct religious campaigns and public relations campaigns on Earth.",
-                "An evangelist combines with church volunteers to form missionaries, which can build missions.",
-            ],
-        },
-    ).link_group_type(status.unit_types[constants.MISSIONARIES])
+        ).link_group_type(status.unit_types[constants.BATTALION])
 
-    unit_types.group_type(
-        False,
-        {
-            "key": constants.BATTALION,
-            "name": "battalion",
-            "controlling_minister_type": status.minister_types[
-                constants.SPACE_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.GROUP_PERMISSION: True,
-                constants.BATTALION_PERMISSION: True,
+        unit_types.group_type(
+            False,
+            {
+                "key": constants.PORTERS,
+                "name": "porters",
+                "controlling_minister_type": status.minister_types[
+                    constants.TRANSPORTATION_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.GROUP_PERMISSION: True,
+                    constants.PORTERS_PERMISSION: True,
+                },
+                "can_recruit": False,
+                "inventory_capacity": 9,
+                "number": 2,
             },
-            "can_recruit": False,
-        },
-    )
-    unit_types.officer_type(
-        False,
-        {
-            "key": constants.MAJOR,
-            "name": "major",
-            "controlling_minister_type": status.minister_types[
-                constants.SPACE_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.OFFICER_PERMISSION: True,
-                constants.MAJOR_PERMISSION: True,
+        )
+        unit_types.officer_type(
+            False,
+            {
+                "key": constants.DRIVER,
+                "name": "driver",
+                "controlling_minister_type": status.minister_types[
+                    constants.TRANSPORTATION_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.OFFICER_PERMISSION: True,
+                    constants.DRIVER_PERMISSION: True,
+                },
+                "item_upkeep": standard_officer_upkeep,
+                "missing_upkeep_penalties": standard_missing_upkeep_penalties,
+                "can_recruit": True,
+                "recruitment_verb": "hire",
+                "recruitment_cost": 5,
+                "description": [
+                    f"Drivers are controlled by the {status.minister_types[constants.TRANSPORTATION_MINISTER].name}.",
+                    "A driver combines with colonists to form porters, which can transport items and move quickly.",
+                ],
             },
-            "can_recruit": True,
-            "recruitment_verb": "hire",
-            "recruitment_cost": 5,
-            "description": [
-                f"Majors are controlled by the {status.minister_types[constants.SPACE_MINISTER].name}.",
-                "A major combines with colonists to form a battalion, which has a very high combat strength, and can build forts and attack enemies.",
-            ],
-        },
-    ).link_group_type(status.unit_types[constants.BATTALION])
+        ).link_group_type(status.unit_types[constants.PORTERS])
+
+        unit_types.group_type(
+            False,
+            {
+                "key": constants.WORK_CREW,
+                "name": "work crew",
+                "controlling_minister_type": status.minister_types[
+                    constants.INDUSTRY_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.GROUP_PERMISSION: True,
+                    constants.WORK_CREW_PERMISSION: True,
+                },
+                "can_recruit": False,
+            },
+        )
+        unit_types.officer_type(
+            False,
+            {
+                "key": constants.FOREMAN,
+                "name": "foreman",
+                "controlling_minister_type": status.minister_types[
+                    constants.INDUSTRY_MINISTER
+                ],
+                "permissions": {
+                    constants.PMOB_PERMISSION: True,
+                    constants.OFFICER_PERMISSION: True,
+                    constants.FOREMAN_PERMISSION: True,
+                },
+                "item_upkeep": standard_officer_upkeep,
+                "missing_upkeep_penalties": standard_missing_upkeep_penalties,
+                "can_recruit": True,
+                "recruitment_verb": "hire",
+                "recruitment_cost": 5,
+                "description": [
+                    f"Foremen are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}.",
+                    "A foreman combines with colonists to form a work crew, which can produce resources when attached to a production facility.",
+                ],
+            },
+        ).link_group_type(status.unit_types[constants.WORK_CREW])
 
     unit_types.group_type(
         False,
@@ -960,6 +1092,8 @@ def unit_types_config():
                 constants.OFFICER_PERMISSION: True,
                 constants.ASTRONAUT_COMMANDER_PERMISSION: True,
             },
+            "item_upkeep": standard_officer_upkeep,
+            "missing_upkeep_penalties": standard_missing_upkeep_penalties,
             "can_recruit": True,
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
@@ -973,88 +1107,8 @@ def unit_types_config():
     unit_types.group_type(
         False,
         {
-            "key": constants.PORTERS,
-            "name": "porters",
-            "controlling_minister_type": status.minister_types[
-                constants.TRANSPORTATION_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.GROUP_PERMISSION: True,
-                constants.PORTERS_PERMISSION: True,
-            },
-            "can_recruit": False,
-            "inventory_capacity": 9,
-            "number": 2,
-        },
-    )
-    unit_types.officer_type(
-        False,
-        {
-            "key": constants.DRIVER,
-            "name": "driver",
-            "controlling_minister_type": status.minister_types[
-                constants.TRANSPORTATION_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.OFFICER_PERMISSION: True,
-                constants.DRIVER_PERMISSION: True,
-            },
-            "can_recruit": True,
-            "recruitment_verb": "hire",
-            "recruitment_cost": 5,
-            "description": [
-                f"Drivers are controlled by the {status.minister_types[constants.TRANSPORTATION_MINISTER].name}.",
-                "A driver combines with colonists to form porters, which can transport commodities and move quickly.",
-            ],
-        },
-    ).link_group_type(status.unit_types[constants.PORTERS])
-
-    unit_types.group_type(
-        False,
-        {
-            "key": constants.WORK_CREW,
-            "name": "work crew",
-            "controlling_minister_type": status.minister_types[
-                constants.INDUSTRY_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.GROUP_PERMISSION: True,
-                constants.WORK_CREW_PERMISSION: True,
-            },
-            "can_recruit": False,
-        },
-    )
-    unit_types.officer_type(
-        False,
-        {
-            "key": constants.FOREMAN,
-            "name": "foreman",
-            "controlling_minister_type": status.minister_types[
-                constants.INDUSTRY_MINISTER
-            ],
-            "permissions": {
-                constants.PMOB_PERMISSION: True,
-                constants.OFFICER_PERMISSION: True,
-                constants.FOREMAN_PERMISSION: True,
-            },
-            "can_recruit": True,
-            "recruitment_verb": "hire",
-            "recruitment_cost": 5,
-            "description": [
-                f"Foremen are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}.",
-                "A foreman combines with colonists to form a work crew, which can produce commodities when attached to a production facility.",
-            ],
-        },
-    ).link_group_type(status.unit_types[constants.WORK_CREW])
-
-    unit_types.group_type(
-        False,
-        {
-            "key": constants.CONSTRUCTION_GANG,
-            "name": "construction gang",
+            "key": constants.CONSTRUCTION_CREW,
+            "name": "construction crew",
             "controlling_minister_type": status.minister_types[
                 constants.INDUSTRY_MINISTER
             ],
@@ -1079,15 +1133,59 @@ def unit_types_config():
                 constants.OFFICER_PERMISSION: True,
                 constants.ENGINEER_PERMISSION: True,
             },
+            "item_upkeep": standard_officer_upkeep,
+            "missing_upkeep_penalties": standard_missing_upkeep_penalties,
             "can_recruit": True,
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
             "description": [
                 f"Engineers are controlled by the {status.minister_types[constants.INDUSTRY_MINISTER].name}.",
-                "An engineer combines with colonists to form a construction gang, which can build buildings, roads, railroads, and trains.",
+                "An engineer combines with colonists to form a construction crew, which can build buildings, roads, railroads, and trains.",
             ],
         },
-    ).link_group_type(status.unit_types[constants.CONSTRUCTION_GANG])
+    ).link_group_type(status.unit_types[constants.CONSTRUCTION_CREW])
+
+    caravan_group_type = unit_types.group_type(
+        False,
+        {
+            "key": constants.CARAVAN,
+            "name": "caravan",
+            "controlling_minister_type": status.minister_types[
+                constants.TERRAN_AFFAIRS_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.GROUP_PERMISSION: True,
+                constants.CARAVAN_PERMISSION: True,
+            },
+            "can_recruit": False,
+            "inventory_capacity": 9,
+        },
+    )
+    unit_types.officer_type(
+        False,
+        {
+            "key": constants.MERCHANT,
+            "name": "merchant",
+            "controlling_minister_type": status.minister_types[
+                constants.TERRAN_AFFAIRS_MINISTER
+            ],
+            "permissions": {
+                constants.PMOB_PERMISSION: True,
+                constants.OFFICER_PERMISSION: True,
+                constants.MERCHANT_PERMISSION: True,
+            },
+            "item_upkeep": standard_officer_upkeep,
+            "missing_upkeep_penalties": standard_missing_upkeep_penalties,
+            "can_recruit": True,
+            "recruitment_verb": "hire",
+            "recruitment_cost": 5,
+            "description": [
+                f"Merchants are controlled by the {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name}, and can personally search for loans and conduct advertising campaigns on Earth.",
+                "A merchant combines with colonists to form a caravan, which can trade and build trading posts.",
+            ],
+        },
+    ).link_group_type(caravan_group_type)
 
     unit_types.worker_type(
         False,
@@ -1104,6 +1202,8 @@ def unit_types_config():
                 constants.CREW_TRAIN_PERMISSION: True,
             },
             "upkeep": 6.0,
+            "item_upkeep": standard_colonist_upkeep,
+            "missing_upkeep_penalties": standard_missing_upkeep_penalties,
             "upkeep_variance": True,
             "save_changes": True,
             "can_recruit": True,
@@ -1114,7 +1214,7 @@ def unit_types_config():
                 "Colonists represent a large group of workers, and are required for most tasks. ",
                 "Colonists must work near their housing, and require upkeep each turn in food, air, water, and goods. ",
                 "Officers can be attached to colonists to form groups, which can perform actions. ",
-                "For example, an engineer combined with colonists forms a construction gang, which can construct buildings. ",
+                "For example, an engineer combined with colonists forms a construction crew, which can construct buildings. ",
             ],
             "number": 2,
         },
@@ -1759,6 +1859,16 @@ def buttons():
             constants.actor_creation_manager.create_interface_element(input_dict)
         )
 
+    if constants.effect_manager.effect_active("allow_toggle_god_mode"):
+        input_dict["init_type"] = constants.TOGGLE_BUTTON
+        input_dict["toggle_variable"] = "god_mode"
+        input_dict["attached_to_actor"] = False
+        input_dict["modes"] = [constants.STRATEGIC_MODE]
+        input_dict["image_id"] = "buttons/toggle_god_mode_button.png"
+        rhs_menu_collection.add_member(
+            constants.actor_creation_manager.create_interface_element(input_dict)
+        )
+
     input_dict["coordinates"] = scaling.scale_coordinates(
         110, constants.default_display_height - 50
     )
@@ -1776,22 +1886,29 @@ def buttons():
     lhs_menu_collection.add_member(cycle_units_button)
     del input_dict["keybind_id"]
 
-    input_dict["coordinates"] = (scaling.scale_width(165), input_dict["coordinates"][1])
-    input_dict["modes"] = [constants.STRATEGIC_MODE, constants.EARTH_MODE]
-    input_dict["image_id"] = "buttons/disable_sentry_mode_button.png"
-    input_dict["init_type"] = constants.WAKE_UP_ALL_BUTTON
-    wake_up_all_button = constants.actor_creation_manager.create_interface_element(
-        input_dict
-    )
-    lhs_menu_collection.add_member(wake_up_all_button)
+    if not constants.effect_manager.effect_active("hide_old_buttons"):
+        input_dict["coordinates"] = (
+            scaling.scale_width(165),
+            input_dict["coordinates"][1],
+        )
+        input_dict["modes"] = [constants.STRATEGIC_MODE, constants.EARTH_MODE]
+        input_dict["image_id"] = "buttons/disable_sentry_mode_button.png"
+        input_dict["init_type"] = constants.WAKE_UP_ALL_BUTTON
+        wake_up_all_button = constants.actor_creation_manager.create_interface_element(
+            input_dict
+        )
+        lhs_menu_collection.add_member(wake_up_all_button)
 
-    input_dict["coordinates"] = (scaling.scale_width(220), input_dict["coordinates"][1])
-    input_dict["image_id"] = "buttons/execute_movement_routes_button.png"
-    input_dict["init_type"] = constants.EXECUTE_MOVEMENT_ROUTES_BUTTON
-    execute_movement_routes_button = (
-        constants.actor_creation_manager.create_interface_element(input_dict)
-    )
-    lhs_menu_collection.add_member(execute_movement_routes_button)
+        input_dict["coordinates"] = (
+            scaling.scale_width(220),
+            input_dict["coordinates"][1],
+        )
+        input_dict["image_id"] = "buttons/execute_movement_routes_button.png"
+        input_dict["init_type"] = constants.EXECUTE_MOVEMENT_ROUTES_BUTTON
+        execute_movement_routes_button = (
+            constants.actor_creation_manager.create_interface_element(input_dict)
+        )
+        lhs_menu_collection.add_member(execute_movement_routes_button)
 
     input_dict["coordinates"] = scaling.scale_coordinates(
         constants.default_display_width - 55, constants.default_display_height - 55
@@ -1875,9 +1992,9 @@ def earth_screen():
             "direction": "vertical",
         }
     )
+    purchase_button_grid_height = 7
 
-    recruitment_index = 0
-    for recruitment_index, recruitment_type in enumerate(status.recruitment_types):
+    for recruitment_type in status.recruitment_types:
         constants.actor_creation_manager.create_interface_element(
             {
                 "width": scaling.scale_width(100),
@@ -1886,28 +2003,26 @@ def earth_screen():
                 "parent_collection": earth_purchase_buttons,
                 "recruitment_type": recruitment_type,
                 "member_config": {
-                    "second_dimension_coordinate": -1 * (recruitment_index // 7)
+                    "second_dimension_coordinate": 0  # -1 * (len(earth_purchase_buttons.members) // purchase_button_grid_height)
                 },
             }
         )
-    for purchase_item_type in ["consumer goods"] + [
-        equipment_type.key
-        for equipment_type in status.equipment_types.values()
-        if equipment_type.can_purchase
-    ]:  # Creates purchase button for items from earth
-        constants.actor_creation_manager.create_interface_element(
-            {
-                "width": scaling.scale_width(100),
-                "height": scaling.scale_height(100),
-                "init_type": constants.BUY_ITEM_BUTTON,
-                "parent_collection": earth_purchase_buttons,
-                "item_type": purchase_item_type,
-                "member_config": {
-                    "second_dimension_coordinate": -1 * (recruitment_index // 8)
-                },  # Re-uses recruitment index from previous loop
-            }
-        )
-        recruitment_index += 1
+    for purchase_item_type in reversed(
+        list(status.item_types.values())
+    ):  # Creates purchase button for items from earth in reverse order
+        if purchase_item_type.can_purchase:
+            constants.actor_creation_manager.create_interface_element(
+                {
+                    "width": scaling.scale_width(100),
+                    "height": scaling.scale_height(100),
+                    "init_type": constants.BUY_ITEM_BUTTON,
+                    "parent_collection": earth_purchase_buttons,
+                    "item_type": purchase_item_type,
+                    "member_config": {
+                        "second_dimension_coordinate": -1  # -1 * (len(earth_purchase_buttons.members) // purchase_button_grid_height)
+                    },  # Re-uses recruitment index from previous loop
+                }
+            )
 
 
 def ministers_screen():
@@ -1941,7 +2056,7 @@ def ministers_screen():
         "width": scaling.scale_width(portrait_icon_width),
         "height": scaling.scale_height(portrait_icon_width),
         "modes": [constants.MINISTERS_MODE],
-        "color": "gray",
+        "color": constants.COLOR_GRAY,
         "init_type": constants.MINISTER_PORTRAIT_IMAGE,
     }
     for current_index, minister_type_tuple in enumerate(status.minister_types.items()):
@@ -2034,7 +2149,7 @@ def ministers_screen():
                 "height": scaling.scale_height(portrait_icon_width),
                 "modes": [constants.MINISTERS_MODE],
                 "init_type": constants.MINISTER_PORTRAIT_IMAGE,
-                "color": "gray",
+                "color": constants.COLOR_GRAY,
                 "minister_type": None,
             }
         )
@@ -2059,7 +2174,7 @@ def ministers_screen():
                 "height": scaling.scale_height(portrait_icon_width),
                 "modes": [],
                 "init_type": constants.MINISTER_PORTRAIT_IMAGE,
-                "color": "gray",
+                "color": constants.COLOR_GRAY,
                 "minister_type": None,
             }
         )
@@ -2125,7 +2240,7 @@ def trial_screen():
             "height": scaling.scale_height(button_separation * 2 - 5),
             "init_type": constants.MINISTER_PORTRAIT_IMAGE,
             "minister_type": None,
-            "color": "gray",
+            "color": constants.COLOR_GRAY,
             "parent_collection": status.defense_info_display,
         }
     )
@@ -2202,7 +2317,7 @@ def trial_screen():
                 "height": scaling.scale_height(button_separation * 2 - 5),
                 "init_type": constants.MINISTER_PORTRAIT_IMAGE,
                 "minister_type": None,
-                "color": "gray",
+                "color": constants.COLOR_GRAY,
                 "parent_collection": status.prosecution_info_display,
             }
         )
@@ -2566,7 +2681,7 @@ def tile_interface():
         "init_type": constants.SAME_TILE_ICON,
         "image_id": "buttons/default_button.png",
         "is_last": False,
-        "color": "gray",
+        "color": constants.COLOR_GRAY,
         "parent_collection": same_tile_ordered_collection,
     }
 
@@ -2586,7 +2701,7 @@ def tile_interface():
             "image_id": "buttons/default_button.png",
             "index": 3,
             "is_last": True,
-            "color": "gray",
+            "color": constants.COLOR_GRAY,
             "parent_collection": same_tile_ordered_collection,
         }
     )
@@ -2686,27 +2801,34 @@ def tile_interface():
 def inventory_interface():
     """
     Description:
-        Initializes the commodity prices display and both mob/tile tabbed collections and inventory interfaces
+        Initializes the item prices display and both mob/tile tabbed collections and inventory interfaces
     Input:
         None
     Output:
         None
     """
-    commodity_prices_x, commodity_prices_y = (1000, 100)
-    commodity_prices_height = 35 + (30 * len(constants.commodity_types))
-    commodity_prices_width = 200
+    item_prices_x, item_prices_y = (1000, 100)
+    item_prices_height = 35 + (
+        30
+        * len(
+            [
+                current_item_type
+                for current_item_type in status.item_types.values()
+                if current_item_type.can_sell
+            ]
+        )
+    )
+    item_prices_width = 200
 
-    status.commodity_prices_label = (
+    status.item_prices_label = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "coordinates": scaling.scale_coordinates(
-                    commodity_prices_x, commodity_prices_y
-                ),
-                "minimum_width": scaling.scale_width(commodity_prices_width),
-                "height": scaling.scale_height(commodity_prices_height),
+                "coordinates": scaling.scale_coordinates(item_prices_x, item_prices_y),
+                "minimum_width": scaling.scale_width(item_prices_width),
+                "height": scaling.scale_height(item_prices_height),
                 "modes": [constants.EARTH_MODE],
-                "image_id": "misc/commodity_prices_label.png",
-                "init_type": constants.COMMODITY_PRICES_LABEL,
+                "image_id": "misc/item_prices_label.png",
+                "init_type": constants.ITEM_PRICES_LABEL,
             }
         )
     )
@@ -2715,23 +2837,27 @@ def inventory_interface():
         "width": scaling.scale_width(30),
         "height": scaling.scale_height(30),
         "modes": [constants.EARTH_MODE],
-        "init_type": constants.COMMODITY_BUTTON,
+        "init_type": constants.SELLABLE_ITEM_BUTTON,
     }
-    for current_index in range(
-        len(constants.commodity_types)
-    ):  # commodity prices on Earth
-        input_dict["coordinates"] = scaling.scale_coordinates(
-            commodity_prices_x - 35,
-            commodity_prices_y + commodity_prices_height - 65 - (30 * current_index),
-        )
-        input_dict["image_id"] = [
-            "misc/green_circle.png",
-            "items/" + constants.commodity_types[current_index] + ".png",
-        ]
-        input_dict["commodity"] = constants.commodity_types[current_index]
-        new_commodity_button = (
-            constants.actor_creation_manager.create_interface_element(input_dict)
-        )
+    current_index = 0
+    for current_item_type in status.item_types.values():
+        if current_item_type.can_sell:
+            input_dict["coordinates"] = scaling.scale_coordinates(
+                item_prices_x - 35,
+                item_prices_y + item_prices_height - 65 - (30 * current_index),
+            )
+            input_dict["image_id"] = [
+                {
+                    "image_id": "misc/circle.png",
+                    "green_screen": current_item_type.background_color,
+                },
+                f"items/{current_item_type.key}.png",
+            ]
+            input_dict["item_type"] = current_item_type
+            new_sellable_item_button = (
+                constants.actor_creation_manager.create_interface_element(input_dict)
+            )
+            current_index += 1
 
     status.mob_inventory_collection = (
         constants.actor_creation_manager.create_interface_element(
@@ -2744,8 +2870,19 @@ def inventory_interface():
                     "tabbed": True,
                     "button_image_id": [
                         "buttons/default_button_alt2.png",
-                        {"image_id": "misc/green_circle.png", "size": 0.75},
-                        {"image_id": "items/consumer goods.png", "size": 0.75},
+                        {
+                            "image_id": "misc/circle.png",
+                            "green_screen": status.item_types[
+                                constants.CONSUMER_GOODS_ITEM
+                            ].background_color,
+                            "size": 0.75,
+                        },
+                        {
+                            "image_id": status.item_types[
+                                constants.CONSUMER_GOODS_ITEM
+                            ].item_image,
+                            "size": 0.75,
+                        },
                     ],
                     "identifier": constants.INVENTORY_PANEL,
                     "tab_name": "cargo",
@@ -2906,8 +3043,19 @@ def inventory_interface():
                     "tabbed": True,
                     "button_image_id": [
                         "buttons/default_button_alt2.png",
-                        {"image_id": "misc/green_circle.png", "size": 0.75},
-                        {"image_id": "items/consumer goods.png", "size": 0.75},
+                        {
+                            "image_id": "misc/circle.png",
+                            "green_screen": status.item_types[
+                                constants.CONSUMER_GOODS_ITEM
+                            ].background_color,
+                            "size": 0.75,
+                        },
+                        {
+                            "image_id": status.item_types[
+                                constants.CONSUMER_GOODS_ITEM
+                            ].item_image,
+                            "size": 0.75,
+                        },
                     ],
                     "identifier": constants.INVENTORY_PANEL,
                     "tab_name": "warehouses",

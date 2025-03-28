@@ -2,13 +2,13 @@
 
 from modules.action_types import action
 from modules.util import action_utility, utility, actor_utility, text_utility
-from modules.constructs import building_types
+from modules.constructs import building_types, item_types
 from modules.constants import constants, status, flags
 
 
 class construction(action.action):
     """
-    Action for construction gang to construct a certain type of building
+    Action for construction crew to construct a certain type of building
     """
 
     def initial_setup(self, **kwargs):
@@ -32,7 +32,7 @@ class construction(action.action):
         constants.transaction_descriptions["construction"] = "construction"
         self.requirements += self.building_type.build_requirements
         if self.building_type.key == constants.RESOURCE:
-            self.attached_resource = None
+            self.attached_resource: item_types.item_type = None
             self.building_name = "resource production facility"
         self.name = "construction"
         self.allow_critical_failures = False
@@ -206,22 +206,23 @@ class construction(action.action):
         if self.building_type.key == constants.RESOURCE:
             cell = status.displayed_mob.get_cell()
             if cell.terrain_handler.resource != self.attached_resource:
-                if cell.terrain_handler.resource in constants.collectable_resources:
-                    self.attached_resource = cell.terrain_handler.resource
-                    if self.attached_resource in ["gold", "iron", "copper", "diamond"]:
-                        self.building_name = self.attached_resource + " mine"
-                    elif self.attached_resource in [
-                        "exotic wood",
-                        "fruit",
-                        "rubber",
-                        "coffee",
-                    ]:
-                        self.building_name = self.attached_resource + " plantation"
-                    elif self.attached_resource == "ivory":
-                        self.building_name = "ivory camp"
-                else:
-                    self.attached_resource = None
-                    self.building_name = "resource production facility"
+                # if cell.terrain_handler.resource in constants.collectable_items:
+                #    self.attached_resource = cell.terrain_handler.resource
+                #    if self.attached_resource in ["gold", "iron", "copper", "diamond"]:
+                #        self.building_name = self.attached_resource + " mine"
+                #    elif self.attached_resource in [
+                #        "exotic wood",
+                #        "fruit",
+                #        "rubber",
+                #        "coffee",
+                #    ]:
+                #        self.building_name = self.attached_resource + " plantation"
+                #    elif self.attached_resource == "ivory":
+                #        self.building_name = "ivory camp"
+                # else:
+                self.attached_resource = None
+                self.building_name = "resource production facility"
+
                 displayed_resource = self.attached_resource
                 if not displayed_resource:
                     displayed_resource = "consumer goods"

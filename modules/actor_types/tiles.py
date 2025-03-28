@@ -2,9 +2,13 @@
 
 import pygame
 import random
+import math
+from typing import Tuple, Dict, List
 from modules.constructs import images
 from modules.util import utility, actor_utility, main_loop_utility
 from modules.actor_types.actors import actor
+from modules.interface_types import cells
+from modules.constructs import item_types
 from modules.constants import constants, status, flags
 
 
@@ -29,13 +33,15 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
+        status.tile_list.append(self)
         self.actor_type = constants.TILE_ACTOR_TYPE
-        self.selection_outline_color = "yellow"
-        self.actor_match_outline_color = "white"
+        self.selection_outline_color = constants.COLOR_YELLOW
+        self.actor_match_outline_color = constants.COLOR_WHITE
         input_dict["grids"] = [
             input_dict["grid"]
         ]  # Give actor a 1-item list of grids as input
         self.name_icon = None
+        self.resource: item_types.item_type = None
         super().__init__(from_save, input_dict, original_constructor=False)
         self.set_name(input_dict["name"])
         self.image_dict = {"default": input_dict["image"]}
@@ -60,6 +66,10 @@ class tile(actor):  # to do: make terrain tiles a subclass
             )  # terrain is a property of the cell, being stored information rather than appearance, same for resource, set these in cell
             if self.cell.grid.from_save:
                 self.inventory = self.cell.save_dict["inventory"]
+            if self.cell.grid == status.strategic_map_grid:
+                status.main_tile_list.append(
+                    self
+                )  # List of all tiles that can be interacted with, and don't purely exist for visual purposes - 1:1 correspondence with terrain handlers
 
         elif self.grid.grid_type in constants.abstract_grid_type_list:
             self.cell.tile = self
@@ -68,11 +78,15 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 self.inventory = self.cell.save_dict["inventory"]
             if (
                 self.grid.grid_type == constants.EARTH_GRID_TYPE
-            ):  # Earth should be able to hold commodities despite not being terrain
+            ):  # Earth should be able to hold items despite not being terrain
                 self.infinite_inventory_capacity = True
                 if constants.effect_manager.effect_active("infinite_commodities"):
-                    for current_commodity in constants.commodity_types:
-                        self.inventory[current_commodity] = 10
+                    for current_item_type in status.item_types.values():
+                        if current_item_type.can_sell:
+                            self.inventory[current_item_type.key] = 10
+            status.main_tile_list.append(
+                self
+            )  # List of all tiles that can be interacted with, and don't purely exist for visual purposes - 1:1 correspondence with terrain handlers
         else:
             self.terrain = None
         self.finish_init(original_constructor, from_save, input_dict)
@@ -88,6 +102,17 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             "name"
                         ]
                     )
+
+    def get_cell(self) -> cells.cell:
+        """
+        Description:
+            Returns the cell this tile is currently in
+        Input:
+            None
+        Output:
+            cell: Returns the cell this tile is currently in
+        """
+        return self.cell
 
     def set_name(self, new_name):
         """
@@ -141,6 +166,8 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         super().remove()
+        status.tile_list = utility.remove_from_list(status.tile_list, self)
+        status.main_tile_list = utility.remove_from_list(status.main_tile_list, self)
         if self.name_icon:
             self.name_icon.remove()
 
@@ -192,45 +219,166 @@ class tile(actor):  # to do: make terrain tiles a subclass
             for tile in self.get_equivalent_tiles():
                 tile.draw_actor_match_outline(recursive=True)
 
+    def get_all_local_inventory(self) -> Dict[str, float]:
+        """
+        Description:
+            Returns a dictionary of all items held by this tile and local mobs
+        Input:
+            None
+        Output:
+            None
+        """
+        return utility.add_dicts(
+            self.inventory, *[mob.inventory for mob in self.cell.contained_mobs]
+        )
+
+    def create_item_request(self, required_items: Dict[str, float]) -> Dict[str, float]:
+        """
+        Description:
+            Given a dictionary of required items with amounts, create a dictionary of the amount of items that need to be externally sourced to meet the requirements
+        Input:
+            Dict[str, float] required_items: Dictionary of required items with amounts
+        Output:
+            Dict[str, float]: Dictionary of items with amounts that need to be externally sourced to meet the requirements
+        """
+        return {
+            key: value
+            for key, value in utility.subtract_dicts(
+                required_items, self.get_all_local_inventory()
+            ).items()
+            if value > 0
+        }
+
+    def fulfill_item_request(
+        self, requested_items: Dict[str, float]
+    ) -> Dict[str, float]:
+        """
+        Description:
+            Attempt to externally source the requested items
+        Input:
+            Dict[str, float] requested_items: Dictionary of items with amounts that need to be externally sourced to meet the requirements
+        Output:
+            Dict[str, float]: Dictionary of items with amounts that can not be provided
+        """
+        if constants.ENERGY_ITEM in requested_items:
+            missing_energy = self.consume_items(
+                {constants.FUEL_ITEM: requested_items[constants.ENERGY_ITEM]}
+            ).get(constants.ENERGY_ITEM, 0)
+            # Attempt to consume fuel equal to energy request - returns amount of request that cannot be met
+            self.change_inventory(
+                status.item_types[constants.ENERGY_ITEM],
+                requested_items[constants.ENERGY_ITEM] - missing_energy,
+            )  # Turn fuel into required energy
+            requested_items[constants.ENERGY_ITEM] = missing_energy
+        return requested_items
+
+    def get_item_upkeep(
+        self, recurse: bool = False, earth_exemption: bool = True
+    ) -> Dict[str, float]:
+        """
+        Description:
+            Returns the item upkeep requirements for all units in this tile
+        Input:
+            None
+        Output:
+            dictionary: Returns the item upkeep requirements for all units in this tile
+        """
+        return utility.add_dicts(
+            *[
+                mob.get_item_upkeep(recurse=recurse, earth_exemption=earth_exemption)
+                for mob in self.cell.contained_mobs
+            ]
+        )
+
     def remove_excess_inventory(self):
         """
         Description:
-            Removes random excess commodities from this tile until the number of commodities fits in this tile's inventory capacity
+            Removes random excess items from this tile until the number of items fits in this tile's inventory capacity
         Input:
             None
         Output:
             None
         """
+        lost_items: Dict[str, float] = {}
         if not self.infinite_inventory_capacity:
-            inventory_used = self.get_inventory_used()
-            amount_to_remove = inventory_used - self.inventory_capacity
+            amount_to_remove = self.get_inventory_used() - self.inventory_capacity
             if amount_to_remove > 0:
-                commodity_types = self.get_held_commodities()
-                amount_removed = 0
-                while amount_removed < amount_to_remove:
-                    commodity_removed = random.choice(commodity_types)
-                    if self.get_inventory(commodity_removed) > 0:
-                        self.change_inventory(commodity_removed, -1)
-                        amount_removed += 1
+                for current_item_type in self.get_held_items():
+                    decimal_amount = round(
+                        self.get_inventory(current_item_type)
+                        - math.floor(self.get_inventory(current_item_type)),
+                        2,
+                    )
+                    if (
+                        decimal_amount > 0
+                    ):  # Best to remove partially consumed items first, since they each take an entire inventory slot
+                        lost_items[current_item_type.key] = (
+                            lost_items.get(current_item_type.key, 0) + decimal_amount
+                        )
+                        self.change_inventory(current_item_type, -decimal_amount)
+                        amount_to_remove -= 1
+                    if amount_to_remove <= 0:
+                        break
+            if amount_to_remove > 0:
+                items_held = []
+                for current_item_type in self.get_held_items():
+                    items_held += [current_item_type] * self.get_inventory(
+                        current_item_type
+                    )
+                item_types_removed = random.sample(
+                    population=items_held, k=amount_to_remove
+                )
+                for (
+                    current_item_type
+                ) in item_types_removed:  # Randomly remove amount_to_remove items
+                    lost_items[current_item_type.key] = (
+                        lost_items.get(current_item_type.key, 0) + 1
+                    )
+                    self.change_inventory(current_item_type, -1)
+        if sum(lost_items.values()) > 0:
+            if sum(lost_items.values()) == 1:
+                was_word = "was"
+            else:
+                was_word = "were"
+            status.logistics_incident_list.append(
+                {
+                    "unit": self,
+                    "cell": self.get_cell(),
+                    "explanation": f"{actor_utility.summarize_amount_dict(lost_items)} {was_word} lost due to insufficient storage space.",
+                }
+            )
 
-    def set_inventory(self, commodity, new_value):
+    def set_inventory(self, item: item_types.item_type, new_value: int) -> None:
         """
         Description:
-            Sets the number of commodities of a certain type held by this tile. Also ensures that the tile info display is updated correctly
+            Sets the number of items of a certain type held by this tile. Also ensures that the tile info display is updated correctly
         Input:
-            string commodity: Type of commodity to set the inventory of
-            int new_value: Amount of commodities of the inputted type to set inventory to
+            item_type item: Type of item to set the inventory of
+            int new_value: Amount of items of the inputted type to set inventory to
         Output:
             None
         """
-        super().set_inventory(commodity, new_value)
+        super().set_inventory(item, new_value)
         equivalent_tiles = self.get_equivalent_tiles()
         for tile in equivalent_tiles:
-            tile.inventory[commodity] = new_value
+            tile.inventory[item.key] = self.get_inventory(item)
         if status.displayed_tile in [self] + equivalent_tiles:
             actor_utility.calibrate_actor_info_display(status.tile_info_display, self)
 
-    def get_main_grid_coordinates(self):
+    def set_inventory_capacity(self, new_value):
+        """
+        Description:
+            Sets this unit's inventory capacity, updating info displays as needed
+        Input:
+            int new_value: New inventory capacity value
+        Output:
+            None
+        """
+        for tile in self.get_equivalent_tiles():
+            tile.inventory_capacity = new_value
+        super().set_inventory_capacity(new_value)
+
+    def get_main_grid_coordinates(self) -> Tuple[int, int]:
         """
         Description:
             Returns the coordinates cooresponding to this tile on the strategic map grid. If this tile is already on the strategic map grid, just returns this tile's coordinates
@@ -527,12 +675,14 @@ class tile(actor):  # to do: make terrain tiles a subclass
             actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
             actor_utility.calibrate_actor_info_display(status.tile_info_display, self)
 
-    def set_resource(self, new_resource, update_image_bundle=True):
+    def set_resource(
+        self, new_resource: item_types.item_type, update_image_bundle=True
+    ):
         """
         Description:
             Sets the resource type of this tile to the inputted value, removing or creating resource icons as needed
         Input:
-            string new_resource: The new resource type of this tile, like 'exotic wood'
+            item_type new_resource: The new resource type of this tile, like "Gold" or None
             boolean update_image_bundle: Whether to update the image bundle - if multiple sets are being used on a tile, optimal to only update after the last one
         Output:
             None
@@ -572,79 +722,123 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
-        tooltip_message = []
-        if self.show_terrain:
-            coordinates = self.get_main_grid_coordinates()
-            tooltip_message.append(f"Coordinates: ({coordinates[0]}, {coordinates[1]})")
-            if self.cell.terrain_handler.terrain:
-                knowledge_value = self.cell.terrain_handler.get_parameter(
-                    constants.KNOWLEDGE
-                )
-                knowledge_keyword = (
-                    constants.terrain_manager.terrain_parameter_keywords[
-                        constants.KNOWLEDGE
-                    ][knowledge_value]
-                )
-                knowledge_maximum = maximum = self.cell.terrain_handler.maxima.get(
-                    constants.KNOWLEDGE, 5
-                )
+        if not (
+            self.cell.grid == status.strategic_map_grid
+            or self.cell.grid.is_abstract_grid
+        ):
+            main_tile = self.get_equivalent_tiles()[0]
+            main_tile.update_tooltip()
+            self.set_tooltip(main_tile.tooltip_text)
+        else:
+            tooltip_message = []
+            if self.grid.is_abstract_grid:
+                tooltip_message.append(self.name)
+            elif self.show_terrain:
+                coordinates = self.get_main_grid_coordinates()
                 tooltip_message.append(
-                    f"Knowledge: {knowledge_keyword} ({knowledge_value}/{knowledge_maximum})"
+                    f"Coordinates: ({coordinates[0]}, {coordinates[1]})"
                 )
+                if self.cell.terrain_handler.terrain:
+                    knowledge_value = self.cell.terrain_handler.get_parameter(
+                        constants.KNOWLEDGE
+                    )
+                    knowledge_keyword = (
+                        constants.terrain_manager.terrain_parameter_keywords[
+                            constants.KNOWLEDGE
+                        ][knowledge_value]
+                    )
+                    knowledge_maximum = maximum = self.cell.terrain_handler.maxima.get(
+                        constants.KNOWLEDGE, 5
+                    )
+                    tooltip_message.append(
+                        f"Knowledge: {knowledge_keyword} ({knowledge_value}/{knowledge_maximum})"
+                    )
 
-                if self.cell.terrain_handler.knowledge_available(
-                    constants.TERRAIN_KNOWLEDGE
+                    if self.cell.terrain_handler.knowledge_available(
+                        constants.TERRAIN_KNOWLEDGE
+                    ):
+                        tooltip_message.append(
+                            f"    Terrain: {self.cell.terrain_handler.terrain.replace('_', ' ')}"
+                        )
+                        if self.cell.terrain_handler.knowledge_available(
+                            constants.TERRAIN_PARAMETER_KNOWLEDGE
+                        ):
+                            for terrain_parameter in constants.terrain_parameters:
+                                if terrain_parameter != constants.KNOWLEDGE:
+                                    maximum = self.cell.terrain_handler.maxima.get(
+                                        terrain_parameter, 5
+                                    )
+                                    value = self.cell.get_parameter(terrain_parameter)
+                                    keyword = constants.terrain_manager.terrain_parameter_keywords[
+                                        terrain_parameter
+                                    ][
+                                        value
+                                    ]
+                                    tooltip_message.append(
+                                        f"    {terrain_parameter.capitalize()}: {keyword} ({value}/{maximum})"
+                                    )
+                        else:
+                            tooltip_message.append(f"    Details unknown")
+                    else:
+                        tooltip_message.append(f"    Terrain unknown")
+
+            if self.cell.terrain_handler.get_world_handler():
+                overall_habitability = (
+                    self.cell.terrain_handler.get_known_habitability()
+                )
+                if (not self.cell.grid.is_abstract_grid) and (
+                    self.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
+                    < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
                 ):
                     tooltip_message.append(
-                        f"    Terrain: {self.cell.terrain_handler.terrain.replace('_', ' ')}"
+                        f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability].capitalize()} (estimated)"
                     )
-                    if self.cell.terrain_handler.knowledge_available(
-                        constants.TERRAIN_PARAMETER_KNOWLEDGE
-                    ):
-                        for terrain_parameter in constants.terrain_parameters:
-                            if terrain_parameter != constants.KNOWLEDGE:
-                                maximum = self.cell.terrain_handler.maxima.get(
-                                    terrain_parameter, 5
-                                )
-                                value = self.cell.get_parameter(terrain_parameter)
-                                keyword = constants.terrain_manager.terrain_parameter_keywords[
-                                    terrain_parameter
-                                ][
-                                    value
-                                ]
-                                tooltip_message.append(
-                                    f"    {terrain_parameter.capitalize()}: {keyword} ({value}/{maximum})"
-                                )
-                    else:
-                        tooltip_message.append(f"    Details unknown")
                 else:
-                    tooltip_message.append(f"    Terrain unknown")
+                    tooltip_message.append(
+                        f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability].capitalize()}"
+                    )
 
-            if self.cell.terrain_handler.resource:  # If resource present, show resource
-                tooltip_message.append(
-                    f"This tile has {utility.generate_article(self.cell.terrain_handler.resource)} {self.cell.terrain_handler.resource} resource"
-                )
-            for terrain_feature in self.cell.terrain_handler.terrain_features:
-                if status.terrain_feature_types[terrain_feature].visible:
-                    tooltip_message += status.terrain_feature_types[
-                        terrain_feature
-                    ].description
-        elif self.grid.is_abstract_grid:
-            tooltip_message.append(self.name)
-        if self.cell.terrain_handler.get_world_handler():
-            overall_habitability = self.cell.terrain_handler.get_known_habitability()
-            if (not self.cell.grid.is_abstract_grid) and (
-                self.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
-                < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
+            if self.show_terrain:
+                for current_building in self.cell.get_buildings():
+                    current_building.update_tooltip()
+                    tooltip_message.append("")
+                    tooltip_message += current_building.tooltip_text
+
+                if (
+                    self.cell.terrain_handler.resource
+                ):  # If resource present, show resource
+                    tooltip_message.append("")
+                    tooltip_message.append(
+                        f"This tile has {utility.generate_article(self.cell.terrain_handler.resource.name)} {self.cell.terrain_handler.resource.name} resource"
+                    )
+                for terrain_feature in self.cell.terrain_handler.terrain_features:
+                    if status.terrain_feature_types[terrain_feature].visible:
+                        tooltip_message.append("")
+                        tooltip_message += status.terrain_feature_types[
+                            terrain_feature
+                        ].description
+
+            held_items: List[item_types.item_type] = self.get_held_items()
+            if (
+                held_items
+                or self.inventory_capacity > 0
+                or self.infinite_inventory_capacity
             ):
-                tooltip_message.append(
-                    f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability]} (estimated)"
-                )
-            else:
-                tooltip_message.append(
-                    f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability]}"
-                )
-        self.set_tooltip(tooltip_message)
+                if self.infinite_inventory_capacity:
+                    tooltip_message.append(f"Inventory: {self.get_inventory_used()}")
+                else:
+                    tooltip_message.append(
+                        f"Inventory: {self.get_inventory_used()}/{self.inventory_capacity}"
+                    )
+                if not held_items:
+                    tooltip_message.append("    None")
+                else:
+                    for item_type in held_items:
+                        tooltip_message.append(
+                            f"    {item_type.name.capitalize()}: {self.get_inventory(item_type)}"
+                        )
+
+            self.set_tooltip(tooltip_message)
 
     def set_coordinates(self, x, y):
         """

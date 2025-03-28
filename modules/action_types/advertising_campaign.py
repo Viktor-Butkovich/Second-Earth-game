@@ -9,13 +9,14 @@ from modules.util import (
     scaling,
     game_transitions,
 )
+from modules.constructs import item_types
 from modules.action_types import action
 from modules.constants import constants, status, flags
 
 
 class advertising_campaign(action.campaign):
     """
-    Action for merchant on Earth to increase the price of a particular commodity while lowering a random other
+    Action for merchant on Earth to increase the price of a particular item while lowering a random other
     """
 
     def initial_setup(self):
@@ -30,7 +31,8 @@ class advertising_campaign(action.campaign):
         super().initial_setup()
         constants.transaction_descriptions[self.action_type] = "advertising"
         self.name = "advertising campaign"
-        self.target_commodity = None
+        self.target_item: item_types.item_type = None
+        self.target_unadvertised_item: item_types.item_type = None
         self.requirements += [
             constants.OFFICER_PERMISSION,
             constants.MERCHANT_PERMISSION,
@@ -71,9 +73,9 @@ class advertising_campaign(action.campaign):
             None
         """
         return [
-            f"Attempts to advertise a chosen commodity and increase its price for {self.get_price()} money",
+            f"Attempts to advertise a chosen item and increase its price for {self.get_price()} money",
             f"Can only be done on Earth",
-            f"If successful, increases the price of a chosen commodity while randomly decreasing the price of another",
+            f"If successful, increases the price of a chosen item while randomly decreasing the price of another",
             f"Costs all remaining movement points, at least 1",
             f"Each {self.name} attempted doubles the cost of other advertising campaigns in the same turn",
         ]
@@ -89,49 +91,47 @@ class advertising_campaign(action.campaign):
         """
         text = super().generate_notification_text(subject)
         if subject == "confirmation":
-            text += f"Are you sure you want to start an advertising campaign for {self.target_commodity}? If successful, the price of {self.target_commodity} will increase, decreasing the price of another random commodity. /n /n"
+            text += f"Are you sure you want to start an advertising campaign for {self.target_item.name}? If successful, the price of {self.target_item.name} will increase, decreasing the price of another random item. /n /n"
             text += f"The campaign will cost {self.get_price()} money. /n /n "
         elif subject == "initial":
-            text += f"The merchant attempts to increase public demand for {self.target_commodity}. /n /n"
+            text += f"The merchant attempts to increase public demand for {self.target_item.name}. /n /n"
             (
                 advertising_message,
                 index,
             ) = constants.flavor_text_manager.generate_substituted_indexed_flavor_text(
-                "advertising_campaign", "_", self.target_commodity
+                "advertising_campaign", "_", self.target_item.name
             )
-            self.success_audio = [
-                {
-                    "sound_id": f"voices/advertising/messages/{index}",
-                    "dampen_music": True,
-                    "dampen_time_interval": 0.75,
-                    "volume": 1.0,
-                },
-                {
-                    "sound_id": f"voices/advertising/commodities/{self.target_commodity}",
-                    "in_sequence": True,
-                },
-            ]
+            self.success_audio = None  # [
+            #    {
+            #        "sound_id": f"voices/advertising/messages/{index}",
+            #        "dampen_music": True,
+            #        "dampen_time_interval": 0.75,
+            #        "volume": 1.0,
+            #    },
+            #    {
+            #        "sound_id": f"voices/advertising/commodities/{self.target_item.key}",
+            #        "in_sequence": True,
+            #    },
+            # ]
             text += f"{advertising_message} /n /n"
         elif subject == "success":
             increase = 1
             if self.roll_result >= 6:
                 increase += 1
-            advertised_original_price = constants.item_prices[self.target_commodity]
-            unadvertised_original_price = constants.item_prices[
-                self.target_unadvertised_commodity
-            ]
+            advertised_original_price = self.target_item.price
+            unadvertised_original_price = self.target_unadvertised_item.price
             unadvertised_final_price = unadvertised_original_price - increase
             if unadvertised_final_price < 1:
                 unadvertised_final_price = 1
-            text += f"The merchant successfully advertised for {self.target_commodity}, increasing its price from {advertised_original_price} to "
-            text += f"{advertised_original_price + increase}. The price of {self.target_unadvertised_commodity} decreased from {unadvertised_original_price} to {unadvertised_final_price}. /n /n"
+            text += f"The merchant successfully advertised for {self.target_item.name}, increasing its price from {advertised_original_price} to "
+            text += f"{advertised_original_price + increase}. The price of {self.target_unadvertised_item.name} decreased from {unadvertised_original_price} to {unadvertised_final_price}. /n /n"
             if self.roll_result >= 6:
-                text += f"The advertising campaign was so popular that the value of {self.target_commodity} increased by 2 instead of 1. /n /n"
+                text += f"The advertising campaign was so popular that the value of {self.target_item.name} increased by 2 instead of 1. /n /n"
         elif subject == "critical_success":
             text += self.generate_notification_text("success")
             text += "This merchant is now a veteran. /n /n"
         elif subject == "failure":
-            text += f"The merchant failed to increase the popularity of {self.target_commodity}. /n /n"
+            text += f"The merchant failed to increase the popularity of {self.target_item.name}. /n /n"
         elif subject == "critical_failure":
             text += self.generate_notification_text("failure")
             text += "Embarassed by this utter failure, the merchant quits your company. /n /n"
@@ -151,11 +151,13 @@ class advertising_campaign(action.campaign):
             return_list.append(
                 action_utility.generate_free_image_input_dict(
                     [
-                        {"image_id": "misc/green_circle.png", "size": 0.75},
                         {
-                            "image_id": "items/"
-                            + self.target_unadvertised_commodity
-                            + ".png",
+                            "image_id": "misc/circle.png",
+                            "green_screen": self.target_unadvertised_item.background_color,
+                            "size": 0.75,
+                        },
+                        {
+                            "image_id": f"items/{self.target_unadvertised_item.key}.png",
                             "size": 0.75,
                         },
                         {
@@ -178,9 +180,13 @@ class advertising_campaign(action.campaign):
             return_list.append(
                 action_utility.generate_free_image_input_dict(
                     [
-                        {"image_id": "misc/green_circle.png", "size": 0.75},
                         {
-                            "image_id": "items/" + self.target_commodity + ".png",
+                            "image_id": "misc/circle.png",
+                            "green_screen": self.target_item.background_color,
+                            "size": 0.75,
+                        },
+                        {
+                            "image_id": f"items/{self.target_item.key}.png",
                             "size": 0.75,
                         },
                         {
@@ -214,7 +220,8 @@ class advertising_campaign(action.campaign):
         audio = super().generate_audio(subject)
         if subject == "roll_finished":
             if self.roll_result >= self.current_min_success:
-                audio += self.success_audio
+                if self.success_audio:
+                    audio += self.success_audio
         return audio
 
     def on_click(self, unit):
@@ -232,34 +239,33 @@ class advertising_campaign(action.campaign):
                     game_transitions.set_game_mode(constants.EARTH_MODE)
                     unit.select()
                 text_utility.print_to_screen(
-                    "Select a commodity to advertise, or click elsewhere to cancel: "
+                    "Select an item to advertise, or click elsewhere to cancel: "
                 )
-                flags.choosing_advertised_commodity = True
+                flags.choosing_advertised_item = True
             else:
                 text_utility.print_to_screen(
-                    self.name.capitalize() + "s are only possible on Earth"
+                    f"{self.name.capitalize()}s are only possible on Earth"
                 )
 
-    def start(self, unit, commodity):
+    def start(self, unit, target_item):
         """
         Description:
             Used when the player clicks on the start action button, displays a choice notification that allows the player to start or not
         Input:
             pmob unit: Unit selected when the linked button is clicked
+            item_type target_item: Item type to advertise
         Output:
             None
         """
-        flags.choosing_advertised_commodity = False
-        self.target_commodity = commodity
-        self.target_unadvertised_commodity = random.choice(constants.commodity_types)
-        while (
-            (not self.target_unadvertised_commodity in constants.collectable_resources)
-            or self.target_unadvertised_commodity == self.target_commodity
-            or constants.item_prices[self.target_unadvertised_commodity] == 1
-        ):
-            self.target_unadvertised_commodity = random.choice(
-                constants.commodity_types
-            )
+        flags.choosing_advertised_item = False
+        self.target_item = target_item
+        self.target_unadvertised_item = random.choice(
+            [
+                item
+                for item in status.item_types.values()
+                if item.can_sell and item.price > 1 and item != self.target_item
+            ]
+        )
 
         if super().start(unit):
             constants.notification_manager.display_notification(
@@ -270,7 +276,7 @@ class advertising_campaign(action.campaign):
                         {
                             "on_click": (self.middle, []),
                             "tooltip": [
-                                f"Starts an {self.name} for {self.target_commodity}"
+                                f"Starts an {self.name} for {self.target_item.name}"
                             ],
                             "message": "Start campaign",
                         },
@@ -292,10 +298,8 @@ class advertising_campaign(action.campaign):
             increase = 1
             if self.roll_result >= self.current_min_crit_success:
                 increase += 1
-            market_utility.change_price(self.target_commodity, increase)
-            market_utility.change_price(
-                self.target_unadvertised_commodity, -1 * increase
-            )
+            market_utility.change_price(self.target_item, increase)
+            market_utility.change_price(self.target_unadvertised_item, -1 * increase)
         elif self.roll_result <= self.current_max_crit_fail:
             self.current_unit.die("quit")
         super().complete()

@@ -2,9 +2,10 @@
 
 import pygame
 import random
-from typing import Dict
+from typing import Dict, List
 from modules.actor_types.mobs import mob
 from modules.util import text_utility, utility, actor_utility, minister_utility
+from modules.constructs import item_types
 from modules.constants import constants, status, flags
 
 
@@ -43,9 +44,12 @@ class pmob(mob):
         """
         self.sentry_mode = False
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.selection_outline_color = "bright green"
+        self.selection_outline_color = constants.COLOR_BRIGHT_GREEN
         status.pmob_list.append(self)
         self.equipment = {}
+        self.upkeep_missing_penalty: str = None
+        self.upkeep_missing_item_key: str = None
+        self.item_upkeep_present: Dict[str, bool] = {}
         for current_equipment in input_dict.get("equipment", {}):
             if input_dict.get("equipment", {}).get(current_equipment, False):
                 status.equipment_types[current_equipment].equip(self)
@@ -62,6 +66,9 @@ class pmob(mob):
                 self.end_turn_destination = end_turn_destination_grid.find_cell(
                     end_turn_destination_x, end_turn_destination_y
                 ).tile
+                self.set_permission(
+                    constants.TRAVELING_PERMISSION, True, update_image=False
+                )
             self.default_name = input_dict["default_name"]
             self.set_name(self.default_name)
             self.set_automatically_replace(input_dict["automatically_replace"])
@@ -157,8 +164,12 @@ class pmob(mob):
                 status.mob_info_display, None, override_exempt=True
             )
             vehicle.select()
+            constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)
+            constants.sound_manager.play_sound(
+                "effects/spaceship_activation", volume=0.6
+            )
 
-    def uncrew_vehicle(self, vehicle):
+    def uncrew_vehicle(self, vehicle, focus: bool = True):
         """
         Description:
             Orders this worker to stop crewing the inputted vehicle, making this worker independent from the vehicle and preventing the vehicle from functioning
@@ -177,11 +188,253 @@ class pmob(mob):
                 self.set_permission(constants.DISORGANIZED_PERMISSION, True)
         vehicle.set_crew(None)
         vehicle.end_turn_destination = None
+        vehicle.set_permission(
+            constants.TRAVELING_PERMISSION, False, update_image=False
+        )
         vehicle.remove_from_turn_queue()
         self.update_image_bundle()
-        self.select()
+        if focus:
+            self.select()
+            constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)
         self.add_to_turn_queue()
         self.update_habitability()
+
+    def get_item_upkeep(
+        self, recurse: bool = False, earth_exemption: bool = True
+    ) -> Dict[str, float]:
+        """
+        Description:
+            Returns the item upkeep requirements for this unit type
+        Input:
+            None
+        Output:
+            dictionary: Returns the item upkeep requirements for this unit type
+        """
+        if not self.get_permission(
+            constants.SURVIVABLE_PERMISSION
+        ):  # Don't pay upkeep if in deadly conditions - unit dies before upkeep is paid
+            if not (
+                self.any_permissions(
+                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
+                )
+                and self.get_permission(constants.IN_GROUP_PERMISSION)
+            ):
+                return {}
+        if earth_exemption and self.get_cell().grid == status.earth_grid:
+            return {}
+        elif (
+            earth_exemption
+            and self.get_cell().terrain_handler.get_unit_habitability()
+            > constants.HABITABILITY_DEADLY
+        ):
+            item_upkeep = self.unit_type.item_upkeep.copy()
+            item_upkeep.pop(
+                constants.AIR_ITEM, None
+            )  # Return a version without air requirements
+            return item_upkeep
+        else:
+            return self.unit_type.item_upkeep
+
+    def in_deadly_environment(self) -> bool:
+        """
+        Description:
+            Returns whether this unit is imminently going to die to deadly environmental conditions
+        Input:
+            None
+        Output:
+            bool: Returns whether this unit is imminently going to die to deadly environmental conditions
+        """
+        if not self.get_permission(constants.SURVIVABLE_PERMISSION):
+            if not (
+                self.any_permissions(
+                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
+                )
+                and self.get_permission(constants.IN_GROUP_PERMISSION)
+            ):
+                return True
+        return False
+
+    def consume_item_upkeep(self) -> None:
+        """
+        Description:
+            Consumes all available items required for this unit's item upkeep, logging an upkeep missing penalty for the most important missing item type
+                Item upkeep of sub-mobs needs to be handled separately
+        Input:
+            None
+        Output:
+            None
+        """
+        if self.in_deadly_environment():
+            return  # Don't consume upkeep when in instant death conditions
+
+        missing_upkeep = self.consume_items(self.get_item_upkeep(recurse=False))
+        for (
+            item_key,
+            item_present,
+        ) in (
+            self.item_upkeep_present.items()
+        ):  # Register missing upkeep of 0 if none was present - allows officer attrition if no items present
+            if not item_present:
+                missing_upkeep[item_key] = missing_upkeep.get(item_key, 0)
+
+        possible_penalties = [constants.UPKEEP_MISSING_PENALTY_NONE] + [
+            self.unit_type.missing_upkeep_penalties[item_key]
+            for item_key in missing_upkeep
+        ]
+        self.upkeep_missing_penalty, self.upkeep_missing_item_key = max(
+            [(constants.UPKEEP_MISSING_PENALTY_NONE, None)]
+            + [
+                (self.unit_type.missing_upkeep_penalties[item_key], item_key)
+                for item_key in missing_upkeep
+            ],
+            key=lambda x: x[0],
+        )
+
+        if constants.UPKEEP_MISSING_PENALTY_DEHYDRATION in possible_penalties:
+            if self.get_permission(constants.DEHYDRATION_PERMISSION):
+                # If would dehydrate again, die instead
+                self.upkeep_missing_penalty = constants.UPKEEP_MISSING_PENALTY_DEATH
+        else:
+            # If received sufficient water, recover from any existing starvation
+            self.set_permission(constants.DEHYDRATION_PERMISSION, False)
+
+        if constants.UPKEEP_MISSING_PENALTY_STARVATION in possible_penalties:
+            if self.get_permission(constants.STARVATION_PERMISSION):
+                # If would starve again, die instead
+                self.upkeep_missing_penalty = constants.UPKEEP_MISSING_PENALTY_DEATH
+            elif (
+                self.upkeep_missing_penalty
+                == constants.UPKEEP_MISSING_PENALTY_DEHYDRATION
+            ):  # Become starving even if dehydrating (doesn't make sense to only use most severe penalty in this context)
+                self.set_permission(constants.STARVATION_PERMISSION, True)
+                self.record_logistics_incident(
+                    incident_type=constants.UPKEEP_MISSING_PENALTY_STARVATION,
+                    cause=constants.FOOD_ITEM,
+                )
+        else:
+            # If received sufficient food, recover from any existing starvation
+            self.set_permission(constants.STARVATION_PERMISSION, False)
+
+        self.record_upkeep_missing_penalty()
+
+        # Get the most severe penalty of the resource types with any missed upkeep
+
+        if constants.effect_manager.effect_active("track_item_requests"):
+            if missing_upkeep:
+                print(
+                    f"{self.name} attempted to consume {self.get_item_upkeep(recurse=False)}"
+                )
+                print(
+                    f"{self.name} missing {missing_upkeep}, invoking upkeep penalty {constants.UPKEEP_MISSING_PENALTY_CODES[self.upkeep_missing_penalty]}"
+                )
+            else:
+                print(
+                    f"{self.name} successfully consumed {self.get_item_upkeep(recurse=False)}"
+                )
+        for current_sub_mob in self.get_sub_mobs():
+            current_sub_mob.consume_item_upkeep()
+
+    def check_item_availability(self) -> None:
+        """
+        Description:
+            Checks whether any of the items required for this unit's item upkeep are present (regardless of amount)
+        Input:
+            None
+        Output:
+            None
+        """
+        self.item_upkeep_present = {}
+        for item_key in self.get_item_upkeep():
+            self.item_upkeep_present[item_key] = self.item_present(
+                status.item_types[item_key]
+            )
+            # Note whether any of the item type was present - officers require the presence of items, but don't consume them
+            # In the future, check if any of the item type is present in the local supply network
+        for current_sub_mob in self.get_sub_mobs():
+            current_sub_mob.check_item_availability()
+
+    def record_upkeep_missing_penalty(self) -> None:
+        """
+        Description:
+            Records this unit's most severe upkeep missing penalty as a message to display at the start of the turn
+        Input:
+            None
+        Output:
+            None
+        """
+        if self.upkeep_missing_penalty != constants.UPKEEP_MISSING_PENALTY_NONE:
+            self.record_logistics_incident(
+                incident_type=self.upkeep_missing_penalty,
+                cause=self.upkeep_missing_item_key,
+            )
+
+    def resolve_upkeep_missing_penalty(self) -> None:
+        """
+        Description:
+            Apply an effect based on the most severe upkeep missing penalty type due to missing item upkeep from earlier in the turn (if any)
+        Input:
+            None
+        Output:
+            None
+        """
+        if self.upkeep_missing_penalty == constants.UPKEEP_MISSING_PENALTY_DEATH:
+            self.die()
+        elif (
+            self.upkeep_missing_penalty == constants.UPKEEP_MISSING_PENALTY_DEHYDRATION
+        ):
+            self.set_permission(constants.DEHYDRATION_PERMISSION, True)
+        elif self.upkeep_missing_penalty == constants.UPKEEP_MISSING_PENALTY_STARVATION:
+            self.set_permission(constants.STARVATION_PERMISSION, True)
+        elif self.upkeep_missing_penalty == constants.UPKEEP_MISSING_PENALTY_MORALE:
+            constants.public_opinion_tracker.change(-2)
+        else:
+            pass
+
+    def get_sub_mobs(self) -> List["pmob"]:
+        """
+        Description:
+            Returns a list of units managed by this unit
+        Input:
+            None
+        Output:
+            list: Returns a list of units managed by this unit
+        """
+        return []
+
+    def die(self, death_type="violent"):
+        """
+        Description:
+            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Used instead of remove to improve consistency with groups/vehicles, whose die and remove have different
+                functionalities
+        Input:
+            string death_type == 'violent': Type of death for this unit, determining the type of sound played
+        Output:
+            None
+        """
+        reembarked_units = None
+        if self.get_permission(constants.IN_GROUP_PERMISSION):
+            moved_unit = self.group
+        else:
+            moved_unit = self
+        if moved_unit.get_permission(constants.IN_VEHICLE_PERMISSION):
+            if moved_unit.vehicle.crew == moved_unit:
+                moved_unit.vehicle.eject_passengers(focus=False)
+                moved_unit.vehicle.drop_inventory()
+                moved_unit.uncrew_vehicle(moved_unit.vehicle, focus=False)
+            else:
+                if self.get_permission(constants.IN_GROUP_PERMISSION):
+                    if self.get_permission(constants.OFFICER_PERMISSION):
+                        reembarked_units = (self.group.worker, self.group.vehicle)
+                    else:
+                        reembarked_units = (self.group.officer, self.group.vehicle)
+                moved_unit.disembark_vehicle(moved_unit.vehicle, focus=False)
+        if self.get_permission(constants.IN_GROUP_PERMISSION):
+            self.group.disband(focus=False)
+        super().die()
+        if (
+            reembarked_units
+        ):  # If group member passenger dies, reembark other group member
+            reembarked_units[0].embark_vehicle(reembarked_units[1], focus=False)
 
     def on_move(self):
         """
@@ -368,7 +621,8 @@ class pmob(mob):
             ) or (
                 (not self.wait_until_full)
                 and (
-                    len(self.get_cell().tile.get_held_commodities(True)) > 0
+                    len(self.get_cell().tile.get_held_items(ignore_consumer_goods=True))
+                    > 0
                     or self.get_inventory_used() > 0
                 )
             ):  # only start round trip if there is something to deliver, either from tile or in inventory already
@@ -392,8 +646,8 @@ class pmob(mob):
     def follow_automatic_route(self):
         """
         Description:
-            Moves along this unit's in-progress movement route until it cannot complete the next step. A unit will wait for commodities to transport from the start, then pick them up and move along the path, picking up others along
-                the way. At the end of the path, it drops all commodities and moves back towards the start
+            Moves along this unit's in-progress movement route until it cannot complete the next step. A unit will wait for items to transport from the start, then pick them up and move along the path, picking up others along
+                the way. At the end of the path, it drops all items and moves back towards the start
         Input:
             None
         Output:
@@ -404,7 +658,7 @@ class pmob(mob):
             while self.can_follow_automatic_route():
                 next_step = self.in_progress_automatic_route[0]
                 if next_step == "start":
-                    self.pick_up_all_commodities(True)
+                    self.pick_up_all_items(True)
                 elif next_step == "end":
                     self.drop_inventory()
                 else:
@@ -418,10 +672,10 @@ class pmob(mob):
                     ):
                         if (
                             self.get_next_automatic_stop() == "end"
-                        ):  # only pick up commodities on way to end
-                            self.pick_up_all_commodities(
+                        ):  # Only pick up items on way to end
+                            self.pick_up_all_items(
                                 True
-                            )  # attempt to pick up commodities both before and after moving
+                            )  # Attempt to pick up items both before and after moving
                     x_change = next_step[0] - self.x
                     y_change = next_step[1] - self.y
                     self.move(x_change, y_change)
@@ -435,8 +689,8 @@ class pmob(mob):
                     ):
                         if (
                             self.get_next_automatic_stop() == "end"
-                        ):  # only pick up commodities on way to end
-                            self.pick_up_all_commodities(True)
+                        ):  # only pick up items on way to end
+                            self.pick_up_all_items(True)
                 progressed = True
                 self.in_progress_automatic_route.append(
                     self.in_progress_automatic_route.pop(0)
@@ -458,10 +712,10 @@ class pmob(mob):
                 return current_stop
         return None
 
-    def pick_up_all_commodities(self, ignore_consumer_goods=False):
+    def pick_up_all_items(self, ignore_consumer_goods=False):
         """
         Description:
-            Adds as many local commodities to this unit's inventory as possible, possibly choosing not to pick up consumer goods based on the inputted boolean
+            Adds as many local items to this unit's inventory as possible, possibly choosing not to pick up consumer goods based on the inputted boolean
         Input:
             boolean ignore_consumer_goods = False: Whether to not pick up consumer goods from this unit's tile
         Output:
@@ -470,11 +724,17 @@ class pmob(mob):
         tile = self.get_cell().tile
         while (
             self.get_inventory_remaining() > 0
-            and len(tile.get_held_commodities(ignore_consumer_goods)) > 0
+            and len(tile.get_held_items(ignore_consumer_goods=ignore_consumer_goods))
+            > 0
         ):
-            commodity = tile.get_held_commodities(ignore_consumer_goods)[0]
-            self.change_inventory(commodity, 1)
-            tile.change_inventory(commodity, -1)
+            items_present = tile.get_held_items(
+                ignore_consumer_goods=ignore_consumer_goods
+            )
+            amount_transferred = min(
+                self.get_inventory_remaining(), tile.get_inventory(items_present[0])
+            )
+            self.change_inventory(items_present[0], amount_transferred)
+            tile.change_inventory(items_present[0], -amount_transferred)
 
     def clear_automatic_route(self):
         """
@@ -627,109 +887,110 @@ class pmob(mob):
             for current_image in self.images:
                 current_image.image.remove_member("veteran_icon")
 
-    def manage_health_attrition(
-        self, current_cell="default"
-    ):  # other versions of manage_health_attrition in group, vehicle, and resource_building
+    def manage_health_attrition(self) -> None:
         """
         Description:
             Checks this mob for health attrition each turn
         Input:
-            string/cell current_cell = 'default': Records which cell the attrition is taking place in, used when a unit is in a building or another mob and does not technically exist in any cell
+            None
         Output:
             None
         """
+        if self.any_permissions(
+            constants.VEHICLE_PERMISSION, constants.GROUP_PERMISSION
+        ):  # Groups and vehicles don't receive attrition - only their components
+            return
+
         if (
             constants.effect_manager.effect_active("boost_attrition")
             and random.randrange(1, 7) >= 4
-        ):
-            self.attrition_death()
+        ):  # Cause very frequent attrition if boost attrition active
+            self.record_logistics_incident(
+                incident_type=constants.UPKEEP_MISSING_PENALTY_DEATH,
+                cause="health attrition",
+            )
+            self.die()
             return
 
-        if current_cell == "default":
-            current_cell = self.get_cell()
-        elif current_cell == None:
-            return
         if (
-            current_cell.local_attrition()
-            and minister_utility.get_minister(
-                constants.TRANSPORTATION_MINISTER
-            ).no_corruption_roll(6, "health_attrition")
-            == 1
-        ):
-            if random.randrange(1, 7) <= 2:
-                self.attrition_death()
+            self.get_cell().local_attrition() and random.randrange(1, 7) <= 2
+        ):  # If local conditions may cause attrition, 1/3 chance of attrition check
+            if (
+                minister_utility.get_minister(
+                    constants.TRANSPORTATION_MINISTER
+                ).no_corruption_roll(6, "health_attrition")
+                == 1
+            ):  # For attrition check, see if minister fails
+                self.record_logistics_incident(
+                    incident_type=constants.UPKEEP_MISSING_PENALTY_DEATH,
+                    cause="health attrition",
+                )
+                self.die()  # If minister fails attrition check, unit dies
 
-    def attrition_death(self, show_notification=True):
+    def record_logistics_incident(self, incident_type: int, cause: str):
         """
         Description:
-            Kills this unit, takes away its next turn, and automatically buys a replacement when it fails its rolls for health attrition. If an officer dies, the replacement costs the officer's usual recruitment cost and does not have
-                the previous officer's experience. If a worker dies, the replacement is found and recruited from somewhere else on the map, increasing worker upkeep colony-wide as usual
+            Explains the death of this unit to attrition, logging the explanation in a list of all attrition deaths this turn
         Input:
-            boolean show_notification: Whether a notification should be shown for this death - depending on where this was called, a notification may have already been shown
+            int incident_type: Incident type code, such as constants.UPKEEP_MISSING_PENALTY_DEATH
+            string cause: Cause explaining the incident, such as "health attrition" or constants.WATER_ITEM
         Output:
             None
         """
         constants.evil_tracker.change(1)
-        if (
-            self.any_permissions(
-                constants.OFFICER_PERMISSION, constants.WORKER_PERMISSION
-            )
-            and self.automatically_replace
-        ):
-            if show_notification:
-                if self.get_cell().grid == status.globe_projection_grid:
-                    location_message = f"in orbit of {status.globe_projection_grid.world_handler.name}. "
-                elif self.get_cell().grid == status.earth_grid:
-                    location_message = f"in orbit of Earth. "
-                else:
-                    location_message = f"at ({self.x}, {self.y}). "
-                constants.notification_manager.display_notification(
-                    {
-                        "message": f"{utility.capitalize(self.name)} has died from attrition {location_message}/n /n{self.generate_attrition_replacement_text()}",
-                        "zoom_destination": self,
-                    }
-                )
-            self.set_permission(
-                constants.MOVEMENT_DISABLED_PERMISSION, True, override=True
-            )
-            self.replace()
-            self.death_sound("violent")
-        else:
-            if show_notification:
-                constants.notification_manager.display_notification(
-                    {
-                        "message": f"{utility.capitalize(self.name)} has died from attrition at ({self.x}, {self.y})",
-                        "zoom_destination": self.get_cell().tile,
-                    }
-                )
-
-            self.die()
-
-    def generate_attrition_replacement_text(self):
-        """
-        Description:
-            Generates text to use in attrition replacement notifications when this unit suffers health attrition
-        Input:
-            None
-        Output:
-            Returns text to use in attrition replacement notifications
-        """
-        if (
-            self.get_permission(constants.IN_GROUP_PERMISSION)
-            and self.group.get_permission(constants.IN_VEHICLE_PERMISSION)
-            and self.group == self.group.vehicle.crew
-        ):
-            text = "The crew and vehicle will remain inactive for the next turn as replacements are found. /n /n"
-        else:
-            text = "The unit will remain inactive for the next turn as replacements are found. /n /n"
+        insertion = ""
         if self.get_permission(constants.OFFICER_PERMISSION):
-            text += f"{self.unit_type.recruitment_cost} money has automatically been spent to recruit a replacement officer. /n /n"
-        return text
+            name = f"{self.character_info['name']}"
+            insertion = f" {utility.generate_article(self.name)} {self.name}"
+        else:
+            name = self.name.capitalize()
+
+        if self.get_permission(constants.IN_GROUP_PERMISSION):
+            if (
+                self.group.get_permission(constants.IN_VEHICLE_PERMISSION)
+                and self.group.vehicle.crew == self.group
+            ):
+                name += f",{insertion} within {self.group.name} crewing {self.group.vehicle.name},"
+            elif self.group.get_permission(constants.IN_VEHICLE_PERMISSION):
+                name += f",{insertion} within {self.group.name} aboard {self.group.vehicle.name},"
+            else:
+                name += f",{insertion} within {self.group.name},"
+        elif self.get_permission(constants.IN_VEHICLE_PERMISSION):
+            name += f",{insertion} aboard {self.vehicle.name},"
+        elif insertion:
+            name += f",{insertion},"
+
+        explanation = None
+        if incident_type == constants.UPKEEP_MISSING_PENALTY_DEHYDRATION:
+            explanation = f"entered dehydration due to insufficient {status.item_types[cause].name}."
+        elif incident_type == constants.UPKEEP_MISSING_PENALTY_STARVATION:
+            explanation = f"entered starvation due to insufficient {status.item_types[cause].name}."
+        elif incident_type == constants.UPKEEP_MISSING_PENALTY_DEATH:
+            if cause in status.item_types.keys():
+                explanation = f"died to insufficient {status.item_types[cause].name}."
+            elif cause == "environmental conditions":
+                explanation = f"died to deadly environmental conditions."
+            elif cause == "health attrition":
+                explanation = f"died to health attrition."
+        elif incident_type == constants.UPKEEP_MISSING_PENALTY_MORALE:
+            explanation = (
+                f"lost morale due to insufficient {status.item_types[cause].name}."
+            )
+        if not explanation:
+            raise ValueError(f"Invalid incident type {incident_type}")
+
+        status.logistics_incident_list.append(
+            {
+                "unit": self,
+                "cell": self.get_cell(),
+                "explanation": f"{name} {explanation}",
+            }
+        )
 
     def remove(self):
         """
         Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also deselects this mob and drops any commodities it is carrying
+            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also deselects this mob and drops any items it is carrying
         Input:
             None
         Output:
@@ -737,9 +998,9 @@ class pmob(mob):
         """
         if self.get_cell() and self.get_cell().tile:  # Drop inventory on death
             current_tile = self.get_cell().tile
-            for current_commodity in constants.commodity_types:
+            for current_item_type in self.get_held_items():
                 current_tile.change_inventory(
-                    current_commodity, self.get_inventory(current_commodity)
+                    current_item_type, self.get_inventory(current_item_type)
                 )
         self.remove_from_turn_queue()
         super().remove()
@@ -781,11 +1042,11 @@ class pmob(mob):
                                 .tile
                             )
                             if current_coordinates == start_coordinates:
-                                color = "purple"
+                                color = constants.COLOR_PURPLE
                             elif current_coordinates == end_coordinates:
-                                color = "yellow"
+                                color = constants.COLOR_YELLOW
                             else:
-                                color = "bright blue"
+                                color = constants.COLOR_BRIGHT_BLUE
                             current_tile.draw_destination_outline(color)
                             for equivalent_tile in current_tile.get_equivalent_tiles():
                                 equivalent_tile.draw_destination_outline(color)
@@ -810,18 +1071,20 @@ class pmob(mob):
             )
             self.manage_inventory_attrition()  # do an inventory check when crossing ocean, using the destination's terrain
             self.end_turn_destination = None
+            self.set_permission(constants.TRAVELING_PERMISSION, False)
+            self.movement_sound()
 
-    def set_inventory(self, commodity, new_value):
+    def set_inventory(self, item: item_types.item_type, new_value: int) -> None:
         """
         Description:
-            Sets the number of commodities of a certain type held by this mob. Also ensures that the mob info display is updated correctly
+            Sets the number of items of a certain type held by this mob. Also ensures that the mob info display is updated correctly
         Input:
-            string commodity: Type of commodity to set the inventory of
-            int new_value: Amount of commodities of the inputted type to set inventory to
+            item_type item: Item type to set the inventory of
+            int new_value: Amount of items of the inputted type to set inventory to
         Output:
             None
         """
-        super().set_inventory(commodity, new_value)
+        super().set_inventory(item, new_value)
         if status.displayed_mob == self:
             actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
 
@@ -856,7 +1119,7 @@ class pmob(mob):
     def embark_vehicle(self, vehicle, focus=True):
         """
         Description:
-            Hides this mob and embarks it on the inputted vehicle as a passenger. Any commodities held by this mob are put on the vehicle if there is cargo space, or dropped in its tile if there is no cargo space
+            Hides this mob and embarks it on the inputted vehicle as a passenger. Any items held by this mob are put on the vehicle if there is cargo space, or dropped in its tile if there is no cargo space
         Input:
             vehicle vehicle: vehicle that this mob becomes a passenger of
             boolean focus = False: Whether this action is being "focused on" by the player or done automatically
@@ -864,16 +1127,16 @@ class pmob(mob):
             None
         """
         self.vehicle = vehicle
-        for (
-            current_commodity
-        ) in self.get_held_commodities():  # gives inventory to vehicle
-            num_held = self.get_inventory(current_commodity)
-            for current_commodity_unit in range(num_held):
-                if vehicle.get_inventory_remaining() > 0:
-                    vehicle.change_inventory(current_commodity, 1)
-                else:
-                    self.get_cell().tile.change_inventory(current_commodity, 1)
-            self.inventory = {}
+        for current_item in self.get_held_items():  # Give inventory to vehicle
+            amount_held = self.get_inventory(current_item)
+
+            amount_transferred = min(vehicle.get_inventory_remaining(), amount_held)
+            vehicle.change_inventory(current_item, amount_transferred)
+
+            amount_dropped = amount_held - amount_transferred
+            self.get_cell().tile.change_inventory(current_item, amount_dropped)
+
+        self.inventory = {}
         self.hide_images()
         self.remove_from_turn_queue()
         vehicle.contained_mobs.append(self)
@@ -887,8 +1150,7 @@ class pmob(mob):
                 status.mob_info_display, None, override_exempt=True
             )
             vehicle.select()
-        if not flags.loading_save:
-            self.movement_sound()
+            constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)
         self.clear_automatic_route()
 
     def disembark_vehicle(self, vehicle, focus=True):
@@ -927,8 +1189,7 @@ class pmob(mob):
         self.add_to_turn_queue()
         if focus:
             self.select()
-            self.movement_sound()
-        self.on_move()
+            constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)
         self.update_habitability()
 
     def get_worker(self) -> "pmob":

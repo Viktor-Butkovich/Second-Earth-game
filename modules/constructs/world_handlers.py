@@ -135,7 +135,8 @@ class world_handler:
             "green_screen", {}
         )
         self.color_filter: Dict[str, float] = input_dict.get(
-            "color_filter", {"red": 1, "green": 1, "blue": 1}
+            "color_filter",
+            {constants.COLOR_RED: 1, constants.COLOR_GREEN: 1, constants.COLOR_BLUE: 1},
         )
         self.star_distance: float = input_dict["star_distance"]
 

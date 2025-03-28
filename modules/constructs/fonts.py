@@ -30,7 +30,7 @@ class font:
             input_dict.get("name", constants.font_name),
             input_dict.get("size", constants.font_size),
         )
-        self.color = input_dict.get("color", "black")
+        self.color = input_dict.get("color", constants.COLOR_BLACK)
         self.size = input_dict.get("size", constants.font_size)
 
     def calculate_size(self, message):

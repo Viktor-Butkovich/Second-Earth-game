@@ -4,7 +4,7 @@ import random
 import os
 import pygame
 import math
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from modules.util import utility, text_utility
 from modules.constants import constants, status, flags
 
@@ -158,9 +158,14 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
             select_default_tab(status.tile_tabbed_collection, status.displayed_tile)
 
     elif info_display == status.mob_info_display:
-        if new_actor != status.displayed_mob:
+        changed_displayed_mob = new_actor != status.displayed_mob
+        if changed_displayed_mob:
+            if status.displayed_mob:
+                status.displayed_mob.stop_ambient_sound()
             calibrate_actor_info_display(status.mob_inventory_info_display, None)
         status.displayed_mob = new_actor
+        if changed_displayed_mob and new_actor:
+            new_actor.start_ambient_sound()
         select_default_tab(status.mob_tabbed_collection, new_actor)
         if new_actor and new_actor.get_cell().tile == status.displayed_tile:
             for current_same_tile_icon in status.same_tile_icon_list:
@@ -242,11 +247,12 @@ def generate_resource_icon(tile):
         string/list: Returns string or list image id for tile's resource icon
     """
     image_id = [
-        {"image_id": "misc/green_circle.png", "size": 0.75},
         {
-            "image_id": "items/" + tile.cell.terrain_handler.resource + ".png",
+            "image_id": "misc/circle.png",
+            "green_screen": tile.cell.terrain_handler.resource.background_color,
             "size": 0.75,
         },
+        {"image_id": tile.cell.terrain_handler.resource.item_image, "size": 0.75},
     ]
 
     if bool(tile.cell.get_buildings()):  # Make small icon if tile has any buildings
@@ -650,3 +656,31 @@ def get_temperature_habitability(temperature: int) -> int:
         return constants.HABITABILITY_DANGEROUS
     else:
         return constants.HABITABILITY_DEADLY
+
+
+def summarize_amount_dict(item_dict: Dict[str, float]):
+    """
+    Description:
+        Convert a dictionary of item keys and amounts to a string summary
+    Input:
+        Dict[str, float] item_dict: Dictionary of item keys and amounts, in the format
+            {
+                constants.CONSUMER_GOODS_ITEM_TYPE: 2,
+                constants.FOOD_ITEM_TYPE: 1
+            }
+    Output:
+        str: String summary, in the format "2 units of consumer goods and 1 unit of food"
+    """
+    text = ""
+    for item_type_key, amount in item_dict.items():
+        line = f"{amount} unit{utility.generate_plural(sum(item_dict.values()))} of {status.item_types[item_type_key].name}"
+        if len(item_dict.keys()) == 1:
+            pass
+        elif len(item_dict.keys()) == 2 and item_type_key == list(item_dict.keys())[0]:
+            line += " "
+        elif item_type_key != list(item_dict.keys())[-1]:
+            line += ", "
+        else:
+            line = f"and {line}"
+        text += line
+    return text

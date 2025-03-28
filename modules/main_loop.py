@@ -21,6 +21,7 @@ def main_loop():
     Output:
         None
     """
+    locked = False
     while not flags.crashed:
         if not flags.loading:
             main_loop_utility.update_display()
@@ -34,61 +35,67 @@ def main_loop():
                 case pygame.QUIT:
                     flags.crashed = True
                 case pygame.KEYDOWN:
-                    for current_button in status.button_list:
-                        if (
-                            event.key == current_button.keybind_id
-                            and (
-                                current_button.showing
-                                or (
-                                    current_button.has_button_press_override
-                                    and current_button.button_press_override()
-                                )
-                            )
-                            and not flags.typing
-                        ):
+                    if flags.typing or not locked:
+                        button_keybind_clicked = False
+                        for current_button in status.button_list:
                             if (
-                                current_button.has_released
-                            ):  # if stuck on loading, don't want multiple 'key down' events to repeat on_click - shouldn't on_click again until released
-                                current_button.has_released = False
-                                current_button.being_pressed = True
-                                current_button.on_click()
-                                current_button.showing_outline = True
-                            break
-                        else:
-                            current_button.confirming = False
-                            current_button.being_pressed = False
-                    match event.key:
-                        case pygame.K_RSHIFT:
-                            flags.r_shift = True
-                        case pygame.K_LSHIFT:
-                            flags.l_shift = True
-                        case pygame.K_RCTRL:
-                            flags.r_ctrl = True
-                        case pygame.K_LCTRL:
-                            flags.l_ctrl = True
-                        case pygame.K_SPACE:
-                            if flags.typing:
-                                constants.message += " "
-                        case pygame.K_BACKSPACE:
-                            if flags.typing:
-                                constants.message = constants.message[
-                                    :-1
-                                ]  # remove last character from message and set message to it
-                        case pygame.K_p if constants.effect_manager.effect_active(
-                            "debug_print"
-                        ):
-                            main_loop_utility.debug_print()
-                    if flags.typing and event.key in constants.key_codes:
-                        if flags.capital:
-                            constants.message += constants.uppercase_key_values[
-                                constants.key_codes.index(event.key)
-                            ]
-                        else:
-                            constants.message += constants.lowercase_key_values[
-                                constants.key_codes.index(event.key)
-                            ]
+                                event.key == current_button.keybind_id
+                                and (
+                                    current_button.showing
+                                    or (
+                                        current_button.has_button_press_override
+                                        and current_button.button_press_override()
+                                    )
+                                )
+                                and not flags.typing
+                                and not button_keybind_clicked
+                            ):
+                                if (
+                                    current_button.has_released
+                                ):  # if stuck on loading, don't want multiple 'key down' events to repeat on_click - shouldn't on_click again until released
+                                    current_button.has_released = False
+                                    current_button.being_pressed = True
+                                    current_button.on_click()
+                                    button_keybind_clicked = True  # Prevent any other buttons from being activated by this button press
+                                    current_button.showing_outline = True
+                                break
+                            else:
+                                current_button.confirming = False
+                                current_button.being_pressed = False
+                        match event.key:
+                            case pygame.K_RSHIFT:
+                                flags.r_shift = True
+                            case pygame.K_LSHIFT:
+                                flags.l_shift = True
+                            case pygame.K_RCTRL:
+                                flags.r_ctrl = True
+                            case pygame.K_LCTRL:
+                                flags.l_ctrl = True
+                            case pygame.K_SPACE:
+                                if flags.typing:
+                                    constants.message += " "
+                            case pygame.K_BACKSPACE:
+                                if flags.typing:
+                                    constants.message = constants.message[
+                                        :-1
+                                    ]  # remove last character from message and set message to it
+                            case pygame.K_p if constants.effect_manager.effect_active(
+                                "debug_print"
+                            ):
+                                main_loop_utility.debug_print()
+                        if flags.typing and event.key in constants.key_codes:
+                            if flags.capital:
+                                constants.message += constants.uppercase_key_values[
+                                    constants.key_codes.index(event.key)
+                                ]
+                            else:
+                                constants.message += constants.lowercase_key_values[
+                                    constants.key_codes.index(event.key)
+                                ]
+                    locked = True
 
                 case pygame.KEYUP:
+                    locked = False
                     for current_button in status.button_list:
                         if (
                             not flags.typing
@@ -339,7 +346,6 @@ def main_loop():
                     )
                 main_loop_utility.update_display()
                 flags.enemy_combat_phase = True
-                flags.player_turn = True
                 turn_management_utility.manage_combat()
 
             if False:  # Enemy movement logic

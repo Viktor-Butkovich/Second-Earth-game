@@ -5,9 +5,8 @@ from modules.setup import (
     setup,
     manage_crash,
     misc,
-    equipment_types_config,
+    item_types_config,
     terrain_feature_types_config,
-    commodities,
     minister_types_config,
     building_types_config,
     unit_types_config,
@@ -35,9 +34,8 @@ from modules.setup import (
 try:
     setup(
         misc,
-        equipment_types_config,
+        item_types_config,
         terrain_feature_types_config,
-        commodities,
         minister_types_config,
         building_types_config,
         unit_types_config,
@@ -84,6 +82,12 @@ except Exception:  # Displays error message and records error message in crash l
     Grant free upkeep/housing to any units on Earth - functionally unlimited
     Possibly require different types of food for health bonuses
     Insufficient goods or energy is unpleasant but does not cause instant death
+    Resource icons:
+        Water: Office water cooler
+        Air/any gas: Oxygen tank w/ pressure meter, background varies with gas type
+        Food: Loaf of bread
+        Fuel: Red gas canister or propane tank
+        Stored energy: Battery
 2. Add new building types, including modules that can be transported and worked while on a vehicle
     Modules should take more than 1 inventory capacity each
     Possibly allow pre-upgraded modules?
@@ -397,6 +401,14 @@ except Exception:  # Displays error message and records error message in crash l
         Ideally variants of high-roughness terrains that will occur if certain local features are present
     Add vegetation terrains, with Earth-dominated and alien-dominated variants
         Appearance should possibly depend on organisms present
+24. Supply chain system
+    Allow a tile to "request" a list of items - this will use the logistics system to see if the required items can be delivered (or are in the tile already)
+    This returns an order form with the items requested and where they will come from - if it is sufficient, the deliveries are attempted
+    Once deliveries are complete, the unit will attempt to consume the required items
+    When consuming items, the unit will first look in the tile's inventory, then its own inventory, then the inventories of other local units
+    This request/delivery/consumption system can be used for any item spending, and can encapsulate the warehouse/delivery system from spending systems
+    If necessary, use a graph algorithm to find the optimal way to fill as many requests as possible, given current item locations
+    May require encoding the grid w/ transportation routes as a graph - can be re-purposed for movement calculations as well
 """
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
@@ -419,8 +431,15 @@ except Exception:  # Displays error message and records error message in crash l
 # Transcribe Super-Earth planet names from https://science.nasa.gov/exoplanets/exoplanet-catalog/?pageno=1&planet_type=Super+Earth&content_list=true
 # God mode changes to make habitabilty deadly/not deadly not correctly calibrating reorganization projection of ship crew - fix if ever relevant outside of god mode
 # Maybe track when tiles change habitability, as well as display habitability mode
+# Possibly use fuzzy logic for AI decision-making - relatively easily to convert natural language rules into behavior
+#   Could try making an EC system that trains a set of fuzzy rules - create a set of rules that match a list of i/o specifications
+#   Input would be input and output categories and rules, model just needs to tune the the rules until no specification cases fail
+#       Would likely just require a mutation operator and a genome of the required weights
+# Consider using hypothesis testing to determine if minister results are statistically significant (reject hypothesis of default behavior)
+# If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Next major step is to add basic economic mechanics, now that the baseline terraforming is functional
 # Add new resource types, with colonist upkeep, buying on Earth, transporting, and using to build when it is in the builder's tile
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
@@ -442,7 +461,8 @@ except Exception:  # Displays error message and records error message in crash l
 # Possibly show solation as brightness on each tile (shouldn't affect albedo)
 # Add task-specific unit voicelines, with separate unit and minister voice sets
 # Add modern minister outfits
-# Add crater terrain variants
+# Add crater and flood basalt terrain variants
+# Try out fuzzy logic for planetary simulation
 #
 # Fix this rare crash
 # ERROR:root:<class 'Exception'>
