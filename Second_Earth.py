@@ -439,6 +439,7 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Colonist upkeep should be oxygen, outputs CO2 - nitrogen is required in the construction of life support/dome systems, but is not directly involved in the upkeep process
 # Next major step is to add basic economic mechanics, now that the baseline terraforming is functional
 # Add new resource types, with colonist upkeep, buying on Earth, transporting, and using to build when it is in the builder's tile
 # Allow building basic buildings like mines, farms, etc. with work crew functionality

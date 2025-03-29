@@ -270,6 +270,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 requested_items[constants.ENERGY_ITEM] - missing_energy,
             )  # Turn fuel into required energy
             requested_items[constants.ENERGY_ITEM] = missing_energy
+        requested_items = {
+            key: value for key, value in requested_items.items() if value > 0
+        }  # Remove fulfilled requests
         return requested_items
 
     def get_item_upkeep(

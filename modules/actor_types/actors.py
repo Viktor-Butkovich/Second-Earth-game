@@ -171,9 +171,6 @@ class actor:
         Output:
             bool: Returns whether the inputted item type is present anywhere in this unit's tile
         """
-        if item_type == status.item_types[constants.ENERGY_ITEM]:
-            return self.item_present(status.item_types[constants.FUEL_ITEM])
-
         for present_actor in [self.get_cell().tile, self] + [
             current_mob
             for current_mob in self.get_cell().contained_mobs

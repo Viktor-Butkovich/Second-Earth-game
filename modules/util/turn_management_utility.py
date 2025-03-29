@@ -435,7 +435,9 @@ def manage_upkeep_expenditure() -> None:
     ]:
         item_upkeep = current_tile.get_item_upkeep(recurse=True)
         item_request = current_tile.create_item_request(item_upkeep)
-        current_tile.fulfill_item_request(item_request.copy())
+        unfulfilled_item_request = current_tile.fulfill_item_request(
+            item_request.copy()
+        )
         if constants.effect_manager.effect_active("track_item_requests"):
             if current_tile.show_terrain:
                 name = f"({current_tile.x}, {current_tile.y})"
@@ -443,6 +445,7 @@ def manage_upkeep_expenditure() -> None:
                 name = current_tile.name.capitalize()
             print(f"{name} total upkeep {item_upkeep}")
             print(f"{name} requesting external {item_request}")
+            print(f"{name} unfulfilled external requests {unfulfilled_item_request}")
         for current_mob in current_tile.cell.contained_mobs:
             current_mob.check_item_availability()
         for current_mob in current_tile.cell.contained_mobs:
