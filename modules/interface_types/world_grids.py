@@ -356,12 +356,16 @@ class world_grid(grid):
         choice = random.choices(
             [best_frozen, best_liquid, best_gas],
             weights=[
-                abs((1 - best_frozen.get_parameter(constants.TEMPERATURE)))
-                if best_frozen
-                else 0,  # Weight frozen placement for low temperature
-                abs(16 - best_liquid.get_parameter(constants.ALTITUDE))
-                if best_liquid
-                else 0,  # Weight liquid placement for low altitude
+                (
+                    abs((1 - best_frozen.get_parameter(constants.TEMPERATURE)))
+                    if best_frozen
+                    else 0
+                ),  # Weight frozen placement for low temperature
+                (
+                    abs(16 - best_liquid.get_parameter(constants.ALTITUDE))
+                    if best_liquid
+                    else 0
+                ),  # Weight liquid placement for low altitude
                 13.5 if best_gas else 0,
             ],
             k=1,
@@ -1469,10 +1473,7 @@ def create_grid(
         else:
             map_size_list = constants.terrain_manager.get_tuning("map_sizes")
         constants.map_size_options = map_size_list
-        if constants.effect_manager.effect_active("speed_loading"):
-            map_size = input_dict.get("map_size", map_size_list[0])
-        else:
-            map_size = input_dict.get("map_size", random.choice(map_size_list))
+        map_size = input_dict.get("map_size", random.choice(map_size_list))
         if constants.effect_manager.effect_active(
             "earth_preset"
         ) or constants.effect_manager.effect_active("venus_preset"):
