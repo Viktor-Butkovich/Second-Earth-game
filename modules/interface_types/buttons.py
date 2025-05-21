@@ -173,19 +173,21 @@ class button(interface_elements.interface_element):
             if current_mob:
                 movement_cost = current_mob.get_movement_cost(x_change, y_change)
                 local_cell = current_mob.get_cell()
-                adjacent_cell = local_cell.adjacent_cells[non_cardinal_direction]
+                adjacent_location = current_mob.get_location().adjacent_locations[
+                    non_cardinal_direction
+                ]
                 local_infrastructure = local_cell.get_intact_building(
                     constants.INFRASTRUCTURE
                 )
-                if adjacent_cell.terrain_handler.visible:
+                if adjacent_location.visible:
                     tooltip_text.append("Press to move to the " + direction)
-                    adjacent_infrastructure = adjacent_cell.get_intact_building(
+                    adjacent_infrastructure = adjacent_location.get_intact_building(
                         constants.INFRASTRUCTURE
                     )
                     connecting_roads = False
                     if (
                         current_mob.get_permission(constants.BATTALION_PERMISSION)
-                        and adjacent_cell.get_best_combatant("npmob") != None
+                        and adjacent_location.get_best_combatant("npmob") != None
                     ):
                         tooltip_text += status.actions["combat"].update_tooltip(
                             tooltip_info_dict={
@@ -194,7 +196,7 @@ class button(interface_elements.interface_element):
                                 "x_change": x_change,
                                 "y_change": y_change,
                                 "local_cell": local_cell,
-                                "adjacent_cell": adjacent_cell,
+                                "adjacent_location": adjacent_location,
                             }
                         )
                     else:
@@ -207,7 +209,6 @@ class button(interface_elements.interface_element):
                                 and adjacent_infrastructure.is_railroad
                                 and local_infrastructure
                                 and local_infrastructure.is_railroad
-                                and local_cell.has_walking_connection(adjacent_cell)
                             ):
                                 message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent tile has connecting railroads"
                             else:
@@ -215,28 +216,26 @@ class button(interface_elements.interface_element):
                             tooltip_text.append(message)
                             tooltip_text.append("A train can only move along railroads")
                         else:
-                            message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent tile has {adjacent_cell.terrain_handler.terrain.replace('_', ' ')} terrain"
-                            if local_cell.has_walking_connection(adjacent_cell):
-                                if (
-                                    local_infrastructure and adjacent_infrastructure
-                                ):  # if both have infrastructure
-                                    connecting_roads = True
-                                    message += " and connecting roads"
-                                elif (
-                                    local_infrastructure == None
-                                    and adjacent_infrastructure
-                                ):  # if local has no infrastructure but adjacent does
-                                    message += " and no connecting roads"
-                                elif (
-                                    local_infrastructure
-                                ):  # if local has infrastructure but not adjacent
-                                    message += " and no connecting roads"  # + local_infrastructure.infrastructure_type
-                                else:
-                                    message += " and no connecting roads"
+                            message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent tile has {adjacent_location.terrain.replace('_', ' ')} terrain"
+                            if (
+                                local_infrastructure and adjacent_infrastructure
+                            ):  # if both have infrastructure
+                                connecting_roads = True
+                                message += " and connecting roads"
+                            elif (
+                                local_infrastructure == None and adjacent_infrastructure
+                            ):  # if local has no infrastructure but adjacent does
+                                message += " and no connecting roads"
+                            elif (
+                                local_infrastructure
+                            ):  # if local has infrastructure but not adjacent
+                                message += " and no connecting roads"  # + local_infrastructure.infrastructure_type
+                            else:
+                                message += " and no connecting roads"
 
                             tooltip_text.append(message)
                             tooltip_text.append(
-                                f"Moving into a {adjacent_cell.terrain_handler.terrain.replace('_', ' ')} tile costs {constants.terrain_movement_cost_dict.get(adjacent_cell.terrain_handler.terrain, 1)} movement points"
+                                f"Moving into a {adjacent_location.terrain.replace('_', ' ')} tile costs {constants.terrain_movement_cost_dict.get(adjacent_location.terrain, 1)} movement points"
                             )
                     if connecting_roads:
                         tooltip_text.append(
@@ -1777,7 +1776,7 @@ class same_tile_icon(button):
         self.update()
         return (
             status.displayed_tile
-            and status.displayed_tile.cell.terrain_handler.visible
+            and status.displayed_tile.get_location().visible
             and len(self.old_contained_mobs) > self.index
             and super().can_show()
         )
@@ -1804,7 +1803,7 @@ class same_tile_icon(button):
         """
         if (
             status.displayed_tile
-            and status.displayed_tile.cell.terrain_handler.visible
+            and status.displayed_tile.get_location().visible
             and super().can_show()
         ):
             displayed_tile = status.displayed_tile

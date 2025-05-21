@@ -5,7 +5,7 @@ import random
 from typing import Dict
 from modules.actor_types.actors import actor
 from modules.util import utility, scaling, actor_utility, text_utility, minister_utility
-from modules.constructs import building_types, item_types
+from modules.constructs import building_types, item_types, locations
 from modules.constants import constants, status, flags
 
 
@@ -76,6 +76,19 @@ class building(actor):
             if self.building_type.can_damage:
                 self.set_damaged(True, True)
         self.finish_init(original_constructor, from_save, input_dict)
+
+    def get_location(self) -> locations.location:
+        """
+        Description:
+            Returns the location this tile is currently in
+        Input:
+            None
+        Output:
+            location: Returns the location this tile is currently in
+        """
+        if not self.cell:
+            return None
+        return self.cell.location
 
     def update_image_bundle(self):
         """
@@ -371,44 +384,6 @@ class infrastructure_building(building):
                     ] = f"buildings/infrastructure/{direction}_{building_type}.png"
 
         super().__init__(from_save, input_dict)
-        if self.is_bridge:
-            up_cell = self.grids[0].find_cell(self.x, self.y + 1)
-            down_cell = self.grids[0].find_cell(self.x, self.y - 1)
-            left_cell = self.grids[0].find_cell(self.x - 1, self.y)
-            right_cell = self.grids[0].find_cell(self.x + 1, self.y)
-            if (not (up_cell == None or down_cell == None)) and (
-                not (
-                    up_cell.terrain_handler.terrain == "water"
-                    or down_cell.terrain_handler.terrain == "water"
-                )
-            ):
-                self.connected_cells = [up_cell, down_cell]
-                if self.is_road:
-                    self.image_dict["default"] = self.connection_image_dict[
-                        "vertical_road_bridge"
-                    ]
-                elif self.is_railroad:
-                    self.image_dict["default"] = self.connection_image_dict[
-                        "vertical_railroad_bridge"
-                    ]
-                else:
-                    self.image_dict["default"] = self.connection_image_dict[
-                        "vertical_ferry"
-                    ]
-            else:
-                self.connected_cells = [left_cell, right_cell]
-                if self.is_road:
-                    self.image_dict["default"] = self.connection_image_dict[
-                        "horizontal_road_bridge"
-                    ]
-                elif self.is_railroad:
-                    self.image_dict["default"] = self.connection_image_dict[
-                        "horizontal_railroad_bridge"
-                    ]
-                else:
-                    self.image_dict["default"] = self.connection_image_dict[
-                        "horizontal_ferry"
-                    ]
         actor_utility.update_roads()
 
     def to_save_dict(self):
@@ -437,7 +412,7 @@ class infrastructure_building(building):
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
         image_id_list = super().get_image_id_list(override_values)
-        if self.cell.terrain_handler.terrain != "water":
+        if self.get_location().terrain != "water":
             connected_road, connected_railroad = (False, False)
             for direction in ["up", "down", "left", "right"]:
                 adjacent_cell = self.cell.adjacent_cells[direction]

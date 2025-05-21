@@ -87,7 +87,7 @@ class npmob(mob):
         Output:
             boolean: Returns whether this unit is currently visible to the player
         """
-        return self.get_cell() and self.get_cell().terrain_handler.visible
+        return self.get_cell() and self.get_location().visible
 
     def find_closest_target(self):
         """

@@ -80,7 +80,7 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
         cost_multiplier = 1
     else:
         cost_multiplier = constants.terrain_build_cost_multiplier_dict.get(
-            constructor.get_cell().terrain_handler.terrain, 1
+            constructor.get_location().terrain, 1
         )
     return base_price * cost_multiplier
 
@@ -249,10 +249,10 @@ def generate_resource_icon(tile):
     image_id = [
         {
             "image_id": "misc/circle.png",
-            "green_screen": tile.cell.terrain_handler.resource.background_color,
+            "green_screen": tile.get_location().resource.background_color,
             "size": 0.75,
         },
-        {"image_id": tile.cell.terrain_handler.resource.item_image, "size": 0.75},
+        {"image_id": tile.get_location().resource.item_image, "size": 0.75},
     ]
 
     if bool(tile.cell.get_buildings()):  # Make small icon if tile has any buildings

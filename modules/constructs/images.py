@@ -710,7 +710,7 @@ class bundle_image:
                                 replaced_colors = self.override_green_screen_colors
                             else:
                                 replaced_colors = constants.green_screen_colors
-                            for (index, current_replaced_color) in enumerate(
+                            for index, current_replaced_color in enumerate(
                                 replaced_colors
                             ):
                                 # If pixel matches preset green screen color, replace it with the image's corresponding replacement color
@@ -2175,10 +2175,7 @@ class tile_image(actor_image):
         Output:
             None
         """
-        if (
-            self.actor.name == "resource icon"
-            and not self.actor.cell.terrain_handler.visible
-        ):
+        if self.actor.name == "resource icon" and not self.actor.get_location().visible:
             return ()  # do not show if resource icon in undiscovered tile
         self.go_to_cell((self.actor.x, self.actor.y))
         self.complete_draw()

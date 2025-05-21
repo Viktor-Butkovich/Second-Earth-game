@@ -11,7 +11,7 @@ from modules.util import (
     market_utility,
     minister_utility,
 )
-from modules.constructs import item_types
+from modules.constructs import item_types, locations
 from modules.interface_types.grids import grid
 from modules.constants import constants, status, flags
 from typing import Dict, List, Tuple
@@ -72,6 +72,17 @@ class actor:
         if original_constructor:
             self.update_image_bundle()
             self.update_tooltip()
+
+    def get_location(self) -> locations.location:
+        """
+        Description:
+            Returns the location this mob is currently in
+        Input:
+            None
+        Output:
+            location: Returns the location this mob is currently in
+        """
+        return None  # Abstract method
 
     def to_save_dict(self):
         """

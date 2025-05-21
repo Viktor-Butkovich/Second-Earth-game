@@ -1,6 +1,7 @@
 import random
+import itertools
 from math import ceil, log
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Any
 from modules.util import utility, actor_utility
 from modules.constructs import images
 from modules.constants import constants, status, flags
@@ -124,10 +125,12 @@ class world_handler:
                 input_dict["cloud_frequency"] = self.get_tuning("earth_cloud_frequency")
             input_dict["default_sky_color"] = input_dict["sky_color"].copy()
 
-        self.terrain_handlers: list = [
-            current_cell.terrain_handler
-            for current_cell in self.default_grid.get_flat_cell_list()
+        self.location_list: list = [
+            [current_cell.location for current_cell in current_row]
+            for current_row in self.default_grid.cell_list
         ]
+        self.coordinate_height = len(self.location_list)
+        self.coordinate_width = len(self.location_list[0])
         self.name = input_dict["name"]
         self.rotation_direction = input_dict["rotation_direction"]
         self.rotation_speed = input_dict["rotation_speed"]
@@ -168,6 +171,39 @@ class world_handler:
             self.update_target_average_temperature(
                 estimate_water_vapor=True, update_albedo=False
             )
+
+    def sample(self, k: int = 1):
+        """
+        Description:
+            Randomly samples k locations from the grid
+        Input:
+            int k: Number of locations to sample
+        Output:
+            list: Returns a list of k locations
+        """
+        return random.choices(list(self.get_flat_location_list()), k=k)
+
+    def get_flat_location_list(self) -> itertools.chain:
+        """
+        Description:
+            Generates and returns a flattened version of this world's 2-dimensional location list
+        Input:
+            None
+        Output:
+            cell list: Returns a flattened version of this world's 2-dimensional cell list
+        """
+        return itertools.chain.from_iterable(self.location_list)
+
+    def find_location(self, x: int, y: int) -> Any:
+        if (
+            x >= 0
+            and x < self.coordinate_width
+            and y >= 0
+            and y < self.coordinate_height
+        ):
+            return self.location_list[x][y]
+        else:
+            return None
 
     def generate_global_parameters(self) -> Dict[str, int]:
         """
@@ -637,7 +673,7 @@ class world_handler:
                 status.tile_info_display, status.displayed_tile
             )
         for mob in status.mob_list:
-            if mob.get_cell() and mob.get_cell().grid.world_handler == self:
+            if mob.get_location() and mob.get_location().get_world_handler() == self:
                 mob.update_habitability()
 
     def update_pressure(self) -> None:
@@ -769,9 +805,9 @@ class world_handler:
                 average_water_vapor = 0
             return average_water_vapor
         else:
-            for terrain_handler in self.terrain_handlers:
+            for location in self.get_flat_location_list():
                 water_vapor_contribution = (
-                    terrain_handler.get_parameter(constants.TEMPERATURE)
+                    location.get_parameter(constants.TEMPERATURE)
                     - self.get_tuning("water_freezing_point")
                     + 2
                 )
@@ -781,7 +817,7 @@ class world_handler:
                 if contribution_ratio > 0:
                     total_water_vapor += (
                         (0.4 + (0.6 * contribution_ratio))
-                        * terrain_handler.get_parameter(constants.WATER)
+                        * location.get_parameter(constants.WATER)
                         * 1.5
                     )
             return total_water_vapor / self.default_grid.area
@@ -861,8 +897,8 @@ class world_handler:
 
         # Atmosphere haze depends on total pressure, with toxic gases greatly over-represented
 
-        for terrain_handler in self.terrain_handlers:
-            terrain_handler.current_clouds = []
+        for location in self.get_flat_location_list():
+            location.current_clouds = []
 
             cloud_type = None
             if random.random() < self.cloud_frequency:
@@ -870,14 +906,14 @@ class world_handler:
             elif random.random() < self.toxic_cloud_frequency:
                 cloud_type = "toxic"
             if cloud_type:
-                terrain_handler.current_clouds.append(
+                location.current_clouds.append(
                     {
                         "image_id": "misc/shader.png",
                         "detail_level": constants.CLOUDS_DETAIL_LEVEL,
                     }
                 )
             if self.atmosphere_haze_alpha > 0:
-                terrain_handler.current_clouds.append(
+                location.current_clouds.append(
                     {
                         "image_id": f"terrains/clouds_solid_{random.randrange(0, num_solid_cloud_variants)}.png",
                         "alpha": self.atmosphere_haze_alpha,
@@ -892,7 +928,7 @@ class world_handler:
                     }
                 )
             if cloud_type == "water vapor":
-                terrain_handler.current_clouds.append(
+                location.current_clouds.append(
                     {
                         "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
                         "detail_level": constants.CLOUDS_DETAIL_LEVEL,
@@ -906,7 +942,7 @@ class world_handler:
                     }
                 )
             elif cloud_type == "toxic":
-                terrain_handler.current_clouds.append(
+                location.current_clouds.append(
                     {
                         "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
                         "detail_level": constants.CLOUDS_DETAIL_LEVEL,
@@ -1357,8 +1393,8 @@ class world_handler:
         return round(
             sum(
                 [
-                    terrain_handler.get_parameter(constants.TEMPERATURE)
-                    for terrain_handler in self.terrain_handlers
+                    location.get_parameter(constants.TEMPERATURE)
+                    for location in self.get_flat_location_list()
                 ]
             )
             / self.default_grid.area,
@@ -1377,8 +1413,8 @@ class world_handler:
         self.average_water = round(
             sum(
                 [
-                    terrain_handler.get_parameter(constants.WATER)
-                    for terrain_handler in self.terrain_handlers
+                    location.get_parameter(constants.WATER)
+                    for location in self.get_flat_location_list()
                 ]
             )
             / self.default_grid.area,
@@ -1397,8 +1433,8 @@ class world_handler:
         self.average_altitude = round(
             sum(
                 [
-                    terrain_handler.get_parameter(constants.ALTITUDE)
-                    for terrain_handler in self.terrain_handlers
+                    location.get_parameter(constants.ALTITUDE)
+                    for location in self.get_flat_location_list()
                 ]
             )
             / self.default_grid.area,
@@ -1520,8 +1556,8 @@ class world_handler:
         average_brightness = (
             sum(
                 [
-                    terrain_handler.get_brightness()
-                    for terrain_handler in self.terrain_handlers
+                    location.get_brightness()
+                    for location in self.get_flat_location_list()
                 ]
             )
             / self.default_grid.area
@@ -1623,9 +1659,9 @@ class world_handler:
             * self.get_sun_effect()
         ) + constants.ABSOLUTE_ZERO
         self.average_temperature = utility.reverse_fahrenheit(fahrenheit)
-        for terrain_handler in self.terrain_handlers:
-            terrain_handler.expected_temperature_offset = (
-                terrain_handler.terrain_parameters[constants.TEMPERATURE]
-                - terrain_handler.get_expected_temperature()
+        for location in self.get_flat_location_list():
+            location.expected_temperature_offset = (
+                location.terrain_parameters[constants.TEMPERATURE]
+                - location.get_expected_temperature()
             )
         self.average_temperature = utility.reverse_fahrenheit(fahrenheit)

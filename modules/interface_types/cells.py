@@ -4,7 +4,7 @@ import pygame
 import random
 from typing import Dict, List, Any
 from modules.util import actor_utility
-from modules.constructs import terrain_handlers
+from modules.constructs import locations
 from modules.constants import constants, status, flags
 
 
@@ -41,7 +41,7 @@ class cell:
         self.grid.cell_list[x][y] = self
         self.tile: status.tile = None
         self.settlement = None
-        self.terrain_handler: terrain_handlers.terrain_handler = None
+        self.location: locations.location = None
         self.contained_mobs: list = []
         self.contained_buildings: Dict[str, Any] = {}
         self.adjacent_cells: Dict[str, cell] = {
@@ -54,9 +54,9 @@ class cell:
             self.save_dict: dict = save_dict
             if constants.effect_manager.effect_active("remove_fog_of_war"):
                 save_dict["visible"] = True
-            self.terrain_handler = terrain_handlers.terrain_handler(self, save_dict)
+            self.location = locations.location(self, save_dict)
         else:  # If creating new map
-            self.terrain_handler = terrain_handlers.terrain_handler(self)
+            self.location = locations.location(self)
 
     def get_parameter(self, parameter_name: str) -> int:
         """
@@ -67,7 +67,7 @@ class cell:
         Output:
             None
         """
-        return self.terrain_handler.get_parameter(parameter_name)
+        return self.location.get_parameter(parameter_name)
 
     def change_parameter(
         self, parameter_name: str, change: int, update_display: bool = True
@@ -81,7 +81,7 @@ class cell:
         Output:
             None
         """
-        self.terrain_handler.change_parameter(
+        self.location.change_parameter(
             parameter_name, change, update_display=update_display
         )
 
@@ -95,7 +95,7 @@ class cell:
         Output:
             None
         """
-        self.terrain_handler.set_parameter(parameter_name, new_value)
+        self.location.set_parameter(parameter_name, new_value)
 
     def to_save_dict(self):
         """
@@ -115,48 +115,9 @@ class cell:
         """
         save_dict = {}
         save_dict["coordinates"] = (self.x, self.y)
-        save_dict.update(self.terrain_handler.to_save_dict())
+        save_dict.update(self.location.to_save_dict())
         save_dict["inventory"] = self.tile.inventory
         return save_dict
-
-    def has_walking_connection(self, adjacent_cell):
-        """
-        Description:
-            Finds and returns whether a walking-only unit could move between this cell and the inputted cell, based on the terrains of the cells and whether a bridge is built
-        Input:
-            cell adjacent_cell: Cell to check for walking connections
-        Output:
-            boolean: Returns whether a walking-only unit could move between this cell and the inputted cell, based on the terrains of the cells and whether a bridge is built
-        """
-        if not (
-            self.terrain_handler.terrain == "water"
-            or adjacent_cell.terrain_handler.terrain == "water"
-        ):  # if both are land tiles, walking connection exists
-            return True
-        if (
-            self.terrain_handler.terrain == "water"
-            and adjacent_cell.terrain_handler.terrain == "water"
-        ):  # If both are water, no walking connection exists
-            return False
-
-        if self.terrain_handler.terrain == "water":
-            water_cell = self
-            land_cell = adjacent_cell
-        else:
-            water_cell = adjacent_cell
-            land_cell = self
-
-        water_infrastructure = water_cell.get_intact_building(constants.INFRASTRUCTURE)
-        if (
-            not water_infrastructure
-        ):  # If no bridge in water tile, no walking connection exists
-            return False
-        if water_infrastructure.is_bridge:
-            if (
-                land_cell in water_infrastructure.connected_cells
-            ):  # If bridge in water tile connects to the land tile, walking connection exists
-                return True
-        return False
 
     def local_attrition(self, attrition_type="health"):
         """
@@ -185,7 +146,7 @@ class cell:
                     return False
         else:
             if random.randrange(1, 7) <= min(
-                self.terrain_handler.get_habitability_dict(omit_perfect=False).values()
+                self.location.get_habitability_dict(omit_perfect=False).values()
             ):
                 # Attrition only occurs if a random roll is higher than the habitability - more attrition for worse habitability
                 return False
@@ -507,7 +468,7 @@ class cell:
         """
         self.contained_mobs = other_cell.contained_mobs
         self.contained_buildings = other_cell.contained_buildings
-        other_cell.terrain_handler.add_cell(self)
+        other_cell.location.add_cell(self)
         # self.tile.update_image_bundle(override_image=other_cell.tile.image) # Correctly copies other cell's image bundle but ends up very pixellated due to size difference
 
     def draw(self):
@@ -523,13 +484,13 @@ class cell:
         red = current_color[0]
         green = current_color[1]
         blue = current_color[2]
-        if not self.terrain_handler.visible:
+        if not self.location.visible:
             red, green, blue = constants.color_dict[constants.COLOR_BLONDE]
         pygame.draw.rect(constants.game_display, (red, green, blue), self.Rect)
         if self.tile:
             for current_image in self.tile.images:
                 current_image.draw()
-            if self.terrain_handler.visible and self.contained_mobs:
+            if self.location.visible and self.contained_mobs:
                 for current_image in self.contained_mobs[0].images:
                     current_image.draw()
                 self.show_num_mobs()

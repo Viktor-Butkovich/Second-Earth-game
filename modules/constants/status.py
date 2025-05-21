@@ -10,6 +10,7 @@ from modules.constructs.item_types import item_type
 from modules.constructs.minister_types import minister_type
 from modules.constructs.terrain_feature_types import terrain_feature_type
 from modules.constructs.images import image, free_image, directional_indicator_image
+from modules.constructs.locations import location
 from modules.interface_types.interface_elements import (
     interface_collection,
     tabbed_collection,
@@ -19,7 +20,6 @@ from modules.interface_types.interface_elements import (
 from modules.interface_types.inventory_interface import inventory_grid
 from modules.interface_types.grids import grid, mini_grid, abstract_grid
 from modules.interface_types.world_grids import world_grid
-from modules.interface_types.cells import cell
 from modules.interface_types.panels import safe_click_panel
 from modules.interface_types.notifications import notification
 from modules.interface_types.buttons import (
@@ -159,6 +159,6 @@ transaction_history: Dict[str, float] = {}
 initial_tutorial_completed: bool = False
 
 # Status variables automatically updated when corresponding terrain features are created
-north_pole: cell = None
-south_pole: cell = None
-equator_list: List[cell] = []
+north_pole: location = None
+south_pole: location = None
+equator_list: List[location] = []

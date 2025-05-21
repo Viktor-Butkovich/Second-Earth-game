@@ -120,9 +120,7 @@ class construction(action.action):
             status.displayed_mob
             and status.strategic_map_grid in status.displayed_mob.grids
         ):
-            terrain = status.displayed_mob.images[
-                0
-            ].current_cell.terrain_handler.terrain
+            terrain = status.displayed_mob.get_location().terrain
             if not self.building_type.key in [constants.TRAIN]:
                 message.append(
                     f"{utility.generate_capitalized_article(self.building_name)}{self.building_name} {utility.conjugate('cost', 1, self.building_name)} {base_cost} money by default, which is multiplied by {constants.terrain_build_cost_multiplier_dict.get(terrain, 1)} when built in {terrain.replace('_', ' ')} terrain"
@@ -204,22 +202,7 @@ class construction(action.action):
             None
         """
         if self.building_type.key == constants.RESOURCE:
-            cell = status.displayed_mob.get_cell()
-            if cell.terrain_handler.resource != self.attached_resource:
-                # if cell.terrain_handler.resource in constants.collectable_items:
-                #    self.attached_resource = cell.terrain_handler.resource
-                #    if self.attached_resource in ["gold", "iron", "copper", "diamond"]:
-                #        self.building_name = self.attached_resource + " mine"
-                #    elif self.attached_resource in [
-                #        "exotic wood",
-                #        "fruit",
-                #        "rubber",
-                #        "coffee",
-                #    ]:
-                #        self.building_name = self.attached_resource + " plantation"
-                #    elif self.attached_resource == "ivory":
-                #        self.building_name = "ivory camp"
-                # else:
+            if status.displayed_mob.get_location().resource != self.attached_resource:
                 self.attached_resource = None
                 self.building_name = "resource production facility"
 
@@ -229,7 +212,7 @@ class construction(action.action):
                 self.button.image.set_image(
                     [
                         "buttons/default_button_alt2.png",
-                        {"image_id": "items/" + displayed_resource + ".png"},
+                        {"image_id": f"items/{displayed_resource}.png"},
                         {
                             "image_id": "misc/plus.png",
                             "size": 0.5,
@@ -240,21 +223,26 @@ class construction(action.action):
                 )
 
         elif self.building_type.key == constants.INFRASTRUCTURE:
-            cell = status.displayed_mob.get_cell()
-            if not cell.has_building(constants.INFRASTRUCTURE):
-                if cell.terrain_handler.terrain == "water" and cell.y > 0:
+            if not status.displayed_mob.get_location().default_cell.has_building(
+                constants.INFRASTRUCTURE
+            ):
+                if status.displayed_mob.get_location().terrain == "water":
                     new_name = "ferry"
                     new_image = "buildings/buttons/ferry.png"
                 else:
                     new_name = "road"
                     new_image = "buildings/buttons/road.png"
             else:
-                if cell.terrain_handler.terrain == "water" and cell.y > 0:
-                    if not cell.get_building(constants.INFRASTRUCTURE):
+                if status.displayed_mob.get_location().terrain == "water":
+                    if not status.displayed_mob.get_location().get_building(
+                        constants.INFRASTRUCTURE
+                    ):
                         new_name = "ferry"
                         new_image = "buildings/buttons/ferry.png"
                     elif (
-                        cell.get_building(constants.INFRASTRUCTURE).infrastructure_type
+                        status.displayed_mob.get_location()
+                        .get_building(constants.INFRASTRUCTURE)
+                        .infrastructure_type
                         == constants.FERRY
                     ):
                         new_name = "road bridge"
@@ -293,50 +281,6 @@ class construction(action.action):
                 text_utility.print_to_screen(
                     "This building can only be built on railroads."
                 )
-        elif self.building_type.key == constants.INFRASTRUCTURE:
-            if self.building_name in ["road bridge", "railroad bridge", "ferry"]:
-                current_cell = unit.get_cell()
-                if current_cell.terrain_handler.terrain == "water":  # if in water
-                    up_cell = current_cell.grid.find_cell(
-                        current_cell.x, current_cell.y + 1
-                    )
-                    down_cell = current_cell.grid.find_cell(
-                        current_cell.x, current_cell.y - 1
-                    )
-                    left_cell = current_cell.grid.find_cell(
-                        current_cell.x - 1, current_cell.y
-                    )
-                    right_cell = current_cell.grid.find_cell(
-                        current_cell.x + 1, current_cell.y
-                    )
-                    if (not (up_cell == None or down_cell == None)) and (
-                        not (
-                            up_cell.terrain_handler.terrain == "water"
-                            or down_cell.terrain_handler.terrain == "water"
-                        )
-                    ):  # if vertical bridge
-                        if (
-                            up_cell.terrain_handler.visible
-                            and down_cell.terrain_handler.visible
-                        ):
-                            return_value = True
-                    elif (not (left_cell == None or right_cell == None)) and (
-                        not (
-                            left_cell.terrain_handler.terrain == "water"
-                            or right_cell.terrain_handler.terrain == "water"
-                        )
-                    ):  # if horizontal bridge
-                        if (
-                            left_cell.terrain_handler.visible
-                            and right_cell.terrain_handler.visible
-                        ):
-                            return_value = True
-                if not return_value:
-                    text_utility.print_to_screen(
-                        "A bridge can only be built on a water tile between 2 discovered land tiles"
-                    )
-            else:
-                return_value = True
         elif self.building_type.key == constants.TRAIN:
             if unit.get_cell().has_intact_building(constants.TRAIN_STATION):
                 return_value = True
@@ -383,12 +327,6 @@ class construction(action.action):
                 text_utility.print_to_screen(
                     "This building can only be built on the planet."
                 )
-            elif not (
-                current_cell.terrain_handler.terrain != "water"
-                or self.building_name
-                in ["road bridge", "railroad bridge", constants.FERRY]
-            ):
-                text_utility.print_to_screen("This building cannot be built in water.")
             elif self.can_build(unit):
                 self.start(unit)
 

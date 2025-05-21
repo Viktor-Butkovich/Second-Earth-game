@@ -224,7 +224,7 @@ class pmob(mob):
             return {}
         elif (
             earth_exemption
-            and self.get_cell().terrain_handler.get_unit_habitability()
+            and self.get_location().get_unit_habitability()
             > constants.HABITABILITY_DEADLY
         ):
             item_upkeep = self.unit_type.item_upkeep.copy()
@@ -446,24 +446,24 @@ class pmob(mob):
             None
         """
         super().on_move()
-        current_cell = self.get_cell()
-        if current_cell:
-            for cell in [current_cell] + current_cell.adjacent_list:
-                if cell == current_cell:  # Show knowledge 3 about current cell
+        current_location = self.get_location()
+        if current_location:
+            for location in [current_location] + current_location.adjacent_list:
+                if location == current_location:  # Show knowledge 3 about current cell
                     requirement = constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
                     category = constants.TERRAIN_PARAMETER_KNOWLEDGE
                 else:  # Show knowledge 2 about adjacent cells
                     requirement = constants.TERRAIN_KNOWLEDGE_REQUIREMENT
                     category = constants.TERRAIN_KNOWLEDGE
-                if not cell.terrain_handler.knowledge_available(category):
-                    cell.terrain_handler.set_parameter(
+                if not location.knowledge_available(category):
+                    location.set_parameter(
                         constants.KNOWLEDGE,
                         max(
                             requirement,
-                            cell.terrain_handler.get_parameter(constants.KNOWLEDGE),
+                            location.get_parameter(constants.KNOWLEDGE),
                         ),
-                        update_display=cell
-                        == current_cell.adjacent_list[
+                        update_display=location
+                        == current_location.adjacent_list[
                             -1
                         ],  # Only update display on last cell
                     )

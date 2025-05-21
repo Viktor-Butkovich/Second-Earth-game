@@ -1,7 +1,7 @@
 # Contains functionality for mobs
 
 import pygame, random
-from modules.constructs import images, unit_types, ministers, item_types
+from modules.constructs import images, unit_types, ministers, item_types, locations
 from modules.util import (
     utility,
     actor_utility,
@@ -143,9 +143,7 @@ class mob(actor):
             None
         """
         if self.get_cell():
-            self.habitability = self.get_cell().terrain_handler.get_unit_habitability(
-                self
-            )
+            self.habitability = self.get_location().get_unit_habitability(self)
             self.set_permission(
                 constants.SURVIVABLE_PERMISSION,
                 self.habitability != constants.HABITABILITY_DEADLY,
@@ -202,6 +200,20 @@ class mob(actor):
         elif self.get_permission(constants.IN_GROUP_PERMISSION):
             return self.group.get_cell()
         return self.images[0].current_cell
+
+    def get_location(self) -> locations.location:
+        """
+        Description:
+            Returns the location this mob is currently in
+        Input:
+            None
+        Output:
+            location: Returns the location this mob is currently in
+        """
+        current_cell = self.get_cell()
+        if current_cell:
+            return current_cell.location
+        return None
 
     def on_move(self):
         """
@@ -622,7 +634,7 @@ class mob(actor):
                 and self.get_cell().contained_mobs[0] == self
                 and constants.current_game_mode in self.modes
             ):
-                if self.get_cell().terrain_handler.visible:
+                if self.get_location().visible:
                     return True
         return False
 
@@ -638,7 +650,7 @@ class mob(actor):
         return (
             super().can_show_tooltip()
             and self.get_cell()
-            and self.get_cell().terrain_handler.visible
+            and self.get_location().visible
         )
 
     def get_movement_cost(self, x_change, y_change):
@@ -654,10 +666,6 @@ class mob(actor):
         cost = self.movement_cost
         if self.get_permission(constants.CONSTANT_MOVEMENT_COST_PERMISSION):
             return cost
-        if not (self.get_permission(constants.NPMOB_PERMISSION) and not self.visible()):
-            local_cell = self.get_cell()
-        else:
-            local_cell = self.grids[0].find_cell(self.x, self.y)
 
         direction = None
         if x_change < 0:
@@ -670,38 +678,31 @@ class mob(actor):
             direction = "down"
 
         if not direction:
-            adjacent_cell = local_cell
+            adjacent_location = self.get_location()
         else:
-            adjacent_cell = local_cell.adjacent_cells[direction]
+            adjacent_location = self.get_location().adjacent_locations[direction]
 
-        if adjacent_cell:
+        if adjacent_location:
             cost *= constants.terrain_movement_cost_dict.get(
-                adjacent_cell.terrain_handler.terrain, 1
+                adjacent_location.terrain, 1
             )
             if self.get_permission(constants.PMOB_PERMISSION):
-                local_infrastructure = local_cell.get_intact_building(
+                local_infrastructure = self.get_location().get_intact_building(
                     constants.INFRASTRUCTURE
                 )
-                adjacent_infrastructure = adjacent_cell.get_intact_building(
+                adjacent_infrastructure = self.get_location().get_intact_building(
                     constants.INFRASTRUCTURE
                 )
-                if local_cell.has_walking_connection(adjacent_cell):
-                    if local_infrastructure and adjacent_infrastructure:
-                        # If both have infrastructure and connected by land or bridge, use discount
-                        cost = cost / 2
-                    # Otherwise, use default cost but not full cost (no canoe penantly)
-                    if (
-                        adjacent_infrastructure
-                        and adjacent_infrastructure.infrastructure_type
-                        == constants.FERRY
-                    ):
-                        cost = 2
-                elif adjacent_cell.terrain_handler.terrain == "water" and (
-                    self.get_permission(constants.WALK_PERMISSION)
-                    and not self.get_permission(constants.SWIM_PERMISSION)
-                ):  # Elif water without boats
-                    cost = self.max_movement_points
-                if (not adjacent_cell.terrain_handler.visible) and self.get_permission(
+                if local_infrastructure and adjacent_infrastructure:
+                    # If both have infrastructure and connected by land or bridge, use discount
+                    cost = cost / 2
+                # Otherwise, use default cost but not full cost (no canoe penantly)
+                if (
+                    adjacent_infrastructure
+                    and adjacent_infrastructure.infrastructure_type == constants.FERRY
+                ):
+                    cost = 2
+                if (not adjacent_location.visible) and self.get_permission(
                     constants.EXPEDITION_PERMISSION
                 ):
                     cost = self.movement_cost
@@ -716,11 +717,8 @@ class mob(actor):
         Output:
             boolean: Returns True if any of the cells directly adjacent to this mob's cell has the water terrain. Otherwise, returns False
         """
-        for current_cell in self.get_cell().adjacent_list:
-            if (
-                current_cell.terrain_handler.terrain == "water"
-                and current_cell.terrain_handler.visible
-            ):
+        for current_location in self.get_location().adjacent_list:
+            if current_location.terrain == "water" and current_location.visible:
                 return True
         return False
 
@@ -1069,7 +1067,7 @@ class mob(actor):
                 top_message += " (exempt while on Earth)"
             elif (
                 self.get_cell()
-                and self.get_cell().terrain_handler.get_unit_habitability()
+                and self.get_location().get_unit_habitability()
                 > constants.HABITABILITY_DEADLY
             ):
                 show_air_exemption = True
@@ -1231,10 +1229,13 @@ class mob(actor):
         future_y = (self.y + y_change) % self.grid.coordinate_height
         if minister_utility.get_minister(constants.TRANSPORTATION_MINISTER):
             if not self.grid.is_abstract_grid:
-                future_cell = self.grid.find_cell(future_x, future_y)
-
+                future_location = (
+                    self.get_location()
+                    .get_world_handler()
+                    .find_location(future_x, future_y)
+                )
                 if (
-                    future_cell.terrain_handler.get_unit_habitability(self)
+                    future_location.get_unit_habitability(self)
                     == constants.HABITABILITY_DEADLY
                 ):
                     if can_print:
@@ -1260,7 +1261,7 @@ class mob(actor):
                             )
                         return False
 
-                if future_cell.terrain_handler.visible or self.any_permissions(
+                if future_location.visible or self.any_permissions(
                     constants.EXPEDITION_PERMISSION, constants.NPMOB_PERMISSION
                 ):
                     if (
@@ -1357,10 +1358,7 @@ class mob(actor):
                     constants.sound_manager.play_sound("effects/ocean_splashing")
                     possible_sounds.append("effects/ship_propeller")
             else:
-                if (
-                    self.get_cell()
-                    and self.get_cell().terrain_handler.terrain == "water"
-                ):
+                if self.get_cell() and self.get_location().terrain == "water":
                     local_infrastructure = self.get_cell().get_intact_building(
                         constants.INFRASTRUCTURE
                     )

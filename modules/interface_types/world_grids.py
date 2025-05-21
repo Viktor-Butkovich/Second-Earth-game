@@ -8,7 +8,7 @@ from typing import Dict, List, Tuple
 from modules.interface_types.grids import grid, mini_grid, abstract_grid
 from modules.interface_types.cells import cell
 from modules.util import scaling, actor_utility
-from modules.constructs import world_handlers
+from modules.constructs import world_handlers, locations
 from modules.constants import constants, status, flags
 
 
@@ -39,7 +39,7 @@ class world_grid(grid):
             None
         """
         super().__init__(from_save, input_dict)
-        self.world_handler: world_handlers.world_handler = world_handlers.world_handler(
+        self.world_handler = world_handlers.world_handler(
             self,
             from_save,
             input_dict.get("world_handler", {"grid_type": input_dict["grid_type"]}),
@@ -56,7 +56,7 @@ class world_grid(grid):
         """
         if from_save:
             for cell in self.get_flat_cell_list():
-                cell.terrain_handler.set_resource(
+                cell.location.set_resource(
                     status.item_types.get(cell.save_dict["resource"], None)
                 )
         else:
@@ -85,8 +85,8 @@ class world_grid(grid):
             default_altitude = 2
         else:
             default_altitude = 0
-        for cell in self.get_flat_cell_list():
-            cell.set_parameter(constants.ALTITUDE, default_altitude)
+        for location in self.world_handler.get_flat_location_list():
+            location.set_parameter(constants.ALTITUDE, default_altitude)
 
         if constants.effect_manager.effect_active("map_customization"):
             return
@@ -132,8 +132,8 @@ class world_grid(grid):
             estimate_water_vapor=True, update_albedo=True
         )
         default_temperature = round(self.world_handler.average_temperature)
-        for cell in self.get_flat_cell_list():
-            cell.set_parameter(
+        for location in self.world_handler.get_flat_location_list():
+            location.set_parameter(
                 constants.TEMPERATURE,
                 random.randrange(
                     default_temperature
@@ -189,7 +189,7 @@ class world_grid(grid):
                         constants.TEMPERATURE,
                         -1,
                         bound=1,
-                        start_cell=temperature_source,
+                        start_location=temperature_source,
                         weight_parameter=weight_parameter,
                     )
 
@@ -217,7 +217,7 @@ class world_grid(grid):
                     constants.TEMPERATURE,
                     random.choice([1]),
                     bound=1,
-                    start_cell=temperature_source,
+                    start_location=temperature_source,
                     weight_parameter="pole_distance_multiplier",
                 )
 
@@ -293,9 +293,9 @@ class world_grid(grid):
                 attempts += 1
         self.world_handler.update_target_average_temperature(update_albedo=True)
         self.world_handler.change_to_temperature_target()
-        for terrain_handler in self.world_handler.terrain_handlers:
-            terrain_handler.local_weather_offset = (
-                terrain_handler.expected_temperature_offset + random.uniform(-0.4, 0.4)
+        for location in self.world_handler.get_flat_location_list():
+            location.local_weather_offset = (
+                location.expected_temperature_offset + random.uniform(-0.4, 0.4)
             )
 
     def place_water(
@@ -316,7 +316,7 @@ class world_grid(grid):
         best_frozen = None
         best_liquid = None
         best_gas = None
-        for candidate in self.sample(
+        for candidate in self.world_handler.sample(
             k=round(
                 self.get_tuning("water_placement_candidates")
                 * (self.coordinate_width**2)
@@ -336,7 +336,7 @@ class world_grid(grid):
                         constants.ALTITUDE
                     ) < best_liquid.get_parameter(constants.ALTITUDE):
                         best_liquid = candidate
-        for candidate in self.sample(
+        for candidate in self.world_handler.sample(
             k=round(
                 self.get_tuning("ice_placement_candidates")
                 * (self.coordinate_width**2)
@@ -419,7 +419,7 @@ class world_grid(grid):
                     choice.change_parameter(
                         constants.WATER, change, update_display=update_display
                     )
-                    choice.terrain_handler.flow()
+                    choice.flow()
         if change == 0 and repeat_on_fail:
             self.place_water(
                 radiation_effect=radiation_effect,
@@ -460,11 +460,11 @@ class world_grid(grid):
         if constants.effect_manager.effect_active("map_customization"):
             return
         if constants.effect_manager.effect_active("earth_preset"):
-            for cell in self.get_flat_cell_list():
-                cell.set_parameter(constants.SOIL, random.randrange(0, 6))
+            for location in self.world_handler.get_flat_location_list():
+                location.set_parameter(constants.SOIL, random.randrange(0, 6))
         else:
-            for cell in self.get_flat_cell_list():
-                cell.set_parameter(constants.SOIL, random.randrange(0, 3))
+            for location in self.world_handler.get_flat_location_list():
+                location.set_parameter(constants.SOIL, random.randrange(0, 3))
 
         num_worms = random.randrange(
             self.get_tuning("min_soil_multiplier"),
@@ -649,15 +649,16 @@ class world_grid(grid):
         """
         offsets = [
             (
-                cell,
-                cell.terrain_handler.expected_temperature_offset
-                + cell.terrain_handler.local_weather_offset,
+                location,
+                location.expected_temperature_offset + location.local_weather_offset,
             )
-            for cell in self.get_flat_cell_list()
-            if not cell.get_parameter(constants.TEMPERATURE) == bound
+            for location in self.world_handler.get_flat_location_list()
+            if not location.get_parameter(constants.TEMPERATURE) == bound
         ]
         if offsets:
-            outlier = choice_function(offsets, key=lambda x: x[1])[0]
+            outlier = choice_function(offsets, key=lambda x: x[1])[
+                0
+            ]  # Choose baesd on min or max expected temperature offset
             outlier.change_parameter(
                 constants.TEMPERATURE, change, update_display=False
             )
@@ -670,7 +671,7 @@ class world_grid(grid):
         change: int,
         bound: int = 0,
         set: bool = False,
-        start_cell: cell = None,
+        start_location: locations.location = None,
         weight_parameter: str = None,
     ):
         """
@@ -683,13 +684,13 @@ class world_grid(grid):
             int change: Amount to change the parameter by
             bool capped: True if the parameter change should be limited in how far it can go from starting cell's original value, otherwise False
             bool set: True if the parameter should be set to the change + original, False if it should be changed with each pass
-            cell start_cell: Cell to start the worm from, otherwise a random cell is chosen
+            cell start_location: Location to start the worm from, otherwise a random location is chosen
             str weight_parameter: Terrain handler parameter to weight direction selection by, if any
         Output:
             None
         """
-        if start_cell:
-            start_x, start_y = start_cell.x, start_cell.y
+        if start_location:
+            start_x, start_y = start_location.x, start_location.y
         else:
             start_x = random.randrange(0, self.coordinate_width)
             start_y = random.randrange(0, self.coordinate_height)
@@ -698,28 +699,32 @@ class world_grid(grid):
         current_y = start_y
         worm_length = random.randrange(min_len, max_len + 1)
 
-        original_value = self.find_cell(current_x, current_y).get_parameter(parameter)
+        original_value = self.world_handler.find_location(
+            current_x, current_y
+        ).get_parameter(parameter)
         upper_bound = original_value + bound
         lower_bound = original_value - bound
 
         counter = 0
         while counter != worm_length:
-            current_cell = self.find_cell(current_x, current_y)
+            current_location = self.world_handler.find_location(current_x, current_y)
             if set:
                 resulting_value = original_value + change
             else:
-                resulting_value = current_cell.get_parameter(parameter) + change
+                resulting_value = current_location.get_parameter(parameter) + change
 
             if bound == 0 or (
                 resulting_value <= upper_bound and resulting_value >= lower_bound
             ):
-                current_cell.change_parameter(parameter, change, update_display=False)
+                current_location.change_parameter(
+                    parameter, change, update_display=False
+                )
             counter = counter + 1
             if weight_parameter:
-                selected_cell = self.parameter_weighted_sample(
-                    weight_parameter, restrict_to=current_cell.adjacent_list, k=1
+                selected_location = self.parameter_weighted_sample(
+                    weight_parameter, restrict_to=current_location.adjacent_list, k=1
                 )[0]
-                current_x, current_y = selected_cell.x, selected_cell.y
+                current_x, current_y = selected_location.x, selected_location.y
             else:
                 direction = random.randrange(1, 5)  # 1 north, 2 east, 3 south, 4 west
                 if direction == 3:
@@ -741,27 +746,30 @@ class world_grid(grid):
             None
         """
         for terrain_feature_type in status.terrain_feature_types:
-            for cell in self.get_flat_cell_list():
-                if status.terrain_feature_types[terrain_feature_type].allow_place(cell):
-                    cell.terrain_handler.terrain_features[terrain_feature_type] = {
+            for location in self.world_handler.get_flat_location_list():
+                if status.terrain_feature_types[terrain_feature_type].allow_place(
+                    location
+                ):
+                    location.terrain_features[terrain_feature_type] = {
                         "feature_type": terrain_feature_type
                     }
-                    cell.tile.update_image_bundle()
+                    for cell in location.attached_cells:
+                        cell.tile.update_image_bundle()
 
-    def x_distance(self, cell1, cell2):
+    def x_distance(self, location1, location2):
         """
         Description:
-            Calculates and returns the x distance between two cells
+            Calculates and returns the x distance between two locations
         Input:
-            cell cell1: First cell
-            cell cell2: Second cell
+            location location1: First location
+            location location2: Second location
         Output:
-            int: Returns the x distance between the two cells
+            int: Returns the x distance between the two locations
         """
         return min(
-            abs(cell1.x - cell2.x),
-            abs(cell1.x - (cell2.x + self.coordinate_width)),
-            abs(cell1.x - (cell2.x - self.coordinate_width)),
+            abs(location1.x - location2.x),
+            abs(location1.x - (location2.x + self.coordinate_width)),
+            abs(location1.x - (location2.x - self.coordinate_width)),
         )
 
     def x_distance_coords(self, x1, x2):
@@ -826,16 +834,18 @@ class world_grid(grid):
             self.x_distance(cell1, cell2) ** 2 + self.y_distance(cell1, cell2) ** 2
         ) ** 0.5
 
-    def cell_distance(self, cell1, cell2):
+    def location_distance(self, location1, location2):
         """
         Description:
             Calculates and returns the non-diagonal distance between two cells
         Input:
-            cell cell1: First cell
-            cell cell2: Second cell
+            location location1: First location
+            location location2: Second location
         Output: int: Returns the non-diagonal distance between the two cells
         """
-        return self.x_distance(cell1, cell2) + self.y_distance(cell1, cell2)
+        return self.x_distance(location1, location2) + self.y_distance(
+            location1, location2
+        )
 
     def create_resource_list_dict(self):
         """
@@ -881,7 +891,7 @@ class world_grid(grid):
         current_y = start_y
         worm_length = random.randrange(min_len, max_len + 1)
         terrain = random.choice(possible_terrains)
-        self.find_cell(current_x, current_y).terrain_handler.set_terrain(terrain)
+        self.world_handler.find_location(current_x, current_y).set_terrain(terrain)
         counter = 0
         while not counter == worm_length:
             counter = counter + 1
@@ -894,33 +904,33 @@ class world_grid(grid):
                 current_y = (current_y - 1) % self.coordinate_height
             elif direction == 4:
                 current_x = (current_x - 1) % self.coordinate_width
-            self.find_cell(current_x, current_y).terrain_handler.set_terrain(terrain)
+            self.world_handler.find_location(current_x, current_y).set_terrain(terrain)
 
     def parameter_weighted_sample(
-        self, parameter: str, restrict_to: List[cell] = None, k: int = 1
+        self, parameter: str, restrict_to: list = None, k: int = 1
     ) -> List:
         """
         Description:
-            Randomly samples k cells from the grid, with the probability of a cell being chosen being proportional to its value of the inputted parameter
+            Randomly samples k locations from the grid, with the probability of a cell being chosen being proportional to its value of the inputted parameter
         Input:
             string parameter: Parameter to sample by
-            int k: Number of cells to sample
+            location list restrict_to: List of locations to sample from, otherwise all locations are sampled
+            int k: Number of locations to sample
         Output:
-            list: Returns a list of k cells
+            list: Returns a list of k locations
         """
         if not restrict_to:
-            cell_list = self.get_flat_cell_list()
-            cell_list = [cell for cell in cell_list]  # Converts from chain to list
+            location_list = list(self.world_handler.get_flat_location_list())
         else:
-            cell_list = restrict_to
+            location_list = restrict_to
 
         if parameter in constants.terrain_parameters:
-            weight_list = [cell.get_parameter(parameter) for cell in cell_list]
-        else:
             weight_list = [
-                getattr(cell.terrain_handler, parameter) for cell in cell_list
+                location.get_parameter(parameter) for location in location_list
             ]
-        return random.choices(list(cell_list), weights=weight_list, k=k)
+        else:
+            weight_list = [getattr(location, parameter) for location in location_list]
+        return random.choices(location_list, weights=weight_list, k=k)
 
     def sample(self, k: int = 1):
         """
@@ -942,7 +952,7 @@ class world_grid(grid):
         Output:
             None
         """
-        self.find_cell(0, 0).terrain_handler.add_terrain_feature(
+        self.world_handler.find_location(0, 0).add_terrain_feature(
             {
                 "feature_type": "north pole",
             }
@@ -951,11 +961,12 @@ class world_grid(grid):
         max_distance = 0
 
         south_pole = None
-        for cell in self.get_flat_cell_list():
-            if self.distance(cell, status.north_pole) > max_distance:
-                max_distance = self.distance(cell, status.north_pole)
-                south_pole = cell
-        south_pole.terrain_handler.add_terrain_feature(
+        for location in self.world_handler.get_flat_location_list():
+            if self.distance(location, status.north_pole) > max_distance:
+                max_distance = self.distance(location, status.north_pole)
+                south_pole = location
+
+        south_pole.add_terrain_feature(
             {
                 "feature_type": "south pole",
             }
@@ -963,27 +974,27 @@ class world_grid(grid):
 
         equatorial_distance = self.distance(status.north_pole, status.south_pole) / 2
         for (
-            cell
+            location
         ) in (
-            self.get_flat_cell_list()
+            self.world_handler.get_flat_location_list()
         ):  # Results in clean equator lines in odd-sized planets
-            north_pole_distance = self.distance(cell, status.north_pole)
-            south_pole_distance = self.distance(cell, status.south_pole)
-            cell.terrain_handler.pole_distance_multiplier = max(
+            north_pole_distance = self.distance(location, status.north_pole)
+            south_pole_distance = self.distance(location, status.south_pole)
+            location.pole_distance_multiplier = max(
                 min(
                     min(north_pole_distance, south_pole_distance) / equatorial_distance,
                     1.0,
                 ),
                 0.1,
             )
-            cell.terrain_handler.inverse_pole_distance_multiplier = max(
-                1 - cell.terrain_handler.pole_distance_multiplier, 0.1
+            location.inverse_pole_distance_multiplier = max(
+                1 - location.pole_distance_multiplier, 0.1
             )
-            cell.terrain_handler.north_pole_distance_multiplier = (
+            location.north_pole_distance_multiplier = (
                 max(min(1.0 - (north_pole_distance / equatorial_distance), 1.0), 0.1)
                 ** 2
             )
-            cell.terrain_handler.south_pole_distance_multiplier = (
+            location.south_pole_distance_multiplier = (
                 max(min(1.0 - (south_pole_distance / equatorial_distance), 1.0), 0.1)
                 ** 2
             )
@@ -991,37 +1002,37 @@ class world_grid(grid):
             if (
                 (south_pole_distance == north_pole_distance)
                 or (
-                    cell.y > cell.x
+                    location.y > location.x
                     and abs(south_pole_distance - north_pole_distance) <= 1
                     and south_pole_distance < north_pole_distance
                 )
                 or (
-                    cell.y < cell.x
+                    location.y < location.x
                     and abs(south_pole_distance - north_pole_distance) <= 1
                     and south_pole_distance > north_pole_distance
                 )
             ):
-                cell.terrain_handler.add_terrain_feature(
+                location.add_terrain_feature(
                     {
                         "feature_type": "equator",
                     }
                 )
 
             if (
-                self.cell_distance(status.south_pole, cell)
+                self.location_distance(status.south_pole, location)
                 == self.coordinate_width // 3
             ):
-                cell.terrain_handler.add_terrain_feature(
+                location.add_terrain_feature(
                     {
                         "feature_type": "southern tropic",
                     }
                 )
 
             if (
-                self.cell_distance(status.north_pole, cell)
+                self.location_distance(status.north_pole, location)
                 == self.coordinate_width // 3
             ):
-                cell.terrain_handler.add_terrain_feature(
+                location.add_terrain_feature(
                     {
                         "feature_type": "northern tropic",
                     }

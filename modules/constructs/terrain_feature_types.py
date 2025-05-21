@@ -59,15 +59,15 @@ class terrain_feature_type:
         elif self.tracking_type == constants.LIST_FEATURE_TRACKING:
             setattr(status, self.terrain_feature_type.replace(" ", "_") + "_list", [])
 
-    def allow_place(self, cell) -> bool:
+    def allow_place(self, location) -> bool:
         """
         Description:
-            Calculates and returns whether to place one of this particular feature in the inputted cell during map generation, based on the feature's frequency and
+            Calculates and returns whether to place one of this particular feature in the inputted location during map generation, based on the feature's frequency and
                 requirements
         Input:
-            cell cell: Cell to place feature in
+            location location: Location to place feature in
         Output:
-            boolean: Returns whether to place one of this particular featuer in the inputted cell
+            boolean: Returns whether to place one of this particular featuer in the inputted location
         """
         if self.frequency:
             if (
@@ -75,19 +75,13 @@ class terrain_feature_type:
             ):  # For (1, 10), appear if random.randrange(1, 11) <= 1
                 for requirement in self.requirements:
                     if requirement == "terrain":
-                        if (
-                            self.requirements[requirement]
-                            != cell.terrain_handler.terrain
-                        ):
+                        if self.requirements[requirement] != location.terrain:
                             return False
                     elif requirement == "min_y":
-                        if cell.y < self.requirements[requirement]:
+                        if location.y < self.requirements[requirement]:
                             return False
                     elif requirement == "resource":
-                        if (
-                            cell.terrain_handler.resource
-                            != self.requirements[requirement]
-                        ):
+                        if location.resource != self.requirements[requirement]:
                             return False
                 return True
         return False

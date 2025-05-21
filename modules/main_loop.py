@@ -384,7 +384,7 @@ def main_loop():
                         ) == (
                             current_enemy.x,
                             current_enemy.y,
-                        ) and spawn_cell.terrain_handler.visible:  # if camera just moved to spawn location to show spawning
+                        ) and spawn_cell.location.visible:  # if camera just moved to spawn location to show spawning
                             spawning = True
                             current_enemy.show_images()
                             current_enemy.select()
@@ -393,7 +393,7 @@ def main_loop():
                         else:  # if camera did not move to spawn location
                             spawning = True
                             if (
-                                spawn_cell.terrain_handler.visible
+                                spawn_cell.location.visible
                             ):  # if spawn location visible but camera hasn't moved there yet, move camera there
                                 status.minimap_grid.calibrate(
                                     current_enemy.x, current_enemy.y
@@ -465,7 +465,7 @@ def main_loop():
                             spawning
                             and not current_enemy.grids[0]
                             .find_cell(current_enemy.x, current_enemy.y)
-                            .terrain_handler.visible
+                            .location.visible
                         ):  # do not wait if spawning unit won't be visible even after it spawns
                             constants.end_turn_wait_time = 0
                         elif (

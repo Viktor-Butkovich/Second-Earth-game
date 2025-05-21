@@ -53,7 +53,7 @@ class actor_display_free_image(free_image):
 
                 if (
                     new_actor.actor_type == constants.TILE_ACTOR_TYPE
-                    and not new_actor.cell.terrain_handler.visible
+                    and not new_actor.get_location().visible
                 ):
                     default_image_key = "hidden"
                 if new_actor.actor_type in [

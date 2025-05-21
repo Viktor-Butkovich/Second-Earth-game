@@ -439,6 +439,12 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Prevent instantly firing minister if this would result in fewer than the valid number of ministers - locked out of ending turn
+# Transfer tile inventory logic to location
+# Transfer contained_mob logic from cell to location - should eliminate issue of tracking mobs separately for each cell
+# Convert status.north_pole, status.south_pole, and status.equator_list to be locations instead of cells
+# Transfer all building/settlement logic from cell to location - should eliminate issue of duplicate building objects for each cell
+# Refactor most world_grid functionality to be handled by world_handler instead - grids and cells should only deal with actual rendering logic, not conceptual objects
 # Investigate water disappearing during terraforming - definitely occurs on Venus and Mars maps
 # Colonist upkeep should be oxygen, outputs CO2 - nitrogen is required in the construction of life support/dome systems, but is not directly involved in the upkeep process
 # Next major step is to add basic economic mechanics, now that the baseline terraforming is functional

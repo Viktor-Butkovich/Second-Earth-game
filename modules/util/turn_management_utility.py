@@ -380,7 +380,7 @@ def manage_production():
 
 
 def manage_production_report(
-    expected_production: Dict[str, item_types.item_type]
+    expected_production: Dict[str, item_types.item_type],
 ) -> None:
     """
     Description:
@@ -845,19 +845,19 @@ def end_turn_warnings():
             )
 
     for (
-        current_cell
+        current_location
     ) in (
-        status.strategic_map_grid.get_flat_cell_list()
-    ):  # Warn for insufficient warehouses
+        status.strategic_map_grid.world_handler.get_flat_location_list()
+    ):  #  Warn for insufficient warehouses on planet
         if (
-            current_cell.terrain_handler.visible
-            and current_cell.tile.get_inventory_used()
-            > current_cell.tile.inventory_capacity
+            current_location.visible
+            and current_location.default_cell.tile.get_inventory_used()
+            > current_location.default_cell.tile.inventory_capacity
         ):
             constants.notification_manager.display_notification(
                 {
-                    "message": f"Warning: the warehouses at {current_cell.x}, {current_cell.y} are not sufficient to hold the items stored there. /n /nAny items exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
-                    "zoom_destination": current_cell.tile,
+                    "message": f"Warning: the warehouses at {current_location.x}, {current_location.y} are not sufficient to hold the items stored there. /n /nAny items exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
+                    "zoom_destination": current_location.default_cell.tile,
                 }
             )
     for current_grid in status.grid_list:

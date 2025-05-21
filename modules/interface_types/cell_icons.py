@@ -132,4 +132,4 @@ class name_icon(cell_icon):
         Output:
             boolean: Returns True if this grid can appear during the current game mode, otherwise returns False
         """
-        return super().can_show() and self.tile.cell.terrain_handler.visible
+        return super().can_show() and self.tile.get_location().visible

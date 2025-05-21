@@ -5,7 +5,7 @@ from modules.constructs import world_handlers, item_types
 from modules.constants import constants, status, flags
 
 
-class terrain_handler:
+class location:
     """
     "Single source of truth" handler for the terrain/local characteristics of each version of a cell on different grids
     """
@@ -21,6 +21,10 @@ class terrain_handler:
         """
         if not input_dict:
             input_dict = {}
+        self.x: int = attached_cell.x
+        self.y: int = attached_cell.y
+        self.adjacent_list: List[location] = []
+        self.adjacent_locations: Dict[str, location] = {}
         self.terrain_parameters: Dict[str, int] = input_dict.get(
             "terrain_parameters",
             {
@@ -59,6 +63,40 @@ class terrain_handler:
         self.terrain_features: Dict[str, bool] = {}
         for key, value in input_dict.get("terrain_features", {}).items():
             self.add_terrain_feature(value)
+
+    def find_adjacent_locations(self):
+        """
+        Description:
+            Records a list of the cells directly adjacent to this cell. Also records these cells as values in a dictionary with string keys corresponding to their direction relative to this cell
+        Input:
+            None
+        Output:
+            None
+        """
+        adjacent_list = []
+
+        adjacent_location = self.grid.find_cell(
+            (self.x - 1) % self.grid.coordinate_width, self.y
+        )
+        adjacent_list.append(adjacent_location)
+        self.adjacent_locations["left"] = adjacent_location
+        adjacent_location = self.grid.find_cell(
+            (self.x + 1) % self.grid.coordinate_width, self.y
+        )
+        adjacent_list.append(adjacent_location)
+        self.adjacent_locations["right"] = adjacent_location
+        adjacent_location = self.grid.find_cell(
+            self.x, (self.y - 1) % self.grid.coordinate_height
+        )
+        adjacent_list.append(adjacent_location)
+        self.adjacent_locations["down"] = adjacent_location
+        adjacent_location = self.grid.find_cell(
+            self.x, (self.y + 1) % self.grid.coordinate_height
+        )
+        adjacent_list.append(adjacent_location)
+        self.adjacent_locations["up"] = adjacent_location
+
+        self.adjacent_list = adjacent_list
 
     def get_parameter_habitability(self, parameter_name: str) -> int:
         """
@@ -335,7 +373,7 @@ class terrain_handler:
                         status.tile_info_display, cell.tile
                     )
         for mob in status.mob_list:
-            if mob.get_cell() and mob.get_cell().terrain_handler == self:
+            if mob.get_location() == self:
                 mob.update_habitability()
 
     def has_snow(self) -> bool:
@@ -523,10 +561,10 @@ class terrain_handler:
         Output:
             None
         """
-        if cell.terrain_handler:
-            cell.terrain_handler.remove_cell(cell)
+        if cell.location:
+            cell.location.remove_cell(cell)
         self.attached_cells.append(cell)
-        cell.terrain_handler = self
+        cell.location = self
 
         if cell.tile:
             cell.tile.set_terrain(self.terrain, update_image_bundle=False)
@@ -543,7 +581,7 @@ class terrain_handler:
             None
         """
         self.attached_cells.remove(cell)
-        cell.terrain_handler = None
+        cell.location = None
         if not self.attached_cells:
             del self
 
@@ -584,8 +622,8 @@ class terrain_handler:
                         flowed = True
 
         if flowed:  # Flow could recursively trigger flows in adjacent cells
-            for adjacent_cell in self.attached_cells[0].adjacent_list:
-                adjacent_cell.terrain_handler.flow()
+            for adjacent_location in self.adjacent_list:
+                adjacent_location.flow()
 
     def get_color_filter(self) -> Dict[str, int]:
         """

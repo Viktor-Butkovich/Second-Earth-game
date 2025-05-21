@@ -71,9 +71,7 @@ class equipment_type(item_types.item_type):
         """
         if self.key == constants.SPACESUITS_EQUIPMENT:
             if unit.get_cell():
-                habitability = unit.get_cell().terrain_handler.get_unit_habitability(
-                    unit=None
-                )
+                habitability = unit.get_location().get_unit_habitability(unit=None)
             else:
                 habitability = constants.HABITABILITY_DEADLY
             toggled_sections = [

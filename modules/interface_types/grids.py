@@ -38,7 +38,7 @@ class grid(interface_elements.interface_element):
         """
         super().__init__(input_dict)
         status.grid_list.append(self)
-        self.world_handler = None
+        self.world_handler: world_handlers.world_handler = None
         self.grid_type = input_dict["grid_type"]
         self.grid_line_width: int = input_dict.get("grid_line_width", 3)
         self.from_save = from_save
@@ -396,7 +396,7 @@ class grid(interface_elements.interface_element):
         allowed_terrains = requirements_dict["allowed_terrains"]
         possible_cells = []
         for current_cell in self.get_flat_cell_list():
-            if not current_cell.terrain_handler.terrain in allowed_terrains:
+            if not current_cell.location.terrain in allowed_terrains:
                 continue
             possible_cells.append(current_cell)
         if len(possible_cells) == 0:
@@ -763,7 +763,7 @@ class abstract_grid(grid):
             self.world_handler = status.strategic_map_grid.world_handler
         self.is_abstract_grid = True
         self.name = self.world_handler.name
-        self.cell_list[0][0].terrain_handler.set_visibility(True)
+        self.world_handler.location_list[0][0].set_visibility(True)
 
     def rename(self, new_name: str) -> None:
         """

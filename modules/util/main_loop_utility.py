@@ -431,7 +431,7 @@ def manage_lmb_down(clicked_button):
                 if current_grid.showing:
                     for current_cell in current_grid.get_flat_cell_list():
                         if current_cell.touching_mouse():
-                            if current_cell.terrain_handler.visible:
+                            if current_cell.location.visible:
                                 if len(current_cell.contained_mobs) > 0:
                                     selected_mob = True
                                     current_mob = current_cell.contained_mobs[0]
@@ -517,19 +517,12 @@ def manage_lmb_down(clicked_button):
                                 "Only tiles adjacent to the most recently chosen destination can be added to the movement route."
                             )
                         else:
+                            target_location = current_cell.location
                             displayed_mob = status.displayed_mob
-                            if current_cell.grid.is_mini_grid:
-                                target_tiles = current_cell.tile.get_equivalent_tiles()
-                                if not target_tiles:
-                                    return ()
-                                else:
-                                    target_cell = target_tiles[0].cell
-                            else:
-                                target_cell = current_cell
                             # target_cell = status.strategic_map_grid.find_cell(status.minimap_grid.center_x, status.minimap_grid.center_y)
                             destination_x, destination_y = (
-                                target_cell.x,
-                                target_cell.y,
+                                target_location.x,
+                                target_location.y,
                             )  # target_cell.tile.get_main_grid_coordinates()
                             (
                                 previous_destination_x,
@@ -542,10 +535,12 @@ def manage_lmb_down(clicked_button):
                                 )
                                 == 1
                             ):
-                                destination_infrastructure = target_cell.get_building(
-                                    constants.INFRASTRUCTURE
+                                destination_infrastructure = (
+                                    target_location.get_building(
+                                        constants.INFRASTRUCTURE
+                                    )
                                 )
-                                if not target_cell.terrain_handler.visible:
+                                if not target_location.visible:
                                     text_utility.print_to_screen(
                                         "Movement routes cannot be created through unexplored tiles."
                                     )
@@ -557,14 +552,16 @@ def manage_lmb_down(clicked_button):
                                     and displayed_mob.get_permission(
                                         constants.TRAIN_PERMISSION
                                     )
-                                    and not target_cell.has_building(constants.RAILROAD)
+                                    and not target_location.has_building(
+                                        constants.RAILROAD
+                                    )
                                 ):
                                     text_utility.print_to_screen(
                                         "Trains can only create movement routes along railroads."
                                     )
                                     return ()
                                 elif (
-                                    target_cell.terrain_handler.terrain == "water"
+                                    target_location.terrain == "water"
                                     and not displayed_mob.get_permission(
                                         constants.SWIM_PERMISSION
                                     )
@@ -581,13 +578,13 @@ def manage_lmb_down(clicked_button):
                                     )
                                     return ()
                                 elif (
-                                    (not target_cell.terrain_handler.terrain == "water")
+                                    (not target_location.terrain == "water")
                                     and (
                                         not displayed_mob.get_permission(
                                             constants.WALK_PERMISSION
                                         )
                                     )
-                                    and not target_cell.has_intact_building(
+                                    and not target_location.has_intact_building(
                                         constants.SPACEPORT
                                     )
                                 ):
@@ -631,13 +628,10 @@ def click_move_minimap():
                     if (
                         current_grid in status.strategic_map_grid.mini_grids
                     ):  # If minimap clicked, calibrate to corresponding place on main map and all mini maps
-                        if (
-                            current_cell.terrain_handler.terrain
-                        ):  # If off map, do not move minimap there
-                            main_x, main_y = current_grid.get_main_grid_coordinates(
-                                current_cell.x, current_cell.y
-                            )
-                            current_grid.calibrate(main_x, main_y)
+                        main_x, main_y = current_grid.get_main_grid_coordinates(
+                            current_cell.x, current_cell.y
+                        )
+                        current_grid.calibrate(main_x, main_y)
                     elif current_grid == status.strategic_map_grid:
                         status.minimap_grid.calibrate(current_cell.x, current_cell.y)
                     else:  # If abstract grid, show the inventory of the tile clicked without calibrating minimap

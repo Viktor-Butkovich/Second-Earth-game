@@ -40,7 +40,10 @@ class expedition(group):
             direction = None
         future_cell = self.grid.find_cell(future_x, future_y)
         if (
-            future_cell.terrain_handler.visible == False
+            not self.get_location()
+            .get_world_handler()
+            .find_location(future_x, future_y)
+            .visible
         ):  # if moving to unexplored area, try to explore it
             status.actions["exploration"].on_click(
                 self,

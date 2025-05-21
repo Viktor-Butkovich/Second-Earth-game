@@ -1,6 +1,7 @@
 # Contains functionality for actor display labels
 
 import pygame
+from modules.actor_types import actors
 from modules.interface_types.labels import label
 from modules.util import utility, scaling, actor_utility
 from modules.constants import constants, status, flags
@@ -32,7 +33,7 @@ class actor_display_label(label):
         """
         self.attached_buttons = []
         self.has_label_collection = False
-        self.actor = None
+        self.actor: actors.actor = None  # Could technically be a minister, but it supports most actor interfaces
         self.actor_label_type = input_dict.get(
             "actor_label_type", input_dict["init_type"]
         )
@@ -837,7 +838,7 @@ class actor_display_label(label):
                     )
             elif self.actor_label_type == constants.TILE_INVENTORY_CAPACITY_LABEL:
                 if self.actor:
-                    if not self.actor.cell.terrain_handler.visible:
+                    if not self.actor.get_location().visible:
                         tooltip_text.append("This tile has not been explored")
                     elif self.actor.infinite_inventory_capacity:
                         tooltip_text.append(
@@ -1162,9 +1163,7 @@ class actor_display_label(label):
         elif self.actor_label_type == constants.HABITABILITY_LABEL:
             tooltip_text = [self.message]
             if self.actor:
-                habitability_dict = (
-                    self.actor.cell.terrain_handler.get_habitability_dict()
-                )
+                habitability_dict = self.actor.get_location().get_habitability_dict()
 
                 if not self.actor.cell.grid.is_abstract_grid:
                     tooltip_text.append(
@@ -1185,7 +1184,7 @@ class actor_display_label(label):
                     f"Represents the habitability for humans to live and work here"
                 )
                 if (not self.actor.cell.grid.is_abstract_grid) and (
-                    self.actor.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
+                    self.actor.get_location().get_parameter(constants.KNOWLEDGE)
                     < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
                 ):
                     if constants.TEMPERATURE in habitability_dict:
@@ -1210,7 +1209,7 @@ class actor_display_label(label):
         else:
             super().update_tooltip()
 
-    def calibrate(self, new_actor):
+    def calibrate(self, new_actor: actors.actor):
         """
         Description:
             Attaches this label to the inputted actor and updates this label's information based on the inputted actor
@@ -1244,13 +1243,13 @@ class actor_display_label(label):
             elif self.actor_label_type == constants.TERRAIN_LABEL:
                 if not new_actor.grid.is_abstract_grid:
                     if (
-                        self.actor.cell.terrain_handler.visible
-                        and self.actor.cell.terrain_handler.knowledge_available(
+                        self.actor.get_location().visible
+                        and self.actor.get_location().knowledge_available(
                             constants.TERRAIN_KNOWLEDGE
                         )
                     ):
                         self.set_label(
-                            f"{self.message_start}{new_actor.cell.terrain_handler.terrain.replace('_', ' ')}"
+                            f"{self.message_start}{new_actor.get_location().terrain.replace('_', ' ')}"
                         )
                     else:
                         self.set_label(self.message_start + "unknown")
@@ -1267,9 +1266,9 @@ class actor_display_label(label):
             elif self.actor_label_type == constants.RESOURCE_LABEL:
                 if new_actor.grid.is_abstract_grid:
                     self.set_label(self.message_start + "n/a")
-                elif new_actor.cell.terrain_handler.visible:
+                elif new_actor.get_location().visible:
                     self.set_label(
-                        f"{self.message_start}{new_actor.cell.terrain_handler.resource}"
+                        f"{self.message_start}{new_actor.get_location().resource}"
                     )
                 else:
                     self.set_label(self.message_start + "unknown")
@@ -1282,13 +1281,15 @@ class actor_display_label(label):
             ):  # Resource building, distinct from terrain resource label
                 if (
                     (not new_actor.grid.is_abstract_grid)
-                    and new_actor.cell.terrain_handler.visible
-                    and new_actor.cell.has_building(constants.RESOURCE)
+                    and new_actor.get_location().visible
+                    and new_actor.get_location().default_cell.has_building(
+                        constants.RESOURCE
+                    )
                 ):
                     self.set_label(
-                        new_actor.cell.get_building(
-                            constants.RESOURCE
-                        ).name.capitalize()
+                        new_actor.get_location()
+                        .get_building(constants.RESOURCE)
+                        .name.capitalize()
                     )
             elif self.actor_label_type == constants.EQUIPMENT_LABEL:
                 self.set_label(
@@ -1424,7 +1425,7 @@ class actor_display_label(label):
                 inventory_used = self.actor.get_inventory_used()
                 if (
                     self.actor_label_type == constants.TILE_INVENTORY_CAPACITY_LABEL
-                    and not self.actor.cell.terrain_handler.visible
+                    and not self.actor.get_location().visible
                 ):
                     text = self.message_start + "n/a"
                 elif self.actor.infinite_inventory_capacity:
@@ -1548,7 +1549,7 @@ class actor_display_label(label):
                 in constants.terrain_parameters
             ):
                 if (
-                    new_actor.cell.terrain_handler.knowledge_available(
+                    new_actor.get_location().knowledge_available(
                         constants.TERRAIN_PARAMETER_KNOWLEDGE
                     )
                     or self.actor_label_type == constants.KNOWLEDGE_LABEL
@@ -1563,7 +1564,7 @@ class actor_display_label(label):
 
             elif self.actor_label_type == constants.LOCAL_AVERAGE_TEMPERATURE_LABEL:
                 self.set_label(
-                    f"{self.message_start}{constants.terrain_manager.temperature_bounds[new_actor.cell.terrain_handler.get_parameter(constants.TEMPERATURE)]}"
+                    f"{self.message_start}{constants.terrain_manager.temperature_bounds[new_actor.get_location().get_parameter(constants.TEMPERATURE)]}"
                 )
 
             elif (
@@ -1681,10 +1682,10 @@ class actor_display_label(label):
                 )
             elif self.actor_label_type == constants.HABITABILITY_LABEL:
                 overall_habitability = (
-                    self.actor.cell.terrain_handler.get_known_habitability()
+                    self.actor.get_location().get_known_habitability()
                 )
                 if (not self.actor.cell.grid.is_abstract_grid) and (
-                    self.actor.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
+                    self.actor.get_location().get_parameter(constants.KNOWLEDGE)
                     < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
                 ):  # If local terrain handler with no local temperature knowledge
                     self.set_label(
@@ -1721,13 +1722,13 @@ class actor_display_label(label):
         elif not self.actor:
             return False
         elif self.actor_label_type == constants.RESOURCE_LABEL and (
-            self.actor.cell.terrain_handler.resource == None
-            or (not self.actor.cell.terrain_handler.visible)
+            self.actor.get_location().resource == None
+            or (not self.actor.get_location().visible)
             or self.actor.grid.is_abstract_grid
         ):
             return False
         elif self.actor_label_type == constants.RESOURCE and (
-            (not self.actor.cell.terrain_handler.visible)
+            (not self.actor.get_location().visible)
             or (not self.actor.cell.has_building(constants.RESOURCE))
         ):
             return False
@@ -1803,7 +1804,7 @@ class actor_display_label(label):
             self.actor_label_type.removesuffix("_label") in constants.terrain_parameters
             and self.actor_label_type != constants.KNOWLEDGE_LABEL
         ) or self.actor_label_type == constants.LOCAL_AVERAGE_TEMPERATURE_LABEL:
-            return self.actor.cell.terrain_handler.knowledge_available(
+            return self.actor.get_location().knowledge_available(
                 constants.TERRAIN_PARAMETER_KNOWLEDGE
             )
         elif self.actor_label_type == constants.OFFICER_NAME_LABEL:
@@ -1863,10 +1864,10 @@ class banner(actor_display_label):
         if self.banner_type == "terrain details":
             return (
                 super().can_show(skip_parent_collection=skip_parent_collection)
-                and self.actor.cell.terrain_handler.knowledge_available(
+                and self.actor.get_location().knowledge_available(
                     constants.TERRAIN_KNOWLEDGE
                 )
-                and not self.actor.cell.terrain_handler.knowledge_available(
+                and not self.actor.get_location().knowledge_available(
                     constants.TERRAIN_PARAMETER_KNOWLEDGE
                 )
             )
@@ -2173,6 +2174,6 @@ class terrain_feature_label(actor_display_label):
         """
         return super().can_show(
             skip_parent_collection=skip_parent_collection
-        ) and self.actor.cell.terrain_handler.terrain_features.get(
+        ) and self.actor.get_location().terrain_features.get(
             self.terrain_feature_type, False
         )
