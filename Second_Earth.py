@@ -409,6 +409,13 @@ except Exception:  # Displays error message and records error message in crash l
     This request/delivery/consumption system can be used for any item spending, and can encapsulate the warehouse/delivery system from spending systems
     If necessary, use a graph algorithm to find the optimal way to fill as many requests as possible, given current item locations
     May require encoding the grid w/ transportation routes as a graph - can be re-purposed for movement calculations as well
+25. Simulation/interface decoupling
+    Look into refactoring the entire game as a state transition machine - each state is a set of all saved information, with actions being transitions
+        This allows an entirely decoupling of the underlying simulation from the interface, allowing easier testing, more modularity, and a possible agentic environment
+        Integration and interface tests would be possible:
+            Did this interface interaction result in the correct transition, does this transition result in the intended state, etc.
+        Continues current effort of splitting game logic away from grid/cell/tile interface
+    Also enables using the game as a "playground" environment for data science concepts rather than just a game
 """
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
@@ -439,7 +446,6 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Prevent instantly firing minister if this would result in fewer than the valid number of ministers - locked out of ending turn
 # Transfer tile inventory logic to location
 # Transfer contained_mob logic from cell to location - should eliminate issue of tracking mobs separately for each cell
 # Convert status.north_pole, status.south_pole, and status.equator_list to be locations instead of cells

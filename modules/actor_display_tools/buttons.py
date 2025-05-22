@@ -1318,24 +1318,33 @@ class fire_minister_button(button):
             None
         """
         if main_loop_utility.action_possible():
-            appointed_minister = status.displayed_minister
-            public_opinion_penalty = appointed_minister.status_number
-            text = f"Are you sure you want to fire {appointed_minister.name}, your {appointed_minister.current_position.name}? /n /n"
-            text += f"This will incur a public opinion penalty: "
-            if appointed_minister.status_number >= 4:
-                text += f"{appointed_minister.name} is of very high social status, so firing them would cause widespread outrage. /n /n"
-            elif appointed_minister.status_number == 3:
-                text += f"{appointed_minister.name} is of high social status, so firing them would reflect particularly poorly on public opinion. /n /n"
-            elif appointed_minister.status_number == 2:
-                text += f"{appointed_minister.name} is of moderate social status, so firing them would have a modest impact on public opinion. /n /n"
-            elif appointed_minister.status_number <= 1:
-                text += f"{appointed_minister.name} is of low social status, so firing them would have a minimal impact on public opinion. /n /n"
-            constants.notification_manager.display_notification(
-                {
-                    "message": text,
-                    "choices": [constants.CHOICE_CONFIRM_FIRE_MINISTER_BUTTON, None],
-                }
-            )
+            if len(status.minister_list) > len(
+                status.minister_types
+            ):  # If there are sufficient appointees to refill the positions
+                appointed_minister = status.displayed_minister
+                text = f"Are you sure you want to fire {appointed_minister.name}, your {appointed_minister.current_position.name}? /n /n"
+                text += f"This will incur a public opinion penalty: "
+                if appointed_minister.status_number >= 4:
+                    text += f"{appointed_minister.name} is of very high social status, so firing them would cause widespread outrage. /n /n"
+                elif appointed_minister.status_number == 3:
+                    text += f"{appointed_minister.name} is of high social status, so firing them would reflect particularly poorly on public opinion. /n /n"
+                elif appointed_minister.status_number == 2:
+                    text += f"{appointed_minister.name} is of moderate social status, so firing them would have a modest impact on public opinion. /n /n"
+                elif appointed_minister.status_number <= 1:
+                    text += f"{appointed_minister.name} is of low social status, so firing them would have a minimal impact on public opinion. /n /n"
+                constants.notification_manager.display_notification(
+                    {
+                        "message": text,
+                        "choices": [
+                            constants.CHOICE_CONFIRM_FIRE_MINISTER_BUTTON,
+                            None,
+                        ],
+                    }
+                )
+            else:
+                text_utility.print_to_screen(
+                    "You do not have enough available candidates to refill this minister's position."
+                )
         else:
             text_utility.print_to_screen("You are busy and cannot remove a minister.")
 
@@ -1896,9 +1905,9 @@ class help_button(button):
             and self.attached_label.actor_label_type
             in constants.help_manager.subjects[constants.HELP_GLOBAL_PARAMETERS]
         ):
-            context[
-                constants.HELP_WORLD_HANDLER_CONTEXT
-            ] = self.attached_label.actor.cell.grid.world_handler
+            context[constants.HELP_WORLD_HANDLER_CONTEXT] = (
+                self.attached_label.actor.cell.grid.world_handler
+            )
         return context
 
     def on_click(self):
