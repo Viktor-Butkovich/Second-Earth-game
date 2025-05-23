@@ -446,9 +446,14 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
+# Convert world creation process to be create world handler -> create locations for each coordinate
+#   Followed by independent process of creating grid with cells that can attach to locations
+#   Ideally, no world or location logic is tied to cells, and cells use observer pattern to update UI with subscribed locations
+# Have a global object for the main strategic world handler, which should be checked instead of the main strategic grid (status.strategic_map_grid)
 # Transfer tile inventory logic to location
 # Transfer contained_mob logic from cell to location - should eliminate issue of tracking mobs separately for each cell
-# Convert status.north_pole, status.south_pole, and status.equator_list to be locations instead of cells
+#   Also transfer has_unit, get_unit, get_best_combatant, etc. logic
 # Transfer all building/settlement logic from cell to location - should eliminate issue of duplicate building objects for each cell
 # Refactor most world_grid functionality to be handled by world_handler instead - grids and cells should only deal with actual rendering logic, not conceptual objects
 # Investigate water disappearing during terraforming - definitely occurs on Venus and Mars maps

@@ -336,7 +336,7 @@ class actor:
                     self.trigger_inventory_attrition(stealing=True)
                     return
                 elif (
-                    self.get_cell().local_attrition("inventory")
+                    self.get_location().local_attrition("inventory")
                     and transportation_minister.no_corruption_roll(6) < 4
                 ):  # 1/6 chance of doing tile conditions check, if passes minister needs to make a 4+ roll to avoid attrition
                     self.trigger_inventory_attrition()

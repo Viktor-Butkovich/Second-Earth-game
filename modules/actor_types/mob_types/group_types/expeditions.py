@@ -85,28 +85,25 @@ class expedition(group):
             "right": "east",
             "left": "west",
         }
-        if self.get_permission(constants.IN_VEHICLE_PERMISSION):
-            current_cell = self.vehicle.get_cell()
-        else:
-            current_cell = self.get_cell()
         promoted = self.get_permission(constants.VETERAN_PERMISSION)
         for current_direction in ["up", "down", "left", "right"]:
-            target_cell = current_cell.adjacent_cells[current_direction]
-            if target_cell and not target_cell.terrain_handler.visible:
+            target_location = self.get_location().adjacent_locations[current_direction]
+            if target_location and not target_location.visible:
                 if (
-                    current_cell.terrain == "water" or target_cell.terrain == "water"
+                    self.get_location().terrain == "water"
+                    or target_location.terrain == "water"
                 ):  # if on water, discover all adjacent undiscovered tiles. Also, discover all adjacent water tiles, regardless of if currently on water
-                    if current_cell.terrain == "water":
+                    if self.get_location().terrain == "water":
                         text = "From the water, the expedition has discovered a "
-                    elif target_cell.terrain == "water":
+                    elif target_location.terrain == "water":
                         text = "The expedition has discovered a "
                     public_opinion_increase = random.randrange(0, 3)
                     money_increase = 0
-                    if target_cell.terrain_handler.resource:
-                        text += f"{target_cell.terrain.upper()} tile with a {target_cell.terrain_handler.resource.upper()} resource (currently worth {constants.item_prices[target_cell.terrain_handler.resource]} money each) to the {cardinal_directions[current_direction]}. /n /n"
+                    if target_location.resource:
+                        text += f"{target_location.terrain.upper()} tile with a {target_location.resource.upper()} resource (currently worth {constants.item_prices[target_cell.terrain_handler.resource]} money each) to the {cardinal_directions[current_direction]}. /n /n"
                         public_opinion_increase += 3
                     else:
-                        text += f"{target_cell.terrain.upper()} tile to the {cardinal_directions[current_direction]}. /n /n"
+                        text += f"{target_location.terrain.upper()} tile to the {cardinal_directions[current_direction]}. /n /n"
 
                     if public_opinion_increase > 0:  # Royal/National/Imperial
                         text += f"The Geographical Society is pleased with these findings, increasing your public opinion by {public_opinion_increase}. /n /n"

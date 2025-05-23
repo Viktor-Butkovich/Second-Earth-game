@@ -268,11 +268,10 @@ def manage_logistics_report() -> None:
     )
     attrition_binned_by_cell = {}
     for attrition_cause_dict in status.logistics_incident_list:
-        attrition_binned_by_cell[
-            str(attrition_cause_dict.get("cell"))
-        ] = attrition_binned_by_cell.get(str(attrition_cause_dict.get("cell")), []) + [
-            attrition_cause_dict
-        ]
+        attrition_binned_by_cell[str(attrition_cause_dict.get("cell"))] = (
+            attrition_binned_by_cell.get(str(attrition_cause_dict.get("cell")), [])
+            + [attrition_cause_dict]
+        )
     for local_logistics_incident_list in attrition_binned_by_cell.values():
         remaining_incidents = local_logistics_incident_list
         n = 5
@@ -851,13 +850,13 @@ def end_turn_warnings():
     ):  #  Warn for insufficient warehouses on planet
         if (
             current_location.visible
-            and current_location.default_cell.tile.get_inventory_used()
-            > current_location.default_cell.tile.inventory_capacity
+            and current_location.attached_cells[0].tile.get_inventory_used()
+            > current_location.attached_cells[0].tile.inventory_capacity
         ):
             constants.notification_manager.display_notification(
                 {
                     "message": f"Warning: the warehouses at {current_location.x}, {current_location.y} are not sufficient to hold the items stored there. /n /nAny items exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
-                    "zoom_destination": current_location.default_cell.tile,
+                    "zoom_destination": current_location.attached_cells[0].tile,
                 }
             )
     for current_grid in status.grid_list:

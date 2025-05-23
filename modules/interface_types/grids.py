@@ -82,8 +82,6 @@ class grid(interface_elements.interface_element):
         for current_cell_dict in cell_list:
             x, y = current_cell_dict["coordinates"]
             self.create_cell(x, y, save_dict=current_cell_dict)
-        for current_cell in self.get_flat_cell_list():
-            current_cell.find_adjacent_cells()
 
     def get_tuning(self, tuning_type: str) -> any:
         """
@@ -415,8 +413,6 @@ class grid(interface_elements.interface_element):
         for x in range(len(self.cell_list)):
             for y in range(len(self.cell_list[x])):
                 self.create_cell(x, y)
-        for current_cell in self.get_flat_cell_list():
-            current_cell.find_adjacent_cells()
 
     def get_flat_cell_list(self) -> itertools.chain[cells.cell]:
         """

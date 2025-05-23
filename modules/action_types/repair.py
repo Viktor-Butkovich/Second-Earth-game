@@ -94,7 +94,9 @@ class repair(action.action):
         message = []
         unit = status.displayed_mob
         if unit != None:
-            self.current_building = unit.get_cell().get_building(self.building_type.key)
+            self.current_building = unit.get_location().get_building(
+                self.building_type.key
+            )
             message.append(
                 f"Attempts to repair this tile's {self.current_building.name} for {str(self.get_price())} money"
             )
@@ -143,7 +145,7 @@ class repair(action.action):
         """
         building = self.current_building
         if not building:
-            building = status.displayed_mob.get_cell().get_building(
+            building = status.displayed_mob.get_location().get_building(
                 self.building_type.key
             )
         return building.get_repair_cost()
@@ -157,7 +159,9 @@ class repair(action.action):
         Output:
             boolean: Returns whether a button linked to this action should be drawn
         """
-        building = status.displayed_mob.get_cell().get_building(self.building_type.key)
+        building = status.displayed_mob.get_location().get_building(
+            self.building_type.key
+        )
         can_show = super().can_show() and building and building.damaged
         return can_show
 
@@ -183,7 +187,7 @@ class repair(action.action):
             None
         """
         super().pre_start(unit)
-        self.current_building = unit.get_cell().get_building(self.building_type.key)
+        self.current_building = unit.get_location().get_building(self.building_type.key)
 
     def start(self, unit):
         """

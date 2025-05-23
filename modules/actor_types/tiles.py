@@ -69,7 +69,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             if self.cell.grid == status.strategic_map_grid:
                 status.main_tile_list.append(
                     self
-                )  # List of all tiles that can be interacted with, and don't purely exist for visual purposes - 1:1 correspondence with terrain handlers
+                )  # List of all tiles that can be interacted with, and don't purely exist for visual purposes - 1:1 relationship with locations
 
         elif self.grid.grid_type in constants.abstract_grid_type_list:
             self.cell.tile = self
@@ -86,7 +86,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             self.inventory[current_item_type.key] = 10
             status.main_tile_list.append(
                 self
-            )  # List of all tiles that can be interacted with, and don't purely exist for visual purposes - 1:1 correspondence with terrain handlers
+            )  # List of all tiles that can be interacted with, and don't purely exist for visual purposes - 1:1 relationship with locations
         else:
             self.terrain = None
         self.finish_init(original_constructor, from_save, input_dict)
@@ -148,7 +148,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             has_building = False
             for building_type in status.building_types.keys():
                 if (
-                    self.cell.has_building(building_type)
+                    self.get_location().has_building(building_type)
                     and building_type != constants.INFRASTRUCTURE
                 ):  # if any building present, shift name up to not cover them
                     has_building = True
@@ -535,9 +535,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                                 }
                             )
                             if not terrain_overlay_image.get("green_screen", None):
-                                terrain_overlay_image[
-                                    "green_screen"
-                                ] = self.get_location().get_green_screen()
+                                terrain_overlay_image["green_screen"] = (
+                                    self.get_location().get_green_screen()
+                                )
                             image_id_list.append(terrain_overlay_image)
                     if allow_clouds and (
                         constants.effect_manager.effect_active("show_clouds")
@@ -590,7 +590,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                             else:
                                 image_id_list += resource_icon
                         for building_type in status.building_types.keys():
-                            current_building = self.cell.get_building(building_type)
+                            current_building = self.get_location().get_building(
+                                building_type
+                            )
                             if current_building:
                                 image_id_list += current_building.get_image_id_list()
                 elif self.show_terrain:
@@ -716,9 +718,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         if new_terrain in constants.terrain_manager.terrain_list:
-            self.image_dict[
-                "default"
-            ] = f"terrains/{new_terrain}_{self.get_location().terrain_variant}.png"
+            self.image_dict["default"] = (
+                f"terrains/{new_terrain}_{self.get_location().terrain_variant}.png"
+            )
         elif not new_terrain:
             self.image_dict["default"] = "terrains/hidden.png"
         if update_image_bundle:
@@ -809,7 +811,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     )
 
             if self.show_terrain:
-                for current_building in self.cell.get_buildings():
+                for current_building in self.get_location().get_buildings():
                     current_building.update_tooltip()
                     tooltip_message.append("")
                     tooltip_message += current_building.tooltip_text

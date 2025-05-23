@@ -35,7 +35,7 @@ class terrain_feature_type:
         self.image_id = input_dict.get(
             "image_id",
             {
-                "image_id": "terrains/features/" + self.terrain_feature_type + ".png",
+                "image_id": f"terrains/features/{self.terrain_feature_type}.png",
                 "level": -1,
             },
         )

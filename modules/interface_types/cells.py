@@ -43,59 +43,20 @@ class cell:
         self.settlement = None
         self.location: locations.location = None
         self.contained_mobs: list = []
-        self.contained_buildings: Dict[str, Any] = {}
-        self.adjacent_cells: Dict[str, cell] = {
-            "up": None,
-            "down": None,
-            "right": None,
-            "left": None,
-        }
         if save_dict:  # If from save
             self.save_dict: dict = save_dict
             if constants.effect_manager.effect_active("remove_fog_of_war"):
                 save_dict["visible"] = True
-            self.location = locations.location(self, save_dict)
+            save_dict["world_handler"] = self.grid.world_handler
+            current_location = locations.location(save_dict)
         else:  # If creating new map
-            self.location = locations.location(self)
-
-    def get_parameter(self, parameter_name: str) -> int:
-        """
-        Description:
-            Returns the value of the inputted parameter from this cell's terrain handler
-        Input:
-            string parameter: Name of the parameter to get
-        Output:
-            None
-        """
-        return self.location.get_parameter(parameter_name)
-
-    def change_parameter(
-        self, parameter_name: str, change: int, update_display: bool = True
-    ) -> None:
-        """
-        Description:
-            Changes the value of a parameter for this cell's terrain handler
-        Input:
-            string parameter_name: Name of the parameter to change
-            int change: Amounkt to change the parameter by
-        Output:
-            None
-        """
-        self.location.change_parameter(
-            parameter_name, change, update_display=update_display
-        )
-
-    def set_parameter(self, parameter_name: str, new_value: int) -> None:
-        """
-        Description:
-            Sets the value of a parameter for this handler's cells
-        Input:
-            string parameter_name: Name of the parameter to change
-            int new_value: New value for the parameter
-        Output:
-            None
-        """
-        self.location.set_parameter(parameter_name, new_value)
+            input_dict = {
+                "x": self.x,
+                "y": self.y,
+                "world_handler": self.grid.world_handler,
+            }
+            current_location = locations.location(input_dict)
+        self.grid.world_handler.find_location(self.x, self.y).add_cell(self)
 
     def to_save_dict(self):
         """
@@ -118,211 +79,6 @@ class cell:
         save_dict.update(self.location.to_save_dict())
         save_dict["inventory"] = self.tile.inventory
         return save_dict
-
-    def local_attrition(self, attrition_type="health"):
-        """
-        Description:
-            Returns the result of a roll that determines if a given unit or set of stored items should suffer attrition based on this cell's terrain and buildings. Bad terrain increases attrition frequency while infrastructure
-                decreases it
-        Input:
-            string attrition_type = 'health': 'health' or 'inventory', refers to type of attrition being tested for. Used because inventory attrition can occur on Earth but not health attrition
-        Output:
-            boolean: Returns whether attrition should happen here based on this cell's terrain and buildings
-        """
-        if (
-            constants.effect_manager.effect_active("boost_attrition")
-            and random.randrange(1, 7) >= 4
-        ):
-            return True
-        if self.grid in [status.earth_grid]:  # no attrition on Earth
-            if attrition_type == "health":
-                return False
-            elif (
-                attrition_type == "inventory"
-            ):  # losing inventory in warehouses and such is uncommon but not impossible on Earth, but no health attrition on Earth
-                if (
-                    random.randrange(1, 7) >= 2 or random.randrange(1, 7) >= 3
-                ):  # same effect as clear area with port
-                    return False
-        else:
-            if random.randrange(1, 7) <= min(
-                self.location.get_habitability_dict(omit_perfect=False).values()
-            ):
-                # Attrition only occurs if a random roll is higher than the habitability - more attrition for worse habitability
-                return False
-
-            if (
-                self.has_building(constants.TRAIN_STATION)
-                or self.has_building(constants.SPACEPORT)
-                or self.has_building(constants.RESOURCE)
-                or self.has_building(constants.FORT)
-            ):
-                if random.randrange(1, 7) >= 3:  # removes 2/3 of attrition
-                    return False
-            elif self.has_building(constants.ROAD) or self.has_building(
-                constants.RAILROAD
-            ):
-                if random.randrange(1, 7) >= 5:  # removes 1/3 of attrition
-                    return False
-        return True
-
-    def has_building(self, building_type: str) -> bool:
-        """
-        Description:
-            Returns whether this cell has a building of the inputted type, even if the building is damaged
-        Input:
-            string building_type: type of building to search for
-        Output:
-            boolean: Returns whether this cell has a building of the inputted type
-        """
-        if building_type in [constants.ROAD, constants.RAILROAD]:
-            return self.has_building(constants.INFRASTRUCTURE)
-        else:
-            return bool(self.contained_buildings.get(building_type, None))
-
-    def has_intact_building(self, building_type: str) -> bool:
-        """
-        Description:
-            Returns whether this cell has an undamaged building of the inputted type
-        Input:
-            string building_type: Type of building to search for
-        Output:
-            boolean: Returns whether this cell has an undamaged building of the inputted type
-        """
-        if building_type in [constants.ROAD, constants.RAILROAD]:
-            return self.has_intact_building(constants.INFRASTRUCTURE)
-        else:
-            return (
-                self.contained_buildings.get(building_type, None)
-                and not self.contained_buildings[building_type].damaged
-            )
-
-    def get_building(self, building_type: str):
-        """
-        Description:
-            Returns this cell's building of the inputted type, or None if that building is not present
-        Input:
-            string building_type: Type of building to search for
-        Output:
-            building/string: Returns whether this cell's building of the inputted type, or None if that building is not present
-        """
-        if building_type in [constants.ROAD, constants.RAILROAD]:
-            return self.get_building(constants.INFRASTRUCTURE)
-        else:
-            return self.contained_buildings.get(building_type, None)
-
-    def get_intact_building(self, building_type: str):
-        """
-        Description:
-            Returns this cell's undamaged building of the inputted type, or None if that building is damaged or not present
-        Input:
-            string building_type: Type of building to search for
-        Output:
-            building/string: Returns this cell's undamaged building of the inputted type, or None if that building is damaged or not present
-        """
-        if building_type in [constants.ROAD, constants.RAILROAD]:
-            return self.get_intact_building(constants.INFRASTRUCTURE)
-        elif (
-            self.contained_buildings.get(building_type, None)
-            and not self.contained_buildings[building_type].damaged
-        ):
-            return self.contained_buildings[building_type]
-        else:
-            return None
-
-    def get_buildings(self) -> List[Any]:
-        """
-        Description:
-            Returns a list of the buildings contained in this cell
-        Input:
-            None
-        Output:
-            building list contained_buildings_list: buildings contained in this cell
-        """
-        return [
-            contained_building
-            for key, contained_building in self.contained_buildings.items()
-            if contained_building
-        ]
-
-    def get_intact_buildings(self) -> List[Any]:
-        """
-        Description:
-            Returns a list of the nondamaged buildings contained in this cell
-        Input:
-            None
-        Output:
-            building list contained_buildings_list: nondamaged buildings contained in this cell
-        """
-        return [
-            contained_building
-            for contained_building in self.contained_buildings
-            if contained_building and not contained_building.damaged
-        ]
-
-    def has_destructible_buildings(self):
-        """
-        Description:
-            Finds and returns if this cell is adjacent has any buildings that can be damaged by enemies (not roads or railroads), used for enemy cell targeting
-        Input:
-            None
-        Output:
-            boolean: Returns if this cell has any buildings that can be damaged by enemies
-        """
-        return any(
-            [
-                status.building_types[contained_building.key].can_damage
-                for contained_building in self.get_intact_buildings()
-            ]
-        )
-
-    def get_warehouses_cost(self):
-        """
-        Description:
-            Calculates and returns the cost of the next warehouses upgrade in this tile, based on the number of past warehouses upgrades
-        Input:
-            None
-        Output:
-            int: Returns the cost of the next warehouses upgrade in this tile, based on the number of past warehouse upgrades
-        """
-        warehouses = self.get_building(constants.WAREHOUSES)
-        if warehouses:
-            warehouses_built = warehouses.upgrade_fields[constants.WAREHOUSE_LEVEL]
-        else:
-            warehouses_built = 0
-        for key, building in self.contained_buildings.items():
-            if building.building_type.warehouse_level > 0:
-                warehouses_built -= building.building_type.warehouse_level
-
-        return self.get_building(constants.WAREHOUSES).building_type.upgrade_fields[
-            constants.WAREHOUSE_LEVEL
-        ]["cost"] * (
-            2**warehouses_built
-        )  # 5 * 2^0 = 5 if none built, 5 * 2^1 = 10 if 1 built, 20, 40...
-
-    def create_slums(self):
-        """
-        Description:
-            Creates an empty slums building when a worker migrates to this cell, if there is not already one present
-        Input:
-            None
-        Outptu:
-            None
-        """
-        constants.actor_creation_manager.create(
-            False,
-            {
-                "coordinates": (self.x, self.y),
-                "grids": [self.cell.grid] + self.cell.grid.mini_grids,
-                "name": "slums",
-                "modes": self.grid.modes,
-                "init_type": constants.SLUMS,
-            },
-        )
-        if self.tile == status.displayed_tile:
-            actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, self.tile
-            )  # update tile display to show new building
 
     def has_unit(self, permissions, required_number=1):
         """
@@ -467,9 +223,7 @@ class cell:
             None
         """
         self.contained_mobs = other_cell.contained_mobs
-        self.contained_buildings = other_cell.contained_buildings
         other_cell.location.add_cell(self)
-        # self.tile.update_image_bundle(override_image=other_cell.tile.image) # Correctly copies other cell's image bundle but ends up very pixellated due to size difference
 
     def draw(self):
         """
@@ -531,37 +285,3 @@ class cell:
             return True
         else:
             return False
-
-    def find_adjacent_cells(self):
-        """
-        Description:
-            Records a list of the cells directly adjacent to this cell. Also records these cells as values in a dictionary with string keys corresponding to their direction relative to this cell
-        Input:
-            None
-        Output:
-            None
-        """
-        adjacent_list = []
-
-        adjacent_cell = self.grid.find_cell(
-            (self.x - 1) % self.grid.coordinate_width, self.y
-        )
-        adjacent_list.append(adjacent_cell)
-        self.adjacent_cells["left"] = adjacent_cell
-        adjacent_cell = self.grid.find_cell(
-            (self.x + 1) % self.grid.coordinate_width, self.y
-        )
-        adjacent_list.append(adjacent_cell)
-        self.adjacent_cells["right"] = adjacent_cell
-        adjacent_cell = self.grid.find_cell(
-            self.x, (self.y - 1) % self.grid.coordinate_height
-        )
-        adjacent_list.append(adjacent_cell)
-        self.adjacent_cells["down"] = adjacent_cell
-        adjacent_cell = self.grid.find_cell(
-            self.x, (self.y + 1) % self.grid.coordinate_height
-        )
-        adjacent_list.append(adjacent_cell)
-        self.adjacent_cells["up"] = adjacent_cell
-
-        self.adjacent_list = adjacent_list

@@ -511,22 +511,22 @@ class world_grid(grid):
         if constants.effect_manager.effect_active("map_customization"):
             return
         if constants.effect_manager.effect_active("earth_preset"):
-            for cell in self.get_flat_cell_list():
-                if cell.get_parameter(constants.TEMPERATURE) > 0:
-                    if cell.get_parameter(constants.WATER) < 4:
-                        cell.set_parameter(
+            for current_location in self.world_handler.get_flat_location_list():
+                if current_location.get_parameter(constants.TEMPERATURE) > 0:
+                    if current_location.get_parameter(constants.WATER) < 4:
+                        current_location.set_parameter(
                             constants.VEGETATION,
-                            cell.get_parameter(constants.WATER) * 3 + 2,
+                            current_location.get_parameter(constants.WATER) * 3 + 2,
                         )
                     else:
-                        cell.set_parameter(
+                        current_location.set_parameter(
                             constants.VEGETATION,
-                            cell.get_parameter(constants.ALTITUDE) + 2,
+                            current_location.get_parameter(constants.ALTITUDE) + 2,
                         )
             self.smooth(constants.VEGETATION)
         else:
-            for cell in self.get_flat_cell_list():
-                cell.set_parameter(constants.VEGETATION, 0)
+            for current_location in self.world_handler.get_flat_location_list():
+                current_location.set_parameter(constants.VEGETATION, 0)
 
     def generate_terrain_parameters(self):
         """
@@ -555,11 +555,11 @@ class world_grid(grid):
         Output:
             None
         """
-        for cell in self.get_flat_cell_list():
-            cell.set_parameter(
+        for current_location in self.world_handler.get_flat_location_list():
+            current_location.set_parameter(
                 parameter,
                 max(
-                    min(cell.get_parameter(parameter), maximum),
+                    min(current_location.get_parameter(parameter), maximum),
                     minimum,
                 ),
             )
@@ -572,28 +572,32 @@ class world_grid(grid):
             string parameter: Parameter to smooth
             string direction: Up, down, or None - indicates direction of smoothing
         Output:
-            bool: Returns True if any cells were smoothed (indicates that smoothing should continue), otherwise False
+            bool: Returns True if any locations were smoothed (indicates that smoothing should continue), otherwise False
         """
-        flat_cell_list = list(self.get_flat_cell_list())
-        random.shuffle(flat_cell_list)
+        flat_location_list = list(self.world_handler.get_flat_location_list())
+        random.shuffle(flat_location_list)
         smoothed = False
-        for cell in flat_cell_list:
-            for adjacent_cell in cell.adjacent_list:
+        for current_location in flat_location_list:
+            for adjacent_location in current_location.adjacent_list:
                 if (
                     abs(
-                        adjacent_cell.get_parameter(parameter)
-                        - cell.get_parameter(parameter)
+                        adjacent_location.get_parameter(parameter)
+                        - current_location.get_parameter(parameter)
                     )
                     >= 2
                 ):
-                    if cell.get_parameter(parameter) > adjacent_cell.get_parameter(
+                    if current_location.get_parameter(
                         parameter
-                    ):
+                    ) > adjacent_location.get_parameter(parameter):
                         if direction != "up":
-                            cell.change_parameter(parameter, -1, update_display=False)
+                            current_location.change_parameter(
+                                parameter, -1, update_display=False
+                            )
                     else:
                         if direction != "down":
-                            cell.change_parameter(parameter, 1, update_display=False)
+                            current_location.change_parameter(
+                                parameter, 1, update_display=False
+                            )
                     smoothed = True
         return smoothed
 
@@ -685,7 +689,7 @@ class world_grid(grid):
             bool capped: True if the parameter change should be limited in how far it can go from starting cell's original value, otherwise False
             bool set: True if the parameter should be set to the change + original, False if it should be changed with each pass
             cell start_location: Location to start the worm from, otherwise a random location is chosen
-            str weight_parameter: Terrain handler parameter to weight direction selection by, if any
+            str weight_parameter: Location parameter to weight direction selection by, if any
         Output:
             None
         """

@@ -150,7 +150,7 @@ class disembark_all_passengers_button(button):
             vehicle = status.displayed_mob
             can_disembark = True
             if vehicle.get_permission(constants.TRAIN_PERMISSION):
-                if not vehicle.get_cell().has_building(constants.TRAIN_STATION):
+                if not vehicle.get_location().has_building(constants.TRAIN_STATION):
                     text_utility.print_to_screen(
                         "A train can only drop off passengers at a train station."
                     )
@@ -588,7 +588,9 @@ class remove_work_crew_button(button):
             self.attached_label.attached_list[
                 self.attached_label.list_index
             ].leave_building(
-                self.attached_label.actor.cell.contained_buildings[self.building_type]
+                self.attached_label.actor.get_location().get_building(
+                    self.building_type
+                )
             )
         else:
             text_utility.print_to_screen(
@@ -667,9 +669,9 @@ class disembark_vehicle_button(button):
             if len(self.attached_label.actor.contained_mobs) > 0:
                 can_disembark = True
                 if self.vehicle_type == constants.TRAIN_PERMISSION:
-                    if not self.attached_label.actor.images[
-                        0
-                    ].current_cell.contained_buildings[constants.TRAIN_STATION]:
+                    if not self.attached_label.actor.get_location().has_intact_building(
+                        constants.TRAIN_STATION
+                    ):
                         text_utility.print_to_screen(
                             "A train can only drop off passengers at a train station."
                         )
@@ -766,8 +768,8 @@ class embark_vehicle_button(button):
                 if vehicles[0].get_permission(constants.TRAIN_PERMISSION):
                     if (
                         not vehicles[0]
-                        .get_cell()
-                        .contained_buildings[constants.TRAIN_STATION]
+                        .get_location()
+                        .has_intact_building(constants.TRAIN_STATION)
                     ):
                         text_utility.print_to_screen(
                             "A train can only pick up passengers at a train station."
@@ -959,18 +961,19 @@ class cycle_work_crews_button(button):
         """
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
-            displayed_tile = status.displayed_tile
-            if not displayed_tile.cell.contained_buildings[constants.RESOURCE]:
+            if not status.displayed_tile.get_location().has_intact_building(
+                constants.RESOURCE
+            ):
                 self.previous_showing_result = False
                 return False
             elif (
-                not len(
-                    displayed_tile.cell.contained_buildings[
-                        constants.RESOURCE
-                    ].contained_work_crews
+                len(
+                    status.displayed_tile.get_location()
+                    .get_intact_building(constants.RESOURCE)
+                    .contained_work_crews
                 )
                 > 3
-            ):  # only show if building with 3+ work crews
+            ):
                 self.previous_showing_result = False
                 return False
         if self.previous_showing_result == False and result == True:
@@ -992,15 +995,15 @@ class cycle_work_crews_button(button):
         """
         if main_loop_utility.action_possible():
             displayed_tile = status.displayed_tile
-            moved_mob = displayed_tile.cell.contained_buildings[
+            moved_mob = displayed_tile.get_location.get_intact_building(
                 constants.RESOURCE
-            ].contained_work_crews.pop(0)
-            displayed_tile.cell.contained_buildings[
+            ).contained_work_crews.pop(0)
+            displayed_tile.get_location.get_intact_building(
                 constants.RESOURCE
-            ].contained_work_crews.append(moved_mob)
+            ).contained_work_crews.append(moved_mob)
             actor_utility.calibrate_actor_info_display(
                 status.tile_info_display, displayed_tile
-            )  # updates tile info display list to show changed work crew order
+            )  # Updates tile info display list to show changed work crew order
         else:
             text_utility.print_to_screen("You are busy and cannot cycle work crews.")
 
@@ -1048,9 +1051,11 @@ class work_crew_to_building_button(button):
         if self.attached_work_crew and self.attached_work_crew.get_permission(
             constants.WORK_CREW_PERMISSION
         ):
-            self.attached_building = self.attached_work_crew.images[
-                0
-            ].current_cell.get_intact_building(self.building_type)
+            self.attached_building = (
+                self.attached_work_crew.get_location().get_intact_building(
+                    self.building_type
+                )
+            )
         else:
             self.attached_building = None
 
@@ -1800,7 +1805,7 @@ class toggle_button(button):
 
 class change_parameter_button(button):
     """
-    Button that, when god mode is enabled, allows changing the selected tile's terrain handler parameter values
+    Button that, when god mode is enabled, allows changing the selected tile's location's parameter values
     """
 
     def __init__(self, input_dict) -> None:
@@ -1818,7 +1823,7 @@ class change_parameter_button(button):
     def on_click(self) -> None:
         """
         Description;
-            Changes this button's parameter of its label's tile's terrain handler
+            Changes this button's parameter of its label's tile's location
         Input:
             None
         Output:

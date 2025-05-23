@@ -55,9 +55,9 @@ class upgrade(action.action):
             None
         """
         initial_input_dict = super().button_setup(initial_input_dict)
-        initial_input_dict[
-            "image_id"
-        ] = f"buttons/actions/upgrade_{self.building_type.key}_button.png"
+        initial_input_dict["image_id"] = (
+            f"buttons/actions/upgrade_{self.building_type.key}_button.png"
+        )
         initial_input_dict["keybind_id"] = self.upgrade_dict.get("keybind", None)
         return initial_input_dict
 
@@ -73,7 +73,7 @@ class upgrade(action.action):
         message = []
         unit = status.displayed_mob
         if unit != None:
-            self.current_building = unit.get_cell().get_intact_building(
+            self.current_building = unit.get_location().get_intact_building(
                 self.building_type.key
             )
             if self.upgrade_type == constants.WAREHOUSE_LEVEL:
@@ -143,7 +143,7 @@ class upgrade(action.action):
         """
         building = self.current_building
         if not building:
-            building = status.displayed_mob.get_cell().get_intact_building(
+            building = status.displayed_mob.get_location().get_intact_building(
                 self.upgraded_building_type
             )
         return building.get_upgrade_cost()
@@ -157,7 +157,7 @@ class upgrade(action.action):
         Output:
             boolean: Returns whether a button linked to this action should be drawn
         """
-        building = status.displayed_mob.get_cell().get_intact_building(
+        building = status.displayed_mob.get_location().get_intact_building(
             self.building_type.key
         )
         return (
@@ -191,7 +191,7 @@ class upgrade(action.action):
             None
         """
         super().pre_start(unit)
-        self.current_building = unit.get_cell().get_intact_building(
+        self.current_building = unit.get_location().get_intact_building(
             self.upgraded_building_type
         )
 

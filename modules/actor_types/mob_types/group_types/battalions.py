@@ -50,10 +50,6 @@ class battalion(group):
             double: How many movement points would be spent by moving by the inputted amount
         """
         cost = self.movement_cost
-        if not (self.get_permission(constants.NPMOB_PERMISSION) and not self.visible()):
-            local_cell = self.get_cell()
-        else:
-            local_cell = self.grids[0].find_cell(self.x, self.y)
 
         direction = None
         if x_change < 0:
@@ -68,15 +64,15 @@ class battalion(group):
             direction = None
 
         if direction:
-            adjacent_cell = local_cell.adjacent_cells[direction]
+            adjacent_location = self.get_location().adjacent_locations[direction]
         else:
-            adjacent_cell = local_cell
+            adjacent_location = self.get_location()
 
-        if adjacent_cell:
+        if adjacent_location:
             if (
                 (not post_attack)
                 and self.get_permission(constants.BATTALION_PERMISSION)
-                and adjacent_cell.get_best_combatant("npmob")
+                and adjacent_location.get_best_combatant("npmob")
             ):  # if battalion attacking
                 cost = 1
             else:

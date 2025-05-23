@@ -20,7 +20,7 @@ class world_handler:
             Initializes this object
         Input:
             cell attached_grid: Default grid to attach this handler to
-            dictionary input_dict: Dictionary of saved information necessary to recreate this terrain handler if loading grid, or None if creating new terrain handler
+            dictionary input_dict: Dictionary of saved information necessary to recreate this location if loading grid, or None if creating new location
         """
         self.default_grid = attached_grid
         self.earth_size = constants.map_size_options[4] ** 2
@@ -166,6 +166,8 @@ class world_handler:
         for key in constants.global_parameters:
             self.set_parameter(key, input_dict.get("global_parameters", {}).get(key, 0))
         self.latitude_lines_setup()
+        for current_location in self.get_flat_location_list():
+            current_location.find_adjacent_locations()
         self.average_temperature: float = input_dict.get("average_temperature", 0.0)
         if not from_save:
             self.update_target_average_temperature(
@@ -825,7 +827,7 @@ class world_handler:
     def update_cloud_frequencies(self, estimated_temperature: bool = None) -> float:
         """
         Description:
-            Creates random clouds for each terrain handler, with frequency depending on water vapor
+            Creates random clouds for each location, with frequency depending on water vapor
         Input:
             None
         Output:
@@ -874,7 +876,7 @@ class world_handler:
     def update_clouds(self, estimated_temperature: float = None) -> None:
         """
         Description:
-            Creates random clouds for each terrain handler, with frequency depending on water vapor
+            Creates random clouds for each location, with frequency depending on water vapor
         Input:
             None
         Output:

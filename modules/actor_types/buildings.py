@@ -55,8 +55,7 @@ class building(actor):
 
         if (not from_save) and self.building_type.can_damage:
             self.set_damaged(False, True)
-        self.cell.contained_buildings[self.building_type.key] = self
-        self.cell.tile.update_image_bundle()
+        self.get_location().add_building(self)
 
         if (
             (not from_save)
@@ -116,9 +115,7 @@ class building(actor):
                 'damaged': boolean value - whether this building is currently damaged
         """
         save_dict = super().to_save_dict()
-        save_dict[
-            "contained_work_crews"
-        ] = (
+        save_dict["contained_work_crews"] = (
             []
         )  # List of dictionaries for each work crew, on load a building creates all of its work crews and attaches them
         save_dict["damaged"] = self.damaged
@@ -137,11 +134,11 @@ class building(actor):
         Output:
             None
         """
-        self.cell.contained_buildings[self.building_type] = None
+        self.get_location().remove_building(self)
         super().remove()
         status.building_list = utility.remove_from_list(status.building_list, self)
 
-    def update_tooltip(self):  # should be shown below mob tooltips
+    def update_tooltip(self):
         """
         Description:
             Sets this image's tooltip to what it should be whenever the player looks at the tooltip. For buildings, sets tooltip to a description of the building
@@ -217,10 +214,12 @@ class building(actor):
         self.damaged = new_value
         if self.building_type == constants.INFRASTRUCTURE:
             actor_utility.update_roads()
-        if self.building_type.warehouse_level > 0 and self.cell.has_building(
+        if self.building_type.warehouse_level > 0 and self.get_location().has_building(
             constants.WAREHOUSES
         ):
-            self.cell.get_building(constants.WAREHOUSES).set_damaged(new_value)
+            self.get_location().get_building(constants.WAREHOUSES).set_damaged(
+                new_value
+            )
         self.cell.tile.update_image_bundle()
 
     def touching_mouse(self):
@@ -379,9 +378,9 @@ class infrastructure_building(building):
                 directions = ["vertical", "horizontal"]
             for direction in directions:
                 for building_type in building_types:
-                    self.connection_image_dict[
-                        f"{direction}_{building_type}"
-                    ] = f"buildings/infrastructure/{direction}_{building_type}.png"
+                    self.connection_image_dict[f"{direction}_{building_type}"] = (
+                        f"buildings/infrastructure/{direction}_{building_type}.png"
+                    )
 
         super().__init__(from_save, input_dict)
         actor_utility.update_roads()
@@ -415,30 +414,29 @@ class infrastructure_building(building):
         if self.get_location().terrain != "water":
             connected_road, connected_railroad = (False, False)
             for direction in ["up", "down", "left", "right"]:
-                adjacent_cell = self.cell.adjacent_cells[direction]
-                if adjacent_cell:
-                    own_tile_infrastructure = self.cell.get_intact_building(
-                        constants.INFRASTRUCTURE
-                    )
-                    adjacent_cell_infrastructure = adjacent_cell.get_intact_building(
-                        constants.INFRASTRUCTURE
-                    )
-                    if adjacent_cell_infrastructure:
-                        if (
-                            adjacent_cell_infrastructure.is_railroad
-                            and own_tile_infrastructure.is_railroad
-                        ):
-                            image_id_list.append(
-                                self.connection_image_dict[direction + "_railroad"]
-                            )
-                        else:
-                            image_id_list.append(
-                                self.connection_image_dict[direction + "_road"]
-                            )
-                        if adjacent_cell_infrastructure.is_road:
-                            connected_road = True
-                        elif adjacent_cell_infrastructure.is_railroad:
-                            connected_railroad = True
+                adjacent_location = self.get_location().adjacent_locations[direction]
+                own_infrastructure = self.get_location().get_intact_building(
+                    constants.INFRASTRUCTURE
+                )
+                adjacent_infrastructure = adjacent_location.get_intact_building(
+                    constants.INFRASTRUCTURE
+                )
+                if adjacent_infrastructure:
+                    if (
+                        adjacent_infrastructure.is_railroad
+                        and own_infrastructure.is_railroad
+                    ):
+                        image_id_list.append(
+                            self.connection_image_dict[direction + "_railroad"]
+                        )
+                    else:
+                        image_id_list.append(
+                            self.connection_image_dict[direction + "_road"]
+                        )
+                    if adjacent_infrastructure.is_road:
+                        connected_road = True
+                    elif adjacent_infrastructure.is_railroad:
+                        connected_railroad = True
             if self.is_road and (connected_road or connected_railroad):
                 image_id_list.pop(0)
             elif self.is_railroad and connected_railroad:
@@ -493,7 +491,7 @@ class warehouses(building):
         Output:
             None
         """
-        return self.cell.get_warehouses_cost()
+        return self.get_location().get_warehouses_cost()
 
     def upgrade(self, upgrade_type="warehouses_level"):
         super().upgrade(upgrade_type)

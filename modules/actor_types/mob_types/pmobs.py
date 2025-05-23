@@ -183,7 +183,7 @@ class pmob(mob):
         self.y = vehicle.y
         self.set_permission(constants.IN_VEHICLE_PERMISSION, False)
         self.show_images()
-        if not self.get_cell().get_intact_building(constants.SPACEPORT):
+        if not self.get_location().get_intact_building(constants.SPACEPORT):
             if constants.ALLOW_DISORGANIZED:
                 self.set_permission(constants.DISORGANIZED_PERMISSION, True)
         vehicle.set_crew(None)
@@ -913,7 +913,7 @@ class pmob(mob):
             return
 
         if (
-            self.get_cell().local_attrition() and random.randrange(1, 7) <= 2
+            self.get_location().local_attrition() and random.randrange(1, 7) <= 2
         ):  # If local conditions may cause attrition, 1/3 chance of attrition check
             if (
                 minister_utility.get_minister(

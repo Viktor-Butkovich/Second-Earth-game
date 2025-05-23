@@ -33,7 +33,9 @@ class actor_display_label(label):
         """
         self.attached_buttons = []
         self.has_label_collection = False
-        self.actor: actors.actor = None  # Could technically be a minister, but it supports most actor interfaces
+        self.actor: actors.actor = (
+            None  # Could technically be a minister, but it supports most actor interfaces
+        )
         self.actor_label_type = input_dict.get(
             "actor_label_type", input_dict["init_type"]
         )
@@ -988,7 +990,9 @@ class actor_display_label(label):
 
         elif self.actor_label_type in status.building_types.keys():
             if self.actor:
-                current_building = self.actor.cell.get_building(self.actor_label_type)
+                current_building = self.actor.get_location().get_building(
+                    self.actor_label_type
+                )
                 current_building.update_tooltip()
                 self.set_tooltip(current_building.tooltip_text)
 
@@ -1170,10 +1174,12 @@ class actor_display_label(label):
                         f"    Overall habitability is the minimum of all parts of the local conditions"
                     )
                 else:
-                    habitability_dict[
-                        constants.TEMPERATURE
-                    ] = actor_utility.get_temperature_habitability(
-                        round(self.actor.cell.grid.world_handler.average_temperature)
+                    habitability_dict[constants.TEMPERATURE] = (
+                        actor_utility.get_temperature_habitability(
+                            round(
+                                self.actor.cell.grid.world_handler.average_temperature
+                            )
+                        )
                     )
                     if (
                         habitability_dict[constants.TEMPERATURE]
@@ -1282,9 +1288,7 @@ class actor_display_label(label):
                 if (
                     (not new_actor.grid.is_abstract_grid)
                     and new_actor.get_location().visible
-                    and new_actor.get_location().default_cell.has_building(
-                        constants.RESOURCE
-                    )
+                    and new_actor.get_location().has_building(constants.RESOURCE)
                 ):
                     self.set_label(
                         new_actor.get_location()
@@ -1357,8 +1361,8 @@ class actor_display_label(label):
 
             elif self.actor_label_type == constants.CURRENT_BUILDING_WORK_CREW_LABEL:
                 if self.list_type == constants.RESOURCE:
-                    if new_actor.cell.has_building(constants.RESOURCE):
-                        self.attached_building = new_actor.cell.get_building(
+                    if new_actor.get_location().has_building(constants.RESOURCE):
+                        self.attached_building = new_actor.get_location().get_building(
                             constants.RESOURCE
                         )
                         self.attached_list = self.attached_building.contained_work_crews
@@ -1515,15 +1519,15 @@ class actor_display_label(label):
                     self.set_label(self.message_start + "none")
 
             elif self.actor_label_type == constants.SLUMS:
-                if self.actor.cell.has_building(constants.SLUMS):
+                if self.actor.get_location().has_building(constants.SLUMS):
                     self.set_label(
-                        f"{self.message_start}{str(self.actor.cell.get_building(constants.SLUMS).available_workers)}"
+                        f"{self.message_start}{str(self.actor.get_location().get_building(constants.SLUMS).available_workers)}"
                     )
 
             elif self.actor_label_type in status.building_types.keys():
-                if self.actor.cell.has_building(self.actor_label_type):
+                if self.actor.get_location().has_building(self.actor_label_type):
                     self.set_label(
-                        f"{self.message_start}{self.actor.cell.get_building(self.actor_label_type).name.capitalize()}"
+                        f"{self.message_start}{self.actor.get_location().get_building(self.actor_label_type).name.capitalize()}"
                     )
 
             elif self.actor_label_type == constants.INVENTORY_NAME_LABEL:
@@ -1687,11 +1691,11 @@ class actor_display_label(label):
                 if (not self.actor.cell.grid.is_abstract_grid) and (
                     self.actor.get_location().get_parameter(constants.KNOWLEDGE)
                     < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
-                ):  # If local terrain handler with no local temperature knowledge
+                ):  # If location with no local temperature knowledge
                     self.set_label(
                         f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]} (estimated)"
                     )
-                else:  # If world terrain handler or local terrain with local temperature knowledge
+                else:  # If world handler or location with local temperature knowledge
                     self.set_label(
                         f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]}"
                     )
@@ -1729,7 +1733,7 @@ class actor_display_label(label):
             return False
         elif self.actor_label_type == constants.RESOURCE and (
             (not self.actor.get_location().visible)
-            or (not self.actor.cell.has_building(constants.RESOURCE))
+            or (not self.actor.get_location().has_building(constants.RESOURCE))
         ):
             return False
         elif (
@@ -1759,7 +1763,7 @@ class actor_display_label(label):
             return False
         elif (
             self.actor_label_type in status.building_types.keys()
-            and not self.actor.cell.has_building(self.actor_label_type)
+            and not self.actor.get_location().has_building(self.actor_label_type)
         ):
             return False
         elif (
@@ -2050,7 +2054,9 @@ class building_work_crews_label(actor_display_label):
         self.actor = new_actor
         self.show_label = False
         if new_actor != None:
-            self.attached_building = new_actor.cell.get_building(self.building_type)
+            self.attached_building = new_actor.get_location().get_building(
+                self.building_type
+            )
             if self.attached_building:
                 self.set_label(
                     f"{self.message_start}{len(self.attached_building.contained_work_crews)}/{self.attached_building.upgrade_fields[constants.RESOURCE_SCALE]}"
@@ -2114,7 +2120,9 @@ class building_efficiency_label(actor_display_label):
         self.actor = new_actor
         self.show_label = False
         if new_actor:
-            self.attached_building = new_actor.cell.get_building(self.building_type)
+            self.attached_building = new_actor.get_location().get_building(
+                self.building_type
+            )
             if self.attached_building:
                 self.set_label(
                     f"Efficiency: {self.attached_building.upgrade_fields[constants.RESOURCE_EFFICIENCY]}"

@@ -51,12 +51,12 @@ def double_action_price(action_type):
     constants.action_prices[action_type] *= 2
 
 
-def get_building_cost(constructor, building_type, building_name="n/a"):
+def get_building_cost(builder, building_type, building_name="n/a"):
     """
     Description:
         Returns the cost of the inputted unit attempting to construct the inputted building
     Input:
-        pmob/string constructor: Unit attempting to construct the building, or None if no location/unit type is needed
+        pmob/string builder: Unit attempting to construct the building, or None if no location/unit type is needed
         string building_type: Key of type of building to build, like 'infrastructure'
         string building_name = 'n/a': Name of building being built, used to differentiate roads from railroads
     Output:
@@ -67,8 +67,8 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
             " ", "_"
         )  # road, railroad, road_bridge, or railroad_bridge
     if building_type == constants.WAREHOUSES:
-        if constructor:
-            base_price = constructor.get_cell().get_warehouses_cost()
+        if builder:
+            base_price = builder.get_location().get_warehouses_cost()
         else:
             base_price = 5
     else:
@@ -76,31 +76,15 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
 
     if building_type in [constants.TRAIN]:
         cost_multiplier = 1
-    elif (not constructor) or not status.strategic_map_grid in constructor.grids:
+    elif (
+        not builder
+    ) or builder.get_location().get_world_handler() != status.strategic_map_grid:
         cost_multiplier = 1
     else:
         cost_multiplier = constants.terrain_build_cost_multiplier_dict.get(
-            constructor.get_location().terrain, 1
+            builder.get_location().terrain, 1
         )
     return base_price * cost_multiplier
-
-
-def create_image_dict(stem):
-    """
-    Description:
-        Creates a dictionary of image file paths for an actor to store and set its image to in different situations
-    Input:
-        string stem: Path to an actor's image folder
-    Output:
-        string/string dictionary: String image description keys and string file path values, like 'left': 'explorer/left.png'
-    """
-    stem = "mobs/" + stem
-    stem += "/"
-    image_dict = {}
-    image_dict["default"] = stem + "default.png"
-    image_dict["right"] = stem + "right.png"
-    image_dict["left"] = stem + "left.png"
-    return image_dict
 
 
 def update_roads():
@@ -115,20 +99,6 @@ def update_roads():
     for current_building in status.building_list:
         if current_building.building_type == constants.INFRASTRUCTURE:
             current_building.cell.tile.update_image_bundle()
-
-
-def get_random_ocean_coordinates():
-    """
-    Description:
-        Returns a random set of coordinates from the ocean section of the strategic map
-    Input:
-        None
-    Output:
-        int tuple: Two values representing x and y coordinates
-    """
-    start_x = random.randrange(0, status.strategic_map_grid.coordinate_width)
-    start_y = 0
-    return (start_x, start_y)
 
 
 def calibrate_actor_info_display(info_display, new_actor, override_exempt=False):
@@ -255,7 +225,9 @@ def generate_resource_icon(tile):
         {"image_id": tile.get_location().resource.item_image, "size": 0.75},
     ]
 
-    if bool(tile.cell.get_buildings()):  # Make small icon if tile has any buildings
+    if bool(
+        tile.get_location().get_buildings()
+    ):  # Switch to small icon if tile has any buildings
         for (
             current_image
         ) in (

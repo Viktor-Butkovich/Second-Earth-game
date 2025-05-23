@@ -186,7 +186,9 @@ class construction(action.action):
         can_show = super().can_show()
         if can_show and not self.building_type.key in [constants.TRAIN]:
             can_show = (self.building_type.key == constants.INFRASTRUCTURE) or (
-                not status.displayed_mob.get_cell().has_building(self.building_type.key)
+                not status.displayed_mob.get_location().has_building(
+                    self.building_type.key
+                )
             )
         if can_show:
             self.update_info()
@@ -223,7 +225,7 @@ class construction(action.action):
                 )
 
         elif self.building_type.key == constants.INFRASTRUCTURE:
-            if not status.displayed_mob.get_location().default_cell.has_building(
+            if not status.displayed_mob.get_location().has_building(
                 constants.INFRASTRUCTURE
             ):
                 if status.displayed_mob.get_location().terrain == "water":
@@ -234,7 +236,7 @@ class construction(action.action):
                     new_image = "buildings/buttons/road.png"
             else:
                 if status.displayed_mob.get_location().terrain == "water":
-                    if not status.displayed_mob.get_location().get_building(
+                    if not status.displayed_mob.get_location().has_building(
                         constants.INFRASTRUCTURE
                     ):
                         new_name = "ferry"
@@ -302,8 +304,7 @@ class construction(action.action):
             None
         """
         if super().on_click(unit):
-            current_cell = unit.get_cell()
-            current_building = current_cell.get_building(self.building_type.key)
+            current_building = unit.get_location().get_building(self.building_type.key)
             if not (
                 current_building == None
                 or (
@@ -377,10 +378,10 @@ class construction(action.action):
             }
 
             if not self.building_type.key in [constants.TRAIN]:
-                if self.current_unit.get_cell().has_building(
+                if self.current_unit.get_location().has_building(
                     self.building_type.key
                 ):  # if building of same type exists, remove it and replace with new one
-                    self.current_unit.get_cell().get_building(
+                    self.current_unit.get_location().get_building(
                         self.building_type.key
                     ).remove_complete()
             if self.building_type.key == constants.RESOURCE:
@@ -409,7 +410,7 @@ class construction(action.action):
             new_building = constants.actor_creation_manager.create(False, input_dict)
 
             if self.building_type.warehouse_level > 0:
-                warehouses = self.current_unit.get_cell().get_building(
+                warehouses = self.current_unit.get_location().get_building(
                     constants.WAREHOUSES
                 )  # Create warehouses here
                 if warehouses:

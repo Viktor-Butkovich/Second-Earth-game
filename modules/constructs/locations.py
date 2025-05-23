@@ -10,19 +10,19 @@ class location:
     "Single source of truth" handler for the terrain/local characteristics of each version of a cell on different grids
     """
 
-    def __init__(self, attached_cell, input_dict: Dict[str, any] = None) -> None:
+    def __init__(self, input_dict: Dict[str, any] = None) -> None:
         """
         Description:
             Initializes this object
         Input:
-            cell attached_cell: Default strategic_map_grid cell to attach this handler to
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
-            dictionary input_dict: Dictionary of saved information necessary to recreate this terrain handler if loading grid, or None if creating new terrain handler
+            dictionary input_dict: Dictionary of saved information necessary to recreate this location if loading grid, or None if creating new location
         """
         if not input_dict:
             input_dict = {}
-        self.x: int = attached_cell.x
-        self.y: int = attached_cell.y
+        self.x: int = input_dict["x"]
+        self.y: int = input_dict["y"]
+        self.world_handler: world_handlers.world_handler = input_dict["world_handler"]
         self.adjacent_list: List[location] = []
         self.adjacent_locations: Dict[str, location] = {}
         self.terrain_parameters: Dict[str, int] = input_dict.get(
@@ -56,13 +56,229 @@ class location:
             input_dict.get("resource", None), None
         )
         self.visible: bool = input_dict.get("visible", True)
-        self.default_cell = attached_cell
         self.attached_cells: list = []
-        self.add_cell(attached_cell)
         self.expected_temperature_offset: float = 0.0
         self.terrain_features: Dict[str, bool] = {}
         for key, value in input_dict.get("terrain_features", {}).items():
             self.add_terrain_feature(value)
+        self.contained_buildings: Dict[str, Any] = {}
+
+    def local_attrition(self, attrition_type="health"):
+        """
+        Description:
+            Returns the result of a roll that determines if a given unit or set of stored items should suffer attrition based on this cell's terrain and buildings. Bad terrain increases attrition frequency while infrastructure
+                decreases it
+        Input:
+            string attrition_type = 'health': 'health' or 'inventory', refers to type of attrition being tested for. Used because inventory attrition can occur on Earth but not health attrition
+        Output:
+            boolean: Returns whether attrition should happen here based on this cell's terrain and buildings
+        """
+        if (
+            constants.effect_manager.effect_active("boost_attrition")
+            and random.randrange(1, 7) >= 4
+        ):
+            return True
+        if self.get_world_handler().default_grid == status.earth_grid:
+            if attrition_type == "health":  # No health attrition on Earth
+                return False
+            elif (
+                attrition_type == "inventory"
+            ):  # losing inventory in warehouses and such is uncommon but not impossible on Earth, but no health attrition on Earth
+                if (
+                    random.randrange(1, 7) >= 2 or random.randrange(1, 7) >= 3
+                ):  # same effect as clear area with port
+                    return False
+        else:
+            if random.randrange(1, 7) <= min(
+                self.get_habitability_dict(omit_perfect=False).values()
+            ):
+                # Attrition only occurs if a random roll is higher than the habitability - more attrition for worse habitability
+                return False
+
+            if (
+                self.has_building(constants.TRAIN_STATION)
+                or self.has_building(constants.SPACEPORT)
+                or self.has_building(constants.RESOURCE)
+                or self.has_building(constants.FORT)
+            ):
+                if random.randrange(1, 7) >= 3:  # removes 2/3 of attrition
+                    return False
+            elif self.has_building(constants.ROAD) or self.has_building(
+                constants.RAILROAD
+            ):
+                if random.randrange(1, 7) >= 5:  # removes 1/3 of attrition
+                    return False
+        return True
+
+    def has_building(self, building_type: str) -> bool:
+        """
+        Description:
+            Returns whether this location has a building of the inputted type, even if the building is damaged
+        Input:
+            string building_type: type of building to search for
+        Output:
+            boolean: Returns whether this location has a building of the inputted type
+        """
+        if building_type in [constants.ROAD, constants.RAILROAD]:
+            return self.has_building(constants.INFRASTRUCTURE)
+        else:
+            return bool(self.contained_buildings.get(building_type, None))
+
+    def has_intact_building(self, building_type: str) -> bool:
+        """
+        Description:
+            Returns whether this location has an undamaged building of the inputted type
+        Input:
+            string building_type: Type of building to search for
+        Output:
+            boolean: Returns whether this location has an undamaged building of the inputted type
+        """
+        if building_type in [constants.ROAD, constants.RAILROAD]:
+            return self.has_intact_building(constants.INFRASTRUCTURE)
+        else:
+            present_building = self.get_building(building_type)
+            return present_building and not present_building.damaged
+
+    def add_building(self, building: Any) -> None:
+        """
+        Description:
+            Adds the inputted building to this location
+        Input:
+            building building: Building to add to this location
+        Output:
+            None
+        """
+        self.contained_buildings[building.building_type.key] = building
+        self.update_appearance()
+
+    def update_appearance(self) -> None:
+        """
+        Description:
+            Forces an update and re-render of this locations subscribed tiles
+        Input:
+            None
+        Output:
+            None
+        """
+        self.attached_cells[0].tile.update_image_bundle()
+
+    def remove_building(self, building: Any) -> None:
+        """
+        Description:
+            Removes the inputted building from this location
+        Input:
+            building building: Building to remove from this location
+        Output:
+            None
+        """
+        if self.get_building(building.building_type.key) == building:
+            del self.contained_buildings[building.building_type.key]
+            self.update_appearance()
+
+    def get_building(self, building_type: str):
+        """
+        Description:
+            Returns this cell's building of the inputted type, or None if that building is not present
+        Input:
+            string building_type: Type of building to search for
+        Output:
+            building/string: Returns whether this cell's building of the inputted type, or None if that building is not present
+        """
+        if building_type in [constants.ROAD, constants.RAILROAD]:
+            return self.get_building(constants.INFRASTRUCTURE)
+        else:
+            return self.contained_buildings.get(building_type, None)
+
+    def get_intact_building(self, building_type: str):
+        """
+        Description:
+            Returns this cell's undamaged building of the inputted type, or None if that building is damaged or not present
+        Input:
+            string building_type: Type of building to search for
+        Output:
+            building/string: Returns this cell's undamaged building of the inputted type, or None if that building is damaged or not present
+        """
+        if building_type in [constants.ROAD, constants.RAILROAD]:
+            return self.get_intact_building(constants.INFRASTRUCTURE)
+        elif self.has_intact_building(building_type):
+            return self.get_building(building_type)
+        else:
+            return None
+
+    def get_buildings(self) -> List[Any]:
+        """
+        Description:
+            Returns a list of the buildings contained in this cell
+        Input:
+            None
+        Output:
+            building list: Buildings contained in this cell
+        """
+        return [
+            contained_building
+            for contained_building in self.contained_buildings.values()
+            if contained_building
+        ]
+
+    def get_intact_buildings(self) -> List[Any]:
+        """
+        Description:
+            Returns a list of the nondamaged buildings contained in this cell
+        Input:
+            None
+        Output:
+            building list contained_buildings_list: nondamaged buildings contained in this cell
+        """
+        return [
+            contained_building
+            for contained_building in self.contained_buildings
+            if contained_building and self.has_intact_building(contained_building.key)
+        ]
+
+    def has_destructible_buildings(self):
+        """
+        Description:
+            Finds and returns if this cell is adjacent has any buildings that can be damaged by enemies (not roads or railroads), used for enemy cell targeting
+        Input:
+            None
+        Output:
+            boolean: Returns if this cell has any buildings that can be damaged by enemies
+        """
+        return any(
+            [
+                status.building_types[contained_building.key].can_damage
+                for contained_building in self.get_intact_buildings()
+            ]
+        )
+
+    def get_warehouses_cost(self):
+        """
+        Description:
+            Calculates and returns the cost of the next warehouses upgrade in this tile, based on the number of past warehouses upgrades
+        Input:
+            None
+        Output:
+            int: Returns the cost of the next warehouses upgrade in this tile, based on the number of past warehouse upgrades
+        """
+        warehouses = self.get_building(constants.WAREHOUSES)
+        if warehouses:
+            warehouses_built = warehouses.upgrade_fields[constants.WAREHOUSE_LEVEL]
+        else:
+            warehouses_built = 0
+        warehouses_built -= len(
+            [
+                building
+                for building in self.get_buildings()
+                if building.building_type.warehouse_level > 0
+            ]
+        )
+        # Don't include warehouses included with other buildings in the new warehouse cost
+
+        return self.get_building(constants.WAREHOUSES).building_type.upgrade_fields[
+            constants.WAREHOUSE_LEVEL
+        ]["cost"] * (
+            2**warehouses_built
+        )  # 5 * 2^0 = 5 if none built, 5 * 2^1 = 10 if 1 built, 20, 40...
 
     def find_adjacent_locations(self):
         """
@@ -73,30 +289,18 @@ class location:
         Output:
             None
         """
-        adjacent_list = []
-
-        adjacent_location = self.grid.find_cell(
-            (self.x - 1) % self.grid.coordinate_width, self.y
-        )
-        adjacent_list.append(adjacent_location)
-        self.adjacent_locations["left"] = adjacent_location
-        adjacent_location = self.grid.find_cell(
-            (self.x + 1) % self.grid.coordinate_width, self.y
-        )
-        adjacent_list.append(adjacent_location)
-        self.adjacent_locations["right"] = adjacent_location
-        adjacent_location = self.grid.find_cell(
-            self.x, (self.y - 1) % self.grid.coordinate_height
-        )
-        adjacent_list.append(adjacent_location)
-        self.adjacent_locations["down"] = adjacent_location
-        adjacent_location = self.grid.find_cell(
-            self.x, (self.y + 1) % self.grid.coordinate_height
-        )
-        adjacent_list.append(adjacent_location)
-        self.adjacent_locations["up"] = adjacent_location
-
-        self.adjacent_list = adjacent_list
+        self.adjacent_list = []
+        self.adjacent_locations = {}
+        for x, y, direction in [
+            ((self.x - 1) % self.get_world_handler().coordinate_width, self.y, "left"),
+            ((self.x + 1) % self.get_world_handler().coordinate_width, self.y, "right"),
+            (self.x, (self.y + 1) % self.get_world_handler().coordinate_height, "up"),
+            (self.x, (self.y - 1) % self.get_world_handler().coordinate_height, "down"),
+        ]:
+            self.adjacent_locations[direction] = self.get_world_handler().find_location(
+                x, y
+            )
+            self.adjacent_list.append(self.adjacent_locations[direction])
 
     def get_parameter_habitability(self, parameter_name: str) -> int:
         """
@@ -179,11 +383,11 @@ class location:
             int: Returns the habitability of this tile based on current knowledge
         """
         habitability_dict = self.get_habitability_dict()
-        if self.default_cell.grid.is_abstract_grid:  # If global habitability
-            habitability_dict[
-                constants.TEMPERATURE
-            ] = actor_utility.get_temperature_habitability(
-                round(self.get_world_handler().average_temperature)
+        if self.get_world_handler().size > 1:  # If global habitability
+            habitability_dict[constants.TEMPERATURE] = (
+                actor_utility.get_temperature_habitability(
+                    round(self.get_world_handler().average_temperature)
+                )
             )
             overall_habitability = min(habitability_dict.values())
         elif (
@@ -232,31 +436,31 @@ class location:
     def add_terrain_feature(self, terrain_feature_dict: Dict[str, Any]) -> None:
         """
         Description:
-            Adds a terrain feature with the inputted dictionary to this terrain handler
+            Adds a terrain feature with the inputted dictionary to this location
         Input:
             dictionary terrain_feature_dict: Dictionary containing information about the terrain feature to add
                 Requires feature type and anything unique about this particular instance, like name
         Output:
             None
         """
-        self.terrain_features[
-            terrain_feature_dict["feature_type"]
-        ] = terrain_feature_dict
+        self.terrain_features[terrain_feature_dict["feature_type"]] = (
+            terrain_feature_dict
+        )
         feature_type = status.terrain_feature_types[
             terrain_feature_dict["feature_type"]
         ]
         feature_key = terrain_feature_dict["feature_type"].replace(" ", "_")
 
         if feature_type.tracking_type == constants.UNIQUE_FEATURE_TRACKING:
-            setattr(status, feature_key, self.attached_cells[0])
+            setattr(status, feature_key, self)
         elif feature_type.tracking_type == constants.LIST_FEATURE_TRACKING:
             feature_key += "_list"
-            getattr(status, feature_key).append(self.attached_cells[0])
+            getattr(status, feature_key).append(self)
 
     def knowledge_available(self, information_type: str) -> bool:
         """
         Description:
-            Returns whether the inputted type of information is visible for this terrain handler, based on knowledge of the tile
+            Returns whether the inputted type of information is visible for this location, based on knowledge of the tile
         Input:
             string information_type: Type of information to check visibility of, like 'terrain' or 'hidden_units'
         Output:
@@ -280,11 +484,11 @@ class location:
     ) -> None:
         """
         Description:
-            Changes the value of a parameter for this handler's cells
+            Changes the value of a parameter for this location
         Input:
             string parameter_name: Name of the parameter to change
             int change: Amount to change the parameter by
-            boolean update_image: Whether to update the image of any attached tiles after changing the parameter
+            boolean update_image: Whether to update the image of any subscribed tiles after changing the parameter
         Output:
             None
         """
@@ -299,7 +503,7 @@ class location:
     ) -> None:
         """
         Description:
-            Sets the value of a parameter for this handler's cells
+            Sets the value of a parameter for this location's cells
         Input:
             string parameter_name: Name of the parameter to change
             int new_value: New value for the parameter
@@ -360,18 +564,14 @@ class location:
             or parameter_name == constants.KNOWLEDGE
         ):
             self.set_terrain(new_terrain)
-            for cell in self.attached_cells:
-                if cell.tile:
-                    cell.tile.set_terrain(self.terrain, update_image_bundle=True)
             if update_display and not flags.loading:
                 status.strategic_map_grid.update_globe_projection()
 
-        if status.displayed_tile:
-            for cell in self.attached_cells:
-                if cell.tile == status.displayed_tile:
-                    actor_utility.calibrate_actor_info_display(
-                        status.tile_info_display, cell.tile
-                    )
+        if status.displayed_tile and status.displayed_tile.cell in self.attached_cells:
+            actor_utility.calibrate_actor_info_display(
+                status.tile_info_display, status.displayed_tile
+            )
+
         for mob in status.mob_list:
             if mob.get_location() == self:
                 mob.update_habitability()
@@ -453,13 +653,13 @@ class location:
             None
         Output:
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
-                'visible': boolean value - Whether this handler's cells are visible or not
-                'terrain': string value - Terrain type of this handler's cells and their tiles, like 'swamp'
+                'visible': boolean value - Whether this location is visible or not
+                'terrain': string value - Terrain type of this location, like 'swamp'
                 'terrain_variant': int value - Variant number to use for image file path, like mountains_0
-                'terrain_features': string/boolean dictionary value - Dictionary containing an entry for each terrain feature in this handler's cells
-                'terrain_parameters': string/int dictionary value - Dictionary containing 1-6 parameters for this handler's cells, like 'temperature': 1
-                'resource': string value - Item type key of natural resource in this terrain handler, like "Gold" or None
-                'local_weather_offset': float value - Temperature offset of this handler's cells from the usual at the same location
+                'terrain_features': string/boolean dictionary value - Dictionary containing an entry for each terrain feature in this location
+                'terrain_parameters': string/int dictionary value - Dictionary containing 1-6 parameters for this location, like 'temperature': 1
+                'resource': string value - Item type key of natural resource in this location, like "Gold" or None
+                'local_weather_offset': float value - Temperature offset of this location from expected for the latitude
         """
         save_dict = {}
         save_dict["terrain_variant"] = self.terrain_variant
@@ -470,9 +670,9 @@ class location:
             save_dict["resource"] = self.resource.key
         else:
             save_dict["resource"] = None
-        save_dict[
-            "north_pole_distance_multiplier"
-        ] = self.north_pole_distance_multiplier
+        save_dict["north_pole_distance_multiplier"] = (
+            self.north_pole_distance_multiplier
+        )
         save_dict["pole_distance_multiplier"] = self.pole_distance_multiplier
         save_dict["current_clouds"] = self.current_clouds
         save_dict["local_weather_offset"] = self.local_weather_offset
@@ -481,7 +681,7 @@ class location:
     def get_parameter(self, parameter_name: str) -> int:
         """
         Description:
-            Returns the value of the inputted parameter from this terrain handler
+            Returns the value of the inputted parameter from this location
         Input:
             string parameter: Name of the parameter to get
         Output:
@@ -492,9 +692,9 @@ class location:
     def set_terrain(self, new_terrain) -> None:
         """
         Description:
-            Sets this handler's terrain type, automatically generating a variant (not used for loading with pre-defined variant)
+            Sets this location's terrain type, automatically generating a variant (not used for loading with pre-defined variant)
         Input:
-            string new_terrain: New terrain type for this handler's cells and their tiles, like 'swamp'
+            string new_terrain: New terrain type for this location and their tiles, like 'swamp'
         Output:
             None
         """
@@ -525,9 +725,9 @@ class location:
     def set_resource(self, new_resource: item_types.item_type) -> None:
         """
         Description:
-            Sets this handler's resource type
+            Sets this location's resource type
         Input:
-            item_type new_resource: New resource type for this handler's cells and their tiles, like "Gold" or None
+            item_type new_resource: New resource type for this location, like "Gold" or None
         Output:
             None
         """
@@ -555,9 +755,9 @@ class location:
     def add_cell(self, cell) -> None:
         """
         Description:
-            Adds the inputted cell to this handler, removing it from any previous handler and updating its parameters to this handler's
+            Subscribes the inputted cell to this location, removing it from any previous location and updating its parameters to match this location
         Input:
-            cell: Cell to add to this handler
+            cell: Cell to add to this location
         Output:
             None
         """
@@ -574,9 +774,9 @@ class location:
     def remove_cell(self, cell) -> None:
         """
         Description:
-            Removes the inputted cell from the terrain handler - precondition that cell is in the terrain handler
+            Removes the inputted cell from the terrain location - precondition that cell is in the terrain location
         Input:
-            cell cell: Cell to remove from the terrain handler
+            cell cell: Cell to remove from the terrain location
         Output:
             None
         """
@@ -597,25 +797,25 @@ class location:
         """
         flowed = False
         if (
-            self.terrain_parameters[constants.WATER] >= 4
-            and self.terrain_parameters[constants.TEMPERATURE]
+            self.get_parameter(constants.WATER) >= 4
+            and self.get_parameter(constants.TEMPERATURE)
             > constants.terrain_manager.get_tuning("water_freezing_point") - 1
         ):  # If enough liquid water to flow - frozen or 1 lower (occasionally liquid)
-            for adjacent_cell in self.attached_cells[0].adjacent_list:
-                if adjacent_cell.get_parameter(
+            for adjacent_location in self.adjacent_list:
+                if adjacent_location.get_parameter(
                     constants.ALTITUDE
                 ) <= self.get_parameter(
                     constants.ALTITUDE
-                ) and adjacent_cell.get_parameter(
+                ) and adjacent_location.get_parameter(
                     constants.TEMPERATURE
                 ) < constants.terrain_manager.get_tuning(
                     "water_boiling_point"
                 ):
                     if (
-                        adjacent_cell.get_parameter(constants.WATER)
+                        adjacent_location.get_parameter(constants.WATER)
                         <= self.terrain_parameters[constants.WATER] - 2
                     ):
-                        adjacent_cell.change_parameter(
+                        adjacent_location.change_parameter(
                             constants.WATER, 1, update_display=False
                         )
                         self.change_parameter(constants.WATER, -1, update_display=False)
@@ -628,11 +828,11 @@ class location:
     def get_color_filter(self) -> Dict[str, int]:
         """
         Description:
-            Returns the color filter for this terrain handler's world handler, if any
+            Gets the color filter for this location's world, if any
         Input:
             None
         Output:
-            dictionary: Color filter for this terrain handler's world handler
+            dictionary: Color filter for this location's world
         """
         if self.get_world_handler():
             color_filter = self.get_world_handler().color_filter.copy()
@@ -654,18 +854,18 @@ class location:
     def get_world_handler(self) -> world_handlers.world_handler:
         """
         Description:
-            Returns the world handler corresponding to this terrain handler
+            Returns the world handler corresponding to this location
         Input:
             None
         Output:
-            world_handler: World handler corresponding to this terrain handler, or None if none exists yet
+            world_handler: World handler corresponding to this location, or None if none exists yet
         """
-        return self.default_cell.grid.world_handler
+        return self.world_handler
 
     def get_green_screen(self) -> Dict[str, Dict[str, any]]:
         """
         Description:
-            Returns a "smart green screen" dictionary for this terrain handler, or None for default tile appearance
+            Returns a "smart green screen" dictionary for this location, or None for default appearance
                 {
                     'water': {
                         'base_color': (20, 20, 200),
@@ -680,15 +880,15 @@ class location:
                     the new color as it did with the old color. If a spot of water is slightly darker than the base water color, replace it with something
                     slightly darker than the replacement color, while ignoring anything that is not within 50 of the base water color.
                 Each category can have a preset base color/tolerance determined during asset creation, as well as a procedural replacement color
-                Each category can have a preset smart green screen, with per-terrain or per-tile modifications controlled by world and terrain handlers
+                Each category can have a preset smart green screen, with per-terrain or per-tile modifications controlled by world and locations
                     World handler handles per-terrain modifications, like dunes sand being slightly different from desert sand, while both are still "Mars red"
-                    Terrain handler handler per-tile modifications, like a tile with earth-imported soil looking different from default planet soil
+                    Location handles local modifications, like a tile with earth-imported soil looking different from default planet soil
                 This system could also work for skin shading, polar dust, light levels, vegetation, resources, building appearances, etc.
             Serves as authoritative source for terrain green screens, used by get_image_id_list and referencing constants for presets and world handler for world variations
         Input:
             None
         Output:
-            dictionary: Smart green screen dictionary for this terrain handler, or None for default tile appearance
+            dictionary: Smart green screen dictionary for this location, or None for default tile appearance
         """
         world_green_screen = self.get_world_handler().get_green_screen(self.terrain)
 
@@ -706,8 +906,8 @@ class location:
         Output:
             float: Returns the average RGB value of this tile's terrain
         """
-        if self.default_cell.tile:
-            image_id = self.default_cell.tile.get_image_id_list(
+        if self.attached_cells[0].tile:
+            image_id = self.attached_cells[0].tile.get_image_id_list(
                 terrain_only=True,
                 force_pixellated=True,
                 allow_mapmodes=False,

@@ -169,15 +169,19 @@ class button(interface_elements.interface_element):
 
             tooltip_text = []
 
-            current_mob = status.displayed_mob
-            if current_mob:
-                movement_cost = current_mob.get_movement_cost(x_change, y_change)
-                local_cell = current_mob.get_cell()
-                adjacent_location = current_mob.get_location().adjacent_locations[
-                    non_cardinal_direction
-                ]
-                local_infrastructure = local_cell.get_intact_building(
-                    constants.INFRASTRUCTURE
+            if status.displayed_mob:
+                movement_cost = status.displayed_mob.get_movement_cost(
+                    x_change, y_change
+                )
+                adjacent_location = (
+                    status.displayed_mob.get_location().adjacent_locations[
+                        non_cardinal_direction
+                    ]
+                )
+                local_infrastructure = (
+                    status.displayed_mob.get_location().get_intact_building(
+                        constants.INFRASTRUCTURE
+                    )
                 )
                 if adjacent_location.visible:
                     tooltip_text.append("Press to move to the " + direction)
@@ -186,7 +190,9 @@ class button(interface_elements.interface_element):
                     )
                     connecting_roads = False
                     if (
-                        current_mob.get_permission(constants.BATTALION_PERMISSION)
+                        status.displayed_mob.get_permission(
+                            constants.BATTALION_PERMISSION
+                        )
                         and adjacent_location.get_best_combatant("npmob") != None
                     ):
                         tooltip_text += status.actions["combat"].update_tooltip(
@@ -195,13 +201,12 @@ class button(interface_elements.interface_element):
                                 "local_infrastructure": local_infrastructure,
                                 "x_change": x_change,
                                 "y_change": y_change,
-                                "local_cell": local_cell,
                                 "adjacent_location": adjacent_location,
                             }
                         )
                     else:
                         message = ""
-                        if current_mob.all_permissions(
+                        if status.displayed_mob.all_permissions(
                             constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                         ):
                             if (
@@ -413,9 +418,11 @@ class button(interface_elements.interface_element):
             tooltip_text = ["Cycles through this  building's work crews"]
             tooltip_text.append("Work crews: ")
             if self.showing:
-                for current_work_crew in status.displayed_tile.cell.get_building(
-                    constants.RESOURCE
-                ).contained_work_crews:
+                for current_work_crew in (
+                    status.displayed_tile.get_location()
+                    .get_building(constants.RESOURCE)
+                    .contained_work_crews
+                ):
                     tooltip_text.append("    " + current_work_crew.name)
             self.set_tooltip(tooltip_text)
 
@@ -2603,7 +2610,9 @@ class tab_button(button):
             if self.identifier == constants.SETTLEMENT_PANEL:
                 return_value = bool(
                     status.displayed_tile.cell.settlement
-                    or status.displayed_tile.cell.has_building(constants.INFRASTRUCTURE)
+                    or status.displayed_tile.get_location().has_building(
+                        constants.INFRASTRUCTURE
+                    )
                 )
 
             elif self.identifier == constants.INVENTORY_PANEL:

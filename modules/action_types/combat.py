@@ -68,7 +68,7 @@ class combat(action.action):
         message.append(
             "Attacking an enemy unit costs 5 money and requires only 1 movement point, but staying in the enemy's tile afterward would require the usual movement"
         )
-        text = f"Staying afterward would cost {final_movement_cost - 1} more movement point{utility.generate_plural(final_movement_cost - 1)} because the adjacent tile has {tooltip_info_dict['adjacent_cell'].location.terrain.replace('_', ' ')} terrain"
+        text = f"Staying afterward would cost {final_movement_cost - 1} more movement point{utility.generate_plural(final_movement_cost - 1)} because the adjacent tile has {tooltip_info_dict['adjacent_location'].terrain.replace('_', ' ')} terrain"
 
         local_infrastructure = tooltip_info_dict["local_infrastructure"]
         adjacent_infrastructure = tooltip_info_dict["adjacent_infrastructure"]
