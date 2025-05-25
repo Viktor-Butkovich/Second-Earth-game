@@ -735,7 +735,6 @@ class save_load_manager_template:
         self.create_grids()
 
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
-        game_transitions.create_strategic_map(from_save=True)
 
         for current_worker_type in saved_worker_types:
             unit_types.worker_type(True, current_worker_type)

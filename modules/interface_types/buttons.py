@@ -1539,8 +1539,11 @@ class button(interface_elements.interface_element):
             elif self.button_type == constants.RENAME_PLANET_BUTTON:
                 if (
                     status.displayed_tile
-                    and status.displayed_tile.cell.grid.is_abstract_grid
-                    and status.displayed_tile.cell.grid != status.earth_grid
+                    and status.displayed_tile.get_location()
+                    .get_world_handler()
+                    .is_abstract_world()
+                    and status.displayed_tile.get_location().get_world_handler()
+                    != status.earth_world
                 ):
                     return True
                 return False
@@ -2636,12 +2639,20 @@ class tab_button(button):
                     constants.PMOB_PERMISSION
                 )
             elif self.identifier == constants.LOCAL_CONDITIONS_PANEL:
-                return_value = not status.displayed_tile.grid.is_abstract_grid
+                return_value = (
+                    not status.displayed_tile.get_location()
+                    .get_world_handler()
+                    .is_abstract_world()
+                )
             elif self.identifier in [
                 constants.GLOBAL_CONDITIONS_PANEL,
                 constants.TEMPERATURE_BREAKDOWN_PANEL,
             ]:
-                return_value = status.displayed_tile.grid.is_abstract_grid
+                return_value = (
+                    status.displayed_tile.get_location()
+                    .get_world_handler()
+                    .is_abstract_world()
+                )
 
         if (
             self.linked_element

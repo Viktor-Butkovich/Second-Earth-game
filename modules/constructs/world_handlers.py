@@ -475,15 +475,14 @@ class world_handler:
         Output:
             None
         """
-        water_cells = [
-            cell
-            for cell in self.get_flat_cell_list()
-            if cell.get_parameter(constants.WATER) > 0
-        ]
-        if water_cells:
+        water_locations = [current_location for current_location in self.get_flat_location_list() if current_location.get_parameter(constants.WATER) > 0]
+        if water_locations:
             random.choices(
-                water_cells,
-                weights=[cell.get_parameter(constants.WATER) for cell in water_cells],
+                water_locations,
+                weights=[
+                    current_location.get_parameter(constants.WATER)
+                    for current_location in water_locations
+                ],
                 k=1,
             )[0].change_parameter(constants.WATER, -1, update_display=update_display)
 

@@ -164,43 +164,6 @@ def set_game_mode(new_game_mode):
         constants.notification_manager.update_notification_layout()
 
 
-def create_strategic_map(from_save=False):
-    """
-    Description:
-        Generates grid terrains/resources if not from save, and sets up tiles attached to each grid cell
-    Input:
-        None
-    Output:
-        None
-    """
-    # text_tools.print_to_screen('Creating map...')
-    main_loop_utility.update_display()
-
-    for current_grid in status.grid_list:
-        if current_grid.is_abstract_grid:  # if earth grid
-            tiles.abstract_tile(
-                False,
-                {
-                    "grid": current_grid,
-                    "name": current_grid.name,
-                    "modes": current_grid.modes,
-                },
-            )
-        else:
-            input_dict = {
-                "grid": current_grid,
-                "image": "misc/empty.png",
-                "name": "default",
-                "modes": current_grid.modes,
-                "show_terrain": True,
-            }
-            for cell in current_grid.get_flat_cell_list():
-                input_dict["coordinates"] = (cell.x, cell.y)
-                tiles.tile(False, input_dict)
-            # if current_grid == status.strategic_map_grid:
-            #    current_grid.create_world(from_save)
-
-
 def start_loading(previous_game_mode: str = None, new_game_mode: str = None):
     """
     Description:

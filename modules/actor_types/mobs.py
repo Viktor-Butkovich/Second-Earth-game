@@ -212,7 +212,7 @@ class mob(actor):
         """
         current_cell = self.get_cell()
         if current_cell:
-            return current_cell.location
+            return current_cell.get_location()
         return None
 
     def on_move(self):
@@ -1230,7 +1230,7 @@ class mob(actor):
         future_x = (self.x + x_change) % self.grid.coordinate_width
         future_y = (self.y + y_change) % self.grid.coordinate_height
         if minister_utility.get_minister(constants.TRANSPORTATION_MINISTER):
-            if not self.grid.is_abstract_grid:
+            if not self.get_location().get_world_handler().is_abstract_world():
                 future_location = (
                     self.get_location()
                     .get_world_handler()

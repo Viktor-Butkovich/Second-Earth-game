@@ -1711,7 +1711,7 @@ class actor_image(image):
         )
         self.x, self.y = self.grid.convert_coordinates((self.actor.x, self.actor.y))
         if (
-            self.grid.is_mini_grid
+            self.grid.is_mini_grid()
         ):  # if on minimap and within its smaller range of coordinates, convert actor's coordinates to minimap coordinates and draw image there
             grid_x, grid_y = self.grid.get_mini_grid_coordinates(
                 self.actor.x, self.actor.y
@@ -1815,7 +1815,7 @@ class actor_image(image):
         """
         if self.can_show():
             if (
-                self.grid.is_mini_grid
+                self.grid.is_mini_grid()
             ):  # if on minimap and within its smaller range of coordinates, convert actor's coordinates to minimap coordinates and draw image there
                 if self.grid.is_on_mini_grid(self.actor.x, self.actor.y):
                     grid_x, grid_y = self.grid.get_mini_grid_coordinates(
@@ -1938,7 +1938,7 @@ class mob_image(actor_image):
             None
         """
         if (
-            self.grid.is_mini_grid
+            self.grid.is_mini_grid()
         ):  # if on minimap and within its smaller range of coordinates, convert actor's coordinates to minimap coordinates and draw image there
             mini_x, mini_y = self.grid.get_mini_grid_coordinates(
                 self.actor.x, self.actor.y

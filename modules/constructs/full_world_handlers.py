@@ -73,13 +73,12 @@ class full_world_handler(world_handlers.world_handler):
                 status.scrolling_strategic_map_grid.center_x,
                 status.scrolling_strategic_map_grid.center_y,
             )
-        index, latitude_lines = self.world_handler.get_latitude_line(center_coordinates)
+        index, latitude_lines = self.get_latitude_line(center_coordinates)
 
         offset_width = self.world_dimensions // 2
         largest_size = len(
             max(
-                self.world_handler.latitude_lines
-                + self.world_handler.alternate_latitude_lines,
+                self.latitude_lines + self.alternate_latitude_lines,
                 key=len,
             )
         )
@@ -268,9 +267,11 @@ class full_world_handler(world_handlers.world_handler):
                 "y_size": tile_height * size_multiplier,
                 "level": level,
             }
-            for image_id in self.find_cell(
-                coordinates[0], coordinates[1]
-            ).tile.get_image_id_list(terrain_only=True, force_clouds=True):
+            for image_id in (
+                self.find_location(coordinates[0], coordinates[1])
+                .attached_cells[0]
+                .tile.get_image_id_list(terrain_only=True, force_clouds=True)
+            ):
                 # Apply projection offsets to each image in the tile's terrain
                 if type(image_id) == str:
                     image_id = {"image_id": image_id}
@@ -278,20 +279,20 @@ class full_world_handler(world_handlers.world_handler):
                 return_list.append(image_id)
 
             if (
-                self.world_handler.get_pressure_ratio() > 10.0
+                self.get_pressure_ratio() > 10.0
             ):  # If high pressure, also have sky effects for 3rd farthest latitude line
                 threshold = 3
             else:  # If normal or low pressure, only have sky effects for 2nd farthest latitude line
                 threshold = 2
             if (
                 (offset_width - offset <= threshold and not min_width)
-                and self.world_handler.get_parameter(constants.PRESSURE) > 0
+                and self.get_parameter(constants.PRESSURE) > 0
                 and constants.current_map_mode == "terrain"
             ):  # If 2nd farthest latitude line
                 sky_effect = {
                     "image_id": "misc/green_screen_base.png",
                     "detail_level": 1.0,
-                    "green_screen": tuple(self.world_handler.sky_color),
+                    "green_screen": tuple(self.sky_color),
                 }
                 sky_effect.update(projection)
                 sky_effect["level"] += 10
@@ -299,7 +300,7 @@ class full_world_handler(world_handlers.world_handler):
                     sky_effect["x_size"] *= 0.4
 
                 sky_effect["alpha"] = 75
-                pressure_ratio = self.world_handler.get_pressure_ratio()
+                pressure_ratio = self.get_pressure_ratio()
                 if pressure_ratio <= 1.0:  # More transparent for lower pressure
                     sky_effect["alpha"] = 50 + int(25 * min(pressure_ratio, 1))
                 else:  # Less transparent for higher pressure
@@ -369,9 +370,9 @@ class full_world_handler(world_handlers.world_handler):
                         (coordinates[1] + offset[1]) % self.coordinate_height,
                     )
                     if (
-                        self.world_handler.latitude_lines_types[
-                            adjacent_coordinates[0]
-                        ][adjacent_coordinates[1]]
+                        self.latitude_lines_types[adjacent_coordinates[0]][
+                            adjacent_coordinates[1]
+                        ]
                         == None
                         and not adjacent_coordinates in latitude_line
                     ):

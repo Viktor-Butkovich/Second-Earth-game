@@ -280,7 +280,7 @@ def manage_logistics_report() -> None:
             else:
                 text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports the following logistical incidents "
 
-            if cell.grid.is_abstract_grid:
+            if cell.get_location().get_world_handler().is_abstract_world:
                 text += f"in orbit of {cell.grid.name}: /n /n"
             elif cell.tile.name != "default":
                 text += f"at {cell.tile.name}: /n /n"
@@ -841,48 +841,36 @@ def end_turn_warnings():
                 f"Warning: if you do not reappoint {current_minister.name} by the end of the turn, they will be considered fired, leaving the candidate pool and incurring a large public opinion penalty. /n /n"
             )
 
-    for (
-        current_location
-    ) in (
-        status.current_world.get_flat_location_list()
-    ):  #  Warn for insufficient warehouses on planet
-        if (
-            current_location.visible
-            and current_location.attached_cells[0].tile.get_inventory_used()
-            > current_location.attached_cells[0].tile.inventory_capacity
-        ):
-            constants.notification_manager.display_notification(
-                {
-                    "message": f"Warning: the warehouses at {current_location.x}, {current_location.y} are not sufficient to hold the items stored there. /n /nAny items exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
-                    "zoom_destination": current_location.attached_cells[0].tile,
-                }
-            )
-    for current_grid in status.grid_list:
-        if current_grid.is_abstract_grid:
-            current_cell = current_grid.cell_list[0][0]
+    for current_world in status.world_list:  # Warn for insufficient warehouses
+        for current_location in current_world.get_flat_location_list():
             if (
-                current_cell.tile.get_inventory_used()
-                > current_cell.tile.inventory_capacity
-                and not current_cell.tile.infinite_inventory_capacity
+                current_location.visible
+                and current_location.attached_cells[0].tile.get_inventory_used()
+                > current_location.attached_cells[0].tile.inventory_capacity
             ):
-                constants.notification_manager.display_notification(
-                    {
-                        "message": f"Warning: the warehouses in {current_grid.cell_list[0][0].tile.name} are not sufficient to hold the items stored there. /n /nAny items exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
-                        "zoom_destination": current_cell.tile,
-                    }
-                )
+                if current_world.is_abstract_world():
+                    constants.notification_manager.display_notification(
+                        {
+                            "message": f"Warning: the warehouses in {current_location.name} are not sufficient to hold the items stored there. /n /nAny items exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
+                            "zoom_destination": current_cell.tile,
+                        }
+                    )
+                else:
+                    constants.notification_manager.display_notification(
+                        {
+                            "message": f"Warning: the warehouses at {current_location.x}, {current_location.y} are not sufficient to hold the items stored there. /n /nAny items exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
+                            "zoom_destination": current_location.attached_cells[0].tile,
+                        }
+                    )
 
-    for (
-        grid_type
-    ) in (
-        constants.abstract_grid_type_list
-    ):  # Warn for leaving units behind in non-Earth grids
-        if grid_type != constants.EARTH_GRID_TYPE:
-            current_cell = getattr(status, grid_type).find_cell(0, 0)
-            num_leaving, num_reserve = (
-                00,
-                0,
-            )  # Vehicles leaving, and vehicles staying behind, respectively
+    for current_world in status.world_list:
+        if (
+            current_world.is_abstract_world() and not current_world.is_earth()
+        ):  # Warn for leaving units behind in non-Earth grids
+            current_cell = current_world.find_location(0, 0).attached_cells[0]
+            num_leaving = 0
+            num_reserve = 0
+            # Number of vehicles leaving and number of vehicles staying behind, respectively
             for current_mob in current_cell.contained_mobs:
                 if current_mob.end_turn_destination and current_mob.get_permission(
                     constants.VEHICLE_PERMISSION

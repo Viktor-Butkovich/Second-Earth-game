@@ -42,6 +42,8 @@ class tile(actor):  # to do: make terrain tiles a subclass
         ]  # Give actor a 1-item list of grids as input
         self.name_icon = None
         self.resource: item_types.item_type = None
+        self.cell = input_dict["cell"]
+        self.grid = input_dict["grid"]
         super().__init__(from_save, input_dict, original_constructor=False)
         self.set_name(input_dict["name"])
         self.image_dict = {"default": input_dict["image"]}
@@ -56,7 +58,6 @@ class tile(actor):  # to do: make terrain tiles a subclass
             self.image
         ]  # tiles only appear on 1 grid, but have a list of images defined to be more consistent with other actor subclasses
         self.show_terrain = input_dict["show_terrain"]
-        self.cell = self.grid.find_cell(self.x, self.y)
         self.hosted_images = []
         if self.show_terrain:
             self.cell.tile = self
@@ -64,14 +65,14 @@ class tile(actor):  # to do: make terrain tiles a subclass
             self.set_terrain(
                 self.get_location().terrain
             )  # terrain is a property of the cell, being stored information rather than appearance, same for resource, set these in cell
-            if self.cell.grid.from_save:
-                self.inventory = self.cell.save_dict["inventory"]
+            # if self.cell.grid.from_save:
+            #    self.inventory = self.cell.save_dict["inventory"]
 
         elif self.grid.world_handler.is_abstract_world():
             self.cell.tile = self
             self.terrain = None
-            if self.cell.grid.from_save:
-                self.inventory = self.cell.save_dict["inventory"]
+            # if self.cell.grid.from_save:
+            #    self.inventory = self.cell.save_dict["inventory"]
             if (
                 self.cell.get_location().get_world_handler().is_earth()
             ):  # Earth should be able to hold items despite not being terrain
@@ -118,7 +119,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         """
         if not self.cell:
             return None
-        return self.cell.location
+        return self.cell.get_location()
 
     def set_name(self, new_name):
         """
@@ -547,9 +548,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         constants.TEMPERATURE,
                         constants.VEGETATION,
                     ]:
-                        map_mode_image = f"misc/map_modes/{constants.current_map_mode}/{self.cell.get_parameter(constants.current_map_mode)}.png"
+                        map_mode_image = f"misc/map_modes/{constants.current_map_mode}/{self.get_location().get_parameter(constants.current_map_mode)}.png"
                     else:
-                        map_mode_image = f"misc/map_modes/{self.cell.get_parameter(constants.current_map_mode)}.png"
+                        map_mode_image = f"misc/map_modes/{self.get_location().get_parameter(constants.current_map_mode)}.png"
             elif constants.current_map_mode == "magnetic":
                 if self.get_location().terrain_features.get(
                     "southern tropic", False
@@ -662,10 +663,10 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         tooltip_message = []
-        if self.grid.is_abstract_grid:
+        if self.get_location().get_world_handler().is_abstract_world():
             tooltip_message.append(self.name)
         elif self.show_terrain:
-            coordinates = self.get_main_grid_coordinates()
+            coordinates = self.get_absolute_coordinates()
             tooltip_message.append(f"Coordinates: ({coordinates[0]}, {coordinates[1]})")
             if self.get_location().terrain:
                 knowledge_value = self.get_location().get_parameter(constants.KNOWLEDGE)
@@ -693,7 +694,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
                                 maximum = self.get_location().maxima.get(
                                     terrain_parameter, 5
                                 )
-                                value = self.cell.get_parameter(terrain_parameter)
+                                value = self.get_location().get_parameter(
+                                    terrain_parameter
+                                )
                                 keyword = constants.terrain_manager.terrain_parameter_keywords[
                                     terrain_parameter
                                 ][
@@ -707,19 +710,18 @@ class tile(actor):  # to do: make terrain tiles a subclass
                 else:
                     tooltip_message.append(f"    Terrain unknown")
 
-        if self.get_location().get_world_handler():
-            overall_habitability = self.get_location().get_known_habitability()
-            if (not self.cell.grid.is_abstract_grid) and (
-                self.get_location().get_parameter(constants.KNOWLEDGE)
-                < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
-            ):
-                tooltip_message.append(
-                    f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability].capitalize()} (estimated)"
-                )
-            else:
-                tooltip_message.append(
-                    f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability].capitalize()}"
-                )
+        overall_habitability = self.get_location().get_known_habitability()
+        if (not self.get_location().get_world_handler().is_abstract_world()) and (
+            self.get_location().get_parameter(constants.KNOWLEDGE)
+            < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
+        ):
+            tooltip_message.append(
+                f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability].capitalize()} (estimated)"
+            )
+        else:
+            tooltip_message.append(
+                f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability].capitalize()}"
+            )
 
         if self.show_terrain:
             for current_building in self.get_location().get_buildings():
@@ -828,7 +830,7 @@ class abstract_tile(tile):
         """
         input_dict["coordinates"] = (0, 0)
         input_dict["show_terrain"] = False
-        if input_dict["grid"] == status.earth_grid:
+        if input_dict["grid"].world_handler.is_earth():
             self.grid_image_id = [
                 "misc/space.png",
                 {
@@ -837,7 +839,7 @@ class abstract_tile(tile):
                     "detail_level": 1.0,
                 },
             ]
-        elif input_dict["grid"] == status.globe_projection_grid:
+        else:  # Such as globe projection grid
             self.grid_image_id = [
                 {
                     "image_id": "misc/empty.png",

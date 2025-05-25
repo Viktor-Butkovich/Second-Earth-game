@@ -665,7 +665,7 @@ class combat(action.action):
         if not self.defending:
             self.current_unit.set_movement_points(0)
             if (
-                combat_cell.location.terrain == "water"
+                combat_cell.get_location().terrain == "water"
                 and combat_cell.y > 0
                 and not self.current_unit.get_permission(constants.SWIM_PERMISSION)
             ):  # if attacked water and can't swim, become disorganized after combat

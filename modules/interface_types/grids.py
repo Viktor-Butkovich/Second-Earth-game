@@ -4,6 +4,7 @@ import random
 import pygame
 import itertools
 from typing import Dict, List, Tuple
+from modules.actor_types import tiles
 from modules.interface_types import cells, interface_elements
 from modules.util import actor_utility, utility
 from modules.constructs import world_handlers
@@ -39,8 +40,6 @@ class grid(interface_elements.interface_element):
         status.grid_list.append(self)
         self.world_handler: world_handlers.world_handler = input_dict["world_handler"]
         self.grid_line_width: int = input_dict.get("grid_line_width", 3)
-        self.is_mini_grid = False
-        self.is_abstract_grid = False
         self.coordinate_width: int = input_dict.get(
             "coordinate_size", input_dict.get("coordinate_width")
         )
@@ -68,6 +67,36 @@ class grid(interface_elements.interface_element):
             ]
             for x in range(self.coordinate_width)
         ]
+        if self.is_abstract_grid():
+            tiles.abstract_tile(
+                False,
+                {
+                    "grid": self,
+                    "cell": self.cell_list[0][0],
+                    "name": self.world_handler.name,
+                    "modes": self.modes,
+                },
+            )
+        else:
+            for cell in self.get_flat_cell_list():
+                tiles.tile(
+                    False,
+                    {
+                        "grid": self,
+                        "cell": cell,
+                        "image": "misc/empty.png",
+                        "name": "default",
+                        "modes": self.modes,
+                        "show_terrain": True,
+                        "coordinates": (cell.x, cell.y),
+                    },
+                )
+
+    def is_mini_grid(self) -> bool:
+        return False
+
+    def is_abstract_grid(self) -> bool:
+        return False
 
     def get_tuning(self, tuning_type: str) -> any:
         """
@@ -358,7 +387,7 @@ class grid(interface_elements.interface_element):
         allowed_terrains = requirements_dict["allowed_terrains"]
         possible_cells = []
         for current_cell in self.get_flat_cell_list():
-            if not current_cell.location.terrain in allowed_terrains:
+            if not current_cell.get_location().terrain in allowed_terrains:
                 continue
             possible_cells.append(current_cell)
         if len(possible_cells) == 0:
@@ -450,10 +479,12 @@ class mini_grid(grid):
         Output:
             None
         """
-        super().__init__(input_dict)
-        self.is_mini_grid = True
         self.center_x = 0
         self.center_y = 0
+        super().__init__(input_dict)
+
+    def is_mini_grid(self) -> bool:
+        return True
 
     def calibrate(self, center_x, center_y, recursive=False, calibrate_center=True):
         """
@@ -676,9 +707,11 @@ class abstract_grid(grid):
         input_dict["coordinate_width"] = 1
         input_dict["coordinate_height"] = 1
         super().__init__(input_dict)
-        self.is_abstract_grid = True
         self.name = self.world_handler.name
         # self.world_handler.location_list[0][0].set_visibility(True)
+
+    def is_abstract_grid(self) -> bool:
+        return True
 
     def rename(self, new_name: str) -> None:
         """

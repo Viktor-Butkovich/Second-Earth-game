@@ -455,6 +455,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Transfer contained_mobs from cell to location
 # Transfer tile inventory from cell to location
 # Transfer settlements from cell to location
+# Transfer logistics_incident_list from cell to location
 # Convert world creation process to be create world handler -> create locations for each coordinate
 #   Followed by independent process of creating grid with cells that can attach to locations
 #   Ideally, no world or location logic is tied to cells, and cells use observer pattern to update UI with subscribed locations

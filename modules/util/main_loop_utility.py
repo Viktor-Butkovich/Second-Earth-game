@@ -431,7 +431,7 @@ def manage_lmb_down(clicked_button):
                 if current_grid.showing:
                     for current_cell in current_grid.get_flat_cell_list():
                         if current_cell.touching_mouse():
-                            if current_cell.location.visible:
+                            if current_cell.get_location().visible:
                                 if len(current_cell.contained_mobs) > 0:
                                     selected_mob = True
                                     current_mob = current_cell.contained_mobs[0]
@@ -473,13 +473,19 @@ def manage_lmb_down(clicked_button):
                             click_move_minimap()
                             target_location = None
                             if (
-                                current_cell.location.get_world_handler().is_abstract_world()
+                                current_cell.get_location()
+                                .get_world_handler()
+                                .is_abstract_world()
                             ):
-                                target_location = current_cell.location
+                                target_location = current_cell.get_location()
                             else:
-                                target_location = current_cell.location.get_world_handler().find_location(
-                                    status.minimap_grid.center_x,
-                                    status.minimap_grid.center_y,
+                                target_location = (
+                                    current_cell.get_location()
+                                    .get_world_handler()
+                                    .find_location(
+                                        status.minimap_grid.center_x,
+                                        status.minimap_grid.center_y,
+                                    )
                                 )
                             if (
                                 current_grid.world_handler
@@ -517,22 +523,24 @@ def manage_lmb_down(clicked_button):
             for current_grid in status.grid_list:  # destination_grids:
                 for current_cell in current_grid.get_flat_cell_list():
                     if current_cell.touching_mouse():
-                        if current_cell.grid.is_abstract_grid:
+                        if (
+                            current_cell.get_location()
+                            .get_world_handler()
+                            .is_abstract_world()
+                        ):
                             text_utility.print_to_screen(
                                 "Only tiles adjacent to the most recently chosen destination can be added to the movement route."
                             )
                         else:
-                            target_location = current_cell.location
-                            displayed_mob = status.displayed_mob
-                            # target_cell = status.strategic_map_grid.find_cell(status.minimap_grid.center_x, status.minimap_grid.center_y)
+                            target_location = current_cell.get_location()
                             destination_x, destination_y = (
                                 target_location.x,
                                 target_location.y,
-                            )  # target_cell.tile.get_main_grid_coordinates()
+                            )
                             (
                                 previous_destination_x,
                                 previous_destination_y,
-                            ) = displayed_mob.base_automatic_route[-1]
+                            ) = status.displayed_mob.base_automatic_route[-1]
                             if (
                                 utility.find_coordinate_distance(
                                     (destination_x, destination_y),
@@ -551,10 +559,10 @@ def manage_lmb_down(clicked_button):
                                     )
                                     return ()
                                 elif (
-                                    displayed_mob.get_permission(
+                                    status.displayed_mob.get_permission(
                                         constants.VEHICLE_PERMISSION
                                     )
-                                    and displayed_mob.get_permission(
+                                    and status.displayed_mob.get_permission(
                                         constants.TRAIN_PERMISSION
                                     )
                                     and not target_location.has_building(
@@ -567,11 +575,11 @@ def manage_lmb_down(clicked_button):
                                     return ()
                                 elif (
                                     target_location.terrain == "water"
-                                    and not displayed_mob.get_permission(
+                                    and not status.displayed_mob.get_permission(
                                         constants.SWIM_PERMISSION
                                     )
                                 ) and (
-                                    displayed_mob.get_permission(
+                                    status.displayed_mob.get_permission(
                                         constants.VEHICLE_PERMISSION
                                     )
                                     and destination_infrastructure == None
@@ -585,7 +593,7 @@ def manage_lmb_down(clicked_button):
                                 elif (
                                     (not target_location.terrain == "water")
                                     and (
-                                        not displayed_mob.get_permission(
+                                        not status.displayed_mob.get_permission(
                                             constants.WALK_PERMISSION
                                         )
                                     )
@@ -598,7 +606,7 @@ def manage_lmb_down(clicked_button):
                                     )
                                     return ()
 
-                                displayed_mob.add_to_automatic_route(
+                                status.displayed_mob.add_to_automatic_route(
                                     (destination_x, destination_y)
                                 )
                                 click_move_minimap()
@@ -633,7 +641,7 @@ def click_move_minimap():
                     absolute_x, absolute_y = current_cell.grid.get_absolute_coordinates(
                         current_cell.x, current_cell.y
                     )
-                    for attached_cell in current_cell.location.attached_cells:
+                    for attached_cell in current_cell.get_location().attached_cells:
                         attached_cell.grid.calibrate(absolute_x, absolute_y)
                     actor_utility.calibrate_actor_info_display(
                         status.tile_info_display, current_cell.tile

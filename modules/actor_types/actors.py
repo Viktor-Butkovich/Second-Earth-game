@@ -415,9 +415,9 @@ class actor:
 
             if flags.player_turn:
                 intro_text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports a logistical incident "
-                if self.get_cell().grid.is_abstract_grid:
+                if self.get_location().get_world_handler().is_abstract_world():
                     intro_text += f"in orbit of {self.get_cell().grid.name}: /n /n"
-                elif self.get_cell().tile.name != "default":
+                elif self.get_location().name != "default":
                     intro_text += f"at {self.get_cell().tile.name}: /n /n"
                 else:
                     intro_text += (

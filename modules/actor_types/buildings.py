@@ -87,7 +87,7 @@ class building(actor):
         """
         if not self.cell:
             return None
-        return self.cell.location
+        return self.cell.get_location()
 
     def update_image_bundle(self):
         """

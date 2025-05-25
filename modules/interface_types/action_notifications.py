@@ -76,15 +76,13 @@ class action_notification(notification):
                 index = 0
                 for element_input_dict in self.attached_interface_elements:
                     if type(element_input_dict) == dict:
-                        element_input_dict[
-                            "parent_collection"
-                        ] = (
+                        element_input_dict["parent_collection"] = (
                             self.notification_ordered_collection
                         )  # self.parent_collection
-                        self.attached_interface_elements[
-                            index
-                        ] = constants.actor_creation_manager.create_interface_element(
-                            element_input_dict
+                        self.attached_interface_elements[index] = (
+                            constants.actor_creation_manager.create_interface_element(
+                                element_input_dict
+                            )
                         )  # if given input dict, create it and add it to notification
                     else:
                         self.notification_ordered_collection.add_member(
@@ -279,7 +277,7 @@ class off_tile_exploration_notification(action_notification):
         input_dict["attached_interface_elements"].append(
             action_utility.generate_free_image_input_dict(
                 action_utility.generate_tile_image_id_list(
-                    cell, force_visibility=(reveal_cell or cell.location.visible)
+                    cell, force_visibility=(reveal_cell or cell.get_location().visible)
                 ),
                 250,
                 override_input_dict={
@@ -292,7 +290,7 @@ class off_tile_exploration_notification(action_notification):
         )
 
         if reveal_cell:
-            cell.location.set_visibility(True)
+            cell.get_location().set_visibility(True)
         status.minimap_grid.calibrate(cell.x, cell.y)
         super().__init__(input_dict)
         constants.public_opinion_tracker.change(public_opinion_increase)

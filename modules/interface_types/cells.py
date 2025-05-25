@@ -43,6 +43,9 @@ class cell:
         self.contained_mobs: list = []
         self.grid.world_handler.find_location(self.x, self.y).add_cell(self)
 
+    def get_location(self) -> locations.location:
+        return self.location
+
     def has_unit(self, permissions, required_number=1):
         """
         Description:
@@ -186,7 +189,7 @@ class cell:
             None
         """
         self.contained_mobs = other_cell.contained_mobs
-        other_cell.location.add_cell(self)
+        other_cell.get_location().add_cell(self)
 
     def draw(self):
         """
@@ -201,13 +204,13 @@ class cell:
         red = current_color[0]
         green = current_color[1]
         blue = current_color[2]
-        if not self.location.visible:
+        if not self.get_location().visible:
             red, green, blue = constants.color_dict[constants.COLOR_BLONDE]
         pygame.draw.rect(constants.game_display, (red, green, blue), self.Rect)
         if self.tile:
             for current_image in self.tile.images:
                 current_image.draw()
-            if self.location.visible and self.contained_mobs:
+            if self.get_location().visible and self.contained_mobs:
                 for current_image in self.contained_mobs[0].images:
                     current_image.draw()
                 self.show_num_mobs()
