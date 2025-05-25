@@ -395,22 +395,26 @@ class save_load_manager_template:
                 ),
                 constants.INERT_GASES: round(
                     constants.terrain_manager.get_tuning("earth_inert_gases")
-                    * constants.earth_dimensions**2,
+                    * constants.earth_dimensions**2
+                    * 6,
                     1,
                 ),
                 constants.OXYGEN: round(
                     constants.terrain_manager.get_tuning("earth_oxygen")
-                    * constants.earth_dimensions**2,
+                    * constants.earth_dimensions**2
+                    * 6,
                     1,
                 ),
                 constants.GHG: round(
                     constants.terrain_manager.get_tuning("earth_GHG")
-                    * constants.earth_dimensions**2,
+                    * constants.earth_dimensions**2
+                    * 6,
                     1,
                 ),
                 constants.TOXIC_GASES: round(
                     constants.terrain_manager.get_tuning("earth_toxic_gases")
-                    * constants.earth_dimensions**2,
+                    * constants.earth_dimensions**2
+                    * 6,
                     1,
                 ),
             }
@@ -480,7 +484,7 @@ class save_load_manager_template:
             constants.actor_creation_manager.create_interface_element(
                 input_dict={
                     "init_type": constants.ABSTRACT_GRID,
-                    "world_handler": status.current_world,
+                    "world_handler": status.current_world.orbital_world,
                     "coordinates": scaling.scale_coordinates(
                         constants.globe_projection_grid_x_offset,
                         constants.globe_projection_grid_y_offset,

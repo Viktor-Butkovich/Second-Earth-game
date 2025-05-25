@@ -638,7 +638,10 @@ def click_move_minimap():
         if current_grid.showing:
             for current_cell in current_grid.get_flat_cell_list():
                 if current_cell.touching_mouse():
-                    absolute_x, absolute_y = current_cell.grid.get_absolute_coordinates(
+                    (
+                        absolute_x,
+                        absolute_y,
+                    ) = current_cell.grid.get_absolute_coordinates(
                         current_cell.x, current_cell.y
                     )
                     for attached_cell in current_cell.get_location().attached_cells:

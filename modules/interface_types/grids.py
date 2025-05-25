@@ -92,6 +92,9 @@ class grid(interface_elements.interface_element):
                     },
                 )
 
+    def get_absolute_coordinates(self, mini_x, mini_y):
+        return mini_x, mini_y
+
     def is_mini_grid(self) -> bool:
         return False
 

@@ -301,7 +301,8 @@ class location:
             self.adjacent_locations[direction] = self.get_world_handler().find_location(
                 x, y
             )
-            self.adjacent_list.append(self.adjacent_locations[direction])
+            if self.adjacent_locations[direction]:
+                self.adjacent_list.append(self.adjacent_locations[direction])
 
     def get_parameter_habitability(self, parameter_name: str) -> int:
         """

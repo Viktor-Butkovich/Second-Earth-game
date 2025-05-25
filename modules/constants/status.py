@@ -11,8 +11,10 @@ from modules.constructs.minister_types import minister_type
 from modules.constructs.terrain_feature_types import terrain_feature_type
 from modules.constructs.images import image, free_image, directional_indicator_image
 from modules.constructs.locations import location
-from modules.constructs.abstract_world_handlers import abstract_world_handler
-from modules.constructs.full_world_handlers import full_world_handler
+from modules.constructs.world_handler_types import (
+    abstract_world_handler,
+    full_world_handler,
+)
 from modules.interface_types.interface_elements import (
     interface_collection,
     tabbed_collection,

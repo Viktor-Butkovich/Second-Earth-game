@@ -6,9 +6,132 @@ from modules.constructs import world_handlers
 from modules.constants import constants, status, flags
 
 
+class abstract_world_handler(world_handlers.world_handler):
+    def __init__(self, from_save: bool, input_dict: Dict[str, any]) -> None:
+        self.abstract_world_type = input_dict["abstract_world_type"]
+        super().__init__(from_save, input_dict)
+
+    @property
+    def coordinate_width(self) -> int:
+        return 1
+
+    @property
+    def coordinate_height(self) -> int:
+        return 1
+
+    def is_abstract_world(self) -> bool:
+        return True
+
+    def is_earth(self) -> bool:
+        return self.abstract_world_type == constants.EARTH
+
+
+class orbital_world_handler(abstract_world_handler):
+    """
+    World handler that has its own abstract grid and location but copies the attributes of the full world it orbits
+    Allows planet orbit to have its own orbital location while using the full world's parameters
+    """
+
+    def __init__(self, from_save: bool, input_dict: Dict[str, any]) -> None:
+        self.full_world: full_world_handler = input_dict["full_world"]
+        input_dict["abstract_world_type"] = constants.ORBITAL_WORLD
+        super().__init__(from_save, input_dict)
+
+    @property
+    def name(self) -> str:
+        return self.full_world.name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        pass
+
+    @property
+    def world_dimensions(self) -> int:
+        return self.full_world.world_dimensions
+
+    @world_dimensions.setter
+    def world_dimensions(self, value: int) -> None:
+        pass
+
+    @property
+    def rotation_direction(self) -> int:
+        return self.full_world.rotation_direction
+
+    @rotation_direction.setter
+    def rotation_direction(self, value: int) -> None:
+        pass
+
+    @property
+    def rotation_speed(self) -> int:
+        return self.full_world.rotation_speed
+
+    @rotation_speed.setter
+    def rotation_speed(self, value: int) -> None:
+        pass
+
+    @property
+    def star_distance(self) -> float:
+        return self.full_world.star_distance
+
+    @star_distance.setter
+    def star_distance(self, value: float) -> None:
+        pass
+
+    @property
+    def global_parameters(self) -> Dict[str, any]:
+        return self.full_world.global_parameters
+
+    @global_parameters.setter
+    def global_parameters(self, value: Dict[str, any]) -> None:
+        pass
+
+    @property
+    def sky_color(self) -> Tuple[int, int, int]:
+        return self.full_world.sky_color
+
+    @sky_color.setter
+    def sky_color(self, value: Tuple[int, int, int]) -> None:
+        pass
+
+    @property
+    def default_sky_color(self) -> Tuple[int, int, int]:
+        return self.full_world.default_sky_color
+
+    @default_sky_color.setter
+    def default_sky_color(self, value: Tuple[int, int, int]) -> None:
+        pass
+
+
 class full_world_handler(world_handlers.world_handler):
     def __init__(self, from_save: bool, input_dict: Dict[str, any]) -> None:
         super().__init__(from_save, input_dict)
+
+        if not from_save:  # Initial full world generation
+            self.generate_poles_and_equator()
+            self.update_clouds(estimated_temperature=True)
+            self.generate_terrain_parameters()
+            self.generate_terrain_features()
+            self.update_sky_color(set_initial_offset=True, update_water=True)
+            self.update_clouds()
+            for i in range(5):  # Simulate time passing until equilibrium is reached
+                self.update_target_average_temperature(update_albedo=True)
+                self.change_to_temperature_target()
+
+        self.orbital_world: orbital_world_handler = (
+            constants.actor_creation_manager.create(
+                from_save,
+                {
+                    **input_dict.get("orbital_world", {}),
+                    "init_type": constants.ORBITAL_WORLD,
+                    "full_world": self,
+                },
+            )
+        )
+
+    def to_save_dict(self) -> Dict[str, any]:
+        save_dict = super().to_save_dict()
+        save_dict["orbital_world"] = self.orbital_world.to_save_dict()
+        return save_dict
 
     def update_globe_projection(
         self, center_coordinates: Tuple[int, int] = None, update_button: bool = True

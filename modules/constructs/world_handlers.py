@@ -19,10 +19,10 @@ class world_handler:
             bool from_save: True if loading world, False if creating new one
             dictionary input_dict: Dictionary of saved information necessary to recreate this location if loading grid, or None if creating new location
         """
-        self.world_dimensions: int = input_dict["world_dimensions"]
-        self.name: str = input_dict["name"]
-        self.rotation_direction = input_dict["rotation_direction"]
-        self.rotation_speed = input_dict["rotation_speed"]
+        self.world_dimensions: int = input_dict.get("world_dimensions")
+        self.name: str = input_dict.get("name")
+        self.rotation_direction = input_dict.get("rotation_direction")
+        self.rotation_speed = input_dict.get("rotation_speed")
         self.green_screen: Dict[str, Dict[str, any]] = input_dict.get(
             "green_screen", {}
         )
@@ -30,7 +30,7 @@ class world_handler:
             "color_filter",
             {constants.COLOR_RED: 1, constants.COLOR_GREEN: 1, constants.COLOR_BLUE: 1},
         )
-        self.star_distance: float = input_dict["star_distance"]
+        self.star_distance: float = input_dict.get("star_distance")
 
         self.water_vapor_multiplier: float = input_dict.get(
             "water_vapor_multiplier", 1.0
@@ -44,7 +44,7 @@ class world_handler:
         self.toxic_cloud_frequency: float = input_dict.get("toxic_cloud_frequency", 0.0)
         self.atmosphere_haze_alpha: int = input_dict.get("atmosphere_haze_alpha", 0)
 
-        self.sky_color = input_dict["sky_color"]
+        self.sky_color = input_dict.get("sky_color", [0, 0, 0])
         self.default_sky_color = input_dict.get(
             "default_sky_color", self.sky_color.copy()
         )  # Never-modified copy of original sky color
@@ -80,9 +80,9 @@ class world_handler:
                             "y": y,
                         },
                     )
-                    for y in range(self.world_dimensions)
+                    for y in range(self.coordinate_height)
                 ]
-                for x in range(self.world_dimensions)
+                for x in range(self.coordinate_width)
             ]
 
         for current_location in self.get_flat_location_list():
@@ -96,16 +96,13 @@ class world_handler:
                 estimate_water_vapor=True, update_albedo=False
             )
 
-            if self.world_dimensions > 1:  # If full world
-                self.generate_poles_and_equator()
-                self.update_clouds(estimated_temperature=True)
-                self.generate_terrain_parameters()
-                self.generate_terrain_features()
-                self.update_sky_color(set_initial_offset=True, update_water=True)
-                self.update_clouds()
-                for i in range(5):  # Simulate time passing until equilibrium is reached
-                    self.update_target_average_temperature(update_albedo=True)
-                    self.change_to_temperature_target()
+    @property
+    def coordinate_width(self) -> int:
+        return self.world_dimensions
+
+    @property
+    def coordinate_height(self) -> int:
+        return self.world_dimensions
 
     def is_earth(self) -> bool:
         return False
@@ -475,7 +472,11 @@ class world_handler:
         Output:
             None
         """
-        water_locations = [current_location for current_location in self.get_flat_location_list() if current_location.get_parameter(constants.WATER) > 0]
+        water_locations = [
+            current_location
+            for current_location in self.get_flat_location_list()
+            if current_location.get_parameter(constants.WATER) > 0
+        ]
         if water_locations:
             random.choices(
                 water_locations,
@@ -1046,9 +1047,9 @@ class world_handler:
     def find_location(self, x: int, y: int) -> Any:
         if (
             x >= 0
-            and x < self.world_dimensions
+            and x < self.coordinate_width
             and y >= 0
-            and y < self.world_dimensions
+            and y < self.coordinate_height
         ):
             return self.location_list[x][y]
         else:

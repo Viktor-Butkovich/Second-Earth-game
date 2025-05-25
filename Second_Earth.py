@@ -446,7 +446,7 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Possibly create_world is the reason for terrain not appearing?
+# Look into incorrect x and y coordinates of grids - probably due to incorrect mirroring
 # Remove references to get_equivalent_tiles
 # Rework end_turn_move to be move to a location in a world by coordinate, rather than a cell in a grid
 # Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display

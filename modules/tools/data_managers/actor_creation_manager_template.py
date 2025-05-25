@@ -32,8 +32,7 @@ from modules.constructs import (
     settlements,
     unit_types,
     locations,
-    abstract_world_handlers,
-    full_world_handlers,
+    world_handler_types,
 )
 from modules.util import utility, actor_utility, market_utility
 from modules.tools import mouse_followers
@@ -87,8 +86,9 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.NAME_ICON: cell_icons.name_icon,
             constants.LOAN: market_utility.loan,
             constants.LOCATION: locations.location,
-            constants.FULL_WORLD: full_world_handlers.full_world_handler,
-            constants.ABSTRACT_WORLD: abstract_world_handlers.abstract_world_handler,
+            constants.FULL_WORLD: world_handler_types.full_world_handler,
+            constants.ABSTRACT_WORLD: world_handler_types.abstract_world_handler,
+            constants.ORBITAL_WORLD: world_handler_types.orbital_world_handler,
         }
         self.interface_constructors = {
             constants.BUTTON: buttons.button,
