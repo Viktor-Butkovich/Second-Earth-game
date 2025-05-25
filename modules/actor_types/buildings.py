@@ -231,9 +231,10 @@ class building(actor):
         Output:
             boolean: Returns True if any of this building's images is colliding with the mouse, otherwise returns False
         """
-        for tile in [self.cell.tile] + self.cell.tile.get_equivalent_tiles():
-            if tile.touching_mouse():
-                return True
+        # for tile in [self.cell.tile] + self.cell.tile.get_equivalent_tiles():
+        #    if tile.touching_mouse():
+        #        return True
+        # return False
         return False
 
     def get_build_cost(self):
@@ -808,7 +809,6 @@ class slums(building):
         input_dict = {
             "select_on_creation": True,
             "coordinates": (self.cell.x, self.cell.y),
-            "grids": [self.cell.grid] + self.cell.grid.mini_grids,
             "modes": self.cell.grid.modes,
         }
         constants.actor_creation_manager.create(False, input_dict)

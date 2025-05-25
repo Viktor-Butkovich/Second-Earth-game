@@ -67,16 +67,16 @@ class notification(multi_line_label):
                 actor_utility.calibrate_actor_info_display(
                     status.tile_info_display, target
                 )
-                for mini_grid in target.cell.grid.mini_grids:
-                    mini_grid.calibrate(target.x, target.y)
+                for attached_cell in target.attached_cells:
+                    attached_cell.grid.calibrate(target.x, target.y)
             elif target.actor_type == constants.MOB_ACTOR_TYPE:
                 if (
                     target.get_cell()
                 ):  # If non-hidden mob, move to front of tile and select
                     target.select()
                 else:  # If hidden mob, move to location and select tile
-                    for mini_grid in target.grids[0].mini_grids:
-                        mini_grid.calibrate(target.x, target.y)
+                    for attached_cell in target.attached_cells:
+                        attached_cell.grid.calibrate(target.x, target.y)
                     actor_utility.calibrate_actor_info_display(
                         status.tile_info_display,
                         target.grids[0].find_cell(target.x, target.y).tile,

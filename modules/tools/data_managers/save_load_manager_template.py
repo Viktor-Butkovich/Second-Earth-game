@@ -3,6 +3,8 @@
 import random
 import pickle
 import pygame
+from typing import Dict
+from math import ceil
 from modules.util import (
     game_transitions,
     turn_management_utility,
@@ -11,9 +13,10 @@ from modules.util import (
     minister_utility,
     actor_utility,
     tutorial_utility,
+    scaling,
 )
 from modules.interface_types import world_grids
-from modules.constructs import unit_types
+from modules.constructs import unit_types, world_handlers
 from modules.constants import constants, status, flags
 
 
@@ -64,6 +67,448 @@ class save_load_manager_template:
         self.copied_flags.append("prosecution_bribed_judge")
         self.copied_flags.append("victories_this_game")
 
+    def generate_world_input_dict(self, world_type: str):
+        return_dict = {}
+        if world_type == "full_world":
+            return_dict["init_type"] = constants.FULL_WORLD
+            preset = None
+            world_dimensions = None
+            if constants.effect_manager.effect_active("earth_preset"):
+                preset = "earth"
+                world_dimensions = constants.earth_dimensions
+            elif constants.effect_manager.effect_active("venus_preset"):
+                preset = "venus"
+                world_dimensions = constants.venus_dimensions
+            elif constants.effect_manager.effect_active("mars_preset"):
+                preset = "mars"
+                world_dimensions = constants.mars_dimensions
+
+            if preset:
+                return_dict["name"] = preset.capitalize()
+                return_dict["world_dimensions"] = world_dimensions
+                return_dict["rotation_direction"] = (
+                    constants.terrain_manager.get_tuning(f"{preset}_rotation_direction")
+                )
+                return_dict["rotation_speed"] = constants.terrain_manager.get_tuning(
+                    f"{preset}_rotation_speed"
+                )
+                return_dict["global_parameters"] = {
+                    constants.GRAVITY: constants.terrain_manager.get_tuning(
+                        f"{preset}_gravity"
+                    ),
+                    constants.RADIATION: constants.terrain_manager.get_tuning(
+                        f"{preset}_radiation"
+                    ),
+                    constants.MAGNETIC_FIELD: constants.terrain_manager.get_tuning(
+                        f"{preset}_magnetic_field"
+                    ),
+                    constants.INERT_GASES: round(
+                        constants.terrain_manager.get_tuning(f"{preset}_inert_gases")
+                        * world_dimensions**2,
+                        1,
+                    ),
+                    constants.OXYGEN: round(
+                        constants.terrain_manager.get_tuning(f"{preset}_oxygen")
+                        * world_dimensions**2,
+                        1,
+                    ),
+                    constants.GHG: round(
+                        constants.terrain_manager.get_tuning(f"{preset}_GHG")
+                        * world_dimensions**2,
+                        1,
+                    ),
+                    constants.TOXIC_GASES: round(
+                        constants.terrain_manager.get_tuning(f"{preset}_toxic_gases")
+                        * world_dimensions**2,
+                        1,
+                    ),
+                }
+                return_dict["average_water"] = constants.terrain_manager.get_tuning(
+                    f"{preset}_average_water_target"
+                )
+                return_dict["sky_color"] = constants.terrain_manager.get_tuning(
+                    f"{preset}_sky_color"
+                )
+                return_dict["star_distance"] = constants.terrain_manager.get_tuning(
+                    f"{preset}_star_distance"
+                )
+            else:  # If creating random world
+                return_dict["name"] = (
+                    constants.flavor_text_manager.generate_flavor_text("planet_names")
+                )
+                return_dict["world_dimensions"] = random.choice(
+                    constants.world_dimensions_options
+                )
+                ideal_atmosphere_size = (
+                    return_dict["world_dimensions"] ** 2
+                ) * 6  # Atmosphere units required for 1 atm pressure (like Earth) - 6 units per location
+                return_dict["star_distance"] = round(random.uniform(0.5, 2.0), 3)
+
+                return_dict["rotation_direction"] = random.choice([1, -1])
+                return_dict["rotation_speed"] = random.choice([1, 2, 2, 3, 4, 5])
+                return_dict["average_water_target"] = random.choice(
+                    [
+                        random.uniform(0.0, 5.0),
+                        random.uniform(0.0, 1.0),
+                        random.uniform(0.0, 4.0),
+                    ]
+                )
+                return_dict["sky_color"] = [
+                    random.randrange(0, 256) for _ in range(3)
+                ]  # Random sky color
+
+                global_parameters: Dict[str, float] = {}
+                global_parameters[constants.GRAVITY] = round(
+                    (
+                        (return_dict["world_dimensions"] ** 2)
+                        / (constants.earth_dimensions**2)
+                    )
+                    * random.uniform(0.7, 1.3),
+                    2,
+                )
+                global_parameters[constants.RADIATION] = max(
+                    random.randrange(0, 5), random.randrange(0, 5)
+                )
+                global_parameters[constants.MAGNETIC_FIELD] = random.choices(
+                    [0, 1, 2, 3, 4, 5], [5, 2, 2, 2, 2, 2], k=1
+                )[0]
+                atmosphere_type = random.choice(
+                    ["thick", "thick", "medium", "medium", "medium", "thin"]
+                )
+                if (
+                    global_parameters[constants.MAGNETIC_FIELD]
+                    >= global_parameters[constants.RADIATION]
+                ):
+                    if atmosphere_type in ["thin", "none"]:
+                        atmosphere_type = "medium"
+                elif (
+                    global_parameters[constants.MAGNETIC_FIELD]
+                    >= global_parameters[constants.RADIATION] - 2
+                ):
+                    if atmosphere_type == "none":
+                        atmosphere_type = "thin"
+
+                if atmosphere_type == "thick":
+                    global_parameters[constants.GHG] = random.choices(
+                        [
+                            random.randrange(0, ideal_atmosphere_size * 90),
+                            random.randrange(0, ideal_atmosphere_size * 10),
+                            random.randrange(0, ideal_atmosphere_size * 5),
+                            random.randrange(0, ideal_atmosphere_size),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.1)),
+                            0,
+                        ],
+                        [2, 4, 4, 4, 6, 6],
+                        k=1,
+                    )[0]
+                    global_parameters[constants.OXYGEN] = random.choices(
+                        [
+                            random.randrange(0, ideal_atmosphere_size * 10),
+                            random.randrange(0, ideal_atmosphere_size * 5),
+                            random.randrange(0, ideal_atmosphere_size * 2),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.5)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.01)),
+                            0,
+                        ],
+                        [2, 4, 4, 4, 6, 6],
+                        k=1,
+                    )[0]
+                    global_parameters[constants.INERT_GASES] = random.choices(
+                        [
+                            random.randrange(0, ideal_atmosphere_size * 90),
+                            random.randrange(0, ideal_atmosphere_size * 10),
+                            random.randrange(0, ideal_atmosphere_size * 5),
+                            random.randrange(0, ideal_atmosphere_size),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.1)),
+                            0,
+                        ],
+                        [2, 4, 4, 4, 6, 6],
+                        k=1,
+                    )[
+                        0
+                    ]  # Same distribution as GHG
+                    global_parameters[constants.TOXIC_GASES] = random.choices(
+                        [
+                            random.randrange(0, ideal_atmosphere_size * 10),
+                            random.randrange(0, ideal_atmosphere_size * 5),
+                            random.randrange(0, ideal_atmosphere_size * 2),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.5)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.01)),
+                            0,
+                        ],
+                        [2, 4, 4, 4, 6, 6],
+                        k=1,
+                    )[
+                        0
+                    ]  # Same distribution as oxygen
+                elif atmosphere_type == "medium":
+                    global_parameters[constants.GHG] = random.choices(
+                        [
+                            random.randrange(0, ideal_atmosphere_size),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.5)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.3)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.1)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.01)),
+                            0,
+                        ],
+                        [3, 3, 3, 3, 3, 3],
+                        k=1,
+                    )[0]
+                    global_parameters[constants.OXYGEN] = random.choices(
+                        [
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.6)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.3)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.15)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.05)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.01)),
+                            0,
+                        ],
+                        [3, 3, 3, 3, 3, 3],
+                        k=1,
+                    )[0]
+                    global_parameters[constants.INERT_GASES] = random.choices(
+                        [
+                            random.randrange(0, ideal_atmosphere_size),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.5)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.3)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.1)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.01)),
+                            0,
+                        ],
+                        [3, 3, 3, 3, 3, 3],
+                        k=1,
+                    )[
+                        0
+                    ]  # Same distribution as GHG
+                    global_parameters[constants.TOXIC_GASES] = random.choices(
+                        [
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.6)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.3)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.15)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.05)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.01)),
+                            0,
+                        ],
+                        [3, 3, 3, 3, 3, 3],
+                        k=1,
+                    )[
+                        0
+                    ]  # Same distribution as oxygen
+                elif atmosphere_type == "thin":
+                    global_parameters[constants.GHG] = random.choices(
+                        [
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.05)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.01)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.005)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.001)),
+                            0,
+                            0,
+                        ],
+                        [3, 3, 3, 3, 3, 3],
+                        k=1,
+                    )[0]
+                    global_parameters[constants.OXYGEN] = random.choices(
+                        [
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.01)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.005)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.001)),
+                            0,
+                            0,
+                        ],
+                        [3, 3, 3, 3, 3],
+                        k=1,
+                    )[0]
+                    global_parameters[constants.INERT_GASES] = random.choices(
+                        [
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.05)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.01)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.005)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.001)),
+                            0,
+                            0,
+                        ],
+                        [3, 3, 3, 3, 3, 3],
+                        k=1,
+                    )[
+                        0
+                    ]  # Same distribution as GHG
+                    global_parameters[constants.TOXIC_GASES] = random.choices(
+                        [
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.01)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.005)),
+                            random.randrange(0, ceil(ideal_atmosphere_size * 0.001)),
+                            0,
+                            0,
+                        ],
+                        [3, 3, 3, 3, 3],
+                        k=1,
+                    )[
+                        0
+                    ]  # Same distribution as oxygen
+                elif atmosphere_type == "none":
+                    global_parameters[constants.GHG] = 0
+                    global_parameters[constants.OXYGEN] = 0
+                    global_parameters[constants.INERT_GASES] = 0
+                    global_parameters[constants.TOXIC_GASES] = 0
+
+                radiation_effect = (
+                    global_parameters[constants.RADIATION]
+                    - global_parameters[constants.MAGNETIC_FIELD]
+                )
+                if radiation_effect >= 3:
+                    global_parameters[constants.INERT_GASES] = 0
+                    global_parameters[constants.OXYGEN] = 0
+                    global_parameters[constants.TOXIC_GASES] /= 2
+                    global_parameters[constants.GHG] /= 2
+                elif radiation_effect >= 1:
+                    global_parameters[constants.INERT_GASES] /= 2
+                    global_parameters[constants.OXYGEN] /= 2
+
+                for component in constants.ATMOSPHERE_COMPONENTS:
+                    if random.randrange(1, 7) >= 5:
+                        global_parameters[component] = 0
+                    global_parameters[component] += random.uniform(-10.0, 10.0)
+                    global_parameters[component] = max(
+                        0, round(global_parameters[component], 1)
+                    )
+
+                return_dict["global_parameters"] = global_parameters
+        elif world_type == "earth_abstract_world":
+            return_dict["init_type"] = constants.ABSTRACT_WORLD
+            return_dict["abstract_world_type"] = constants.EARTH
+            return_dict["name"] = "Earth"
+            return_dict["world_dimensions"] = 1
+            return_dict["rotation_direction"] = constants.terrain_manager.get_tuning(
+                "earth_rotation_direction"
+            )
+            return_dict["rotation_speed"] = constants.terrain_manager.get_tuning(
+                "earth_rotation_speed"
+            )
+            return_dict["global_parameters"] = {
+                constants.GRAVITY: constants.terrain_manager.get_tuning(
+                    "earth_gravity"
+                ),
+                constants.RADIATION: constants.terrain_manager.get_tuning(
+                    "earth_radiation"
+                ),
+                constants.MAGNETIC_FIELD: constants.terrain_manager.get_tuning(
+                    "earth_magnetic_field"
+                ),
+                constants.INERT_GASES: round(
+                    constants.terrain_manager.get_tuning("earth_inert_gases")
+                    * constants.earth_dimensions**2,
+                    1,
+                ),
+                constants.OXYGEN: round(
+                    constants.terrain_manager.get_tuning("earth_oxygen")
+                    * constants.earth_dimensions**2,
+                    1,
+                ),
+                constants.GHG: round(
+                    constants.terrain_manager.get_tuning("earth_GHG")
+                    * constants.earth_dimensions**2,
+                    1,
+                ),
+                constants.TOXIC_GASES: round(
+                    constants.terrain_manager.get_tuning("earth_toxic_gases")
+                    * constants.earth_dimensions**2,
+                    1,
+                ),
+            }
+            return_dict["average_water"] = constants.terrain_manager.get_tuning(
+                "earth_average_water_target"
+            )
+            return_dict["size"] = constants.earth_dimensions**2
+            return_dict["sky_color"] = constants.terrain_manager.get_tuning(
+                "earth_sky_color"
+            )
+            return_dict["star_distance"] = constants.terrain_manager.get_tuning(
+                "earth_star_distance"
+            )
+            return_dict["albedo_multiplier"] = constants.terrain_manager.get_tuning(
+                "earth_albedo_multiplier"
+            )
+            return_dict["cloud_frequency"] = constants.terrain_manager.get_tuning(
+                "earth_cloud_frequency"
+            )
+        return return_dict
+
+    def create_grids(self):
+        status.scrolling_strategic_map_grid = (
+            constants.actor_creation_manager.create_interface_element(
+                input_dict={
+                    "init_type": constants.MINI_GRID,
+                    "world_handler": status.current_world,
+                    "coordinates": scaling.scale_coordinates(
+                        constants.strategic_map_x_offset,
+                        constants.strategic_map_y_offset,
+                    ),
+                    "width": scaling.scale_width(constants.strategic_map_pixel_width),
+                    "height": scaling.scale_height(
+                        constants.strategic_map_pixel_height
+                    ),
+                    "modes": [constants.STRATEGIC_MODE],
+                    "coordinate_size": status.current_world.world_dimensions,
+                    "grid_line_width": 2,
+                }
+            )
+        )
+
+        status.minimap_grid = constants.strategic_map_grid = (
+            constants.actor_creation_manager.create_interface_element(
+                input_dict={
+                    "init_type": constants.MINI_GRID,
+                    "world_handler": status.current_world,
+                    "coordinates": scaling.scale_coordinates(
+                        constants.minimap_grid_x_offset,
+                        -1 * (constants.minimap_grid_pixel_height + 25)
+                        + constants.minimap_grid_y_offset,
+                    ),
+                    "width": scaling.scale_width(constants.minimap_grid_pixel_width),
+                    "height": scaling.scale_height(constants.minimap_grid_pixel_height),
+                    "modes": [constants.STRATEGIC_MODE],
+                    "coordinate_size": constants.minimap_grid_coordinate_size,
+                    "external_line_color": constants.COLOR_BRIGHT_RED,
+                }
+            )
+        )
+        status.minimap_grid.calibrate(
+            round(0.75 * status.current_world.world_dimensions),
+            round(0.75 * status.current_world.world_dimensions),
+        )
+
+        status.globe_projection_grid = (
+            constants.actor_creation_manager.create_interface_element(
+                input_dict={
+                    "init_type": constants.ABSTRACT_GRID,
+                    "world_handler": status.current_world,
+                    "coordinates": scaling.scale_coordinates(
+                        constants.globe_projection_grid_x_offset,
+                        constants.globe_projection_grid_y_offset,
+                    ),
+                    "width": scaling.scale_width(constants.globe_projection_grid_width),
+                    "height": scaling.scale_height(
+                        constants.globe_projection_grid_height
+                    ),
+                    "modes": [constants.STRATEGIC_MODE],
+                }
+            )
+        )
+
+        status.earth_grid = constants.actor_creation_manager.create_interface_element(
+            input_dict={
+                "init_type": constants.ABSTRACT_GRID,
+                "world_handler": status.earth_world,
+                "coordinates": scaling.scale_coordinates(
+                    constants.earth_grid_x_offset,
+                    constants.earth_grid_y_offset,
+                ),
+                "width": scaling.scale_width(constants.earth_grid_width),
+                "height": scaling.scale_height(constants.earth_grid_height),
+                "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            }
+        )
+
     def new_game(self):
         """
         Description:
@@ -77,14 +522,28 @@ class save_load_manager_template:
         status.cached_images = {}
         flags.creating_new_game = True
         flags.victories_this_game = []
-        for grid_type in constants.grid_types_list:
-            world_grids.create_grid(from_save=False, grid_type=grid_type)
+
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
-        game_transitions.create_strategic_map(from_save=False)
-        status.minimap_grid.calibrate(
-            round(0.75 * status.strategic_map_grid.coordinate_width),
-            round(0.75 * status.strategic_map_grid.coordinate_height),
+
+        status.current_world = constants.actor_creation_manager.create(
+            from_save=False,
+            input_dict=self.generate_world_input_dict("full_world"),
         )
+        status.earth_world = constants.actor_creation_manager.create(
+            from_save=False,
+            input_dict=self.generate_world_input_dict("earth_abstract_world"),
+        )
+
+        self.create_grids()
+
+        # for grid_type in constants.grid_types_list:
+        #    world_grids.create_grid(from_save=False, grid_type=grid_type)
+
+        # game_transitions.create_strategic_map(from_save=False)
+        # status.minimap_grid.calibrate(
+        #    round(0.75 * status.strategic_map_grid.coordinate_width),
+        #    round(0.75 * status.strategic_map_grid.coordinate_height),
+        # )
         for current_item in status.item_types.values():
             if current_item.key == constants.CONSUMER_GOODS_ITEM:
                 market_utility.set_price(
@@ -167,10 +626,8 @@ class save_load_manager_template:
         for current_element in self.copied_flags:
             saved_flags[current_element] = getattr(flags, current_element)
 
-        saved_grid_dicts = []
-        for current_grid in status.grid_list:
-            if not current_grid.is_mini_grid:  # minimap grid doesn't need to be saved
-                saved_grid_dicts.append(current_grid.to_save_dict())
+        saved_full_world = status.current_world.to_save_dict()
+        saved_earth_abstract_world = status.earth_world.to_save_dict()
 
         saved_unit_types = [
             unit_type.to_save_dict()
@@ -215,7 +672,8 @@ class save_load_manager_template:
             pickle.dump(saved_constants, handle)
             pickle.dump(saved_statuses, handle)
             pickle.dump(saved_flags, handle)
-            pickle.dump(saved_grid_dicts, handle)
+            pickle.dump(saved_full_world, handle)
+            pickle.dump(saved_earth_abstract_world, handle)
             pickle.dump(saved_unit_types, handle)
             pickle.dump(saved_actor_dicts, handle)
             pickle.dump(saved_minister_dicts, handle)
@@ -247,14 +705,15 @@ class save_load_manager_template:
                 saved_constants = pickle.load(handle)
                 saved_statuses = pickle.load(handle)
                 saved_flags = pickle.load(handle)
-                saved_grid_dicts = pickle.load(handle)
+                saved_full_world = pickle.load(handle)
+                saved_earth_abstract_world = pickle.load(handle)
                 saved_worker_types = pickle.load(handle)
                 saved_actor_dicts = pickle.load(handle)
                 saved_minister_dicts = pickle.load(handle)
                 saved_item_types = pickle.load(handle)
                 handle.close()
         except:
-            text_utility.print_to_screen("There is no " + file_path + " save file yet.")
+            text_utility.print_to_screen(f"There is no {file_path} save file yet.")
             return ()
 
         # Load variables
@@ -274,17 +733,15 @@ class save_load_manager_template:
         text_utility.print_to_screen("")
         text_utility.print_to_screen("Turn " + str(constants.turn))
 
-        # Load grids
-        for current_grid_dict in saved_grid_dicts:
-            world_grids.create_grid(
-                from_save=True,
-                grid_type=current_grid_dict["grid_type"],
-                input_dict=current_grid_dict,
-            )
-        world_grids.create_grid(
-            from_save=False, grid_type=constants.SCROLLING_STRATEGIC_MAP_GRID_TYPE
+        # Load worlds
+        status.current_world = constants.actor_creation_manager.create(
+            True, saved_full_world
         )
-        world_grids.create_grid(from_save=False, grid_type=constants.MINIMAP_GRID_TYPE)
+        status.earth_world = constants.actor_creation_manager.create(
+            True, saved_earth_abstract_world
+        )
+
+        self.create_grids()
 
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
         game_transitions.create_strategic_map(from_save=True)

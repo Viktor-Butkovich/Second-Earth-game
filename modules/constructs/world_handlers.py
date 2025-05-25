@@ -1,9 +1,8 @@
 import random
 import itertools
-from math import ceil, log
+from math import log
 from typing import List, Dict, Tuple, Any
 from modules.util import utility, actor_utility
-from modules.constructs import images
 from modules.constants import constants, status, flags
 
 
@@ -12,126 +11,16 @@ class world_handler:
     "Single source of truth" handler for planet-wide characteristics
     """
 
-    def __init__(
-        self, attached_grid, from_save: bool, input_dict: Dict[str, any]
-    ) -> None:
+    def __init__(self, from_save: bool, input_dict: Dict[str, any]) -> None:
         """
         Description:
             Initializes this object
         Input:
-            cell attached_grid: Default grid to attach this handler to
+            bool from_save: True if loading world, False if creating new one
             dictionary input_dict: Dictionary of saved information necessary to recreate this location if loading grid, or None if creating new location
         """
-        self.default_grid = attached_grid
-        self.earth_size = constants.map_size_options[4] ** 2
-        self.ideal_atmosphere_size = (
-            self.default_grid.area * 6
-        )  # Atmosphere units required for 1 atm pressure (like Earth)
-        if not from_save:
-            if input_dict["grid_type"] == constants.STRATEGIC_MAP_GRID_TYPE:
-                input_dict["green_screen"] = self.generate_green_screen()
-
-                preset = None
-                if constants.effect_manager.effect_active("earth_preset"):
-                    preset = "earth"
-                elif constants.effect_manager.effect_active("mars_preset"):
-                    preset = "mars"
-                elif constants.effect_manager.effect_active("venus_preset"):
-                    preset = "venus"
-
-                if preset:
-                    input_dict["name"] = preset.capitalize()
-                    input_dict["rotation_direction"] = self.get_tuning(
-                        f"{preset}_rotation_direction"
-                    )
-                    input_dict["rotation_speed"] = self.get_tuning(
-                        f"{preset}_rotation_speed"
-                    )
-                    input_dict["global_parameters"] = {
-                        constants.GRAVITY: self.get_tuning(f"{preset}_gravity"),
-                        constants.RADIATION: self.get_tuning(f"{preset}_radiation"),
-                        constants.MAGNETIC_FIELD: self.get_tuning(
-                            f"{preset}_magnetic_field"
-                        ),
-                        constants.INERT_GASES: round(
-                            self.get_tuning(f"{preset}_inert_gases")
-                            * self.get_tuning(f"{preset}_pressure")
-                            * self.ideal_atmosphere_size,
-                            1,
-                        ),
-                        constants.OXYGEN: round(
-                            self.get_tuning(f"{preset}_oxygen")
-                            * self.get_tuning(f"{preset}_pressure")
-                            * self.ideal_atmosphere_size,
-                            1,
-                        ),
-                        constants.GHG: round(
-                            self.get_tuning(f"{preset}_GHG")
-                            * self.get_tuning(f"{preset}_pressure")
-                            * self.ideal_atmosphere_size,
-                            1,
-                        ),
-                        constants.TOXIC_GASES: round(
-                            self.get_tuning(f"{preset}_toxic_gases")
-                            * self.get_tuning(f"{preset}_pressure")
-                            * self.ideal_atmosphere_size,
-                            1,
-                        ),
-                    }
-                    input_dict["star_distance"] = self.get_tuning(
-                        f"{preset}_star_distance"
-                    )
-                    input_dict["average_water_target"] = self.get_tuning(
-                        f"{preset}_average_water_target"
-                    )
-                    input_dict["sky_color"] = self.get_tuning(f"{preset}_sky_color")
-
-                else:  # If no preset, create a random planet
-                    input_dict.update(self.generate_global_parameters())
-            elif (
-                input_dict["grid_type"] == constants.EARTH_GRID_TYPE
-            ):  # Replace with a series of grid_type constants
-                input_dict["name"] = "Earth"
-                input_dict["rotation_direction"] = self.get_tuning(
-                    "earth_rotation_direction"
-                )
-                input_dict["rotation_speed"] = self.get_tuning("earth_rotation_speed")
-                input_dict["global_parameters"] = {
-                    constants.GRAVITY: self.get_tuning("earth_gravity"),
-                    constants.RADIATION: self.get_tuning("earth_radiation"),
-                    constants.MAGNETIC_FIELD: self.get_tuning("earth_magnetic_field"),
-                    constants.INERT_GASES: round(
-                        self.get_tuning("earth_inert_gases") * (self.earth_size * 6), 1
-                    ),
-                    constants.OXYGEN: round(
-                        self.get_tuning("earth_oxygen") * (self.earth_size * 6), 1
-                    ),
-                    constants.GHG: round(
-                        self.get_tuning("earth_GHG") * (self.earth_size * 6), 1
-                    ),
-                    constants.TOXIC_GASES: round(
-                        self.get_tuning("earth_toxic_gases") * (self.earth_size * 6), 1
-                    ),
-                }
-                input_dict["average_water"] = self.get_tuning(
-                    "earth_average_water_target"
-                )
-                input_dict["size"] = self.earth_size
-                input_dict["sky_color"] = self.get_tuning("earth_sky_color")
-                input_dict["star_distance"] = self.get_tuning("earth_star_distance")
-                input_dict["albedo_multiplier"] = self.get_tuning(
-                    "earth_albedo_multiplier"
-                )
-                input_dict["cloud_frequency"] = self.get_tuning("earth_cloud_frequency")
-            input_dict["default_sky_color"] = input_dict["sky_color"].copy()
-
-        self.location_list: list = [
-            [current_cell.location for current_cell in current_row]
-            for current_row in self.default_grid.cell_list
-        ]
-        self.coordinate_height = len(self.location_list)
-        self.coordinate_width = len(self.location_list[0])
-        self.name = input_dict["name"]
+        self.world_dimensions: int = input_dict["world_dimensions"]
+        self.name: str = input_dict["name"]
         self.rotation_direction = input_dict["rotation_direction"]
         self.rotation_speed = input_dict["rotation_speed"]
         self.green_screen: Dict[str, Dict[str, any]] = input_dict.get(
@@ -155,9 +44,10 @@ class world_handler:
         self.toxic_cloud_frequency: float = input_dict.get("toxic_cloud_frequency", 0.0)
         self.atmosphere_haze_alpha: int = input_dict.get("atmosphere_haze_alpha", 0)
 
-        self.size: int = input_dict.get("size", self.default_grid.area)
         self.sky_color = input_dict["sky_color"]
-        self.default_sky_color = input_dict["default_sky_color"]
+        self.default_sky_color = input_dict.get(
+            "default_sky_color", self.sky_color.copy()
+        )  # Never-modified copy of original sky color
         self.steam_color = input_dict.get("steam_color", [0, 0, 0])
         self.global_parameters: Dict[str, int] = {}
         self.initial_atmosphere_offset = input_dict.get(
@@ -165,14 +55,972 @@ class world_handler:
         )
         for key in constants.global_parameters:
             self.set_parameter(key, input_dict.get("global_parameters", {}).get(key, 0))
-        self.latitude_lines_setup()
+
+        self.location_list: list = []
+        if from_save:
+            self.location_list = [
+                [
+                    constants.actor_creation_manager.create(
+                        from_save=True,
+                        input_dict={**current_location, "world_handler": self},
+                    )
+                    for current_location in row
+                ]
+                for row in input_dict["location_list"]
+            ]
+        else:
+            self.location_list = [
+                [
+                    constants.actor_creation_manager.create(
+                        from_save=False,
+                        input_dict={
+                            "init_type": constants.LOCATION,
+                            "world_handler": self,
+                            "x": x,
+                            "y": y,
+                        },
+                    )
+                    for y in range(self.world_dimensions)
+                ]
+                for x in range(self.world_dimensions)
+            ]
+
         for current_location in self.get_flat_location_list():
             current_location.find_adjacent_locations()
+
+        self.latitude_lines_setup()
+
         self.average_temperature: float = input_dict.get("average_temperature", 0.0)
         if not from_save:
             self.update_target_average_temperature(
                 estimate_water_vapor=True, update_albedo=False
             )
+
+            if self.world_dimensions > 1:  # If full world
+                self.generate_poles_and_equator()
+                self.update_clouds(estimated_temperature=True)
+                self.generate_terrain_parameters()
+                self.generate_terrain_features()
+                self.update_sky_color(set_initial_offset=True, update_water=True)
+                self.update_clouds()
+                for i in range(5):  # Simulate time passing until equilibrium is reached
+                    self.update_target_average_temperature(update_albedo=True)
+                    self.change_to_temperature_target()
+
+    def is_earth(self) -> bool:
+        return False
+
+    def is_abstract_world(self) -> bool:
+        return False
+
+    def generate_altitude(self) -> None:
+        """
+        Description:
+            Randomly generates altitude
+        Input:
+            None
+        Output:
+            None
+        """
+        if constants.effect_manager.effect_active("map_customization"):
+            default_altitude = 2
+        else:
+            default_altitude = 0
+        for location in self.get_flat_location_list():
+            location.set_parameter(constants.ALTITUDE, default_altitude)
+
+        if constants.effect_manager.effect_active("map_customization"):
+            return
+
+        for i in range(constants.terrain_manager.get_tuning("altitude_worms")):
+            min_length = (
+                random.randrange(
+                    self.get_tuning("min_altitude_worm_multiplier"),
+                    self.get_tuning("med_altitude_worm_multiplier"),
+                )
+                * (self.world_dimensions**2)
+            ) // 25**2
+            max_length = (
+                random.randrange(
+                    self.get_tuning("med_altitude_worm_multiplier"),
+                    self.get_tuning("max_altitude_worm_multiplier"),
+                )
+                * (self.world_dimensions**2)
+            ) // 25**2
+            self.make_random_terrain_parameter_worm(
+                min_length,
+                max_length,
+                constants.ALTITUDE,
+                random.choice(self.get_tuning("altitude_changes")),
+                bound=random.choice(self.get_tuning("altitude_bounds")),
+            )
+        if self.get_tuning("smooth_altitude"):
+            while self.smooth(
+                constants.ALTITUDE
+            ):  # Continue running smooth until it doesn't make any more changes
+                pass
+
+    def generate_temperature(self) -> None:
+        """
+        Description:
+            Randomly generates temperature
+        Input:
+            None
+        Output:
+            Nones
+        """
+        self.update_target_average_temperature(
+            estimate_water_vapor=True, update_albedo=True
+        )
+        default_temperature = round(self.average_temperature)
+        for location in self.get_flat_location_list():
+            location.set_parameter(
+                constants.TEMPERATURE,
+                random.randrange(
+                    default_temperature
+                    - self.get_tuning("initial_temperature_variation"),
+                    default_temperature
+                    + self.get_tuning("initial_temperature_variation")
+                    + 1,
+                ),
+            )
+        if self.get_tuning("smooth_temperature"):
+            while self.smooth(
+                constants.TEMPERATURE
+            ):  # Random but smooth initialization to represent weather patterns
+                pass
+
+        temperature_sources = [
+            status.north_pole,
+            status.south_pole,
+        ] + status.equator_list
+        random.shuffle(
+            temperature_sources
+        )  # Avoids edge-case bias from poles or equator consistently being chosen first
+        for temperature_source in temperature_sources:
+            if temperature_source in [status.north_pole, status.south_pole]:
+                temperature_source.set_parameter(
+                    constants.TEMPERATURE, default_temperature
+                )
+                if temperature_source == status.north_pole:
+                    weight_parameter = "north_pole_distance_multiplier"
+                else:
+                    weight_parameter = "south_pole_distance_multiplier"
+                min_length = (
+                    random.randrange(
+                        self.get_tuning("min_pole_worm_multiplier"),
+                        self.get_tuning("med_pole_worm_multiplier"),
+                    )
+                    * (self.world_dimensions**2)
+                ) // 25**2
+                max_length = (
+                    random.randrange(
+                        self.get_tuning("med_pole_worm_multiplier"),
+                        self.get_tuning("max_pole_worm_multiplier"),
+                    )
+                    * (self.world_dimensions**2)
+                ) // 25**2
+
+                for pole_worm_length_multiplier in self.get_tuning(
+                    "pole_worm_length_multipliers"
+                ):
+                    self.make_random_terrain_parameter_worm(
+                        round(min_length * pole_worm_length_multiplier),
+                        round(max_length * pole_worm_length_multiplier),
+                        constants.TEMPERATURE,
+                        -1,
+                        bound=1,
+                        start_location=temperature_source,
+                        weight_parameter=weight_parameter,
+                    )
+
+            elif not (
+                temperature_source.x in [1, self.world_dimensions - 1]
+                or temperature_source.y in [0, self.world_dimensions - 1]
+            ):  # Avoids excessive heat at equator intersections
+                min_length = (
+                    random.randrange(
+                        self.get_tuning("min_equator_worm_multiplier"),
+                        self.get_tuning("med_equator_worm_multiplier"),
+                    )
+                    * (self.world_dimensions**2)
+                ) // 40**2
+                max_length = (
+                    random.randrange(
+                        self.get_tuning("med_equator_worm_multiplier"),
+                        self.get_tuning("max_equator_worm_multiplier"),
+                    )
+                    * (self.world_dimensions**2)
+                ) // 40**2
+                self.make_random_terrain_parameter_worm(
+                    min_length,
+                    max_length,
+                    constants.TEMPERATURE,
+                    random.choice([1]),
+                    bound=1,
+                    start_location=temperature_source,
+                    weight_parameter="pole_distance_multiplier",
+                )
+
+        self.update_target_average_temperature(
+            estimate_water_vapor=True, update_albedo=True
+        )
+        self.change_to_temperature_target(estimate_water_vapor=True)
+
+    def generate_roughness(self) -> None:
+        """
+        Description:
+            Randomly generates roughness
+        Input:
+            None
+        Output:
+            None
+        """
+        if constants.effect_manager.effect_active("map_customization"):
+            return
+        if constants.effect_manager.effect_active("earth_preset"):
+            num_worms = self.get_tuning("earth_roughness_multiplier")
+        elif constants.effect_manager.effect_active("mars_preset"):
+            num_worms = self.get_tuning("mars_roughness_multiplier")
+        elif constants.effect_manager.effect_active("venus_preset"):
+            num_worms = self.get_tuning("venus_roughness_multiplier")
+        else:
+            num_worms = random.randrange(
+                self.get_tuning("min_roughness_multiplier"),
+                self.get_tuning("max_roughness_multiplier") + 1,
+            )
+
+        for i in range(num_worms):
+            min_length = (
+                random.randrange(
+                    self.get_tuning("min_roughness_worm_multiplier"),
+                    self.get_tuning("med_roughness_worm_multiplier"),
+                )
+                * (self.world_dimensions**2)
+            ) // 25**2
+            max_length = (
+                random.randrange(
+                    self.get_tuning("med_roughness_worm_multiplier"),
+                    self.get_tuning("max_roughness_worm_multiplier"),
+                )
+                * (self.world_dimensions**2)
+            ) // 25**2
+            self.make_random_terrain_parameter_worm(
+                min_length,
+                max_length,
+                constants.ROUGHNESS,
+                1,
+                bound=self.get_tuning("roughness_worm_bound"),
+            )
+
+    def generate_water(self) -> None:
+        """
+        Description:
+            Randomly generates water, placing enough water to reach the generated target average
+                Total water may be less than target average if repeatedly attempting to place in full tiles, or if radiation removes some of the placed water
+        Input:
+            None
+        Output:
+            None
+        """
+        for _ in range(round(self.average_water_target * (self.world_dimensions**2))):
+            self.place_water(radiation_effect=True)
+        if constants.effect_manager.effect_active("map_customization"):
+            attempts = 0
+            while attempts < 10000 and not self.find_average(constants.WATER) == 5.0:
+                self.place_water(radiation_effect=True)
+                attempts += 1
+        self.update_target_average_temperature(update_albedo=True)
+        self.change_to_temperature_target()
+        for location in self.get_flat_location_list():
+            location.local_weather_offset = (
+                location.expected_temperature_offset + random.uniform(-0.4, 0.4)
+            )
+
+    def place_water(
+        self,
+        frozen_bound=0,
+        radiation_effect: bool = False,
+        update_display: bool = False,
+        repeat_on_fail: bool = False,
+    ) -> None:
+        """
+        Description:
+            Places 1 unit of water on the map, depending on altitude and temperature
+        Input:
+            int frozen_bound: Temperature below which water will "freeze"
+        Output:
+            None
+        """
+        best_frozen = None
+        best_liquid = None
+        best_gas = None
+        for candidate in self.sample(
+            k=round(
+                self.get_tuning("water_placement_candidates")
+                * (self.world_dimensions**2)
+                / (20**2)
+            )
+        ):
+            if (
+                candidate.get_parameter(constants.WATER) < 5
+                and candidate.get_parameter(constants.TEMPERATURE) > frozen_bound - 1
+            ):
+                if candidate.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
+                    "water_boiling_point"
+                ):
+                    best_gas = candidate
+                else:
+                    if best_liquid == None or candidate.get_parameter(
+                        constants.ALTITUDE
+                    ) < best_liquid.get_parameter(constants.ALTITUDE):
+                        best_liquid = candidate
+        for candidate in self.sample(
+            k=round(
+                self.get_tuning("ice_placement_candidates")
+                * (self.world_dimensions**2)
+                / (20**2)
+            )
+        ):
+            if candidate.get_parameter(constants.WATER) < 5:
+                if (
+                    candidate.get_parameter(constants.TEMPERATURE) <= frozen_bound - 1
+                ):  # Water can go to coldest freezing location
+                    if best_frozen == None or candidate.get_parameter(
+                        constants.TEMPERATURE
+                    ) < best_frozen.get_parameter(constants.TEMPERATURE):
+                        best_frozen = candidate
+        if best_frozen == None and best_liquid == None and best_gas == None:
+            return
+        choice = random.choices(
+            [best_frozen, best_liquid, best_gas],
+            weights=[
+                (
+                    abs((1 - best_frozen.get_parameter(constants.TEMPERATURE)))
+                    if best_frozen
+                    else 0
+                ),  # Weight frozen placement for low temperature
+                (
+                    abs(16 - best_liquid.get_parameter(constants.ALTITUDE))
+                    if best_liquid
+                    else 0
+                ),  # Weight liquid placement for low altitude
+                13.5 if best_gas else 0,
+            ],
+            k=1,
+        )[0]
+        if radiation_effect:
+            radiation_effect = max(
+                0,
+                self.get_parameter(constants.RADIATION)
+                - self.get_parameter(constants.MAGNETIC_FIELD),
+            )
+        else:
+            radiation_effect = 0
+        change = 1
+        if not (
+            self.get_pressure_ratio() < 0.05
+            and choice.get_parameter(constants.TEMPERATURE)
+            >= self.get_tuning("water_freezing_point")
+        ):
+            # If insufficient pressure, any evaporated water disappears
+            if choice.get_parameter(constants.TEMPERATURE) <= frozen_bound - 1:
+                # If during setup
+                if choice.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
+                    "water_freezing_point"
+                ):  # Lose most water if sometimes above freezing
+                    if radiation_effect >= 3:
+                        if random.randrange(1, 13) >= 2:
+                            # choice.change_parameter(constants.WATER, -1)
+                            change = 0
+                    elif radiation_effect >= 1:
+                        if random.randrange(1, 13) >= 4:
+                            # choice.change_parameter(constants.WATER, -1)
+                            change = 0
+                # If far below freezing, retain water regardless of radiation
+                if change != 0:
+                    choice.change_parameter(
+                        constants.WATER, change, update_display=update_display
+                    )
+            else:
+                # If during setup
+                if (
+                    radiation_effect >= 3
+                ):  # Lose almost all water if consistently above freezing
+                    if random.randrange(1, 13) >= 2:
+                        change = 0
+                elif (
+                    radiation_effect >= 1
+                ):  # Lose most water if consistently above freezing
+                    if random.randrange(1, 13) >= 4:
+                        change = 0
+                if change != 0:
+                    choice.change_parameter(
+                        constants.WATER, change, update_display=update_display
+                    )
+                    choice.flow()
+        if change == 0 and repeat_on_fail:
+            self.place_water(
+                radiation_effect=radiation_effect,
+                update_display=update_display,
+                repeat_on_fail=repeat_on_fail,
+            )
+
+    def remove_water(self, update_display: bool = False) -> None:
+        """
+        Description:
+            Removes 1 unit of water from the map, depending on altitude and temperature
+        Input:
+            None
+        Output:
+            None
+        """
+        water_cells = [
+            cell
+            for cell in self.get_flat_cell_list()
+            if cell.get_parameter(constants.WATER) > 0
+        ]
+        if water_cells:
+            random.choices(
+                water_cells,
+                weights=[cell.get_parameter(constants.WATER) for cell in water_cells],
+                k=1,
+            )[0].change_parameter(constants.WATER, -1, update_display=update_display)
+
+    def generate_soil(self) -> None:
+        """
+        Description:
+            Randomly generates soil
+        Input:
+            None
+        Output:
+            None
+        """
+        if constants.effect_manager.effect_active("map_customization"):
+            return
+        if constants.effect_manager.effect_active("earth_preset"):
+            for location in self.get_flat_location_list():
+                location.set_parameter(constants.SOIL, random.randrange(0, 6))
+        else:
+            for location in self.get_flat_location_list():
+                location.set_parameter(constants.SOIL, random.randrange(0, 3))
+
+        num_worms = random.randrange(
+            self.get_tuning("min_soil_multiplier"),
+            self.get_tuning("max_soil_multiplier") + 1,
+        )
+        for i in range(num_worms):
+            min_length = (
+                random.randrange(
+                    self.get_tuning("min_soil_worm_multiplier"),
+                    self.get_tuning("med_soil_worm_multiplier"),
+                )
+                * (self.world_dimensions**2)
+            ) // 25**2
+            max_length = (
+                random.randrange(
+                    self.get_tuning("med_soil_worm_multiplier"),
+                    self.get_tuning("max_soil_worm_multiplier"),
+                )
+                * (self.world_dimensions**2)
+            ) // 25**2
+            self.make_random_terrain_parameter_worm(
+                min_length,
+                max_length,
+                constants.SOIL,
+                random.choice([-1, 1]),
+                bound=1,
+            )
+
+        self.bound(
+            constants.SOIL,
+            0,
+            2,
+        )
+
+    def generate_vegetation(self) -> None:
+        """
+        Description:
+            Randomly generates vegetation
+        Input:
+            None
+        Output:
+            None
+        """
+        if constants.effect_manager.effect_active("map_customization"):
+            return
+        if constants.effect_manager.effect_active("earth_preset"):
+            for current_location in self.get_flat_location_list():
+                if current_location.get_parameter(constants.TEMPERATURE) > 0:
+                    if current_location.get_parameter(constants.WATER) < 4:
+                        current_location.set_parameter(
+                            constants.VEGETATION,
+                            current_location.get_parameter(constants.WATER) * 3 + 2,
+                        )
+                    else:
+                        current_location.set_parameter(
+                            constants.VEGETATION,
+                            current_location.get_parameter(constants.ALTITUDE) + 2,
+                        )
+            self.smooth(constants.VEGETATION)
+        else:
+            for current_location in self.get_flat_location_list():
+                current_location.set_parameter(constants.VEGETATION, 0)
+
+    def generate_terrain_parameters(self):
+        """
+        Description:
+            Randomly sets terrain parameters for each cell
+        Input:
+            None
+        Output:
+            None
+        """
+        self.generate_altitude()
+        self.generate_roughness()
+        self.generate_temperature()
+        self.generate_water()
+        self.generate_soil()
+        self.generate_vegetation()
+
+    def bound(self, parameter: str, minimum: int, maximum: int):
+        """
+        Description:
+            Bounds the inputted parameter to the inputted minimum and maximum values
+        Input:
+            string parameter: Parameter to bound
+            int minimum: Minimum value to bound the parameter to
+            int maximum: Maximum value to bound the parameter to
+        Output:
+            None
+        """
+        for current_location in self.get_flat_location_list():
+            current_location.set_parameter(
+                parameter,
+                max(
+                    min(current_location.get_parameter(parameter), maximum),
+                    minimum,
+                ),
+            )
+
+    def smooth(self, parameter: str, direction: str = None) -> bool:
+        """
+        Description:
+            Smooths the inputted parameter across the grid - if it is more than 1 away from any neighbors, change to be closer to neighbors
+        Input:
+            string parameter: Parameter to smooth
+            string direction: Up, down, or None - indicates direction of smoothing
+        Output:
+            bool: Returns True if any locations were smoothed (indicates that smoothing should continue), otherwise False
+        """
+        flat_location_list = list(self.get_flat_location_list())
+        random.shuffle(flat_location_list)
+        smoothed = False
+        for current_location in flat_location_list:
+            for adjacent_location in current_location.adjacent_list:
+                if (
+                    abs(
+                        adjacent_location.get_parameter(parameter)
+                        - current_location.get_parameter(parameter)
+                    )
+                    >= 2
+                ):
+                    if current_location.get_parameter(
+                        parameter
+                    ) > adjacent_location.get_parameter(parameter):
+                        if direction != "up":
+                            current_location.change_parameter(
+                                parameter, -1, update_display=False
+                            )
+                    else:
+                        if direction != "down":
+                            current_location.change_parameter(
+                                parameter, 1, update_display=False
+                            )
+                    smoothed = True
+        return smoothed
+
+    def find_average(self, parameter):
+        """
+        Description:
+            Calculates and returns the average value of the inputted parameter for all cells in the grid
+        Input:
+            string parameter: Parameter to average
+        Output:
+            float: Returns the average value of the parameter
+        """
+        return sum(
+            [cell.get_parameter(parameter) for cell in self.get_flat_cell_list()]
+        ) / (self.world_dimensions**2)
+
+    def warm(self) -> None:
+        """
+        Description:
+            Warms the grid, increasing temperature
+                Selects the cell with the furthest temperature below its expected temperature
+        Input:
+            None
+        Output:
+            None
+        """
+        self.place_temperature(change=1, bound=11, choice_function=min)
+
+    def cool(self) -> None:
+        """
+        Description:
+            Cools the grid, decreasing temperature
+                Selects the cell with the furthest temperature above its expected temperature
+        Input:
+            None
+        Output:
+            None
+        """
+        self.place_temperature(change=-1, bound=-6, choice_function=max)
+
+    def place_temperature(
+        self, change: int, bound: int, choice_function: callable
+    ) -> None:
+        """
+        Description:
+            Changes the temperature of the grid by the inputted amount, selecting the cell that most differs from its expected temperature
+        Input:
+            int change: Amount to change the temperature by
+            int bound: Maximum temperature value in the direction being changed
+            callable choice_function: Function to determine which offset to choose - min or max
+        Output:
+            None
+        """
+        offsets = [
+            (
+                location,
+                location.expected_temperature_offset + location.local_weather_offset,
+            )
+            for location in self.get_flat_location_list()
+            if not location.get_parameter(constants.TEMPERATURE) == bound
+        ]
+        if offsets:
+            outlier = choice_function(offsets, key=lambda x: x[1])[
+                0
+            ]  # Choose baesd on min or max expected temperature offset
+            outlier.change_parameter(
+                constants.TEMPERATURE, change, update_display=False
+            )
+
+    def make_random_terrain_parameter_worm(
+        self,
+        min_len: int,
+        max_len: int,
+        parameter: str,
+        change: int,
+        bound: int = 0,
+        set: bool = False,
+        start_location: Any = None,
+        weight_parameter: str = None,
+    ):
+        """
+        Description:
+            Chooses a random terrain from the inputted list and fills a random length chain of adjacent grid cells with the chosen terrain. Can go to the same cell multiple times
+        Input:
+            int min_len: Minimum number of cells whose parameter can be changed
+            int max_len: Maximum number of cells whose parameter can be changed, inclusive
+            str parameter: Parameter to change
+            int change: Amount to change the parameter by
+            bool capped: True if the parameter change should be limited in how far it can go from starting cell's original value, otherwise False
+            bool set: True if the parameter should be set to the change + original, False if it should be changed with each pass
+            location start_location: Location to start the worm from, otherwise a random location is chosen
+            str weight_parameter: Location parameter to weight direction selection by, if any
+        Output:
+            None
+        """
+        if start_location:
+            start_x, start_y = start_location.x, start_location.y
+        else:
+            start_x = random.randrange(0, self.world_dimensions)
+            start_y = random.randrange(0, self.world_dimensions)
+
+        current_x = start_x
+        current_y = start_y
+        worm_length = random.randrange(min_len, max_len + 1)
+
+        original_value = self.find_location(current_x, current_y).get_parameter(
+            parameter
+        )
+        upper_bound = original_value + bound
+        lower_bound = original_value - bound
+
+        counter = 0
+        while counter != worm_length:
+            current_location = self.find_location(current_x, current_y)
+            if set:
+                resulting_value = original_value + change
+            else:
+                resulting_value = current_location.get_parameter(parameter) + change
+
+            if bound == 0 or (
+                resulting_value <= upper_bound and resulting_value >= lower_bound
+            ):
+                current_location.change_parameter(
+                    parameter, change, update_display=False
+                )
+            counter = counter + 1
+            if weight_parameter:
+                selected_location = self.parameter_weighted_sample(
+                    weight_parameter, restrict_to=current_location.adjacent_list, k=1
+                )[0]
+                current_x, current_y = selected_location.x, selected_location.y
+            else:
+                direction = random.randrange(1, 5)  # 1 north, 2 east, 3 south, 4 west
+                if direction == 3:
+                    current_y = (current_y + 1) % self.world_dimensions
+                elif direction == 2:
+                    current_x = (current_x + 1) % self.world_dimensions
+                elif direction == 1:
+                    current_y = (current_y - 1) % self.world_dimensions
+                elif direction == 4:
+                    current_x = (current_x - 1) % self.world_dimensions
+
+    def generate_terrain_features(self):
+        """
+        Description:
+            Randomly place features in each tile, based on terrain
+        Input:
+            None
+        Output:
+            None
+        """
+        for terrain_feature_type in status.terrain_feature_types:
+            for location in self.get_flat_location_list():
+                if status.terrain_feature_types[terrain_feature_type].allow_place(
+                    location
+                ):
+                    location.terrain_features[terrain_feature_type] = {
+                        "feature_type": terrain_feature_type
+                    }
+                    for cell in location.attached_cells:
+                        cell.tile.update_image_bundle()
+
+    def x_distance(self, location1, location2):
+        """
+        Description:
+            Calculates and returns the x distance between two locations
+        Input:
+            location location1: First location
+            location location2: Second location
+        Output:
+            int: Returns the x distance between the two locations
+        """
+        return min(
+            abs(location1.x - location2.x),
+            abs(location1.x - (location2.x + self.world_dimensions)),
+            abs(location1.x - (location2.x - self.world_dimensions)),
+        )
+
+    def x_distance_coords(self, x1, x2):
+        """
+        Description:
+            Calculates and returns the x distance between two x coordinates
+        Input:
+            int x1: First x coordinate
+            int x2: Second x coordinate
+        Output:
+            int: Returns the x distance between the two x coordinates
+        """
+        return min(
+            abs(x1 - x2),
+            abs(x1 - (x2 + self.world_dimensions)),
+            abs(x1 - (x2 - self.world_dimensions)),
+        )
+
+    def y_distance(self, cell1, cell2):
+        """
+        Description:
+            Calculates and returns the y distance between two cells
+        Input:
+            cell cell1: First cell
+            cell cell2: Second cell
+        Output:
+            int: Returns the y distance between the two cells
+        """
+        return min(
+            abs(cell1.y - cell2.y),
+            abs(cell1.y - (cell2.y + self.world_dimensions)),
+            abs(cell1.y - (cell2.y - self.world_dimensions)),
+        )
+
+    def y_distance_coords(self, y1, y2):
+        """
+        Description:
+            Calculates and returns the y distance between two y coordinates
+        Input:
+            int y1: First y coordinate
+            int y2: Second y coordinate
+        Output:
+            int: Returns the y distance between the two y coordinates
+        """
+        return min(
+            abs(y1 - y2),
+            abs(y1 - (y2 + self.world_dimensions)),
+            abs(y1 - (y2 - self.world_dimensions)),
+        )
+
+    def distance(self, cell1, cell2):
+        """
+        Description:
+            Calculates and returns the distance between two cells
+        Input:
+            cell cell1: First cell
+            cell cell2: Second cell
+        Output:
+            int: Returns the distance between the two cells
+        """
+        return (
+            self.x_distance(cell1, cell2) ** 2 + self.y_distance(cell1, cell2) ** 2
+        ) ** 0.5
+
+    def location_distance(self, location1, location2):
+        """
+        Description:
+            Calculates and returns the non-diagonal distance between two cells
+        Input:
+            location location1: First location
+            location location2: Second location
+        Output: int: Returns the non-diagonal distance between the two cells
+        """
+        return self.x_distance(location1, location2) + self.y_distance(
+            location1, location2
+        )
+
+    def parameter_weighted_sample(
+        self, parameter: str, restrict_to: list = None, k: int = 1
+    ) -> List:
+        """
+        Description:
+            Randomly samples k locations from the grid, with the probability of a cell being chosen being proportional to its value of the inputted parameter
+        Input:
+            string parameter: Parameter to sample by
+            location list restrict_to: List of locations to sample from, otherwise all locations are sampled
+            int k: Number of locations to sample
+        Output:
+            list: Returns a list of k locations
+        """
+        if not restrict_to:
+            location_list = list(self.get_flat_location_list())
+        else:
+            location_list = restrict_to
+
+        if parameter in constants.terrain_parameters:
+            weight_list = [
+                location.get_parameter(parameter) for location in location_list
+            ]
+        else:
+            weight_list = [getattr(location, parameter) for location in location_list]
+        return random.choices(location_list, weights=weight_list, k=k)
+
+    def sample(self, k: int = 1):
+        """
+        Description:
+            Randomly samples k cells from the grid
+        Input:
+            int k: Number of cells to sample
+        Output:
+            list: Returns a list of k cells
+        """
+        return random.choices(list(self.get_flat_cell_list()), k=k)
+
+    def generate_poles_and_equator(self):
+        """
+        Description:
+            Generates the poles and equator for the world grid
+        Input:
+            None
+        Output:
+            None
+        """
+        self.find_location(0, 0).add_terrain_feature(
+            {
+                "feature_type": "north pole",
+            }
+        )
+
+        max_distance = 0
+
+        south_pole = None
+        for location in self.get_flat_location_list():
+            if self.distance(location, status.north_pole) > max_distance:
+                max_distance = self.distance(location, status.north_pole)
+                south_pole = location
+
+        south_pole.add_terrain_feature(
+            {
+                "feature_type": "south pole",
+            }
+        )
+
+        equatorial_distance = self.distance(status.north_pole, status.south_pole) / 2
+        for (
+            location
+        ) in (
+            self.get_flat_location_list()
+        ):  # Results in clean equator lines in odd-sized planets
+            north_pole_distance = self.distance(location, status.north_pole)
+            south_pole_distance = self.distance(location, status.south_pole)
+            location.pole_distance_multiplier = max(
+                min(
+                    min(north_pole_distance, south_pole_distance) / equatorial_distance,
+                    1.0,
+                ),
+                0.1,
+            )
+            location.inverse_pole_distance_multiplier = max(
+                1 - location.pole_distance_multiplier, 0.1
+            )
+            location.north_pole_distance_multiplier = (
+                max(min(1.0 - (north_pole_distance / equatorial_distance), 1.0), 0.1)
+                ** 2
+            )
+            location.south_pole_distance_multiplier = (
+                max(min(1.0 - (south_pole_distance / equatorial_distance), 1.0), 0.1)
+                ** 2
+            )
+
+            if (
+                (south_pole_distance == north_pole_distance)
+                or (
+                    location.y > location.x
+                    and abs(south_pole_distance - north_pole_distance) <= 1
+                    and south_pole_distance < north_pole_distance
+                )
+                or (
+                    location.y < location.x
+                    and abs(south_pole_distance - north_pole_distance) <= 1
+                    and south_pole_distance > north_pole_distance
+                )
+            ):
+                location.add_terrain_feature(
+                    {
+                        "feature_type": "equator",
+                    }
+                )
+
+            if (
+                self.location_distance(status.south_pole, location)
+                == self.world_dimensions // 3
+            ):
+                location.add_terrain_feature(
+                    {
+                        "feature_type": "southern tropic",
+                    }
+                )
+
+            if (
+                self.location_distance(status.north_pole, location)
+                == self.world_dimensions // 3
+            ):
+                location.add_terrain_feature(
+                    {
+                        "feature_type": "northern tropic",
+                    }
+                )
 
     def sample(self, k: int = 1):
         """
@@ -199,258 +1047,13 @@ class world_handler:
     def find_location(self, x: int, y: int) -> Any:
         if (
             x >= 0
-            and x < self.coordinate_width
+            and x < self.world_dimensions
             and y >= 0
-            and y < self.coordinate_height
+            and y < self.world_dimensions
         ):
             return self.location_list[x][y]
         else:
             return None
-
-    def generate_global_parameters(self) -> Dict[str, int]:
-        """
-        Description:
-            Calculates and returns global parameter values for a ranodm planet
-        Input:
-            None
-        Output:
-            dictionary: Returns a dictionary of global parameter values for a random planet
-        """
-        input_dict: Dict[str, any] = {}
-
-        input_dict["name"] = constants.flavor_text_manager.generate_flavor_text(
-            "planet_names"
-        )
-
-        input_dict["star_distance"] = round(random.uniform(0.5, 2.0), 3)
-
-        input_dict["rotation_direction"] = random.choice([1, -1])
-        input_dict["rotation_speed"] = random.choice([1, 2, 2, 3, 4, 5])
-        input_dict["average_water_target"] = random.choice(
-            [
-                random.uniform(0.0, 5.0),
-                random.uniform(0.0, 1.0),
-                random.uniform(0.0, 4.0),
-            ]
-        )
-        input_dict["sky_color"] = [
-            random.randrange(0, 256) for _ in range(3)
-        ]  # Random sky color
-
-        global_parameters: Dict[str, float] = {}
-        global_parameters[constants.GRAVITY] = round(
-            (self.default_grid.area / (constants.map_size_options[4] ** 2))
-            * random.uniform(0.7, 1.3),
-            2,
-        )
-        global_parameters[constants.RADIATION] = max(
-            random.randrange(0, 5), random.randrange(0, 5)
-        )
-        global_parameters[constants.MAGNETIC_FIELD] = random.choices(
-            [0, 1, 2, 3, 4, 5], [5, 2, 2, 2, 2, 2], k=1
-        )[0]
-        atmosphere_type = random.choice(
-            ["thick", "thick", "medium", "medium", "medium", "thin"]
-        )
-        if (
-            global_parameters[constants.MAGNETIC_FIELD]
-            >= global_parameters[constants.RADIATION]
-        ):
-            if atmosphere_type in ["thin", "none"]:
-                atmosphere_type = "medium"
-        elif (
-            global_parameters[constants.MAGNETIC_FIELD]
-            >= global_parameters[constants.RADIATION] - 2
-        ):
-            if atmosphere_type == "none":
-                atmosphere_type = "thin"
-
-        if atmosphere_type == "thick":
-            global_parameters[constants.GHG] = random.choices(
-                [
-                    random.randrange(0, self.ideal_atmosphere_size * 90),
-                    random.randrange(0, self.ideal_atmosphere_size * 10),
-                    random.randrange(0, self.ideal_atmosphere_size * 5),
-                    random.randrange(0, self.ideal_atmosphere_size),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.1)),
-                    0,
-                ],
-                [2, 4, 4, 4, 6, 6],
-                k=1,
-            )[0]
-            global_parameters[constants.OXYGEN] = random.choices(
-                [
-                    random.randrange(0, self.ideal_atmosphere_size * 10),
-                    random.randrange(0, self.ideal_atmosphere_size * 5),
-                    random.randrange(0, self.ideal_atmosphere_size * 2),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.5)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
-                    0,
-                ],
-                [2, 4, 4, 4, 6, 6],
-                k=1,
-            )[0]
-            global_parameters[constants.INERT_GASES] = random.choices(
-                [
-                    random.randrange(0, self.ideal_atmosphere_size * 90),
-                    random.randrange(0, self.ideal_atmosphere_size * 10),
-                    random.randrange(0, self.ideal_atmosphere_size * 5),
-                    random.randrange(0, self.ideal_atmosphere_size),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.1)),
-                    0,
-                ],
-                [2, 4, 4, 4, 6, 6],
-                k=1,
-            )[
-                0
-            ]  # Same distribution as GHG
-            global_parameters[constants.TOXIC_GASES] = random.choices(
-                [
-                    random.randrange(0, self.ideal_atmosphere_size * 10),
-                    random.randrange(0, self.ideal_atmosphere_size * 5),
-                    random.randrange(0, self.ideal_atmosphere_size * 2),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.5)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
-                    0,
-                ],
-                [2, 4, 4, 4, 6, 6],
-                k=1,
-            )[
-                0
-            ]  # Same distribution as oxygen
-        elif atmosphere_type == "medium":
-            global_parameters[constants.GHG] = random.choices(
-                [
-                    random.randrange(0, self.ideal_atmosphere_size),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.5)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.3)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.1)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
-                    0,
-                ],
-                [3, 3, 3, 3, 3, 3],
-                k=1,
-            )[0]
-            global_parameters[constants.OXYGEN] = random.choices(
-                [
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.6)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.3)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.15)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.05)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
-                    0,
-                ],
-                [3, 3, 3, 3, 3, 3],
-                k=1,
-            )[0]
-            global_parameters[constants.INERT_GASES] = random.choices(
-                [
-                    random.randrange(0, self.ideal_atmosphere_size),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.5)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.3)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.1)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
-                    0,
-                ],
-                [3, 3, 3, 3, 3, 3],
-                k=1,
-            )[
-                0
-            ]  # Same distribution as GHG
-            global_parameters[constants.TOXIC_GASES] = random.choices(
-                [
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.6)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.3)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.15)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.05)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
-                    0,
-                ],
-                [3, 3, 3, 3, 3, 3],
-                k=1,
-            )[
-                0
-            ]  # Same distribution as oxygen
-        elif atmosphere_type == "thin":
-            global_parameters[constants.GHG] = random.choices(
-                [
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.05)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.005)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.001)),
-                    0,
-                    0,
-                ],
-                [3, 3, 3, 3, 3, 3],
-                k=1,
-            )[0]
-            global_parameters[constants.OXYGEN] = random.choices(
-                [
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.005)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.001)),
-                    0,
-                    0,
-                ],
-                [3, 3, 3, 3, 3],
-                k=1,
-            )[0]
-            global_parameters[constants.INERT_GASES] = random.choices(
-                [
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.05)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.005)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.001)),
-                    0,
-                    0,
-                ],
-                [3, 3, 3, 3, 3, 3],
-                k=1,
-            )[
-                0
-            ]  # Same distribution as GHG
-            global_parameters[constants.TOXIC_GASES] = random.choices(
-                [
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.01)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.005)),
-                    random.randrange(0, ceil(self.ideal_atmosphere_size * 0.001)),
-                    0,
-                    0,
-                ],
-                [3, 3, 3, 3, 3],
-                k=1,
-            )[
-                0
-            ]  # Same distribution as oxygen
-        elif atmosphere_type == "none":
-            global_parameters[constants.GHG] = 0
-            global_parameters[constants.OXYGEN] = 0
-            global_parameters[constants.INERT_GASES] = 0
-            global_parameters[constants.TOXIC_GASES] = 0
-
-        radiation_effect = (
-            global_parameters[constants.RADIATION]
-            - global_parameters[constants.MAGNETIC_FIELD]
-        )
-        if radiation_effect >= 3:
-            global_parameters[constants.INERT_GASES] = 0
-            global_parameters[constants.OXYGEN] = 0
-            global_parameters[constants.TOXIC_GASES] /= 2
-            global_parameters[constants.GHG] /= 2
-        elif radiation_effect >= 1:
-            global_parameters[constants.INERT_GASES] /= 2
-            global_parameters[constants.OXYGEN] /= 2
-
-        for component in constants.ATMOSPHERE_COMPONENTS:
-            if random.randrange(1, 7) >= 5:
-                global_parameters[component] = 0
-            global_parameters[component] += random.uniform(-10.0, 10.0)
-            global_parameters[component] = max(
-                0, round(global_parameters[component], 1)
-            )
-
-        input_dict["global_parameters"] = global_parameters
-        return input_dict
 
     def change_to_temperature_target(self, estimate_water_vapor: bool = False):
         """
@@ -469,7 +1072,7 @@ class world_handler:
                 self.average_temperature > self.get_average_tile_temperature()
                 and self.get_average_tile_temperature() < 10.5
             ):
-                self.default_grid.warm()
+                self.warm()
                 self.update_target_average_temperature(
                     estimate_water_vapor=estimate_water_vapor, update_albedo=False
                 )
@@ -477,18 +1080,18 @@ class world_handler:
                 self.average_temperature < self.get_average_tile_temperature()
                 and self.get_average_tile_temperature() > -5.5
             ):
-                self.default_grid.cool()
+                self.cool()
                 self.update_target_average_temperature(
                     estimate_water_vapor=estimate_water_vapor, update_albedo=False
                 )
-            self.default_grid.bound(
+            self.bound(
                 constants.TEMPERATURE,
                 round(self.average_temperature)
                 - self.get_tuning("final_temperature_variations")[0],
                 round(self.average_temperature)
                 + self.get_tuning("final_temperature_variations")[1],
             )
-            self.default_grid.smooth(constants.TEMPERATURE)
+            self.smooth(constants.TEMPERATURE)
 
     def latitude_lines_setup(self):
         """
@@ -509,20 +1112,20 @@ class world_handler:
         self.latitude_lines = []
         self.alternate_latitude_lines = []
         self.latitude_lines_types = [
-            [None for _ in range(self.default_grid.coordinate_height)]
-            for _ in range(self.default_grid.coordinate_width)
+            [None for _ in range(self.world_dimensions)]
+            for _ in range(self.world_dimensions)
         ]
         north_pole = (0, 0)
         south_pole = (
-            self.default_grid.coordinate_width // 2,
-            self.default_grid.coordinate_height // 2,
+            self.world_dimensions // 2,
+            self.world_dimensions // 2,
         )
         self.equatorial_coordinates = []
         self.alternate_equatorial_coordinates = []
-        for equatorial_x in range(self.default_grid.coordinate_width):
+        for equatorial_x in range(self.world_dimensions):
             equatorial_y = (
-                (self.default_grid.coordinate_width // 2) - equatorial_x
-            ) % self.default_grid.coordinate_height
+                (self.world_dimensions // 2) - equatorial_x
+            ) % self.world_dimensions
             current_line = self.draw_coordinate_line(
                 north_pole, (equatorial_x, equatorial_y)
             ) + self.draw_coordinate_line(
@@ -534,8 +1137,8 @@ class world_handler:
             self.equatorial_coordinates.append((equatorial_x, equatorial_y))
 
             equatorial_y = (
-                (self.default_grid.coordinate_height // 2) + equatorial_x + 1
-            ) % self.default_grid.coordinate_height
+                (self.world_dimensions // 2) + equatorial_x + 1
+            ) % self.world_dimensions
             current_line = self.draw_coordinate_line(
                 north_pole, (equatorial_x, equatorial_y)
             ) + self.draw_coordinate_line(
@@ -561,14 +1164,12 @@ class world_handler:
         if latitude_line_type == None:
             for offset in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
                 latitude_line_type = self.latitude_lines_types[
-                    (coordinates[0] + offset[0]) % self.default_grid.coordinate_width
-                ][(coordinates[1] + offset[1]) % self.default_grid.coordinate_height]
+                    (coordinates[0] + offset[0]) % self.world_dimensions
+                ][(coordinates[1] + offset[1]) % self.world_dimensions]
                 if latitude_line_type != None:
                     coordinates = (
-                        (coordinates[0] + offset[0])
-                        % self.default_grid.coordinate_width,
-                        (coordinates[1] + offset[1])
-                        % self.default_grid.coordinate_height,
+                        (coordinates[0] + offset[0]) % self.world_dimensions,
+                        (coordinates[1] + offset[1]) % self.world_dimensions,
                     )
                     break
         if latitude_line_type == True:
@@ -601,8 +1202,8 @@ class world_handler:
             line.append(origin)
         x, y = origin
         while (x, y) != destination:
-            x_distance = self.default_grid.x_distance_coords(x, destination[0])
-            y_distance = self.default_grid.y_distance_coords(y, destination[1])
+            x_distance = self.x_distance_coords(x, destination[0])
+            y_distance = self.y_distance_coords(y, destination[1])
             if x_distance != 0:
                 slope = y_distance / x_distance
 
@@ -619,24 +1220,24 @@ class world_handler:
 
             if "X" in traverse:
                 if (
-                    self.default_grid.x_distance_coords(
-                        (x + 1) % self.default_grid.coordinate_width, destination[0]
+                    self.x_distance_coords(
+                        (x + 1) % self.world_dimensions, destination[0]
                     )
                     < x_distance
                 ):
-                    x = (x + 1) % self.default_grid.coordinate_width
+                    x = (x + 1) % self.world_dimensions
                 else:
-                    x = (x - 1) % self.default_grid.coordinate_width
+                    x = (x - 1) % self.world_dimensions
             if "Y" in traverse:
                 if (
-                    self.default_grid.y_distance_coords(
-                        (y + 1) % self.default_grid.coordinate_height, destination[1]
+                    self.y_distance_coords(
+                        (y + 1) % self.world_dimensions, destination[1]
                     )
                     < y_distance
                 ):
-                    y = (y + 1) % self.default_grid.coordinate_height
+                    y = (y + 1) % self.world_dimensions
                 else:
-                    y = (y - 1) % self.default_grid.coordinate_height
+                    y = (y - 1) % self.world_dimensions
             line.append((x, y))
         return line
 
@@ -714,7 +1315,6 @@ class world_handler:
         if self.get_parameter(constants.PRESSURE) == 0:
             if set_initial_offset:
                 self.initial_atmosphere_offset = 0
-        default_sky_color = self.default_sky_color
         earth_sky_color = self.get_tuning("earth_sky_color")
         total_offset = 0
         for atmosphere_component in constants.ATMOSPHERE_COMPONENTS:
@@ -742,7 +1342,7 @@ class world_handler:
                     0,
                     min(
                         255,
-                        default_sky_color[i] * (1.0 - progress)
+                        self.default_sky_color[i] * (1.0 - progress)
                         + earth_sky_color[i] * progress,
                     ),
                 )
@@ -822,7 +1422,7 @@ class world_handler:
                         * location.get_parameter(constants.WATER)
                         * 1.5
                     )
-            return total_water_vapor / self.default_grid.area
+            return total_water_vapor / (self.world_dimensions**2)
 
     def update_cloud_frequencies(self, estimated_temperature: bool = None) -> float:
         """
@@ -982,7 +1582,7 @@ class world_handler:
         Output:
             any: Tuning value for the inputted tuning type
         """
-        return self.default_grid.get_tuning(tuning_type)
+        return constants.terrain_manager.get_tuning(tuning_type)
 
     def to_save_dict(self) -> Dict[str, any]:
         """
@@ -994,6 +1594,11 @@ class world_handler:
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
         """
         return {
+            "world_dimensions": self.world_dimensions,
+            "location_list": [
+                [location.to_save_dict() for location in row]
+                for row in self.location_list
+            ],
             "color_filter": self.color_filter,
             "green_screen": self.green_screen,
             "global_parameters": self.global_parameters,
@@ -1193,16 +1798,24 @@ class world_handler:
         """
         if parameter_name in constants.ATMOSPHERE_COMPONENTS:
             return round(
-                self.default_grid.area * 6 * self.get_tuning(f"earth_{parameter_name}"),
+                (self.world_dimensions**2)
+                * 6
+                * self.get_tuning(f"earth_{parameter_name}"),
                 2,
             )
         elif parameter_name == constants.RADIATION:
             return 0.0
         elif parameter_name == constants.PRESSURE:
-            if self.default_grid.area == 1:
-                return self.earth_size * 6 * self.get_tuning("earth_pressure")
+            if (self.world_dimensions**2) == 1:
+                return (
+                    (constants.earth_dimensions**2)
+                    * 6
+                    * self.get_tuning("earth_pressure")
+                )
             else:
-                return self.default_grid.area * 6 * self.get_tuning("earth_pressure")
+                return (
+                    (self.world_dimensions**2) * 6 * self.get_tuning("earth_pressure")
+                )
         else:
             return self.get_tuning(f"earth_{parameter_name}")
 
@@ -1399,7 +2012,7 @@ class world_handler:
                     for location in self.get_flat_location_list()
                 ]
             )
-            / self.default_grid.area,
+            / (self.world_dimensions**2),
             2,
         )
 
@@ -1419,7 +2032,7 @@ class world_handler:
                     for location in self.get_flat_location_list()
                 ]
             )
-            / self.default_grid.area,
+            / (self.world_dimensions**2),
             3,
         )
 
@@ -1439,7 +2052,7 @@ class world_handler:
                     for location in self.get_flat_location_list()
                 ]
             )
-            / self.default_grid.area,
+            / (self.world_dimensions**2),
             2,
         )
 
@@ -1509,7 +2122,6 @@ class world_handler:
     def get_water_vapor_effect_multiplier(
         self,
         weight: float = 1.0,
-        earth_grid: bool = False,
         estimated_temperature: float = None,
     ) -> float:
         """
@@ -1519,13 +2131,11 @@ class world_handler:
                     Water vapor both causes and is caused by temperature changes, so an estimated baseline is required
         Input:
             float weight: Weight of the water vapor effect in the overall temperature calculation
-            bool earth_grid: Whether calculating Earth's water vapor or a planet's
-                Difficult to determine if current grid is the Earth grid if during setup
             float estimated_temperature: Estimated temperature of the planet, used to calculate water vapor effect before water is generated
         Output:
             Returns the greenhouse effect caused by water vapor on this planet
         """
-        if earth_grid:
+        if self.is_earth():
             water_vapor = self.get_tuning("earth_water_vapor")
         else:
             water_vapor = self.get_water_vapor_contributions(
@@ -1555,15 +2165,9 @@ class world_handler:
             + (self.atmosphere_haze_alpha / 255),
         )
 
-        average_brightness = (
-            sum(
-                [
-                    location.get_brightness()
-                    for location in self.get_flat_location_list()
-                ]
-            )
-            / self.default_grid.area
-        )
+        average_brightness = sum(
+            [location.get_brightness() for location in self.get_flat_location_list()]
+        ) / (self.world_dimensions**2)
         terrain_albedo = min(0.5, max(0.0, (0.5 / 255) * average_brightness * 0.85))
 
         albedo_weight = 0.4  # Draw albedo effect towards that of Earth
@@ -1641,14 +2245,12 @@ class world_handler:
             )
             water_vapor_multiplier = self.get_water_vapor_effect_multiplier(
                 weight=water_vapor_weight,
-                earth_grid=self.default_grid.grid_type == constants.EARTH_GRID_TYPE,
                 estimated_temperature=estimated_temperature,
             )
         else:
             estimated_temperature = None
             water_vapor_multiplier = self.get_water_vapor_effect_multiplier(
                 weight=water_vapor_weight,
-                earth_grid=self.default_grid.grid_type == constants.EARTH_GRID_TYPE,
             )
 
         if update_albedo:
@@ -1667,3 +2269,20 @@ class world_handler:
                 - location.get_expected_temperature()
             )
         self.average_temperature = utility.reverse_fahrenheit(fahrenheit)
+
+
+class full_world_handler(world_handler):
+    def __init__(self, from_save: bool, input_dict: Dict[str, any]) -> None:
+        super().__init__(from_save, input_dict)
+
+
+class abstract_world_handler(world_handler):
+    def __init__(self, from_save: bool, input_dict: Dict[str, any]) -> None:
+        self.abstract_world_type = input_dict["abstract_world_type"]
+        super().__init__(from_save, input_dict)
+
+    def is_abstract_world(self) -> bool:
+        return True
+
+    def is_earth(self) -> bool:
+        return self.abstract_world_type == constants.EARTH

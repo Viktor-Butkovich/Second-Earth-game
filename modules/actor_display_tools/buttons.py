@@ -1841,10 +1841,10 @@ class change_parameter_button(button):
             elif self.attached_label.actor_label_type == constants.AVERAGE_WATER_LABEL:
                 if self.change > 0:
                     for i in range(abs(self.change) - 1):
-                        status.displayed_tile.get_location().get_world_handler().default_grid.place_water(
+                        status.displayed_tile.get_location().get_world_handler().place_water(
                             repeat_on_fail=True, radiation_effect=False
                         )
-                    status.displayed_tile.get_location().get_world_handler().default_grid.place_water(
+                    status.displayed_tile.get_location().get_world_handler().place_water(
                         update_display=True, repeat_on_fail=True, radiation_effect=False
                     )
                 else:

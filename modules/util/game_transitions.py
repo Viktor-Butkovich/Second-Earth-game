@@ -138,14 +138,15 @@ def set_game_mode(new_game_mode):
                     status.tile_info_display, status.earth_grid.cell_list[0][0].tile
                 )  # Calibrate tile info to Earth
             elif new_game_mode == constants.STRATEGIC_MODE:
-                centered_cell = status.strategic_map_grid.find_cell(
-                    status.minimap_grid.center_x, status.minimap_grid.center_y
-                )
-                if centered_cell.tile:
-                    actor_utility.calibrate_actor_info_display(
-                        status.tile_info_display, centered_cell.tile
+                if status.strategic_map_grid:
+                    centered_cell = status.strategic_map_grid.find_cell(
+                        status.minimap_grid.center_x, status.minimap_grid.center_y
                     )
-                    # Calibrate tile info to minimap center
+                    if centered_cell.tile:
+                        actor_utility.calibrate_actor_info_display(
+                            status.tile_info_display, centered_cell.tile
+                        )
+                        # Calibrate tile info to minimap center
     if new_game_mode == constants.MINISTERS_MODE:
         constants.available_minister_left_index = -2
         minister_utility.update_available_minister_display()
@@ -197,8 +198,8 @@ def create_strategic_map(from_save=False):
             for cell in current_grid.get_flat_cell_list():
                 input_dict["coordinates"] = (cell.x, cell.y)
                 tiles.tile(False, input_dict)
-            if current_grid == status.strategic_map_grid:
-                current_grid.create_world(from_save)
+            # if current_grid == status.strategic_map_grid:
+            #    current_grid.create_world(from_save)
 
 
 def start_loading(previous_game_mode: str = None, new_game_mode: str = None):

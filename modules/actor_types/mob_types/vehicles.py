@@ -351,7 +351,7 @@ class vehicle(pmob):
         ].current_cell.has_intact_building(constants.SPACEPORT):
             self.eject_passengers(focus=False)
             self.drop_inventory()
-        elif new_grid.grid_type in constants.abstract_grid_type_list:
+        elif new_grid.world_handler.is_earth():
             self.eject_passengers(focus=False)
         self.on_move()
 

@@ -446,6 +446,8 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Remove references to get_equivalent_tiles
+# Rework end_turn_move to be move to a location in a world by coordinate, rather than a cell in a grid
 # Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
 # Convert world creation process to be create world handler -> create locations for each coordinate
 #   Followed by independent process of creating grid with cells that can attach to locations
@@ -483,26 +485,3 @@ except Exception:  # Displays error message and records error message in crash l
 # Add modern minister outfits
 # Add crater and flood basalt terrain variants
 # Try out fuzzy logic for planetary simulation
-#
-# Fix this rare crash
-# ERROR:root:<class 'Exception'>
-# Traceback (most recent call last):
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\Second_Earth.py", line 30, in <module>
-#     main_loop.main_loop()
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\main_loop.py", line 56, in main_loop
-#     current_button.on_click()
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\buttons.py", line 1350, in on_click
-#     constants.save_load_manager.new_game()
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\tools\data_managers\save_load_manager_template.py", line 87, in new_game
-#     game_transitions.create_strategic_map(from_save=False)
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\util\game_transitions.py", line 191, in create_strategic_map
-#    current_grid.create_world(from_save)
-#  File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\world_grids.py", line 62, in create_world
-#     self.generate_terrain_parameters()
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\world_grids.py", line 430, in generate_terrain_parameters
-#     self.generate_temperature()
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\world_grids.py", line 210, in generate_temperature
-#     self.make_random_terrain_parameter_worm(
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\world_grids.py", line 537, in make_random_terrain_parameter_worm
-#     original_value = self.find_cell(current_x, current_y).get_parameter(parameter)
-#  AttributeError: 'NoneType' object has no attribute 'get_parameter'

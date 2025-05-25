@@ -1034,26 +1034,24 @@ class pmob(mob):
                         start_coordinates = self.base_automatic_route[0]
                         end_coordinates = self.base_automatic_route[-1]
                         for current_coordinates in self.base_automatic_route:
-                            current_tile = (
-                                self.grids[0]
-                                .find_cell(
-                                    current_coordinates[0], current_coordinates[1]
-                                )
-                                .tile
-                            )
                             if current_coordinates == start_coordinates:
                                 color = constants.COLOR_PURPLE
                             elif current_coordinates == end_coordinates:
                                 color = constants.COLOR_YELLOW
                             else:
                                 color = constants.COLOR_BRIGHT_BLUE
-                            current_tile.draw_destination_outline(color)
-                            for equivalent_tile in current_tile.get_equivalent_tiles():
-                                equivalent_tile.draw_destination_outline(color)
+                            for attached_cell in (
+                                self.get_location()
+                                .get_world_handler()
+                                .find_location(
+                                    current_coordinates[0], current_coordinates[1]
+                                )
+                                .attached_cells
+                            ):
+                                attached_cell.tile.draw_destination_outline(color)
             if self.end_turn_destination:
-                self.end_turn_destination.draw_destination_outline()
-                for equivalent_tile in self.end_turn_destination.get_equivalent_tiles():
-                    equivalent_tile.draw_destination_outline()
+                for attached_cell in self.end_turn_destination.attached_cells:
+                    attached_cell.tile.draw_destination_outline()
 
     def end_turn_move(self):
         """

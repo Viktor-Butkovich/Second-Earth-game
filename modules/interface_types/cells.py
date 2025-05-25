@@ -13,7 +13,7 @@ class cell:
     Object representing one cell of a grid corresponding to one of its coordinates, able to contain terrain, resources, mobs, and tiles
     """
 
-    def __init__(self, x, y, width, height, grid, color, save_dict):
+    def __init__(self, x, y, width, height, grid, color):
         """
         Description:
             Initializes this object
@@ -24,7 +24,6 @@ class cell:
             int height: Pixel height of this button
             grid grid: The grid that this cell is attached to
             string color: Color in the color_dict dictionary for this cell when nothing is covering it
-            string or dictionary save_dict: Equals None if creating new grid, equals dictionary of saved information necessary to recreate this cell if loading grid
         Output:
             None
         """
@@ -38,47 +37,11 @@ class cell:
         self.Rect: pygame.Rect = pygame.Rect(
             self.pixel_x, self.pixel_y - self.height, self.width, self.height
         )  # (left, top, width, height)
-        self.grid.cell_list[x][y] = self
         self.tile: status.tile = None
         self.settlement = None
         self.location: locations.location = None
         self.contained_mobs: list = []
-        if save_dict:  # If from save
-            self.save_dict: dict = save_dict
-            if constants.effect_manager.effect_active("remove_fog_of_war"):
-                save_dict["visible"] = True
-            save_dict["world_handler"] = self.grid.world_handler
-            current_location = locations.location(save_dict)
-        else:  # If creating new map
-            input_dict = {
-                "x": self.x,
-                "y": self.y,
-                "world_handler": self.grid.world_handler,
-            }
-            current_location = locations.location(input_dict)
         self.grid.world_handler.find_location(self.x, self.y).add_cell(self)
-
-    def to_save_dict(self):
-        """
-        Description:
-            Uses this object's values to create a dictionary that can be saved and used as input to recreate it on loading
-        Input:
-            None
-        Output:
-            dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'visible': boolean value - Whether this cell is visible or not
-                'terrain': string value - Terrain type of this cell and its tile, like 'swamp'
-                'terrain_variant': int value - Variant number to use for image file path, like mountains_0
-                'terrain feature': string/boolean dictionary value - Dictionary containing a True entry for each terrain feature type in this cell
-                'resource': string value - Resource type of this cell and its tile, like 'exotic wood'
-                'inventory': string/string dictionary value - Version of the inventory dictionary of this cell's tile only containing item types with 1+ units held
-        """
-        save_dict = {}
-        save_dict["coordinates"] = (self.x, self.y)
-        save_dict.update(self.location.to_save_dict())
-        save_dict["inventory"] = self.tile.inventory
-        return save_dict
 
     def has_unit(self, permissions, required_number=1):
         """

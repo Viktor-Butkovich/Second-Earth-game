@@ -255,20 +255,20 @@ current_instructions_page_index: int = 0
 current_instructions_page_text: str = ""
 message: str = ""
 
-STRATEGIC_MAP_GRID_TYPE: str = "strategic_map_grid"
-EARTH_GRID_TYPE: str = "earth_grid"
-GLOBE_PROJECTION_GRID_TYPE: str = "globe_projection_grid"
-SCROLLING_STRATEGIC_MAP_GRID_TYPE: str = "scrolling_strategic_map_grid"
-MINIMAP_GRID_TYPE: str = "minimap_grid"
+# STRATEGIC_MAP_GRID_TYPE: str = "strategic_map_grid"
+# EARTH_GRID_TYPE: str = "earth_grid"
+# GLOBE_PROJECTION_GRID_TYPE: str = "globe_projection_grid"
+# SCROLLING_STRATEGIC_MAP_GRID_TYPE: str = "scrolling_strategic_map_grid"
+# MINIMAP_GRID_TYPE: str = "minimap_grid"
 
-grid_types_list: List[str] = [
-    STRATEGIC_MAP_GRID_TYPE,
-    EARTH_GRID_TYPE,
-    GLOBE_PROJECTION_GRID_TYPE,
-    SCROLLING_STRATEGIC_MAP_GRID_TYPE,
-    MINIMAP_GRID_TYPE,
-]
-abstract_grid_type_list: List[str] = [EARTH_GRID_TYPE, GLOBE_PROJECTION_GRID_TYPE]
+# grid_types_list: List[str] = [
+#    STRATEGIC_MAP_GRID_TYPE,
+#    EARTH_GRID_TYPE,
+#    GLOBE_PROJECTION_GRID_TYPE,
+#    SCROLLING_STRATEGIC_MAP_GRID_TYPE,
+#    MINIMAP_GRID_TYPE,
+# ]
+# abstract_grid_type_list: List[str] = [EARTH_GRID_TYPE, GLOBE_PROJECTION_GRID_TYPE]
 
 grids_collection_x: int = default_display_width - 740
 grids_collection_y: int = default_display_height - 325
@@ -495,7 +495,13 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
     },
 }
 
-map_size_options: List[str] = None
+world_dimensions_options: List[int] = None
+earth_dimensions: int = None
+venus_dimensions: int = None
+mars_dimensions: int = None
+
+EARTH: str = "earth"
+
 current_game_mode: str = None
 STRATEGIC_MODE: str = "strategic"
 EARTH_MODE: str = "earth"
@@ -725,6 +731,9 @@ SETTLEMENT: str = "settlement"
 CELL_ICON: str = "cell_icon"
 NAME_ICON: str = "name_icon"
 LOAN: str = "loan"
+LOCATION: str = "location"
+FULL_WORLD: str = "full_world"
+ABSTRACT_WORLD: str = "abstract_world"
 BUTTON: str = "button"
 INTERFACE_ELEMENT: str = "interface_element"
 INTERFACE_COLLECTION: str = "interface_collection"
@@ -928,6 +937,9 @@ WARNING_IMAGE: str = "warning_image"
 LOADING_IMAGE_TEMPLATE_IMAGE: str = "loading_image_template_image"
 MOUSE_FOLLOWER_IMAGE: str = "mouse_follower_image"
 DIRECTIONAL_INDICATOR_IMAGE: str = "directional_indicator_image"
+
+MINI_GRID: str = "mini_grid"
+ABSTRACT_GRID: str = "abstract_grid"
 
 NOTIFICATION: str = "notification"
 CHOICE_NOTIFICATION: str = "choice_notification"

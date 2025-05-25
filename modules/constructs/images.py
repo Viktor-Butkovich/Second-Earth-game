@@ -387,9 +387,9 @@ class bundle_image:
                                 the new color as it did with the old color. If a spot of water is slightly darker than the base water color, replace it with something
                                 slightly darker than the replacement color, while ignoring anything that is not within 50 of the base water color.
                             Each category can have a preset base color/tolerance determined during asset creation, as well as a procedural replacement color
-                            Each category can have a preset smart green screen, with per-terrain or per-tile modifications controlled by world and terrain handlers
+                            Each category can have a preset smart green screen, with per-terrain or per-tile modifications controlled by world handler and locations
                                 World handler handles per-terrain modifications, like dunes sand being slightly different from desert sand, while both are still "Mars red"
-                                Terrain handler handler per-tile modifications, like a tile with earth-imported soil looking different from default planet soil
+                                Locations handlers per-tile modifications, like a tile with earth-imported soil looking different from default planet soil
                             This system could also work for skin shading, polar dust, light levels, vegetation, resources, building appearances, etc.
                     'color_filter': dictionary value - Dictionary of RGB values to add to each pixel in this image
             string member_type: String to designate this member's type, allowing it to be specifically removed or found based on type later, 'default' by default
@@ -432,9 +432,9 @@ class bundle_image:
                 self.has_green_screen = True
                 self.green_screen_colors = []
                 if image_id["green_screen"] == constants.WORLD_GREEN_SCREEN_DEFAULTS:
-                    image_id[
-                        "green_screen"
-                    ] = status.strategic_map_grid.world_handler.get_green_screen()
+                    image_id["green_screen"] = (
+                        status.strategic_map_grid.world_handler.get_green_screen()
+                    )
                 if type(image_id["green_screen"]) == list:
                     for index in range(0, len(image_id["green_screen"])):
                         self.green_screen_colors.append(image_id["green_screen"][index])
@@ -1275,6 +1275,7 @@ class directional_indicator_image(tooltip_free_image):
         Output:
             None
         """
+        return
         anchor = getattr(status, self.anchor_key, None)
         if not anchor:  # Don't attempt to calibrate if anchor cell is not yet defined
             return
@@ -1484,9 +1485,9 @@ class dice_roll_minister_image(tooltip_free_image):
             input_dict["image_id"] = self.attached_minister.image_id
         elif self.minister_image_type == "position":
             if self.minister_position_type:
-                input_dict[
-                    "image_id"
-                ] = f"ministers/icons/{self.minister_position_type.skill_type}.png"
+                input_dict["image_id"] = (
+                    f"ministers/icons/{self.minister_position_type.skill_type}.png"
+                )
             else:
                 input_dict["image_id"] = "misc/actor_backgrounds/mob_background.png"
         self.minister_message_image = input_dict.get("minister_message_image", False)

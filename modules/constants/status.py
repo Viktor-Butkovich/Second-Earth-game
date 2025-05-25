@@ -11,6 +11,7 @@ from modules.constructs.minister_types import minister_type
 from modules.constructs.terrain_feature_types import terrain_feature_type
 from modules.constructs.images import image, free_image, directional_indicator_image
 from modules.constructs.locations import location
+from modules.constructs.world_handlers import world_handler
 from modules.interface_types.interface_elements import (
     interface_collection,
     tabbed_collection,
@@ -162,3 +163,6 @@ initial_tutorial_completed: bool = False
 north_pole: location = None
 south_pole: location = None
 equator_list: List[location] = []
+
+current_world: world_handler = None
+earth_world: world_handler = None

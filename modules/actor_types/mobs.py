@@ -380,10 +380,10 @@ class mob(actor):
                     metadata = {"body_image": self.image_dict["default"]}
                     if self.get_permission(constants.OFFICER_PERMISSION):
                         metadata.update(self.character_info)
-                    self.image_dict[
-                        "portrait"
-                    ] = constants.character_manager.generate_unit_portrait(
-                        self, metadata
+                    self.image_dict["portrait"] = (
+                        constants.character_manager.generate_unit_portrait(
+                            self, metadata
+                        )
                     )
                 else:
                     self.image_dict["portrait"] = input_dict.get("portrait", [])
@@ -847,8 +847,11 @@ class mob(actor):
         old_image_id = self.images[0].image_id
         for current_image in self.images:
             current_image.remove_from_cell()
-        self.grids = [new_grid] + new_grid.mini_grids
-        self.grid = new_grid
+        self.location = new_grid.world_handler.find_location(
+            new_coordinates[0], new_coordinates[1]
+        )
+        self.update_attached_grids()
+
         self.images = []
         for current_grid in self.grids:
             self.images.append(
@@ -896,9 +899,8 @@ class mob(actor):
             status.tile_info_display, self.get_cell().tile
         )
         actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
-        if self.grids[0].mini_grids:
-            for mini_grid in self.grid.mini_grids:
-                mini_grid.calibrate(self.x, self.y)
+        for grid in self.grids:
+            grid.calibrate(self.x, self.y)
 
     def cycle_select(self):
         """
@@ -1106,7 +1108,7 @@ class mob(actor):
                 )
             else:
                 tooltip_list.append(
-                    f"This unit has been issued an order to travel to {self.end_turn_destination.cell.grid.grid_type[:-5].capitalize()} at the end of the turn"
+                    f"This unit has been issued an order to travel to {self.end_turn_destination.cell.get_location().get_world_handler().name} at the end of the turn"
                 )
 
         if self.get_permission(constants.NPMOB_PERMISSION):
@@ -1359,7 +1361,7 @@ class mob(actor):
                     possible_sounds.append("effects/ship_propeller")
             else:
                 if self.get_cell() and self.get_location().terrain == "water":
-                    local_infrastructure = self.get_cell().get_intact_building(
+                    local_infrastructure = self.get_location().get_intact_building(
                         constants.INFRASTRUCTURE
                     )
                     if (

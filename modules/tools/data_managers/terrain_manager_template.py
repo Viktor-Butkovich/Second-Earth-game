@@ -129,11 +129,22 @@ class terrain_manager_template:
             elif upper_bound == 305:
                 self.temperature_bounds[idx - 6] = f"above {lower_bound} °F)"
             else:
-                self.temperature_bounds[
-                    idx - 6
-                ] = f"between {lower_bound} °F and {upper_bound} °F)"
+                self.temperature_bounds[idx - 6] = (
+                    f"between {lower_bound} °F and {upper_bound} °F)"
+                )
         self.load_terrains("configuration/terrain_definitions.json")
         self.load_tuning("configuration/terrain_generation_tuning.json")
+
+        if constants.effect_manager.effect_active("large_map"):
+            world_dimensions_options = self.get_tuning("large_map_sizes")
+        elif constants.effect_manager.effect_active("tiny_map"):
+            world_dimensions_options = self.get_tuning("tiny_map_sizes")
+        else:
+            world_dimensions_options = self.get_tuning("map_sizes")
+        constants.world_dimensions_options = world_dimensions_options
+        constants.earth_dimensions = world_dimensions_options[4]
+        constants.venus_dimensions = world_dimensions_options[4]
+        constants.mars_dimensions = world_dimensions_options[1]
 
     def load_tuning(self, file_name):
         """

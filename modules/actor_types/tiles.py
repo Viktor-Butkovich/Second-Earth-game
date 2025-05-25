@@ -71,13 +71,13 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     self
                 )  # List of all tiles that can be interacted with, and don't purely exist for visual purposes - 1:1 relationship with locations
 
-        elif self.grid.grid_type in constants.abstract_grid_type_list:
+        elif self.grid.world_handler.is_abstract_world():
             self.cell.tile = self
             self.terrain = None
             if self.cell.grid.from_save:
                 self.inventory = self.cell.save_dict["inventory"]
             if (
-                self.grid.grid_type == constants.EARTH_GRID_TYPE
+                self.cell.get_location().get_world_handler().is_earth()
             ):  # Earth should be able to hold items despite not being terrain
                 self.infinite_inventory_capacity = True
                 if constants.effect_manager.effect_active("infinite_commodities"):
@@ -155,6 +155,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     break
             if has_building:
                 y_offset += 0.3
+            return
             self.name_icon = constants.actor_creation_manager.create(
                 False,
                 {
@@ -209,13 +210,12 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     current_image.outline_width,
                 )
 
-    def draw_actor_match_outline(self, recursive=False):
+    def draw_actor_match_outline(self):
         """
         Description:
             Draws an outline around the displayed tile. If the tile is shown on a minimap, tells the equivalent tile to also draw an outline around the displayed tile
         Input:
-            boolean recursive=False: True if this function is being called by the equivalent tile on either the minimap grid or the strategaic map grid, otherwise False. Prevents infinite loops of equivalent tiles repeatedly
-                calling each other
+            None
         Output:
             None
         """
@@ -228,9 +228,6 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     (outline),
                     current_image.outline_width,
                 )
-        if not recursive:
-            for tile in self.get_equivalent_tiles():
-                tile.draw_actor_match_outline(recursive=True)
 
     def get_all_local_inventory(self) -> Dict[str, float]:
         """
@@ -375,11 +372,11 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         super().set_inventory(item, new_value)
-        equivalent_tiles = self.get_equivalent_tiles()
-        for tile in equivalent_tiles:
-            tile.inventory[item.key] = self.get_inventory(item)
-        if status.displayed_tile in [self] + equivalent_tiles:
-            actor_utility.calibrate_actor_info_display(status.tile_info_display, self)
+        # equivalent_tiles = self.get_equivalent_tiles()
+        # for tile in equivalent_tiles:
+        #    tile.inventory[item.key] = self.get_inventory(item)
+        # if status.displayed_tile in [self] + equivalent_tiles:
+        #    actor_utility.calibrate_actor_info_display(status.tile_info_display, self)
 
     def set_inventory_capacity(self, new_value):
         """
@@ -390,11 +387,11 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
-        for tile in self.get_equivalent_tiles():
-            tile.inventory_capacity = new_value
+        # for tile in self.get_equivalent_tiles():
+        #    tile.inventory_capacity = new_value
         super().set_inventory_capacity(new_value)
 
-    def get_main_grid_coordinates(self) -> Tuple[int, int]:
+    def get_absolute_coordinates(self) -> Tuple[int, int]:
         """
         Description:
             Returns the coordinates cooresponding to this tile on the strategic map grid. If this tile is already on the strategic map grid, just returns this tile's coordinates
@@ -403,33 +400,10 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             int tuple: Two
         """
-        if self.grid.is_mini_grid:
-            return self.grid.get_main_grid_coordinates(self.x, self.y)
+        if self.grid.world_handler.is_abstract_world():
+            return (1, 1)
         else:
-            return (self.x, self.y)
-
-    def get_equivalent_tiles(self):
-        """
-        Description:
-            Returns the corresponding minimap tile if this tile is on the strategic map grid or vice versa
-        Input:
-            None
-        Output:
-            tile: tile on the corresponding tile on the grid attached to this tile's grid
-        """
-        return_list = []
-        if self.grid == status.strategic_map_grid:
-            for mini_grid in self.grid.mini_grids:
-                if mini_grid.is_on_mini_grid(self.x, self.y):
-                    mini_x, mini_y = mini_grid.get_mini_grid_coordinates(self.x, self.y)
-                    equivalent_cell = mini_grid.find_cell(mini_x, mini_y)
-                    if equivalent_cell and equivalent_cell.tile:
-                        return_list.append(equivalent_cell.tile)
-        elif self.grid.is_mini_grid:
-            main_x, main_y = self.grid.get_main_grid_coordinates(self.x, self.y)
-            equivalent_cell = self.grid.attached_grid.find_cell(main_x, main_y)
-            return_list.append(equivalent_cell.tile)
-        return return_list
+            return self.grid.get_absolute_coordinates(self.x, self.y)
 
     def remove_hosted_image(self, old_image):
         """
@@ -488,15 +462,16 @@ class tile(actor):  # to do: make terrain tiles a subclass
             or constants.current_map_mode == "terrain"
             or constants.MAP_MODE_ALPHA
         ):
-            if self.cell.grid.is_mini_grid:
-                equivalent_tiles = self.get_equivalent_tiles()
-                if equivalent_tiles and self.show_terrain:
-                    image_id_list = equivalent_tiles[0].get_image_id_list()
-                for current_image in self.hosted_images:
-                    image_id_list += current_image.get_image_id_list()
-            elif self.cell.grid == status.earth_grid:
-                image_id_list = []
-            else:
+            # if self.cell.grid.is_mini_grid:
+            #    equivalent_tiles = self.get_equivalent_tiles()
+            #    if equivalent_tiles and self.show_terrain:
+            #        image_id_list = equivalent_tiles[0].get_image_id_list()
+            #    for current_image in self.hosted_images:
+            #        image_id_list += current_image.get_image_id_list()
+            # elif self.cell.grid == status.earth_grid:
+            #    image_id_list = []
+            # else:
+            if True:
                 if (
                     self.get_location().visible or force_visibility
                 ):  # Force visibility shows full tile even if tile is not yet visible
@@ -670,9 +645,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
             self.set_image(override_image)
         else:
             self.set_image(self.get_image_id_list())
-        if self.grid == status.strategic_map_grid:
-            for equivalent_tile in self.get_equivalent_tiles():
-                equivalent_tile.update_image_bundle(override_image=override_image)
+        # if self.grid == status.strategic_map_grid:
+        #    for equivalent_tile in self.get_equivalent_tiles():
+        #        equivalent_tile.update_image_bundle(override_image=override_image)
         if previous_image != self.previous_image:
             self.reselect()
 
@@ -736,13 +711,15 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
-        if not (
-            self.cell.grid == status.strategic_map_grid
-            or self.cell.grid.is_abstract_grid
-        ):
-            main_tile = self.get_equivalent_tiles()[0]
-            main_tile.update_tooltip()
-            self.set_tooltip(main_tile.tooltip_text)
+        # if not (
+        #    self.cell.grid == status.strategic_map_grid
+        #    or self.cell.grid.is_abstract_grid
+        # ):
+        #    main_tile = self.get_equivalent_tiles()[0]
+        #    main_tile.update_tooltip()
+        #    self.set_tooltip(main_tile.tooltip_text)
+        if False:
+            return
         else:
             tooltip_message = []
             if self.grid.is_abstract_grid:

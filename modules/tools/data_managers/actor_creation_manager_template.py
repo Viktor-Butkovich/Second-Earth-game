@@ -21,11 +21,19 @@ from modules.interface_types import (
     cell_icons,
     earth_transactions,
     inventory_interface,
+    grids,
 )
 from modules.actor_display_tools import buttons as actor_display_buttons
 from modules.actor_display_tools import labels as actor_display_labels
 from modules.actor_display_tools import images as actor_display_images
-from modules.constructs import ministers, images, settlements, unit_types
+from modules.constructs import (
+    ministers,
+    images,
+    settlements,
+    unit_types,
+    locations,
+    world_handlers,
+)
 from modules.util import utility, actor_utility, market_utility
 from modules.tools import mouse_followers
 from modules.constants import constants, status, flags
@@ -77,6 +85,9 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.CELL_ICON: cell_icons.cell_icon,
             constants.NAME_ICON: cell_icons.name_icon,
             constants.LOAN: market_utility.loan,
+            constants.LOCATION: locations.location,
+            constants.FULL_WORLD: world_handlers.full_world_handler,
+            constants.ABSTRACT_WORLD: world_handlers.abstract_world_handler,
         }
         self.interface_constructors = {
             constants.BUTTON: buttons.button,
@@ -264,6 +275,8 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.ACTION_NOTIFICATION: action_notifications.action_notification,
             constants.DICE_ROLLING_NOTIFICATION: action_notifications.dice_rolling_notification,
             constants.OFF_TILE_EXPLORATION_NOTIFICATION: action_notifications.off_tile_exploration_notification,
+            constants.MINI_GRID: grids.mini_grid,
+            constants.ABSTRACT_GRID: grids.abstract_grid,
         }
 
     def create(self, from_save, input_dict):

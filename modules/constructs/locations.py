@@ -10,7 +10,7 @@ class location:
     "Single source of truth" handler for the terrain/local characteristics of each version of a cell on different grids
     """
 
-    def __init__(self, input_dict: Dict[str, any] = None) -> None:
+    def __init__(self, from_save: bool, input_dict: Dict[str, any] = None) -> None:
         """
         Description:
             Initializes this object
@@ -78,7 +78,7 @@ class location:
             and random.randrange(1, 7) >= 4
         ):
             return True
-        if self.get_world_handler().default_grid == status.earth_grid:
+        if self.get_world_handler().is_earth():
             if attrition_type == "health":  # No health attrition on Earth
                 return False
             elif (
@@ -291,11 +291,12 @@ class location:
         """
         self.adjacent_list = []
         self.adjacent_locations = {}
+        world_dimensions = self.get_world_handler().world_dimensions
         for x, y, direction in [
-            ((self.x - 1) % self.get_world_handler().coordinate_width, self.y, "left"),
-            ((self.x + 1) % self.get_world_handler().coordinate_width, self.y, "right"),
-            (self.x, (self.y + 1) % self.get_world_handler().coordinate_height, "up"),
-            (self.x, (self.y - 1) % self.get_world_handler().coordinate_height, "down"),
+            ((self.x - 1) % world_dimensions, self.y, "left"),
+            ((self.x + 1) % world_dimensions, self.y, "right"),
+            (self.x, (self.y + 1) % world_dimensions, "up"),
+            (self.x, (self.y - 1) % world_dimensions, "down"),
         ]:
             self.adjacent_locations[direction] = self.get_world_handler().find_location(
                 x, y
@@ -523,17 +524,17 @@ class location:
         new_value = self.terrain_parameters[parameter_name]
         if (
             parameter_name == constants.WATER
-            and not self.get_world_handler().default_grid.is_abstract_grid
+            and not self.get_world_handler().is_abstract_world()
         ):
             self.get_world_handler().update_average_water()
         elif (
             parameter_name == constants.ALTITUDE
-            and not self.get_world_handler().default_grid.is_abstract_grid
+            and not self.get_world_handler().is_abstract_world()
         ):
             self.get_world_handler().update_average_altitude()
         elif (
             parameter_name == constants.TEMPERATURE
-            and not self.get_world_handler().default_grid.is_abstract_grid
+            and not self.get_world_handler().is_abstract_world()
         ):
             # If changing temperature, re-distribute water around the planet
             # Causes melting glaciers and vice versa
@@ -547,7 +548,7 @@ class location:
                     update_display=False,
                 )
                 for i in range(water_displaced):
-                    self.get_world_handler().default_grid.place_water(
+                    self.get_world_handler().place_water(
                         radiation_effect=False, repeat_on_fail=True
                     )
 
@@ -662,6 +663,9 @@ class location:
                 'local_weather_offset': float value - Temperature offset of this location from expected for the latitude
         """
         save_dict = {}
+        save_dict["init_type"] = constants.LOCATION
+        save_dict["coordinates"] = (self.x, self.y)
+        save_dict["inventory"] = self.attached_cells[0].tile.inventory
         save_dict["terrain_variant"] = self.terrain_variant
         save_dict["terrain_features"] = self.terrain_features
         save_dict["terrain_parameters"] = self.terrain_parameters
@@ -906,7 +910,7 @@ class location:
         Output:
             float: Returns the average RGB value of this tile's terrain
         """
-        if self.attached_cells[0].tile:
+        if self.attached_cells:
             image_id = self.attached_cells[0].tile.get_image_id_list(
                 terrain_only=True,
                 force_pixellated=True,

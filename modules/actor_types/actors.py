@@ -41,12 +41,8 @@ class actor:
         status.actor_list.append(self)
         self.modes = input_dict["modes"]
         self.x, self.y = input_dict["coordinates"]
-        if self.from_save:
-            self.grid: grid = getattr(status, input_dict["grid_type"])
-            self.grids: List[grid] = [self.grid] + self.grid.mini_grids
-        else:
-            self.grid: grid = input_dict["grids"][0]
-            self.grids: List[grid] = input_dict["grids"]
+        self.grids: List[grid] = []
+        self.update_attached_grids()
         self.set_name(input_dict.get("name", "placeholder"))
         self.set_coordinates(self.x, self.y)
 
@@ -72,6 +68,11 @@ class actor:
         if original_constructor:
             self.update_image_bundle()
             self.update_tooltip()
+
+    def update_attached_grids(self) -> None:
+        self.grids = [
+            attached_cell.grid for attached_cell in self.get_location().attached_cells
+        ]
 
     def get_location(self) -> locations.location:
         """
