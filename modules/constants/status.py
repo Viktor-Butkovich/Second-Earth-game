@@ -11,7 +11,8 @@ from modules.constructs.minister_types import minister_type
 from modules.constructs.terrain_feature_types import terrain_feature_type
 from modules.constructs.images import image, free_image, directional_indicator_image
 from modules.constructs.locations import location
-from modules.constructs.world_handlers import world_handler
+from modules.constructs.abstract_world_handlers import abstract_world_handler
+from modules.constructs.full_world_handlers import full_world_handler
 from modules.interface_types.interface_elements import (
     interface_collection,
     tabbed_collection,
@@ -20,7 +21,6 @@ from modules.interface_types.interface_elements import (
 )
 from modules.interface_types.inventory_interface import inventory_grid
 from modules.interface_types.grids import grid, mini_grid, abstract_grid
-from modules.interface_types.world_grids import world_grid
 from modules.interface_types.panels import safe_click_panel
 from modules.interface_types.notifications import notification
 from modules.interface_types.buttons import (
@@ -44,11 +44,11 @@ from modules.actor_types.mobs import mob
 from modules.actor_types.mob_types.pmobs import pmob
 from modules.actor_types.mob_types.npmobs import npmob
 from modules.constructs.settlements import settlement
+from modules.constructs.world_handlers import world_handler
 from modules.util.market_utility import loan
 from modules.action_types.action import action
 from modules.tools.effects import effect
 
-strategic_map_grid: world_grid = None
 scrolling_strategic_map_grid: mini_grid = None
 minimap_grid: mini_grid = None
 earth_grid: abstract_grid = None
@@ -87,7 +87,7 @@ terrain_feature_types: Dict[str, terrain_feature_type] = {}
 flag_icon_list: List[button] = []
 grid_list: List[grid] = []
 tile_list: List[tile] = []
-main_tile_list: List[tile] = []
+world_list: List[world_handler] = []
 text_list: List[str] = []
 free_image_list: List[free_image] = []
 minister_image_list: List[Any] = []
@@ -164,5 +164,5 @@ north_pole: location = None
 south_pole: location = None
 equator_list: List[location] = []
 
-current_world: world_handler = None
-earth_world: world_handler = None
+current_world: full_world_handler = None
+earth_world: abstract_world_handler = None

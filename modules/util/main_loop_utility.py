@@ -371,17 +371,17 @@ def manage_rmb_down(clicked_button):
         stopping = True
         flags.drawing_automatic_route = False
         if len(status.displayed_mob.base_automatic_route) > 1:
-            destination_coordinates = (
-                status.displayed_mob.base_automatic_route[-1][0],
-                status.displayed_mob.base_automatic_route[-1][1],
+            destination_location = (
+                status.displayed_mob.get_location()
+                .get_world_handler()
+                .find_location(
+                    status.displayed_mob.base_automatic_route[-1][0],
+                    status.displayed_mob.base_automatic_route[-1][1],
+                )
             )
             if status.displayed_mob.all_permissions(
                 constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
-            ) and not status.strategic_map_grid.find_cell(
-                destination_coordinates[0], destination_coordinates[1]
-            ).has_intact_building(
-                constants.TRAIN_STATION
-            ):
+            ) and not destination_location.has_intact_building(constants.TRAIN_STATION):
                 status.displayed_mob.clear_automatic_route()
                 text_utility.print_to_screen(
                     "A train's automatic route must start and end at a train station."
@@ -471,17 +471,22 @@ def manage_lmb_down(clicked_button):
                     for current_cell in current_grid.get_flat_cell_list():
                         if current_cell.touching_mouse():
                             click_move_minimap()
-                            target_cell = None
-                            if current_cell.grid.is_abstract_grid:
-                                target_cell = current_cell
+                            target_location = None
+                            if (
+                                current_cell.location.get_world_handler().is_abstract_world()
+                            ):
+                                target_location = current_cell.location
                             else:
-                                target_cell = status.strategic_map_grid.find_cell(
+                                target_location = current_cell.location.get_world_handler().find_location(
                                     status.minimap_grid.center_x,
                                     status.minimap_grid.center_y,
-                                )  # center
-                            if not current_grid in status.displayed_mob.grids:
+                                )
+                            if (
+                                current_grid.world_handler
+                                != status.displayed_mob.get_location().get_world_handler()
+                            ):
                                 status.displayed_mob.end_turn_destination = (
-                                    target_cell.tile
+                                    target_location
                                 )
                                 status.displayed_mob.set_permission(
                                     constants.TRAVELING_PERMISSION, True
@@ -490,13 +495,13 @@ def manage_lmb_down(clicked_button):
                                 flags.show_selection_outlines = True
                                 constants.last_selection_outline_switch = (
                                     constants.current_time
-                                )  # outlines should be shown immediately once destination is chosen
+                                )  # Outlines should be shown immediately once destination is chosen
                                 status.displayed_mob.remove_from_turn_queue()
                                 status.displayed_mob.select()
-                                status.displayed_mob.images[
+                                status.displayed_mob.get_location().attached_cells[
                                     0
-                                ].current_cell.tile.select()
-                            else:  # cannot move to same continent
+                                ].tile.select()
+                            else:  # Cannot move to same world
                                 actor_utility.calibrate_actor_info_display(
                                     status.mob_info_display, None
                                 )
@@ -625,19 +630,14 @@ def click_move_minimap():
         if current_grid.showing:
             for current_cell in current_grid.get_flat_cell_list():
                 if current_cell.touching_mouse():
-                    if (
-                        current_grid in status.strategic_map_grid.mini_grids
-                    ):  # If minimap clicked, calibrate to corresponding place on main map and all mini maps
-                        main_x, main_y = current_grid.get_main_grid_coordinates(
-                            current_cell.x, current_cell.y
-                        )
-                        current_grid.calibrate(main_x, main_y)
-                    elif current_grid == status.strategic_map_grid:
-                        status.minimap_grid.calibrate(current_cell.x, current_cell.y)
-                    else:  # If abstract grid, show the inventory of the tile clicked without calibrating minimap
-                        actor_utility.calibrate_actor_info_display(
-                            status.tile_info_display, current_grid.cell_list[0][0].tile
-                        )
+                    absolute_x, absolute_y = current_cell.grid.get_absolute_coordinates(
+                        current_cell.x, current_cell.y
+                    )
+                    for attached_cell in current_cell.location.attached_cells:
+                        attached_cell.grid.calibrate(absolute_x, absolute_y)
+                    actor_utility.calibrate_actor_info_display(
+                        status.tile_info_display, current_cell.tile
+                    )
                     return
 
 

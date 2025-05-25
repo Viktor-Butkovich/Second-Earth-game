@@ -15,8 +15,7 @@ from modules.util import (
     tutorial_utility,
     scaling,
 )
-from modules.interface_types import world_grids
-from modules.constructs import unit_types, world_handlers
+from modules.constructs import unit_types
 from modules.constants import constants, status, flags
 
 
@@ -536,14 +535,6 @@ class save_load_manager_template:
 
         self.create_grids()
 
-        # for grid_type in constants.grid_types_list:
-        #    world_grids.create_grid(from_save=False, grid_type=grid_type)
-
-        # game_transitions.create_strategic_map(from_save=False)
-        # status.minimap_grid.calibrate(
-        #    round(0.75 * status.strategic_map_grid.coordinate_width),
-        #    round(0.75 * status.strategic_map_grid.coordinate_height),
-        # )
         for current_item in status.item_types.values():
             if current_item.key == constants.CONSUMER_GOODS_ITEM:
                 market_utility.set_price(
@@ -767,8 +758,8 @@ class save_load_manager_template:
         status.item_prices_label.update_label()
 
         status.minimap_grid.calibrate(
-            round(0.75 * status.strategic_map_grid.coordinate_width),
-            round(0.75 * status.strategic_map_grid.coordinate_height),
+            round(0.75 * status.current_world.world_dimensions),
+            round(0.75 * status.current_world.world_dimensions),
         )
         actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
         actor_utility.calibrate_actor_info_display(status.tile_info_display, None)

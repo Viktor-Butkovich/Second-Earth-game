@@ -21,6 +21,8 @@ class settlement:
         Output:
             None
         """
+        return
+        # Rework settlements to be part of locations and saved with them
         self.x, self.y = input_dict["coordinates"]
         self.cell = status.strategic_map_grid.find_cell(self.x, self.y)
         self.cell.settlement = self

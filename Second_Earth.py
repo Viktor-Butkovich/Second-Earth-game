@@ -446,18 +446,18 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Possibly create_world is the reason for terrain not appearing?
 # Remove references to get_equivalent_tiles
 # Rework end_turn_move to be move to a location in a world by coordinate, rather than a cell in a grid
 # Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
+# Transfer hosted_images from tile to location
+# Transfer buildings from cell to location
+# Transfer contained_mobs from cell to location
+# Transfer tile inventory from cell to location
+# Transfer settlements from cell to location
 # Convert world creation process to be create world handler -> create locations for each coordinate
 #   Followed by independent process of creating grid with cells that can attach to locations
 #   Ideally, no world or location logic is tied to cells, and cells use observer pattern to update UI with subscribed locations
-# Have a global object for the main strategic world handler, which should be checked instead of the main strategic grid (status.strategic_map_grid)
-# Transfer tile inventory logic to location
-# Transfer contained_mob logic from cell to location - should eliminate issue of tracking mobs separately for each cell
-#   Also transfer has_unit, get_unit, get_best_combatant, etc. logic
-# Transfer all building/settlement logic from cell to location - should eliminate issue of duplicate building objects for each cell
-# Refactor most world_grid functionality to be handled by world_handler instead - grids and cells should only deal with actual rendering logic, not conceptual objects
 # Investigate water disappearing during terraforming - definitely occurs on Venus and Mars maps
 # Colonist upkeep should be oxygen, outputs CO2 - nitrogen is required in the construction of life support/dome systems, but is not directly involved in the upkeep process
 # Next major step is to add basic economic mechanics, now that the baseline terraforming is functional

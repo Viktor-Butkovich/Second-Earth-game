@@ -1375,7 +1375,7 @@ class world_handler:
                 )
 
         if not flags.loading:
-            status.strategic_map_grid.update_globe_projection(update_button=True)
+            status.current_world.update_globe_projection(update_button=True)
 
     def get_water_vapor_contributions(
         self, estimated_temperature: float = None
@@ -1560,7 +1560,7 @@ class world_handler:
                     }
                 )
         if not flags.loading:
-            status.strategic_map_grid.update_globe_projection(update_button=True)
+            status.current_world.update_globe_projection(update_button=True)
 
     def get_parameter(self, parameter_name: str) -> int:
         """
@@ -2269,20 +2269,3 @@ class world_handler:
                 - location.get_expected_temperature()
             )
         self.average_temperature = utility.reverse_fahrenheit(fahrenheit)
-
-
-class full_world_handler(world_handler):
-    def __init__(self, from_save: bool, input_dict: Dict[str, any]) -> None:
-        super().__init__(from_save, input_dict)
-
-
-class abstract_world_handler(world_handler):
-    def __init__(self, from_save: bool, input_dict: Dict[str, any]) -> None:
-        self.abstract_world_type = input_dict["abstract_world_type"]
-        super().__init__(from_save, input_dict)
-
-    def is_abstract_world(self) -> bool:
-        return True
-
-    def is_earth(self) -> bool:
-        return self.abstract_world_type == constants.EARTH

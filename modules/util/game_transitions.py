@@ -138,15 +138,14 @@ def set_game_mode(new_game_mode):
                     status.tile_info_display, status.earth_grid.cell_list[0][0].tile
                 )  # Calibrate tile info to Earth
             elif new_game_mode == constants.STRATEGIC_MODE:
-                if status.strategic_map_grid:
-                    centered_cell = status.strategic_map_grid.find_cell(
+                if status.current_world:
+                    centered_location = status.current_world.find_location(
                         status.minimap_grid.center_x, status.minimap_grid.center_y
                     )
-                    if centered_cell.tile:
-                        actor_utility.calibrate_actor_info_display(
-                            status.tile_info_display, centered_cell.tile
-                        )
-                        # Calibrate tile info to minimap center
+                    actor_utility.calibrate_actor_info_display(
+                        status.tile_info_display,
+                        centered_location.attached_cells[0].tile,
+                    )  # Calibrate tile info to minimap center
     if new_game_mode == constants.MINISTERS_MODE:
         constants.available_minister_left_index = -2
         minister_utility.update_available_minister_display()

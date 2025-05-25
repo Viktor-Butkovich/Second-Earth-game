@@ -495,7 +495,7 @@ class mini_grid(grid):
                 ) in status.directional_indicator_image_list:
                     directional_indicator_image.calibrate()
         if self == status.scrolling_strategic_map_grid:
-            status.strategic_map_grid.update_globe_projection()
+            status.current_world.update_globe_projection()
 
     def get_absolute_coordinates(self, mini_x, mini_y):
         """
@@ -536,14 +536,14 @@ class mini_grid(grid):
         return (
             (
                 int(original_x - self.center_x + (round(self.coordinate_width - 1) / 2))
-                % status.strategic_map_grid.coordinate_width
+                % status.current_world.world_dimensions
             )
             % self.coordinate_width,
             (
                 int(
                     original_y - self.center_y + round((self.coordinate_height - 1) / 2)
                 )
-                % status.strategic_map_grid.coordinate_height
+                % status.current_world.world_dimensions
             )
             % self.coordinate_height,
         )

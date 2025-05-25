@@ -439,12 +439,8 @@ class combat(action.action):
             )  # do action set up if defense skipped to middle stage
             if self.current_unit.sentry_mode:
                 self.current_unit.set_sentry_mode(False)
-            if status.strategic_map_grid in self.current_unit.grids:
-                status.minimap_grid.calibrate(self.current_unit.x, self.current_unit.y)
-                self.current_unit.select()
-                actor_utility.calibrate_actor_info_display(
-                    status.mob_info_display, self.current_unit
-                )  # should solve issue with incorrect unit displayed during combat causing issues with combat notifications
+            self.current_unit.select()
+
         else:
             self.current_unit.clear_attached_cell_icons()
             self.current_unit.move(self.x_change, self.y_change, True)

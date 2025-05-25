@@ -78,8 +78,8 @@ def get_building_cost(builder, building_type, building_name="n/a"):
         cost_multiplier = 1
     elif (
         not builder
-    ) or builder.get_location().get_world_handler() != status.strategic_map_grid:
-        cost_multiplier = 1
+    ) or builder.get_location().get_world_handler().is_abstract_world():
+        cost_multiplier = 1  # Abstract world has no terrain for multiplier
     else:
         cost_multiplier = constants.terrain_build_cost_multiplier_dict.get(
             builder.get_location().terrain, 1

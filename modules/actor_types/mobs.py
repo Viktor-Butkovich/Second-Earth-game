@@ -1102,13 +1102,13 @@ class mob(actor):
             )
 
         if self.end_turn_destination:
-            if self.end_turn_destination.cell.grid == status.strategic_map_grid:
+            if not self.end_turn_destination.get_world_handler().is_abstract_world():
                 tooltip_list.append(
-                    f"This unit has been issued an order to travel to ({self.end_turn_destination.cell.x}, {self.end_turn_destination.cell.y}) on {status.strategic_map_grid.world_handler.name} at the end of the turn"
+                    f"This unit has been issued an order to travel to ({self.end_turn_destination.x}, {self.end_turn_destination.y}) on {self.end_turn_destination.get_world_handler().name} at the end of the turn"
                 )
             else:
                 tooltip_list.append(
-                    f"This unit has been issued an order to travel to {self.end_turn_destination.cell.get_location().get_world_handler().name} at the end of the turn"
+                    f"This unit has been issued an order to travel to {self.end_turn_destination.get_world_handler().name} at the end of the turn"
                 )
 
         if self.get_permission(constants.NPMOB_PERMISSION):

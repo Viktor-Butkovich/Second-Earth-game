@@ -1623,7 +1623,7 @@ class automatic_route_button(button):
         """
         attached_mob = status.displayed_mob
         if main_loop_utility.action_possible():
-            if status.strategic_map_grid in attached_mob.grids:
+            if not attached_mob.get_location().get_world_handler().is_abstract_world():
                 if self.button_type == constants.CLEAR_AUTOMATIC_ROUTE_BUTTON:
                     attached_mob.clear_automatic_route()
 

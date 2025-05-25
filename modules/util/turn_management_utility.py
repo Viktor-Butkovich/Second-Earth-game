@@ -82,14 +82,12 @@ def start_player_turn(first_turn=False):
             manage_financial_report()
         actor_utility.reset_action_prices()
         game_end_check()
-        status.strategic_map_grid.world_handler.update_clouds()
+        status.current_world.update_clouds()
         for i in range(5):  # Change to equilibrium
-            status.strategic_map_grid.world_handler.update_target_average_temperature(
-                update_albedo=True
-            )
-            status.strategic_map_grid.world_handler.change_to_temperature_target()
-        status.strategic_map_grid.world_handler.update_sky_color(update_water=True)
-        status.strategic_map_grid.world_handler.update_clouds()
+            status.current_world.update_target_average_temperature(update_albedo=True)
+            status.current_world.change_to_temperature_target()
+        status.current_world.update_sky_color(update_water=True)
+        status.current_world.update_clouds()
         constants.notification_manager.set_lock(False)
 
     flags.player_turn = (
@@ -139,17 +137,14 @@ def prepare_planet_rotation():
     (
         center_index,
         latitude_lines,
-    ) = status.strategic_map_grid.world_handler.get_latitude_line(center_coordinates)
-    if latitude_lines == status.strategic_map_grid.world_handler.latitude_lines:
+    ) = status.current_world.get_latitude_line(center_coordinates)
+    if latitude_lines == status.current_world.latitude_lines:
         constants.TIME_PASSING_EQUATORIAL_COORDINATES = (
-            status.strategic_map_grid.world_handler.equatorial_coordinates
+            status.current_world.equatorial_coordinates
         )
-    elif (
-        latitude_lines
-        == status.strategic_map_grid.world_handler.alternate_latitude_lines
-    ):
+    elif latitude_lines == status.current_world.alternate_latitude_lines:
         constants.TIME_PASSING_EQUATORIAL_COORDINATES = (
-            status.strategic_map_grid.world_handler.alternate_equatorial_coordinates
+            status.current_world.alternate_equatorial_coordinates
         )
     constants.TIME_PASSING_EARTH_ROTATIONS = 0
     constants.TIME_PASSING_ROTATION = 0
@@ -161,7 +156,7 @@ def prepare_planet_rotation():
             )
             break
 
-    if status.strategic_map_grid.world_handler.rotation_speed > 2:
+    if status.current_world.rotation_speed > 2:
         frame_interval = (
             3  # Long interval causes more visible choppiness on slower rotations
         )
@@ -179,13 +174,13 @@ def prepare_planet_rotation():
     # Each full rotation requires # transitions equal to # frames
 
     constants.TIME_PASSING_EARTH_SCHEDULE = [False] * total_timesteps
-    num_earth_rotations = status.strategic_map_grid.get_tuning("earth_rotation_speed")
+    num_earth_rotations = constants.terrain_manager.get_tuning("earth_rotation_speed")
     earth_step_interval = total_timesteps / (earth_frames * num_earth_rotations)
     for i in range(round(earth_frames * num_earth_rotations)):
         constants.TIME_PASSING_EARTH_SCHEDULE[round(i * earth_step_interval)] = True
 
     constants.TIME_PASSING_PLANET_SCHEDULE = [False] * total_timesteps
-    num_planet_rotations = status.strategic_map_grid.world_handler.rotation_speed
+    num_planet_rotations = status.current_world.rotation_speed
     planet_step_interval = total_timesteps / (planet_frames * num_planet_rotations)
     for i in range(round(planet_frames * num_planet_rotations)):
         constants.TIME_PASSING_PLANET_SCHEDULE[round(i * planet_step_interval)] = True
@@ -249,9 +244,10 @@ def manage_attrition():
         if current_pmob.get_held_items():
             current_pmob.manage_inventory_attrition()
 
-    for current_tile in status.main_tile_list:
-        if current_tile.get_held_items():
-            current_tile.manage_inventory_attrition()
+    for current_world in status.world_list:
+        for current_location in current_world.get_flat_location_list():
+            if current_location.attached_cells[0].tile.get_held_items():
+                current_location.attached_cells[0].tile.manage_inventory_attrition()
 
 
 def manage_logistics_report() -> None:
@@ -307,15 +303,16 @@ def manage_logistics_report() -> None:
 def remove_excess_inventory():
     """
     Description:
-        Removes any items that exceed their tile's storage capacities
+        Removes any items that exceed their location's storage capacities
     Input:
         None
     Output:
         None
     """
-    for current_tile in status.main_tile_list:
-        if current_tile.inventory:
-            current_tile.remove_excess_inventory()
+    for current_world in status.world_list:
+        for current_location in current_world.get_flat_location_list():
+            if current_location.attached_cells[0].tile.inventory:
+                current_location.attached_cells[0].tile.remove_excess_inventory()
 
 
 def manage_environmental_conditions():
@@ -427,29 +424,30 @@ def manage_upkeep_expenditure() -> None:
     Output:
         None
     """
-    for current_tile in [
-        current_tile
-        for current_tile in status.main_tile_list
-        if current_tile.cell.contained_mobs
-    ]:
-        item_upkeep = current_tile.get_item_upkeep(recurse=True)
-        item_request = current_tile.create_item_request(item_upkeep)
-        unfulfilled_item_request = current_tile.fulfill_item_request(
-            item_request.copy()
-        )
-        if constants.effect_manager.effect_active("track_item_requests"):
-            if current_tile.show_terrain:
-                name = f"({current_tile.x}, {current_tile.y})"
-            else:
-                name = current_tile.name.capitalize()
-            print(f"{name} total upkeep {item_upkeep}")
-            print(f"{name} requesting external {item_request}")
-            print(f"{name} unfulfilled external requests {unfulfilled_item_request}")
-        for current_mob in current_tile.cell.contained_mobs:
-            current_mob.check_item_availability()
-        for current_mob in current_tile.cell.contained_mobs:
-            current_mob.consume_item_upkeep()
-        current_tile.set_inventory(status.item_types[constants.ENERGY_ITEM], 0)
+    for current_world in status.world_list:
+        for current_location in current_world.get_flat_location_list():
+            if current_location.attached_cells[0].contained_mobs:
+                current_tile = current_location.attached_cells[0].tile
+                item_upkeep = current_tile.get_item_upkeep(recurse=True)
+                item_request = current_tile.create_item_request(item_upkeep)
+                unfulfilled_item_request = current_tile.fulfill_item_request(
+                    item_request.copy()
+                )
+                if constants.effect_manager.effect_active("track_item_requests"):
+                    if current_tile.show_terrain:
+                        name = f"({current_tile.x}, {current_tile.y})"
+                    else:
+                        name = current_tile.name.capitalize()
+                    print(f"{name} total upkeep {item_upkeep}")
+                    print(f"{name} requesting external {item_request}")
+                    print(
+                        f"{name} unfulfilled external requests {unfulfilled_item_request}"
+                    )
+                for current_mob in current_tile.cell.contained_mobs:
+                    current_mob.check_item_availability()
+                for current_mob in current_tile.cell.contained_mobs:
+                    current_mob.consume_item_upkeep()
+                current_tile.set_inventory(status.item_types[constants.ENERGY_ITEM], 0)
 
     total_money_upkeep = market_utility.calculate_total_worker_upkeep()
     constants.money_tracker.change(round(-1 * total_money_upkeep, 2), "worker_upkeep")
@@ -846,7 +844,7 @@ def end_turn_warnings():
     for (
         current_location
     ) in (
-        status.strategic_map_grid.world_handler.get_flat_location_list()
+        status.current_world.get_flat_location_list()
     ):  #  Warn for insufficient warehouses on planet
         if (
             current_location.visible
@@ -938,35 +936,34 @@ def end_turn_warnings():
             )
             break
 
-    for current_tile in [
-        current_tile
-        for current_tile in status.main_tile_list
-        if current_tile.cell.contained_mobs
-    ]:
-        item_upkeep = current_tile.get_item_upkeep(recurse=True)
-        item_request = current_tile.create_item_request(item_upkeep)
-        if constants.ENERGY_ITEM in item_request:
-            missing_fuel = current_tile.create_item_request(
-                {constants.FUEL_ITEM: item_request[constants.ENERGY_ITEM]}
-            ).get(constants.FUEL_ITEM, 0)
-            if missing_fuel == 0:
-                del item_request[constants.ENERGY_ITEM]
-            else:
-                item_request[constants.ENERGY_ITEM] = missing_fuel
-        if (
-            item_request
-        ):  # For each tile that cannot meet its upkeep requirements, issue a warning
-            if current_tile.show_terrain and current_tile.name == "default":
-                name = f"({current_tile.x}, {current_tile.y})"
-            else:
-                name = current_tile.name.capitalize()
-            text = f"WARNING: {name} does not have enough items to meet its local upkeep requirements. /n /n"
-            text += f"Required items: {actor_utility.summarize_amount_dict(item_upkeep)} /n /n"
-            text += f"Missing items: {actor_utility.summarize_amount_dict(item_request)} /n /n"
-            text += f"Depending on item type, this deficit may result in unit death or morale penalties. /n /n"
-            constants.notification_manager.display_notification(
-                {
-                    "message": text,
-                    "zoom_destination": current_tile,
-                }
-            )
+    for current_world in status.world_list:
+        for current_location in current_world.get_flat_location_list():
+            if current_location.attached_cells[0].contained_mobs:
+                current_tile = current_location.attached_cells[0].tile
+                item_upkeep = current_tile.get_item_upkeep(recurse=True)
+                item_request = current_tile.create_item_request(item_upkeep)
+                if constants.ENERGY_ITEM in item_request:
+                    missing_fuel = current_tile.create_item_request(
+                        {constants.FUEL_ITEM: item_request[constants.ENERGY_ITEM]}
+                    ).get(constants.FUEL_ITEM, 0)
+                    if missing_fuel == 0:
+                        del item_request[constants.ENERGY_ITEM]
+                    else:
+                        item_request[constants.ENERGY_ITEM] = missing_fuel
+                if (
+                    item_request
+                ):  # For each tile that cannot meet its upkeep requirements, issue a warning
+                    if current_tile.show_terrain and current_tile.name == "default":
+                        name = f"({current_tile.x}, {current_tile.y})"
+                    else:
+                        name = current_tile.name.capitalize()
+                    text = f"WARNING: {name} does not have enough items to meet its local upkeep requirements. /n /n"
+                    text += f"Required items: {actor_utility.summarize_amount_dict(item_upkeep)} /n /n"
+                    text += f"Missing items: {actor_utility.summarize_amount_dict(item_request)} /n /n"
+                    text += f"Depending on item type, this deficit may result in unit death or morale penalties. /n /n"
+                    constants.notification_manager.display_notification(
+                        {
+                            "message": text,
+                            "zoom_destination": current_tile,
+                        }
+                    )

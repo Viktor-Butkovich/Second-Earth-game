@@ -1,18 +1,14 @@
-# Contains functionality for world grids and creating grid objects
-
-import math
 import pygame
-from typing import Dict, List, Tuple
-from modules.interface_types.grids import grid
+import math
+from typing import List, Dict, Tuple
 from modules.util import actor_utility
 from modules.constructs import world_handlers
-from modules.constants import constants, status
+from modules.constants import constants, status, flags
 
 
-class world_grid(grid):
-    """
-    Grid representing the "single source of truth" for a particular world, containing original cells and terrain/world parameters
-    """
+class full_world_handler(world_handlers.world_handler):
+    def __init__(self, from_save: bool, input_dict: Dict[str, any]) -> None:
+        super().__init__(from_save, input_dict)
 
     def update_globe_projection(
         self, center_coordinates: Tuple[int, int] = None, update_button: bool = True
@@ -27,9 +23,7 @@ class world_grid(grid):
             None
         """
         status.globe_projection_image.set_image(
-            status.strategic_map_grid.create_planet_image(
-                center_coordinates=center_coordinates
-            )
+            self.create_planet_image(center_coordinates)
         )
         status.globe_projection_surface = status.globe_projection_image.image
         size = status.globe_projection_surface.get_size()
@@ -65,52 +59,6 @@ class world_grid(grid):
                 ]
             )
 
-    def create_map_image(self):
-        """
-        Description:
-            Creates and returns a map image of this grid
-        Input:
-            None
-        Output:
-            List: List of images representing this grid - approximation of very zoomed out grid
-        """
-        return_list = []
-        for current_cell in self.get_flat_cell_list():
-            if constants.current_map_mode == "terrain":
-                image_id = current_cell.tile.get_image_id_list()[0]
-            else:
-                image_id = current_cell.tile.get_image_id_list()[-1]
-            if type(image_id) == str:
-                image_id = {
-                    "image_id": image_id,
-                }
-            origin = (
-                status.scrolling_strategic_map_grid.center_x
-                - self.coordinate_width // 2,
-                status.scrolling_strategic_map_grid.center_y
-                - self.coordinate_height // 2,
-            )
-            effective_x = (
-                current_cell.x - origin[0]
-            ) % status.scrolling_strategic_map_grid.coordinate_width
-            effective_y = (
-                current_cell.y - origin[1]
-            ) % status.scrolling_strategic_map_grid.coordinate_height
-            image_id.update(
-                {
-                    "x_offset": effective_x / self.coordinate_width
-                    - 0.5
-                    + (0.7 / self.coordinate_width),
-                    "y_offset": effective_y / self.coordinate_height
-                    - 0.5
-                    + (0.4 / self.coordinate_height),
-                    "x_size": 1.05 / self.coordinate_width,
-                    "y_size": 1.05 / self.coordinate_height,
-                }
-            )
-            return_list.append(image_id)
-        return return_list
-
     def create_planet_image(self, center_coordinates: Tuple[int, int] = None):
         """
         Description:
@@ -121,14 +69,13 @@ class world_grid(grid):
             list: Image ID list of each point of the global projection of the planet
         """
         if not center_coordinates:
-            center_coordinates = (
+            center_coordinates = (  # Required here since globe appearance is actually determined based on the state of the interface
                 status.scrolling_strategic_map_grid.center_x,
                 status.scrolling_strategic_map_grid.center_y,
             )
         index, latitude_lines = self.world_handler.get_latitude_line(center_coordinates)
 
-        planet_width = len(latitude_lines)
-        offset_width = planet_width // 2
+        offset_width = self.world_dimensions // 2
         largest_size = len(
             max(
                 self.world_handler.latitude_lines
@@ -156,7 +103,7 @@ class world_grid(grid):
                 longitude_bulge_factor = (offset / offset_width) ** 0.5
 
                 return_list += self.draw_latitude_line(
-                    latitude_lines[(index + offset) % planet_width],
+                    latitude_lines[(index + offset) % self.world_dimensions],
                     largest_size,
                     longitude_bulge_factor=longitude_bulge_factor,
                     level=offset + 20,
@@ -165,7 +112,7 @@ class world_grid(grid):
                     offset_width=offset_width,
                 )
                 return_list += self.draw_latitude_line(
-                    latitude_lines[(index - offset) % planet_width],
+                    latitude_lines[(index - offset) % self.world_dimensions],
                     largest_size,
                     longitude_bulge_factor=-1 * longitude_bulge_factor,
                     level=(-1 * offset) + 20,

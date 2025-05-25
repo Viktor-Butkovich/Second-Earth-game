@@ -3279,7 +3279,7 @@ class map_mode_button(button):
         for grid in status.grid_list:
             for cell in grid.get_flat_cell_list():
                 cell.tile.update_image_bundle()
-        status.strategic_map_grid.update_globe_projection()
+        status.current_world.update_globe_projection()
         actor_utility.calibrate_actor_info_display(
             status.tile_info_display, status.displayed_tile
         )

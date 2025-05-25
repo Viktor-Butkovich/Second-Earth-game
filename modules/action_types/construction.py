@@ -118,7 +118,7 @@ class construction(action.action):
 
         if (
             status.displayed_mob
-            and status.strategic_map_grid in status.displayed_mob.grids
+            and not status.displayed_mob.get_location().get_world_handler().is_earth()
         ):
             terrain = status.displayed_mob.get_location().terrain
             if not self.building_type.key in [constants.TRAIN]:
@@ -324,7 +324,7 @@ class construction(action.action):
                     text_utility.print_to_screen(
                         f"This tile already contains a {self.building_name} building."
                     )
-            elif not status.strategic_map_grid in unit.grids:
+            elif unit.get_location().get_world_handler().is_earth():
                 text_utility.print_to_screen(
                     "This building can only be built on the planet."
                 )

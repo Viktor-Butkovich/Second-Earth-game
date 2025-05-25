@@ -1632,7 +1632,7 @@ class actor_display_label(label):
             elif self.actor_label_type == constants.AVERAGE_WATER_LABEL:
                 original_value = (
                     self.actor.grid.world_handler.average_water
-                    / status.strategic_map_grid.get_tuning("earth_average_water_target")
+                    / constants.terrain_manager.get_tuning("earth_average_water_target")
                 )
                 if original_value != 0 and round(original_value * 100) == 0:
                     original_value = 0.01

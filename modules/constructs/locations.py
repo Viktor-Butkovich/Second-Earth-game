@@ -566,7 +566,7 @@ class location:
         ):
             self.set_terrain(new_terrain)
             if update_display and not flags.loading:
-                status.strategic_map_grid.update_globe_projection()
+                status.current_world.update_globe_projection()
 
         if status.displayed_tile and status.displayed_tile.cell in self.attached_cells:
             actor_utility.calibrate_actor_info_display(
