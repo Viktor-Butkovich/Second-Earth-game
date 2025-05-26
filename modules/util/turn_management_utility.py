@@ -25,7 +25,7 @@ def end_turn():
     Output:
         None
     """
-    actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
+    actor_utility.calibrate_actor_info_display(status.location_info_display, None)
     actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
     flags.player_turn = False
     status.player_turn_queue = []
@@ -103,7 +103,7 @@ def start_player_turn(first_turn=False):
         calibrate_center=False,
     )
     actor_utility.calibrate_actor_info_display(
-        status.tile_info_display, status.displayed_tile
+        status.location_info_display, status.displayed_location
     )
     actor_utility.calibrate_actor_info_display(
         status.mob_info_display, status.displayed_mob

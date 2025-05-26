@@ -670,7 +670,7 @@ def building_types_config():
             "key": constants.SPACEPORT,
             "name": "spaceport",
             "description": [
-                "A spaceport allows spaceships to land and launch, and expands the tile's warehouse capacity."
+                "A spaceport allows spaceships to land and launch, and expands the location's warehouse capacity."
             ],
             "warehouse_level": 1,
             "can_construct": True,
@@ -686,7 +686,7 @@ def building_types_config():
             "key": constants.TRAIN_STATION,
             "name": "train station",
             "description": [
-                "A train station allows trains to pick up or drop off cargo, and expands the tile's warehouse capacity.",
+                "A train station allows trains to pick up or drop off cargo, and expands the location's warehouse capacity.",
             ],
             "warehouse_level": 1,
             "can_construct": True,
@@ -710,7 +710,7 @@ def building_types_config():
     #        "can_damage": True,
     #        "cost": 10,
     #        "description": [
-    #            "A resource production facility allows attaching work crews to attempt to produce resources each turn, and expands the tile's warehouse capacity.",
+    #            "A resource production facility allows attaching work crews to attempt to produce resources each turn, and expands the location's warehouse capacity.",
     #            "Upgrades can increase the maximum number of attached work crews and the number of production attempts each work crew can make.",
     #        ],
     #        "upgrade_fields": {
@@ -740,7 +740,7 @@ def building_types_config():
             "key": constants.FORT,
             "name": "fort",
             "description": [
-                "A fort grants a +1 combat modifier to your units fighting in this tile."
+                "A fort grants a +1 combat modifier to your units fighting in this location."
             ],
             "can_construct": True,
             "can_damage": True,
@@ -792,18 +792,10 @@ def building_types_config():
                     "cost": constants.base_upgrade_price,
                     "keybind": pygame.K_k,
                     "description": [
-                        "Each increase to warehouse capacity increases this tile's inventory capacity by 9."
+                        "Each increase to warehouse capacity increases this location's inventory capacity by 9."
                     ],
                 },
             },
-        }
-    )
-    building_types.building_type(
-        {
-            "key": constants.SLUMS,
-            "name": "slums",
-            "can_construct": False,
-            "can_damage": False,
         }
     )
     # building_types.building_type(
@@ -890,7 +882,7 @@ def unit_types_config():
                 "recruitment_cost": 5,
                 "description": [
                     f"Explorers are controlled by the {status.minister_types[constants.SCIENCE_MINISTER].name}.",
-                    "An explorer combines with colonists to form an expedition, which can explore new tiles.",
+                    "An explorer combines with colonists to form an expedition, which can explore new locations.",
                 ],
             },
         ).link_group_type(status.unit_types[constants.EXPEDITION])
@@ -2662,16 +2654,16 @@ def mob_sub_interface():
                 constants.actor_creation_manager.create_interface_element(input_dict)
 
 
-def tile_interface():
+def location_interface():
     """
     Description:
-        Initializes tile selection interface
+        Initializes location selection interface
     Input:
         None
     Output:
         None
     """
-    status.tile_info_display = constants.actor_creation_manager.create_interface_element(
+    status.location_info_display = constants.actor_creation_manager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, 0),  # (0, -400),
             "width": scaling.scale_width(775),
@@ -2679,8 +2671,8 @@ def tile_interface():
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ORDERED_COLLECTION,
             "is_info_display": True,
-            "actor_type": constants.TILE_ACTOR_TYPE,
-            "description": "tile information panel",
+            "actor_type": constants.LOCATION_ACTOR_TYPE,
+            "description": "location information panel",
             "parent_collection": status.info_displays_collection,
             # "member_config": {
             #     "order_exempt": True,
@@ -2689,14 +2681,14 @@ def tile_interface():
     )
 
     separation = scaling.scale_height(3)
-    same_tile_ordered_collection = (
+    same_location_ordered_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(120, 0),
                 "width": 10,
                 "height": 10,
                 "init_type": constants.ORDERED_COLLECTION,
-                "parent_collection": status.tile_info_display,
+                "parent_collection": status.location_info_display,
                 "member_config": {"order_exempt": True},
                 "separation": separation,
             }
@@ -2708,63 +2700,65 @@ def tile_interface():
         "width": scaling.scale_width(25),
         "height": scaling.scale_height(25),
         "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-        "init_type": constants.SAME_TILE_ICON,
+        "init_type": constants.SAME_LOCATION_ICON,
         "image_id": "buttons/default_button.png",
         "is_last": False,
         "color": constants.COLOR_GRAY,
-        "parent_collection": same_tile_ordered_collection,
+        "parent_collection": same_location_ordered_collection,
     }
 
     for i in range(0, 3):  # add button to cycle through
         input_dict["index"] = i
-        same_tile_icon = constants.actor_creation_manager.create_interface_element(
+        same_location_icon = constants.actor_creation_manager.create_interface_element(
             input_dict
         )
 
-    same_tile_icon = constants.actor_creation_manager.create_interface_element(
+    same_location_icon = constants.actor_creation_manager.create_interface_element(
         {
             "coordinates": (0, 0),
             "width": scaling.scale_width(25),
             "height": scaling.scale_height(15),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-            "init_type": constants.SAME_TILE_ICON,
+            "init_type": constants.same_location_icon,
             "image_id": "buttons/default_button.png",
             "index": 3,
             "is_last": True,
             "color": constants.COLOR_GRAY,
-            "parent_collection": same_tile_ordered_collection,
+            "parent_collection": same_location_ordered_collection,
         }
     )
 
-    cycle_same_tile_button = constants.actor_creation_manager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(0, separation),
-            "width": scaling.scale_width(25),
-            "height": scaling.scale_height(15),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-            "image_id": "buttons/cycle_passengers_down_button.png",
-            "init_type": constants.CYCLE_SAME_TILE_BUTTON,
-            "parent_collection": same_tile_ordered_collection,
-        }
+    cycle_same_location_button = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, separation),
+                "width": scaling.scale_width(25),
+                "height": scaling.scale_height(15),
+                "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+                "image_id": "buttons/cycle_passengers_down_button.png",
+                "init_type": constants.CYCLE_SAME_LOCATION_BUTTON,
+                "parent_collection": same_location_ordered_collection,
+            }
+        )
     )
 
-    # tile background image's tooltip
-    tile_free_image_background_tooltip = (
+    # location background image's tooltip
+    location_free_image_background_tooltip = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(0, 0),
                 "minimum_width": scaling.scale_width(115),
                 "height": scaling.scale_height(115),
                 "image_id": "misc/empty.png",
-                "actor_type": constants.TILE_ACTOR_TYPE,
+                "actor_type": constants.LOCATION_ACTOR_TYPE,
                 "init_type": constants.ACTOR_TOOLTIP_LABEL,
-                "parent_collection": status.tile_info_display,
+                "parent_collection": status.location_info_display,
                 "member_config": {"order_overlap": True},
             }
         )
     )
 
-    tile_image = constants.actor_creation_manager.create_interface_element(
+    location_image = constants.actor_creation_manager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(5, 5),
             "width": scaling.scale_width(115),
@@ -2772,12 +2766,12 @@ def tile_interface():
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "actor_image_type": "default",
             "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
-            "parent_collection": status.tile_info_display,
+            "parent_collection": status.location_info_display,
             "member_config": {"order_overlap": False},
         }
     )
 
-    # tile info labels setup
+    # location info labels setup
     for current_actor_label_type in [
         constants.COORDINATES_LABEL,
         constants.TERRAIN_LABEL,
@@ -2794,8 +2788,8 @@ def tile_interface():
             ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
-            "actor_type": constants.TILE_ACTOR_TYPE,
-            "parent_collection": status.tile_info_display,
+            "actor_type": constants.LOCATION_ACTOR_TYPE,
+            "parent_collection": status.location_info_display,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
         if current_actor_label_type == constants.TERRAIN_FEATURE_LABEL:
@@ -2810,7 +2804,7 @@ def tile_interface():
 
     tab_collection_relative_coordinates = (420, -30)
 
-    status.tile_tabbed_collection = (
+    status.location_tabbed_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "coordinates": scaling.scale_coordinates(
@@ -2820,9 +2814,9 @@ def tile_interface():
                 "width": scaling.scale_width(0),
                 "height": scaling.scale_height(0),
                 "init_type": constants.TABBED_COLLECTION,
-                "parent_collection": status.tile_info_display,
+                "parent_collection": status.location_info_display,
                 "member_config": {"order_exempt": True},
-                "description": "tile information tabs",
+                "description": "location information tabs",
             }
         )
     )
@@ -2831,7 +2825,7 @@ def tile_interface():
 def inventory_interface():
     """
     Description:
-        Initializes the item prices display and both mob/tile tabbed collections and inventory interfaces
+        Initializes the item prices display and both mob/location tabbed collections and inventory interfaces
     Input:
         None
     Output:
@@ -2988,7 +2982,7 @@ def inventory_interface():
                 "height": scaling.scale_height(90),
                 "image_id": "misc/empty.png",
                 "init_type": constants.ACTOR_TOOLTIP_LABEL,
-                "actor_type": constants.TILE_ACTOR_TYPE,
+                "actor_type": constants.MOB_ACTOR_TYPE,
                 "parent_collection": status.mob_inventory_info_display,
                 "member_config": {"order_overlap": True},
             }
@@ -3008,40 +3002,45 @@ def inventory_interface():
         }
     )
 
-    tile_scroll_up_button = constants.actor_creation_manager.create_interface_element(
-        {
-            "width": inventory_cell_width,
-            "height": inventory_cell_height,
-            "parent_collection": status.mob_inventory_grid,
-            "image_id": "buttons/cycle_ministers_up_button.png",
-            "value_name": "inventory_page",
-            "increment": -1,
-            "member_config": {
-                "order_exempt": True,
-                "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
-                "y_offset": status.mob_inventory_grid.height
-                - ((inventory_cell_height + scaling.scale_height(5)) * 3)
-                + scaling.scale_height(5),
-            },
-            "init_type": constants.SCROLL_BUTTON,
-        }
+    location_scroll_up_button = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "width": inventory_cell_width,
+                "height": inventory_cell_height,
+                "parent_collection": status.mob_inventory_grid,
+                "image_id": "buttons/cycle_ministers_up_button.png",
+                "value_name": "inventory_page",
+                "increment": -1,
+                "member_config": {
+                    "order_exempt": True,
+                    "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
+                    "y_offset": status.mob_inventory_grid.height
+                    - ((inventory_cell_height + scaling.scale_height(5)) * 3)
+                    + scaling.scale_height(5),
+                },
+                "init_type": constants.SCROLL_BUTTON,
+            }
+        )
     )
 
-    tile_scroll_down_button = constants.actor_creation_manager.create_interface_element(
-        {
-            "width": inventory_cell_width,
-            "height": inventory_cell_height,
-            "parent_collection": status.mob_inventory_grid,
-            "image_id": "buttons/cycle_ministers_down_button.png",
-            "value_name": "inventory_page",
-            "increment": 1,
-            "member_config": {
-                "order_exempt": True,
-                "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
-                "y_offset": status.mob_inventory_grid.height - (inventory_cell_height),
-            },
-            "init_type": constants.SCROLL_BUTTON,
-        }
+    location_scroll_down_button = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "width": inventory_cell_width,
+                "height": inventory_cell_height,
+                "parent_collection": status.mob_inventory_grid,
+                "image_id": "buttons/cycle_ministers_down_button.png",
+                "value_name": "inventory_page",
+                "increment": 1,
+                "member_config": {
+                    "order_exempt": True,
+                    "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
+                    "y_offset": status.mob_inventory_grid.height
+                    - (inventory_cell_height),
+                },
+                "init_type": constants.SCROLL_BUTTON,
+            }
+        )
     )
 
     for current_actor_label_type in [
@@ -3062,13 +3061,13 @@ def inventory_interface():
         }
         constants.actor_creation_manager.create_interface_element(input_dict)
 
-    status.tile_inventory_collection = (
+    status.location_inventory_collection = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "width": scaling.scale_width(0),
                 "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
-                "parent_collection": status.tile_tabbed_collection,
+                "parent_collection": status.location_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
                     "button_image_id": [
@@ -3098,61 +3097,66 @@ def inventory_interface():
         "minimum_width": scaling.scale_width(10),
         "height": scaling.scale_height(constants.default_notification_font_size + 5),
         "image_id": "misc/default_label.png",
-        "init_type": constants.TILE_INVENTORY_CAPACITY_LABEL,
-        "actor_type": constants.TILE_ACTOR_TYPE,
-        "parent_collection": status.tile_inventory_collection,
+        "init_type": constants.LOCATION_INVENTORY_CAPACITY_LABEL,
+        "actor_type": constants.LOCATION_ACTOR_TYPE,
+        "parent_collection": status.location_inventory_collection,
     }
-    tile_inventory_capacity_label = (
+    location_inventory_capacity_label = (
         constants.actor_creation_manager.create_interface_element(input_dict)
     )
 
-    status.tile_inventory_grid = (
+    status.location_inventory_grid = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "width": scaling.scale_width(10),
                 "height": (inventory_cell_height + scaling.scale_height(5)) * 3,
                 "init_type": constants.INVENTORY_GRID,
-                "parent_collection": status.tile_inventory_collection,
+                "parent_collection": status.location_inventory_collection,
                 "second_dimension_increment": inventory_cell_width
                 + scaling.scale_height(5),
             }
         )
     )
 
-    tile_scroll_up_button = constants.actor_creation_manager.create_interface_element(
-        {
-            "width": inventory_cell_width,
-            "height": inventory_cell_height,
-            "parent_collection": status.tile_inventory_grid,
-            "image_id": "buttons/cycle_ministers_up_button.png",
-            "value_name": "inventory_page",
-            "increment": -1,
-            "member_config": {
-                "order_exempt": True,
-                "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
-                "y_offset": status.tile_inventory_grid.height
-                - ((inventory_cell_height + scaling.scale_height(5)) * 3)
-                + scaling.scale_height(5),
-            },
-            "init_type": constants.SCROLL_BUTTON,
-        }
+    location_scroll_up_button = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "width": inventory_cell_width,
+                "height": inventory_cell_height,
+                "parent_collection": status.location_inventory_grid,
+                "image_id": "buttons/cycle_ministers_up_button.png",
+                "value_name": "inventory_page",
+                "increment": -1,
+                "member_config": {
+                    "order_exempt": True,
+                    "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
+                    "y_offset": status.location_inventory_grid.height
+                    - ((inventory_cell_height + scaling.scale_height(5)) * 3)
+                    + scaling.scale_height(5),
+                },
+                "init_type": constants.SCROLL_BUTTON,
+            }
+        )
     )
 
-    tile_scroll_down_button = constants.actor_creation_manager.create_interface_element(
-        {
-            "width": inventory_cell_width,
-            "height": inventory_cell_height,
-            "parent_collection": status.tile_inventory_grid,
-            "image_id": "buttons/cycle_ministers_down_button.png",
-            "value_name": "inventory_page",
-            "increment": 1,
-            "member_config": {
-                "order_exempt": True,
-                "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
-                "y_offset": status.tile_inventory_grid.height - (inventory_cell_height),
-            },
-            "init_type": constants.SCROLL_BUTTON,
-        }
+    location_scroll_down_button = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "width": inventory_cell_width,
+                "height": inventory_cell_height,
+                "parent_collection": status.location_inventory_grid,
+                "image_id": "buttons/cycle_ministers_down_button.png",
+                "value_name": "inventory_page",
+                "increment": 1,
+                "member_config": {
+                    "order_exempt": True,
+                    "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
+                    "y_offset": status.location_inventory_grid.height
+                    - (inventory_cell_height),
+                },
+                "init_type": constants.SCROLL_BUTTON,
+            }
+        )
     )
 
     for current_index in range(27):
@@ -3162,57 +3166,59 @@ def inventory_interface():
                 "height": inventory_cell_height,
                 "image_id": "buttons/default_button.png",
                 "init_type": constants.ITEM_ICON,
-                "parent_collection": status.tile_inventory_grid,
+                "parent_collection": status.location_inventory_grid,
                 "icon_index": current_index,
-                "actor_type": constants.TILE_INVENTORY_ACTOR_TYPE,
+                "actor_type": constants.LOCATION_INVENTORY_ACTOR_TYPE,
                 "member_config": {
                     "second_dimension_coordinate": current_index % 9,
-                    "order_y_offset": status.tile_inventory_grid.height,
+                    "order_y_offset": status.location_inventory_grid.height,
                 },
             }
         )
 
-    status.tile_inventory_info_display = (
+    status.location_inventory_info_display = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "width": scaling.scale_width(0),
                 "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
-                "actor_type": constants.TILE_INVENTORY_ACTOR_TYPE,
-                "description": "tile inventory panel",
-                "parent_collection": status.tile_inventory_collection,
+                "actor_type": constants.LOCATION_INVENTORY_ACTOR_TYPE,
+                "description": "location inventory panel",
+                "parent_collection": status.location_inventory_collection,
                 "member_config": {"calibrate_exempt": True},
             }
         )
     )
 
-    # tile inventory background image's tooltip
-    tile_inventory_free_image_background_tooltip = (
+    # location inventory background image's tooltip
+    location_inventory_free_image_background_tooltip = (
         constants.actor_creation_manager.create_interface_element(
             {
                 "minimum_width": scaling.scale_width(90),
                 "height": scaling.scale_height(90),
                 "image_id": "misc/empty.png",
-                "actor_type": constants.TILE_ACTOR_TYPE,
+                "actor_type": constants.LOCATION_ACTOR_TYPE_ACTOR_TYPE,
                 "init_type": constants.ACTOR_TOOLTIP_LABEL,
-                "parent_collection": status.tile_inventory_info_display,
+                "parent_collection": status.location_inventory_info_display,
                 "member_config": {"order_overlap": True},
             }
         )
     )
 
-    tile_inventory_image = constants.actor_creation_manager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(5, 5),
-            "width": scaling.scale_width(90),
-            "height": scaling.scale_height(90),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-            "actor_image_type": "inventory_default",
-            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
-            "parent_collection": status.tile_inventory_info_display,
-            "member_config": {"order_overlap": False},
-        }
+    location_inventory_image = (
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(5, 5),
+                "width": scaling.scale_width(90),
+                "height": scaling.scale_height(90),
+                "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+                "actor_image_type": "inventory_default",
+                "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+                "parent_collection": status.location_inventory_info_display,
+                "member_config": {"order_overlap": False},
+            }
+        )
     )
 
     for current_actor_label_type in [
@@ -3227,8 +3233,8 @@ def inventory_interface():
             ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
-            "actor_type": constants.TILE_ACTOR_TYPE,
-            "parent_collection": status.tile_inventory_info_display,
+            "actor_type": constants.LOCATION_ACTOR_TYPE,
+            "parent_collection": status.location_inventory_info_display,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
         constants.actor_creation_manager.create_interface_element(input_dict)
@@ -3237,7 +3243,7 @@ def inventory_interface():
 def settlement_interface():
     """
     Description:
-        Initializes the settlement interface as part of the tile tabbed collection
+        Initializes the settlement interface as part of the location tabbed collection
     Input:
         None
     Output:
@@ -3250,7 +3256,7 @@ def settlement_interface():
                 "width": scaling.scale_width(0),
                 "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
-                "parent_collection": status.tile_tabbed_collection,
+                "parent_collection": status.location_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
                     "button_image_id": "buttons/crew_train_button.png",
@@ -3269,7 +3275,6 @@ def settlement_interface():
         constants.BUILDING_WORK_CREWS_LABEL,
         constants.CURRENT_BUILDING_WORK_CREW_LABEL,
         constants.FORT,
-        constants.SLUMS,
         # constants.INFRASTRUCTURE,
     ]:
         if current_actor_label_type in [
@@ -3292,7 +3297,7 @@ def settlement_interface():
                 constants.default_notification_font_size + 5
             ),
             "image_id": "misc/default_label.png",
-            "actor_type": constants.TILE_ACTOR_TYPE,
+            "actor_type": constants.LOCATION_ACTOR_TYPE,
             "parent_collection": status.settlement_collection,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
@@ -3319,7 +3324,7 @@ def settlement_interface():
 def terrain_interface():
     """
     Description:
-        Initializes the terrain interface as part of the tile tabbed collection
+        Initializes the terrain interface as part of the location tabbed collection
     Input:
         None
     Output:
@@ -3332,7 +3337,7 @@ def terrain_interface():
                 "width": scaling.scale_width(0),
                 "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
-                "parent_collection": status.tile_tabbed_collection,
+                "parent_collection": status.location_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
                     "button_image_id": "misc/empty.png",  # Filled by other functions
@@ -3371,7 +3376,7 @@ def terrain_interface():
             ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
-            "actor_type": constants.TILE_ACTOR_TYPE,
+            "actor_type": constants.LOCATION_ACTOR_TYPE,
             "parent_collection": status.global_conditions_collection,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
@@ -3424,7 +3429,7 @@ def terrain_interface():
             ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
-            "actor_type": constants.TILE_ACTOR_TYPE,
+            "actor_type": constants.LOCATION_ACTOR_TYPE,
             "parent_collection": status.temperature_breakdown_collection,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
@@ -3480,7 +3485,7 @@ def terrain_interface():
             ),
             "image_id": "misc/default_label.png",
             "init_type": current_actor_label_type,
-            "actor_type": constants.TILE_ACTOR_TYPE,
+            "actor_type": constants.LOCATION_ACTOR_TYPE,
             "parent_collection": status.local_conditions_collection,
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }

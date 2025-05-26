@@ -52,13 +52,13 @@ class actor_display_free_image(free_image):
                 default_image_key = "default"
 
                 if (
-                    new_actor.actor_type == constants.TILE_ACTOR_TYPE
+                    new_actor.actor_type == constants.LOCATION_ACTOR_TYPE
                     and not new_actor.get_location().visible
                 ):
                     default_image_key = "hidden"
                 if new_actor.actor_type in [
                     constants.MOB_ACTOR_TYPE,
-                    constants.TILE_ACTOR_TYPE,
+                    constants.LOCATION_ACTOR_TYPE,
                 ] and isinstance(
                     new_actor.images[0].image_id, str
                 ):  # if id is string image path

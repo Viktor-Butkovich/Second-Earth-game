@@ -304,15 +304,13 @@ class save_load_manager_template:
             round(0.75 * status.current_world.world_dimensions),
         )
         actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
-        actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
-        (
-            status.displayed_defense,
-            status.displayed_minister,
-            status.displayed_mob,
-            status.displayed_tile_inventory,
-            status.displayed_tile,
-            status.displayed_mob_inventory,
-        ) = [None] * 6
+        actor_utility.calibrate_actor_info_display(status.location_info_display, None)
+        status.displayed_defense = None
+        status.displayed_minister = None
+        status.displayed_mob = None
+        status.displayed_mob_inventory = None
+        status.displayed_location_inventory = None
+        status.displayed_location = None
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
 
         tutorial_utility.show_tutorial_notifications()

@@ -229,6 +229,6 @@ class repair(action.action):
         if self.roll_result >= self.current_min_success:
             self.current_building.set_damaged(False)
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, self.current_unit.get_cell().tile
+                status.location_info_display, self.current_unit.get_cell().tile
             )  # update tile display to show building repair
         super().complete()

@@ -127,18 +127,21 @@ class grid(interface_elements.interface_element):
         for cell in self.get_flat_cell_list():
             cell.draw()
         self.draw_grid_lines()
-        cell_list = list(self.get_flat_cell_list())
 
-        if status.displayed_tile and status.displayed_tile.cell in cell_list:
-            for attached_cell in status.displayed_tile.get_location().attached_cells:
-                attached_cell.tile.draw_actor_match_outline()
-        if status.displayed_mob and (
-            status.displayed_mob.get_cell() in cell_list
-            or (
-                status.displayed_mob.end_turn_destination
-                and status.displayed_mob.end_turn_destination.cell in cell_list
-            )
+        if (
+            status.displayed_location
+            and self in status.displayed_location.get_world_handler().attached_grids
         ):
+            for attached_cell in status.displayed_location.attached_cells:
+                attached_cell.tile.draw_actor_match_outline()
+        if (
+            status.displayed_mob
+            and self
+            in status.displayed_mob.get_location().get_world_handler().attached_grids
+            or self
+            in status.displayed_mob.end_turn_destination.get_world_handler().attached_grids
+        ):
+            # If displayed mob or its end turn destination are on this grid, draw the mob's outline
             status.displayed_mob.draw_outline()
 
     def draw_grid_lines(self):
@@ -718,20 +721,3 @@ class abstract_grid(grid):
     @property
     def is_abstract_grid(self) -> bool:
         return True
-
-    def rename(self, new_name: str) -> None:
-        """
-        Description:
-            Renames this grid
-        Input:
-            string new_name: New name for this grid
-        Output:
-            None
-        """
-        self.name = new_name
-        self.world_handler.name = new_name
-        self.cell_list[0][0].tile.name = new_name
-        if status.displayed_tile == self.cell_list[0][0].tile:
-            actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, status.displayed_tile
-            )

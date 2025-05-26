@@ -125,6 +125,21 @@ class world_handler:
     def is_orbital_world(self) -> bool:
         return False
 
+    def rename(self, new_name: str) -> None:
+        """
+        Description:
+            Renames this world
+        Input:
+            string new_name: New name for this world
+        Output:
+            None
+        """
+        self.name = new_name
+        if self.is_abstract_world:
+            self.find_location(0, 0).name = new_name
+            if status.displayed_location == self.find_location(0, 0):
+                status.displayed_location.set_name(self.name)
+
     def add_grid(self, grid: Any) -> None:
         self.attached_grids.append(grid)
         grid.world_handler = self
@@ -1143,9 +1158,9 @@ class world_handler:
         if parameter_name in constants.ATMOSPHERE_COMPONENTS:
             self.update_pressure()
 
-        if status.displayed_tile:
+        if status.displayed_location:
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, status.displayed_tile
+                status.location_info_display, status.displayed_location
             )
         for mob in status.mob_list:
             if mob.get_location() and mob.get_location().get_world_handler() == self:

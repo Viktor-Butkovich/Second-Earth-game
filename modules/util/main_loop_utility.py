@@ -402,7 +402,7 @@ def manage_rmb_down(clicked_button):
             )
         status.minimap_grid.calibrate(status.displayed_mob.x, status.displayed_mob.y)
         actor_utility.calibrate_actor_info_display(
-            status.tile_info_display, status.displayed_mob.get_cell().tile
+            status.location_info_display, status.displayed_mob.get_cell().tile
         )
     if not stopping:
         manage_lmb_down(clicked_button)
@@ -432,42 +432,9 @@ def manage_lmb_down(clicked_button):
                 or flags.drawing_automatic_route
             )
         ):  # Do not do selecting operations if user was trying to click a button # and action_possible()
-            selected_mob = False
-            for current_grid in status.grid_list:
-                if current_grid.showing:
-                    for current_cell in current_grid.get_flat_cell_list():
-                        if current_cell.touching_mouse():
-                            if current_cell.get_location().visible:
-                                if len(current_cell.contained_mobs) > 0:
-                                    selected_mob = True
-                                    current_mob = current_cell.contained_mobs[0]
-                                    actor_utility.calibrate_actor_info_display(
-                                        status.mob_info_display,
-                                        None,
-                                        override_exempt=True,
-                                    )
-                                    current_mob.select()
-                                    if current_mob.get_permission(
-                                        constants.PMOB_PERMISSION
-                                    ):
-                                        current_mob.selection_sound()
-            if selected_mob:
-                unit = status.displayed_mob
-                if unit and unit.grids[0] == status.minimap_grid.attached_grid:
-                    status.minimap_grid.calibrate(unit.x, unit.y)
-            else:
-                if constants.current_game_mode == constants.MINISTERS_MODE:
-                    minister_utility.calibrate_minister_info_display(None)
-                elif constants.current_game_mode == constants.NEW_GAME_SETUP_MODE:
-                    pass
-                else:
-                    actor_utility.calibrate_actor_info_display(
-                        status.mob_info_display, None, override_exempt=True
-                    )
-                    actor_utility.calibrate_actor_info_display(
-                        status.tile_info_display, None, override_exempt=True
-                    )
-                click_move_minimap()
+            if constants.current_game_mode == constants.MINISTERS_MODE:
+                minister_utility.calibrate_minister_info_display(None)
+            click_move_minimap(select_unit=True)
 
         elif (
             not clicked_button
@@ -476,7 +443,7 @@ def manage_lmb_down(clicked_button):
                 if current_grid.can_show():
                     for current_cell in current_grid.get_flat_cell_list():
                         if current_cell.touching_mouse():
-                            click_move_minimap()
+                            click_move_minimap(select_unit=False)
                             target_location = None
                             if (
                                 current_cell.get_location()
@@ -629,7 +596,7 @@ def manage_lmb_down(clicked_button):
             click_move_minimap()
 
 
-def click_move_minimap():
+def click_move_minimap(select_unit: bool = True):
     """
     Description:
         When a cell on the strategic map grid is clicked, centers the minimap on that cell
@@ -638,12 +605,25 @@ def click_move_minimap():
     Output:
         None
     """
+    if select_unit:
+        actor_utility.calibrate_actor_info_display(
+            status.location_info_display, None, override_exempt=True
+        )
+        actor_utility.calibrate_actor_info_display(
+            status.mob_info_display, None, override_exempt=True
+        )
     for (
         current_grid
     ) in status.grid_list:  # If grid clicked, move minimap to location clicked
         if current_grid.showing:
             for current_cell in current_grid.get_flat_cell_list():
                 if current_cell.touching_mouse():
+                    if select_unit and current_cell.contained_mobs:
+                        current_cell.contained_mobs[0].select()
+                    else:
+                        actor_utility.calibrate_actor_info_display(
+                            status.location_info_display, current_cell.tile
+                        )
                     (
                         absolute_x,
                         absolute_y,
@@ -652,9 +632,6 @@ def click_move_minimap():
                     )
                     for attached_cell in current_cell.get_location().attached_cells:
                         attached_cell.grid.calibrate(absolute_x, absolute_y)
-                    actor_utility.calibrate_actor_info_display(
-                        status.tile_info_display, current_cell.tile
-                    )
                     return
 
 

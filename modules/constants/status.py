@@ -41,7 +41,7 @@ from modules.interface_types.labels import (
     label,
 )
 from modules.actor_types.actors import actor
-from modules.actor_types.buildings import building, slums, resource_building
+from modules.actor_types.buildings import building, resource_building
 from modules.actor_types.mobs import mob
 from modules.actor_types.mob_types.pmobs import pmob
 from modules.actor_types.mob_types.npmobs import npmob
@@ -60,8 +60,8 @@ actions: Dict[str, action] = {}
 
 displayed_mob: mob = None
 displayed_mob_inventory: item_icon = None
-displayed_tile: tile = None
-displayed_tile_inventory: item_icon = None
+displayed_location: location = None
+displayed_location_inventory: item_icon = None
 displayed_minister: minister = None
 displayed_defense: minister = None
 displayed_prosecution: minister = None
@@ -100,7 +100,6 @@ pmob_list: List[pmob] = []
 npmob_list: List[npmob] = []
 settlement_list: List[settlement] = []
 building_list: List[building] = []
-slums_list: List[slums] = []
 resource_building_list: List[resource_building] = []
 loan_list: List[loan] = []
 attacker_queue: List[npmob] = []
@@ -122,16 +121,16 @@ grids_collection: interface_collection = None
 mob_info_display: ordered_collection = None
 mob_inventory_info_display: ordered_collection = None
 mob_inventory_grid: inventory_grid = None
-tile_info_display: ordered_collection = None
-tile_inventory_info_display: ordered_collection = None
-tile_inventory_grid: inventory_grid = None
+location_info_display: ordered_collection = None
+location_inventory_info_display: ordered_collection = None
+location_inventory_grid: inventory_grid = None
 minister_info_display: ordered_collection = None
 prosecution_info_display: ordered_collection = None
 defense_info_display: ordered_collection = None
 mob_tabbed_collection: tabbed_collection = None
-tile_tabbed_collection: tabbed_collection = None
+location_tabbed_collection: tabbed_collection = None
 mob_inventory_collection: ordered_collection = None
-tile_inventory_collection: ordered_collection = None
+location_inventory_collection: ordered_collection = None
 mob_reorganization_collection: ordered_collection = None
 group_reorganization_collection: autofill_collection = None
 vehicle_reorganization_collection: autofill_collection = None

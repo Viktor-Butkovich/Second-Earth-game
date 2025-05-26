@@ -896,7 +896,7 @@ class mob(actor):
         flags.show_selection_outlines = True
         constants.last_selection_outline_switch = constants.current_time
         actor_utility.calibrate_actor_info_display(
-            status.tile_info_display, self.get_cell().tile
+            status.location_info_display, self.get_cell().tile
         )
         actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
         for grid in self.grids:

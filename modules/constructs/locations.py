@@ -569,9 +569,9 @@ class location:
             if update_display and not flags.loading:
                 status.current_world.update_globe_projection()
 
-        if status.displayed_tile and status.displayed_tile.cell in self.attached_cells:
+        if status.displayed_location == self:
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, status.displayed_tile
+                status.location_info_display, self
             )
 
         for mob in status.mob_list:

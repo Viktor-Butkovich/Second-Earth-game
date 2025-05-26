@@ -6,7 +6,7 @@ from modules.constants import constants, status, flags
 
 class settlement:
     """
-    Object that represents a colonial settlement - attached to a resource production facility, port, and/or train station, and can develop slums
+    Object that represents a colonial settlement - attached to a resource production facility, port, and/or train station
     """
 
     def __init__(self, from_save, input_dict):
@@ -67,9 +67,9 @@ class settlement:
             None
         """
         self.name = new_name
-        status.displayed_tile.set_name(self.name)
+        status.displayed_location.set_name(self.name)
         actor_utility.calibrate_actor_info_display(
-            status.tile_info_display, status.displayed_tile
+            status.location_info_display, status.displayed_location
         )
 
     def remove_complete(self):

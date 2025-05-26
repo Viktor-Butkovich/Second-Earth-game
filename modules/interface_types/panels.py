@@ -104,7 +104,11 @@ class safe_click_panel(panel):
             boolean: Returns False if the selected vehicle has no crew, otherwise returns same as superclass
         """
         if super().can_show():
-            for parameter in ["displayed_mob", "displayed_tile", "displayed_minister"]:
+            for parameter in [
+                "displayed_mob",
+                "displayed_location",
+                "displayed_minister",
+            ]:
                 if getattr(status, parameter):
                     return True
         return False

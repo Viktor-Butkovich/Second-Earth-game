@@ -41,7 +41,7 @@ class actor_display_label(label):
         )
         self.actor_type = input_dict[
             "actor_type"
-        ]  # constants.MOB_ACTOR_TYPE or constants.TILE_ACTOR_TYPE, None if does not scale with shown labels, like tooltip labels
+        ]  # constants.MOB_ACTOR_TYPE or constants.LOCATION_ACTOR_TYPE, None if does not scale with shown labels, like tooltip labels
         self.default_tooltip_text = input_dict.get("default_tooltip_text", [])
         self.image_y_displacement = 0
         input_dict["message"] = ""
@@ -426,9 +426,6 @@ class actor_display_label(label):
                 input_dict["init_type"] = constants.BRIBE_JUDGE_BUTTON
                 self.add_attached_button(input_dict)
 
-        elif self.actor_label_type == constants.SLUMS:
-            self.message_start = "Slums population: "
-
         elif self.actor_label_type in status.building_types.keys():
             self.message_start = ""
 
@@ -475,7 +472,7 @@ class actor_display_label(label):
                 }
                 self.add_attached_button(input_dict)
 
-            elif self.actor_type == constants.TILE_ACTOR_TYPE:
+            elif self.actor_type == constants.LOCATION_ACTOR_TYPE:
                 original_input_dict = input_dict.copy()
                 input_dict["init_type"] = constants.ANONYMOUS_BUTTON
                 # constants.PICK_UP_ITEM_BUTTON
@@ -484,7 +481,7 @@ class actor_display_label(label):
                     "on_click": (
                         actor_utility.callback,
                         [
-                            "displayed_tile_inventory",
+                            "displayed_location_inventory",
                             "transfer",
                             1,
                         ],  # item_icon.transfer(
@@ -499,7 +496,7 @@ class actor_display_label(label):
                     "on_click": (
                         actor_utility.callback,
                         [
-                            "displayed_tile_inventory",
+                            "displayed_location_inventory",
                             "transfer",
                             None,
                         ],  # item_icon.transfer(
@@ -980,13 +977,6 @@ class actor_display_label(label):
             self.set_tooltip(
                 status.terrain_feature_types[self.terrain_feature_type].description
             )
-
-        elif self.actor_label_type == constants.SLUMS:
-            tooltip_text = [self.message]
-            tooltip_text.append(
-                "Slums can form around ports, train stations, and resource production facilities"
-            )
-            self.set_tooltip(tooltip_text)
 
         elif self.actor_label_type in status.building_types.keys():
             if self.actor:
@@ -1521,12 +1511,6 @@ class actor_display_label(label):
                 else:
                     self.set_label(self.message_start + "none")
 
-            elif self.actor_label_type == constants.SLUMS:
-                if self.actor.get_location().has_building(constants.SLUMS):
-                    self.set_label(
-                        f"{self.message_start}{str(self.actor.get_location().get_building(constants.SLUMS).available_workers)}"
-                    )
-
             elif self.actor_label_type in status.building_types.keys():
                 if self.actor.get_location().has_building(self.actor_label_type):
                     self.set_label(
@@ -1981,12 +1965,12 @@ class actor_tooltip_label(actor_display_label):
         """
         if self.actor_type == constants.MINISTER_ACTOR_TYPE:
             return
-        if self.actor_type == constants.TILE_ACTOR_TYPE:
+        if self.actor_type == constants.LOCATION_ACTOR_TYPE:
             if (
-                self.actor.actor_type == constants.TILE_ACTOR_TYPE
-            ):  # If not tile_inventory
+                self.actor.actor_type == constants.LOCATION_ACTOR_TYPE
+            ):  # If not location_inventory
                 actor_utility.calibrate_actor_info_display(
-                    status.tile_info_display, self.actor
+                    status.location_info_display, self.actor
                 )
                 actor_utility.calibrate_actor_info_display(
                     status.mob_info_display, None

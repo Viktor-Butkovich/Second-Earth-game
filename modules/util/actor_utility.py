@@ -112,18 +112,18 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
     """
     if flags.loading:
         return
-    if info_display == status.tile_info_display:
+    if info_display == status.location_info_display:
         for current_same_tile_icon in status.same_tile_icon_list:
             current_same_tile_icon.reset()
-        if new_actor != status.displayed_tile:
+        if new_actor != status.displayed_location:
             calibrate_actor_info_display(status.tile_inventory_info_display, None)
-        status.displayed_tile = new_actor
+        status.displayed_location = new_actor
         if new_actor:
             new_actor.select()  # plays correct music based on tile selected - main menu/earth music
         if (
             not flags.choosing_destination
         ):  # Don't change tabs while choosing destination
-            select_default_tab(status.tile_tabbed_collection, status.displayed_tile)
+            select_default_tab(status.tile_tabbed_collection, status.displayed_location)
 
     elif info_display == status.mob_info_display:
         changed_displayed_mob = new_actor != status.displayed_mob
@@ -135,7 +135,7 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
         if changed_displayed_mob and new_actor:
             new_actor.start_ambient_sound()
         select_default_tab(status.mob_tabbed_collection, new_actor)
-        if new_actor and new_actor.get_cell().tile == status.displayed_tile:
+        if new_actor and new_actor.get_cell().tile == status.displayed_location:
             for current_same_tile_icon in status.same_tile_icon_list:
                 current_same_tile_icon.reset()
 
@@ -157,23 +157,23 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
     """
     target_tab = None
     if displayed_actor:
-        if tabbed_collection == status.tile_tabbed_collection:
+        if tabbed_collection == status.location_tabbed_collection:
             if (
                 (
-                    status.tile_tabbed_collection.current_tabbed_member == None
-                    or status.tile_tabbed_collection.current_tabbed_member.tab_button.can_show()
+                    status.location_tabbed_collection.current_tabbed_member == None
+                    or status.location_tabbed_collection.current_tabbed_member.tab_button.can_show()
                 )
-                and status.tile_tabbed_collection.current_tabbed_member
+                and status.location_tabbed_collection.current_tabbed_member
                 != status.local_conditions_collection
             ):
-                target_tab = status.tile_tabbed_collection.current_tabbed_member
+                target_tab = status.location_tabbed_collection.current_tabbed_member
             elif (
                 constants.effect_manager.effect_active("link_inventory_tabs")
                 and status.mob_tabbed_collection.current_tabbed_member
                 == status.mob_inventory_collection
             ):
                 target_tab = status.mob_inventory_collection
-            elif status.displayed_tile.cell.settlement:
+            elif status.displayed_location.settlement:
                 target_tab = status.settlement_collection
             elif status.local_conditions_collection.tab_button.can_show():
                 target_tab = status.local_conditions_collection
@@ -190,8 +190,8 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
                     target_tab = status.mob_inventory_collection
                 elif (
                     constants.effect_manager.effect_active("link_inventory_tabs")
-                    and status.tile_tabbed_collection.current_tabbed_member
-                    == status.tile_inventory_collection
+                    and status.location_tabbed_collection.current_tabbed_member
+                    == status.location_inventory_collection
                 ):
                     target_tab = status.mob_inventory_collection
                 else:
@@ -200,7 +200,7 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
             # If tile inventory tab is selected, select inventory tab
             # Otherwise, select reorganization tab
     if target_tab and (
-        target_tab == status.tile_inventory_collection or not target_tab.showing
+        target_tab == status.location_inventory_collection or not target_tab.showing
     ):
         select_interface_tab(tabbed_collection, target_tab)
 
@@ -485,7 +485,7 @@ def select_interface_tab(tabbed_collection, target_tab):
     """
     if (
         tabbed_collection
-        in [status.tile_inventory_collection, status.mob_inventory_collection]
+        in [status.location_inventory_collection, status.mob_inventory_collection]
         or not target_tab.showing
     ):
         for tab_button in tabbed_collection.tabs_collection.members:

@@ -34,7 +34,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         status.tile_list.append(self)
-        self.actor_type = constants.TILE_ACTOR_TYPE
+        self.actor_type = constants.LOCATION_ACTOR_TYPE
         self.selection_outline_color = constants.COLOR_YELLOW
         self.actor_match_outline_color = constants.COLOR_WHITE
         input_dict["grids"] = [
@@ -149,7 +149,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     break
             if has_building:
                 y_offset += 0.3
-            return
+
             self.name_icon = constants.actor_creation_manager.create(
                 False,
                 {
@@ -611,9 +611,13 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             None
         """
-        if status.displayed_tile == self:
-            actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
-            actor_utility.calibrate_actor_info_display(status.tile_info_display, self)
+        if status.displayed_location == self.get_location():
+            actor_utility.calibrate_actor_info_display(
+                status.location_info_display, None
+            )
+            actor_utility.calibrate_actor_info_display(
+                status.location_info_display, self
+            )
 
     def set_resource(
         self, new_resource: item_types.item_type, update_image_bundle=True

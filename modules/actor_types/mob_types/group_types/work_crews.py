@@ -29,7 +29,7 @@ class work_crew(group):
         building.contained_work_crews.append(self)
         building.cell.tile.update_image_bundle()
         actor_utility.calibrate_actor_info_display(
-            status.tile_info_display, building.cell.tile
+            status.location_info_display, building.cell.tile
         )  # update tile ui with worked building
         actor_utility.calibrate_actor_info_display(
             status.mob_info_display, None, override_exempt=True

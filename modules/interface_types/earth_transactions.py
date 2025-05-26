@@ -39,9 +39,9 @@ class recruitment_button(button):
             None
         """
         self.recruitment_type: unit_types.unit_type = input_dict["recruitment_type"]
-        input_dict[
-            "image_id"
-        ] = self.recruitment_type.generate_framed_recruitment_image()
+        input_dict["image_id"] = (
+            self.recruitment_type.generate_framed_recruitment_image()
+        )
         input_dict["button_type"] = "recruitment"
         super().__init__(input_dict)
 
@@ -148,7 +148,7 @@ class buy_item_button(button):
             if constants.money_tracker.get() >= self.item_type.price:
                 if minister_utility.positions_filled():
                     actor_utility.calibrate_actor_info_display(
-                        status.tile_info_display,
+                        status.location_info_display,
                         status.earth_grid.cell_list[0][0].tile,
                     )
                     status.earth_grid.cell_list[0][0].tile.change_inventory(
@@ -157,7 +157,7 @@ class buy_item_button(button):
 
                     actor_utility.calibrate_actor_info_display(
                         status.tile_inventory_info_display,
-                        status.displayed_tile_inventory,
+                        status.displayed_location_inventory,
                     )
                     # Update currently selected item icon with new contents and item quantity
 

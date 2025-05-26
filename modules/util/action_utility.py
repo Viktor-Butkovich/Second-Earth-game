@@ -143,7 +143,7 @@ def generate_background_image_id_list(actor=None) -> list:
                     "level": constants.BACKGROUND_LEVEL,
                 }
             )
-    elif actor.actor_type == constants.TILE_ACTOR_TYPE:
+    elif actor.actor_type == constants.LOCATION_ACTOR_TYPE:
         pass
     return image_id_list
 

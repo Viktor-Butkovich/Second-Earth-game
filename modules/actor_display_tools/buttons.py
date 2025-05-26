@@ -961,16 +961,14 @@ class cycle_work_crews_button(button):
         """
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
-            if not status.displayed_tile.get_location().has_intact_building(
-                constants.RESOURCE
-            ):
+            if not status.displayed_location.has_intact_building(constants.RESOURCE):
                 self.previous_showing_result = False
                 return False
             elif (
                 len(
-                    status.displayed_tile.get_location()
-                    .get_intact_building(constants.RESOURCE)
-                    .contained_work_crews
+                    status.displayed_location.get_intact_building(
+                        constants.RESOURCE
+                    ).contained_work_crews
                 )
                 > 3
             ):
@@ -994,15 +992,15 @@ class cycle_work_crews_button(button):
             None
         """
         if main_loop_utility.action_possible():
-            displayed_tile = status.displayed_tile
-            moved_mob = displayed_tile.get_location.get_intact_building(
+            displayed_location = status.displayed_location
+            moved_mob = displayed_location.get_intact_building(
                 constants.RESOURCE
             ).contained_work_crews.pop(0)
-            displayed_tile.get_location.get_intact_building(
+            displayed_location.get_intact_building(
                 constants.RESOURCE
             ).contained_work_crews.append(moved_mob)
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, displayed_tile
+                status.location_info_display, displayed_location
             )  # Updates tile info display list to show changed work crew order
         else:
             text_utility.print_to_screen("You are busy and cannot cycle work crews.")
@@ -1745,9 +1743,9 @@ class toggle_button(button):
                     actor_utility.calibrate_actor_info_display(
                         status.mob_info_display, status.displayed_mob
                     )
-                if status.displayed_tile:
+                if status.displayed_location:
                     actor_utility.calibrate_actor_info_display(
-                        status.tile_info_display, status.displayed_tile
+                        status.location_info_display, status.displayed_location
                     )
             elif self.toggle_variable in [
                 "earth_preset",
@@ -1834,30 +1832,30 @@ class change_parameter_button(button):
                 self.attached_label.actor_label_type.removesuffix("_label")
                 in constants.global_parameters
             ):
-                status.displayed_tile.get_location().get_world_handler().change_parameter(
+                status.displayed_location.get_world_handler().change_parameter(
                     self.attached_label.actor_label_type.removesuffix("_label"),
                     self.change,
                 )
             elif self.attached_label.actor_label_type == constants.AVERAGE_WATER_LABEL:
                 if self.change > 0:
                     for i in range(abs(self.change) - 1):
-                        status.displayed_tile.get_location().get_world_handler().place_water(
+                        status.displayed_location.get_world_handler().place_water(
                             repeat_on_fail=True, radiation_effect=False
                         )
-                    status.displayed_tile.get_location().get_world_handler().place_water(
+                    status.displayed_location.get_world_handler().place_water(
                         update_display=True, repeat_on_fail=True, radiation_effect=False
                     )
                 else:
                     for i in range(abs(self.change) - 1):
-                        status.displayed_tile.get_location().get_world_handler().remove_water()
-                    status.displayed_tile.get_location().get_world_handler().remove_water(
+                        status.displayed_location.get_world_handler().remove_water()
+                    status.displayed_location.get_world_handler().remove_water(
                         update_display=True
                     )
                 actor_utility.calibrate_actor_info_display(
-                    status.tile_info_display, status.displayed_tile
+                    status.location_info_display, status.displayed_location
                 )
             else:
-                status.displayed_tile.get_location().change_parameter(
+                status.displayed_location.change_parameter(
                     self.attached_label.actor_label_type.removesuffix("_label"),
                     self.change,
                 )

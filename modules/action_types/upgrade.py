@@ -235,7 +235,7 @@ class upgrade(action.action):
         if self.roll_result >= self.current_min_success:
             self.current_building.upgrade(self.building_type)
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, self.current_unit.get_cell().tile
+                status.location_info_display, self.current_unit.get_cell().tile
             )  # update tile display to show building upgrade
             status.minimap_grid.calibrate(self.current_unit.x, self.current_unit.y)
         super().complete()

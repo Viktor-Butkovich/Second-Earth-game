@@ -104,7 +104,7 @@ class actor:
         init_type = ""
         if self.actor_type == constants.MOB_ACTOR_TYPE:
             init_type = self.unit_type.key
-        elif self.actor_type == constants.TILE_ACTOR_TYPE:
+        elif self.actor_type == constants.LOCATION_ACTOR_TYPE:
             init_type = "tile"
         elif self.actor_type == constants.BUILDING_ACTOR_TYPE:
             init_type = self.building_type.key
@@ -139,10 +139,10 @@ class actor:
                 actor_utility.calibrate_actor_info_display(
                     status.mob_info_display, self
                 )
-        elif self.actor_type == constants.TILE_ACTOR_TYPE:
-            if status.displayed_tile == self:
+        elif self.actor_type == constants.LOCATION_ACTOR_TYPE:
+            if status.displayed_location == self.get_location():
                 actor_utility.calibrate_actor_info_display(
-                    status.tile_info_display, self
+                    status.location_info_display, self.get_location()
                 )
 
     def consume_items(self, items: Dict[str, float]) -> Dict[str, float]:
@@ -408,7 +408,7 @@ class actor:
             else:
                 was_word = "were"
 
-            if self.actor_type == constants.TILE_ACTOR_TYPE:
+            if self.actor_type == constants.LOCATION_ACTOR_TYPE:
                 text = f"{actor_utility.summarize_amount_dict(lost_items)} {was_word} lost, damaged, or misplaced."
             elif self.actor_type == constants.MOB_ACTOR_TYPE:
                 text = f"{actor_utility.summarize_amount_dict(lost_items)} carried by the {self.name} {was_word} lost, damaged, or misplaced."

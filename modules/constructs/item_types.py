@@ -102,24 +102,24 @@ def transfer(
     if main_loop_utility.action_possible():
         if minister_utility.positions_filled():
             displayed_mob = status.displayed_mob
-            displayed_tile = status.displayed_tile
+            displayed_location = status.displayed_location
             if (
                 displayed_mob
-                and displayed_tile
+                and displayed_location
                 and displayed_mob.get_permission(constants.PMOB_PERMISSION)
-                and displayed_mob.get_cell().tile == displayed_tile
+                and displayed_mob.get_location() == displayed_location
             ):
                 if (
                     amount == None and transferred_item != None
                 ):  # If transferring all of a specific item type
                     if source_type == "tile_inventory":
-                        amount = displayed_tile.get_inventory(transferred_item)
+                        amount = displayed_location.get_inventory(transferred_item)
                     elif source_type == "mob_inventory":
                         amount = displayed_mob.get_inventory(transferred_item)
 
                 if displayed_mob.all_permissions(
                     constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
-                ) and not displayed_tile.cell.has_intact_building(
+                ) and not displayed_location.has_intact_building(
                     constants.TRAIN_STATION
                 ):
                     text_utility.print_to_screen(
@@ -148,11 +148,11 @@ def transfer(
                     displayed_mob.set_sentry_mode(False)
 
                 if source_type == "tile_inventory":
-                    source = status.displayed_tile
+                    source = status.displayed_location
                     destination = status.displayed_mob
                 elif source_type == "mob_inventory":
                     source = status.displayed_mob
-                    destination = status.displayed_tile
+                    destination = status.displayed_location
                 if transferred_item == None:  # If transferring all types
                     for item in source.get_held_items():
                         amount = source.get_inventory(item)
@@ -176,12 +176,13 @@ def transfer(
                         status.mob_tabbed_collection, status.mob_inventory_collection
                     )
                     actor_utility.calibrate_actor_info_display(
-                        status.tile_info_display, displayed_tile
+                        status.location_info_display, displayed_location
                     )
 
                 elif source_type == "mob_inventory":  # Drop item(s)
                     actor_utility.select_interface_tab(
-                        status.tile_tabbed_collection, status.tile_inventory_collection
+                        status.location_tabbed_collection,
+                        status.location_inventory_collection,
                     )
                     if not status.displayed_mob.inventory:
                         actor_utility.select_default_tab(

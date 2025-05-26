@@ -254,13 +254,13 @@ class recruitment_choice_button(choice_button):
             None
         """
         input_dict = {"select_on_creation": True, "coordinates": (0, 0)}
-        if (
-            status.displayed_tile
-        ):  # When recruiting in abstract grid, the correct tile will be selected - use that tile's grids
-            input_dict["grids"] = status.displayed_tile.grids
-        else:  # If no tile selected, assume recruiting on Earth
-            input_dict["grids"] = [status.earth_grid]
-        input_dict["modes"] = input_dict["grids"][0].modes
+        # if (
+        #    status.displayed_location
+        # ):  # When recruiting in abstract grid, the correct tile will be selected - use that tile's grids
+        #    input_dict["grids"] = status.displayed_tile.grids
+        # else:  # If no tile selected, assume recruiting on Earth
+        #    input_dict["grids"] = [status.earth_grid]
+        # input_dict["modes"] = input_dict["grids"][0].modes
         constants.money_tracker.change(
             -1 * self.recruitment_type.recruitment_cost, "unit_recruitment"
         )

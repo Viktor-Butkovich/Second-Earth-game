@@ -262,11 +262,11 @@ class construction(action.action):
     def can_build(self, unit):
         """
         Description:
-            Calculates and returns the result of any building-specific logic to allow building in the current tile
+            Calculates and returns the result of any building-specific logic to allow building in the current location
         Input:
             None
         Output:
-            boolean: Returns the result of any building-specific logic to allow building in the current tile
+            boolean: Returns the result of any building-specific logic to allow building in the current location
         """
         return_value = False
         if self.building_type.key == constants.RESOURCE:
@@ -424,7 +424,7 @@ class construction(action.action):
                     constants.actor_creation_manager.create(False, input_dict)
 
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, self.current_unit.get_cell().tile
+                status.location_info_display, self.current_unit.get_cell().tile
             )  # Update tile display to show new building
             if self.building_type.key in [constants.TRAIN]:
                 new_building.select()

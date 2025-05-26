@@ -340,7 +340,7 @@ class button(interface_elements.interface_element):
             constants.SELL_ALL_ITEM_BUTTON,
             constants.SELL_EACH_ITEM_BUTTON,
         ]:
-            if status.displayed_tile:
+            if status.displayed_location:
                 if self.button_type == constants.SELL_ITEM_BUTTON:
                     self.set_tooltip(
                         [
@@ -350,7 +350,7 @@ class button(interface_elements.interface_element):
                         ]
                     )
                 elif self.button_type == constants.SELL_ALL_ITEM_BUTTON:
-                    num_present = status.displayed_tile.get_inventory(
+                    num_present = status.displayed_location.get_inventory(
                         self.attached_label.actor.current_item
                     )
                     self.set_tooltip(
@@ -378,7 +378,7 @@ class button(interface_elements.interface_element):
             self.set_tooltip(["Orders the selected unit to drop all items"])
 
         elif self.button_type == constants.USE_EQUIPMENT_BUTTON:
-            if status.displayed_tile:
+            if status.displayed_location:
                 self.set_tooltip(
                     [
                         f"Orders the selected unit to equip {self.attached_label.actor.current_item.name}"
@@ -418,11 +418,9 @@ class button(interface_elements.interface_element):
             tooltip_text = ["Cycles through this  building's work crews"]
             tooltip_text.append("Work crews: ")
             if self.showing:
-                for current_work_crew in (
-                    status.displayed_tile.get_location()
-                    .get_building(constants.RESOURCE)
-                    .contained_work_crews
-                ):
+                for current_work_crew in status.displayed_location.get_building(
+                    constants.RESOURCE
+                ).contained_work_crews:
                     tooltip_text.append("    " + current_work_crew.name)
             self.set_tooltip(tooltip_text)
 
@@ -432,7 +430,7 @@ class button(interface_elements.interface_element):
             if self.showing:
                 tooltip_text += [
                     f"    {current_mob.name}"
-                    for current_mob in status.displayed_tile.cell.contained_mobs
+                    for current_mob in status.displayed_location.contained_mobs
                 ]
             self.set_tooltip(tooltip_text)
 
@@ -1090,8 +1088,8 @@ class button(interface_elements.interface_element):
             item_types.transfer(
                 source_type, transferred_item=None, amount=None
             )  # Transfer all of each type
-            if status.displayed_tile_inventory:
-                status.displayed_tile_inventory.on_click()
+            if status.displayed_location_inventory:
+                status.displayed_location_inventory.on_click()
             if status.displayed_mob_inventory:
                 status.displayed_mob_inventory.on_click()
 
@@ -1113,7 +1111,7 @@ class button(interface_elements.interface_element):
                 sold_item_types = [self.attached_label.actor.current_item]
             if minister_utility.positions_filled():
                 for current_item_type in sold_item_types:
-                    num_present: int = status.displayed_tile.get_inventory(
+                    num_present: int = status.displayed_location.get_inventory(
                         current_item_type
                     )
                     if num_present > 0:
@@ -1123,19 +1121,19 @@ class button(interface_elements.interface_element):
                         else:
                             num_sold = num_present
                         market_utility.sell(
-                            status.displayed_tile, current_item_type, num_sold
+                            status.displayed_location, current_item_type, num_sold
                         )
 
                 actor_utility.calibrate_actor_info_display(
-                    status.tile_info_display, status.displayed_tile
+                    status.location_info_display, status.displayed_location
                 )
                 if (
-                    status.displayed_tile_inventory
-                    and status.displayed_tile_inventory.current_item
+                    status.displayed_location_inventory
+                    and status.displayed_location_inventory.current_item
                 ):
                     actor_utility.calibrate_actor_info_display(
                         status.tile_inventory_info_display,
-                        status.displayed_tile_inventory,
+                        status.displayed_location_inventory,
                     )
                 else:
                     actor_utility.calibrate_actor_info_display(
@@ -1148,7 +1146,7 @@ class button(interface_elements.interface_element):
                     constants.PMOB_PERMISSION
                 ):
                     for equipment_type in status.equipment_types.values():
-                        if status.displayed_tile.get_inventory(equipment_type) > 0:
+                        if status.displayed_location.get_inventory(equipment_type) > 0:
                             if equipment_type.check_requirement(status.displayed_mob):
                                 if not status.displayed_mob.equipment.get(
                                     equipment_type.key, False
@@ -1163,11 +1161,12 @@ class button(interface_elements.interface_element):
                                         != status.displayed_mob.get_radio_effect()
                                     ):  # If radio effect changed, play new voice line
                                         status.displayed_mob.selection_sound()
-                                    status.displayed_tile.change_inventory(
+                                    status.displayed_location.change_inventory(
                                         equipment_type, -1
                                     )
                                     actor_utility.calibrate_actor_info_display(
-                                        status.tile_info_display, status.displayed_tile
+                                        status.location_info_display,
+                                        status.displayed_location,
                                     )
                                     actor_utility.calibrate_actor_info_display(
                                         status.mob_info_display, status.displayed_mob
@@ -1177,12 +1176,12 @@ class button(interface_elements.interface_element):
                                         status.mob_inventory_collection,
                                     )
                                     if (
-                                        status.displayed_tile_inventory
-                                        and status.displayed_tile_inventory.current_item
+                                        status.displayed_location_inventory
+                                        and status.displayed_location_inventory.current_item
                                     ):
                                         actor_utility.calibrate_actor_info_display(
                                             status.tile_inventory_info_display,
-                                            status.displayed_tile_inventory,
+                                            status.displayed_location_inventory,
                                         )
                                     else:
                                         actor_utility.calibrate_actor_info_display(
@@ -1203,9 +1202,9 @@ class button(interface_elements.interface_element):
                                 radio_effect != status.displayed_mob.get_radio_effect()
                             ):  # If radio effect changed, play new voice line
                                 status.displayed_mob.selection_sound()
-                            status.displayed_tile.change_inventory(equipment, -1)
+                            status.displayed_location.change_inventory(equipment, -1)
                             actor_utility.calibrate_actor_info_display(
-                                status.tile_info_display, status.displayed_tile
+                                status.location_info_display, status.displayed_location
                             )
                             actor_utility.calibrate_actor_info_display(
                                 status.mob_info_display, status.displayed_mob
@@ -1215,12 +1214,12 @@ class button(interface_elements.interface_element):
                                 status.mob_inventory_collection,
                             )
                             if (
-                                status.displayed_tile_inventory
-                                and status.displayed_tile_inventory.current_item
+                                status.displayed_location_inventory
+                                and status.displayed_location_inventory.current_item
                             ):
                                 actor_utility.calibrate_actor_info_display(
                                     status.tile_inventory_info_display,
-                                    status.displayed_tile_inventory,
+                                    status.displayed_location_inventory,
                                 )
                             else:
                                 actor_utility.calibrate_actor_info_display(
@@ -1251,7 +1250,7 @@ class button(interface_elements.interface_element):
                     radio_effect != status.displayed_mob.get_radio_effect()
                 ):  # If radio effect changed, play new voice line
                     status.displayed_mob.selection_sound()
-                status.displayed_tile.change_inventory(self.equipment_type, 1)
+                status.displayed_location.change_inventory(self.equipment_type, 1)
                 actor_utility.calibrate_actor_info_display(
                     status.mob_info_display, status.displayed_mob
                 )
@@ -1392,7 +1391,7 @@ class button(interface_elements.interface_element):
                     )
                 elif alternate_collection == status.tile_tabbed_collection:
                     alternate_collection.tabs_collection.members[-1].calibrate(
-                        status.displayed_tile
+                        status.displayed_location
                     )
             if (
                 tabbed_collection == status.mob_tabbed_collection
@@ -1402,14 +1401,14 @@ class button(interface_elements.interface_element):
                 )
             elif tabbed_collection == status.tile_tabbed_collection:
                 tabbed_collection.tabs_collection.members[-1].calibrate(
-                    status.displayed_tile
+                    status.displayed_location
                 )
 
         elif self.button_type == constants.RENAME_SETTLEMENT_BUTTON:
             if override_action_possible or main_loop_utility.action_possible():
-                constants.message = status.displayed_tile.cell.settlement.name
+                constants.message = status.displayed_location.settlement.name
                 constants.input_manager.start_receiving_input(
-                    status.displayed_tile.cell.settlement.rename,
+                    status.displayed_location.settlement.rename,
                     prompt="Type a new name for your settlement: ",
                 )
             else:
@@ -1419,9 +1418,9 @@ class button(interface_elements.interface_element):
 
         elif self.button_type == constants.RENAME_PLANET_BUTTON:
             if override_action_possible or main_loop_utility.action_possible():
-                constants.message = status.displayed_tile.cell.grid.world_handler.name
+                constants.message = status.displayed_location.get_world_handler().name
                 constants.input_manager.start_receiving_input(
-                    status.displayed_tile.cell.grid.rename,
+                    status.displayed_location.get_world_handler().rename,
                     prompt="Type a new name for this planet: ",
                 )
             else:
@@ -1503,16 +1502,16 @@ class button(interface_elements.interface_element):
                 constants.SELL_ALL_ITEM_BUTTON,
             ]:
                 return (
-                    status.displayed_tile
-                    and status.earth_grid in status.displayed_tile.grids
+                    status.displayed_location
+                    and status.displayed_location.get_world_handler().is_earth
                     and self.attached_label.actor.current_item.can_sell
                 )
             elif self.button_type == constants.SELL_EACH_ITEM_BUTTON:
                 if (
-                    status.displayed_tile
-                    and status.earth_grid in status.displayed_tile.grids
+                    status.displayed_location
+                    and status.displayed_location.get_world_handler().is_earth
                 ):
-                    for current_item_type in status.displayed_tile.get_held_items():
+                    for current_item_type in status.displayed_location.get_held_items():
                         if current_item_type.can_sell:
                             return True
                 return False
@@ -1527,7 +1526,7 @@ class button(interface_elements.interface_element):
                 )
             elif self.button_type == constants.USE_EACH_EQUIPMENT_BUTTON:
                 if status.displayed_mob:
-                    held_items = status.displayed_tile.get_held_items()
+                    held_items = status.displayed_location.get_held_items()
                     return any(
                         [
                             equipment_type in held_items
@@ -1538,11 +1537,9 @@ class button(interface_elements.interface_element):
                 return False
             elif self.button_type == constants.RENAME_PLANET_BUTTON:
                 if (
-                    status.displayed_tile
-                    and status.displayed_tile.get_location()
-                    .get_world_handler()
-                    .is_abstract_world
-                    and status.displayed_tile.get_location().get_world_handler()
+                    status.displayed_location
+                    and status.displayed_location.get_world_handler().is_abstract_world
+                    and status.displayed_location.get_world_handler()
                     != status.earth_world
                 ):
                     return True
@@ -1687,12 +1684,12 @@ class cycle_same_tile_button(button):
             None
         """
         if main_loop_utility.action_possible():
-            cycled_tile = status.displayed_tile
-            moved_mob = cycled_tile.cell.contained_mobs.pop(0)
-            cycled_tile.cell.contained_mobs.append(moved_mob)
-            cycled_tile.cell.contained_mobs[0].cycle_select()
+            cycled_location = status.displayed_location
+            moved_mob = cycled_location.contained_mobs.pop(0)
+            cycled_location.contained_mobs.append(moved_mob)
+            cycled_location.contained_mobs[0].cycle_select()
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, cycled_tile
+                status.location_info_display, cycled_location
             )  # updates mob info display list to show changed passenger order
         else:
             text_utility.print_to_screen("You are busy and cannot cycle units.")
@@ -1708,8 +1705,8 @@ class cycle_same_tile_button(button):
         """
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
-            displayed_tile = status.displayed_tile
-            if displayed_tile and len(displayed_tile.cell.contained_mobs) >= 4:
+            displayed_location = status.displayed_location
+            if displayed_location and len(displayed_location.contained_mobs) >= 4:
                 return True
         return False
 
@@ -1785,8 +1782,8 @@ class same_tile_icon(button):
         """
         self.update()
         return (
-            status.displayed_tile
-            and status.displayed_tile.get_location().visible
+            status.displayed_location
+            and status.displayed_location.visible
             and len(self.old_contained_mobs) > self.index
             and super().can_show()
         )
@@ -1812,13 +1809,13 @@ class same_tile_icon(button):
             None
         """
         if (
-            status.displayed_tile
-            and status.displayed_tile.get_location().visible
+            status.displayed_location
+            and status.displayed_location.visible
             and super().can_show()
         ):
-            displayed_tile = status.displayed_tile
-            if displayed_tile:
-                new_contained_mobs = displayed_tile.cell.contained_mobs
+            displayed_location = status.displayed_location
+            if displayed_location:
+                new_contained_mobs = displayed_location.contained_mobs
                 if (new_contained_mobs != self.old_contained_mobs) or self.resetting:
                     self.resetting = False
                     self.old_contained_mobs = []
@@ -1851,8 +1848,8 @@ class same_tile_icon(button):
             None
         """
         if self.showing:
-            if self.index == 0 and status.displayed_tile:
-                if status.displayed_tile.cell.contained_mobs[0] == status.displayed_mob:
+            if self.index == 0 and status.displayed_location:
+                if status.displayed_location.contained_mobs[0] == status.displayed_mob:
                     pygame.draw.rect(
                         constants.game_display,
                         constants.color_dict[constants.COLOR_BRIGHT_GREEN],
@@ -2612,18 +2609,16 @@ class tab_button(button):
         if return_value:
             if self.identifier == constants.SETTLEMENT_PANEL:
                 return_value = bool(
-                    status.displayed_tile.cell.settlement
-                    or status.displayed_tile.get_location().has_building(
-                        constants.INFRASTRUCTURE
-                    )
+                    status.displayed_location.settlement
+                    or status.displayed_location.has_building(constants.INFRASTRUCTURE)
                 )
 
             elif self.identifier == constants.INVENTORY_PANEL:
-                if self.linked_element == status.tile_inventory_collection:
+                if self.linked_element == status.location_inventory_collection:
                     return_value = (
-                        status.displayed_tile.inventory
-                        or status.displayed_tile.inventory_capacity > 0
-                        or status.displayed_tile.infinite_inventory_capacity
+                        status.displayed_location.inventory
+                        or status.displayed_location.inventory_capacity > 0
+                        or status.displayed_location.infinite_inventory_capacity
                     )
                 else:
                     return_value = status.displayed_mob.inventory_capacity > 0 or (
@@ -2640,18 +2635,14 @@ class tab_button(button):
                 )
             elif self.identifier == constants.LOCAL_CONDITIONS_PANEL:
                 return_value = (
-                    not status.displayed_tile.get_location()
-                    .get_world_handler()
-                    .is_abstract_world
+                    not status.displayed_location.get_world_handler().is_abstract_world
                 )
             elif self.identifier in [
                 constants.GLOBAL_CONDITIONS_PANEL,
                 constants.TEMPERATURE_BREAKDOWN_PANEL,
             ]:
                 return_value = (
-                    status.displayed_tile.get_location()
-                    .get_world_handler()
-                    .is_abstract_world
+                    status.displayed_location.get_world_handler().is_abstract_world
                 )
 
         if (
@@ -3122,8 +3113,8 @@ class action_button(button):
         """
         if self.corresponding_action.actor_type == constants.MOB_ACTOR_TYPE:
             return status.displayed_mob
-        elif self.corresponding_action.actor_type == constants.TILE_ACTOR_TYPE:
-            return status.displayed_tile
+        elif self.corresponding_action.actor_type == constants.LOCATION_ACTOR_TYPE:
+            return status.displayed_location
         elif self.corresponding_action.actor_type in [
             constants.MINISTER_ACTOR_TYPE,
             constants.PROSECUTION_ACTOR_TYPE,
@@ -3292,7 +3283,7 @@ class map_mode_button(button):
                 cell.tile.update_image_bundle()
         status.current_world.update_globe_projection()
         actor_utility.calibrate_actor_info_display(
-            status.tile_info_display, status.displayed_tile
+            status.location_info_display, status.displayed_location
         )
         actor_utility.calibrate_actor_info_display(
             status.mob_info_display, status.displayed_mob

@@ -124,18 +124,19 @@ def set_game_mode(new_game_mode):
         constants.MINISTERS_MODE,
     ]:
         if new_game_mode == constants.MINISTERS_MODE or not (
-            status.displayed_tile and status.displayed_tile.grid == status.earth_grid
+            status.displayed_location
+            and status.displayed_location.get_world_handler().is_earth
         ):
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, None, override_exempt=True
             )  # Deselect actors/ministers and remove any actor info from display when switching screens
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, None, override_exempt=True
+                status.location_info_display, None, override_exempt=True
             )
             minister_utility.calibrate_minister_info_display(None)
             if new_game_mode == constants.EARTH_MODE:
                 actor_utility.calibrate_actor_info_display(
-                    status.tile_info_display, status.earth_grid.cell_list[0][0].tile
+                    status.location_info_display, status.earth_grid.cell_list[0][0].tile
                 )  # Calibrate tile info to Earth
             elif new_game_mode == constants.STRATEGIC_MODE:
                 if status.current_world:
@@ -143,7 +144,7 @@ def set_game_mode(new_game_mode):
                         status.minimap_grid.center_x, status.minimap_grid.center_y
                     )
                     actor_utility.calibrate_actor_info_display(
-                        status.tile_info_display,
+                        status.location_info_display,
                         centered_location.attached_cells[0].tile,
                     )  # Calibrate tile info to minimap center
     if new_game_mode == constants.MINISTERS_MODE:
@@ -201,7 +202,7 @@ def to_main_menu(override=False):
     actor_utility.calibrate_actor_info_display(
         status.mob_info_display, None, override_exempt=True
     )
-    actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
+    actor_utility.calibrate_actor_info_display(status.location_info_display, None)
     minister_utility.calibrate_minister_info_display(None)
     for current_actor in status.actor_list:
         current_actor.remove_complete()
@@ -213,7 +214,7 @@ def to_main_menu(override=False):
         current_die.remove_complete()
     status.loan_list = []
     status.displayed_mob = None
-    status.displayed_tile = None
+    status.displayed_location = None
     constants.message = ""
     status.player_turn_queue = []
     if status.current_instructions_page:
