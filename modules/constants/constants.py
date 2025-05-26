@@ -228,6 +228,8 @@ fear: int = 0
 fear_tracker: value_tracker_template = None
 fps: int = 0
 fps_tracker: value_tracker_template = None
+mouse_position: Tuple[int, int] = None
+mouse_position_tracker: value_tracker_template = None
 frames_this_second: int = 0
 last_fps_update: float = 0.0
 

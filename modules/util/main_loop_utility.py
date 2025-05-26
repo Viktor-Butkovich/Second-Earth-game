@@ -87,6 +87,12 @@ def update_display():
             constants.frames_this_second = 0
             constants.last_fps_update = current_time
 
+    if (
+        constants.effect_manager.effect_active("track_mouse_position")
+        and flags.startup_complete
+    ):
+        constants.mouse_position_tracker.set(pygame.mouse.get_pos())
+
 
 def action_possible():
     """

@@ -1415,6 +1415,36 @@ def value_trackers():
             }
         )
 
+    if constants.effect_manager.effect_active("track_mouse_position"):
+        constants.mouse_position_tracker = (
+            value_tracker_template.value_tracker_template(
+                value_key="mouse_position",
+                initial_value=(0, 0),
+                min_value=None,
+                max_value=None,
+            )
+        )
+        constants.actor_creation_manager.create_interface_element(
+            {
+                "minimum_width": scaling.scale_width(10),
+                "height": scaling.scale_height(
+                    constants.default_notification_font_size + 5
+                ),
+                "modes": [
+                    constants.STRATEGIC_MODE,
+                    constants.EARTH_MODE,
+                    constants.MINISTERS_MODE,
+                    constants.TRIAL_MODE,
+                    constants.MAIN_MENU_MODE,
+                    constants.NEW_GAME_SETUP_MODE,
+                ],
+                "image_id": "misc/default_label.png",
+                "value_name": "mouse_position",
+                "init_type": constants.VALUE_LABEL,
+                "parent_collection": value_trackers_ordered_collection,
+            }
+        )
+
     constants.actor_creation_manager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(
