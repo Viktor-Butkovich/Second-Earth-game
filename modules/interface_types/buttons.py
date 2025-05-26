@@ -1541,7 +1541,7 @@ class button(interface_elements.interface_element):
                     status.displayed_tile
                     and status.displayed_tile.get_location()
                     .get_world_handler()
-                    .is_abstract_world()
+                    .is_abstract_world
                     and status.displayed_tile.get_location().get_world_handler()
                     != status.earth_world
                 ):
@@ -2642,7 +2642,7 @@ class tab_button(button):
                 return_value = (
                     not status.displayed_tile.get_location()
                     .get_world_handler()
-                    .is_abstract_world()
+                    .is_abstract_world
                 )
             elif self.identifier in [
                 constants.GLOBAL_CONDITIONS_PANEL,
@@ -2651,7 +2651,7 @@ class tab_button(button):
                 return_value = (
                     status.displayed_tile.get_location()
                     .get_world_handler()
-                    .is_abstract_world()
+                    .is_abstract_world
                 )
 
         if (

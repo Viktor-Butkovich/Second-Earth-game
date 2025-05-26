@@ -481,7 +481,7 @@ def manage_lmb_down(clicked_button):
                             if (
                                 current_cell.get_location()
                                 .get_world_handler()
-                                .is_abstract_world()
+                                .is_abstract_world
                             ):
                                 target_location = current_cell.get_location()
                             else:
@@ -532,7 +532,7 @@ def manage_lmb_down(clicked_button):
                         if (
                             current_cell.get_location()
                             .get_world_handler()
-                            .is_abstract_world()
+                            .is_abstract_world
                         ):
                             text_utility.print_to_screen(
                                 "Only tiles adjacent to the most recently chosen destination can be added to the movement route."

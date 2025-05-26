@@ -68,7 +68,7 @@ class grid(interface_elements.interface_element):
             ]
             for x in range(self.coordinate_width)
         ]
-        if self.is_abstract_grid():
+        if self.is_abstract_grid:
             tiles.abstract_tile(
                 False,
                 {
@@ -96,9 +96,11 @@ class grid(interface_elements.interface_element):
     def get_absolute_coordinates(self, mini_x, mini_y):
         return mini_x, mini_y
 
+    @property
     def is_mini_grid(self) -> bool:
         return False
 
+    @property
     def is_abstract_grid(self) -> bool:
         return False
 
@@ -488,6 +490,7 @@ class mini_grid(grid):
         self.center_y = 0
         super().__init__(input_dict)
 
+    @property
     def is_mini_grid(self) -> bool:
         return True
 
@@ -528,7 +531,7 @@ class mini_grid(grid):
                 status.current_world.update_globe_projection()
         else:
             for current_grid in self.world_handler.attached_grids:
-                if current_grid.is_mini_grid():
+                if current_grid.is_mini_grid:
                     current_grid.calibrate(center_x, center_y, recursive=True)
 
     def get_absolute_coordinates(self, mini_x, mini_y):
@@ -711,8 +714,8 @@ class abstract_grid(grid):
         input_dict["coordinate_height"] = 1
         super().__init__(input_dict)
         self.name = self.world_handler.name
-        # self.world_handler.location_list[0][0].set_visibility(True)
 
+    @property
     def is_abstract_grid(self) -> bool:
         return True
 

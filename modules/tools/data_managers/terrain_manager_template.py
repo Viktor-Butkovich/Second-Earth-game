@@ -142,9 +142,9 @@ class terrain_manager_template:
         else:
             world_dimensions_options = self.get_tuning("map_sizes")
         constants.world_dimensions_options = world_dimensions_options
-        constants.earth_dimensions = world_dimensions_options[4]
-        constants.venus_dimensions = world_dimensions_options[4]
-        constants.mars_dimensions = world_dimensions_options[1]
+        constants.earth_dimensions = world_dimensions_options[
+            self.get_tuning("earth_dimensions_index")
+        ]
 
     def load_tuning(self, file_name):
         """

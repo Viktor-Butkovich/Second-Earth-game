@@ -848,7 +848,7 @@ def end_turn_warnings():
                 and current_location.attached_cells[0].tile.get_inventory_used()
                 > current_location.attached_cells[0].tile.inventory_capacity
             ):
-                if current_world.is_abstract_world():
+                if current_world.is_abstract_world:
                     constants.notification_manager.display_notification(
                         {
                             "message": f"Warning: the warehouses in {current_location.name} are not sufficient to hold the items stored there. /n /nAny items exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
@@ -865,7 +865,7 @@ def end_turn_warnings():
 
     for current_world in status.world_list:
         if (
-            current_world.is_abstract_world() and not current_world.is_earth()
+            current_world.is_abstract_world and not current_world.is_earth
         ):  # Warn for leaving units behind in non-Earth grids
             current_cell = current_world.find_location(0, 0).attached_cells[0]
             num_leaving = 0

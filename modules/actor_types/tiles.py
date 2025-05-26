@@ -68,13 +68,13 @@ class tile(actor):  # to do: make terrain tiles a subclass
             # if self.cell.grid.from_save:
             #    self.inventory = self.cell.save_dict["inventory"]
 
-        elif self.grid.world_handler.is_abstract_world():
+        elif self.grid.world_handler.is_abstract_world:
             self.cell.tile = self
             self.terrain = None
             # if self.cell.grid.from_save:
             #    self.inventory = self.cell.save_dict["inventory"]
             if (
-                self.cell.get_location().get_world_handler().is_earth()
+                self.cell.get_location().get_world_handler().is_earth
             ):  # Earth should be able to hold items despite not being terrain
                 self.infinite_inventory_capacity = True
                 if constants.effect_manager.effect_active("infinite_commodities"):
@@ -132,7 +132,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         """
         super().set_name(new_name)
         if (
-            not self.get_location().get_world_handler().is_abstract_world()
+            not self.get_location().get_world_handler().is_abstract_world
         ) and new_name not in ["default", "placeholder"]:
             # Make sure user is not allowed to input default or *.png as a tile name
             if self.name_icon:
@@ -363,7 +363,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
         Output:
             int tuple: Two
         """
-        if self.grid.world_handler.is_abstract_world():
+        if self.grid.world_handler.is_abstract_world:
             return (1, 1)
         else:
             return self.grid.get_absolute_coordinates(self.x, self.y)
@@ -663,7 +663,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
             None
         """
         tooltip_message = []
-        if self.get_location().get_world_handler().is_abstract_world():
+        if self.get_location().get_world_handler().is_abstract_world:
             tooltip_message.append(self.name)
         elif self.show_terrain:
             coordinates = self.get_absolute_coordinates()
@@ -711,7 +711,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
                     tooltip_message.append(f"    Terrain unknown")
 
         overall_habitability = self.get_location().get_known_habitability()
-        if (not self.get_location().get_world_handler().is_abstract_world()) and (
+        if (not self.get_location().get_world_handler().is_abstract_world) and (
             self.get_location().get_parameter(constants.KNOWLEDGE)
             < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
         ):
@@ -830,7 +830,7 @@ class abstract_tile(tile):
         """
         input_dict["coordinates"] = (0, 0)
         input_dict["show_terrain"] = False
-        if input_dict["grid"].world_handler.is_earth():
+        if input_dict["grid"].world_handler.is_earth:
             self.grid_image_id = [
                 "misc/space.png",
                 {

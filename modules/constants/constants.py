@@ -484,8 +484,6 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
 
 world_dimensions_options: List[int] = None
 earth_dimensions: int = None
-venus_dimensions: int = None
-mars_dimensions: int = None
 
 EARTH: str = "earth"
 

@@ -2,7 +2,7 @@ import random
 import itertools
 from math import log
 from typing import List, Dict, Tuple, Any
-from modules.util import utility, actor_utility
+from modules.util import utility, actor_utility, world_utility
 from modules.constants import constants, status, flags
 
 
@@ -19,43 +19,57 @@ class world_handler:
             bool from_save: True if loading world, False if creating new one
             dictionary input_dict: Dictionary of saved information necessary to recreate this location if loading grid, or None if creating new location
         """
-        self.world_dimensions: int = input_dict.get("world_dimensions")
         self.attached_grids: List[Any] = []
-        self.name: str = input_dict.get("name")
-        self.rotation_direction = input_dict.get("rotation_direction")
-        self.rotation_speed = input_dict.get("rotation_speed")
-        self.green_screen: Dict[str, Dict[str, any]] = input_dict.get(
-            "green_screen", {}
-        )
-        self.color_filter: Dict[str, float] = input_dict.get(
-            "color_filter",
-            {constants.COLOR_RED: 1, constants.COLOR_GREEN: 1, constants.COLOR_BLUE: 1},
-        )
-        self.star_distance: float = input_dict.get("star_distance")
+        if not self.is_orbital_world:
+            self.name: str = input_dict.get("name")
+            self.world_dimensions: int = input_dict.get("world_dimensions")
+            self.rotation_direction = input_dict.get("rotation_direction")
+            self.rotation_speed = input_dict.get("rotation_speed")
+            self.star_distance: float = input_dict.get("star_distance")
 
-        self.water_vapor_multiplier: float = input_dict.get(
-            "water_vapor_multiplier", 1.0
-        )
-        self.ghg_multiplier: float = input_dict.get("ghg_multiplier", 1.0)
-        self.albedo_multiplier: float = input_dict.get("albedo_multiplier", 1.0)
-        self.average_water_target: float = input_dict.get("average_water_target", 0.0)
-        self.average_water: float = input_dict.get("average_water", 0.0)
-        self.average_altitude: float = input_dict.get("average_altitude", 0.0)
-        self.cloud_frequency: float = input_dict.get("cloud_frequency", 0.0)
-        self.toxic_cloud_frequency: float = input_dict.get("toxic_cloud_frequency", 0.0)
-        self.atmosphere_haze_alpha: int = input_dict.get("atmosphere_haze_alpha", 0)
+            self.sky_color = input_dict.get("sky_color", [0, 0, 0])
+            self.default_sky_color = input_dict.get(
+                "default_sky_color", self.sky_color.copy()
+            )  # Never-modified copy of original sky color
 
-        self.sky_color = input_dict.get("sky_color", [0, 0, 0])
-        self.default_sky_color = input_dict.get(
-            "default_sky_color", self.sky_color.copy()
-        )  # Never-modified copy of original sky color
-        self.steam_color = input_dict.get("steam_color", [0, 0, 0])
-        self.global_parameters: Dict[str, int] = {}
-        self.initial_atmosphere_offset = input_dict.get(
-            "initial_atmosphere_offset", 0.001
-        )
-        for key in constants.global_parameters:
-            self.set_parameter(key, input_dict.get("global_parameters", {}).get(key, 0))
+            self.green_screen: Dict[str, Dict[str, any]] = input_dict.get(
+                "green_screen", {}
+            )
+            self.color_filter: Dict[str, float] = input_dict.get(
+                "color_filter",
+                {
+                    constants.COLOR_RED: 1,
+                    constants.COLOR_GREEN: 1,
+                    constants.COLOR_BLUE: 1,
+                },
+            )
+
+            self.water_vapor_multiplier: float = input_dict.get(
+                "water_vapor_multiplier", 1.0
+            )
+            self.ghg_multiplier: float = input_dict.get("ghg_multiplier", 1.0)
+            self.albedo_multiplier: float = input_dict.get("albedo_multiplier", 1.0)
+            self.average_water_target: float = input_dict.get(
+                "average_water_target", 0.0
+            )
+            self.average_water: float = input_dict.get("average_water", 0.0)
+            self.average_altitude: float = input_dict.get("average_altitude", 0.0)
+            self.cloud_frequency: float = input_dict.get("cloud_frequency", 0.0)
+            self.toxic_cloud_frequency: float = input_dict.get(
+                "toxic_cloud_frequency", 0.0
+            )
+            self.atmosphere_haze_alpha: int = input_dict.get("atmosphere_haze_alpha", 0)
+
+            self.steam_color = input_dict.get("steam_color", [0, 0, 0])
+            self.global_parameters: Dict[str, int] = {}
+            self.initial_atmosphere_offset = input_dict.get(
+                "initial_atmosphere_offset", 0.001
+            )
+            for key in constants.global_parameters:
+                self.set_parameter(
+                    key, input_dict.get("global_parameters", {}).get(key, 0)
+                )
+            self.average_temperature: float = input_dict.get("average_temperature", 0.0)
 
         self.location_list: list = []
         if from_save:
@@ -86,12 +100,6 @@ class world_handler:
                 for x in range(self.coordinate_width)
             ]
 
-        for current_location in self.get_flat_location_list():
-            current_location.find_adjacent_locations()
-
-        self.latitude_lines_setup()
-
-        self.average_temperature: float = input_dict.get("average_temperature", 0.0)
         if not from_save:
             self.update_target_average_temperature(
                 estimate_water_vapor=True, update_albedo=False
@@ -105,10 +113,16 @@ class world_handler:
     def coordinate_height(self) -> int:
         return self.world_dimensions
 
+    @property
     def is_earth(self) -> bool:
         return False
 
+    @property
     def is_abstract_world(self) -> bool:
+        return False
+
+    @property
+    def is_orbital_world(self) -> bool:
         return False
 
     def add_grid(self, grid: Any) -> None:
@@ -284,12 +298,9 @@ class world_handler:
         """
         if constants.effect_manager.effect_active("map_customization"):
             return
-        if constants.effect_manager.effect_active("earth_preset"):
-            num_worms = self.get_tuning("earth_roughness_multiplier")
-        elif constants.effect_manager.effect_active("mars_preset"):
-            num_worms = self.get_tuning("mars_roughness_multiplier")
-        elif constants.effect_manager.effect_active("venus_preset"):
-            num_worms = self.get_tuning("venus_roughness_multiplier")
+        preset = world_utility.get_preset()
+        if preset:
+            num_worms = self.get_tuning(f"{preset}_roughness_multiplier")
         else:
             num_worms = random.randrange(
                 self.get_tuning("min_roughness_multiplier"),
@@ -1102,154 +1113,6 @@ class world_handler:
             )
             self.smooth(constants.TEMPERATURE)
 
-    def latitude_lines_setup(self):
-        """
-        Description:
-            15 x 15 grid has north pole 0, 0 and south pole 7, 7
-            If centered at (11, 11), latitude line should include (0, 0), (14, 14), (13, 13), (12, 12), (11, 11), (10, 10), (9, 9), (8, 8), (7, 7)
-                The above line should be used if centered at any of the above coordinates
-            If centered at (3, 11), latitude line should include (0, 0), (1, 14), (1, 13), (2, 12), (3, 11), (4, 10), (5, 9), (6, 8), (7, 7)
-
-            Need to draw latitude lines using the above method, centered on (0, 7), (1, 6), (2, 5), (3, 4), (4, 3), (5, 2), (6, 1), (7, 0), (8, 14), (9, 13), (10, 12), (11, 11), (12, 10), (13, 9), (14, 8)
-                ^ Forms diagonal line
-            Also need to draw latitude lines on other cross: (0, 8), (1, 9), (2, 10), (3, 11), (4, 12), (5, 13), (6, 14), (7, 0), (8, 1), (9, 2), (10, 3), (11, 4), (12, 5), (13, 6), (14, 7)
-        Input:
-            None
-        Output:
-            None
-        """
-        self.latitude_lines = []
-        self.alternate_latitude_lines = []
-        self.latitude_lines_types = [
-            [None for _ in range(self.world_dimensions)]
-            for _ in range(self.world_dimensions)
-        ]
-        north_pole = (0, 0)
-        south_pole = (
-            self.world_dimensions // 2,
-            self.world_dimensions // 2,
-        )
-        self.equatorial_coordinates = []
-        self.alternate_equatorial_coordinates = []
-        for equatorial_x in range(self.world_dimensions):
-            equatorial_y = (
-                (self.world_dimensions // 2) - equatorial_x
-            ) % self.world_dimensions
-            current_line = self.draw_coordinate_line(
-                north_pole, (equatorial_x, equatorial_y)
-            ) + self.draw_coordinate_line(
-                (equatorial_x, equatorial_y), south_pole, omit_origin=True
-            )
-            for coordinate in current_line:
-                self.latitude_lines_types[coordinate[0]][coordinate[1]] = True
-            self.latitude_lines.append(current_line)
-            self.equatorial_coordinates.append((equatorial_x, equatorial_y))
-
-            equatorial_y = (
-                (self.world_dimensions // 2) + equatorial_x + 1
-            ) % self.world_dimensions
-            current_line = self.draw_coordinate_line(
-                north_pole, (equatorial_x, equatorial_y)
-            ) + self.draw_coordinate_line(
-                (equatorial_x, equatorial_y), south_pole, omit_origin=True
-            )
-            for coordinate in current_line:
-                self.latitude_lines_types[coordinate[0]][coordinate[1]] = False
-            self.alternate_latitude_lines.append(current_line)
-            self.alternate_equatorial_coordinates.append((equatorial_x, equatorial_y))
-
-    def get_latitude_line(
-        self, coordinates: Tuple[int, int]
-    ) -> Tuple[int, List[List[Tuple[int, int]]]]:
-        """
-        Description:
-            Finds and returns the latitude line that the inputted coordinates are on
-        Input:
-            int tuple coordinates: Coordinates to find the latitude line of
-        Output:
-            int tuple list: Returns a latitude line (list of coordinates from 1 pole to the other) that the inputted coordinates are on
-        """
-        latitude_line_type = self.latitude_lines_types[coordinates[0]][coordinates[1]]
-        if latitude_line_type == None:
-            for offset in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
-                latitude_line_type = self.latitude_lines_types[
-                    (coordinates[0] + offset[0]) % self.world_dimensions
-                ][(coordinates[1] + offset[1]) % self.world_dimensions]
-                if latitude_line_type != None:
-                    coordinates = (
-                        (coordinates[0] + offset[0]) % self.world_dimensions,
-                        (coordinates[1] + offset[1]) % self.world_dimensions,
-                    )
-                    break
-        if latitude_line_type == True:
-            for idx, latitude_line in enumerate(self.latitude_lines):
-                if coordinates in latitude_line:
-                    return idx, self.latitude_lines
-        else:
-            for idx, latitude_line in enumerate(self.alternate_latitude_lines):
-                if coordinates in latitude_line:
-                    return idx, self.alternate_latitude_lines
-
-    def draw_coordinate_line(
-        self,
-        origin: Tuple[int, int],
-        destination: Tuple[int, int],
-        omit_origin: bool = False,
-    ) -> List[Tuple[int, int]]:
-        """
-        Description:
-            Finds and returns a list of adjacent/diagonal coordinates leading from the origin to the destination
-        Input:
-            int tuple origin: Origin coordinate
-            int tuple destination: Destination coordinate
-            boolean omit_origin: Whether to omit the origin from the list
-        Output:
-            int tuple list: List of adjacent/diagonal coordinates leading from the origin to the destination
-        """
-        line = []
-        if not omit_origin:
-            line.append(origin)
-        x, y = origin
-        while (x, y) != destination:
-            x_distance = self.x_distance_coords(x, destination[0])
-            y_distance = self.y_distance_coords(y, destination[1])
-            if x_distance != 0:
-                slope = y_distance / x_distance
-
-            if x_distance == 0:
-                traverse = ["Y"]
-            elif y_distance == 0:
-                traverse = ["X"]
-            elif slope > 2:
-                traverse = ["Y"]
-            elif slope < 0.5:
-                traverse = ["X"]
-            else:
-                traverse = ["X", "Y"]
-
-            if "X" in traverse:
-                if (
-                    self.x_distance_coords(
-                        (x + 1) % self.world_dimensions, destination[0]
-                    )
-                    < x_distance
-                ):
-                    x = (x + 1) % self.world_dimensions
-                else:
-                    x = (x - 1) % self.world_dimensions
-            if "Y" in traverse:
-                if (
-                    self.y_distance_coords(
-                        (y + 1) % self.world_dimensions, destination[1]
-                    )
-                    < y_distance
-                ):
-                    y = (y + 1) % self.world_dimensions
-                else:
-                    y = (y - 1) % self.world_dimensions
-            line.append((x, y))
-        return line
-
     def change_parameter(self, parameter_name: str, change: int) -> None:
         """
         Description:
@@ -1629,160 +1492,6 @@ class world_handler:
             "atmosphere_haze_alpha": self.atmosphere_haze_alpha,
         }
 
-    def generate_green_screen(self) -> Dict[str, Dict[str, any]]:
-        """
-        Description:
-            Generate a smart green screen dictionary for this world handler, containing color configuration for each terrain surface type
-        Input:
-            None
-        Output:
-            None
-        """
-        if constants.effect_manager.effect_active("earth_preset"):
-            water_color = self.get_tuning("earth_water_color")
-            ice_color = self.get_tuning("earth_ice_color")
-            sand_color = self.get_tuning("earth_sand_color")
-            rock_color = self.get_tuning("earth_rock_color")
-        elif constants.effect_manager.effect_active("mars_preset"):
-            water_color = self.get_tuning("mars_water_color")
-            ice_color = self.get_tuning("mars_ice_color")
-            sand_color = self.get_tuning("mars_sand_color")
-            rock_color = self.get_tuning("mars_rock_color")
-        elif constants.effect_manager.effect_active("venus_preset"):
-            water_color = self.get_tuning("venus_water_color")
-            ice_color = self.get_tuning("venus_ice_color")
-            sand_color = self.get_tuning("venus_sand_color")
-            rock_color = self.get_tuning("venus_rock_color")
-        else:
-            sand_type = random.randrange(1, 7)
-            if sand_type >= 5:
-                sand_color = (
-                    random.randrange(150, 240),
-                    random.randrange(70, 196),
-                    random.randrange(20, 161),
-                )
-            elif sand_type >= 3:
-                base_sand_color = random.randrange(50, 200)
-                sand_color = (
-                    base_sand_color * random.uniform(0.8, 1.2),
-                    base_sand_color * random.uniform(0.8, 1.2),
-                    base_sand_color * random.uniform(0.8, 1.2),
-                )
-            else:
-                sand_color = (
-                    random.randrange(3, 236),
-                    random.randrange(3, 236),
-                    random.randrange(3, 236),
-                )
-
-            rock_multiplier = random.uniform(0.8, 1.4)
-            rock_color = (
-                sand_color[0] * 0.45 * rock_multiplier,
-                sand_color[1] * 0.5 * rock_multiplier,
-                max(50, sand_color[2] * 0.6) * rock_multiplier,
-            )
-
-            water_color = (
-                random.randrange(7, 25),
-                random.randrange(15, 96),
-                random.randrange(150, 221),
-            )
-            ice_color = (
-                random.randrange(140, 181),
-                random.randrange(190, 231),
-                random.randrange(220, 261),
-            )
-        # Tuning should include water, ice, rock, sand RGB values, replacing any randomly generated values
-        return {
-            "ice": {
-                "base_colors": [(150, 203, 230)],
-                "tolerance": 180,
-                "replacement_color": (
-                    round(ice_color[0]),
-                    round(ice_color[1]),
-                    round(ice_color[2]),
-                ),
-            },
-            "dirt": {
-                "base_colors": [(124, 99, 29)],
-                "tolerance": 60,
-                "replacement_color": (
-                    round((sand_color[0] + rock_color[0]) / 2),
-                    round((sand_color[1] + rock_color[1]) / 2),
-                    round((sand_color[2] + rock_color[2]) / 2),
-                ),
-            },
-            "sand": {
-                "base_colors": [(220, 180, 80)],
-                "tolerance": 50,
-                "replacement_color": (
-                    round(sand_color[0]),
-                    round(sand_color[1]),
-                    round(sand_color[2]),
-                ),
-            },
-            "shadowed sand": {
-                "base_colors": [(184, 153, 64)],
-                "tolerance": 35,
-                "replacement_color": (
-                    round(sand_color[0] * 0.8),
-                    round(sand_color[1] * 0.8),
-                    round(sand_color[2] * 0.8),
-                ),
-            },
-            "deep water": {
-                "base_colors": [(24, 62, 152)],
-                "tolerance": 75,
-                "replacement_color": (
-                    round(water_color[0] * 0.9),
-                    round(water_color[1] * 0.9),
-                    round(water_color[2] * 1),
-                ),
-            },
-            "shallow water": {
-                "base_colors": [(65, 26, 93)],
-                "tolerance": 75,
-                "replacement_color": (
-                    round(water_color[0]),
-                    round(water_color[1] * 1.1),
-                    round(water_color[2] * 1),
-                ),
-            },
-            "rock": {
-                "base_colors": [(90, 90, 90)],
-                "tolerance": 90,
-                "replacement_color": (
-                    round(rock_color[0]),
-                    round(rock_color[1]),
-                    round(rock_color[2]),
-                ),
-            },
-            "mountaintop": {
-                "base_colors": [(233, 20, 233)],
-                "tolerance": 75,
-                "replacement_color": (
-                    round(rock_color[0] * 1.4),
-                    round(rock_color[1] * 1.4),
-                    round(rock_color[2] * 1.4),
-                ),
-            },
-            "faults": {
-                "base_colors": [(54, 53, 40)],
-                "tolerance": 0,
-                "replacement_color": (
-                    round(rock_color[0] * 0.5),
-                    round(rock_color[1] * 0.5),
-                    round(rock_color[2] * 0.5),
-                ),
-            },
-            "clouds": {
-                "base_colors": [(174, 37, 19)],
-                "tolerance": 60,
-                "replacement_color": (0, 0, 0),
-                # Replacement color updated when sky color changes
-            },
-        }
-
     def get_green_screen(self, terrain: str = None) -> Dict[str, Dict[str, any]]:
         """
         Description:
@@ -2144,7 +1853,7 @@ class world_handler:
         Output:
             Returns the greenhouse effect caused by water vapor on this planet
         """
-        if self.is_earth():
+        if self.is_earth:
             water_vapor = self.get_tuning("earth_water_vapor")
         else:
             water_vapor = self.get_water_vapor_contributions(
@@ -2218,6 +1927,8 @@ class world_handler:
         Output:
             None
         """
+        if self.is_orbital_world:
+            return
         pressure = self.get_pressure_ratio()
         if pressure >= 1:  # Linear relationship from 1, 1 to 10, 3/2
             min_effect = 1

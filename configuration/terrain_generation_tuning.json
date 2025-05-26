@@ -60,6 +60,7 @@
     "ice_placement_candidates": 70,
     "water_freezing_point": 0,
     "water_boiling_point": 9,
+    "earth_dimensions_index": 4,
     "earth_rotation_direction": -1,
     "earth_rotation_speed": 3,
     "earth_expected_temperature_target": 2.15,
@@ -103,6 +104,7 @@
     "earth_base_temperature_fahrenheit": -0.5,
     "earth_albedo_multiplier": 0.7,
     "earth_cloud_frequency": 0.248,
+    "mars_dimensions_index": 1,
     "mars_rotation_direction": -1,
     "mars_rotation_speed": 3,
     "mars_expected_temperature_target": -2.6,
@@ -142,6 +144,7 @@
         129
     ],
     "mars_star_distance": 1.523,
+    "venus_dimensions_index": 4,
     "venus_rotation_direction": 1,
     "venus_rotation_speed": 1,
     "venus_expected_temperature_target": 10.61,

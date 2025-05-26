@@ -1168,12 +1168,7 @@ class actor_display_label(label):
             tooltip_text = [self.message]
             if self.actor:
                 habitability_dict = self.actor.get_location().get_habitability_dict()
-
-                if (
-                    not self.actor.get_location()
-                    .get_world_handler()
-                    .is_abstract_world()
-                ):
+                if not self.actor.get_location().get_world_handler().is_abstract_world:
                     tooltip_text.append(
                         f"    Overall habitability is the minimum of all parts of the local conditions"
                     )
@@ -1194,9 +1189,7 @@ class actor_display_label(label):
                     f"Represents the habitability for humans to live and work here"
                 )
                 if (
-                    not self.actor.get_location()
-                    .get_world_handler()
-                    .is_abstract_world()
+                    not self.actor.get_location().get_world_handler().is_abstract_world
                 ) and (
                     self.actor.get_location().get_parameter(constants.KNOWLEDGE)
                     < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
@@ -1255,7 +1248,7 @@ class actor_display_label(label):
                 self.set_label(f"{self.message_start}({new_actor.x}, {new_actor.y})")
 
             elif self.actor_label_type == constants.TERRAIN_LABEL:
-                if not new_actor.get_location().get_world_handler().is_abstract_world():
+                if not new_actor.get_location().get_world_handler().is_abstract_world:
                     if (
                         self.actor.get_location().visible
                         and self.actor.get_location().knowledge_available(
@@ -1269,7 +1262,7 @@ class actor_display_label(label):
                         self.set_label(self.message_start + "unknown")
 
             elif self.actor_label_type == constants.PLANET_NAME_LABEL:
-                if new_actor.get_location().get_world_handler().is_abstract_world():
+                if new_actor.get_location().get_world_handler().is_abstract_world:
                     if new_actor.grid != status.earth_grid:
                         self.set_label(
                             f"{utility.capitalize(new_actor.grid.name)} (in orbit)"
@@ -1278,7 +1271,7 @@ class actor_display_label(label):
                         self.set_label(utility.capitalize(new_actor.grid.name))
 
             elif self.actor_label_type == constants.RESOURCE_LABEL:
-                if new_actor.get_location().get_world_handler().is_abstract_world():
+                if new_actor.get_location().get_world_handler().is_abstract_world:
                     self.set_label(f"{self.message_start}n/a")
                 elif new_actor.get_location().visible:
                     self.set_label(
@@ -1294,11 +1287,7 @@ class actor_display_label(label):
                 self.actor_label_type == constants.RESOURCE
             ):  # Resource building, distinct from terrain resource label
                 if (
-                    (
-                        not new_actor.get_location()
-                        .get_world_handler()
-                        .is_abstract_world()
-                    )
+                    (not new_actor.get_location().get_world_handler().is_abstract_world)
                     and new_actor.get_location().visible
                     and new_actor.get_location().has_building(constants.RESOURCE)
                 ):
@@ -1701,9 +1690,7 @@ class actor_display_label(label):
                     self.actor.get_location().get_known_habitability()
                 )
                 if (
-                    not self.actor.get_location()
-                    .get_world_handler()
-                    .is_abstract_world()
+                    not self.actor.get_location().get_world_handler().is_abstract_world
                 ) and (
                     self.actor.get_location().get_parameter(constants.KNOWLEDGE)
                     < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
@@ -1744,7 +1731,7 @@ class actor_display_label(label):
         elif self.actor_label_type == constants.RESOURCE_LABEL and (
             self.actor.get_location().resource == None
             or (not self.actor.get_location().visible)
-            or self.actor.get_location().get_world_handler().is_abstract_world()
+            or self.actor.get_location().get_world_handler().is_abstract_world
         ):
             return False
         elif self.actor_label_type == constants.RESOURCE and (
@@ -1754,7 +1741,7 @@ class actor_display_label(label):
             return False
         elif (
             self.actor_label_type == constants.COORDINATES_LABEL
-            and self.actor.get_location().get_world_handler().is_abstract_world()
+            and self.actor.get_location().get_world_handler().is_abstract_world
         ):
             return False
         elif self.actor_label_type in [
@@ -1834,9 +1821,9 @@ class actor_display_label(label):
         elif self.actor_label_type == constants.EQUIPMENT_LABEL:
             return bool(self.actor.equipment)
         elif self.actor_label_type == constants.PLANET_NAME_LABEL:
-            return self.actor.get_location().get_world_handler().is_abstract_world()
+            return self.actor.get_location().get_world_handler().is_abstract_world
         elif self.actor_label_type == constants.TERRAIN_LABEL:
-            return not self.actor.get_location().get_world_handler().is_abstract_world()
+            return not self.actor.get_location().get_world_handler().is_abstract_world
         else:
             return result
 

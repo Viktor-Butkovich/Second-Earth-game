@@ -76,9 +76,7 @@ def get_building_cost(builder, building_type, building_name="n/a"):
 
     if building_type in [constants.TRAIN]:
         cost_multiplier = 1
-    elif (
-        not builder
-    ) or builder.get_location().get_world_handler().is_abstract_world():
+    elif (not builder) or builder.get_location().get_world_handler().is_abstract_world:
         cost_multiplier = 1  # Abstract world has no terrain for multiplier
     else:
         cost_multiplier = constants.terrain_build_cost_multiplier_dict.get(

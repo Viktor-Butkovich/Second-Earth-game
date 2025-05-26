@@ -78,7 +78,7 @@ class location:
             and random.randrange(1, 7) >= 4
         ):
             return True
-        if self.get_world_handler().is_earth():
+        if self.get_world_handler().is_earth:
             if attrition_type == "health":  # No health attrition on Earth
                 return False
             elif (
@@ -359,7 +359,7 @@ class location:
             int: Returns habitability of this tile for the inputted unit
         """
         if (
-            self.world_handler.is_abstract_world()
+            self.world_handler.is_abstract_world
             and self.world_handler.abstract_world_type == constants.ORBITAL_WORLD
         ):
             default_habitability = constants.HABITABILITY_DEADLY
@@ -385,7 +385,7 @@ class location:
             int: Returns the habitability of this tile based on current knowledge
         """
         habitability_dict = self.get_habitability_dict()
-        if not self.get_world_handler().is_abstract_world():  # If global habitability
+        if not self.get_world_handler().is_abstract_world:  # If global habitability
             habitability_dict[constants.TEMPERATURE] = (
                 actor_utility.get_temperature_habitability(
                     round(self.get_world_handler().average_temperature)
@@ -525,17 +525,17 @@ class location:
         new_value = self.terrain_parameters[parameter_name]
         if (
             parameter_name == constants.WATER
-            and not self.get_world_handler().is_abstract_world()
+            and not self.get_world_handler().is_abstract_world
         ):
             self.get_world_handler().update_average_water()
         elif (
             parameter_name == constants.ALTITUDE
-            and not self.get_world_handler().is_abstract_world()
+            and not self.get_world_handler().is_abstract_world
         ):
             self.get_world_handler().update_average_altitude()
         elif (
             parameter_name == constants.TEMPERATURE
-            and not self.get_world_handler().is_abstract_world()
+            and not self.get_world_handler().is_abstract_world
         ):
             # If changing temperature, re-distribute water around the planet
             # Causes melting glaciers and vice versa

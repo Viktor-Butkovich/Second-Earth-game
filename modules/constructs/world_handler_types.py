@@ -1,13 +1,13 @@
 import pygame
 import math
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Any
 from modules.util import actor_utility
 from modules.constructs import world_handlers
 from modules.constants import constants, status, flags
 
 
 class abstract_world_handler(world_handlers.world_handler):
-    def __init__(self, from_save: bool, input_dict: Dict[str, any]) -> None:
+    def __init__(self, from_save: bool, input_dict: Dict[str, Any]) -> None:
         self.abstract_world_type = input_dict["abstract_world_type"]
         super().__init__(from_save, input_dict)
 
@@ -19,9 +19,11 @@ class abstract_world_handler(world_handlers.world_handler):
     def coordinate_height(self) -> int:
         return 1
 
+    @property
     def is_abstract_world(self) -> bool:
         return True
 
+    @property
     def is_earth(self) -> bool:
         return self.abstract_world_type == constants.EARTH
 
@@ -32,79 +34,90 @@ class orbital_world_handler(abstract_world_handler):
     Allows planet orbit to have its own orbital location while using the full world's parameters
     """
 
-    def __init__(self, from_save: bool, input_dict: Dict[str, any]) -> None:
+    def __init__(self, from_save: bool, input_dict: Dict[str, Any]) -> None:
         self.full_world: full_world_handler = input_dict["full_world"]
         input_dict["abstract_world_type"] = constants.ORBITAL_WORLD
         super().__init__(from_save, input_dict)
+
+    def set_parameter(self, parameter_name: str, new_value: int) -> None:
+        self.full_world.set_parameter(parameter_name, new_value)
+
+    def change_parameter(self, parameter_name: str, change: int) -> None:
+        self.full_world.change_parameter(parameter_name, change)
+
+    def get_parameter(self, parameter_name: str) -> int:
+        return self.full_world.get_parameter(parameter_name)
+
+    def to_save_dict(self) -> Dict[str, Any]:
+        return {
+            "init_type": constants.ORBITAL_WORLD,
+            "location_list": [  # All other information saved by the full world
+                [location.to_save_dict() for location in row]
+                for row in self.location_list
+            ],
+        }
+
+    @property
+    def is_orbital_world(self) -> bool:
+        return True
 
     @property
     def name(self) -> str:
         return self.full_world.name
 
-    @name.setter
-    def name(self, value: str) -> None:
-        pass
-
     @property
     def world_dimensions(self) -> int:
         return self.full_world.world_dimensions
-
-    @world_dimensions.setter
-    def world_dimensions(self, value: int) -> None:
-        pass
 
     @property
     def rotation_direction(self) -> int:
         return self.full_world.rotation_direction
 
-    @rotation_direction.setter
-    def rotation_direction(self, value: int) -> None:
-        pass
-
     @property
     def rotation_speed(self) -> int:
         return self.full_world.rotation_speed
-
-    @rotation_speed.setter
-    def rotation_speed(self, value: int) -> None:
-        pass
 
     @property
     def star_distance(self) -> float:
         return self.full_world.star_distance
 
-    @star_distance.setter
-    def star_distance(self, value: float) -> None:
-        pass
-
-    @property
-    def global_parameters(self) -> Dict[str, any]:
-        return self.full_world.global_parameters
-
-    @global_parameters.setter
-    def global_parameters(self, value: Dict[str, any]) -> None:
-        pass
-
     @property
     def sky_color(self) -> Tuple[int, int, int]:
         return self.full_world.sky_color
-
-    @sky_color.setter
-    def sky_color(self, value: Tuple[int, int, int]) -> None:
-        pass
 
     @property
     def default_sky_color(self) -> Tuple[int, int, int]:
         return self.full_world.default_sky_color
 
-    @default_sky_color.setter
-    def default_sky_color(self, value: Tuple[int, int, int]) -> None:
-        pass
+    @property
+    def average_water(self) -> float:
+        return self.full_world.average_water
+
+    @property
+    def average_temperature(self) -> float:
+        return self.full_world.average_temperature
+
+    @property
+    def water_vapor_multiplier(self) -> float:
+        return self.full_world.water_vapor_multiplier
+
+    @property
+    def ghg_multiplier(self) -> float:
+        return self.full_world.ghg_multiplier
+
+    @property
+    def albedo_multiplier(self) -> float:
+        return self.full_world.albedo_multiplier
 
 
 class full_world_handler(world_handlers.world_handler):
-    def __init__(self, from_save: bool, input_dict: Dict[str, any]) -> None:
+    def __init__(self, from_save: bool, input_dict: Dict[str, Any]) -> None:
         super().__init__(from_save, input_dict)
+
+        for current_location in self.get_flat_location_list():
+            current_location.find_adjacent_locations()
+
+        self.latitude_lines_setup()
 
         if not from_save:  # Initial full world generation
             self.generate_poles_and_equator()
@@ -128,10 +141,160 @@ class full_world_handler(world_handlers.world_handler):
             )
         )
 
-    def to_save_dict(self) -> Dict[str, any]:
+    def to_save_dict(self) -> Dict[str, Any]:
         save_dict = super().to_save_dict()
         save_dict["orbital_world"] = self.orbital_world.to_save_dict()
         return save_dict
+
+    def latitude_lines_setup(self):
+        """
+        Description:
+            15 x 15 grid has north pole 0, 0 and south pole 7, 7
+            If centered at (11, 11), latitude line should include (0, 0), (14, 14), (13, 13), (12, 12), (11, 11), (10, 10), (9, 9), (8, 8), (7, 7)
+                The above line should be used if centered at any of the above coordinates
+            If centered at (3, 11), latitude line should include (0, 0), (1, 14), (1, 13), (2, 12), (3, 11), (4, 10), (5, 9), (6, 8), (7, 7)
+
+            Need to draw latitude lines using the above method, centered on (0, 7), (1, 6), (2, 5), (3, 4), (4, 3), (5, 2), (6, 1), (7, 0), (8, 14), (9, 13), (10, 12), (11, 11), (12, 10), (13, 9), (14, 8)
+                ^ Forms diagonal line
+            Also need to draw latitude lines on other cross: (0, 8), (1, 9), (2, 10), (3, 11), (4, 12), (5, 13), (6, 14), (7, 0), (8, 1), (9, 2), (10, 3), (11, 4), (12, 5), (13, 6), (14, 7)
+        Input:
+            None
+        Output:
+            None
+        """
+        if self.is_abstract_world:
+            return
+        self.latitude_lines = []
+        self.alternate_latitude_lines = []
+        self.latitude_lines_types = [
+            [None for _ in range(self.world_dimensions)]
+            for _ in range(self.world_dimensions)
+        ]
+        north_pole = (0, 0)
+        south_pole = (
+            self.world_dimensions // 2,
+            self.world_dimensions // 2,
+        )
+        self.equatorial_coordinates = []
+        self.alternate_equatorial_coordinates = []
+        for equatorial_x in range(self.world_dimensions):
+            equatorial_y = (
+                (self.world_dimensions // 2) - equatorial_x
+            ) % self.world_dimensions
+            current_line = self.draw_coordinate_line(
+                north_pole, (equatorial_x, equatorial_y)
+            ) + self.draw_coordinate_line(
+                (equatorial_x, equatorial_y), south_pole, omit_origin=True
+            )
+            for coordinate in current_line:
+                self.latitude_lines_types[coordinate[0]][coordinate[1]] = True
+            self.latitude_lines.append(current_line)
+            self.equatorial_coordinates.append((equatorial_x, equatorial_y))
+
+            equatorial_y = (
+                (self.world_dimensions // 2) + equatorial_x + 1
+            ) % self.world_dimensions
+            current_line = self.draw_coordinate_line(
+                north_pole, (equatorial_x, equatorial_y)
+            ) + self.draw_coordinate_line(
+                (equatorial_x, equatorial_y), south_pole, omit_origin=True
+            )
+            for coordinate in current_line:
+                self.latitude_lines_types[coordinate[0]][coordinate[1]] = False
+            self.alternate_latitude_lines.append(current_line)
+            self.alternate_equatorial_coordinates.append((equatorial_x, equatorial_y))
+
+    def get_latitude_line(
+        self, coordinates: Tuple[int, int]
+    ) -> Tuple[int, List[List[Tuple[int, int]]]]:
+        """
+        Description:
+            Finds and returns the latitude line that the inputted coordinates are on
+        Input:
+            int tuple coordinates: Coordinates to find the latitude line of
+        Output:
+            int tuple list: Returns a latitude line (list of coordinates from 1 pole to the other) that the inputted coordinates are on
+        """
+        latitude_line_type = self.latitude_lines_types[coordinates[0]][coordinates[1]]
+        if latitude_line_type == None:
+            for offset in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                latitude_line_type = self.latitude_lines_types[
+                    (coordinates[0] + offset[0]) % self.world_dimensions
+                ][(coordinates[1] + offset[1]) % self.world_dimensions]
+                if latitude_line_type != None:
+                    coordinates = (
+                        (coordinates[0] + offset[0]) % self.world_dimensions,
+                        (coordinates[1] + offset[1]) % self.world_dimensions,
+                    )
+                    break
+        if latitude_line_type == True:
+            for idx, latitude_line in enumerate(self.latitude_lines):
+                if coordinates in latitude_line:
+                    return idx, self.latitude_lines
+        else:
+            for idx, latitude_line in enumerate(self.alternate_latitude_lines):
+                if coordinates in latitude_line:
+                    return idx, self.alternate_latitude_lines
+
+    def draw_coordinate_line(
+        self,
+        origin: Tuple[int, int],
+        destination: Tuple[int, int],
+        omit_origin: bool = False,
+    ) -> List[Tuple[int, int]]:
+        """
+        Description:
+            Finds and returns a list of adjacent/diagonal coordinates leading from the origin to the destination
+        Input:
+            int tuple origin: Origin coordinate
+            int tuple destination: Destination coordinate
+            boolean omit_origin: Whether to omit the origin from the list
+        Output:
+            int tuple list: List of adjacent/diagonal coordinates leading from the origin to the destination
+        """
+        line = []
+        if not omit_origin:
+            line.append(origin)
+        x, y = origin
+        while (x, y) != destination:
+            x_distance = self.x_distance_coords(x, destination[0])
+            y_distance = self.y_distance_coords(y, destination[1])
+            if x_distance != 0:
+                slope = y_distance / x_distance
+
+            if x_distance == 0:
+                traverse = ["Y"]
+            elif y_distance == 0:
+                traverse = ["X"]
+            elif slope > 2:
+                traverse = ["Y"]
+            elif slope < 0.5:
+                traverse = ["X"]
+            else:
+                traverse = ["X", "Y"]
+
+            if "X" in traverse:
+                if (
+                    self.x_distance_coords(
+                        (x + 1) % self.world_dimensions, destination[0]
+                    )
+                    < x_distance
+                ):
+                    x = (x + 1) % self.world_dimensions
+                else:
+                    x = (x - 1) % self.world_dimensions
+            if "Y" in traverse:
+                if (
+                    self.y_distance_coords(
+                        (y + 1) % self.world_dimensions, destination[1]
+                    )
+                    < y_distance
+                ):
+                    y = (y + 1) % self.world_dimensions
+                else:
+                    y = (y - 1) % self.world_dimensions
+            line.append((x, y))
+        return line
 
     def update_globe_projection(
         self, center_coordinates: Tuple[int, int] = None, update_button: bool = True

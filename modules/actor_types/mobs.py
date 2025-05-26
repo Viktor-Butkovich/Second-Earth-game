@@ -1102,7 +1102,7 @@ class mob(actor):
             )
 
         if self.end_turn_destination:
-            if not self.end_turn_destination.get_world_handler().is_abstract_world():
+            if not self.end_turn_destination.get_world_handler().is_abstract_world:
                 tooltip_list.append(
                     f"This unit has been issued an order to travel to ({self.end_turn_destination.x}, {self.end_turn_destination.y}) on {self.end_turn_destination.get_world_handler().name} at the end of the turn"
                 )
@@ -1230,7 +1230,7 @@ class mob(actor):
         future_x = (self.x + x_change) % self.grid.coordinate_width
         future_y = (self.y + y_change) % self.grid.coordinate_height
         if minister_utility.get_minister(constants.TRANSPORTATION_MINISTER):
-            if not self.get_location().get_world_handler().is_abstract_world():
+            if not self.get_location().get_world_handler().is_abstract_world:
                 future_location = (
                     self.get_location()
                     .get_world_handler()

@@ -446,7 +446,7 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Terrain green screens don't seem to be occurring (unit/minister green screens still work)
+# Update docstrings
 # Selected tile and one centered in the minimap grids don't seem to match
 # Selecting a tile in the minimap grid should calibrate to make it the center
 # Remove references to get_equivalent_tiles
