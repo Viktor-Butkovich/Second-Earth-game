@@ -385,7 +385,7 @@ class location:
             int: Returns the habitability of this tile based on current knowledge
         """
         habitability_dict = self.get_habitability_dict()
-        if not self.get_world_handler().is_abstract_world:  # If global habitability
+        if self.get_world_handler().is_abstract_world:  # If global habitability
             habitability_dict[constants.TEMPERATURE] = (
                 actor_utility.get_temperature_habitability(
                     round(self.get_world_handler().average_temperature)

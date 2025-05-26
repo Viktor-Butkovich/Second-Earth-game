@@ -458,9 +458,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Transfer tile inventory from cell to location
 # Transfer settlements from cell to location
 # Transfer logistics_incident_list from cell to location
-# Convert world creation process to be create world handler -> create locations for each coordinate
-#   Followed by independent process of creating grid with cells that can attach to locations
-#   Ideally, no world or location logic is tied to cells, and cells use observer pattern to update UI with subscribed locations
 # Investigate water disappearing during terraforming - definitely occurs on Venus and Mars maps
 # Colonist upkeep should be oxygen, outputs CO2 - nitrogen is required in the construction of life support/dome systems, but is not directly involved in the upkeep process
 # Next major step is to add basic economic mechanics, now that the baseline terraforming is functional

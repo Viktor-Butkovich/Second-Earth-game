@@ -83,9 +83,7 @@ def start_player_turn(first_turn=False):
         actor_utility.reset_action_prices()
         game_end_check()
         status.current_world.update_clouds()
-        for i in range(5):  # Change to equilibrium
-            status.current_world.update_target_average_temperature(update_albedo=True)
-            status.current_world.change_to_temperature_target()
+        status.current_world.simulate_temperature_equilibrium(5)
         status.current_world.update_sky_color(update_water=True)
         status.current_world.update_clouds()
         constants.notification_manager.set_lock(False)

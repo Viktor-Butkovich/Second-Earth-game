@@ -1176,7 +1176,9 @@ class actor_display_label(label):
                     habitability_dict[constants.TEMPERATURE] = (
                         actor_utility.get_temperature_habitability(
                             round(
-                                self.actor.cell.grid.world_handler.average_temperature
+                                self.actor.get_location()
+                                .get_world_handler()
+                                .average_temperature
                             )
                         )
                     )

@@ -126,9 +126,7 @@ class full_world_handler(world_handlers.world_handler):
             self.generate_terrain_features()
             self.update_sky_color(set_initial_offset=True, update_water=True)
             self.update_clouds()
-            for i in range(5):  # Simulate time passing until equilibrium is reached
-                self.update_target_average_temperature(update_albedo=True)
-                self.change_to_temperature_target()
+            self.simulate_temperature_equilibrium(5)
 
         self.orbital_world: orbital_world_handler = (
             constants.actor_creation_manager.create(
@@ -145,6 +143,19 @@ class full_world_handler(world_handlers.world_handler):
         save_dict = super().to_save_dict()
         save_dict["orbital_world"] = self.orbital_world.to_save_dict()
         return save_dict
+
+    def simulate_temperature_equilibrium(self, iterations: int = 5) -> None:
+        """
+        Description:
+            Simulates the temperature equilibrium of the world by updating the target average temperature and changing to that target
+        Input:
+            int iterations: Number of iterations to simulate
+        Output:
+            None
+        """
+        for _ in range(iterations):
+            self.update_target_average_temperature(update_albedo=True)
+            self.change_to_temperature_target()
 
     def latitude_lines_setup(self):
         """
