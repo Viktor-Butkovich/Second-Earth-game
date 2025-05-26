@@ -20,6 +20,7 @@ class world_handler:
             dictionary input_dict: Dictionary of saved information necessary to recreate this location if loading grid, or None if creating new location
         """
         self.world_dimensions: int = input_dict.get("world_dimensions")
+        self.attached_grids: List[Any] = []
         self.name: str = input_dict.get("name")
         self.rotation_direction = input_dict.get("rotation_direction")
         self.rotation_speed = input_dict.get("rotation_speed")
@@ -109,6 +110,14 @@ class world_handler:
 
     def is_abstract_world(self) -> bool:
         return False
+
+    def add_grid(self, grid: Any) -> None:
+        self.attached_grids.append(grid)
+        grid.world_handler = self
+
+    def remove_grid(self, grid: Any) -> None:
+        self.attached_grids.remove(grid)
+        grid.world_handler = None
 
     def generate_altitude(self) -> None:
         """

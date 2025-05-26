@@ -257,21 +257,6 @@ current_instructions_page_index: int = 0
 current_instructions_page_text: str = ""
 message: str = ""
 
-# STRATEGIC_MAP_GRID_TYPE: str = "strategic_map_grid"
-# EARTH_GRID_TYPE: str = "earth_grid"
-# GLOBE_PROJECTION_GRID_TYPE: str = "globe_projection_grid"
-# SCROLLING_STRATEGIC_MAP_GRID_TYPE: str = "scrolling_strategic_map_grid"
-# MINIMAP_GRID_TYPE: str = "minimap_grid"
-
-# grid_types_list: List[str] = [
-#    STRATEGIC_MAP_GRID_TYPE,
-#    EARTH_GRID_TYPE,
-#    GLOBE_PROJECTION_GRID_TYPE,
-#    SCROLLING_STRATEGIC_MAP_GRID_TYPE,
-#    MINIMAP_GRID_TYPE,
-# ]
-# abstract_grid_type_list: List[str] = [EARTH_GRID_TYPE, GLOBE_PROJECTION_GRID_TYPE]
-
 grids_collection_x: int = default_display_width - 740
 grids_collection_y: int = default_display_height - 325
 

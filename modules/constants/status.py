@@ -54,7 +54,6 @@ from modules.tools.effects import effect
 scrolling_strategic_map_grid: mini_grid = None
 minimap_grid: mini_grid = None
 earth_grid: abstract_grid = None
-globe_projection_grid: abstract_grid = None
 planet_view_mask: free_image = None
 
 actions: Dict[str, action] = {}

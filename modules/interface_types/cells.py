@@ -179,18 +179,6 @@ class cell:
                     noncombatants.append(current_mob)
         return noncombatants
 
-    def copy(self, other_cell):
-        """
-        Description:
-            Changes this cell into a copy of the inputted cell
-        Input:
-            cell other_cell: Cell to copy
-        Output:
-            None
-        """
-        self.contained_mobs = other_cell.contained_mobs
-        other_cell.get_location().add_cell(self)
-
     def draw(self):
         """
         Description:

@@ -38,7 +38,8 @@ class grid(interface_elements.interface_element):
         """
         super().__init__(input_dict)
         status.grid_list.append(self)
-        self.world_handler: world_handlers.world_handler = input_dict["world_handler"]
+        self.world_handler: world_handlers.world_handler = None
+        input_dict["world_handler"].add_grid(self)
         self.grid_line_width: int = input_dict.get("grid_line_width", 3)
         self.coordinate_width: int = input_dict.get(
             "coordinate_size", input_dict.get("coordinate_width")
@@ -455,6 +456,7 @@ class grid(interface_elements.interface_element):
         """
         super().remove()
         status.grid_list = utility.remove_from_list(status.grid_list, self)
+        self.world_handler.remove_grid(self)
 
 
 class mini_grid(grid):
@@ -500,36 +502,34 @@ class mini_grid(grid):
         Output:
             None
         """
-        if constants.current_game_mode in self.modes:
-            self.center_x = center_x
-            self.center_y = center_y
-            # if not recursive:
-            #    for mini_grid in self.attached_grid.mini_grids:
-            #        if mini_grid != self:
-            #            mini_grid.calibrate(center_x, center_y, recursive=True)
-            #    if calibrate_center:
-            #        actor_utility.calibrate_actor_info_display(
-            #            status.tile_info_display,
-            #            self.attached_grid.find_cell(self.center_x, self.center_y).tile,
-            #        )  # calibrate tile display information to centered tile
-            # for current_cell in self.get_flat_cell_list():
-            #    attached_x, attached_y = self.get_main_grid_coordinates(
-            #        current_cell.x, current_cell.y
-            #    )
-            #    attached_cell = self.attached_grid.find_cell(attached_x, attached_y)
-            #    current_cell.copy(attached_cell)
-            for current_mob in status.mob_list:
-                if current_mob.get_cell():
-                    for current_image in current_mob.images:
-                        if current_image.grid == self:
-                            current_image.add_to_cell()
-            if self == status.minimap_grid:
-                for (
-                    directional_indicator_image
-                ) in status.directional_indicator_image_list:
-                    directional_indicator_image.calibrate()
-        if self == status.scrolling_strategic_map_grid:
-            status.current_world.update_globe_projection()
+        if recursive:
+            if constants.current_game_mode in self.modes:
+                self.center_x = center_x
+                self.center_y = center_y
+
+                for current_cell in self.get_flat_cell_list():
+                    self.world_handler.find_location(
+                        *self.get_absolute_coordinates(current_cell.x, current_cell.y)
+                    ).add_cell(
+                        current_cell
+                    )  # Calibrate each cell to its the new location
+
+                for current_mob in status.mob_list:
+                    if current_mob.get_cell():
+                        for current_image in current_mob.images:
+                            if current_image.grid == self:
+                                current_image.add_to_cell()
+                if self == status.minimap_grid:
+                    for (
+                        directional_indicator_image
+                    ) in status.directional_indicator_image_list:
+                        directional_indicator_image.calibrate()
+            if self == status.scrolling_strategic_map_grid:
+                status.current_world.update_globe_projection()
+        else:
+            for current_grid in self.world_handler.attached_grids:
+                if current_grid.is_mini_grid():
+                    current_grid.calibrate(center_x, center_y, recursive=True)
 
     def get_absolute_coordinates(self, mini_x, mini_y):
         """

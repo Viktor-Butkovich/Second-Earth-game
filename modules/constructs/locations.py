@@ -359,9 +359,9 @@ class location:
             int: Returns habitability of this tile for the inputted unit
         """
         if (
-            self.attached_cells[0].grid == status.globe_projection_grid
-        ):  # If in orbit of planet
-            self.get_world_handler() == status.globe_projection_grid.world_handler
+            self.world_handler.is_abstract_world()
+            and self.world_handler.abstract_world_type == constants.ORBITAL_WORLD
+        ):
             default_habitability = constants.HABITABILITY_DEADLY
         else:
             default_habitability = min(

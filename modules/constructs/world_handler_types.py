@@ -158,7 +158,11 @@ class full_world_handler(world_handlers.world_handler):
             ),
         )
 
-        globe_projection_tile = status.globe_projection_grid.find_cell(0, 0).tile
+        globe_projection_tile = (
+            status.current_world.orbital_world.find_location(0, 0)
+            .attached_cells[0]
+            .tile
+        )
         globe_projection_image_id = [
             "misc/space.png",
             {

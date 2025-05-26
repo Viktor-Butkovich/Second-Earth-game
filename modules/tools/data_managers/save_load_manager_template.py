@@ -453,6 +453,7 @@ class save_load_manager_template:
                     "modes": [constants.STRATEGIC_MODE],
                     "coordinate_size": status.current_world.world_dimensions,
                     "grid_line_width": 2,
+                    "parent_collection": status.grids_collection,
                 }
             )
         )
@@ -472,15 +473,12 @@ class save_load_manager_template:
                     "modes": [constants.STRATEGIC_MODE],
                     "coordinate_size": constants.minimap_grid_coordinate_size,
                     "external_line_color": constants.COLOR_BRIGHT_RED,
+                    "parent_collection": status.grids_collection,
                 }
             )
         )
-        status.minimap_grid.calibrate(
-            round(0.75 * status.current_world.world_dimensions),
-            round(0.75 * status.current_world.world_dimensions),
-        )
 
-        status.globe_projection_grid = (
+        globe_projection_grid = (
             constants.actor_creation_manager.create_interface_element(
                 input_dict={
                     "init_type": constants.ABSTRACT_GRID,
@@ -494,6 +492,7 @@ class save_load_manager_template:
                         constants.globe_projection_grid_height
                     ),
                     "modes": [constants.STRATEGIC_MODE],
+                    "parent_collection": status.grids_collection,
                 }
             )
         )
@@ -509,7 +508,13 @@ class save_load_manager_template:
                 "width": scaling.scale_width(constants.earth_grid_width),
                 "height": scaling.scale_height(constants.earth_grid_height),
                 "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+                "parent_collection": status.grids_collection,
             }
+        )
+
+        status.minimap_grid.calibrate(
+            round(0.75 * status.current_world.world_dimensions),
+            round(0.75 * status.current_world.world_dimensions),
         )
 
     def new_game(self):
