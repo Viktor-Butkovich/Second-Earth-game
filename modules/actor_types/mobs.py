@@ -48,11 +48,21 @@ class mob(actor):
         self.controlling_minister: ministers.minister = None
         self.update_controlling_minister()
         self.actor_type = constants.MOB_ACTOR_TYPE
-        self.end_turn_destination = None
         self.habitability = constants.HABITABILITY_PERFECT
         self.ambient_sound_channel: pygame.mixer.Channel = None
         self.locked_ambient_sound: bool = False
         super().__init__(from_save, input_dict, original_constructor=False)
+        self.end_turn_destination = None
+        if from_save:
+            if input_dict["end_turn_destination_coordinates"]:
+                self.end_turn_destination = status.world_list[
+                    input_dict["end_turn_destination_world_index"]
+                ].find_location(
+                    *input_dict["end_turn_destination_coordinates"]
+                )  # Re-create the end turn destination from the saved world and coordinates
+                self.set_permission(
+                    constants.TRAVELING_PERMISSION, True, update_image=False
+                )
         if isinstance(input_dict["image"], str):
             self.image_dict = {"default": input_dict["image"]}
         else:
@@ -118,11 +128,11 @@ class mob(actor):
     def check_action_survivability(self, notify: bool = True) -> bool:
         """
         Description:
-            Checks whether this unit can survive doing an action in its current tile - no certain death actions are allowed
+            Checks whether this unit can survive doing an action in its current location - no certain death actions are allowed
         Input:
             bool notify: Whether to notify the player if it is not survivable
         Output:
-            bool: Returns True if this unit can survive doing an action in its current tile, False otherwise
+            bool: Returns True if this unit can survive doing an action in its current location, False otherwise
         """
         survivable = self.get_permission(constants.SURVIVABLE_PERMISSION)
         if notify and not survivable:
@@ -136,7 +146,7 @@ class mob(actor):
     def update_habitability(self):
         """
         Description:
-            Updates this unit's habitability based on the tile it is in
+            Updates this unit's habitability based on its location
         Input:
             None
         Output:
@@ -218,7 +228,7 @@ class mob(actor):
     def on_move(self):
         """
         Description:
-            Automatically called when unit arrives in a tile for any reason
+            Automatically called when unit arrives at a location for any reason
         Input:
             None
         Output:
@@ -523,7 +533,7 @@ class mob(actor):
             image_id_list.append("misc/deadly_icon.png")
         return image_id_list
 
-    def get_combat_modifier(self, opponent=None, include_tile=False):
+    def get_combat_modifier(self, opponent=None, include_location=False):
         """
         Description:
             Calculates and returns the modifier added to this unit's combat rolls
@@ -543,7 +553,9 @@ class mob(actor):
                 modifier -= 1
                 if self.get_permission(constants.OFFICER_PERMISSION):
                     modifier -= 1
-            if include_tile and self.get_cell().has_intact_building(constants.FORT):
+            if include_location and self.get_location().has_intact_building(
+                constants.FORT
+            ):
                 modifier += 1
         if self.get_permission(constants.DISORGANIZED_PERMISSION):
             modifier -= 1
@@ -599,19 +611,12 @@ class mob(actor):
         """
         if self.get_permission(constants.NPMOB_PERMISSION):
             if self.hostile:
-                if not self.get_cell():
-                    if (
-                        self.grids[0]
-                        .find_cell(self.x, self.y)
-                        .has_unit([constants.PMOB_PERMISSION])
-                    ):  # If hidden and in same tile as pmob
-                        return True
-                elif self.get_cell().has_unit(
+                if self.get_location().has_unit_by_filter(
                     [constants.PMOB_PERMISSION]
-                ):  # If visible and in same tile as pmob
+                ):  # If in same location as pmob
                     return True
         elif self.get_permission(constants.PMOB_PERMISSION):
-            if self.get_cell().has_unit([constants.NPMOB_PERMISSION]):
+            if self.get_location().has_unit_by_filter([constants.NPMOB_PERMISSION]):
                 return True
         return False
 
@@ -896,7 +901,7 @@ class mob(actor):
         flags.show_selection_outlines = True
         constants.last_selection_outline_switch = constants.current_time
         actor_utility.calibrate_actor_info_display(
-            status.location_info_display, self.get_cell().tile
+            status.location_info_display, self.get_location()
         )
         actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
         for grid in self.grids:
@@ -905,7 +910,7 @@ class mob(actor):
     def cycle_select(self):
         """
         Description:
-            Selects this mob while also moving it to the front of the tile and playing its selection sound - should be used when unit is clicked on
+            Selects this mob while also moving it to the front of the location and playing its selection sound - should be used when unit is clicked on
         Input:
             None
         Output:
@@ -938,15 +943,14 @@ class mob(actor):
         Output:
             None
         """
-        for current_image in self.images:
-            current_cell = self.get_cell()
-            if self in current_cell.contained_mobs:
-                while (
-                    not current_cell.contained_mobs[0] == self
-                ):  # Move to front of tile
-                    current_cell.contained_mobs.append(
-                        current_cell.contained_mobs.pop(0)
-                    )
+        current_location = self.get_location()
+        if self in current_location.contained_mobs:
+            while (
+                not current_location.contained_mobs[0] == self
+            ):  # Move to front of location
+                current_location.contained_mobs.append(
+                    current_location.contained_mobs.pop(0)
+                )
 
     def draw_outline(self):
         """
@@ -1125,14 +1129,14 @@ class mob(actor):
     def drop_inventory(self):
         """
         Description:
-            Drops each item held in this actor's inventory into its current tile
+            Drops each item held in this actor's inventory into its current location
         Input:
             None
         Output:
             None
         """
         for current_item in self.get_held_items():
-            self.get_cell().tile.change_inventory(
+            self.get_location().change_inventory(
                 current_item, self.get_inventory(current_item)
             )
             self.set_inventory(current_item, 0)
@@ -1141,7 +1145,7 @@ class mob(actor):
         ):
             for current_equipment in self.equipment.copy():
                 if self.equipment[current_equipment]:
-                    self.get_cell().tile.change_inventory(
+                    self.get_location().change_inventory(
                         status.equipment_types[current_equipment], 1
                     )
                     status.equipment_types[current_equipment].unequip(self)
@@ -1220,7 +1224,7 @@ class mob(actor):
     def can_move(self, x_change: int, y_change: int, can_print: bool = False):
         """
         Description:
-            Returns whether this mob can move to the tile x_change to the right of it and y_change above it. Movement can be prevented by not being able to move on water/land, the edge of the map, limited movement points, etc.
+            Returns whether this mob can move to the location x_change to the right of it and y_change above it. Movement can be prevented by not being able to move on water/land, the edge of the map, limited movement points, etc.
         Input:
             int x_change: How many cells would be moved to the right in the hypothetical movement
             int y_change: How many cells would be moved upward in the hypothetical movement
@@ -1243,7 +1247,7 @@ class mob(actor):
                     if can_print:
                         constants.notification_manager.display_notification(
                             {
-                                "message": "This unit cannot move into a tile with deadly environmental conditions without spacesuits. /n /n",
+                                "message": "This unit cannot move into deadly environmental conditions without spacesuits. /n /n",
                             }
                         )
                     return False
@@ -1263,27 +1267,20 @@ class mob(actor):
                             )
                         return False
 
-                if future_location.visible or self.any_permissions(
-                    constants.EXPEDITION_PERMISSION, constants.NPMOB_PERMISSION
+                if (
+                    self.movement_points >= self.get_movement_cost(x_change, y_change)
+                    or self.get_permission(constants.INFINITE_MOVEMENT_PERMISSION)
+                    and self.movement_points > 0
                 ):
-                    if (
-                        self.movement_points
-                        >= self.get_movement_cost(x_change, y_change)
-                        or self.get_permission(constants.INFINITE_MOVEMENT_PERMISSION)
-                        and self.movement_points > 0
-                    ):
-                        return True
-                    elif can_print:
-                        text_utility.print_to_screen(
-                            "You do not have enough movement points to move."
-                        )
-                        text_utility.print_to_screen(
-                            f"You have {self.movement_points} movement points, while {self.get_movement_cost(x_change, y_change)} are required."
-                        )
+                    return True
                 elif can_print:
                     text_utility.print_to_screen(
-                        "You cannot move to an unexplored tile."
+                        "You do not have enough movement points to move."
                     )
+                    text_utility.print_to_screen(
+                        f"You have {self.movement_points} movement points, while {self.get_movement_cost(x_change, y_change)} are required."
+                    )
+
             elif can_print:
                 text_utility.print_to_screen("You cannot move while in this area.")
         elif can_print:

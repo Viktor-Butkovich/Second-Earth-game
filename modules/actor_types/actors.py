@@ -30,7 +30,7 @@ class actor:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grid': grid value - grid in which this tile can appear
+                'grid': grid value - grid in which this location can appear
                 'modes': string list value - Game modes during which this actor's images can appear
                 'inventory': dictionary value - This actor's initial items carried, with an integer value corresponding to amount of each item type
         Output:
@@ -44,7 +44,6 @@ class actor:
         self.grids: List[grid] = []
         self.update_attached_grids()
         self.set_name(input_dict.get("name", "placeholder"))
-        self.set_coordinates(self.x, self.y)
 
         self.tooltip_text = []
 
@@ -105,7 +104,7 @@ class actor:
         if self.actor_type == constants.MOB_ACTOR_TYPE:
             init_type = self.unit_type.key
         elif self.actor_type == constants.LOCATION_ACTOR_TYPE:
-            init_type = "tile"
+            init_type = "location"
         elif self.actor_type == constants.BUILDING_ACTOR_TYPE:
             init_type = self.building_type.key
         save_dict["init_type"] = init_type
@@ -148,8 +147,8 @@ class actor:
     def consume_items(self, items: Dict[str, float]) -> Dict[str, float]:
         """
         Description:
-            Attempts to consume the inputted items from the inventories of actors in this unit's tile
-                First checks the tile's warehouses, followed by this unit's inventory, followed by other present units' inventories
+            Attempts to consume the inputted items from the inventories of actors in this unit's location
+                First checks the location's warehouses, followed by this unit's inventory, followed by other present units' inventories
         Input:
             dictionary items: Dictionary of item type keys and quantities to consume
         Output:
@@ -158,18 +157,15 @@ class actor:
         missing_consumption = {}
         for item_key, consumption_remaining in items.items():
             item_type = status.item_types[item_key]
-            for present_actor in [self.get_cell().tile, self] + [
-                current_mob
-                for current_mob in self.get_cell().contained_mobs
-                if current_mob != self
-            ]:
-                if consumption_remaining <= 0:
-                    break
-                availability = present_actor.get_inventory(item_type)
-                consumption = min(consumption_remaining, availability)
-                present_actor.change_inventory(item_type, -consumption)
-                consumption_remaining -= consumption
-                consumption_remaining = round(consumption_remaining, 2)
+            for current_mob in self.get_location().contained_mobs:
+                if current_mob != self:
+                    if consumption_remaining <= 0:
+                        break
+                    availability = current_mob.get_inventory(item_type)
+                    consumption = min(consumption_remaining, availability)
+                    current_mob.change_inventory(item_type, -consumption)
+                    consumption_remaining -= consumption
+                    consumption_remaining = round(consumption_remaining, 2)
             if consumption_remaining > 0:
                 missing_consumption[item_key] = consumption_remaining
         return missing_consumption
@@ -177,18 +173,14 @@ class actor:
     def item_present(self, item_type: item_types.item_type) -> bool:
         """
         Description:
-            Returns whether the inputted item type is present anywhere in this unit's tile
+            Returns whether the inputted item type is present anywhere in this unit's location
         Input:
             item_type item_type: Item type to check for
         Output:
-            bool: Returns whether the inputted item type is present anywhere in this unit's tile
+            bool: Returns whether the inputted item type is present anywhere in this unit's location
         """
-        for present_actor in [self.get_cell().tile, self] + [
-            current_mob
-            for current_mob in self.get_cell().contained_mobs
-            if current_mob != self
-        ]:
-            if present_actor.get_inventory(item_type) > 0:
+        for current_mob in self.get_location().contained_mobs:
+            if current_mob != self and current_mob.get_inventory(item_type) > 0:
                 return True
         return False
 
@@ -291,7 +283,7 @@ class actor:
         Description:
             Returns a list of the item types held by this actor
         Input:
-            boolean ignore_consumer_goods = False: Whether to include consumer goods from tile
+            boolean ignore_consumer_goods = False: Whether to include consumer goods from location
         Output:
             item_type list: Types of item types held by this actor
         """
@@ -339,7 +331,7 @@ class actor:
                 elif (
                     self.get_location().local_attrition("inventory")
                     and transportation_minister.no_corruption_roll(6) < 4
-                ):  # 1/6 chance of doing tile conditions check, if passes minister needs to make a 4+ roll to avoid attrition
+                ):  # 1/6 chance of doing local conditions check, if passes minister needs to make a 4+ roll to avoid attrition
                     self.trigger_inventory_attrition()
                     return
 
@@ -418,7 +410,7 @@ class actor:
                 if self.get_location().get_world_handler().is_abstract_world:
                     intro_text += f"in orbit of {self.get_cell().grid.name}: /n /n"
                 elif self.get_location().name != "default":
-                    intro_text += f"at {self.get_cell().tile.name}: /n /n"
+                    intro_text += f"at {self.get_location().name}: /n /n"
                 else:
                     intro_text += (
                         f"at ({self.get_cell().x}, {self.get_cell().y}): /n /n"
@@ -448,19 +440,6 @@ class actor:
             None
         """
         self.name = new_name
-
-    def set_coordinates(self, x, y):
-        """
-        Description:
-            Moves this actor to the inputted coordinates
-        Input:
-            int x: grid x coordinate to move this actor to
-            int y: grid y coordinate to move this actor to
-        Output:
-            None
-        """
-        self.x = x
-        self.y = y
 
     def set_tooltip(self, new_tooltip):
         """

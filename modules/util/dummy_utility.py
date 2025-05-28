@@ -34,7 +34,7 @@ def generate_autofill_actors(
 ) -> dict:
     """
     Description:
-        Based on the currently displayed mob and the other mobs in its tile, determine a possible merge/split procedure and find/create dummy versions of the other mobs
+        Based on the currently displayed mob and the other mobs in its location, determine a possible merge/split procedure and find/create dummy versions of the other mobs
             involved
     Input:
         None
@@ -64,7 +64,7 @@ def generate_autofill_actors(
                         # If a worker selected, find an officer if present and make a dummy group
                         return_dict[
                             constants.OFFICER_PERMISSION
-                        ] = status.displayed_mob.get_cell().get_unit(
+                        ] = status.displayed_mob.get_location().get_unit_by_filter(
                             [constants.OFFICER_PERMISSION],
                             start_index=search_start_index,
                         )
@@ -72,7 +72,7 @@ def generate_autofill_actors(
                         # If an officer selected, find a worker if present and make a dummy group
                         return_dict[
                             constants.WORKER_PERMISSION
-                        ] = status.displayed_mob.get_cell().get_unit(
+                        ] = status.displayed_mob.get_location().get_unit_by_filter(
                             [constants.WORKER_PERMISSION],
                             start_index=search_start_index,
                         )
@@ -87,9 +87,9 @@ def generate_autofill_actors(
                             required_dummy_attributes,
                             dummy_input_dict,
                         )
-                    return_dict[
-                        constants.AUTOFILL_PROCEDURE
-                    ] = constants.MERGE_PROCEDURE
+                    return_dict[constants.AUTOFILL_PROCEDURE] = (
+                        constants.MERGE_PROCEDURE
+                    )
 
                 elif (
                     constants.SPLIT_PROCEDURE in allowed_procedures
@@ -105,9 +105,9 @@ def generate_autofill_actors(
                         required_dummy_attributes,
                         dummy_input_dict,
                     )
-                    return_dict[
-                        constants.AUTOFILL_PROCEDURE
-                    ] = constants.SPLIT_PROCEDURE
+                    return_dict[constants.AUTOFILL_PROCEDURE] = (
+                        constants.SPLIT_PROCEDURE
+                    )
 
                 elif constants.CREW_PROCEDURE in allowed_procedures and target in [
                     constants.CREW_VEHICLE_PERMISSION,
@@ -118,7 +118,7 @@ def generate_autofill_actors(
                         # If a crew selected, find an uncrewed vehicle if present and make a dummy crewed vehicle
                         return_dict[
                             constants.INACTIVE_VEHICLE_PERMISSION
-                        ] = status.displayed_mob.get_cell().get_unit(
+                        ] = status.displayed_mob.get_location().get_unit_by_filter(
                             [constants.INACTIVE_VEHICLE_PERMISSION],
                             start_index=search_start_index,
                         )
@@ -126,7 +126,7 @@ def generate_autofill_actors(
                         # If a vehicle selected, find a crew if present and make a dummy crewed vehicle
                         return_dict[
                             constants.CREW_VEHICLE_PERMISSION
-                        ] = status.displayed_mob.get_cell().get_unit(
+                        ] = status.displayed_mob.get_location().get_unit_by_filter(
                             [constants.CREW_VEHICLE_PERMISSION],
                             start_index=search_start_index,
                         )
@@ -135,13 +135,13 @@ def generate_autofill_actors(
                         and return_dict[constants.INACTIVE_VEHICLE_PERMISSION]
                     ):
                         # If a crew and uncrewed vehicle present
-                        return_dict[
-                            constants.ACTIVE_VEHICLE_PERMISSION
-                        ] = simulate_crew(
-                            return_dict[constants.INACTIVE_VEHICLE_PERMISSION],
-                            return_dict[constants.CREW_VEHICLE_PERMISSION],
-                            required_dummy_attributes,
-                            dummy_input_dict,
+                        return_dict[constants.ACTIVE_VEHICLE_PERMISSION] = (
+                            simulate_crew(
+                                return_dict[constants.INACTIVE_VEHICLE_PERMISSION],
+                                return_dict[constants.CREW_VEHICLE_PERMISSION],
+                                required_dummy_attributes,
+                                dummy_input_dict,
+                            )
                         )
                     return_dict[constants.AUTOFILL_PROCEDURE] = constants.CREW_PROCEDURE
 
@@ -159,9 +159,9 @@ def generate_autofill_actors(
                         required_dummy_attributes,
                         dummy_input_dict,
                     )
-                    return_dict[
-                        constants.AUTOFILL_PROCEDURE
-                    ] = constants.UNCREW_PROCEDURE
+                    return_dict[constants.AUTOFILL_PROCEDURE] = (
+                        constants.UNCREW_PROCEDURE
+                    )
 
             if return_dict[
                 constants.AUTOFILL_PROCEDURE
@@ -273,13 +273,13 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
         dummy_input_dict["name"] = actor_utility.generate_group_name(
             worker, officer, add_veteran=True
         )
-        dummy_input_dict[
-            "movement_points"
-        ] = actor_utility.generate_group_movement_points(worker, officer)
-        dummy_input_dict[
-            "max_movement_points"
-        ] = actor_utility.generate_group_movement_points(
-            worker, officer, generate_max=True
+        dummy_input_dict["movement_points"] = (
+            actor_utility.generate_group_movement_points(worker, officer)
+        )
+        dummy_input_dict["max_movement_points"] = (
+            actor_utility.generate_group_movement_points(
+                worker, officer, generate_max=True
+            )
         )
         dummy_input_dict["default_permissions"].update(
             {

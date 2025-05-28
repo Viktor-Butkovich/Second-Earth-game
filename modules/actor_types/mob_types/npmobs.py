@@ -81,13 +81,13 @@ class npmob(mob):
     def visible(self):
         """
         Description:
-            Returns whether this unit is currently visible to the player. npmobs in unexplored tiles are not visible
+            Returns whether this unit is currently visible to the player
         Input:
             None
         Output:
             boolean: Returns whether this unit is currently visible to the player
         """
-        return self.get_cell() and self.get_location().visible
+        return True  # return self.get_cell() and self.get_location().visible
 
     def find_closest_target(self):
         """
@@ -123,7 +123,7 @@ class npmob(mob):
                     distance = utility.find_grid_distance(self, possible_target)
                     if (
                         distance <= self.aggro_distance
-                    ):  # Ignore player's units more than 6 tiles away
+                    ):  # Ignore player's units more than 6 locations away
                         if min_distance == -1 and (
                             not distance == -1
                         ):  # Automatically choose first one to replace initial value
@@ -239,7 +239,7 @@ class npmob(mob):
         if closest_target:
             if (
                 closest_target.x != self.x or closest_target.y != self.y
-            ):  # Don't move if target is own tile
+            ):  # Don't move if target is in the same location
                 if closest_target.x > self.x:  # Decides moving left or right
                     horizontal_multiplier = 1
                 elif closest_target.x == self.x:
@@ -304,7 +304,9 @@ class npmob(mob):
                 status.attacker_queue.append(self)
                 self.movement_points = 0
             else:
-                if self.get_location().has_unit([constants.PMOB_PERMISSION]) or (
+                if self.get_location().has_unit_by_filter(
+                    [constants.PMOB_PERMISSION]
+                ) or (
                     self.can_damage_buildings
                     and self.get_location().has_destructible_buildings()
                 ):

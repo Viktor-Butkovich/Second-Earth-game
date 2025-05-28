@@ -12,7 +12,7 @@ from modules.constructs import item_types, locations
 from modules.constants import constants, status, flags
 
 
-class tile(actor):  # to do: make terrain tiles a subclass
+class tile(actor):
     """
     An actor that appears under other actors and occupies a grid cell, being able to act as a passive icon, resource, terrain, or a hidden area
     """
@@ -25,11 +25,11 @@ class tile(actor):  # to do: make terrain tiles a subclass
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grid': grid value - grid in which this tile can appear
+                'grid': grid value - grid in which this location can appear
                 'image': string value - File path to the image used by this object
-                'name': string value - This tile's name
+                'name': string value - this location's name
                 'modes': string list value - Game modes during which this actor's images can appear
-                'show_terrain': boolean value - True if this tile shows a cell's terrain. False if it does not show terrain, like a veteran icon or resource icon
+                'show_terrain': boolean value - True if this location shows a cell's terrain. False if it does not show terrain, like a veteran icon or resource icon
         Output:
             None
         """
@@ -100,22 +100,22 @@ class tile(actor):  # to do: make terrain tiles a subclass
     def get_cell(self) -> cells.cell:
         """
         Description:
-            Returns the cell this tile is currently in
+            Returns the cell this location is currently in
         Input:
             None
         Output:
-            cell: Returns the cell this tile is currently in
+            cell: Returns the cell this location is currently in
         """
         return self.cell
 
     def get_location(self) -> locations.location:
         """
         Description:
-            Returns the location this tile is currently in
+            Returns the location this location is currently in
         Input:
             None
         Output:
-            location: Returns the location this tile is currently in
+            location: Returns the location this location is currently in
         """
         if not self.cell:
             return None
@@ -159,8 +159,8 @@ class tile(actor):  # to do: make terrain tiles a subclass
                         new_name, y_offset=y_offset
                     ),
                     "modes": self.grid.mini_grids[0].modes,
-                    "init_type": constants.NAME_ICON,
-                    "tile": self,
+                    "init_type": constants.CELL_ICON,
+                    "location": self,
                 },
             )
 
@@ -181,7 +181,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
     def draw_destination_outline(self, color="default"):  # called directly by mobs
         """
         Description:
-            Draws an outline around this tile when the displayed mob has a pending movement order to move to this tile
+            Draws an outline around this location when the displayed mob has a pending movement order to move to this location
         Input:
             string color = 'default': If an input is given, that color from the color_dict will be used instead of the default destination outline color
         Output:
@@ -225,7 +225,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
     def get_all_local_inventory(self) -> Dict[str, float]:
         """
         Description:
-            Returns a dictionary of all items held by this tile and local mobs
+            Returns a dictionary of all items held by this location and local mobs
         Input:
             None
         Output:
@@ -283,11 +283,11 @@ class tile(actor):  # to do: make terrain tiles a subclass
     ) -> Dict[str, float]:
         """
         Description:
-            Returns the item upkeep requirements for all units in this tile
+            Returns the item upkeep requirements for all units in this location
         Input:
             None
         Output:
-            dictionary: Returns the item upkeep requirements for all units in this tile
+            dictionary: Returns the item upkeep requirements for all units in this location
         """
         return utility.add_dicts(
             *[
@@ -299,7 +299,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
     def remove_excess_inventory(self):
         """
         Description:
-            Removes random excess items from this tile until the number of items fits in this tile's inventory capacity
+            Removes random excess items from this location until the number of items fits in this location's inventory capacity
         Input:
             None
         Output:
@@ -357,7 +357,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
     def get_absolute_coordinates(self) -> Tuple[int, int]:
         """
         Description:
-            Returns the coordinates cooresponding to this tile on the strategic map grid. If this tile is already on the strategic map grid, just returns this tile's coordinates
+            Returns the coordinates cooresponding to this location on the strategic map grid. If this location is already on the strategic map grid, just returns this location's coordinates
         Input:
             None
         Output:
@@ -371,9 +371,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
     def remove_hosted_image(self, old_image):
         """
         Description:
-            Removes the inputted image from this tile's hosted images and updates this tile's image bundle
+            Removes the inputted image from this location's hosted images and updates this location's image bundle
         Input:
-            image old_image: Image to remove from this tile's hosted images
+            image old_image: Image to remove from this location's hosted images
         Output:
             None
         """
@@ -386,9 +386,9 @@ class tile(actor):  # to do: make terrain tiles a subclass
     def add_hosted_image(self, new_image):
         """
         Description:
-            Adds the inputted image to this tile's hosted images and updates this tile's image bundle
+            Adds the inputted image to this location's hosted images and updates this location's image bundle
         Input:
-            image new_image: Image to add to this tile's hosted images
+            image new_image: Image to add to this location's hosted images
         Output:
             None
         """
@@ -400,249 +400,14 @@ class tile(actor):  # to do: make terrain tiles a subclass
         self.hosted_images.append(new_image)
         self.update_image_bundle()
 
-    def get_image_id_list(
-        self,
-        terrain_only=False,
-        force_visibility=False,
-        force_clouds=False,
-        force_pixellated=False,
-        allow_mapmodes=True,
-        allow_clouds=True,
-    ):
-        """
-        Description:
-            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
-                orientation
-        Input:
-            boolean terrain_only = False: Whether to just show tile's terrain or all contents as well
-            boolean force_visibility = False: Shows a fully visible version of this tile, even if it hasn't been explored yet
-        Output:
-            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
-        """
-        image_id_list = []
-        if (
-            (not allow_mapmodes)
-            or constants.current_map_mode == "terrain"
-            or constants.MAP_MODE_ALPHA
-        ):
-            if True:
-                if (
-                    self.get_location().visible or force_visibility
-                ):  # Force visibility shows full tile even if tile is not yet visible
-                    image_id_list.append(
-                        {
-                            "image_id": self.image_dict["default"],
-                            "level": -9,
-                            "color_filter": self.get_location().get_color_filter(),
-                            "green_screen": self.get_location().get_green_screen(),
-                            "pixellated": force_pixellated
-                            or not self.get_location().knowledge_available(
-                                constants.TERRAIN_KNOWLEDGE
-                            ),
-                            "detail_level": constants.TERRAIN_DETAIL_LEVEL,
-                        }
-                    )
-                    if allow_clouds:
-                        for (
-                            terrain_overlay_image
-                        ) in self.get_location().get_overlay_images():
-                            if type(terrain_overlay_image) == str:
-                                terrain_overlay_image = {
-                                    "image_id": terrain_overlay_image,
-                                }
-                            terrain_overlay_image.update(
-                                {
-                                    "level": -8,
-                                    "color_filter": self.get_location().get_color_filter(),
-                                    "pixellated": force_pixellated
-                                    or not self.get_location().knowledge_available(
-                                        constants.TERRAIN_KNOWLEDGE
-                                    ),
-                                    "detail_level": terrain_overlay_image.get(
-                                        "detail_level", constants.TERRAIN_DETAIL_LEVEL
-                                    ),
-                                }
-                            )
-                            if not terrain_overlay_image.get("green_screen", None):
-                                terrain_overlay_image["green_screen"] = (
-                                    self.get_location().get_green_screen()
-                                )
-                            image_id_list.append(terrain_overlay_image)
-                    if allow_clouds and (
-                        constants.effect_manager.effect_active("show_clouds")
-                        or force_clouds
-                        or not self.get_location().knowledge_available(
-                            constants.TERRAIN_KNOWLEDGE
-                        )
-                    ):
-                        for cloud_image in self.get_location().current_clouds:
-                            image_id_list.append(cloud_image.copy())
-                            if not image_id_list[-1].get("detail_level", None):
-                                image_id_list[-1][
-                                    "detail_level"
-                                ] = constants.TERRAIN_DETAIL_LEVEL
-                            image_id_list[-1]["level"] = -7
-                            if not image_id_list[-1].get("green_screen", None):
-                                image_id_list[-1][
-                                    "green_screen"
-                                ] = self.get_location().get_green_screen()
-                    if not terrain_only:
-                        for terrain_feature in self.get_location().terrain_features:
-                            new_image_id = (
-                                self.get_location()
-                                .terrain_features[terrain_feature]
-                                .get(
-                                    "image_id",
-                                    status.terrain_feature_types[
-                                        terrain_feature
-                                    ].image_id,
-                                )
-                            )
-                            if new_image_id != "misc/empty.png":
-                                if type(
-                                    new_image_id
-                                ) == str and not new_image_id.endswith(".png"):
-                                    new_image_id = (
-                                        actor_utility.generate_label_image_id(
-                                            new_image_id, y_offset=-0.75
-                                        )
-                                    )
-                                image_id_list = utility.combine(
-                                    image_id_list, new_image_id
-                                )
-                        if (
-                            self.get_location().resource
-                        ):  # If resource visible based on current knowledge
-                            resource_icon = actor_utility.generate_resource_icon(self)
-                            if type(resource_icon) == str:
-                                image_id_list.append(resource_icon)
-                            else:
-                                image_id_list += resource_icon
-                        for building_type in status.building_types.keys():
-                            current_building = self.get_location().get_building(
-                                building_type
-                            )
-                            if current_building:
-                                image_id_list += current_building.get_image_id_list()
-                elif self.show_terrain:
-                    pass
-                    # image_id_list.append(self.image_dict["hidden"])
-                else:
-                    pass
-                    # image_id_list.append(self.image_dict["default"])
-                for current_image in self.hosted_images:
-                    if (
-                        not current_image.anchor_key in ["south_pole", "north_pole"]
-                        and not terrain_only
-                    ):
-                        image_id_list += current_image.get_image_id_list()
-
-        if constants.current_map_mode != "terrain" and allow_mapmodes:
-            map_mode_image = "misc/map_modes/none.png"
-            if constants.current_map_mode in constants.terrain_parameters:
-                if self.get_location().knowledge_available(
-                    constants.TERRAIN_PARAMETER_KNOWLEDGE
-                ):
-                    if constants.current_map_mode in [
-                        constants.WATER,
-                        constants.TEMPERATURE,
-                        constants.VEGETATION,
-                    ]:
-                        map_mode_image = f"misc/map_modes/{constants.current_map_mode}/{self.get_location().get_parameter(constants.current_map_mode)}.png"
-                    else:
-                        map_mode_image = f"misc/map_modes/{self.get_location().get_parameter(constants.current_map_mode)}.png"
-            elif constants.current_map_mode == "magnetic":
-                if self.get_location().terrain_features.get(
-                    "southern tropic", False
-                ) or self.get_location().terrain_features.get("northern tropic", False):
-                    map_mode_image = "misc/map_modes/equator.png"
-                elif self.get_location().terrain_features.get("north pole", False):
-                    map_mode_image = "misc/map_modes/north_pole.png"
-                elif self.get_location().terrain_features.get("south pole", False):
-                    map_mode_image = "misc/map_modes/south_pole.png"
-            if constants.MAP_MODE_ALPHA:
-                image_id_list.append(
-                    {
-                        "image_id": map_mode_image,
-                        "detail_level": 1.0,
-                        "alpha": constants.MAP_MODE_ALPHA,
-                    }
-                )
-            else:
-                image_id_list = [
-                    {
-                        "image_id": map_mode_image,
-                        "detail_level": 1.0,
-                    }
-                ]
-        for current_image in self.hosted_images:
-            if (
-                current_image.anchor_key in ["south_pole", "north_pole"]
-                and not terrain_only
-            ):
-                image_id_list += current_image.get_image_id_list()
-
-        return image_id_list
-
-    def update_image_bundle(self, override_image=None):
-        """
-        Description:
-            Updates this actor's images with its current image id list, also updating the minimap grid version if applicable
-        Input:
-            image_bundle override_image=None: Image bundle to update image with, setting this tile's image to a copy of the image bundle instead of generating a new image
-                bundle
-        Output:
-            None
-        """
-        previous_image = self.previous_image
-        if override_image:
-            self.set_image(override_image)
-        else:
-            self.set_image(self.get_image_id_list())
-        if previous_image != self.previous_image:
-            self.reselect()
-
-    def reselect(self):
-        """
-        Description:
-            Deselects and reselects this mob if it was already selected
-        Input:
-            None
-        Output:
-            None
-        """
-        if status.displayed_location == self.get_location():
-            actor_utility.calibrate_actor_info_display(
-                status.location_info_display, None
-            )
-            actor_utility.calibrate_actor_info_display(
-                status.location_info_display, self
-            )
-
-    def set_resource(
-        self, new_resource: item_types.item_type, update_image_bundle=True
-    ):
-        """
-        Description:
-            Sets the resource type of this tile to the inputted value, removing or creating resource icons as needed
-        Input:
-            item_type new_resource: The new resource type of this tile, like "Gold" or None
-            boolean update_image_bundle: Whether to update the image bundle - if multiple sets are being used on a tile, optimal to only update after the last one
-        Output:
-            None
-        """
-        self.resource = new_resource
-        if update_image_bundle:
-            self.update_image_bundle()
-
     def set_terrain(
         self, new_terrain, update_image_bundle=True
     ):  # to do, add variations like grass to all terrains
         """
         Description:
-            Sets the terrain type of this tile to the inputted value, changing its appearance as needed
+            Sets the terrain type of this location to the inputted value, changing its appearance as needed
         Input:
-            string new_terrain: The new terrain type of this tile, like 'swamp'
+            string new_terrain: The new terrain type of this location, like 'swamp'
             boolean update_image_bundle: Whether to update the image bundle - if multiple sets are being used on a tile, optimal to only update after the last one
         Output:
             None
@@ -656,134 +421,10 @@ class tile(actor):  # to do: make terrain tiles a subclass
         if update_image_bundle:
             self.update_image_bundle()
 
-    def update_tooltip(self):
-        """
-        Description:
-            Sets this tile's tooltip to what it should be whenever the player looks at the tooltip. If this tile is explored, sets tooltip to this tile's terrain and its resource, if any. Otherwise, sets tooltip to a description of how
-                this tile has not explored
-        Input:
-            None
-        Output:
-            None
-        """
-        tooltip_message = []
-        if self.get_location().get_world_handler().is_abstract_world:
-            tooltip_message.append(self.name)
-        elif self.show_terrain:
-            coordinates = self.get_absolute_coordinates()
-            tooltip_message.append(f"Coordinates: ({coordinates[0]}, {coordinates[1]})")
-            if self.get_location().terrain:
-                knowledge_value = self.get_location().get_parameter(constants.KNOWLEDGE)
-                knowledge_keyword = (
-                    constants.terrain_manager.terrain_parameter_keywords[
-                        constants.KNOWLEDGE
-                    ][knowledge_value]
-                )
-                knowledge_maximum = maximum = self.get_location().maxima.get(
-                    constants.KNOWLEDGE, 5
-                )
-                tooltip_message.append(
-                    f"Knowledge: {knowledge_keyword} ({knowledge_value}/{knowledge_maximum})"
-                )
-
-                if self.get_location().knowledge_available(constants.TERRAIN_KNOWLEDGE):
-                    tooltip_message.append(
-                        f"    Terrain: {self.get_location().terrain.replace('_', ' ')}"
-                    )
-                    if self.get_location().knowledge_available(
-                        constants.TERRAIN_PARAMETER_KNOWLEDGE
-                    ):
-                        for terrain_parameter in constants.terrain_parameters:
-                            if terrain_parameter != constants.KNOWLEDGE:
-                                maximum = self.get_location().maxima.get(
-                                    terrain_parameter, 5
-                                )
-                                value = self.get_location().get_parameter(
-                                    terrain_parameter
-                                )
-                                keyword = constants.terrain_manager.terrain_parameter_keywords[
-                                    terrain_parameter
-                                ][
-                                    value
-                                ]
-                                tooltip_message.append(
-                                    f"    {terrain_parameter.capitalize()}: {keyword} ({value}/{maximum})"
-                                )
-                    else:
-                        tooltip_message.append(f"    Details unknown")
-                else:
-                    tooltip_message.append(f"    Terrain unknown")
-
-        overall_habitability = self.get_location().get_known_habitability()
-        if (not self.get_location().get_world_handler().is_abstract_world) and (
-            self.get_location().get_parameter(constants.KNOWLEDGE)
-            < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
-        ):
-            tooltip_message.append(
-                f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability].capitalize()} (estimated)"
-            )
-        else:
-            tooltip_message.append(
-                f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[overall_habitability].capitalize()}"
-            )
-
-        if self.show_terrain:
-            for current_building in self.get_location().get_buildings():
-                current_building.update_tooltip()
-                tooltip_message.append("")
-                tooltip_message += current_building.tooltip_text
-
-            if self.get_location().resource:  # If resource present, show resource
-                tooltip_message.append("")
-                tooltip_message.append(
-                    f"This tile has {utility.generate_article(self.get_location().resource.name)} {self.get_location().resource.name} resource"
-                )
-            for terrain_feature in self.get_location().terrain_features:
-                if status.terrain_feature_types[terrain_feature].visible:
-                    tooltip_message.append("")
-                    tooltip_message += status.terrain_feature_types[
-                        terrain_feature
-                    ].description
-
-        held_items: List[item_types.item_type] = self.get_held_items()
-        if (
-            held_items
-            or self.inventory_capacity > 0
-            or self.infinite_inventory_capacity
-        ):
-            if self.infinite_inventory_capacity:
-                tooltip_message.append(f"Inventory: {self.get_inventory_used()}")
-            else:
-                tooltip_message.append(
-                    f"Inventory: {self.get_inventory_used()}/{self.inventory_capacity}"
-                )
-            if not held_items:
-                tooltip_message.append("    None")
-            else:
-                for item_type in held_items:
-                    tooltip_message.append(
-                        f"    {item_type.name.capitalize()}: {self.get_inventory(item_type)}"
-                    )
-
-        self.set_tooltip(tooltip_message)
-
-    def set_coordinates(self, x, y):
-        """
-        Description:
-            Sets this tile's grid coordinates to the inputted values
-        Input:
-            int x: new grid x coordinate
-            int y: new grid y coordinate
-        Output:
-            None
-        """
-        self.x = x
-        self.y = y
-
     def can_show_tooltip(self):  # only terrain tiles have tooltips
         """
         Description:
-            Returns whether this tile's tooltip can be shown. Along with the superclass' requirements, only terrain tiles have tooltips and tiles outside of the strategic map boundaries on the minimap grid do not have tooltips
+            Returns whether this location's tooltip can be shown. Along with the superclass' requirements, only terrain tiles have tooltips and tiles outside of the strategic map boundaries on the minimap grid do not have tooltips
         Input:
             None
         Output:
@@ -799,7 +440,7 @@ class tile(actor):  # to do: make terrain tiles a subclass
     def select(self, music_override: bool = False):
         """
         Description:
-            Selects this tile and switches music based on which type of tile is selected, if the type of tile selected would change the music
+            Selects this location and switches music based on which type of tile is selected, if the type of tile selected would change the music
         Input:
             None
         Output:
@@ -825,9 +466,9 @@ class abstract_tile(tile):
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'grid': grid value - grid in which this tile can appear
+                'grid': grid value - grid in which this location can appear
                 'image': string value - File path to the image used by this object
-                'name': string value - This tile's name
+                'name': string value - this location's name
                 'modes': string list value - Game modes during which this actor's images can appear
         Output:
             None
@@ -855,7 +496,7 @@ class abstract_tile(tile):
     def can_show_tooltip(self):
         """
         Description:
-            Returns whether this tile's tooltip can be shown. Has default tooltip requirements of being visible and touching the mosue
+            Returns whether this location's tooltip can be shown. Has default tooltip requirements of being visible and touching the mosue
         Input:
             None
         Output:

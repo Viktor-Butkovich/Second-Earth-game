@@ -311,8 +311,8 @@ class vehicle(pmob):
     def can_move(self, x_change, y_change, can_print=True):
         """
         Description:
-            Returns whether this mob can move to the tile x_change to the right of it and y_change above it. Movement can be prevented by not being able to move on water/land, the edge of the map, limited movement points, etc. Vehicles
-                are not able to move without a crew
+            Returns whether this mob can move to the location x_change to its and y_change upward. Movement can be prevented by not being able to move on water/land, the edge of the map, limited movement points, etc.
+                Vehicles are not able to move without a crew
         Input:
             int x_change: How many cells would be moved to the right in the hypothetical movement
             int y_change: How many cells would be moved upward in the hypothetical movement
@@ -372,7 +372,7 @@ class vehicle(pmob):
     def update_habitability(self):
         """
         Description:
-            Updates this unit's habitability and that of its passengers, based on the tile it is in
+            Updates this unit's habitability and that of its passengers, based on the location it is in
         Input:
             None
         Output:

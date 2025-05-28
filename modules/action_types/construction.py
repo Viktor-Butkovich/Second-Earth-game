@@ -79,26 +79,26 @@ class construction(action.action):
             None
         """
         message = []
-        message.append(f"Attempts to build a {self.building_name} in this tile")
+        message.append(f"Attempts to build a {self.building_name} in this location")
         message += self.building_type.description
         if self.building_type.key == constants.INFRASTRUCTURE:
             if self.building_name == constants.RAILROAD:
                 message += [
-                    "Upgrades this tile's road into a railroad, retaining the benefits of a road"
+                    "Upgrades this location's road into a railroad, retaining the benefits of a road"
                 ]
             elif self.building_name == "railroad bridge":
                 message += [
-                    "Upgrades this tile's road bridge into a railroad bridge, retaining the benefits of a road bridge"
+                    "Upgrades this location's road bridge into a railroad bridge, retaining the benefits of a road bridge"
                 ]
             elif self.building_name == "road bridge":
-                message += ["Upgrades this tile's ferry into a road bridge"]
+                message += ["Upgrades this location's ferry into a road bridge"]
 
         if self.building_type.key == constants.TRAIN:
             message.append("Can only be assembled at a train station")
 
         if self.building_type.warehouse_level > 0:
             message.append(
-                f"Also increases this tile's warehouse capacity by {9 * self.building_type.warehouse_level} slots"
+                f"Also increases this location's warehouse capacity by {9 * self.building_type.warehouse_level} slots"
             )
 
         base_cost = actor_utility.get_building_cost(
@@ -177,7 +177,7 @@ class construction(action.action):
     def can_show(self):
         """
         Description:
-            Returns whether a button linked to this action should be drawn - if correct type of unit selected and building not yet present in tile
+            Returns whether a button linked to this action should be drawn - if correct type of unit selected and building not yet present in location
         Input:
             None
         Output:
@@ -274,7 +274,7 @@ class construction(action.action):
                 return_value = True
             else:
                 text_utility.print_to_screen(
-                    "This building can only be built in tiles with resources."
+                    "This building can only be built in locations with resources."
                 )
         elif self.building_type.key == constants.TRAIN_STATION:
             if unit.get_cell().has_intact_building(constants.RAILROAD):
@@ -318,11 +318,11 @@ class construction(action.action):
             ):
                 if self.building_type.key == constants.INFRASTRUCTURE:
                     text_utility.print_to_screen(
-                        "This tile already contains a railroad."
+                        "This location already contains a railroad."
                     )
                 else:
                     text_utility.print_to_screen(
-                        f"This tile already contains a {self.building_name} building."
+                        f"This location already contains a {self.building_name} building."
                     )
             elif unit.get_location().get_world_handler().is_earth:
                 text_utility.print_to_screen(
@@ -424,8 +424,8 @@ class construction(action.action):
                     constants.actor_creation_manager.create(False, input_dict)
 
             actor_utility.calibrate_actor_info_display(
-                status.location_info_display, self.current_unit.get_cell().tile
-            )  # Update tile display to show new building
+                status.location_info_display, self.current_unit.get_location()
+            )  # Update location display to show new building
             if self.building_type.key in [constants.TRAIN]:
                 new_building.select()
             else:

@@ -469,7 +469,7 @@ Old workflow high-level design (HLD):
 A location conceptually exists, and contains terrain information
 A cell can subscribe to a location, and is also part of a grid, which is part of a world
 A tile is always linked to a particular cell
-Mobs and buildings exist in cells, while inventory exists in tiles
+Mobs and buildings exist in cells, while inventory exists in locations
 The tile info display subscribes to a tile, and the mob info display subscribes to the first mob in a cell
 Tiles, mobs, and buildings directly handle their own rendering and tooltips
 Mobs and buildings have to track which cells and which grids they are visible in
@@ -496,6 +496,10 @@ Transfer buildings from cell to location
 Transfer contained_mobs from cell to location
 Transfer tile inventory from tile to location
 Transfer settlements from cell to location
+Transfer set_image from tile to location
+Transfer set_name from tile to location
+Transfer hosted_images from tile to location
+Replace cell icons with extra images directly added to locations - a location should be fully in control of what it displays
 Add rename function to worlds
 Transfer logistics_incident_list from cell to location
 
@@ -504,6 +508,7 @@ In location-centric design, game logic is centralized and as independent as poss
 Work to define what an actor is - maybe it is a concept that exists at certain coordinates in a world, has 1+ subscribed cells, and can be
     selected in the LHS menu
     Some shared functionality with ministers, who also have names and can be selected
+    Buildings and cell icons do not qualify as an actor, and should instead be constructs within a location
 """
 
 # Investigate water disappearing during terraforming - definitely occurs on Venus and Mars maps

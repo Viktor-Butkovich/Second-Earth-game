@@ -9,7 +9,7 @@ from modules.constants import constants, status, flags
 
 class actor_display_label(label):
     """
-    Label that changes its text to match the information of selected mobs or tiles
+    Label that changes its text to match the information of selected mobs or locations
     """
 
     def __init__(self, input_dict):
@@ -27,7 +27,7 @@ class actor_display_label(label):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
                 'actor_label_type': string value - Type of actor information shown
-                'actor_type': string value - Type of actor to display the information of, like 'mob', 'tile', or 'minister'
+                'actor_type': string value - Type of actor to display the information of, like 'mob', 'location', or 'minister'
         Output:
             None
         """
@@ -295,11 +295,11 @@ class actor_display_label(label):
 
         elif self.actor_label_type in [
             constants.MOB_INVENTORY_CAPACITY_LABEL,
-            constants.TILE_INVENTORY_CAPACITY_LABEL,
+            constants.LOCATION_INVENTORY_CAPACITY_LABEL,
         ]:
             self.message_start = "Capacity: "
             input_dict["width"], input_dict["height"] = (m_size, m_size)
-            if self.actor_label_type == constants.TILE_INVENTORY_CAPACITY_LABEL:
+            if self.actor_label_type == constants.LOCATION_INVENTORY_CAPACITY_LABEL:
                 input_dict["init_type"] = constants.USE_EACH_EQUIPMENT_BUTTON
                 input_dict["image_id"] = "buttons/use_equipment_button.png"
                 self.add_attached_button(input_dict)
@@ -824,7 +824,7 @@ class actor_display_label(label):
 
         elif self.actor_label_type in [
             constants.MOB_INVENTORY_CAPACITY_LABEL,
-            constants.TILE_INVENTORY_CAPACITY_LABEL,
+            constants.LOCATION_INVENTORY_CAPACITY_LABEL,
         ]:
             tooltip_text = [self.message]
             if self.actor_label_type == constants.MOB_INVENTORY_CAPACITY_LABEL:
@@ -835,23 +835,23 @@ class actor_display_label(label):
                     tooltip_text.append(
                         f"This unit can hold a maximum of {self.actor.inventory_capacity} items"
                     )
-            elif self.actor_label_type == constants.TILE_INVENTORY_CAPACITY_LABEL:
+            elif self.actor_label_type == constants.LOCATION_INVENTORY_CAPACITY_LABEL:
                 if self.actor:
                     if not self.actor.get_location().visible:
-                        tooltip_text.append("This tile has not been explored")
+                        tooltip_text.append("this location has not been explored")
                     elif self.actor.infinite_inventory_capacity:
                         tooltip_text.append(
-                            "This tile can hold an infinite number of items"
+                            "this location can hold an infinite number of items"
                         )
                     else:
                         tooltip_text.append(
-                            f"This tile currently contains an inventory of {self.actor.get_inventory_used()} items"
+                            f"this location currently contains an inventory of {self.actor.get_inventory_used()} items"
                         )
                         tooltip_text.append(
-                            f"This tile can retain a maximum inventory of {self.actor.inventory_capacity} items"
+                            f"this location can retain a maximum inventory of {self.actor.inventory_capacity} items"
                         )
                         tooltip_text.append(
-                            "If this tile's inventory exceeds its capacity before resource production at the end of the turn, extra items will be lost"
+                            "If this location's inventory exceeds its capacity before resource production at the end of the turn, extra items will be lost"
                         )
             self.set_tooltip(tooltip_text)
 
@@ -1022,7 +1022,7 @@ class actor_display_label(label):
             if self.actor:
                 if self.actor_label_type == constants.WATER_LABEL:
                     tooltip_text.append(
-                        "Represents the amount of water in this tile, including both standing water and average precipitation"
+                        "Represents the amount of water in this location, including both standing water and average precipitation"
                     )
             self.set_tooltip(tooltip_text)
 
@@ -1045,7 +1045,7 @@ class actor_display_label(label):
                         f"Pressure is the total u (atmosphere units) on a planet, with Earth having 1.0 atm (atmospheres)"
                     )
                     tooltip_text.append(
-                        f"A total pressure of 1.0 atm is achieved by having 6 u of gas per tile on a planet"
+                        f"A total pressure of 1.0 atm is achieved by having 6 u of gas per location on a planet"
                     )
                 elif self.actor_label_type in [
                     constants.OXYGEN_LABEL,
@@ -1057,7 +1057,7 @@ class actor_display_label(label):
                         f"Partial pressure is the u (atmosphere units) of a particular gas on a planet"
                     )
                     tooltip_text.append(
-                        f"A total pressure of 1.0 atm is achieved by having 6 u of gas per tile on a planet"
+                        f"A total pressure of 1.0 atm is achieved by having 6 u of gas per location on a planet"
                     )
                 elif self.actor_label_type == constants.GRAVITY_LABEL:
                     tooltip_text.append(
@@ -1417,11 +1417,11 @@ class actor_display_label(label):
 
             elif self.actor_label_type in [
                 constants.MOB_INVENTORY_CAPACITY_LABEL,
-                constants.TILE_INVENTORY_CAPACITY_LABEL,
+                constants.LOCATION_INVENTORY_CAPACITY_LABEL,
             ]:
                 inventory_used = self.actor.get_inventory_used()
                 if (
-                    self.actor_label_type == constants.TILE_INVENTORY_CAPACITY_LABEL
+                    self.actor_label_type == constants.LOCATION_INVENTORY_CAPACITY_LABEL
                     and not self.actor.get_location().visible
                 ):
                     text = self.message_start + "n/a"
@@ -1834,7 +1834,7 @@ class banner(actor_display_label):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
                 'actor_label_type': string value - Type of actor information shown
-                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'tile'
+                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'location'
                 'banner_type': Type of banner to display, like 'terrain details' - determines behavior
                 'banner_text': string value - Text to display on the banner
         Output:
@@ -1911,7 +1911,7 @@ class list_item_label(actor_display_label):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
                 'actor_label_type': string value - Type of actor information shown
-                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'tile'
+                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'location'
                 'list_index': int value - Index to determine item of list reflected
                 'list_type': string value - Type of list associated with, like constants.RESOURCE along with label type of 'current building work crew' to show work crews attached to a resource
                     building
@@ -2020,7 +2020,7 @@ class building_work_crews_label(actor_display_label):
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
-                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'tile'
+                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'location'
                 'building_type': string value - Type of building associated with, like constants.RESOURCE
         Output:
             None
@@ -2059,7 +2059,7 @@ class building_work_crews_label(actor_display_label):
         Input:
             None
         Output:
-            boolean: Returns same value as superclass as long as the displayed tile has a building of this label's building_type, otherwise returns False
+            boolean: Returns same value as superclass as long as the displayed location has a building of this label's building_type, otherwise returns False
         """
         if self.show_label:
             return super().can_show(skip_parent_collection=skip_parent_collection)
@@ -2086,7 +2086,7 @@ class building_efficiency_label(actor_display_label):
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
-                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'tile'
+                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'location'
                 'building_type': string value - Type of building associated with, like constants.RESOURCE
         Output:
             None
@@ -2125,7 +2125,7 @@ class building_efficiency_label(actor_display_label):
         Input:
             None
         Output:
-            boolean: Returns same value as superclass as long as the displayed tile has a building of this label's building_type, otherwise returns False
+            boolean: Returns same value as superclass as long as the displayed location has a building of this label's building_type, otherwise returns False
         """
         if self.show_label:
             return super().can_show(skip_parent_collection=skip_parent_collection)
@@ -2152,7 +2152,7 @@ class terrain_feature_label(actor_display_label):
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
-                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'tile'
+                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'location'
                 'terrain_feature_type': string value - Type of terrain feature associated with, like 'equator'
         Output:
             None

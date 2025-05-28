@@ -7,7 +7,7 @@ from modules.constants import constants, status, flags
 
 class actor_display_free_image(free_image):
     """
-    Free image that changes its appearance to match selected mobs or tiles
+    Free image that changes its appearance to match selected mobs or locations
     """
 
     def __init__(self, input_dict):
@@ -90,7 +90,7 @@ class actor_display_free_image(free_image):
                 else:
                     image_id_list.append(
                         {
-                            "image_id": "misc/tile_outline.png",
+                            "image_id": "misc/location_outline.png",
                             "detail_level": 1.0,
                         }
                     )

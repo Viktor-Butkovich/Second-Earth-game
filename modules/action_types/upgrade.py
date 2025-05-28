@@ -77,7 +77,7 @@ class upgrade(action.action):
                 self.building_type.key
             )
             if self.upgrade_type == constants.WAREHOUSE_LEVEL:
-                noun = "tile"
+                noun = "location"
             else:
                 noun = self.current_building.name
             value = self.current_building.upgrade_fields[self.upgrade_type]
@@ -106,7 +106,7 @@ class upgrade(action.action):
         text = super().generate_notification_text(subject)
 
         if self.building_type == constants.WAREHOUSE_LEVEL:
-            noun = "tile"
+            noun = "location"
         elif self.building_type in [
             constants.RESOURCE_EFFICIENCY,
             constants.RESOURCE_SCALE,
@@ -151,7 +151,7 @@ class upgrade(action.action):
     def can_show(self):
         """
         Description:
-            Returns whether a button linked to this action should be drawn - if correct type of unit selected and building not yet present in tile
+            Returns whether a button linked to this action should be drawn - if correct type of unit selected and building not yet present in location
         Input:
             None
         Output:
@@ -235,7 +235,7 @@ class upgrade(action.action):
         if self.roll_result >= self.current_min_success:
             self.current_building.upgrade(self.building_type)
             actor_utility.calibrate_actor_info_display(
-                status.location_info_display, self.current_unit.get_cell().tile
-            )  # update tile display to show building upgrade
+                status.location_info_display, self.current_unit.get_location()
+            )  # update location display to show building upgrade
             status.minimap_grid.calibrate(self.current_unit.x, self.current_unit.y)
         super().complete()

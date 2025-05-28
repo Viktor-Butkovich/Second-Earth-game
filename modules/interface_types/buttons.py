@@ -273,15 +273,15 @@ class button(interface_elements.interface_element):
             ):
                 self.set_tooltip(
                     [
-                        "Merges this evangelist with church volunteers in the same tile to form a group of missionaries",
-                        "Requires that an evangelist is selected in the same tile as church volunteers",
+                        "Merges this evangelist with church volunteers in the same location to form a group of missionaries",
+                        "Requires that an evangelist is selected in the same location as church volunteers",
                     ]
                 )
             else:
                 self.set_tooltip(
                     [
-                        "Merges this officer with a worker in the same tile to form a group with a type based on that of the officer",
-                        "Requires that an officer is selected in the same tile as a worker",
+                        "Merges this officer with a worker in the same location to form a group with a type based on that of the officer",
+                        "Requires that an officer is selected in the same location as a worker",
                     ]
                 )
 
@@ -291,8 +291,8 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.CREW_PROCEDURE:  # clicked on vehicle side
             self.set_tooltip(
                 [
-                    f"Merges this vehicle with a worker in the same tile to form a crewed vehicle",
-                    f"Requires that an uncrewed vehicle is selected in the same tile as a worker",
+                    f"Merges this vehicle with a worker in the same location to form a crewed vehicle",
+                    f"Requires that an uncrewed vehicle is selected in the same location as a worker",
                 ]
             )
 
@@ -302,7 +302,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.EMBARK_VEHICLE_BUTTON:
             self.set_tooltip(
                 [
-                    f"Orders this unit to embark a vehicle in the same tile",
+                    f"Orders this unit to embark a vehicle in the same location",
                 ]
             )
 
@@ -312,7 +312,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.EMBARK_ALL_PASSENGERS_BUTTON:
             self.set_tooltip(
                 [
-                    f"Orders this vehicle to take all non-vehicle units in this tile as passengers"
+                    f"Orders this vehicle to take all non-vehicle units in this location as passengers"
                 ]
             )
 
@@ -425,7 +425,7 @@ class button(interface_elements.interface_element):
             self.set_tooltip(tooltip_text)
 
         elif self.button_type == constants.CYCLE_SAME_TILE_BUTTON:
-            tooltip_text = ["Cycles through this tile's units"]
+            tooltip_text = ["Cycles through this location's units"]
             tooltip_text.append("Units: ")
             if self.showing:
                 tooltip_text += [
@@ -440,7 +440,7 @@ class button(interface_elements.interface_element):
             )
             self.set_tooltip(
                 [
-                    f"Orders parts for and attempts to assemble a train in this unit's tile for {cost} money",
+                    f"Orders parts for and attempts to assemble a train in this unit's location for {cost} money",
                     "Can only be assembled on a train station",
                     "Costs all remaining movement points, at least 1",
                     "Unlike buildings, the cost of vehicle assembly is not impacted by local terrain",
@@ -650,7 +650,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.CHANGE_PARAMETER_BUTTON:
             self.set_tooltip(
                 [
-                    f"Changes this tile's {self.attached_label.actor_label_type.removesuffix('_label').replace('_', ' ')} by {self.change}"
+                    f"Changes this location's {self.attached_label.actor_label_type.removesuffix('_label').replace('_', ' ')} by {self.change}"
                 ]
             )
         else:
@@ -1151,7 +1151,7 @@ class button(interface_elements.interface_element):
                                 if not status.displayed_mob.equipment.get(
                                     equipment_type.key, False
                                 ):
-                                    # If equipment in tile, equippable by this unit, and not already equipped, equip it
+                                    # If equipment in location, equippable by this unit, and not already equipped, equip it
                                     radio_effect = (
                                         status.displayed_mob.get_radio_effect()
                                     )
@@ -2929,7 +2929,7 @@ class reorganize_unit_button(button):
             if procedure_type == constants.INVALID_PROCEDURE:
                 if constants.MERGE_PROCEDURE in self.allowed_procedures:
                     text_utility.print_to_screen(
-                        "This button executes merge procedures, which require workers and an officer in the same tile"
+                        "This button executes merge procedures, which require workers and an officer in the same location"
                     )
                 elif constants.SPLIT_PROCEDURE in self.allowed_procedures:
                     text_utility.print_to_screen(
@@ -2937,7 +2937,7 @@ class reorganize_unit_button(button):
                     )
                 elif constants.CREW_PROCEDURE in self.allowed_procedures:
                     text_utility.print_to_screen(
-                        "This button executes crew procedures, which require a worker and an uncrewed vehicle in the same tile"
+                        "This button executes crew procedures, which require a worker and an uncrewed vehicle in the same location"
                     )
                 elif constants.UNCREW_PROCEDURE in self.allowed_procedures:
                     text_utility.print_to_screen(
@@ -2978,7 +2978,7 @@ class cycle_autofill_button(button):
         Description:
             Returns whether this button can be shown. An autofill cycle button is only shown when an autofill is occurring and other options are available - allow cycling
                 autofill if current autofill is a real, non-selected mob and there is at least 1 valid alternative - it makes no sense to cycle a dummy mob for a real one
-                in the same tile, and the selected mob is locked and can't be cycled
+                in the same location, and the selected mob is locked and can't be cycled
         Input:
             None
         Output:
@@ -2998,30 +2998,39 @@ class cycle_autofill_button(button):
                         self.autofill_target_type
                     ].get_permission(constants.DUMMY_PERMISSION):
                         if self.autofill_target_type == constants.WORKER_PERMISSION:
-                            return status.displayed_mob.get_cell().has_unit(
-                                [constants.WORKER_PERMISSION], required_number=2
+                            return (
+                                status.displayed_mob.get_location().has_unit_by_filter(
+                                    [constants.WORKER_PERMISSION], required_number=2
+                                )
                             )
                         elif self.autofill_target_type == constants.OFFICER_PERMISSION:
-                            return status.displayed_mob.get_cell().has_unit(
-                                [constants.OFFICER_PERMISSION], required_number=2
+                            return (
+                                status.displayed_mob.get_location().has_unit_by_filter(
+                                    [constants.OFFICER_PERMISSION], required_number=2
+                                )
                             )
                         elif (
                             self.autofill_target_type
                             == constants.CREW_VEHICLE_PERMISSION
                         ):
-                            return status.displayed_mob.get_cell().has_unit(
-                                [constants.CREW_VEHICLE_PERMISSION], required_number=2
+                            return (
+                                status.displayed_mob.get_location().has_unit_by_filter(
+                                    [constants.CREW_VEHICLE_PERMISSION],
+                                    required_number=2,
+                                )
                             )
                         elif (
                             self.autofill_target_type
                             == constants.INACTIVE_VEHICLE_PERMISSION
                         ):
-                            return status.displayed_mob.get_cell().has_unit(
-                                [constants.INACTIVE_VEHICLE_PERMISSION],
-                                required_number=2,
+                            return (
+                                status.displayed_mob.get_location().has_unit_by_filter(
+                                    [constants.INACTIVE_VEHICLE_PERMISSION],
+                                    required_number=2,
+                                )
                             )
                         # Allow cycling autofill if current autofill is a real, non-selected mob and there is at least 1 alternative
-                        #   It makes no sense to cycle a dummy mob for a real one in the same tile, and the selected mob is locked and can't be cycled
+                        #   It makes no sense to cycle a dummy mob for a real one in the same location, and the selected mob is locked and can't be cycled
         return False
 
     def on_click(self):
@@ -3102,7 +3111,7 @@ class action_button(button):
         """
         self.set_tooltip(self.corresponding_action.update_tooltip())
 
-    def get_unit(self):
+    def get_matching_unit(self):
         """
         Description:
             Returns the unit this button appears next to
@@ -3133,7 +3142,7 @@ class action_button(button):
         Output:
             None
         """
-        self.corresponding_action.on_click(self.get_unit())
+        self.corresponding_action.on_click(self.get_matching_unit())
 
 
 class anonymous_button(button):

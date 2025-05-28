@@ -69,7 +69,7 @@ class group(pmob):
                     ) and self.officer.equipment.get(
                         equipment, False
                     ):  # If both worker and officer had same equipment, drop extra
-                        self.get_cell().tile.change_inventory(equipment, 1)
+                        self.get_location().change_inventory(equipment, 1)
                     status.equipment_types[equipment].equip(self)
 
         if not from_save:

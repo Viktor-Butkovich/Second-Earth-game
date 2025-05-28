@@ -330,7 +330,7 @@ class item_icon(button):
     ) -> None:  # calling transfer but not doing anything from mob
         """
         Description:
-            Drops or picks up the inputted amount of this tile's current item type, depending on if this is a tile or mob item icon
+            Drops or picks up the inputted amount of this location's current item type, depending on if this is a tile or mob item icon
         Input:
             int amount: Amount of item to transfer, or None if transferring all
         Output:

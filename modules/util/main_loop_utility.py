@@ -402,7 +402,7 @@ def manage_rmb_down(clicked_button):
             )
         status.minimap_grid.calibrate(status.displayed_mob.x, status.displayed_mob.y)
         actor_utility.calibrate_actor_info_display(
-            status.location_info_display, status.displayed_mob.get_cell().tile
+            status.location_info_display, status.displayed_mob.get_location()
         )
     if not stopping:
         manage_lmb_down(clicked_button)

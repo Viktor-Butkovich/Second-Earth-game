@@ -82,7 +82,6 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.RESOURCE: buildings.resource_building,
             constants.SETTLEMENT: settlements.settlement,
             constants.CELL_ICON: cell_icons.cell_icon,
-            constants.NAME_ICON: cell_icons.name_icon,
             constants.LOAN: market_utility.loan,
             constants.LOCATION: locations.location,
             constants.FULL_WORLD: world_handler_types.full_world_handler,

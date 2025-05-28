@@ -98,14 +98,14 @@ class repair(action.action):
                 self.building_type.key
             )
             message.append(
-                f"Attempts to repair this tile's {self.current_building.name} for {str(self.get_price())} money"
+                f"Attempts to repair this location's {self.current_building.name} for {str(self.get_price())} money"
             )
             if self.building_type.key in [
                 constants.SPACEPORT,
                 constants.TRAIN_STATION,
                 constants.RESOURCE,
             ]:
-                message.append("If successful, also repairs this tile's warehouses")
+                message.append("If successful, also repairs this location's warehouses")
             message.append("Costs all remaining movement points, at least 1")
         return message
 
@@ -153,7 +153,7 @@ class repair(action.action):
     def can_show(self):
         """
         Description:
-            Returns whether a button linked to this action should be drawn - if correct type of unit selected and building not yet present in tile
+            Returns whether a button linked to this action should be drawn - if correct type of unit selected and building not yet present in location
         Input:
             None
         Output:
@@ -229,6 +229,6 @@ class repair(action.action):
         if self.roll_result >= self.current_min_success:
             self.current_building.set_damaged(False)
             actor_utility.calibrate_actor_info_display(
-                status.location_info_display, self.current_unit.get_cell().tile
-            )  # update tile display to show building repair
+                status.location_info_display, self.current_unit.get_location()
+            )  # Update location display to show building repair
         super().complete()

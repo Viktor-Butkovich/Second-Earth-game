@@ -1,6 +1,6 @@
 import random
 from typing import List, Dict, Any
-from modules.util import actor_utility
+from modules.util import actor_utility, utility
 from modules.constructs import world_handlers, item_types
 from modules.constants import constants, status, flags
 
@@ -55,13 +55,14 @@ class location:
         self.resource: item_types.item_type = status.item_types.get(
             input_dict.get("resource", None), None
         )
-        self.visible: bool = input_dict.get("visible", True)
         self.attached_cells: list = []
         self.expected_temperature_offset: float = 0.0
         self.terrain_features: Dict[str, bool] = {}
         for key, value in input_dict.get("terrain_features", {}).items():
             self.add_terrain_feature(value)
         self.contained_buildings: Dict[str, Any] = {}
+        self.contained_mobs: list = []
+        self.settlement: Any = None
 
     def local_attrition(self, attrition_type="health"):
         """
@@ -254,11 +255,11 @@ class location:
     def get_warehouses_cost(self):
         """
         Description:
-            Calculates and returns the cost of the next warehouses upgrade in this tile, based on the number of past warehouses upgrades
+            Calculates and returns the cost of the next warehouses upgrade in this location, based on the number of past warehouses upgrades
         Input:
             None
         Output:
-            int: Returns the cost of the next warehouses upgrade in this tile, based on the number of past warehouse upgrades
+            int: Returns the cost of the next warehouses upgrade in this location, based on the number of past warehouse upgrades
         """
         warehouses = self.get_building(constants.WAREHOUSES)
         if warehouses:
@@ -352,11 +353,11 @@ class location:
     def get_unit_habitability(self, unit=None) -> int:
         """
         Description:
-            Returns the habitability of this tile for the inputted units
+            Returns the habitability of this location for the inputted units
         Input:
-            Mob unit: Unit to check the habitability of this tile for
+            Mob unit: Unit to check the habitability of this location for
         Output:
-            int: Returns habitability of this tile for the inputted unit
+            int: Returns habitability of this location for the inputted unit
         """
         if (
             self.world_handler.is_abstract_world
@@ -378,11 +379,11 @@ class location:
     def get_known_habitability(self) -> int:
         """
         Description:
-            Returns the habitability of this tile based on current knowledge
+            Returns the habitability of this location based on current knowledge
         Input:
             None
         Output:
-            int: Returns the habitability of this tile based on current knowledge
+            int: Returns the habitability of this location based on current knowledge
         """
         habitability_dict = self.get_habitability_dict()
         if self.get_world_handler().is_abstract_world:  # If global habitability
@@ -727,36 +728,6 @@ class location:
             if cell.tile:
                 cell.tile.set_terrain(self.terrain, update_image_bundle=False)
 
-    def set_resource(self, new_resource: item_types.item_type) -> None:
-        """
-        Description:
-            Sets this location's resource type
-        Input:
-            item_type new_resource: New resource type for this location, like "Gold" or None
-        Output:
-            None
-        """
-        self.resource = new_resource
-        for cell in self.attached_cells:
-            if cell.tile:
-                cell.tile.set_resource(self.resource, update_image_bundle=False)
-
-    def set_visibility(self, new_visibility, update_image_bundle=False) -> None:
-        """
-        Description:
-            Sets the visibility of this cell and its attached tile to the inputted value. A visible cell's terrain and resource can be seen by the player.
-        Input:
-            boolean new_visibility: This cell's new visibility status
-            boolean update_image_bundle: Whether to update the image bundle - if multiple sets are being used on a tile, optimal to only update after the last one
-        Output:
-            None
-        """
-        self.visible = new_visibility
-        if update_image_bundle:
-            for cell in self.attached_cells:
-                if cell.tile:
-                    cell.tile.update_image_bundle()
-
     def add_cell(self, cell) -> None:
         """
         Description:
@@ -773,7 +744,6 @@ class location:
 
         if cell.tile:
             cell.tile.set_terrain(self.terrain, update_image_bundle=False)
-            cell.tile.set_resource(self.resource, update_image_bundle=False)
             cell.tile.update_image_bundle()
 
     def remove_cell(self, cell) -> None:
@@ -905,11 +875,11 @@ class location:
     def get_brightness(self) -> float:
         """
         Description:
-            Calculates and returns the average RGB value of this tile's terrain
+            Calculates and returns the average RGB value of this location's terrain
         Input:
             None
         Output:
-            float: Returns the average RGB value of this tile's terrain
+            float: Returns the average RGB value of this location's terrain
         """
         if self.attached_cells:
             image_id = self.attached_cells[0].tile.get_image_id_list(
@@ -935,3 +905,413 @@ class location:
             )
         else:
             return 1.0 - self.get_world_handler().get_tuning("earth_albedo_multiplier")
+
+    def get_image_id_list(
+        self,
+        terrain_only=False,
+        force_clouds=False,
+        force_pixellated=False,
+        allow_mapmodes=True,
+        allow_clouds=True,
+    ):
+        """
+        Description:
+            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
+                orientation
+        Input:
+            boolean terrain_only = False: Whether to just show tile's terrain or all contents as well
+        Output:
+            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
+        """
+        """
+        if this is the Earth abstract location:
+            [
+                "misc/space.png",
+                {
+                    "image_id": "locations/earth.png",
+                    "size": 0.8,
+                    "detail_level": 1.0,
+                },
+            ]
+        if this is the orbital globe projection abstract location:
+            [
+                {
+                    "image_id": "misc/empty.png",
+                }
+            ] - uses the most recently generated globe projection
+        """
+        image_id_list = []
+        if (
+            (not allow_mapmodes)
+            or constants.current_map_mode == "terrain"
+            or constants.MAP_MODE_ALPHA
+        ):
+            image_id_list.append(
+                {
+                    "image_id": self.image_dict["default"],
+                    "level": -9,
+                    "color_filter": self.get_color_filter(),
+                    "green_screen": self.get_green_screen(),
+                    "pixellated": force_pixellated
+                    or not self.knowledge_available(constants.TERRAIN_KNOWLEDGE),
+                    "detail_level": constants.TERRAIN_DETAIL_LEVEL,
+                }
+            )
+            if allow_clouds:
+                for terrain_overlay_image in self.get_overlay_images():
+                    if type(terrain_overlay_image) == str:
+                        terrain_overlay_image = {
+                            "image_id": terrain_overlay_image,
+                        }
+                    terrain_overlay_image.update(
+                        {
+                            "level": -8,
+                            "color_filter": self.get_color_filter(),
+                            "pixellated": force_pixellated
+                            or not self.knowledge_available(
+                                constants.TERRAIN_KNOWLEDGE
+                            ),
+                            "detail_level": terrain_overlay_image.get(
+                                "detail_level", constants.TERRAIN_DETAIL_LEVEL
+                            ),
+                        }
+                    )
+                    if not terrain_overlay_image.get("green_screen", None):
+                        terrain_overlay_image["green_screen"] = self.get_green_screen()
+                    image_id_list.append(terrain_overlay_image)
+            if allow_clouds and (
+                constants.effect_manager.effect_active("show_clouds")
+                or force_clouds
+                or not self.knowledge_available(constants.TERRAIN_KNOWLEDGE)
+            ):
+                for cloud_image in self.current_clouds:
+                    image_id_list.append(cloud_image.copy())
+                    if not image_id_list[-1].get("detail_level", None):
+                        image_id_list[-1][
+                            "detail_level"
+                        ] = constants.TERRAIN_DETAIL_LEVEL
+                    image_id_list[-1]["level"] = -7
+                    if not image_id_list[-1].get("green_screen", None):
+                        image_id_list[-1]["green_screen"] = self.get_green_screen()
+            if not terrain_only:
+                for terrain_feature in self.terrain_features:
+                    new_image_id = self.terrain_features[terrain_feature].get(
+                        "image_id",
+                        status.terrain_feature_types[terrain_feature].image_id,
+                    )
+                    if new_image_id != "misc/empty.png":
+                        if type(new_image_id) == str and not new_image_id.endswith(
+                            ".png"
+                        ):
+                            new_image_id = actor_utility.generate_label_image_id(
+                                new_image_id, y_offset=-0.75
+                            )
+                        image_id_list = utility.combine(image_id_list, new_image_id)
+                # if (
+                #    self.get_location().resource
+                # ):  # If resource visible based on current knowledge
+                #    resource_icon = actor_utility.generate_resource_icon(self)
+                #    if type(resource_icon) == str:
+                #        image_id_list.append(resource_icon)
+                #    else:
+                #        image_id_list += resource_icon
+                image_id_list += [
+                    image_id
+                    for current_building in self.buildings()
+                    for image_id in current_building.get_image_id_list()
+                ]  # Add each of each building's images to the image ID list
+            for current_image in self.hosted_images:
+                if (
+                    not current_image.anchor_key in ["south_pole", "north_pole"]
+                    and not terrain_only
+                ):
+                    image_id_list += current_image.get_image_id_list()
+
+        if constants.current_map_mode != "terrain" and allow_mapmodes:
+            map_mode_image = "misc/map_modes/none.png"
+            if constants.current_map_mode in constants.terrain_parameters:
+                if self.knowledge_available(constants.TERRAIN_PARAMETER_KNOWLEDGE):
+                    if constants.current_map_mode in [
+                        constants.WATER,
+                        constants.TEMPERATURE,
+                        constants.VEGETATION,
+                    ]:
+                        map_mode_image = f"misc/map_modes/{constants.current_map_mode}/{self.get_parameter(constants.current_map_mode)}.png"
+                    else:
+                        map_mode_image = f"misc/map_modes/{self.get_parameter(constants.current_map_mode)}.png"
+            elif constants.current_map_mode == "magnetic":
+                if self.terrain_features.get(
+                    "southern tropic", False
+                ) or self.terrain_features.get("northern tropic", False):
+                    map_mode_image = "misc/map_modes/equator.png"
+                elif self.terrain_features.get("north pole", False):
+                    map_mode_image = "misc/map_modes/north_pole.png"
+                elif self.terrain_features.get("south pole", False):
+                    map_mode_image = "misc/map_modes/south_pole.png"
+            if constants.MAP_MODE_ALPHA:
+                image_id_list.append(
+                    {
+                        "image_id": map_mode_image,
+                        "detail_level": 1.0,
+                        "alpha": constants.MAP_MODE_ALPHA,
+                    }
+                )
+            else:
+                image_id_list = [
+                    {
+                        "image_id": map_mode_image,
+                        "detail_level": 1.0,
+                    }
+                ]
+        for current_image in self.hosted_images:
+            if (
+                current_image.anchor_key in ["south_pole", "north_pole"]
+                and not terrain_only
+            ):
+                image_id_list += current_image.get_image_id_list()
+
+        return image_id_list
+
+    def update_image_bundle(self, override_image=None):
+        """
+        Description:
+            Updates this actor's images with its current image id list, also updating the minimap grid version if applicable
+        Input:
+            image_bundle override_image=None: Image bundle to update image with, setting this location's image to a copy of the image bundle instead of generating a new image
+                bundle
+        Output:
+            None
+        """
+        previous_image = self.previous_image
+        if override_image:
+            self.set_image(override_image)
+        else:
+            self.set_image(self.get_image_id_list())
+        if previous_image != self.previous_image:
+            self.reselect()
+
+    def reselect(self):
+        """
+        Description:
+            Deselects and reselects this mob if it was already selected
+        Input:
+            None
+        Output:
+            None
+        """
+        if status.displayed_location == self.get_location():
+            actor_utility.calibrate_actor_info_display(
+                status.location_info_display, None
+            )
+            actor_utility.calibrate_actor_info_display(
+                status.location_info_display, self
+            )
+
+    """
+    def set_image(self, new_image) -> None:
+        Load in new image and tell attached cells and info displays to update their images
+        Ideally avoid any rendering logic directly in location
+        Make sure cells use rendered image caching to re-use results
+        Actors in general should follow this new pattern:
+            Actor is reponsible for maintaining a valid image ID list and notifying subscribed cells and info displays when it changes
+            Cells and info displays are responsible for rendering image ID lists when notified
+    """
+
+    def has_unit_by_filter(self, permissions, required_number=1):
+        """
+        Description:
+            Returns whether this cell contains the requested amount of units with all the inputted permissions
+        Input:
+            string list permissions: List of permissions to search for
+            int required_number=1: Number of units that must be found to return True
+        Output:
+            boolean: Returns whether this cell contains the requested amount of units with all the inputted permissions
+        """
+        return (
+            len(self.get_unit_by_filter(permissions, get_all=True)) >= required_number
+        )
+
+    def get_unit_by_filter(
+        self, permissions, start_index: int = 0, get_all: bool = False
+    ):
+        """
+        Description:
+            Returns the first unit in this cell with all the inputted permissions, or None if none are present
+        Input:
+            string list permissions: List of permissions to search for
+            int start_index=0: Index of contained_mobs to start search from - if starting in middle, wraps around iteration to ensure all items are still checked
+                Allows finding different units with repeated calls by changing start_index
+            boolean get_all=False: If True, returns all units with the inputted permissions, otherwise returns the first
+        Output:
+            mob: Returns the first unit in this cell with all the inputted permissions, or None if none are present
+                If get_all, otherwise returns List[mob]: Returns all units in this cell with all the inputted permissions
+        """
+        if not self.contained_mobs:
+            return [] if get_all else None
+
+        start_index = min(
+            start_index, len(self.contained_mobs) - 1
+        )  # Ensure that start_index is not after the end of the list
+
+        iterated_list = (
+            self.contained_mobs[start_index : len(self.contained_mobs)]
+            + self.contained_mobs[0:start_index]
+        )  # Get all mobs starting from start_index, wrapping around to the beginning of the list
+
+        if get_all:
+            return [
+                current_mob
+                for current_mob in iterated_list
+                if current_mob.all_permissions(*permissions)
+            ]
+        else:
+            return next(
+                (
+                    current_mob
+                    for current_mob in iterated_list
+                    if current_mob.all_permissions(*permissions)
+                ),
+                None,
+            )
+
+    def get_best_combatant(self):
+        """
+        Description:
+            Finds and returns the best combatant in this location. Combat ability is based on the unit's combat modifier and veteran status
+                Assumes all mobs have already detached from vehicles and buildings
+        Input:
+            None
+        Output;
+            mob: Returns the best combatant of the inputted type in this cell
+        """
+        if not self.contained_mobs:
+            return None
+
+        max_modifier = max(
+            self.contained_mobs, key=lambda m: m.get_combat_modifier()
+        ).get_combat_modifier()
+        strongest_candidates = [
+            current_mob
+            for current_mob in self.contained_mobs
+            if current_mob.get_combat_modifier() == max_modifier
+        ]
+        veteran_candidates = [
+            current_mob
+            for current_mob in strongest_candidates
+            if current_mob.get_permission(constants.VETERAN_PERMISSION)
+        ]
+        if veteran_candidates:
+            return random.choice(veteran_candidates)
+        else:
+            return random.choice(strongest_candidates)
+
+    def get_noncombatants(self):
+        """
+        Description:
+            Finds and returns all units of the inputted type in this cell that have 0 combat strength. Assumes that units in vehicles and buildings have already detached upon being attacked
+        Input:
+            None
+        Output:
+            mob list: Returns the noncombatants of the inputted type in this cell
+        """
+        return [
+            current_mob
+            for current_mob in self.contained_mobs
+            if current_mob.get_combat_strength() == 0
+            and current_mob.get_permission(constants.PMOB_PERMISSION)
+        ]
+
+    def update_tooltip(self):
+        """
+        Description:
+            Updates this location's tooltip to match its current state
+        Input:
+            None
+        Output:
+            None
+        """
+        tooltip_message = []
+        if self.get_location().get_world_handler().is_abstract_world:
+            tooltip_message.append(self.name)
+        else:
+            tooltip_message.append(f"Coordinates: ({self.x}, {self.y})")
+
+            knowledge_value = self.get_parameter(constants.KNOWLEDGE)
+            knowledge_keyword = constants.terrain_manager.terrain_parameter_keywords[
+                constants.KNOWLEDGE
+            ][knowledge_value]
+            knowledge_maximum = maximum = self.maxima.get(constants.KNOWLEDGE, 5)
+            tooltip_message.append(
+                f"Knowledge: {knowledge_keyword} ({knowledge_value}/{knowledge_maximum})"
+            )
+
+            if self.knowledge_available(constants.TERRAIN_KNOWLEDGE):
+                tooltip_message.append(f"    Terrain: {self.terrain.replace('_', ' ')}")
+                if self.knowledge_available(constants.TERRAIN_PARAMETER_KNOWLEDGE):
+                    for terrain_parameter in constants.terrain_parameters:
+                        if terrain_parameter != constants.KNOWLEDGE:
+                            maximum = self.maxima.get(terrain_parameter, 5)
+                            value = self.get_parameter(terrain_parameter)
+                            keyword = (
+                                constants.terrain_manager.terrain_parameter_keywords[
+                                    terrain_parameter
+                                ][value]
+                            )
+                            tooltip_message.append(
+                                f"    {terrain_parameter.capitalize()}: {keyword} ({value}/{maximum})"
+                            )
+                else:
+                    tooltip_message.append(f"    Details unknown")
+            else:
+                tooltip_message.append(f"    Terrain unknown")
+
+        if (
+            self.get_location().get_world_handler().is_abstract_world
+            or self.knowledge_available(constants.TERRAIN_PARAMETER_KNOWLEDGE)
+        ):
+            tooltip_message.append(
+                f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[self.get_known_habitability()].capitalize()}"
+            )
+        else:
+            tooltip_message.append(
+                f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[self.get_known_habitability()].capitalize()} (estimated)"
+            )
+
+        for current_building in self.get_buildings():
+            current_building.update_tooltip()
+            tooltip_message.append("")
+            tooltip_message += current_building.tooltip_text
+
+        # if self.resource:  # If resource present, show resource
+        #    tooltip_message.append("")
+        #    tooltip_message.append(
+        #        f"this location has {utility.generate_article(self.get_location().resource.name)} {self.get_location().resource.name} resource"
+        #    )
+        for terrain_feature in self.terrain_features:
+            if status.terrain_feature_types[terrain_feature].visible:
+                tooltip_message.append("")
+                tooltip_message += status.terrain_feature_types[
+                    terrain_feature
+                ].description
+
+        held_items: List[item_types.item_type] = self.get_held_items()
+        if (
+            held_items
+            or self.inventory_capacity > 0
+            or self.infinite_inventory_capacity
+        ):
+            if self.infinite_inventory_capacity:
+                tooltip_message.append(f"Inventory: {self.get_inventory_used()}")
+            else:
+                tooltip_message.append(
+                    f"Inventory: {self.get_inventory_used()}/{self.inventory_capacity}"
+                )
+            if not held_items:
+                tooltip_message.append("    None")
+            else:
+                for item_type in held_items:
+                    tooltip_message.append(
+                        f"    {item_type.name.capitalize()}: {self.get_inventory(item_type)}"
+                    )
+
+        self.set_tooltip(tooltip_message)

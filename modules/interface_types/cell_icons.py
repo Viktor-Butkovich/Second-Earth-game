@@ -8,7 +8,7 @@ from modules.constants import constants, status, flags
 
 class cell_icon(actor):
     """
-    An actor that exists in a tile while also acting as an interface element
+    An actor that exists in a location while also acting as an interface element
     """
 
     def __init__(self, from_save, input_dict, original_constructor=True):
@@ -19,7 +19,7 @@ class cell_icon(actor):
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grid': grid value - grid in which this tile can appear
+                'grid': grid value - grid in which this location can appear
                 'modes': string list value - Game modes during which this actor's images can appear
         Output:
             None
@@ -100,36 +100,3 @@ class cell_icon(actor):
             None
         """
         return False
-
-
-class name_icon(cell_icon):
-    """
-    Icon showing a text label on a tile
-    """
-
-    def __init__(self, from_save, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grid': grid value - grid in which this tile can appear
-                'modes': string list value - Game modes during which this actor's images can appear
-        Output:
-            None
-        """
-        super().__init__(from_save, input_dict)
-        self.tile = input_dict["tile"]
-
-    def can_show(self, skip_parent_collection=False):
-        """
-        Description:
-            Returns whether this icon can be shown. A name icon will be shown if its tile is visible and if it would not cover the currently selected unit
-        Input:
-            None
-        Output:
-            boolean: Returns True if this grid can appear during the current game mode, otherwise returns False
-        """
-        return super().can_show() and self.tile.get_location().visible

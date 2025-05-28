@@ -11,7 +11,7 @@ from modules.constants import constants, status, flags
 
 class building(actor):
     """
-    Actor that exists in cells of multiple grids in front of tiles and behind mobs that cannot be clicked
+    Actor that exists in cells of multiple grids in front of locations and behind mobs that cannot be clicked
     """
 
     def __init__(self, from_save, input_dict, original_constructor=True):
@@ -69,7 +69,7 @@ class building(actor):
                     "coordinates": (self.cell.x, self.cell.y),
                 },
             )
-        self.cell.tile.set_name(self.cell.tile.name)
+        self.get_location().set_name(self.get_location().name)
 
         if constants.effect_manager.effect_active("damaged_buildings"):
             if self.building_type.can_damage:
@@ -79,11 +79,11 @@ class building(actor):
     def get_location(self) -> locations.location:
         """
         Description:
-            Returns the location this tile is currently in
+            Returns the location this location is currently in
         Input:
             None
         Output:
-            location: Returns the location this tile is currently in
+            location: Returns the location this location is currently in
         """
         if not self.cell:
             return None
@@ -92,7 +92,7 @@ class building(actor):
     def update_image_bundle(self):
         """
         Description:
-            A building has no images on its own, instead existing in a tile and modifying that tile's images
+            A building has no images on its own, instead existing in a location and modifying that location's images
         Input:
             None
         Output:
@@ -128,7 +128,7 @@ class building(actor):
     def remove(self):
         """
         Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also removes this building from the tiles it occupies
+            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also removes this building from its location
         Input:
             None
         Output:
@@ -179,6 +179,7 @@ class building(actor):
         Output:
             None
         """
+        return
         self.tooltip_text = tooltip_text
         tooltip_width = 10  # minimum tooltip width
         font = constants.fonts["default"]
@@ -188,12 +189,12 @@ class building(actor):
             )
         tooltip_height = (font.size * len(tooltip_text)) + scaling.scale_height(5)
         self.tooltip_box = pygame.Rect(
-            self.cell.tile.x, self.cell.y, tooltip_width, tooltip_height
+            self.get_location().x, self.cell.y, tooltip_width, tooltip_height
         )
         self.tooltip_outline_width = 1
         self.tooltip_outline = pygame.Rect(
-            self.cell.tile.x - self.tooltip_outline_width,
-            self.cell.tile.y + self.tooltip_outline_width,
+            self.get_location().x - self.tooltip_outline_width,
+            self.get_location().y + self.tooltip_outline_width,
             tooltip_width + (2 * self.tooltip_outline_width),
             tooltip_height + (self.tooltip_outline_width * 2),
         )
@@ -216,21 +217,17 @@ class building(actor):
             self.get_location().get_building(constants.WAREHOUSES).set_damaged(
                 new_value
             )
-        self.cell.tile.update_image_bundle()
+        self.get_location().update_image_bundle()
 
     def touching_mouse(self):
         """
         Description:
-            Returns whether any tile containing this building is colliding with the mouse
+            Returns whether any location containing this building is colliding with the mouse
         Input:
             None
         Output:
             boolean: Returns True if any of this building's images is colliding with the mouse, otherwise returns False
         """
-        # for tile in [self.cell.tile] + self.cell.tile.get_equivalent_tiles():
-        #    if tile.touching_mouse():
-        #        return True
-        # return False
         return False
 
     def get_build_cost(self):
@@ -313,7 +310,7 @@ class building(actor):
 
 class infrastructure_building(building):
     """
-    Building that eases movement between tiles and is a road or railroad. Has images that show connections with other tiles that have roads or railroads
+    Building that eases movement between locations and is a road or railroad. Has images that show connections with other locations that have roads or railroads
     """
 
     def __init__(self, from_save, input_dict):
@@ -471,7 +468,7 @@ class warehouses(building):
             None
         """
         super().__init__(from_save, input_dict)
-        self.cell.tile.set_inventory_capacity(
+        self.get_location().set_inventory_capacity(
             self.upgrade_fields[constants.WAREHOUSE_LEVEL] * 9
         )
         if constants.effect_manager.effect_active("damaged_buildings"):
@@ -492,7 +489,7 @@ class warehouses(building):
 
     def upgrade(self, upgrade_type="warehouses_level"):
         super().upgrade(upgrade_type)
-        self.cell.tile.set_inventory_capacity(
+        self.get_location().set_inventory_capacity(
             self.upgrade_fields[constants.WAREHOUSE_LEVEL] * 9
         )
 
@@ -511,7 +508,7 @@ class warehouses(building):
 
 class resource_building(building):
     """
-    Building in a resource tile that allows work crews to attach to this building to produce resources over time
+    Building on a resource that allows work crews to attach to this building to produce resources over time
     """
 
     def __init__(self, from_save, input_dict):
@@ -616,7 +613,7 @@ class resource_building(building):
     def remove(self):
         """
         Description:
-            Removes this object from relevant lists, prevents it from further appearing in or affecting the program, and removes it from the tiles it occupies
+            Removes this object from relevant lists, prevents it from further appearing in or affecting the program, and removes it from the location it occupies
         Input:
             None
         Output:

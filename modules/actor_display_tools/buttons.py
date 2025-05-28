@@ -19,7 +19,7 @@ from modules.constants import constants, status, flags
 
 class embark_all_passengers_button(button):
     """
-    Button that commands a vehicle to take all other mobs in its tile as passengers
+    Button that commands a vehicle to take all other mobs in its location as passengers
     """
 
     def __init__(self, input_dict):
@@ -47,7 +47,7 @@ class embark_all_passengers_button(button):
     def on_click(self):
         """
         Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a vehicle to take all other mobs in its tile as passengers
+            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a vehicle to take all other mobs in its location as passengers
         Input:
             None
         Output:
@@ -696,7 +696,7 @@ class disembark_vehicle_button(button):
 
 class embark_vehicle_button(button):
     """
-    Button that commands a selected mob to embark a vehicle of the correct type in the same tile
+    Button that commands a selected mob to embark a vehicle of the correct type in the same location
     """
 
     def __init__(self, input_dict):
@@ -730,7 +730,7 @@ class embark_vehicle_button(button):
         Input:
             None
         Output:
-            boolean: Returns False if the selected mob cannot embark vehicles or if there is no vehicle in the tile to embark, otherwise returns same as superclass
+            boolean: Returns False if the selected mob cannot embark vehicles or if there is no vehicle in the location to embark, otherwise returns same as superclass
         """
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
@@ -739,7 +739,7 @@ class embark_vehicle_button(button):
                 displayed_mob
                 and displayed_mob.get_permission(constants.PMOB_PERMISSION)
                 and not displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and displayed_mob.get_cell().has_unit(
+                and displayed_mob.get_location().has_unit_by_filter(
                     [self.vehicle_type, constants.ACTIVE_VEHICLE_PERMISSION]
                 )
             )
@@ -749,18 +749,18 @@ class embark_vehicle_button(button):
     def on_click(self):
         """
         Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a selected mob to embark a vehicle of the correct type in the same tile
+            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a selected mob to embark a vehicle of the correct type in the same location
         Input:
             None
         Output:
             None
         """
         if main_loop_utility.action_possible():
-            if status.displayed_mob.get_cell().has_unit(
+            if status.displayed_mob.get_location().has_unit_by_filter(
                 [self.vehicle_type, constants.ACTIVE_VEHICLE_PERMISSION]
             ):
                 rider = status.displayed_mob
-                vehicles = rider.get_cell().get_unit(
+                vehicles = rider.get_location().get_unit_by_filter(
                     [self.vehicle_type, constants.ACTIVE_VEHICLE_PERMISSION],
                     get_all=True,
                 )
@@ -816,7 +816,7 @@ class embark_vehicle_button(button):
                         rider.embark_vehicle(vehicle)
             else:
                 text_utility.print_to_screen(
-                    f"You must select a unit in the same tile as a crewed vehicle to embark."
+                    f"You must select a unit in the same location as a crewed vehicle to embark."
                 )
         else:
             text_utility.print_to_screen(f"You are busy and cannot embark.")
@@ -957,7 +957,7 @@ class cycle_work_crews_button(button):
         Input:
             None
         Output:
-            boolean: Returns same as superclass if the displayed tile's cell has a resource building containing more than 3 work crews, otherwise returns False
+            boolean: Returns same as superclass if the displayed location has a resource building containing more than 3 work crews, otherwise returns False
         """
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
@@ -1001,14 +1001,14 @@ class cycle_work_crews_button(button):
             ).contained_work_crews.append(moved_mob)
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, displayed_location
-            )  # Updates tile info display list to show changed work crew order
+            )  # Updates location info display list to show changed work crew order
         else:
             text_utility.print_to_screen("You are busy and cannot cycle work crews.")
 
 
 class work_crew_to_building_button(button):
     """
-    Button that commands a work crew to work in a certain type of building in its tile
+    Button that commands a work crew to work in a certain type of building in its location
     """
 
     def __init__(self, input_dict):
@@ -1039,7 +1039,7 @@ class work_crew_to_building_button(button):
     def update_info(self):
         """
         Description:
-            Updates the building this button assigns workers to depending on the buildings present in this tile
+            Updates the building this button assigns workers to depending on the buildings present in this location
         Input:
             None
         Output:
@@ -1104,7 +1104,7 @@ class work_crew_to_building_button(button):
     def on_click(self):
         """
         Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a work crew to work in a certain type of building in its tile
+            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a work crew to work in a certain type of building in its location
         Input:
             None
         Output:
@@ -1129,7 +1129,7 @@ class work_crew_to_building_button(button):
                     )
             else:
                 text_utility.print_to_screen(
-                    "This work crew must be in the same tile as a resource production building to work in it"
+                    "This work crew must be in the same location as a resource production building to work in it"
                 )
         else:
             text_utility.print_to_screen(
@@ -1139,14 +1139,14 @@ class work_crew_to_building_button(button):
 
 class switch_theatre_button(button):
     """
-    Button starts choosing a destination for a spaceship to travel between theatres, like between Earth and the planet. A destination is chosen when the player clicks a tile in another theatre.
+    Button starts choosing a destination for a spaceship to travel between theatres, like between Earth and the current world. A destination is chosen when the player clicks a location in another theatre.
     """
 
     def on_click(self):
         """
         Description:
             Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button starts choosing a destination for a spaceship to travel between theatres, like between Earth and the planet. A
-                destination is chosen when the player clicks a tile in another theatre.
+                destination is chosen when the player clicks a location in another theatre.
         Input:
             None
         Output:
@@ -1612,7 +1612,7 @@ class automatic_route_button(button):
         """
         Description:
             Does a certain action when clicked or when corresponding key is pressed, depending on button_type. Clear automatic route buttons remove the selected unit's automatic route. Draw automatic route buttons enter the route
-            drawing mode, in which the player can click on consecutive tiles to add them to the route. Execute automatic route buttons command the selected unit to execute its in-progress automatic route, stopping when it cannot
+            drawing mode, in which the player can click on consecutive locations to add them to the route. Execute automatic route buttons command the selected unit to execute its in-progress automatic route, stopping when it cannot
             continue the route for any reason
         Input:
             None
@@ -1803,7 +1803,7 @@ class toggle_button(button):
 
 class change_parameter_button(button):
     """
-    Button that, when god mode is enabled, allows changing the selected tile's location's parameter values
+    Button that, when god mode is enabled, allows changing the selected location's location's parameter values
     """
 
     def __init__(self, input_dict) -> None:
@@ -1821,7 +1821,7 @@ class change_parameter_button(button):
     def on_click(self) -> None:
         """
         Description;
-            Changes this button's parameter of its label's tile's location
+            Changes this button's parameter of its label's location's location
         Input:
             None
         Output:

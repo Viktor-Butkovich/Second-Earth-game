@@ -263,8 +263,8 @@ class off_tile_exploration_notification(action_notification):
         Output:
             None
         """
-        cell = input_dict["extra_parameters"]["cell"]
-        reveal_cell = input_dict["extra_parameters"].get("reveal_cell", True)
+        target_location = input_dict["extra_parameters"]["target_location"]
+        reveal = input_dict["extra_parameters"].get("reveal", True)
         public_opinion_increase = input_dict["extra_parameters"].get(
             "public_opinion_increase", 0
         )
@@ -276,9 +276,7 @@ class off_tile_exploration_notification(action_notification):
             input_dict["attached_interface_elements"] = []
         input_dict["attached_interface_elements"].append(
             action_utility.generate_free_image_input_dict(
-                action_utility.generate_tile_image_id_list(
-                    cell, force_visibility=(reveal_cell or cell.get_location().visible)
-                ),
+                action_utility.generate_location_image_id_list(target_location),
                 250,
                 override_input_dict={
                     "member_config": {
@@ -289,9 +287,12 @@ class off_tile_exploration_notification(action_notification):
             )
         )
 
-        if reveal_cell:
-            cell.get_location().set_visibility(True)
-        status.minimap_grid.calibrate(cell.x, cell.y)
+        if reveal:
+            pass
+            # Increase location's knowledge level
+
+        for attached_cell in target_location.attached_cells:
+            attached_cell.grid.calibrate(target_location.x, target_location.y)
         super().__init__(input_dict)
         constants.public_opinion_tracker.change(public_opinion_increase)
         constants.money_tracker.change(money_increase)

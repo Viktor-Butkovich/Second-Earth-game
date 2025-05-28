@@ -85,7 +85,9 @@ def generate_free_image_input_dict(image_id, default_size, override_input_dict=N
     Output:
         dictionary: Returns the created input dict
     """
-    return_dict = {
+    if not override_input_dict:
+        override_input_dict = {}
+    return {
         "image_id": image_id,
         "coordinates": (0, 0),
         "width": scaling.scale_width(default_size),
@@ -93,11 +95,8 @@ def generate_free_image_input_dict(image_id, default_size, override_input_dict=N
         "modes": [constants.current_game_mode],
         "to_front": True,
         "init_type": constants.FREE_IMAGE,
+        **override_input_dict,
     }
-    if override_input_dict:
-        for value in override_input_dict:
-            return_dict[value] = override_input_dict[value]
-    return return_dict
 
 
 def generate_background_image_id_list(actor=None) -> list:
@@ -148,19 +147,18 @@ def generate_background_image_id_list(actor=None) -> list:
     return image_id_list
 
 
-def generate_tile_image_id_list(cell, force_visibility=False):
+def generate_location_image_id_list(location):
     """
     Description:
         Creates and returns an image id list to display an image of the inputted cell's tile
     Input:
-        cell cell: Cell to make a tile image for
-        boolean force_visibility=False: Whether to ignore the tile's explored/unexplored status in the image created
+        location location: Cell to make a tile image for
     Output:
         string/dict list: Generated image id list
     """
     return (
         generate_background_image_id_list()
-        + cell.tile.get_image_id_list(force_visibility=force_visibility)
+        + location.get_image_id_list()
         + ["misc/tile_outline.png"]
     )
 

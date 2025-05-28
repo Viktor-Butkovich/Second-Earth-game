@@ -3389,7 +3389,7 @@ def terrain_interface():
                 "width": scaling.scale_width(0),
                 "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
-                "parent_collection": status.tile_tabbed_collection,
+                "parent_collection": status.location_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
                     "button_image_id": actor_utility.generate_frame(
@@ -3445,7 +3445,7 @@ def terrain_interface():
                 "width": scaling.scale_width(0),
                 "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
-                "parent_collection": status.tile_tabbed_collection,
+                "parent_collection": status.location_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
                     "button_image_id": "buttons/crew_train_button.png",

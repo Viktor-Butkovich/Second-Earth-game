@@ -713,7 +713,6 @@ RESOURCE_EFFICIENCY: str = "efficiency"
 SETTLEMENT: str = "settlement"
 
 CELL_ICON: str = "cell_icon"
-NAME_ICON: str = "name_icon"
 LOAN: str = "loan"
 LOCATION: str = "location"
 FULL_WORLD: str = "full_world"

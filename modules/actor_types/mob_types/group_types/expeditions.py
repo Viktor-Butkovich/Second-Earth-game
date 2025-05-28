@@ -124,8 +124,8 @@ class expedition(group):
                             "on_reveal": on_reveal,
                             "audio": audio,
                             "extra_parameters": {
-                                "cell": target_cell,
-                                "reveal_cell": True,
+                                "target_location": target_location,
+                                "reveal": True,
                                 "public_opinion_increase": public_opinion_increase,
                                 "money_increase": money_increase,
                             },

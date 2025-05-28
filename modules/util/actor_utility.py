@@ -135,7 +135,7 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
         if changed_displayed_mob and new_actor:
             new_actor.start_ambient_sound()
         select_default_tab(status.mob_tabbed_collection, new_actor)
-        if new_actor and new_actor.get_cell().tile == status.displayed_location:
+        if new_actor and new_actor.get_location() == status.displayed_location:
             for current_same_tile_icon in status.same_tile_icon_list:
                 current_same_tile_icon.reset()
 

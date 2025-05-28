@@ -66,9 +66,9 @@ class combat(action.action):
             tooltip_info_dict["x_change"], tooltip_info_dict["y_change"]
         )
         message.append(
-            "Attacking an enemy unit costs 5 money and requires only 1 movement point, but staying in the enemy's tile afterward would require the usual movement"
+            "Attacking an enemy unit costs 5 money and requires only 1 movement point, but staying in the enemy's location afterward would require the usual movement"
         )
-        text = f"Staying afterward would cost {final_movement_cost - 1} more movement point{utility.generate_plural(final_movement_cost - 1)} because the adjacent tile has {tooltip_info_dict['adjacent_location'].terrain.replace('_', ' ')} terrain"
+        text = f"Staying afterward would cost {final_movement_cost - 1} more movement point{utility.generate_plural(final_movement_cost - 1)} because the adjacent location has {tooltip_info_dict['adjacent_location'].terrain.replace('_', ' ')} terrain"
 
         local_infrastructure = tooltip_info_dict["local_infrastructure"]
         adjacent_infrastructure = tooltip_info_dict["adjacent_infrastructure"]
@@ -192,7 +192,7 @@ class combat(action.action):
                 text += f"The {self.opponent.name} {utility.conjugate('be', self.opponent.unit_type.number)} disorganized and will receive a -1 after their roll. /n"
 
             if self.current_unit.get_cell().has_intact_building(constants.FORT):
-                text += f"The fort in this tile grants your {self.current_unit.name} a +1 bonus after their roll. /n"
+                text += f"The fort in this location grants your {self.current_unit.name} a +1 bonus after their roll. /n"
 
             if self.current_unit.get_permission(constants.VETERAN_PERMISSION):
                 text += "The outcome will be based on the difference between your highest roll and the enemy's roll. /n /n"
@@ -283,7 +283,7 @@ class combat(action.action):
         else:
             roll_modifier = super().generate_current_roll_modifier()
             roll_modifier += self.current_unit.get_combat_modifier(
-                opponent=self.opponent, include_tile=True
+                opponent=self.opponent, include_location=True
             )
         return roll_modifier
 
@@ -324,7 +324,7 @@ class combat(action.action):
                     self.direction = None
                 if (
                     opponent and not on_click_info_dict["attack_confirmed"]
-                ):  # if enemy in destination tile and attack not confirmed yet
+                ):  # if enemy in destination and attack not confirmed yet
                     self.opponent = opponent
                     self.defending = False
                     self.start(unit)
@@ -622,7 +622,7 @@ class combat(action.action):
                 if not combat_cell.get_best_combatant("pmob"):
                     self.opponent.kill_noncombatants()
                     self.opponent.damage_buildings()
-                else:  # Return to original tile if non-defenseless enemies still in other tile, can't be in tile with enemy units or have more than 1 offensive combat per turn
+                else:  # Return to original location if non-defenseless enemies still in other location, can't be in location with enemy units or have more than 1 offensive combat per turn
                     self.opponent.retreat()
                 constants.public_opinion_tracker.change(self.public_opinion_change)
             else:
@@ -647,15 +647,15 @@ class combat(action.action):
             else:
                 if (
                     len(combat_cell.contained_mobs) > 2
-                ):  # len == 2 if only attacker and defender in tile
+                ):  # len == 2 if only attacker and defender in location
                     self.current_unit.retreat()  # Attacker retreats in draw or if more defenders remaining
                 elif (
                     self.current_unit.movement_points
                     < self.current_unit.get_movement_cost(0, 0, True)
-                ):  # If can't afford movement points to stay in attacked tile
+                ):  # If can't afford movement points to stay in attacked location
                     constants.notification_manager.display_notification(
                         {
-                            "message": f"While the attack was successful, this unit did not have the {self.current_unit.get_movement_cost(0, 0, True)} movement points required to fully move into the attacked tile and was forced to withdraw. /n /n",
+                            "message": f"While the attack was successful, this unit did not have the {self.current_unit.get_movement_cost(0, 0, True)} movement points required to fully move into the attacked location and was forced to withdraw. /n /n",
                         }
                     )
                     self.current_unit.retreat()
