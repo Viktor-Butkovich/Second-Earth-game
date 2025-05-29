@@ -24,10 +24,13 @@ class settlement:
         return
         # Rework settlements to be part of locations and saved with them
         self.x, self.y = input_dict["coordinates"]
-        self.cell = status.strategic_map_grid.find_cell(self.x, self.y)
-        self.cell.settlement = self
-        self.x = self.cell.x
-        self.y = self.cell.y
+        if from_save:
+            self.location = status.world_list[
+                input_dict["world_handler_index"]
+            ].find_location(self.x, self.y)
+        else:
+            self.location = input_dict["location"]
+        self.location.settlement = self
         if not from_save:
             self.name = constants.flavor_text_manager.generate_flavor_text(
                 "settlement_names"
@@ -53,7 +56,7 @@ class settlement:
                 actor_utility.press_button(constants.RENAME_SETTLEMENT_BUTTON)
         else:
             self.name = input_dict["name"]
-        self.cell.tile.set_name(self.name)
+        self.location.set_name(self.name)
         status.actor_list.append(self)
         status.settlement_list.append(self)
 
@@ -100,6 +103,9 @@ class settlement:
         save_dict["init_type"] = constants.SETTLEMENT
         save_dict["name"] = self.name
         save_dict["coordinates"] = (self.x, self.y)
+        save_dict["world_handler_index"] = status.world_list.index(
+            self.location.get_world_handler()
+        )
         return save_dict
 
     def remove(self):
@@ -114,14 +120,3 @@ class settlement:
         status.actor_list = utility.remove_from_list(status.actor_list, self)
         status.settlement_list = utility.remove_from_list(status.settlement_list, self)
         self.cell.settlement = None
-
-    def can_show_tooltip(self):
-        """
-        Description:
-            Returns whether this actor's tooltip can be shown
-        Input:
-            None
-        Output:
-            None
-        """
-        return False

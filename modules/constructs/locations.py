@@ -61,8 +61,16 @@ class location:
         for key, value in input_dict.get("terrain_features", {}).items():
             self.add_terrain_feature(value)
         self.contained_buildings: Dict[str, Any] = {}
-        self.contained_mobs: list = []
+        self.contained_mobs: List[any] = []  # List of top-level contained mobs
+        self.hosted_images = []
         self.settlement: Any = None
+
+    @property
+    def all_contained_mobs(self) -> List[Any]:
+        return (
+            []
+        )  # Dynamically get all contained mobs, including work crews in buildings and sub-mobs of vehicles and groups
+        #   Make sure to recursively get all sub-mobs: vehicle with crew should return vehicle, crew, crew's officer, and crew's colonists
 
     def local_attrition(self, attrition_type="health"):
         """
@@ -150,18 +158,7 @@ class location:
             None
         """
         self.contained_buildings[building.building_type.key] = building
-        self.update_appearance()
-
-    def update_appearance(self) -> None:
-        """
-        Description:
-            Forces an update and re-render of this locations subscribed tiles
-        Input:
-            None
-        Output:
-            None
-        """
-        self.attached_cells[0].tile.update_image_bundle()
+        self.update_image_bundle()
 
     def remove_building(self, building: Any) -> None:
         """
@@ -174,7 +171,7 @@ class location:
         """
         if self.get_building(building.building_type.key) == building:
             del self.contained_buildings[building.building_type.key]
-            self.update_appearance()
+            self.update_image_bundle()
 
     def get_building(self, building_type: str):
         """
@@ -414,7 +411,7 @@ class location:
         """
         Description:
             Returns the expected temperature of this terrain based on the world's average temperature and the cell's pole distance
-                When selecting a tile to change temperature, the most outlier tiles should be selected (farthest from expected)
+                When selecting a location to change temperature, greatest outliers should be selected (farthest from expected)
         Input:
             None
         Output:
@@ -426,7 +423,7 @@ class location:
                 -1 * self.get_parameter(constants.ALTITUDE)
             ) + self.get_world_handler().average_altitude
             altitude_effect_weight = 0.5
-            # Colder to the extent that tile is higher than average altitude, and vice versa
+            # Colder to the extent that location is higher than average altitude, and vice versa
             return (
                 average_temperature
                 - 3.5
@@ -463,7 +460,7 @@ class location:
     def knowledge_available(self, information_type: str) -> bool:
         """
         Description:
-            Returns whether the inputted type of information is visible for this location, based on knowledge of the tile
+            Returns whether the inputted type of information is visible for this location, based on knowledge of the location
         Input:
             string information_type: Type of information to check visibility of, like 'terrain' or 'hidden_units'
         Output:
@@ -491,7 +488,7 @@ class location:
         Input:
             string parameter_name: Name of the parameter to change
             int change: Amount to change the parameter by
-            boolean update_image: Whether to update the image of any subscribed tiles after changing the parameter
+            boolean update_image: Whether to update the image of any subscribed locations after changing the parameter
         Output:
             None
         """
@@ -510,7 +507,7 @@ class location:
         Input:
             string parameter_name: Name of the parameter to change
             int new_value: New value for the parameter
-            boolean update_image: Whether to update the image of any attached tiles after setting the parameter
+            boolean update_image: Whether to update the image of any subscribed cells after setting the parameter
         Output:
             None
         """
@@ -575,9 +572,8 @@ class location:
                 status.location_info_display, self
             )
 
-        for mob in status.mob_list:
-            if mob.get_location() == self:
-                mob.update_habitability()
+        for mob in self.all_contained_mobs:
+            mob.update_habitability()
 
     def has_snow(self) -> bool:
         """
@@ -667,7 +663,7 @@ class location:
         save_dict = {}
         save_dict["init_type"] = constants.LOCATION
         save_dict["coordinates"] = (self.x, self.y)
-        save_dict["inventory"] = self.attached_cells[0].tile.inventory
+        save_dict["inventory"] = self.inventory
         save_dict["terrain_variant"] = self.terrain_variant
         save_dict["terrain_features"] = self.terrain_features
         save_dict["terrain_parameters"] = self.terrain_parameters
@@ -700,7 +696,7 @@ class location:
         Description:
             Sets this location's terrain type, automatically generating a variant (not used for loading with pre-defined variant)
         Input:
-            string new_terrain: New terrain type for this location and their tiles, like 'swamp'
+            string new_terrain: New terrain type for this location, like 'swamp'
         Output:
             None
         """
@@ -724,9 +720,6 @@ class location:
                 0, constants.terrain_manager.terrain_variant_dict.get(new_terrain, 1)
             )
         self.terrain = new_terrain
-        for cell in self.attached_cells:
-            if cell.tile:
-                cell.tile.set_terrain(self.terrain, update_image_bundle=False)
 
     def add_cell(self, cell) -> None:
         """
@@ -741,10 +734,7 @@ class location:
             cell.get_location().remove_cell(cell)
         self.attached_cells.append(cell)
         cell.location = self
-
-        if cell.tile:
-            cell.tile.set_terrain(self.terrain, update_image_bundle=False)
-            cell.tile.update_image_bundle()
+        # Update cell's rendered image
 
     def remove_cell(self, cell) -> None:
         """
@@ -855,19 +845,19 @@ class location:
                     the new color as it did with the old color. If a spot of water is slightly darker than the base water color, replace it with something
                     slightly darker than the replacement color, while ignoring anything that is not within 50 of the base water color.
                 Each category can have a preset base color/tolerance determined during asset creation, as well as a procedural replacement color
-                Each category can have a preset smart green screen, with per-terrain or per-tile modifications controlled by world and locations
+                Each category can have a preset smart green screen, with per-terrain or per-location modifications controlled by world and locations
                     World handler handles per-terrain modifications, like dunes sand being slightly different from desert sand, while both are still "Mars red"
-                    Location handles local modifications, like a tile with earth-imported soil looking different from default planet soil
+                    Location handles local modifications, like earth-imported soil looking different from default planet soil
                 This system could also work for skin shading, polar dust, light levels, vegetation, resources, building appearances, etc.
             Serves as authoritative source for terrain green screens, used by get_image_id_list and referencing constants for presets and world handler for world variations
         Input:
             None
         Output:
-            dictionary: Smart green screen dictionary for this location, or None for default tile appearance
+            dictionary: Smart green screen dictionary for this location, or None for default location appearance
         """
         world_green_screen = self.get_world_handler().get_green_screen(self.terrain)
 
-        # Make any per-tile modifications
+        # Make any per-location modifications
 
         return constants.WORLD_GREEN_SCREEN_DEFAULTS
         # return world_green_screen
@@ -881,8 +871,10 @@ class location:
         Output:
             float: Returns the average RGB value of this location's terrain
         """
-        if self.attached_cells:
-            image_id = self.attached_cells[0].tile.get_image_id_list(
+        if self.get_world_handler().is_earth:
+            return 1.0 - self.get_world_handler().get_tuning("earth_albedo_multiplier")
+        elif not self.get_world_handler().is_abstract_world:
+            image_id = self.get_image_id_list(
                 terrain_only=True,
                 force_pixellated=True,
                 allow_mapmodes=False,
@@ -903,8 +895,8 @@ class location:
                 )
                 / 4
             )
-        else:
-            return 1.0 - self.get_world_handler().get_tuning("earth_albedo_multiplier")
+        else:  # Orbital world and other abstract worlds don't need brightness calculation
+            return 1.0
 
     def get_image_id_list(
         self,
@@ -919,7 +911,7 @@ class location:
             Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
                 orientation
         Input:
-            boolean terrain_only = False: Whether to just show tile's terrain or all contents as well
+            boolean terrain_only = False: Whether to just show terrain or other contents as well
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
@@ -1109,7 +1101,7 @@ class location:
 
     """
     def set_image(self, new_image) -> None:
-        Load in new image and tell attached cells and info displays to update their images
+        Load in new image and tell subscribed cells and info displays to update their images
         Ideally avoid any rendering logic directly in location
         Make sure cells use rendered image caching to re-use results
         Actors in general should follow this new pattern:
@@ -1315,3 +1307,39 @@ class location:
                     )
 
         self.set_tooltip(tooltip_message)
+
+    def remove_hosted_image(self, old_image):
+        """
+        Description:
+            Removes the inputted image from this location's hosted images and updates this location's image bundle
+        Input:
+            image old_image: Image to remove from this location's hosted images
+        Output:
+            None
+        """
+        if old_image in self.hosted_images:
+            self.hosted_images.remove(old_image)
+            old_image.hosting_location = None
+            self.update_image_bundle()
+            # if hasattr(old_image, "hosting_location"):
+            #    old_image.hosting_location = None
+
+    def add_hosted_image(self, new_image):
+        """
+        Description:
+            Adds the inputted image to this location's hosted images and updates this location's image bundle
+        Input:
+            image new_image: Image to add to this location's hosted images
+        Output:
+            None
+        """
+        if new_image.hosting_location:
+            new_image.hosting_location.remove_hosted_image(new_image)
+        new_image.hosting_location = self
+        # if hasattr(new_image, "hosting_location"):
+        #    if new_image.hosting_location:
+        #        new_image.hosting_location.remove_hosted_image(new_image)
+        #    new_image.hosting_location = self
+
+        self.hosted_images.append(new_image)
+        self.update_image_bundle()

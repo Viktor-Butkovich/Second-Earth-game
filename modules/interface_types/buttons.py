@@ -215,13 +215,13 @@ class button(interface_elements.interface_element):
                                 and local_infrastructure
                                 and local_infrastructure.is_railroad
                             ):
-                                message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent tile has connecting railroads"
+                                message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent location has connecting railroads"
                             else:
-                                message = "Not possible because the adjacent tile does not have connecting railroads"
+                                message = "Not possible because the adjacent location does not have connecting railroads"
                             tooltip_text.append(message)
                             tooltip_text.append("A train can only move along railroads")
                         else:
-                            message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent tile has {adjacent_location.terrain.replace('_', ' ')} terrain"
+                            message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent location has {adjacent_location.terrain.replace('_', ' ')} terrain"
                             if (
                                 local_infrastructure and adjacent_infrastructure
                             ):  # if both have infrastructure
@@ -240,11 +240,11 @@ class button(interface_elements.interface_element):
 
                             tooltip_text.append(message)
                             tooltip_text.append(
-                                f"Moving into a {adjacent_location.terrain.replace('_', ' ')} tile costs {constants.terrain_movement_cost_dict.get(adjacent_location.terrain, 1)} movement points"
+                                f"Moving into a {adjacent_location.terrain.replace('_', ' ')} location costs {constants.terrain_movement_cost_dict.get(adjacent_location.terrain, 1)} movement points"
                             )
                     if connecting_roads:
                         tooltip_text.append(
-                            "Moving between 2 tiles with roads or railroads costs half as many movement points."
+                            "Moving between 2 locations with roads or railroads costs half as many movement points."
                         )
                 else:
                     tooltip_text += status.actions["exploration"].update_tooltip(
@@ -424,7 +424,7 @@ class button(interface_elements.interface_element):
                     tooltip_text.append("    " + current_work_crew.name)
             self.set_tooltip(tooltip_text)
 
-        elif self.button_type == constants.CYCLE_SAME_TILE_BUTTON:
+        elif self.button_type == constants.CYCLE_SAME_LOCATION_BUTTON:
             tooltip_text = ["Cycles through this location's units"]
             tooltip_text.append("Units: ")
             if self.showing:
@@ -590,7 +590,7 @@ class button(interface_elements.interface_element):
             self.set_tooltip(
                 [
                     "Starts customizing a new movement route for this unit",
-                    "Add to the route by clicking on valid tiles adjacent to the current destination",
+                    "Add to the route by clicking on valid locations adjacent to the current destination",
                     "The start is outlined in purple, the destination is outlined in yellow, and the path is outlined in blue",
                     "When moving along its route, a unit will pick up as many items as possible at the start and drop them at the destination",
                     "A unit may not be able to move along its route because of enemy units, a lack of movement points, or not having any items to pick up at the start",
@@ -1082,7 +1082,7 @@ class button(interface_elements.interface_element):
             constants.DROP_EACH_ITEM_BUTTON,
         ]:
             if self.button_type == constants.PICK_UP_EACH_ITEM_BUTTON:
-                source_type = "tile_inventory"
+                source_type = "location_inventory"
             else:
                 source_type = "mob_inventory"
             item_types.transfer(
@@ -1132,12 +1132,12 @@ class button(interface_elements.interface_element):
                     and status.displayed_location_inventory.current_item
                 ):
                     actor_utility.calibrate_actor_info_display(
-                        status.tile_inventory_info_display,
+                        status.location_inventory_info_display,
                         status.displayed_location_inventory,
                     )
                 else:
                     actor_utility.calibrate_actor_info_display(
-                        status.tile_inventory_info_display, None
+                        status.location_inventory_info_display, None
                     )
 
         elif self.button_type == constants.USE_EACH_EQUIPMENT_BUTTON:
@@ -1180,12 +1180,12 @@ class button(interface_elements.interface_element):
                                         and status.displayed_location_inventory.current_item
                                     ):
                                         actor_utility.calibrate_actor_info_display(
-                                            status.tile_inventory_info_display,
+                                            status.location_inventory_info_display,
                                             status.displayed_location_inventory,
                                         )
                                     else:
                                         actor_utility.calibrate_actor_info_display(
-                                            status.tile_inventory_info_display, None
+                                            status.location_inventory_info_display, None
                                         )
 
         elif self.button_type == constants.USE_EQUIPMENT_BUTTON:
@@ -1218,12 +1218,12 @@ class button(interface_elements.interface_element):
                                 and status.displayed_location_inventory.current_item
                             ):
                                 actor_utility.calibrate_actor_info_display(
-                                    status.tile_inventory_info_display,
+                                    status.location_inventory_info_display,
                                     status.displayed_location_inventory,
                                 )
                             else:
                                 actor_utility.calibrate_actor_info_display(
-                                    status.tile_inventory_info_display, None
+                                    status.location_inventory_info_display, None
                                 )
                         else:
                             text_utility.print_to_screen(
@@ -1374,7 +1374,7 @@ class button(interface_elements.interface_element):
                 and constants.effect_manager.effect_active("link_inventory_tabs")
             ):
                 if tabbed_collection == status.mob_tabbed_collection:
-                    alternate_collection = status.tile_tabbed_collection
+                    alternate_collection = status.location_tabbed_collection
                 else:
                     alternate_collection = status.mob_tabbed_collection
                 for linked_tab in alternate_collection.tabbed_members:
@@ -1389,7 +1389,7 @@ class button(interface_elements.interface_element):
                     alternate_collection.tabs_collection.members[-1].calibrate(
                         status.displayed_mob
                     )
-                elif alternate_collection == status.tile_tabbed_collection:
+                elif alternate_collection == status.location_tabbed_collection:
                     alternate_collection.tabs_collection.members[-1].calibrate(
                         status.displayed_location
                     )
@@ -1399,7 +1399,7 @@ class button(interface_elements.interface_element):
                 tabbed_collection.tabs_collection.members[-1].calibrate(
                     status.displayed_mob
                 )
-            elif tabbed_collection == status.tile_tabbed_collection:
+            elif tabbed_collection == status.location_tabbed_collection:
                 tabbed_collection.tabs_collection.members[-1].calibrate(
                     status.displayed_location
                 )
@@ -1669,15 +1669,15 @@ class end_turn_button(button):
         return True
 
 
-class cycle_same_tile_button(button):
+class cycle_same_location_button(button):
     """
-    Button that appears near the displayed tile and cycles the order of mobs displayed in a tile
+    Button that appears near the displayed location and cycles the order of mobs displayed in a location
     """
 
     def on_click(self):
         """
         Description:
-            Controls this button's behavior when clicked. This type of button cycles the order of mobs displayed in a tile, moving the first one shown to the bottom and moving others up
+            Controls this button's behavior when clicked. This type of button cycles the order of mobs displayed in a location, moving the first one shown to the bottom and moving others up
         Input:
             None
         Output:
@@ -1701,7 +1701,7 @@ class cycle_same_tile_button(button):
         Input:
             None
         Output:
-            boolean: Returns False if the currently displayed tile contains 3 or less mobs. Otherwise, returns same as superclass
+            boolean: Returns False if the currently displayed location contains 3 or less mobs. Otherwise, returns same as superclass
         """
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
@@ -1711,9 +1711,9 @@ class cycle_same_tile_button(button):
         return False
 
 
-class same_tile_icon(button):
+class same_location_icon(button):
     """
-    Button that appears near the displayed tile and selects mobs that are not currently at the top of the tile
+    Button that appears near the displayed location and selects mobs that are not currently at the top of the location
     """
 
     def __init__(self, input_dict):
@@ -1732,8 +1732,8 @@ class same_tile_icon(button):
                 'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'index': int value - Index to determine which item of the displayed tile's cell's list of contained mobs is selected by this button
-                'is_last': boolean value - Whether this is the last of the displayed tile's selection icons. If it is last, it will show all mobs are not being shown rather than being
+                'index': int value - Index to determine which item of the displayed location's cell's list of contained mobs is selected by this button
+                'is_last': boolean value - Whether this is the last of the displayed location's selection icons. If it is last, it will show all mobs are not being shown rather than being
                         attached to a specific mob
         Output:
             None
@@ -1746,12 +1746,12 @@ class same_tile_icon(button):
         self.is_last = input_dict["is_last"]
         if self.is_last:
             self.name_list = []
-        status.same_tile_icon_list.append(self)
+        status.same_location_icon_list.append(self)
 
     def reset(self):
         """
         Description:
-            Resets this icon when a new tile is selected, forcing it to re-calibrate with any new units
+            Resets this icon when a new location is selected, forcing it to re-calibrate with any new units
         Input:
             None
         Output:
@@ -1778,12 +1778,11 @@ class same_tile_icon(button):
         Input:
             None
         Output:
-            boolean: Returns False if there is no tile selected or if the selected tile has not been explored, otherwise returns same as superclass
+            boolean: Returns False if there is no location selected, otherwise returns same as superclass
         """
         self.update()
         return (
             status.displayed_location
-            and status.displayed_location.visible
             and len(self.old_contained_mobs) > self.index
             and super().can_show()
         )
@@ -1791,7 +1790,7 @@ class same_tile_icon(button):
     def can_show_tooltip(self):
         """
         Description:
-            Returns whether this button's tooltip can be shown. A same tile icon has the the normal requirements for a tooltip to be shown, along with requiring that it is attached to a unit
+            Returns whether this button's tooltip can be shown. A same location icon has the the normal requirements for a tooltip to be shown, along with requiring that it is attached to a unit
         Input:
             None
         Output:
@@ -1802,7 +1801,7 @@ class same_tile_icon(button):
     def update(self):
         """
         Description:
-            Updates this icon's appearance based on the corresponding unit in the displayed tile, if any
+            Updates this icon's appearance based on the corresponding unit in the displayed location, if any
         Input:
             None
         Output:
@@ -3287,9 +3286,9 @@ class map_mode_button(button):
             None
         """
         constants.current_map_mode = self.map_mode
-        for grid in status.grid_list:
-            for cell in grid.get_flat_cell_list():
-                cell.tile.update_image_bundle()
+        for current_world in status.world_list:
+            for current_location in current_world.get_flat_location_list():
+                current_location.update_image_bundle()
         status.current_world.update_globe_projection()
         actor_utility.calibrate_actor_info_display(
             status.location_info_display, status.displayed_location

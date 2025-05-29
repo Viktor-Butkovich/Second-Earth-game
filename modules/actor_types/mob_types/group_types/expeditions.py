@@ -15,7 +15,7 @@ class expedition(group):
         Description:
             Moves this mob x_change to the right and y_change upward. Allows exploration when moving into unexplored areas. Attempting an exploration starts the
                 exploration process, which requires various dice rolls to succeed and can also result in the death of the expedition or the promotion of its explorer. A successful exploration uncovers the area and units to move into it
-                normally in the future. As expeditions move, they automatically discover adjacent water tiles, and they also automatically discover all adjacent tiles when looking from a water tile
+                normally in the future. As expeditions move, they automatically discover adjacent water, and they also automatically discover all adjacent locations when looking from water
         Input:
             int x_change: How many cells are moved to the right in the movement
             int y_change: How many cells are moved upward in the movement
@@ -59,26 +59,25 @@ class expedition(group):
     def on_move(self):
         """
         Description:
-            Automatically called when unit arrives in a tile for any reason
+            Automatically called when unit arrives in a location for any reason
         Input:
             None
         Output:
             None
         """
         super().on_move()
-        self.resolve_off_tile_exploration()
+        self.resolve_adjacent_location_exploration()
 
-    def resolve_off_tile_exploration(self):
+    def resolve_adjacent_location_exploration(self):
         """
         Description:
-            Whenever an expedition arrives in a tile for any reason, they automatically discover any adjacent water tiles. Additionally, when standing on water, they automatically discover all adjacent tiles
+            Whenever an expedition arrives in a location for any reason, they automatically discover any adjacent water. Additionally, when standing on water, they automatically discover all adjacent locations
         Input:
             None
         Output:
             None
         """
-        return
-        self.current_action_type = "exploration"  # used in action notification to tell whether off tile notification should explore tile or not
+        self.current_action_type = "exploration"  # Used in action notification to tell whether off adjacent exploration notification should explore or not
         cardinal_directions = {
             "up": "north",
             "down": "south",
@@ -92,7 +91,7 @@ class expedition(group):
                 if (
                     self.get_location().terrain == "water"
                     or target_location.terrain == "water"
-                ):  # if on water, discover all adjacent undiscovered tiles. Also, discover all adjacent water tiles, regardless of if currently on water
+                ):  # if on water, discover all adjacent undiscovered locations. Also, discover all adjacent water locations, regardless of if currently on water
                     if self.get_location().terrain == "water":
                         text = "From the water, the expedition has discovered a "
                     elif target_location.terrain == "water":
@@ -100,10 +99,10 @@ class expedition(group):
                     public_opinion_increase = random.randrange(0, 3)
                     money_increase = 0
                     if target_location.resource:
-                        text += f"{target_location.terrain.upper()} tile with a {target_location.resource.upper()} resource (currently worth {constants.item_prices[target_cell.terrain_handler.resource]} money each) to the {cardinal_directions[current_direction]}. /n /n"
+                        text += f"{target_location.terrain.upper()} with a {target_location.resource.upper()} resource (currently worth {constants.item_prices[target_location.resource]} money each) to the {cardinal_directions[current_direction]} /n /n"
                         public_opinion_increase += 3
                     else:
-                        text += f"{target_location.terrain.upper()} tile to the {cardinal_directions[current_direction]}. /n /n"
+                        text += f"{target_location.terrain.upper()} to the {cardinal_directions[current_direction]} /n /n"
 
                     if public_opinion_increase > 0:  # Royal/National/Imperial
                         text += f"The Geographical Society is pleased with these findings, increasing your public opinion by {public_opinion_increase}. /n /n"
@@ -120,7 +119,7 @@ class expedition(group):
                     constants.notification_manager.display_notification(
                         {
                             "message": f"{text}Click to remove this notification. /n /n",
-                            "notification_type": constants.OFF_TILE_EXPLORATION_NOTIFICATION,
+                            "notification_type": constants.ADJACENT_LOCATION_EXPLORATION_NOTIFICATION,  # Special zoom notification that shows destination location
                             "on_reveal": on_reveal,
                             "audio": audio,
                             "extra_parameters": {

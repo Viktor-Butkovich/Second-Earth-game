@@ -150,16 +150,16 @@ def generate_background_image_id_list(actor=None) -> list:
 def generate_location_image_id_list(location):
     """
     Description:
-        Creates and returns an image id list to display an image of the inputted cell's tile
+        Creates and returns an image id list to display an image of the inputted cell's location
     Input:
-        location location: Cell to make a tile image for
+        location location: Cell to make a location image for
     Output:
         string/dict list: Generated image id list
     """
     return (
         generate_background_image_id_list()
         + location.get_image_id_list()
-        + ["misc/tile_outline.png"]
+        + ["misc/location_outline.png"]
     )
 
 

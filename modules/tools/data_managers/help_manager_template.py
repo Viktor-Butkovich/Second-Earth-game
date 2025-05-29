@@ -82,7 +82,7 @@ class help_manager_template:
                 current_line = ""
                 current_line += f"Atmospheric pressure is the total amount of gas in {planet_name_possessive} atmosphere, in atmospheres (atm). "
                 current_line += (
-                    f"1 atm represents 6 units (u) of gas per tile on a planet."
+                    f"1 atm represents 6 units (u) of gas per location on a planet."
                 )
                 message.append(current_line)
 

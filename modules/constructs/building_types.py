@@ -27,7 +27,7 @@ class building_type:
                     'name' - str value - Name of this upgrade type
                     'keybind' - pygame.key value - Keybind to attempt this upgrade type
                 'warehouse_level': int value - Level of warehouse automatically created with this building
-                'display_coordinates': Tuple[int, int] value - Coordinates to display this building type at (within 3 x 3 grid of tile interface)
+                'display_coordinates': Tuple[int, int] value - Coordinates to display this building type at (within 3 x 3 matrix in location)
                 'link_to_adjacent': bool value - Whether this building type can be linked to adjacent buildings, like roads
                 'image_id': List[Any] value - List of image ids for this building type
                 'button_image_id_list': List[Any] value - List of image ids for this building type's construction button

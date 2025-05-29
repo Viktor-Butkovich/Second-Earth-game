@@ -35,8 +35,7 @@ class tile(actor):
         """
         status.tile_list.append(self)
         self.actor_type = constants.LOCATION_ACTOR_TYPE
-        self.selection_outline_color = constants.COLOR_YELLOW
-        self.actor_match_outline_color = constants.COLOR_WHITE
+
         input_dict["grids"] = [
             input_dict["grid"]
         ]  # Give actor a 1-item list of grids as input
@@ -58,7 +57,6 @@ class tile(actor):
             self.image
         ]  # tiles only appear on 1 grid, but have a list of images defined to be more consistent with other actor subclasses
         self.show_terrain = input_dict["show_terrain"]
-        self.hosted_images = []
         if self.show_terrain:
             self.cell.tile = self
             self.image_dict["hidden"] = "terrains/paper_hidden.png"
@@ -199,25 +197,6 @@ class tile(actor):
                 pygame.draw.rect(
                     constants.game_display,
                     color,
-                    (outline),
-                    current_image.outline_width,
-                )
-
-    def draw_actor_match_outline(self):
-        """
-        Description:
-            Draws an outline around the displayed tile. If the tile is shown on a minimap, tells the equivalent tile to also draw an outline around the displayed tile
-        Input:
-            None
-        Output:
-            None
-        """
-        if self.images[0].can_show():
-            for current_image in self.images:
-                outline = self.cell.Rect
-                pygame.draw.rect(
-                    constants.game_display,
-                    constants.color_dict[self.actor_match_outline_color],
                     (outline),
                     current_image.outline_width,
                 )
@@ -367,38 +346,6 @@ class tile(actor):
             return (1, 1)
         else:
             return self.grid.get_absolute_coordinates(self.x, self.y)
-
-    def remove_hosted_image(self, old_image):
-        """
-        Description:
-            Removes the inputted image from this location's hosted images and updates this location's image bundle
-        Input:
-            image old_image: Image to remove from this location's hosted images
-        Output:
-            None
-        """
-        if old_image in self.hosted_images:
-            self.hosted_images.remove(old_image)
-            self.update_image_bundle()
-            if hasattr(old_image, "hosting_tile"):
-                old_image.hosting_tile = None
-
-    def add_hosted_image(self, new_image):
-        """
-        Description:
-            Adds the inputted image to this location's hosted images and updates this location's image bundle
-        Input:
-            image new_image: Image to add to this location's hosted images
-        Output:
-            None
-        """
-        if hasattr(new_image, "hosting_tile"):
-            if new_image.hosting_tile:
-                new_image.hosting_tile.remove_hosted_image(new_image)
-            new_image.hosting_tile = self
-
-        self.hosted_images.append(new_image)
-        self.update_image_bundle()
 
     def set_terrain(
         self, new_terrain, update_image_bundle=True

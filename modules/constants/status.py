@@ -1,6 +1,5 @@
 import pygame
 from typing import Dict, List, Any
-from modules.actor_types.tiles import tile
 from modules.actor_types.mobs import mob
 from modules.constructs.ministers import minister
 from modules.constructs.building_types import building_type
@@ -27,7 +26,7 @@ from modules.interface_types.panels import safe_click_panel
 from modules.interface_types.notifications import notification
 from modules.interface_types.buttons import (
     button,
-    same_tile_icon,
+    same_location_icon,
     reorganize_unit_button,
     minister_portrait_image,
     switch_game_mode_button,
@@ -87,7 +86,6 @@ minister_types: Dict[str, minister_type] = {}
 terrain_feature_types: Dict[str, terrain_feature_type] = {}
 flag_icon_list: List[button] = []
 grid_list: List[grid] = []
-tile_list: List[tile] = []
 world_list: List[world_handler] = []
 text_list: List[str] = []
 free_image_list: List[free_image] = []
@@ -108,7 +106,7 @@ player_turn_queue: List[pmob] = []
 independent_interface_elements: List[Any] = []
 dice_list: List[die] = []
 draw_list: List[Any] = []
-same_tile_icon_list: List[same_tile_icon] = []
+same_location_icon_list: List[same_location_icon] = []
 directional_indicator_image_list: List[directional_indicator_image] = []
 logistics_incident_list: List[Dict[str, Any]] = []
 

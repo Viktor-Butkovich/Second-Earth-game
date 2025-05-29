@@ -499,6 +499,15 @@ Transfer settlements from cell to location
 Transfer set_image from tile to location
 Transfer set_name from tile to location
 Transfer hosted_images from tile to location
+Fix directional indicator images not showing
+Any rendering handled by actor images should be handled elsewhere now - go to grid logic is now redundant, but pygame image and tooltip box rendering are still required elsewhere
+Implement location's all_contained_mobs property
+Implement cell's draw function
+Modify actors in general to not require any "modes" logic - should draw purely based on subscribed cells and info displays, which already handle this
+Modify location's add_cell function to update cell's rendered image to match the location
+Make a function handling the following minimap grid calibration pattern: Something like focus_location
+    for attached_cell in location.attached_cells:s
+        attached_cell.grid.calibrate(location.x, location.y)
 Replace cell icons with extra images directly added to locations - a location should be fully in control of what it displays
 Add rename function to worlds
 Transfer logistics_incident_list from cell to location

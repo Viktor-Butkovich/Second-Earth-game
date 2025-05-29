@@ -238,9 +238,9 @@ class dice_rolling_notification(action_notification):
             status.dice_list[0].highlighted = True
 
 
-class off_tile_exploration_notification(action_notification):
+class adjacent_location_exploration_notification(action_notification):
     """
-    Notification that shows a tile explored by an expedition in an adjacent tile, focusing on the new tile and returning minimap to original position upon removal
+    Notification that shows a location explored by an expedition in an adjacent location, focusing on the new location and returning minimap to original position upon removal
     """
 
     def __init__(self, input_dict):

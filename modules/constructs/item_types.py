@@ -91,11 +91,11 @@ def transfer(
 ) -> None:
     """
     Description:
-        Transfers amount of item type from the source inventory to the other (tile to mob and vice versa, if picking up or dropping)
+        Transfers amount of item type from the source inventory to the other (location to mob and vice versa, if picking up or dropping)
     Input:
         item_type transferred_item: Type of item to transfer, like diamond or spacesuits, or None if transferring each type
         int/str amount: Amount of item to transfer, or None if transferring all of the type
-        string source_type: Item origin, like 'tile_inventory' or 'mob_inventory'
+        string source_type: Item origin, like 'location_inventory' or 'mob_inventory'
     Output:
         None
     """
@@ -112,7 +112,7 @@ def transfer(
                 if (
                     amount == None and transferred_item != None
                 ):  # If transferring all of a specific item type
-                    if source_type == "tile_inventory":
+                    if source_type == "location_inventory":
                         amount = displayed_location.get_inventory(transferred_item)
                     elif source_type == "mob_inventory":
                         amount = displayed_mob.get_inventory(transferred_item)
@@ -127,7 +127,7 @@ def transfer(
                     )
                     return
 
-                if source_type == "tile_inventory":
+                if source_type == "location_inventory":
                     if (
                         amount != None
                         and displayed_mob.get_inventory_remaining(amount) < 0
@@ -147,7 +147,7 @@ def transfer(
                 if displayed_mob.sentry_mode:
                     displayed_mob.set_sentry_mode(False)
 
-                if source_type == "tile_inventory":
+                if source_type == "location_inventory":
                     source = status.displayed_location
                     destination = status.displayed_mob
                 elif source_type == "mob_inventory":
@@ -171,7 +171,7 @@ def transfer(
                     destination.change_inventory(transferred_item, amount_transferred)
                     source.change_inventory(transferred_item, amount_transferred * -1)
 
-                if source_type == "tile_inventory":  # Pick up item(s)
+                if source_type == "location_inventory":  # Pick up item(s)
                     actor_utility.select_interface_tab(
                         status.mob_tabbed_collection, status.mob_inventory_collection
                     )
@@ -194,9 +194,9 @@ def transfer(
 
             elif source_type == "mob_inventory":
                 text_utility.print_to_screen(
-                    "There is no tile to transfer this item to."
+                    "There is no location to transfer this item to."
                 )
-            elif source_type == "tile_inventory":
+            elif source_type == "location_inventory":
                 text_utility.print_to_screen(
                     "There is no unit to transfer this item to."
                 )

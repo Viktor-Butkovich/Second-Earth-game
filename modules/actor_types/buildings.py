@@ -42,7 +42,6 @@ class building(actor):
         for upgrade_field in self.building_type.upgrade_fields:
             self.upgrade_fields[upgrade_field] = input_dict.get(upgrade_field, 1)
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.cell = self.grids[0].find_cell(self.x, self.y)
         status.building_list.append(self)
         self.contained_work_crews = []
         if from_save:
@@ -60,7 +59,7 @@ class building(actor):
         if (
             (not from_save)
             and self.building_type.attached_settlement
-            and not self.cell.settlement
+            and not self.get_location().settlement
         ):
             constants.actor_creation_manager.create(
                 False,
@@ -69,7 +68,6 @@ class building(actor):
                     "coordinates": (self.cell.x, self.cell.y),
                 },
             )
-        self.get_location().set_name(self.get_location().name)
 
         if constants.effect_manager.effect_active("damaged_buildings"):
             if self.building_type.can_damage:
@@ -85,9 +83,7 @@ class building(actor):
         Output:
             location: Returns the location this location is currently in
         """
-        if not self.cell:
-            return None
-        return self.cell.get_location()
+        return self.location
 
     def update_image_bundle(self):
         """

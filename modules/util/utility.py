@@ -279,7 +279,7 @@ def combine(*args) -> List:
 def fahrenheit(temperature: int):
     """
     Description:
-        Returns the approximate fahrenheit temperature for the inputted tile temperature
+        Returns the approximate fahrenheit temperature for the inputted local temperature
     Input:
         int temperature: Temperature in game units
     Output:
@@ -296,7 +296,7 @@ def fahrenheit(temperature: int):
 def reverse_fahrenheit(temperature: int):
     """
     Description:
-        Returns the approximate tile temperature for the inputted fahrenheit temperature
+        Returns the approximate local temperature for the inputted fahrenheit temperature
     Input:
         int temperature: Temperature in fahrenheit
     Output:

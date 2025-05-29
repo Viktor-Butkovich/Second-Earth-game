@@ -10,7 +10,7 @@ from modules.constants import constants, status, flags
 
 class cell:
     """
-    Object representing one cell of a grid corresponding to one of its coordinates, able to contain terrain, resources, mobs, and tiles
+    Object representing one cell of a grid corresponding to one of its coordinates, which can subscribe to a location to render its contents
     """
 
     def __init__(self, x, y, width, height, grid, color):
@@ -37,10 +37,12 @@ class cell:
         self.Rect: pygame.Rect = pygame.Rect(
             self.pixel_x, self.pixel_y - self.height, self.width, self.height
         )  # (left, top, width, height)
-        self.tile: status.tile = None
+        self.location: status.location = None
         self.settlement = None
         self.location: locations.location = None
         self.grid.world_handler.find_location(self.x, self.y).add_cell(self)
+        self.selection_outline_color = constants.COLOR_YELLOW
+        self.actor_match_outline_color = constants.COLOR_WHITE
 
     def get_location(self) -> locations.location:
         return self.location
@@ -54,20 +56,25 @@ class cell:
         Output:
             None
         """
-        current_color = self.color
-        red = current_color[0]
-        green = current_color[1]
-        blue = current_color[2]
-        if not self.get_location().visible:
-            red, green, blue = constants.color_dict[constants.COLOR_BLONDE]
-        pygame.draw.rect(constants.game_display, (red, green, blue), self.Rect)
-        if self.tile:
-            for current_image in self.tile.images:
+        pygame.draw.rect(
+            constants.game_display,
+            (self.color[0], self.color[1], self.color[2]),
+            self.Rect,
+        )
+
+        # Instead, have some stored pygame surface corresponding to the rendered version of the location and all its contents
+        #   From the location, fetch an image ID list of all desired images to render
+        #   Cell should have a single image object that takes this image ID list and renders it into a surface
+        #   When the cell draws, it should instruct its image to draw at the cell's pixel location
+        """
+        if self.location:
+            for current_image in self.location.images:
                 current_image.draw()
             if self.get_location().visible and self.contained_mobs:
                 for current_image in self.contained_mobs[0].images:
                     current_image.draw()
                 self.show_num_mobs()
+        """
 
     def show_num_mobs(self):
         """
@@ -105,3 +112,20 @@ class cell:
             return True
         else:
             return False
+
+    def draw_actor_match_outline(self):
+        """
+        Description:
+            Draws an outline around the displayed cell
+        Input:
+            None
+        Output:
+            None
+        """
+        if self.grid.can_show():
+            pygame.draw.rect(
+                constants.game_display,
+                constants.color_dict[self.actor_match_outline_color],
+                self.Rect,
+                self.image.outline_width,
+            )

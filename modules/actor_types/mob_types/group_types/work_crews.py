@@ -27,10 +27,10 @@ class work_crew(group):
         self.hide_images()
         self.remove_from_turn_queue()
         building.contained_work_crews.append(self)
-        building.cell.tile.update_image_bundle()
+        self.get_location().update_image_bundle()
         actor_utility.calibrate_actor_info_display(
-            status.location_info_display, building.cell.tile
-        )  # update tile ui with worked building
+            status.location_info_display, self.get_location()
+        )
         actor_utility.calibrate_actor_info_display(
             status.mob_info_display, None, override_exempt=True
         )
@@ -85,7 +85,7 @@ class work_crew(group):
 
                 if roll_result >= 4:  # 4+ required on D6 for production
                     if not self.controlling_minister.check_corruption():
-                        current_building.cell.tile.change_inventory(
+                        self.get_location().change_inventory(
                             current_building.resource_type, 1
                         )
                         current_building.resource_type.amount_produced_this_turn += 1
@@ -97,7 +97,7 @@ class work_crew(group):
                             constants.notification_manager.display_notification(
                                 {
                                     "message": f"The work crew working in the {current_building.name} at ({current_building.cell.x}, {current_building.cell.y}) has become a veteran and will be more successful in future production attempts. /n /n",
-                                    "zoom_destination": current_building.cell.tile,
+                                    "zoom_destination": self.get_location(),
                                 }
                             )
                     else:

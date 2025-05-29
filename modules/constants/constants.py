@@ -452,13 +452,13 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
     },
     "remove_fog_of_war": {
         "default": "Disables fog of war",
-        "True": "Fog of war disabled - no knowledge required to view tiles",
-        "False": "Fog of war active - knowledge required to view tiles",
+        "True": "Fog of war disabled - no knowledge required to view locations",
+        "False": "Fog of war active - knowledge required to view locations",
     },
     "show_clouds": {
-        "default": "Toggles cloud visibility on explored tiles",
-        "True": "Currently showing clouds, even on explored tiles",
-        "False": "Currently showing clouds on unexplored tiles only",
+        "default": "Toggles cloud visibility on explored locations",
+        "True": "Currently showing clouds, even on explored locations",
+        "False": "Currently showing clouds on unexplored locations only",
     },
     "god_mode": {
         "default": "Toggles god mode, allowing manual control of planetary global/local parameters",
@@ -929,7 +929,9 @@ NOTIFICATION: str = "notification"
 CHOICE_NOTIFICATION: str = "choice_notification"
 ACTION_NOTIFICATION: str = "action_notification"
 DICE_ROLLING_NOTIFICATION: str = "dice_rolling_notification"
-OFF_TILE_EXPLORATION_NOTIFICATION: str = "off_tile_exploration_notification"
+ADJACENT_LOCATION_EXPLORATION_NOTIFICATION: str = (
+    "adjacent_location_exploration_notification"
+)
 
 SPACESUITS_EQUIPMENT: str = "spacesuits"
 CONSUMER_GOODS_ITEM: str = "consumer_goods"

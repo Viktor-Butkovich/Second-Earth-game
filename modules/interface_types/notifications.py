@@ -57,8 +57,6 @@ class notification(multi_line_label):
 
         if input_dict.get("zoom_destination", None):
             target = input_dict["zoom_destination"]
-            if target.actor_type == constants.BUILDING_ACTOR_TYPE:
-                target = target.cell.tile
 
             if target.actor_type == constants.LOCATION_ACTOR_TYPE:
                 actor_utility.calibrate_actor_info_display(
@@ -72,14 +70,14 @@ class notification(multi_line_label):
             elif target.actor_type == constants.MOB_ACTOR_TYPE:
                 if (
                     target.get_cell()
-                ):  # If non-hidden mob, move to front of tile and select
+                ):  # If non-hidden mob, move to front of location and select
                     target.select()
-                else:  # If hidden mob, move to location and select tile
+                else:  # If hidden mob, move to location and select location
                     for attached_cell in target.attached_cells:
                         attached_cell.grid.calibrate(target.x, target.y)
                     actor_utility.calibrate_actor_info_display(
                         status.location_info_display,
-                        target.grids[0].find_cell(target.x, target.y).tile,
+                        target,
                     )
 
     def format_message(self):

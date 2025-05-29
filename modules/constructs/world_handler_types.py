@@ -332,20 +332,15 @@ class full_world_handler(world_handlers.world_handler):
             ),
         )
 
-        globe_projection_tile = (
-            status.current_world.orbital_world.find_location(0, 0)
-            .attached_cells[0]
-            .tile
+        status.current_world.orbital_world.find_location(0, 0).set_image(
+            [
+                "misc/space.png",
+                {
+                    "image_id": status.globe_projection_surface,
+                    "size": 0.8,
+                },
+            ]
         )
-        globe_projection_image_id = [
-            "misc/space.png",
-            {
-                "image_id": status.globe_projection_surface,
-                "size": 0.8,
-            },
-        ]
-        globe_projection_tile.image.set_image(globe_projection_image_id)
-        globe_projection_tile.grid_image_id = globe_projection_image_id
 
         if update_button:
             status.to_strategic_button.image.set_image(
@@ -387,7 +382,7 @@ class full_world_handler(world_handlers.world_handler):
         for offset in range(offset_width):
             min_width = (
                 offset >= offset_width - 1
-            )  # If leftmost or rightmost latitude line, use minimum width to avoid edge tiles looking too wide
+            )  # If leftmost or rightmost latitude line, use minimum width to avoid edge locations looking too wide
             if (
                 offset == 0
             ):  # For center offset, just draw a straight vertical latitude line
@@ -453,8 +448,8 @@ class full_world_handler(world_handlers.world_handler):
         size_multiplier = [1.5, 1.7, 1.8, 2.0, 2.2, 2.4, 2.6, 2.65][
             constants.world_dimensions_options.index(max_latitude_line_length)
         ]
-        base_tile_width = 0.10
-        base_tile_height = 0.12
+        base_location_width = 0.10
+        base_location_height = 0.12
 
         # Force latitude lines to be of the same length as the largest line
         latitude_line = latitude_line.copy()  # Don't modify original
@@ -551,29 +546,27 @@ class full_world_handler(world_handlers.world_handler):
                 height_penalty *= 0.6
             if max_latitude_line_length >= constants.world_dimensions_options[-3]:
                 width_penalty *= 2
-            tile_width, tile_height = (
-                base_tile_width - width_penalty,
-                base_tile_height - height_penalty,
+            location_width, location_height = (
+                base_location_width - width_penalty,
+                base_location_height - height_penalty,
             )
-            tile_width *= 0.8
+            location_width *= 0.8
             if (
                 min_width
             ) and pole_distance_factor > 0.1:  # Since rightmost (highest level) latitude line is not covered by any others, it should be thinner to avoid an obvious size difference
-                tile_width = 0.015
-            tile_height = max(0.02, 0.08 - height_penalty)
+                location_width = 0.015
+            location_height = max(0.02, 0.08 - height_penalty)
             projection = {
                 "x_offset": (center_position[0] + x_offset) * size_multiplier,
                 "y_offset": (center_position[1] + y_offset) * size_multiplier,
-                "x_size": tile_width * size_multiplier,
-                "y_size": tile_height * size_multiplier,
+                "x_size": location_width * size_multiplier,
+                "y_size": location_height * size_multiplier,
                 "level": level,
             }
-            for image_id in (
-                self.find_location(coordinates[0], coordinates[1])
-                .attached_cells[0]
-                .tile.get_image_id_list(terrain_only=True, force_clouds=True)
+            for image_id in self.find_location(*coordinates).get_image_id_list(
+                terrain_only=True, force_clouds=True
             ):
-                # Apply projection offsets to each image in the tile's terrain
+                # Apply projection offsets to each image in the location's terrain
                 if type(image_id) == str:
                     image_id = {"image_id": image_id}
                 image_id.update(projection)
@@ -638,9 +631,9 @@ class full_world_handler(world_handlers.world_handler):
         """
         Description:
             If mode is equator_shift, shows the adjacent coordinate that is closer to the equator
-                Reduces latitude distortions (tiles appear at accurate latitudes, slightly distorted to bulge equator) but misses some tiles
+                Reduces latitude distortions (locations appear at accurate latitudes, slightly distorted to bulge equator) but misses some locations
             If mode is closest_unerpresnted, scans a latitude line for any nearby coordinates that have no latitude line, allowing extending a latitude line's length while also missing fewer cells
-                Misses fewer coordinates but introduces latitude distortions (tiles appearing at significantly inaccurate latitude)
+                Misses fewer coordinates but introduces latitude distortions (locations appearing at significantly inaccurate latitude)
         Input:
             list latitude_line: List of coordinates for each point in the latitude line
             tuple default_coordinates: Coordinates to insert if no other coordinates are found

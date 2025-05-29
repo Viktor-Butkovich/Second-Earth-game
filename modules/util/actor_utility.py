@@ -88,7 +88,7 @@ def get_building_cost(builder, building_type, building_name="n/a"):
 def update_roads():
     """
     Description:
-        Updates the road/railroad connections between tiles when a new one is built
+        Updates the road/railroad connections between locations when a new one is built
     Input:
         None
     Output:
@@ -96,16 +96,16 @@ def update_roads():
     """
     for current_building in status.building_list:
         if current_building.building_type == constants.INFRASTRUCTURE:
-            current_building.cell.tile.update_image_bundle()
+            current_building.get_location().update_image_bundle()
 
 
 def calibrate_actor_info_display(info_display, new_actor, override_exempt=False):
     """
     Description:
-        Updates all relevant objects to display a certain mob or tile
+        Updates all relevant objects to display a certain mob or location
     Input:
         interface_collection info_display: Collection of interface elements to calibrate to the inputted actor
-        actor new_actor: The new mob or tile that is displayed
+        actor new_actor: The new mob or location that is displayed
         boolean override_exempt=False: Whether to calibrate interface elements that are normally exempt, such as the reorganization interface
     Output:
         None
@@ -113,17 +113,19 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
     if flags.loading:
         return
     if info_display == status.location_info_display:
-        for current_same_tile_icon in status.same_tile_icon_list:
-            current_same_tile_icon.reset()
+        for current_same_location_icon in status.same_location_icon_list:
+            current_same_location_icon.reset()
         if new_actor != status.displayed_location:
-            calibrate_actor_info_display(status.tile_inventory_info_display, None)
+            calibrate_actor_info_display(status.location_inventory_info_display, None)
         status.displayed_location = new_actor
         if new_actor:
-            new_actor.select()  # plays correct music based on tile selected - main menu/earth music
+            new_actor.select()  # Plays correct music based on location selected - main menu/earth music
         if (
             not flags.choosing_destination
         ):  # Don't change tabs while choosing destination
-            select_default_tab(status.tile_tabbed_collection, status.displayed_location)
+            select_default_tab(
+                status.location_tabbed_collection, status.displayed_location
+            )
 
     elif info_display == status.mob_info_display:
         changed_displayed_mob = new_actor != status.displayed_mob
@@ -136,8 +138,8 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
             new_actor.start_ambient_sound()
         select_default_tab(status.mob_tabbed_collection, new_actor)
         if new_actor and new_actor.get_location() == status.displayed_location:
-            for current_same_tile_icon in status.same_tile_icon_list:
-                current_same_tile_icon.reset()
+            for current_same_location_icon in status.same_location_icon_list:
+                current_same_location_icon.reset()
 
     target = None
     if new_actor:

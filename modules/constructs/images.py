@@ -387,9 +387,9 @@ class bundle_image:
                                 the new color as it did with the old color. If a spot of water is slightly darker than the base water color, replace it with something
                                 slightly darker than the replacement color, while ignoring anything that is not within 50 of the base water color.
                             Each category can have a preset base color/tolerance determined during asset creation, as well as a procedural replacement color
-                            Each category can have a preset smart green screen, with per-terrain or per-tile modifications controlled by world handler and locations
+                            Each category can have a preset smart green screen, with per-terrain or per-location modifications controlled by world handler and locations
                                 World handler handles per-terrain modifications, like dunes sand being slightly different from desert sand, while both are still "Mars red"
-                                Locations handlers per-tile modifications, like a tile with earth-imported soil looking different from default planet soil
+                                Locations handlers per-location modifications, like earth-imported soil looking different from default planet soil
                             This system could also work for skin shading, polar dust, light levels, vegetation, resources, building appearances, etc.
                     'color_filter': dictionary value - Dictionary of RGB values to add to each pixel in this image
             string member_type: String to designate this member's type, allowing it to be specifically removed or found based on type later, 'default' by default
@@ -1211,7 +1211,7 @@ class directional_indicator_image(tooltip_free_image):
         Output:
             None
         """
-        self.hosting_tile = None
+        self.hosting_location = None
         self.anchor_key = input_dict["anchor_key"]
         status.directional_indicator_image_list.append(self)
         super().__init__(input_dict)
@@ -1238,7 +1238,7 @@ class directional_indicator_image(tooltip_free_image):
         """
         return (
             super().can_show(skip_parent_collection=skip_parent_collection)
-            and self.hosting_tile == None
+            and self.hosting_location == None
         )
 
     def get_image_id_list(self):
@@ -1274,22 +1274,37 @@ class directional_indicator_image(tooltip_free_image):
             None
         """
         return
+        # Directional indicator images should be much simpler with location system
+        # Rather than tracking the cell corresponding to the anchor, just attach to the anchor location, which only changes on save/load
+        # Once attached, the directional indicator should appear at the correct location
+        #   Directional indicators should always be shown at the center of scrolling strategic map grid cells
+        #   If anchor isn't visible on the minimap, indicator should appear at the edge of the location instead of directly in it
+        #   Unusual case where image on minimap and scrolling strategic map is different
+        #       Probably better to implement as a free image like before, rather than part of the location's image
+
         anchor = getattr(status, self.anchor_key, None)
-        if not anchor:  # Don't attempt to calibrate if anchor cell is not yet defined
+        # Anchor corresponds to a status.___ location, such as status.north_pole
+        if (
+            not anchor
+        ):  # Don't attempt to calibrate if anchor location is not yet defined
             return
 
+        if not self.hosting_location:
+            anchor.add_hosted_image(self)
+
+        status.current_world.find_location(anchor.x, anchor.y)
         status.scrolling_strategic_map_grid.find_cell(
             *status.scrolling_strategic_map_grid.get_mini_grid_coordinates(
                 anchor.x, anchor.y
             )
-        ).tile.add_hosted_image(self)
+        ).location.add_hosted_image(self)
         if status.minimap_grid.is_on_mini_grid(anchor.x, anchor.y):
             status.minimap_grid.find_cell(
                 *status.minimap_grid.get_mini_grid_coordinates(anchor.x, anchor.y)
-            ).tile.add_hosted_image(self)
+            ).location.add_hosted_image(self)
         else:
-            if self.hosting_tile:
-                self.hosting_tile.remove_hosted_image(self)
+            if self.hosting_location:
+                self.hosting_location.remove_hosted_image(self)
             anchor_scrolling_cell = status.scrolling_strategic_map_grid.find_cell(
                 *status.scrolling_strategic_map_grid.get_mini_grid_coordinates(
                     anchor.x, anchor.y
@@ -2127,54 +2142,3 @@ class collection_image(button_image):
             self.x = self.button.x
             self.y = constants.display_height + self.height - self.button.y
             self.complete_draw()
-
-
-class tile_image(actor_image):
-    """
-    actor_image attached to a tile rather than an actor, causing it to use file paths directly rather than an dictionary of image keys and file path values
-    """
-
-    def __init__(self, actor, width, height, grid, image_description):
-        """
-        Description:
-            Initializes this object
-        Input:
-            actor actor: actor to which this image is attached
-            int width: Pixel width of this image
-            int height: Pixel height of this image
-            grid grid: actor's grid on which this image appears. Each of an actor's images appears on a different grid
-            string image_description: Key in this image's actor's image_dict corresponding to the appearance that this image has. For example, a 'default' actor_image will show the actor's default appearance
-        Output:
-            None
-        """
-        super().__init__(actor, width, height, grid, image_description)
-        self.go_to_cell((self.actor.x, self.actor.y))
-
-    def go_to_cell(self, coordinates):
-        """
-        Description:
-            Moves this image to the pixel coordinates corresponding to the inputted grid coordinates
-        Input:
-            int tuple coordinates: Two values representing x and y coordinates on this image's grid
-        Output:
-            None
-        """
-        self.x, self.y = self.grid.convert_coordinates(coordinates)
-        self.Rect.x = self.x
-        self.Rect.y = self.y - self.height
-        self.outline.x = self.x - self.outline_width
-        self.outline.y = self.y - (self.height + self.outline_width)
-
-    def draw(self):
-        """
-        Description:
-            Draws this image if it should currently be visible
-        Input:
-            None
-        Output:
-            None
-        """
-        if self.actor.name == "resource icon" and not self.actor.get_location().visible:
-            return ()  # do not show if resource icon in undiscovered tile
-        self.go_to_cell((self.actor.x, self.actor.y))
-        self.complete_draw()

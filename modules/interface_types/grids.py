@@ -3,10 +3,9 @@
 import random
 import pygame
 import itertools
-from typing import Dict, List, Tuple
-from modules.actor_types import tiles
+from typing import Dict, Tuple
 from modules.interface_types import cells, interface_elements
-from modules.util import actor_utility, utility
+from modules.util import utility
 from modules.constructs import world_handlers
 from modules.constants import constants, status, flags
 
@@ -68,30 +67,6 @@ class grid(interface_elements.interface_element):
             ]
             for x in range(self.coordinate_width)
         ]
-        if self.is_abstract_grid:
-            tiles.abstract_tile(
-                False,
-                {
-                    "grid": self,
-                    "cell": self.cell_list[0][0],
-                    "name": self.world_handler.name,
-                    "modes": self.modes,
-                },
-            )
-        else:
-            for cell in self.get_flat_cell_list():
-                tiles.tile(
-                    False,
-                    {
-                        "grid": self,
-                        "cell": cell,
-                        "image": "misc/empty.png",
-                        "name": "default",
-                        "modes": self.modes,
-                        "show_terrain": True,
-                        "coordinates": (cell.x, cell.y),
-                    },
-                )
 
     def get_absolute_coordinates(self, mini_x, mini_y):
         return mini_x, mini_y
@@ -133,7 +108,7 @@ class grid(interface_elements.interface_element):
             and self in status.displayed_location.get_world_handler().attached_grids
         ):
             for attached_cell in status.displayed_location.attached_cells:
-                attached_cell.tile.draw_actor_match_outline()
+                attached_cell.draw_actor_match_outline()
         if (
             status.displayed_mob
             and self
@@ -708,7 +683,6 @@ class abstract_grid(grid):
                 'list modes': string list value - Game modes during which this grid can appear
                 'grid_line_width': int value - Pixel width of lines between cells. Lines on the outside of the grid are one pixel thicker
                 'cell_list': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each cell in this grid
-                'tile_image_id': File path to the image used by this grid's tile
                 'name': Name of this grid
         Output:
             None
@@ -716,7 +690,10 @@ class abstract_grid(grid):
         input_dict["coordinate_width"] = 1
         input_dict["coordinate_height"] = 1
         super().__init__(input_dict)
-        self.name = self.world_handler.name
+
+    @property
+    def name(self) -> str:
+        return self.world_handler.name
 
     @property
     def is_abstract_grid(self) -> bool:

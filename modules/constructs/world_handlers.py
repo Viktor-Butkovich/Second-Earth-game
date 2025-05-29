@@ -349,7 +349,7 @@ class world_handler:
         """
         Description:
             Randomly generates water, placing enough water to reach the generated target average
-                Total water may be less than target average if repeatedly attempting to place in full tiles, or if radiation removes some of the placed water
+                Total water may be less than target average if repeatedly attempting to place in saturated locations, or if radiation removes some of the placed water
         Input:
             None
         Output:
@@ -817,7 +817,7 @@ class world_handler:
     def generate_terrain_features(self):
         """
         Description:
-            Randomly place features in each tile, based on terrain
+            Randomly place features in each location, based on terrain
         Input:
             None
         Output:
@@ -831,8 +831,7 @@ class world_handler:
                     location.terrain_features[terrain_feature_type] = {
                         "feature_type": terrain_feature_type
                     }
-                    for cell in location.attached_cells:
-                        cell.tile.update_image_bundle()
+                    location.update_image_bundle()
 
     def x_distance(self, location1, location2):
         """
@@ -1093,27 +1092,27 @@ class world_handler:
     def change_to_temperature_target(self, estimate_water_vapor: bool = False):
         """
         Description:
-            Modifies the temperature of tiles on this grid until the target average temperature is reached
+            Modifies local temperatures until the target world average is reached
                 Must be called after re-calculating the average temperature
-            Selects tiles that are most different from their ideal temperatures
+            Selects locations that are most different from their ideal temperatures
         Input:
             boolean estimate_water_vapor: Whether to estimate the water vapor contribution or to directly calculate
                 Setting up temperature before water requires estimating water vapor amount
         Output:
             None
         """
-        if abs(self.average_temperature - self.get_average_tile_temperature()) > 0.03:
+        if abs(self.average_temperature - self.get_average_local_temperature()) > 0.03:
             while (
-                self.average_temperature > self.get_average_tile_temperature()
-                and self.get_average_tile_temperature() < 10.5
+                self.average_temperature > self.get_average_local_temperature()
+                and self.get_average_local_temperature() < 10.5
             ):
                 self.warm()
                 self.update_target_average_temperature(
                     estimate_water_vapor=estimate_water_vapor, update_albedo=False
                 )
             while (
-                self.average_temperature < self.get_average_tile_temperature()
-                and self.get_average_tile_temperature() > -5.5
+                self.average_temperature < self.get_average_local_temperature()
+                and self.get_average_local_temperature() > -5.5
             ):
                 self.cool()
                 self.update_target_average_temperature(
@@ -1135,7 +1134,7 @@ class world_handler:
         Input:
             string parameter_name: Name of the parameter to change
             int change: Amount to change the parameter by
-            boolean update_image: Whether to update the image of any attached tiles after changing the parameter
+            boolean update_image: Whether to update the image of any attached locations after changing the parameter
         Output:
             None
         """
@@ -1150,7 +1149,7 @@ class world_handler:
         Input:
             string parameter_name: Name of the parameter to change
             int new_value: New value for the parameter
-            boolean update_image: Whether to update the image of any attached tiles after setting the parameter
+            boolean update_image: Whether to update the image of any attached locations after setting the parameter
         Output:
             None
         """
@@ -1729,7 +1728,7 @@ class world_handler:
         elif parameter_name == constants.MAGNETIC_FIELD:
             return constants.HABITABILITY_PERFECT
 
-    def get_average_tile_temperature(self):
+    def get_average_local_temperature(self):
         """
         Description:
             Re-calculates the average temperature of this world
@@ -1884,7 +1883,7 @@ class world_handler:
     def get_albedo_effect_multiplier(self):
         """
         Description:
-            Re-calculates and returns the albedo multiplier to heat received by this planet, based on clouds and tile brightnesss
+            Re-calculates and returns the albedo multiplier to heat received by this planet, based on clouds and location brightnesss
         Input:
             None
         Output:
@@ -1936,7 +1935,7 @@ class world_handler:
         """
         Description:
             Re-calculates the average temperature of this world, based on sun distance -> solation and greenhouse effect
-                This average temperature is used as a target, changing individual tiles until the average is reached
+                This average temperature is used as a target, changing local temperature until the average is reached
         Input:
             None
         Output:

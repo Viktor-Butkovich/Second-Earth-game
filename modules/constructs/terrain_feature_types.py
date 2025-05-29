@@ -1,4 +1,4 @@
-# Contains functionality for terrain feature types - non-resource points of interest in a tile
+# Contains functionality for terrain feature types - points of interest at a location
 
 import random
 from typing import Dict, List, Tuple

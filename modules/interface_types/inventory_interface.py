@@ -300,7 +300,7 @@ class item_icon(button):
     def on_click(self):
         """
         Description:
-            Calibrates mob_inventory_info_display or tile_inventory_info_display to this icon, depending on this icon's actor type
+            Calibrates mob_inventory_info_display or location_inventory_info_display to this icon, depending on this icon's actor type
         Input:
             None
         Output:
@@ -314,9 +314,9 @@ class item_icon(button):
             )
             if self.actor_type == "mob_inventory":
                 actor_utility.calibrate_actor_info_display(
-                    getattr(status, "tile_inventory_info_display"), None
+                    getattr(status, "location_inventory_info_display"), None
                 )
-            elif self.actor_type == "tile_inventory":
+            elif self.actor_type == "location_inventory":
                 actor_utility.calibrate_actor_info_display(
                     getattr(status, "mob_inventory_info_display"), None
                 )
@@ -327,10 +327,10 @@ class item_icon(button):
 
     def transfer(
         self, amount: int = None
-    ) -> None:  # calling transfer but not doing anything from mob
+    ) -> None:  # Calling transfer but not doing anything from mob
         """
         Description:
-            Drops or picks up the inputted amount of this location's current item type, depending on if this is a tile or mob item icon
+            Drops or picks up the inputted amount of this location's current item type, depending on if this is a location or mob item icon
         Input:
             int amount: Amount of item to transfer, or None if transferring all
         Output:
