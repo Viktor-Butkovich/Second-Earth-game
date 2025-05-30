@@ -500,6 +500,8 @@ Transfer set_image from tile to location
 Transfer set_name from tile to location
 Transfer hosted_images from tile to location
 Fix directional indicator images not showing
+Make sure location inherits actor's manage_inventory_attrition
+Modify local logistics incidents to use "location" instead of "cell"
 Any rendering handled by actor images should be handled elsewhere now - go to grid logic is now redundant, but pygame image and tooltip box rendering are still required elsewhere
 Implement location's all_contained_mobs property
 Implement cell's draw function

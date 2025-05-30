@@ -1,6 +1,7 @@
 import random
+import math
 from typing import List, Dict, Any
-from modules.util import actor_utility, utility
+from modules.util import actor_utility, main_loop_utility, utility
 from modules.constructs import world_handlers, item_types
 from modules.constants import constants, status, flags
 
@@ -51,7 +52,10 @@ class location:
         self.inverse_pole_distance_multiplier: float = 1.0
         self.minima = {constants.TEMPERATURE: -6}
         self.maxima = {constants.TEMPERATURE: 11}
-        self.terrain: str = constants.terrain_manager.classify(self.terrain_parameters)
+        self.terrain: str = None
+        self.image_dict: Dict[str, Any] = {"default": None}
+        self.set_terrain(constants.terrain_manager.classify(self.terrain_parameters))
+        print(self.terrain, self.image_dict)
         self.resource: item_types.item_type = status.item_types.get(
             input_dict.get("resource", None), None
         )
@@ -691,7 +695,7 @@ class location:
         """
         return self.terrain_parameters[parameter_name]
 
-    def set_terrain(self, new_terrain) -> None:
+    def set_terrain(self, new_terrain: str, update_image_bundle: bool = True) -> None:
         """
         Description:
             Sets this location's terrain type, automatically generating a variant (not used for loading with pre-defined variant)
@@ -720,6 +724,15 @@ class location:
                 0, constants.terrain_manager.terrain_variant_dict.get(new_terrain, 1)
             )
         self.terrain = new_terrain
+
+        if new_terrain in constants.terrain_manager.terrain_list:
+            self.image_dict["default"] = (
+                f"terrains/{new_terrain}_{self.terrain_variant}.png"
+            )
+        elif not new_terrain:
+            self.image_dict["default"] = "terrains/hidden.png"
+        if update_image_bundle:
+            self.update_image_bundle()
 
     def add_cell(self, cell) -> None:
         """
@@ -1343,3 +1356,190 @@ class location:
 
         self.hosted_images.append(new_image)
         self.update_image_bundle()
+
+    def select(self, music_override: bool = False):
+        """
+        Description:
+            Selects this location and switches music based on the type of location selected
+        Input:
+            None
+        Output:
+            None
+        """
+        if music_override or (
+            flags.player_turn and main_loop_utility.action_possible()
+        ):
+            if constants.sound_manager.previous_state != "earth":
+                constants.event_manager.clear()
+                constants.sound_manager.play_random_music("earth")
+
+    def get_all_local_inventory(self) -> Dict[str, float]:
+        """
+        Description:
+            Returns a dictionary of all items held by this location and local mobs
+        Input:
+            None
+        Output:
+            None
+        """
+        return utility.add_dicts(
+            self.inventory, *[mob.inventory for mob in self.contained_mobs]
+        )
+
+    def create_item_request(self, required_items: Dict[str, float]) -> Dict[str, float]:
+        """
+        Description:
+            Given a dictionary of required items with amounts, create a dictionary of the amount of items that need to be externally sourced to meet the requirements
+        Input:
+            Dict[str, float] required_items: Dictionary of required items with amounts
+        Output:
+            Dict[str, float]: Dictionary of items with amounts that need to be externally sourced to meet the requirements
+        """
+        return {
+            key: value
+            for key, value in utility.subtract_dicts(
+                required_items, self.get_all_local_inventory()
+            ).items()
+            if value > 0
+        }
+
+    def fulfill_item_request(
+        self, requested_items: Dict[str, float]
+    ) -> Dict[str, float]:
+        """
+        Description:
+            Attempt to externally source the requested items
+        Input:
+            Dict[str, float] requested_items: Dictionary of items with amounts that need to be externally sourced to meet the requirements
+        Output:
+            Dict[str, float]: Dictionary of items with amounts that can not be provided
+        """
+        if constants.ENERGY_ITEM in requested_items:
+            missing_energy = self.consume_items(
+                {constants.FUEL_ITEM: requested_items[constants.ENERGY_ITEM]}
+            ).get(constants.ENERGY_ITEM, 0)
+            # Attempt to consume fuel equal to energy request - returns amount of request that cannot be met
+            self.change_inventory(
+                status.item_types[constants.ENERGY_ITEM],
+                requested_items[constants.ENERGY_ITEM] - missing_energy,
+            )  # Turn fuel into required energy
+            requested_items[constants.ENERGY_ITEM] = missing_energy
+        requested_items = {
+            key: value for key, value in requested_items.items() if value > 0
+        }  # Remove fulfilled requests
+        return requested_items
+
+    def get_item_upkeep(
+        self, recurse: bool = False, earth_exemption: bool = True
+    ) -> Dict[str, float]:
+        """
+        Description:
+            Returns the item upkeep requirements for all units in this location
+        Input:
+            None
+        Output:
+            dictionary: Returns the item upkeep requirements for all units in this location
+        """
+        return utility.add_dicts(
+            *[
+                mob.get_item_upkeep(recurse=recurse, earth_exemption=earth_exemption)
+                for mob in self.contained_mobs
+            ]
+        )
+
+    def remove_excess_inventory(self):
+        """
+        Description:
+            Removes random excess items from this location until the number of items fits in this location's inventory capacity
+        Input:
+            None
+        Output:
+            None
+        """
+        lost_items: Dict[str, float] = {}
+        if not self.infinite_inventory_capacity:
+            amount_to_remove = self.get_inventory_used() - self.inventory_capacity
+            if amount_to_remove > 0:
+                for current_item_type in self.get_held_items():
+                    decimal_amount = round(
+                        self.get_inventory(current_item_type)
+                        - math.floor(self.get_inventory(current_item_type)),
+                        2,
+                    )
+                    if (
+                        decimal_amount > 0
+                    ):  # Best to remove partially consumed items first, since they each take an entire inventory slot
+                        lost_items[current_item_type.key] = (
+                            lost_items.get(current_item_type.key, 0) + decimal_amount
+                        )
+                        self.change_inventory(current_item_type, -decimal_amount)
+                        amount_to_remove -= 1
+                    if amount_to_remove <= 0:
+                        break
+            if amount_to_remove > 0:
+                items_held = []
+                for current_item_type in self.get_held_items():
+                    items_held += [current_item_type] * self.get_inventory(
+                        current_item_type
+                    )
+                item_types_removed = random.sample(
+                    population=items_held, k=amount_to_remove
+                )
+                for (
+                    current_item_type
+                ) in item_types_removed:  # Randomly remove amount_to_remove items
+                    lost_items[current_item_type.key] = (
+                        lost_items.get(current_item_type.key, 0) + 1
+                    )
+                    self.change_inventory(current_item_type, -1)
+        if sum(lost_items.values()) > 0:
+            if sum(lost_items.values()) == 1:
+                was_word = "was"
+            else:
+                was_word = "were"
+            status.logistics_incident_list.append(
+                {
+                    "unit": self,
+                    "cell": self.get_cell(),
+                    "explanation": f"{actor_utility.summarize_amount_dict(lost_items)} {was_word} lost due to insufficient storage space.",
+                }
+            )
+
+    def set_name(self, new_name):
+        """
+        Description:
+            Sets this actor's name, also updating its name icon if applicable
+        Input:
+            string new_name: Name to set this actor's name to
+        Output:
+            None
+        """
+        super().set_name(new_name)
+        if (not self.get_world_handler().is_abstract_world) and new_name not in [
+            "default",
+            "placeholder",
+        ]:
+            # Make sure user is not allowed to input default or *.png as a location name
+            if self.name_icon:
+                self.name_icon.remove_complete()
+
+            y_offset = -0.75
+            has_building = any(
+                current_building.building_type.key != constants.INFRASTRUCTURE
+                for current_building in self.get_buildings()
+            )
+            if (
+                has_building
+            ):  # Modify location of name icon if any non-infrastructure buildings are present
+                y_offset += 0.3
+
+            self.name_icon = constants.actor_creation_manager.create(
+                False,
+                {
+                    "image": actor_utility.generate_label_image_id(
+                        new_name, y_offset=y_offset
+                    ),
+                    "init_type": constants.CELL_ICON,
+                    "location": self,
+                },
+            )

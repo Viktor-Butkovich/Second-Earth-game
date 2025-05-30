@@ -153,7 +153,7 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
         Selects the default tab for the inputted tabbed collection based on the inputted displayed actor
     Input:
         interface_collection tabbed_collection: Tabbed collection to select tab of
-        actor displayed_actor: Mob or tile to select tab for
+        actor displayed_actor: Mob or location to select tab for
     Output:
         None
     """
@@ -183,8 +183,8 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
                 target_tab = status.global_conditions_collection
             # Except for local conditions, try to keep the current tab selected
             # If mob inventory tab, select inventory tab
-            # If can't keep local tile selected, select settlement, if present
-            # Otherwise, default to local or global conditions, based on tile type
+            # If can't keep current location selected, select settlement, if any
+            # Otherwise, default to local or global conditions, based on location type
 
         elif tabbed_collection == status.mob_tabbed_collection:
             if status.displayed_mob.get_permission(constants.PMOB_PERMISSION):
@@ -199,7 +199,7 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
                 else:
                     target_tab = status.mob_reorganization_collection
             # If unit has inventory and at least 1 item held, select inventory tab
-            # If tile inventory tab is selected, select inventory tab
+            # If location inventory tab is selected, select inventory tab
             # Otherwise, select reorganization tab
     if target_tab and (
         target_tab == status.location_inventory_collection or not target_tab.showing
@@ -207,27 +207,27 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
         select_interface_tab(tabbed_collection, target_tab)
 
 
-def generate_resource_icon(tile):
+def generate_resource_icon(location):
     """
     Description:
-        Generates and returns the correct string image file path based on the resource and buildings built in the inputted tile
+        Generates and returns the correct string image file path based on the resource and buildings built in the inputted location
     Input:
-        tile tile: Tile to generate a resource icon for
+        location location: Location to generate a resource icon for
     Output:
-        string/list: Returns string or list image id for tile's resource icon
+        string/list: Returns string or list image id for location's resource icon
     """
     image_id = [
         {
             "image_id": "misc/circle.png",
-            "green_screen": tile.get_location().resource.background_color,
+            "green_screen": location.resource.background_color,
             "size": 0.75,
         },
-        {"image_id": tile.get_location().resource.item_image, "size": 0.75},
+        {"image_id": location.resource.item_image, "size": 0.75},
     ]
 
     if bool(
-        tile.get_location().get_buildings()
-    ):  # Switch to small icon if tile has any buildings
+        location.get_buildings()
+    ):  # Switch to small icon if location has any buildings
         for (
             current_image
         ) in (

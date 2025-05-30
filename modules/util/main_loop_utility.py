@@ -30,12 +30,20 @@ def update_display():
         # could modify with a layer dictionary to display elements on different layers - currently, drawing elements in order of collection creation is working w/o overlap
         # issues
 
-        first_tooltip_tile = next(
-            (tile for tile in status.tile_list if tile.can_show_tooltip()), None
-        )  # Find the first tile that can draw a tooltip
-        if first_tooltip_tile:
-            possible_tooltip_drawers.append(first_tooltip_tile)
-            possible_tooltip_drawers += first_tooltip_tile.cell.contained_mobs
+        first_tooltip_cell = None
+        for current_grid in status.grid_list:
+            if not first_tooltip_cell:
+                first_tooltip_cell = next(
+                    (
+                        current_cell
+                        for current_cell in current_grid.get_flat_cell_list()
+                        if current_cell.can_show_tooltip()
+                    ),
+                    None,
+                )  # Find the first cell that can draw a tooltip
+        if first_tooltip_cell:
+            possible_tooltip_drawers.append(first_tooltip_cell.get_location())
+            possible_tooltip_drawers += first_tooltip_cell.get_location().contained_mobs
 
         notification_tooltip_button = None
         for current_button in status.button_list:
@@ -398,7 +406,7 @@ def manage_rmb_down(clicked_button):
         else:
             status.displayed_mob.clear_automatic_route()
             text_utility.print_to_screen(
-                "The created route must go between at least 2 tiles"
+                "The created route must go between at least 2 locations"
             )
         status.minimap_grid.calibrate(status.displayed_mob.x, status.displayed_mob.y)
         actor_utility.calibrate_actor_info_display(
@@ -477,9 +485,7 @@ def manage_lmb_down(clicked_button):
                                 )  # Outlines should be shown immediately once destination is chosen
                                 status.displayed_mob.remove_from_turn_queue()
                                 status.displayed_mob.select()
-                                status.displayed_mob.get_location().attached_cells[
-                                    0
-                                ].tile.select()
+                                status.displayed_mob.get_location().select()
                             else:  # Cannot move to same world
                                 actor_utility.calibrate_actor_info_display(
                                     status.mob_info_display, None
@@ -502,7 +508,7 @@ def manage_lmb_down(clicked_button):
                             .is_abstract_world
                         ):
                             text_utility.print_to_screen(
-                                "Only tiles adjacent to the most recently chosen destination can be added to the movement route."
+                                "Only locations adjacent to the most recently chosen destination can be added to the movement route."
                             )
                         else:
                             target_location = current_cell.get_location()
@@ -528,7 +534,7 @@ def manage_lmb_down(clicked_button):
                                 )
                                 if not target_location.visible:
                                     text_utility.print_to_screen(
-                                        "Movement routes cannot be created through unexplored tiles."
+                                        "Movement routes cannot be created through unexplored locations."
                                     )
                                     return ()
                                 elif (
@@ -589,7 +595,7 @@ def manage_lmb_down(clicked_button):
                                 )
                             else:
                                 text_utility.print_to_screen(
-                                    "Only tiles adjacent to the most recently chosen destination can be added to the movement route."
+                                    "Only locations adjacent to the most recently chosen destination can be added to the movement route."
                                 )
 
         elif not clicked_button:
@@ -618,17 +624,16 @@ def click_move_minimap(select_unit: bool = True):
         if current_grid.showing:
             for current_cell in current_grid.get_flat_cell_list():
                 if current_cell.touching_mouse():
-                    if select_unit and current_cell.contained_mobs:
-                        current_cell.contained_mobs[0].select()
+                    if select_unit and current_cell.get_location().contained_mobs:
+                        current_cell.get_location().contained_mobs[0].select()
                     else:
                         actor_utility.calibrate_actor_info_display(
-                            status.location_info_display, current_cell.tile
+                            status.location_info_display, current_cell.get_location()
                         )
-                    (
-                        absolute_x,
-                        absolute_y,
-                    ) = current_cell.grid.get_absolute_coordinates(
-                        current_cell.x, current_cell.y
+
+                    (absolute_x, absolute_y) = (
+                        current_cell.get_location().x,
+                        current_cell.get_location().y,
                     )
                     for attached_cell in current_cell.get_location().attached_cells:
                         attached_cell.grid.calibrate(absolute_x, absolute_y)

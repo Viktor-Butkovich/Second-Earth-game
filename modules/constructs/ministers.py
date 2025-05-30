@@ -289,6 +289,8 @@ class minister:
         Output:
             None
         """
+        if not override_input_dict:
+            override_input_dict = {}
         input_dict = {
             "message": text,
             "notification_type": constants.ACTION_NOTIFICATION,
@@ -297,9 +299,8 @@ class minister:
             ),
             "transfer_interface_elements": transfer,
             "on_remove": on_remove,
+            **override_input_dict,
         }
-        if override_input_dict:
-            input_dict.update(override_input_dict)
         if input_dict.get("notification_type") == constants.ACTION_NOTIFICATION:
             input_dict["message"] += "Click to remove this notification. /n /n"
         constants.notification_manager.display_notification(input_dict)

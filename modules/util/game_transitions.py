@@ -7,7 +7,6 @@ from modules.util import (
     minister_utility,
     scaling,
 )
-from modules.actor_types import tiles
 from modules.constants import constants, status, flags
 
 
