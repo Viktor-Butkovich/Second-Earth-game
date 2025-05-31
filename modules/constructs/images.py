@@ -431,8 +431,6 @@ class bundle_image:
             if "green_screen" in image_id:
                 self.has_green_screen = True
                 self.green_screen_colors = []
-                if image_id["green_screen"] == constants.WORLD_GREEN_SCREEN_DEFAULTS:
-                    image_id["green_screen"] = status.current_world.get_green_screen()
                 if type(image_id["green_screen"]) == list:
                     for index in range(0, len(image_id["green_screen"])):
                         self.green_screen_colors.append(image_id["green_screen"][index])
@@ -1707,6 +1705,7 @@ class actor_image(image):
         Output:
             None
         """
+        return
         self.image_type = "actor"
         super().__init__(width, height)
         self.actor = actor
@@ -1922,6 +1921,7 @@ class mob_image(actor_image):
         Output:
             None
         """
+        return
         super().__init__(actor, width, height, grid, image_description)
         self.current_cell = None
         self.image_type = "mob"

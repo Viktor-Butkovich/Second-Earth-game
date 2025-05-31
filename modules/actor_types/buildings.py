@@ -65,7 +65,7 @@ class building(actor):
                 False,
                 {
                     "init_type": constants.SETTLEMENT,
-                    "coordinates": (self.cell.x, self.cell.y),
+                    "location": self.get_location(),
                 },
             )
 
@@ -110,16 +110,16 @@ class building(actor):
                 'contained_work_crews': dictionary list value - list of dictionaries of saved information necessary to recreate each work crew working in this building
                 'damaged': boolean value - whether this building is currently damaged
         """
-        save_dict = super().to_save_dict()
-        save_dict["contained_work_crews"] = (
-            []
-        )  # List of dictionaries for each work crew, on load a building creates all of its work crews and attaches them
-        save_dict["damaged"] = self.damaged
-        for current_work_crew in self.contained_work_crews:
-            save_dict["contained_work_crews"].append(current_work_crew.to_save_dict())
-        for upgrade_field in self.upgrade_fields:
-            save_dict[upgrade_field] = self.upgrade_fields[upgrade_field]
-        return save_dict
+        return {
+            **super().to_save_dict(),
+            **self.upgrade_fields,
+            "init_type": self.building_type.key,
+            "contained_work_crews": [
+                current_work_crew.to_save_dict()
+                for current_work_crew in self.contained_work_crews
+            ],
+            "damaged": self.damaged,
+        }
 
     def remove(self):
         """

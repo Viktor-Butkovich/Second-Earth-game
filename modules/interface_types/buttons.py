@@ -3042,15 +3042,14 @@ class cycle_autofill_button(button):
         Output:
             None
         """
-        current_cell = status.displayed_mob.get_cell()
         self.parent_collection.search_start_index = (
-            current_cell.contained_mobs.index(
+            status.displayed_mob.get_location().contained_mobs.index(
                 self.parent_collection.autofill_actors[self.autofill_target_type]
             )
             + 1
         )
         self.parent_collection.calibrate(status.displayed_mob)
-        # start autofill search for corresponding target type at index right after the current target actor
+        # Start autofill search for corresponding target type at index right after the current target actor
 
 
 class action_button(button):

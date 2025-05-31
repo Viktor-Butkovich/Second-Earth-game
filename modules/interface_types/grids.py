@@ -488,18 +488,18 @@ class mini_grid(grid):
                 self.center_x = center_x
                 self.center_y = center_y
 
-                for current_cell in self.get_flat_cell_list():
-                    self.world_handler.find_location(
-                        *self.get_absolute_coordinates(current_cell.x, current_cell.y)
-                    ).add_cell(
-                        current_cell
-                    )  # Calibrate each cell to its the new location
+                for x in range(self.coordinate_width):
+                    for y in range(self.coordinate_height):
+                        self.world_handler.find_location(
+                            *self.get_absolute_coordinates(x, y)
+                        ).add_cell(
+                            self.find_cell(x, y)
+                        )  # Calibrate each cell to its the new location
 
                 for current_mob in status.mob_list:
-                    if current_mob.get_cell():
-                        for current_image in current_mob.images:
-                            if current_image.grid == self:
-                                current_image.add_to_cell()
+                    for current_image in current_mob.images:
+                        if current_image.grid == self:
+                            current_image.add_to_cell()
                 if self == status.minimap_grid:
                     for (
                         directional_indicator_image

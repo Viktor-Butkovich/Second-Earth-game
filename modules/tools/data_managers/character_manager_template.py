@@ -205,15 +205,15 @@ class character_manager_template:
                     ).get_at((0, 0))[:3]
                 )
 
-        self.clothing_colors: List[
-            Tuple[int, int, int]
-        ] = actor_utility.extract_folder_colors(
-            "ministers/portraits/outfit/suit_colors/"
+        self.clothing_colors: List[Tuple[int, int, int]] = (
+            actor_utility.extract_folder_colors(
+                "ministers/portraits/outfit/suit_colors/"
+            )
         )
-        self.accessory_colors: List[
-            Tuple[int, int, int]
-        ] = actor_utility.extract_folder_colors(
-            "ministers/portraits/outfit/accessory_colors/"
+        self.accessory_colors: List[Tuple[int, int, int]] = (
+            actor_utility.extract_folder_colors(
+                "ministers/portraits/outfit/accessory_colors/"
+            )
         )
 
         self.skin_images: Dict[bool, List[str]] = {
@@ -277,17 +277,19 @@ class character_manager_template:
             f"ministers/portraits/frame/default.png", constants.FRAME_PORTRAIT_SECTION
         )
 
-    def find_portrait_section(self, section: str, portrait_image_id: List[any]) -> int:
+    def find_portrait_section(
+        self, section: str, portrait_image_id_list: List[any]
+    ) -> int:
         """
         Description:
             Finds the index of a section of the inputted portrait, such as which image dict is the hair section
         Input:
             string section: Section to find
-            list portrait_image_id: Portrait list image_id to search through
+            list portrait_image_id_list: Portrait list image_id to search through
         Output:
             int: Returns index of section in list, if section present
         """
-        for i, portrait_section in enumerate(portrait_image_id):
+        for i, portrait_section in enumerate(portrait_image_id_list):
             if (
                 portrait_section.get("metadata", {}).get("portrait_section", None)
                 == section
@@ -753,23 +755,19 @@ class character_manager_template:
             country_dict = json.load(active_file)
 
         self.ethnic_groups: List[str] = []  # List of all ethnicities
-        self.ethnic_group_weights: List[
-            int
-        ] = []  # List of weighted populations of each ethnicity
-        self.countries_of_origin: List[
-            str
-        ] = []  # List of all non-miscellaneous countries
-        self.miscellaneous_countries: Dict[
-            str, List[str]
-        ] = (
+        self.ethnic_group_weights: List[int] = (
+            []
+        )  # List of weighted populations of each ethnicity
+        self.countries_of_origin: List[str] = (
+            []
+        )  # List of all non-miscellaneous countries
+        self.miscellaneous_countries: Dict[str, List[str]] = (
             {}
         )  # Countries with 1-5 million population, used for Misc. country of origin
-        self.country_weights: List[
-            int
-        ] = []  # List of weighted populations to choose which country someone is from
-        self.country_ethnicity_dict: Dict[
-            str, Dict[str, Dict[str, list]]
-        ] = (
+        self.country_weights: List[int] = (
+            []
+        )  # List of weighted populations to choose which country someone is from
+        self.country_ethnicity_dict: Dict[str, Dict[str, Dict[str, list]]] = (
             {}
         )  # Allows weighted selection of what ethnicity someone from a particular country is
         """
@@ -834,10 +832,9 @@ class character_manager_template:
                         if (
                             current_country == cycled_countries[0]
                         ):  # Don't repeat counts for misc. countries
-                            ethnic_group_total_weights[
-                                ethnicity
-                            ] = ethnic_group_total_weights.get(ethnicity, 0) + (
-                                ethnic_percentage * country_weighted_population
+                            ethnic_group_total_weights[ethnicity] = (
+                                ethnic_group_total_weights.get(ethnicity, 0)
+                                + (ethnic_percentage * country_weighted_population)
                             )
 
         for ethnic_group in ethnic_group_total_weights:

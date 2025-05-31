@@ -478,7 +478,7 @@ Mobs and buildings have to track which cells and which grids they are visible in
     Generally much clunkier, and it based on incremental design decisions that were reasonable at the time
 
 Location rework backlog:
-New design doesn't require tiles at all - refactor all usage of tiles with locations
+Rework actor_image and mob_image classes
 A location should be able to generate its full image (for map rendering) and its image with no mobs (for location info display rendering)
 A mob should be able to generate its own image, which can be retrieved by locations and the mob info display as needed
   No reason for separate image objects to exist?
@@ -501,7 +501,6 @@ Transfer set_name from tile to location
 Transfer hosted_images from tile to location
 Fix directional indicator images not showing
 Make sure location inherits actor's manage_inventory_attrition
-Modify local logistics incidents to use "location" instead of "cell"
 Any rendering handled by actor images should be handled elsewhere now - go to grid logic is now redundant, but pygame image and tooltip box rendering are still required elsewhere
 Implement location's all_contained_mobs property
 Implement cell's draw function
@@ -513,13 +512,22 @@ Make a function handling the following minimap grid calibration pattern: Somethi
 Replace cell icons with extra images directly added to locations - a location should be fully in control of what it displays
 Add rename function to worlds
 Transfer logistics_incident_list from cell to location
+Make sure remove_complete on a world recursively removes all locations
+Make sure remove_complete on a location recursively removes all mobs, buildings, settlements, and other objects linked to it
+    Note that interface components like grids and cells can be detached and removed independently before the location
+Modify actors to never have to handle touching_mouse or tooltip rendering logic - if cell is hovered, it should access its
+    location's tooltips and render them
+Modify non-location actors to save as part of their location - this means the location manages their save dict, and they do not
+    need to remember location, coordinates, etc.
 
 Notes:
 In location-centric design, game logic is centralized and as independent as possible from interface elements
-Work to define what an actor is - maybe it is a concept that exists at certain coordinates in a world, has 1+ subscribed cells, and can be
-    selected in the LHS menu
+Work to define what an actor is - maybe it is a concept that can have an inventory and be selected on the LHS info displays
+    Only locations have attached cells - mobs just attach to locations
     Some shared functionality with ministers, who also have names and can be selected
+        Possibly differ between actors who have inventory, which is a subset of actors who can be selected
     Buildings and cell icons do not qualify as an actor, and should instead be constructs within a location
+Next steps: Refactor of actor class so that it makes sense to be inherited by locations and mobs
 """
 
 # Investigate water disappearing during terraforming - definitely occurs on Venus and Mars maps

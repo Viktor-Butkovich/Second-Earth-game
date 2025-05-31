@@ -35,9 +35,9 @@ class officer(pmob):
         """
         if not from_save:
             self.character_info = {}
-            self.character_info[
-                "ethnicity"
-            ] = constants.character_manager.generate_ethnicity()
+            self.character_info["ethnicity"] = (
+                constants.character_manager.generate_ethnicity()
+            )
             self.character_info["masculine"] = random.choice([True, False])
             name = constants.character_manager.generate_name(
                 self.character_info["ethnicity"], self.character_info["masculine"]
@@ -46,9 +46,9 @@ class officer(pmob):
                 constants.effect_manager.effect_active("omit_default_names")
                 and "default" in name
             ):  # Prevent any default first or last names
-                self.character_info[
-                    "ethnicity"
-                ] = constants.character_manager.generate_ethnicity()
+                self.character_info["ethnicity"] = (
+                    constants.character_manager.generate_ethnicity()
+                )
                 name = constants.character_manager.generate_name(
                     self.character_info["ethnicity"], self.character_info["masculine"]
                 )
@@ -145,7 +145,7 @@ class officer(pmob):
         self.x = group.x
         self.y = group.y
         self.show_images()
-        self.go_to_grid(self.get_cell().grid, (self.x, self.y))
+        # self.go_to_grid(self.get_cell().grid, (self.x, self.y))
         if focus:
             self.select()
         if self.movement_points > 0:

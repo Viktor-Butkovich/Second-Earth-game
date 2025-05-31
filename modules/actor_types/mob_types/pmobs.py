@@ -205,7 +205,10 @@ class pmob(mob):
                 and self.get_permission(constants.IN_GROUP_PERMISSION)
             ):
                 return {}
-        if earth_exemption and self.get_cell().grid == status.earth_grid:
+        if (
+            earth_exemption
+            and self.get_location().get_world_handler() == status.earth_world
+        ):
             return {}
         elif (
             earth_exemption
@@ -252,7 +255,9 @@ class pmob(mob):
         if self.in_deadly_environment():
             return  # Don't consume upkeep when in instant death conditions
 
-        missing_upkeep = self.consume_items(self.get_item_upkeep(recurse=False))
+        missing_upkeep = self.get_location().consume_items(
+            self.get_item_upkeep(recurse=False), consuming_actor=self
+        )
         for (
             item_key,
             item_present,
@@ -590,7 +595,7 @@ class pmob(mob):
                 self.all_permissions(
                     constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                 )
-                and not self.get_cell().has_intact_building(constants.TRAIN_STATION)
+                and not self.get_location().has_intact_building(constants.TRAIN_STATION)
             ):
                 return True
             else:
@@ -616,7 +621,9 @@ class pmob(mob):
                     self.all_permissions(
                         constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                     )
-                    and not self.get_cell().has_intact_building(constants.TRAIN_STATION)
+                    and not self.get_location().has_intact_building(
+                        constants.TRAIN_STATION
+                    )
                 ):  # Pick up freely unless train without train station
                     return True
                 else:
@@ -651,7 +658,7 @@ class pmob(mob):
                         self.all_permissions(
                             constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                         )
-                        and not self.get_cell().has_intact_building(
+                        and not self.get_location().has_intact_building(
                             constants.TRAIN_STATION
                         )
                     ):
@@ -668,7 +675,7 @@ class pmob(mob):
                         self.all_permissions(
                             constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                         )
-                        and not self.get_cell().has_intact_building(
+                        and not self.get_location().has_intact_building(
                             constants.TRAIN_STATION
                         )
                     ):
@@ -971,7 +978,6 @@ class pmob(mob):
         status.logistics_incident_list.append(
             {
                 "unit": self,
-                "cell": self.get_cell(),
                 "explanation": f"{name} {explanation}",
             }
         )

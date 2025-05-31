@@ -2,16 +2,22 @@ import random
 import math
 from typing import List, Dict, Any
 from modules.util import actor_utility, main_loop_utility, utility
+from modules.actor_types import actors
 from modules.constructs import world_handlers, item_types
 from modules.constants import constants, status, flags
 
 
-class location:
+class location(actors.actor):
     """
     "Single source of truth" handler for the terrain/local characteristics of each version of a cell on different grids
     """
 
-    def __init__(self, from_save: bool, input_dict: Dict[str, any] = None) -> None:
+    def __init__(
+        self,
+        from_save: bool,
+        input_dict: Dict[str, any],
+        original_constructor: bool = True,
+    ) -> None:
         """
         Description:
             Initializes this object
@@ -19,11 +25,10 @@ class location:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Dictionary of saved information necessary to recreate this location if loading grid, or None if creating new location
         """
-        if not input_dict:
-            input_dict = {}
-        self.x: int = input_dict["x"]
-        self.y: int = input_dict["y"]
         self.world_handler: world_handlers.world_handler = input_dict["world_handler"]
+        super().__init__(from_save, input_dict, original_constructor == False)
+        self.x: int = input_dict["coordinates"][0]
+        self.y: int = input_dict["coordinates"][1]
         self.adjacent_list: List[location] = []
         self.adjacent_locations: Dict[str, location] = {}
         self.terrain_parameters: Dict[str, int] = input_dict.get(
@@ -54,18 +59,29 @@ class location:
         self.maxima = {constants.TEMPERATURE: 11}
         self.terrain: str = None
         self.image_dict: Dict[str, Any] = {"default": None}
-        self.set_terrain(constants.terrain_manager.classify(self.terrain_parameters))
-        print(self.terrain, self.image_dict)
+        self.terrain_features: Dict[str, bool] = {}
+        for terrain_feature in input_dict.get("terrain_features", {}).values():
+            self.add_terrain_feature(terrain_feature)
+        self.set_terrain(
+            constants.terrain_manager.classify(self.terrain_parameters),
+            update_image_bundle=False,
+        )
         self.resource: item_types.item_type = status.item_types.get(
             input_dict.get("resource", None), None
         )
         self.attached_cells: list = []
         self.expected_temperature_offset: float = 0.0
-        self.terrain_features: Dict[str, bool] = {}
-        for key, value in input_dict.get("terrain_features", {}).items():
-            self.add_terrain_feature(value)
         self.contained_buildings: Dict[str, Any] = {}
         self.contained_mobs: List[any] = []  # List of top-level contained mobs
+        if from_save:
+            for current_mob_dict in input_dict.get("contained_mobs", []):
+                constants.actor_creation_manager.create(
+                    from_save=True,
+                    input_dict={
+                        **current_mob_dict,
+                        "location": self,
+                    },
+                )
         self.hosted_images = []
         self.settlement: Any = None
 
@@ -552,7 +568,9 @@ class location:
                 )
                 for i in range(water_displaced):
                     self.get_world_handler().place_water(
-                        radiation_effect=False, repeat_on_fail=True
+                        radiation_effect=False,
+                        repeat_on_fail=True,
+                        update_display=update_display,
                     )
 
         new_terrain = constants.terrain_manager.classify(self.terrain_parameters)
@@ -567,7 +585,7 @@ class location:
             )
             or parameter_name == constants.KNOWLEDGE
         ):
-            self.set_terrain(new_terrain)
+            self.set_terrain(new_terrain, update_image_bundle=update_display)
             if update_display and not flags.loading:
                 status.current_world.update_globe_projection()
 
@@ -656,7 +674,6 @@ class location:
             None
         Output:
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
-                'visible': boolean value - Whether this location is visible or not
                 'terrain': string value - Terrain type of this location, like 'swamp'
                 'terrain_variant': int value - Variant number to use for image file path, like mountains_0
                 'terrain_features': string/boolean dictionary value - Dictionary containing an entry for each terrain feature in this location
@@ -664,25 +681,22 @@ class location:
                 'resource': string value - Item type key of natural resource in this location, like "Gold" or None
                 'local_weather_offset': float value - Temperature offset of this location from expected for the latitude
         """
-        save_dict = {}
-        save_dict["init_type"] = constants.LOCATION
-        save_dict["coordinates"] = (self.x, self.y)
-        save_dict["inventory"] = self.inventory
-        save_dict["terrain_variant"] = self.terrain_variant
-        save_dict["terrain_features"] = self.terrain_features
-        save_dict["terrain_parameters"] = self.terrain_parameters
-        save_dict["terrain"] = self.terrain
-        if self.resource:
-            save_dict["resource"] = self.resource.key
-        else:
-            save_dict["resource"] = None
-        save_dict["north_pole_distance_multiplier"] = (
-            self.north_pole_distance_multiplier
-        )
-        save_dict["pole_distance_multiplier"] = self.pole_distance_multiplier
-        save_dict["current_clouds"] = self.current_clouds
-        save_dict["local_weather_offset"] = self.local_weather_offset
-        return save_dict
+        return {
+            **super().to_save_dict(),
+            "init_type": constants.LOCATION,
+            "terrain_variant": self.terrain_variant,
+            "terrain_features": self.terrain_features,
+            "terrain_parameters": self.terrain_parameters,
+            "terrain": self.terrain,
+            "resource": self.resource.key if self.resource else None,
+            "north_pole_distance_multiplier": self.north_pole_distance_multiplier,
+            "pole_distance_multiplier": self.pole_distance_multiplier,
+            "current_clouds": self.current_clouds,
+            "local_weather_offset": self.local_weather_offset,
+            "contained_mobs": [
+                current_mob.to_save_dict() for current_mob in self.contained_mobs
+            ],
+        }
 
     def get_parameter(self, parameter_name: str) -> int:
         """
@@ -726,11 +740,7 @@ class location:
         self.terrain = new_terrain
 
         if new_terrain in constants.terrain_manager.terrain_list:
-            self.image_dict["default"] = (
-                f"terrains/{new_terrain}_{self.terrain_variant}.png"
-            )
-        elif not new_terrain:
-            self.image_dict["default"] = "terrains/hidden.png"
+            self.default_image_id = f"terrains/{new_terrain}_{self.terrain_variant}.png"
         if update_image_bundle:
             self.update_image_bundle()
 
@@ -748,6 +758,14 @@ class location:
         self.attached_cells.append(cell)
         cell.location = self
         # Update cell's rendered image
+
+    def add_mob(self, mob) -> None:
+        if (
+            mob.location
+        ):  # Note that this is distinct from get_location(), which recursively checks through containers
+            mob.location.remove_mob(mob)
+        self.contained_mobs.append(mob)
+        mob.location = self
 
     def remove_cell(self, cell) -> None:
         """
@@ -872,7 +890,7 @@ class location:
 
         # Make any per-location modifications
 
-        return constants.WORLD_GREEN_SCREEN_DEFAULTS
+        return world_green_screen
         # return world_green_screen
 
     def get_brightness(self) -> float:
@@ -953,7 +971,7 @@ class location:
         ):
             image_id_list.append(
                 {
-                    "image_id": self.image_dict["default"],
+                    "image_id": self.default_image_id,
                     "level": -9,
                     "color_filter": self.get_color_filter(),
                     "green_screen": self.get_green_screen(),
@@ -1022,7 +1040,7 @@ class location:
                 #        image_id_list += resource_icon
                 image_id_list += [
                     image_id
-                    for current_building in self.buildings()
+                    for current_building in self.get_buildings()
                     for image_id in current_building.get_image_id_list()
                 ]  # Add each of each building's images to the image ID list
             for current_image in self.hosted_images:
@@ -1386,6 +1404,34 @@ class location:
             self.inventory, *[mob.inventory for mob in self.contained_mobs]
         )
 
+    def consume_items(
+        self, items: Dict[str, float], consuming_actor: actors.actor = None
+    ) -> Dict[str, float]:
+        """
+        Description:
+            Attempts to consume the inputted items from the inventories of actors in this unit's location
+                First checks the location's warehouses, followed by this unit's inventory, followed by other present units' inventories
+        Input:
+            dictionary items: Dictionary of item type keys and quantities to consume
+        Output:
+            dictionary: Returns a dictionary of item type keys and quantities that were not available to be consumed
+        """
+        missing_consumption = {}
+        for item_key, consumption_remaining in items.items():
+            item_type = status.item_types[item_key]
+            for current_actor in [consuming_actor, self] + self.contained_mobs:
+                if current_actor:
+                    if consumption_remaining <= 0:
+                        break
+                    availability = current_actor.get_inventory(item_type)
+                    consumption = min(consumption_remaining, availability)
+                    current_actor.change_inventory(item_type, -consumption)
+                    consumption_remaining -= consumption
+                    consumption_remaining = round(consumption_remaining, 2)
+            if consumption_remaining > 0:
+                missing_consumption[item_key] = consumption_remaining
+        return missing_consumption
+
     def create_item_request(self, required_items: Dict[str, float]) -> Dict[str, float]:
         """
         Description:
@@ -1500,7 +1546,6 @@ class location:
             status.logistics_incident_list.append(
                 {
                     "unit": self,
-                    "cell": self.get_cell(),
                     "explanation": f"{actor_utility.summarize_amount_dict(lost_items)} {was_word} lost due to insufficient storage space.",
                 }
             )

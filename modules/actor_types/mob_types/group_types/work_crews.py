@@ -89,14 +89,14 @@ class work_crew(group):
                             current_building.resource_type, 1
                         )
                         current_building.resource_type.amount_produced_this_turn += 1
-
+                        current_location = self.get_location()
                         if (
                             not self.get_permission(constants.VETERAN_PERMISSION)
                         ) and roll_result >= 6:
                             self.promote()
                             constants.notification_manager.display_notification(
                                 {
-                                    "message": f"The work crew working in the {current_building.name} at ({current_building.cell.x}, {current_building.cell.y}) has become a veteran and will be more successful in future production attempts. /n /n",
+                                    "message": f"The work crew working in the {current_building.name} at ({current_location.x}, {current_location.y}) has become a veteran and will be more successful in future production attempts. /n /n",
                                     "zoom_destination": self.get_location(),
                                 }
                             )

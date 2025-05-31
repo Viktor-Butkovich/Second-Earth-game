@@ -3,8 +3,6 @@
 import pygame
 import random
 from typing import Dict, List, Any
-from modules.util import actor_utility
-from modules.constructs import locations
 from modules.constants import constants, status, flags
 
 
@@ -18,10 +16,8 @@ class cell:
         Description:
             Initializes this object
         Input:
-            int x: the x coordinate of this cell in its grid
-            int y: the y coordinate of this cell in its grid
-            int width: Pixel width of this button
-            int height: Pixel height of this button
+            int width: Pixel width of this cell
+            int height: Pixel height of this cell
             grid grid: The grid that this cell is attached to
             string color: Color in the color_dict dictionary for this cell when nothing is covering it
         Output:
@@ -37,14 +33,12 @@ class cell:
         self.Rect: pygame.Rect = pygame.Rect(
             self.pixel_x, self.pixel_y - self.height, self.width, self.height
         )  # (left, top, width, height)
-        self.location: status.location = None
-        self.settlement = None
-        self.location: locations.location = None
+        self.location = None
         self.grid.world_handler.find_location(self.x, self.y).add_cell(self)
         self.selection_outline_color = constants.COLOR_YELLOW
         self.actor_match_outline_color = constants.COLOR_WHITE
 
-    def get_location(self) -> locations.location:
+    def get_location(self):
         return self.location
 
     def draw(self):

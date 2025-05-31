@@ -203,10 +203,10 @@ def to_main_menu(override=False):
     )
     actor_utility.calibrate_actor_info_display(status.location_info_display, None)
     minister_utility.calibrate_minister_info_display(None)
-    for current_actor in status.actor_list:
-        current_actor.remove_complete()
     for current_grid in status.grid_list:
         current_grid.remove_complete()
+    for current_world in status.world_list:
+        current_world.remove_complete()
     for current_minister in status.minister_list:
         current_minister.remove_complete()
     for current_die in status.dice_list:

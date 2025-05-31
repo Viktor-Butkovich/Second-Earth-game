@@ -92,7 +92,6 @@ free_image_list: List[free_image] = []
 minister_image_list: List[Any] = []
 available_minister_portrait_list: List[button] = []
 
-actor_list: List[actor] = []
 mob_list: List[mob] = []
 pmob_list: List[pmob] = []
 npmob_list: List[npmob] = []

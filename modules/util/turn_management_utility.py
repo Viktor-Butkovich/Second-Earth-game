@@ -260,19 +260,20 @@ def manage_logistics_report() -> None:
     transportation_minister = minister_utility.get_minister(
         constants.TRANSPORTATION_MINISTER
     )
-    attrition_binned_by_cell = {}
+    attrition_binned_by_location = {}
     for attrition_cause_dict in status.logistics_incident_list:
-        attrition_binned_by_cell[str(attrition_cause_dict.get("cell"))] = (
-            attrition_binned_by_cell.get(str(attrition_cause_dict.get("cell")), [])
+        location_string = str(attrition_cause_dict["unit"].get_location())
+        attrition_binned_by_location[location_string] = (
+            attrition_binned_by_location.get(location_string, [])
             + [attrition_cause_dict]
         )
-    for local_logistics_incident_list in attrition_binned_by_cell.values():
+    for local_logistics_incident_list in attrition_binned_by_location.values():
         remaining_incidents = local_logistics_incident_list
         n = 5
         while remaining_incidents:
             first_n_incidents = remaining_incidents[:n]
             remaining_incidents = remaining_incidents[n:]
-            location = local_logistics_incident_list[0].get("location")
+            location = local_logistics_incident_list[0].get("unit").get_location()
             if len(local_logistics_incident_list) == 1:
                 text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports a logistical incident "
             else:

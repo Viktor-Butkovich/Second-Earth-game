@@ -57,7 +57,6 @@ class settlement:
         else:
             self.name = input_dict["name"]
         self.location.set_name(self.name)
-        status.actor_list.append(self)
         status.settlement_list.append(self)
 
     def rename(self, new_name: str):
@@ -117,6 +116,5 @@ class settlement:
         Output:
             None
         """
-        status.actor_list = utility.remove_from_list(status.actor_list, self)
         status.settlement_list = utility.remove_from_list(status.settlement_list, self)
         self.cell.settlement = None

@@ -91,8 +91,7 @@ class world_handler:
                         input_dict={
                             "init_type": constants.LOCATION,
                             "world_handler": self,
-                            "x": x,
-                            "y": y,
+                            "coordinates": (x, y),
                         },
                     )
                     for y in range(self.coordinate_height)
@@ -162,7 +161,9 @@ class world_handler:
         else:
             default_altitude = 0
         for location in self.get_flat_location_list():
-            location.set_parameter(constants.ALTITUDE, default_altitude)
+            location.set_parameter(
+                constants.ALTITUDE, default_altitude, update_display=False
+            )
 
         if constants.effect_manager.effect_active("map_customization"):
             return
@@ -218,6 +219,7 @@ class world_handler:
                     + self.get_tuning("initial_temperature_variation")
                     + 1,
                 ),
+                update_display=False,
             )
         if self.get_tuning("smooth_temperature"):
             while self.smooth(
@@ -235,7 +237,7 @@ class world_handler:
         for temperature_source in temperature_sources:
             if temperature_source in [status.north_pole, status.south_pole]:
                 temperature_source.set_parameter(
-                    constants.TEMPERATURE, default_temperature
+                    constants.TEMPERATURE, default_temperature, update_display=False
                 )
                 if temperature_source == status.north_pole:
                     weight_parameter = "north_pole_distance_multiplier"
@@ -535,10 +537,10 @@ class world_handler:
             return
         if constants.effect_manager.effect_active("earth_preset"):
             for location in self.get_flat_location_list():
-                location.set_parameter(constants.SOIL, random.randrange(0, 6))
+                location.set_parameter(constants.SOIL, random.randrange(0, 6), update_display=False)
         else:
             for location in self.get_flat_location_list():
-                location.set_parameter(constants.SOIL, random.randrange(0, 3))
+                location.set_parameter(constants.SOIL, random.randrange(0, 3), update_display=False)
 
         num_worms = random.randrange(
             self.get_tuning("min_soil_multiplier"),
@@ -571,6 +573,7 @@ class world_handler:
             constants.SOIL,
             0,
             2,
+            update_display=False,
         )
 
     def generate_vegetation(self) -> None:
@@ -591,16 +594,18 @@ class world_handler:
                         current_location.set_parameter(
                             constants.VEGETATION,
                             current_location.get_parameter(constants.WATER) * 3 + 2,
+                            update_display=False,
                         )
                     else:
                         current_location.set_parameter(
                             constants.VEGETATION,
                             current_location.get_parameter(constants.ALTITUDE) + 2,
+                            update_display=False,
                         )
             self.smooth(constants.VEGETATION)
         else:
             for current_location in self.get_flat_location_list():
-                current_location.set_parameter(constants.VEGETATION, 0)
+                current_location.set_parameter(constants.VEGETATION, 0, update_display=False)
 
     def generate_terrain_parameters(self):
         """
@@ -618,7 +623,7 @@ class world_handler:
         self.generate_soil()
         self.generate_vegetation()
 
-    def bound(self, parameter: str, minimum: int, maximum: int):
+    def bound(self, parameter: str, minimum: int, maximum: int, update_display: bool = True) -> None:
         """
         Description:
             Bounds the inputted parameter to the inputted minimum and maximum values
@@ -636,6 +641,7 @@ class world_handler:
                     min(current_location.get_parameter(parameter), maximum),
                     minimum,
                 ),
+                update_display=update_display,
             )
 
     def smooth(self, parameter: str, direction: str = None) -> bool:

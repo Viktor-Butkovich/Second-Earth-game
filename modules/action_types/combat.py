@@ -191,7 +191,7 @@ class combat(action.action):
             if self.opponent.get_permission(constants.DISORGANIZED_PERMISSION):
                 text += f"The {self.opponent.name} {utility.conjugate('be', self.opponent.unit_type.number)} disorganized and will receive a -1 after their roll. /n"
 
-            if self.current_unit.get_cell().has_intact_building(constants.FORT):
+            if self.current_unit.get_location().has_intact_building(constants.FORT):
                 text += f"The fort in this location grants your {self.current_unit.name} a +1 bonus after their roll. /n"
 
             if self.current_unit.get_permission(constants.VETERAN_PERMISSION):
@@ -615,11 +615,11 @@ class combat(action.action):
         Output:
             None
         """
-        combat_cell = self.current_unit.get_cell()
+        combat_location = self.current_unit.get_location()
         if self.total_roll_result <= -2:  # Defeat
             if self.defending:
                 self.current_unit.die()
-                if not combat_cell.get_best_combatant("pmob"):
+                if not combat_location.get_best_combatant("pmob"):
                     self.opponent.kill_noncombatants()
                     self.opponent.damage_buildings()
                 else:  # Return to original location if non-defenseless enemies still in other location, can't be in location with enemy units or have more than 1 offensive combat per turn
@@ -646,7 +646,7 @@ class combat(action.action):
                     )
             else:
                 if (
-                    len(combat_cell.contained_mobs) > 2
+                    len(combat_location.contained_mobs) > 2
                 ):  # len == 2 if only attacker and defender in location
                     self.current_unit.retreat()  # Attacker retreats in draw or if more defenders remaining
                 elif (
@@ -665,8 +665,7 @@ class combat(action.action):
         if not self.defending:
             self.current_unit.set_movement_points(0)
             if (
-                combat_cell.get_location().terrain == "water"
-                and combat_cell.y > 0
+                combat_location.terrain == "water"
                 and not self.current_unit.get_permission(constants.SWIM_PERMISSION)
             ):  # if attacked water and can't swim, become disorganized after combat
                 self.current_unit.set_permission(

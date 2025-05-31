@@ -34,13 +34,13 @@ class vehicle(pmob):
         Output:
             None
         """
-        input_dict["image"] = input_dict["image_dict"]["default"]
+        self.uncrewed_image_id: List[any] = input_dict["uncrewed_image_id"]
+        self.moving_image_id: List[any] = input_dict["moving_image_id"]
         self.crew: pmob = None
         self.contained_mobs: List[pmob] = []
         self.ejected_crew = None
         self.ejected_passengers = []
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.image_dict = input_dict["image_dict"]  # should have default and uncrewed
         if not from_save:
             self.set_crew(input_dict["crew"])
         else:  # Create crew and passengers through recruitment_manager and embark them
@@ -142,27 +142,16 @@ class vehicle(pmob):
             )
             self.set_inventory_capacity(0)
 
-    def get_image_id_list(self, override_values={}):
-        """
-        Description:
-            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
-                orientation
-        Input:
-            None
-        Output:
-            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
-        """
-        image_id_list = super().get_image_id_list(override_values)
+    def get_default_image_id_list(self, override_values={}):
         if not self.get_permission(
             constants.ACTIVE_PERMISSION,
             one_time_permissions=override_values.get("override_permissions", {}),
         ):
-            image_id_list.remove(self.image_dict["default"])
-            image_id_list.append(self.image_dict["uncrewed"])
+            return self.uncrewed_image_id
         elif self.get_permission(constants.TRAVELING_PERMISSION):
-            image_id_list.remove(self.image_dict["default"])
-            image_id_list.append(self.image_dict["moving"])
-        return image_id_list
+            return self.moving_image_id
+        else:
+            return super().get_default_image_id_list(override_values)
 
     def move(self, x_change, y_change):
         """
@@ -296,7 +285,8 @@ class vehicle(pmob):
                 'passenger_dicts': dictionary list value - List of dictionaries of saved information necessary to recreate each of this vehicle's passengers
         """
         save_dict = super().to_save_dict()
-        save_dict["image_dict"] = self.image_dict
+        save_dict["uncrewed_image_id"] = self.uncrewed_image_id
+        save_dict["moving_image_id"] = self.moving_image_id
         if self.crew:
             save_dict["crew"] = self.crew.to_save_dict()
         else:

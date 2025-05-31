@@ -70,10 +70,7 @@ class equipment_type(item_types.item_type):
             bool: Returns whether the inputted unit can show the inputted section of this equipment in its portrait
         """
         if self.key == constants.SPACESUITS_EQUIPMENT:
-            if unit.get_cell():
-                habitability = unit.get_location().get_unit_habitability(unit=None)
-            else:
-                habitability = constants.HABITABILITY_DEADLY
+            habitability = unit.get_location().get_unit_habitability(unit=None)
             toggled_sections = [
                 constants.HAT_PORTRAIT_SECTION,
                 constants.HAIR_PORTRAIT_SECTION,

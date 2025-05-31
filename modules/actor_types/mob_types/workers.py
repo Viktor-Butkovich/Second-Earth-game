@@ -58,22 +58,19 @@ class worker(pmob):
         """
         if original_constructor:
             if not from_save:
-                self.image_dict[
-                    "left portrait"
-                ] = constants.character_manager.generate_unit_portrait(
-                    self, metadata={"body_image": self.image_dict["default"]}
+                self.left_portrait_image_id_list = (
+                    constants.character_manager.generate_unit_portrait(
+                        self, metadata={"body_image": self.default_image_id}
+                    )
                 )
-                self.image_dict[
-                    "right portrait"
-                ] = constants.character_manager.generate_unit_portrait(
-                    self,
-                    metadata={
-                        "body_image": self.image_variants[self.second_image_variant]
-                    },
+                self.right_portrait_image_id_list = (
+                    constants.character_manager.generate_unit_portrait(
+                        self,
+                        metadata={
+                            "body_image": self.image_variants[self.second_image_variant]
+                        },
+                    )
                 )
-            else:
-                self.image_dict["left portrait"] = input_dict.get("left portrait", [])
-                self.image_dict["right portrait"] = input_dict.get("right portrait", [])
             super().finish_init(
                 original_constructor, from_save, input_dict, create_portrait=False
             )
@@ -145,7 +142,7 @@ class worker(pmob):
             constants.DISORGANIZED_PERMISSION,
             group.get_permission(constants.DISORGANIZED_PERMISSION),
         )
-        self.go_to_grid(self.get_cell().grid, (self.x, self.y))
+        # self.go_to_grid(self.get_cell().grid, (self.x, self.y))
         if focus:
             self.select()
         if self.movement_points > 0:
@@ -162,6 +159,8 @@ class worker(pmob):
         Output:
             None
         """
+        super().image_variants_setup(from_save, input_dict)
+        return
         for variant_type in [
             "soldier",
             "porter",

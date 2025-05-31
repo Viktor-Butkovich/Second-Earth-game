@@ -5,14 +5,12 @@ import random
 import math
 from modules.util import (
     text_utility,
-    utility,
     actor_utility,
     scaling,
     market_utility,
     minister_utility,
 )
-from modules.constructs import item_types, locations
-from modules.interface_types.grids import grid
+from modules.constructs import item_types
 from modules.constants import constants, status, flags
 from typing import Dict, List, Tuple
 
@@ -38,18 +36,12 @@ class actor:
         """
         self.previous_image = None
         self.from_save = from_save
-        status.actor_list.append(self)
-        self.modes = input_dict["modes"]
-        self.x, self.y = input_dict["coordinates"]
-        self.grids: List[grid] = []
-        self.update_attached_grids()
         self.set_name(input_dict.get("name", "placeholder"))
-
         self.tooltip_text = []
-
         self.infinite_inventory_capacity = False
         self.inventory_capacity = 0
         self.inventory: Dict[str, int] = input_dict.get("inventory", {})
+        self.default_image_id: str = input_dict.get("default_image_id", "")
         self.finish_init(original_constructor, from_save, input_dict)
 
     def finish_init(
@@ -68,12 +60,7 @@ class actor:
             self.update_image_bundle()
             self.update_tooltip()
 
-    def update_attached_grids(self) -> None:
-        self.grids = [
-            attached_cell.grid for attached_cell in self.get_location().attached_cells
-        ]
-
-    def get_location(self) -> locations.location:
+    def get_location(self) -> "actor":
         """
         Description:
             Returns the location this mob is currently in
@@ -93,29 +80,13 @@ class actor:
         Output:
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
                 'init_type': string value - Represents the type of actor this is, used to initialize the correct type of object on loading
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'modes': string list value - Game modes during which this actor's images can appear
-                'grid_type': string value - String matching the status key of this actor's primary grid, allowing loaded object to start in that grid
                 'name': string value - This actor's name
                 'inventory': dictionary value - This actor's items carried, with an integer value corresponding to amount of each item type
         """
-        save_dict = {}
-        init_type = ""
-        if self.actor_type == constants.MOB_ACTOR_TYPE:
-            init_type = self.unit_type.key
-        elif self.actor_type == constants.LOCATION_ACTOR_TYPE:
-            init_type = "location"
-        elif self.actor_type == constants.BUILDING_ACTOR_TYPE:
-            init_type = self.building_type.key
-        save_dict["init_type"] = init_type
-        save_dict["coordinates"] = (self.x, self.y)
-        save_dict["modes"] = self.modes
-        for grid_type in constants.grid_types_list:
-            if getattr(status, grid_type) == self.grid:
-                save_dict["grid_type"] = grid_type
-        save_dict["name"] = self.name
-        save_dict["inventory"] = self.inventory
-        return save_dict
+        return {
+            "name": self.name,
+            "inventory": self.inventory,
+        }
 
     def set_image(self, new_image):
         """
@@ -144,32 +115,6 @@ class actor:
                     status.location_info_display, self.get_location()
                 )
 
-    def consume_items(self, items: Dict[str, float]) -> Dict[str, float]:
-        """
-        Description:
-            Attempts to consume the inputted items from the inventories of actors in this unit's location
-                First checks the location's warehouses, followed by this unit's inventory, followed by other present units' inventories
-        Input:
-            dictionary items: Dictionary of item type keys and quantities to consume
-        Output:
-            dictionary: Returns a dictionary of item type keys and quantities that were not available to be consumed
-        """
-        missing_consumption = {}
-        for item_key, consumption_remaining in items.items():
-            item_type = status.item_types[item_key]
-            for current_mob in self.get_location().contained_mobs:
-                if current_mob != self:
-                    if consumption_remaining <= 0:
-                        break
-                    availability = current_mob.get_inventory(item_type)
-                    consumption = min(consumption_remaining, availability)
-                    current_mob.change_inventory(item_type, -consumption)
-                    consumption_remaining -= consumption
-                    consumption_remaining = round(consumption_remaining, 2)
-            if consumption_remaining > 0:
-                missing_consumption[item_key] = consumption_remaining
-        return missing_consumption
-
     def item_present(self, item_type: item_types.item_type) -> bool:
         """
         Description:
@@ -179,8 +124,8 @@ class actor:
         Output:
             bool: Returns whether the inputted item type is present anywhere in this unit's location
         """
-        for current_mob in self.get_location().contained_mobs:
-            if current_mob != self and current_mob.get_inventory(item_type) > 0:
+        for current_actor in [self.get_location(), self.get_location().contained_mobs]:
+            if current_actor.get_inventory(item_type) > 0:
                 return True
         return False
 
@@ -368,7 +313,6 @@ class actor:
         transportation_minister = minister_utility.get_minister(
             constants.TRANSPORTATION_MINISTER
         )
-        lost_items_message = ""
         lost_items: Dict[str, float] = {}
         if stealing:
             value_stolen = 0
@@ -408,12 +352,12 @@ class actor:
             if flags.player_turn:
                 intro_text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports a logistical incident "
                 if self.get_location().get_world_handler().is_abstract_world:
-                    intro_text += f"in orbit of {self.get_cell().grid.name}: /n /n"
+                    intro_text += f"in orbit of {self.get_location().get_world_handler().name}: /n /n"
                 elif self.get_location().name != "default":
                     intro_text += f"at {self.get_location().name}: /n /n"
                 else:
                     intro_text += (
-                        f"at ({self.get_cell().x}, {self.get_cell().y}): /n /n"
+                        f"at ({self.get_location().x}, {self.get_location().y}): /n /n"
                     )
                 text = f"{intro_text}{text} /n /n"
                 transportation_minister.display_message(
@@ -423,7 +367,6 @@ class actor:
                 status.logistics_incident_list.append(
                     {
                         "unit": self,
-                        "cell": self.get_cell(),
                         "explanation": text,
                     }
                 )
@@ -486,7 +429,7 @@ class actor:
         Output:
             None
         """
-        status.actor_list = utility.remove_from_list(status.actor_list, self)
+        return
 
     def touching_mouse(self):
         """
@@ -584,6 +527,9 @@ class actor:
                 ),
             )
 
+    def get_default_image_id_list(self, override_values={}):
+        return self.default_image_id
+
     def get_image_id_list(self, override_values={}):
         """
         Description:
@@ -594,7 +540,7 @@ class actor:
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        return utility.combine([], self.image_dict["default"])
+        return self.get_default_image_id_list(override_values)
 
     def update_image_bundle(self):
         """

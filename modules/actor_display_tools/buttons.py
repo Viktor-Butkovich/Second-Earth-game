@@ -57,7 +57,9 @@ class embark_all_passengers_button(button):
             vehicle = status.displayed_mob
             can_embark = True
             if self.vehicle_type == constants.TRAIN_PERMISSION:
-                if not vehicle.get_cell().get_inact_building(constants.TRAIN_STATION):
+                if not vehicle.get_location().get_inact_building(
+                    constants.TRAIN_STATION
+                ):
                     text_utility.print_to_screen(
                         "A train can only pick up passengers at a train station."
                     )
@@ -65,7 +67,7 @@ class embark_all_passengers_button(button):
             if can_embark:
                 if vehicle.sentry_mode:
                     vehicle.set_sentry_mode(False)
-                for contained_mob in vehicle.get_cell().contained_mobs:
+                for contained_mob in vehicle.get_location().contained_mobs:
                     passenger = contained_mob
                     if passenger.get_permission(
                         constants.PMOB_PERMISSION
@@ -75,7 +77,7 @@ class embark_all_passengers_button(button):
                         passenger.embark_vehicle(
                             vehicle,
                             focus=contained_mob
-                            == vehicle.get_cell().contained_mobs[-1],
+                            == vehicle.get_location().contained_mobs[-1],
                         )
         else:
             text_utility.print_to_screen(
@@ -1629,7 +1631,7 @@ class automatic_route_button(button):
                     if (
                         attached_mob.get_permission(constants.VEHICLE_PERMISSION)
                         and attached_mob.vehicle_type == constants.TRAIN_PERMISSION
-                        and not attached_mob.get_cell().has_intact_building(
+                        and not attached_mob.get_location().has_intact_building(
                             constants.TRAIN_STATION
                         )
                     ):

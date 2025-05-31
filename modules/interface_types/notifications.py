@@ -68,17 +68,7 @@ class notification(multi_line_label):
                 for attached_cell in target.attached_cells:
                     attached_cell.grid.calibrate(target.x, target.y)
             elif target.actor_type == constants.MOB_ACTOR_TYPE:
-                if (
-                    target.get_cell()
-                ):  # If non-hidden mob, move to front of location and select
-                    target.select()
-                else:  # If hidden mob, move to location and select location
-                    for attached_cell in target.attached_cells:
-                        attached_cell.grid.calibrate(target.x, target.y)
-                    actor_utility.calibrate_actor_info_display(
-                        status.location_info_display,
-                        target,
-                    )
+                target.select()
 
     def format_message(self):
         """

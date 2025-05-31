@@ -277,14 +277,14 @@ class construction(action.action):
                     "This building can only be built in locations with resources."
                 )
         elif self.building_type.key == constants.TRAIN_STATION:
-            if unit.get_cell().has_intact_building(constants.RAILROAD):
+            if unit.get_location().has_intact_building(constants.RAILROAD):
                 return_value = True
             else:
                 text_utility.print_to_screen(
                     "This building can only be built on railroads."
                 )
         elif self.building_type.key == constants.TRAIN:
-            if unit.get_cell().has_intact_building(constants.TRAIN_STATION):
+            if unit.get_location().has_intact_building(constants.TRAIN_STATION):
                 return_value = True
             else:
                 text_utility.print_to_screen(

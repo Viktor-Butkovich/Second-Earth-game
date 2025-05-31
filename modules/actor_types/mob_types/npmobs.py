@@ -187,16 +187,11 @@ class npmob(mob):
         Output:
             None
         """
-        if not self.get_cell():
-            current_cell = self.grids[0].find_cell(self.x, self.y)
-        else:
-            current_cell = self.get_cell()
-
-        noncombatants = current_cell.get_noncombatants("pmob")
+        noncombatants = self.get_location().get_noncombatants("pmob")
         for current_noncombatant in noncombatants:
             constants.notification_manager.display_notification(
                 {
-                    "message": f"The undefended {current_noncombatant.name} has been killed by {self.name} at ({self.x}, {self.y}). /n"
+                    "message": f"The undefended {current_noncombatant.name} has been killed by {self.name} at ({self.get_location().x}, {self.get_location().y}). /n"
                 }
             )
             current_noncombatant.die()
