@@ -1,7 +1,43 @@
 import random
-from typing import Dict, Any
+import os
+from typing import Dict, List, Any
 from math import ceil
 from modules.constants import constants, status, flags
+
+
+def generate_abstract_world_image(
+    size: float = 0.8, planet: str = None, rotation: int = None
+) -> List[Dict[str, Any]]:
+    """
+    Description:
+        Generates an image ID list for the specified world
+    Input:
+        float size: Size multiplier to use for the planet portion of the image
+        str planet: Type of planet to generate - constants.GLOBE_PROJECTION_WORLD for current globe projection, or an EARTH/VENUS/MARS preset
+        int rotation: Rotation index of pre-computed frame to use for Earth, if any
+    Output:
+        image ID list: List of image ID dictionaries to use for the specified world
+    """
+    if planet == constants.GLOBE_PROJECTION_WORLD:
+        image_id = status.globe_projection_surface
+    elif planet != constants.EARTH_WORLD:
+        image_id = f"locations/{planet}.png"
+    elif rotation is None:
+        image_id = "locations/earth.png"
+    else:
+        num_earth_images = len(os.listdir("graphics/locations/earth_rotations"))
+        image_id = f"locations/earth_rotations/{(constants.TIME_PASSING_EARTH_ROTATIONS % num_earth_images)}.png"
+
+    return [
+        {
+            "image_id": "misc/space.png",
+        },
+        {
+            "image_id": image_id,
+            "size": size,
+            "detail_level": 1.0,
+        },
+    ]
 
 
 def get_preset() -> str:
@@ -13,7 +49,7 @@ def get_preset() -> str:
     Output:
         str: The name of the current world preset, or None if no preset is active.
     """
-    for preset in ["earth", "venus", "mars"]:
+    for preset in [constants.EARTH_WORLD, constants.VENUS_WORLD, constants.MARS_WORLD]:
         if constants.effect_manager.effect_active(f"{preset}_preset"):
             return preset
     return None
@@ -193,7 +229,7 @@ def generate_random_world() -> Dict[str, Any]:
 def generate_earth_world_input_dict() -> Dict[str, Any]:
     return_dict = {}
     return_dict["init_type"] = constants.ABSTRACT_WORLD
-    return_dict["abstract_world_type"] = constants.EARTH
+    return_dict["abstract_world_type"] = constants.EARTH_WORLD
     return_dict["name"] = "Earth"
     return_dict["world_dimensions"] = 1
     return_dict["rotation_direction"] = constants.terrain_manager.get_tuning(

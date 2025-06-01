@@ -478,7 +478,7 @@ Mobs and buildings have to track which cells and which grids they are visible in
     Generally much clunkier, and it based on incremental design decisions that were reasonable at the time
 
 Location rework backlog:
-Make sure Earth world's image is set somewhere - seems to be empty
+Modify mob creation to pass in a location object to attach to
 Red outline of minimap grid on scrolling strategic map is not showing
 Rework actor_image and mob_image classes
 A location should be able to generate its full image (for map rendering) and its image with no mobs (for location info display rendering)

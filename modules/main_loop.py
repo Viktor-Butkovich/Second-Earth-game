@@ -2,12 +2,12 @@
 
 import time
 import pygame
-import os
 from modules.util import (
     main_loop_utility,
     text_utility,
     turn_management_utility,
     actor_utility,
+    world_utility,
 )
 from modules.constants import constants, status, flags
 
@@ -243,7 +243,6 @@ def main_loop():
             <= constants.current_time
         ):  # If enough time has passed based on delay from previous movement
             equatorial_coordinates = constants.TIME_PASSING_EQUATORIAL_COORDINATES
-            num_earth_images = len(os.listdir("graphics/locations/earth_rotations"))
             if constants.TIME_PASSING_ITERATIONS < len(
                 constants.TIME_PASSING_PLANET_SCHEDULE
             ):
@@ -280,28 +279,22 @@ def main_loop():
                     constants.TIME_PASSING_ITERATIONS
                 ]:  # If scheduled to rotate Earth at this iteration
                     status.earth_world.set_image(
-                        [
-                            "misc/space.png",
-                            {
-                                "image_id": f"locations/earth_rotations/{(constants.TIME_PASSING_EARTH_ROTATIONS % num_earth_images)}.png",
-                                "size": 0.8,
-                                "detail_level": 1.0,
-                            },
-                        ]
+                        world_utility.generate_abstract_world_image(
+                            planet=constants.EARTH_WORLD,
+                            rotation=constants.TIME_PASSING_EARTH_ROTATIONS,
+                        )
                     )
                     if constants.effect_manager.effect_active(
                         "rotate_game_mode_buttons"
                     ):
                         status.to_earth_button.image.set_image(
                             actor_utility.generate_frame(
-                                "misc/space.png",
+                                world_utility.generate_abstract_world_image(
+                                    planet=constants.EARTH_WORLD,
+                                    size=0.6,
+                                    rotation=constants.TIME_PASSING_EARTH_ROTATIONS,
+                                ),
                             )
-                            + [
-                                {
-                                    "image_id": f"locations/earth_rotations/{(constants.TIME_PASSING_EARTH_ROTATIONS % num_earth_images)}.png",
-                                    "size": 0.6,
-                                }
-                            ]
                         )
                     constants.TIME_PASSING_EARTH_ROTATIONS += 1
 
@@ -320,26 +313,17 @@ def main_loop():
                 )
 
                 status.earth_world.set_image(
-                    [
-                        "misc/space.png",
-                        {
-                            "image_id": f"locations/earth.png",
-                            "size": 0.8,
-                            "detail_level": 1.0,
-                        },
-                    ]
+                    world_utility.generate_abstract_world_image(
+                        planet=constants.EARTH_WORLD
+                    )
                 )
                 if constants.effect_manager.effect_active("rotate_game_mode_buttons"):
                     status.to_earth_button.image.set_image(
                         actor_utility.generate_frame(
-                            "misc/space.png",
+                            world_utility.generate_abstract_world_image(
+                                planet=constants.EARTH_WORLD, size=0.6
+                            ),
                         )
-                        + [
-                            {
-                                "image_id": f"locations/earth.png",
-                                "size": 0.6,
-                            }
-                        ]
                     )
                 main_loop_utility.update_display()
                 flags.enemy_combat_phase = True

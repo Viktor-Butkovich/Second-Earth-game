@@ -3,7 +3,7 @@
 import pygame
 import logging
 from modules.constants import constants, status, flags
-from modules.util import scaling, actor_utility, game_transitions
+from modules.util import scaling, world_utility, actor_utility, game_transitions
 from modules.constructs import (
     fonts,
     unit_types,
@@ -1643,14 +1643,10 @@ def buttons():
                 switch_game_mode_buttons_x + 60, constants.default_display_height - 55
             ),
             "image_id": actor_utility.generate_frame(
-                "misc/space.png",
-            )
-            + [
-                {
-                    "image_id": "locations/earth.png",
-                    "size": 0.6,
-                }
-            ],
+                world_utility.generate_abstract_world_image(
+                    planet=constants.EARTH_WORLD, size=0.6
+                )
+            ),
             "to_mode": constants.EARTH_MODE,
             "keybind_id": pygame.K_2,
         }
@@ -1958,13 +1954,11 @@ def buttons():
         input_dict["toggle_variable"] = "mars_preset"
         input_dict["attached_to_actor"] = False
         input_dict["modes"] = [constants.NEW_GAME_SETUP_MODE]
-        input_dict["image_id"] = actor_utility.generate_frame("misc/space.png") + [
-            {
-                "image_id": "locations/mars.png",
-                "size": 0.6,
-                "detail_level": 1.0,
-            }
-        ]
+        input_dict["image_id"] = actor_utility.generate_frame(
+            world_utility.generate_abstract_world_image(
+                size=0.8, planet=constants.MARS_WORLD
+            )
+        )
         input_dict["width"] = scaling.scale_width(100)
         input_dict["height"] = scaling.scale_height(100)
         input_dict["parent_collection"] = rhs_menu_collection
@@ -1972,23 +1966,19 @@ def buttons():
         constants.actor_creation_manager.create_interface_element(input_dict)
 
         input_dict["toggle_variable"] = "earth_preset"
-        input_dict["image_id"] = actor_utility.generate_frame("misc/space.png") + [
-            {
-                "image_id": "locations/earth.png",
-                "size": 0.6,
-                "detail_level": 1.0,
-            }
-        ]
+        input_dict["image_id"] = actor_utility.generate_frame(
+            world_utility.generate_abstract_world_image(
+                size=0.8, planet=constants.EARTH_WORLD
+            )
+        )
         constants.actor_creation_manager.create_interface_element(input_dict)
 
         input_dict["toggle_variable"] = "venus_preset"
-        input_dict["image_id"] = actor_utility.generate_frame("misc/space.png") + [
-            {
-                "image_id": "locations/venus.png",
-                "size": 0.6,
-                "detail_level": 1.0,
-            }
-        ]
+        input_dict["image_id"] = actor_utility.generate_frame(
+            world_utility.generate_abstract_world_image(
+                size=0.8, planet=constants.VENUS_WORLD
+            )
+        )
         constants.actor_creation_manager.create_interface_element(input_dict)
 
 

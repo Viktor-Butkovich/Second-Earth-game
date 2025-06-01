@@ -1,7 +1,7 @@
 import pygame
 import math
 from typing import List, Dict, Tuple, Any
-from modules.util import actor_utility
+from modules.util import actor_utility, world_utility
 from modules.constructs import world_handlers
 from modules.constants import constants, status, flags
 
@@ -42,7 +42,7 @@ class abstract_world_handler(world_handlers.world_handler):
 
     @property
     def is_earth(self) -> bool:
-        return self.abstract_world_type == constants.EARTH
+        return self.abstract_world_type == constants.EARTH_WORLD
 
 
 class orbital_world_handler(abstract_world_handler):
@@ -350,28 +350,20 @@ class full_world_handler(world_handlers.world_handler):
                 math.floor(size[1] * constants.GLOBE_PROJECTION_DETAIL_LEVEL),
             ),
         )
-
         status.current_world.orbital_world.set_image(
-            [
-                "misc/space.png",
-                {
-                    "image_id": status.globe_projection_surface,
-                    "size": 0.8,
-                },
-            ]
+            world_utility.generate_abstract_world_image(
+                planet=constants.GLOBE_PROJECTION_WORLD
+            )
         )
 
         if update_button:
             status.to_strategic_button.image.set_image(
                 actor_utility.generate_frame(
-                    "misc/space.png",
+                    world_utility.generate_abstract_world_image(
+                        planet=constants.GLOBE_PROJECTION_WORLD,
+                        size=0.6,
+                    )
                 )
-                + [
-                    {
-                        "image_id": status.globe_projection_surface,
-                        "size": 0.6,
-                    }
-                ]
             )
 
     def create_planet_image(self, center_coordinates: Tuple[int, int] = None):

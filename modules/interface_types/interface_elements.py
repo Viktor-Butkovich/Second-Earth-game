@@ -2,7 +2,7 @@
 
 import pygame
 from modules.constructs import images
-from modules.util import scaling, utility, dummy_utility, actor_utility
+from modules.util import scaling, utility, dummy_utility, actor_utility, world_utility
 from modules.constants import constants, status, flags
 
 
@@ -987,18 +987,11 @@ class ordered_collection(interface_collection):
             )
         elif self == status.global_conditions_collection and new_actor:
             if new_actor.get_world_handler().is_earth:
-                globe_image = "locations/earth.png"
+                planet = constants.EARTH_WORLD
             else:
-                globe_image = status.globe_projection_surface
+                planet = constants.GLOBE_PROJECTION_WORLD
             self.tab_button.image.set_image(
                 actor_utility.generate_frame(
-                    "misc/space.png",
+                    world_utility.generate_abstract_world_image(size=0.6, planet=planet)
                 )
-                + [
-                    {
-                        "image_id": globe_image,
-                        "size": 0.6,
-                        "detail_level": 1.0,
-                    }
-                ]
             )

@@ -485,7 +485,10 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
 world_dimensions_options: List[int] = None
 earth_dimensions: int = None
 
-EARTH: str = "earth"
+EARTH_WORLD: str = "earth"
+MARS_WORLD: str = "mars"
+VENUS_WORLD: str = "venus"
+GLOBE_PROJECTION_WORLD: str = "globe_projection"
 
 current_game_mode: str = None
 STRATEGIC_MODE: str = "strategic"

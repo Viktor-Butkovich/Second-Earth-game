@@ -951,23 +951,6 @@ class location(actors.actor):
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        """
-        if this is the Earth abstract location:
-            [
-                "misc/space.png",
-                {
-                    "image_id": "locations/earth.png",
-                    "size": 0.8,
-                    "detail_level": 1.0,
-                },
-            ]
-        if this is the orbital globe projection abstract location:
-            [
-                {
-                    "image_id": "misc/empty.png",
-                }
-            ] - uses the most recently generated globe projection
-        """
         if self.get_world_handler().is_abstract_world:
             image_id_list = self.get_world_handler().image_id_list
         else:

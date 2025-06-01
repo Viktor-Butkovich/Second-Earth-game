@@ -596,8 +596,11 @@ def generate_frame(
 
     elif type(image_id) == list:
         for image in image_id:
-            image["x_size"] = image.get("x_size", 1) * size
-            image["y_size"] = image.get("y_size", 1) * size
+            if "x_size" in image and "y_size" in image:
+                image["x_size"] = image.get("x_size", 1) * size
+                image["y_size"] = image.get("y_size", 1) * size
+            else:
+                image["size"] = image.get("size", 1) * size
             image["x_offset"] = image.get("x_offset", 0) + x_offset
             image["y_offset"] = image.get("y_offset", 0) + y_offset
         return utility.combine(frame, image_id)
