@@ -113,7 +113,7 @@ class mob(actor):
                 self.creation_turn = constants.turn
         self.location: locations.location = input_dict.get("location", None)
         if self.location:
-            self.location.add_mob(self)
+            self.location.subscribe_mob(self)
         self.finish_init(original_constructor, from_save, input_dict)
 
     @property
@@ -619,8 +619,8 @@ class mob(actor):
         """
         return (
             super().can_show(skip_parent_collection)
-            and self.get_location().contained_mobs
-            and self == self.get_location().contained_mobs[0]
+            and self.get_location().subscribed_mobs
+            and self == self.get_location().subscribed_mobs[0]
         )
 
     def get_movement_cost(self, x_change, y_change):
@@ -884,17 +884,12 @@ class mob(actor):
         """
         if main_loop_utility.action_possible():
             if status.displayed_mob != self:
+                self.location.subscribed_mobs.remove(self)
+                self.location.subscribed_mobs.insert(0, self)
+                self.location.update_image_bundle()
                 self.select()
                 if self.get_permission(constants.PMOB_PERMISSION):
                     self.selection_sound()
-                for (
-                    current_image
-                ) in self.images:  # move mob to front of each stack it is in
-                    if current_image.current_cell:
-                        while not self == current_image.current_cell.contained_mobs[0]:
-                            current_image.current_cell.contained_mobs.append(
-                                current_image.current_cell.contained_mobs.pop(0)
-                            )
         else:
             text_utility.print_to_screen(
                 "You are busy and cannot select a different unit"
@@ -910,36 +905,9 @@ class mob(actor):
             None
         """
         current_location = self.get_location()
-        if self in current_location.contained_mobs:
-            while (
-                not current_location.contained_mobs[0] == self
-            ):  # Move to front of location
-                current_location.contained_mobs.append(
-                    current_location.contained_mobs.pop(0)
-                )
-
-    def draw_outline(self):
-        """
-        Description:
-            Draws a flashing outline around this mob if it is selected
-        Input:
-            None
-        Output:
-            None
-        """
-        if flags.show_selection_outlines:
-            for current_image in self.images:
-                if (
-                    current_image.current_cell
-                    and self == current_image.current_cell.contained_mobs[0]
-                    and current_image.current_cell.grid.showing
-                ):  # only draw outline if on top of stack
-                    pygame.draw.rect(
-                        constants.game_display,
-                        constants.color_dict[self.selection_outline_color],
-                        (current_image.outline),
-                        current_image.outline_width,
-                    )
+        current_location.subscribed_mobs.remove(self)
+        current_location.subscribed_mobs.insert(0, self)
+        current_location.update_image_bundle()
 
     def update_image_bundle(self):
         """
@@ -952,8 +920,9 @@ class mob(actor):
         """
         previous_image = self.previous_image
         super().update_image_bundle()
-        if self.previous_image != previous_image:
+        if self.image_id_list != previous_image:
             self.reselect()
+            self.previous_image = self.image_id_list
         # Add logic to tell location to update appearance of attached cells and info displays
 
     def update_tooltip(self):
@@ -1130,8 +1099,8 @@ class mob(actor):
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, None, override_exempt=True
             )
-        for current_image in self.images:
-            current_image.remove_from_cell()
+        if self.location:
+            self.location.unsubscribe_mob(self)
         super().remove()
         status.mob_list = utility.remove_from_list(status.mob_list, self)
         for current_status_icon in self.status_icons:

@@ -430,7 +430,7 @@ class button(interface_elements.interface_element):
             if self.showing:
                 tooltip_text += [
                     f"    {current_mob.name}"
-                    for current_mob in status.displayed_location.contained_mobs
+                    for current_mob in status.displayed_location.subscribed_mobs
                 ]
             self.set_tooltip(tooltip_text)
 
@@ -1684,12 +1684,11 @@ class cycle_same_location_button(button):
         """
         if main_loop_utility.action_possible():
             cycled_location = status.displayed_location
-            moved_mob = cycled_location.contained_mobs.pop(0)
-            cycled_location.contained_mobs.append(moved_mob)
-            cycled_location.contained_mobs[0].cycle_select()
-            actor_utility.calibrate_actor_info_display(
-                status.location_info_display, cycled_location
-            )  # updates mob info display list to show changed passenger order
+            cycled_location.subscribed_mobs.append(
+                cycled_location.subscribed_mobs.pop(0)
+            )
+            cycled_location.subscribed_mobs[0].cycle_select()
+            cycled_location.update_image_bundle()
         else:
             text_utility.print_to_screen("You are busy and cannot cycle units.")
 
@@ -1705,7 +1704,7 @@ class cycle_same_location_button(button):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
             displayed_location = status.displayed_location
-            if displayed_location and len(displayed_location.contained_mobs) >= 4:
+            if displayed_location and len(displayed_location.subscribed_mobs) >= 4:
                 return True
         return False
 
@@ -1739,7 +1738,7 @@ class same_location_icon(button):
         """
         self.attached_mob = None
         super().__init__(input_dict)
-        self.old_contained_mobs = []
+        self.previous_subscribed_mobs = []
         self.default_image_id = input_dict["image_id"]
         self.index = input_dict["index"]
         self.is_last = input_dict["is_last"]
@@ -1782,7 +1781,7 @@ class same_location_icon(button):
         self.update()
         return (
             status.displayed_location
-            and len(self.old_contained_mobs) > self.index
+            and len(self.previous_subscribed_mobs) > self.index
             and super().can_show()
         )
 
@@ -1809,25 +1808,31 @@ class same_location_icon(button):
         if super().can_show():
             displayed_location = status.displayed_location
             if displayed_location:
-                new_contained_mobs = displayed_location.contained_mobs
-                if (new_contained_mobs != self.old_contained_mobs) or self.resetting:
+                new_subscribed_mobs = displayed_location.subscribed_mobs
+                if (
+                    new_subscribed_mobs != self.previous_subscribed_mobs
+                ) or self.resetting:
                     self.resetting = False
-                    self.old_contained_mobs = []
-                    for current_item in new_contained_mobs:
-                        self.old_contained_mobs.append(current_item)
-                    if self.is_last and len(new_contained_mobs) > self.index:
+                    self.previous_subscribed_mobs = []
+                    for current_item in new_subscribed_mobs:
+                        self.previous_subscribed_mobs.append(current_item)
+                    if self.is_last and len(new_subscribed_mobs) > self.index:
                         self.attached_mob = "last"
                         self.image.set_image("buttons/extra_selected_button.png")
                         name_list = []
-                        for current_mob_index in range(len(self.old_contained_mobs)):
+                        for current_mob_index in range(
+                            len(self.previous_subscribed_mobs)
+                        ):
                             if current_mob_index > self.index - 1:
                                 name_list.append(
-                                    self.old_contained_mobs[current_mob_index].name
+                                    self.previous_subscribed_mobs[
+                                        current_mob_index
+                                    ].name
                                 )
                         self.name_list = name_list
 
-                    elif len(self.old_contained_mobs) > self.index:
-                        self.attached_mob = self.old_contained_mobs[self.index]
+                    elif len(self.previous_subscribed_mobs) > self.index:
+                        self.attached_mob = self.previous_subscribed_mobs[self.index]
                         self.image.set_image(self.attached_mob.images[0].image_id)
             else:
                 self.attached_mob = None
@@ -1843,7 +1848,7 @@ class same_location_icon(button):
         """
         if self.showing:
             if self.index == 0 and status.displayed_location:
-                if status.displayed_location.contained_mobs[0] == status.displayed_mob:
+                if status.displayed_location.subscribed_mobs[0] == status.displayed_mob:
                     pygame.draw.rect(
                         constants.game_display,
                         constants.color_dict[constants.COLOR_BRIGHT_GREEN],
@@ -3038,7 +3043,7 @@ class cycle_autofill_button(button):
             None
         """
         self.parent_collection.search_start_index = (
-            status.displayed_mob.get_location().contained_mobs.index(
+            status.displayed_mob.get_location().subscribed_mobs.index(
                 self.parent_collection.autofill_actors[self.autofill_target_type]
             )
             + 1

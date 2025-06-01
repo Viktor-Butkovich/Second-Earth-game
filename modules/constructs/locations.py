@@ -71,9 +71,11 @@ class location(actors.actor):
         self.attached_cells: list = []
         self.expected_temperature_offset: float = 0.0
         self.contained_buildings: Dict[str, Any] = {}
-        self.contained_mobs: List[any] = []  # List of top-level contained mobs
+        self.subscribed_mobs: List[actors.actor] = (
+            []
+        )  # List of top-level contained mobs
         if from_save:
-            for current_mob_dict in input_dict.get("contained_mobs", []):
+            for current_mob_dict in input_dict.get("subscribed_mobs", []):
                 constants.actor_creation_manager.create(
                     from_save=True,
                     input_dict={
@@ -83,13 +85,14 @@ class location(actors.actor):
                 )
         self.hosted_images = []
         self.settlement: Any = None
+        self.update_image_bundle()
 
     @property
     def actor_type(self) -> str:
         return constants.LOCATION_ACTOR_TYPE
 
     @property
-    def all_contained_mobs(self) -> List[Any]:
+    def subscribed_mobs_recursive(self) -> List[Any]:
         return (
             []
         )  # Dynamically get all contained mobs, including work crews in buildings and sub-mobs of vehicles and groups
@@ -141,6 +144,14 @@ class location(actors.actor):
                 if random.randrange(1, 7) >= 5:  # removes 1/3 of attrition
                     return False
         return True
+
+    def remove_complete(self) -> None:
+        for cell in self.attached_cells.copy():
+            self.unsubscribe_cell(cell)
+        for mob in self.subscribed_mobs.copy():
+            mob.remove_complete()
+        for building in self.contained_buildings.copy().values():
+            building.remove_complete()
 
     def has_building(self, building_type: str) -> bool:
         """
@@ -597,7 +608,7 @@ class location(actors.actor):
                 status.location_info_display, self
             )
 
-        for mob in self.all_contained_mobs:
+        for mob in self.subscribed_mobs_recursive:
             mob.update_habitability()
 
     def has_snow(self) -> bool:
@@ -697,8 +708,8 @@ class location(actors.actor):
             "pole_distance_multiplier": self.pole_distance_multiplier,
             "current_clouds": self.current_clouds,
             "local_weather_offset": self.local_weather_offset,
-            "contained_mobs": [
-                current_mob.to_save_dict() for current_mob in self.contained_mobs
+            "subscribed_mobs": [
+                current_mob.to_save_dict() for current_mob in self.subscribed_mobs
             ],
         }
 
@@ -748,7 +759,7 @@ class location(actors.actor):
         if update_image_bundle:
             self.update_image_bundle()
 
-    def add_cell(self, cell) -> None:
+    def subscribe_cell(self, cell) -> None:
         """
         Description:
             Subscribes the inputted cell to this location, removing it from any previous location and updating its parameters to match this location
@@ -758,21 +769,22 @@ class location(actors.actor):
             None
         """
         if cell.get_location():
-            cell.get_location().remove_cell(cell)
+            cell.get_location().unsubscribe_cell(cell)
         self.attached_cells.append(cell)
         cell.location = self
         self.refresh_attached_images()
         # Update cell's rendered image
 
-    def add_mob(self, mob) -> None:
+    def subscribe_mob(self, mob) -> None:
         if (
             mob.location
         ):  # Note that this is distinct from get_location(), which recursively checks through containers
-            mob.location.remove_mob(mob)
-        self.contained_mobs.append(mob)
+            mob.location.unsubscribe_mob(mob)
+        self.subscribed_mobs.append(mob)
         mob.location = self
+        self.update_image_bundle()
 
-    def remove_cell(self, cell) -> None:
+    def unsubscribe_cell(self, cell) -> None:
         """
         Description:
             Removes the inputted cell from the terrain location - precondition that cell is in the terrain location
@@ -783,8 +795,11 @@ class location(actors.actor):
         """
         self.attached_cells.remove(cell)
         cell.location = None
-        if not self.attached_cells:
-            del self
+
+    def unsubscribe_mob(self, mob) -> None:
+        self.subscribed_mobs.remove(mob)
+        mob.location = None
+        self.update_image_bundle()
 
     def flow(self) -> None:
         """
@@ -1103,7 +1118,7 @@ class location(actors.actor):
             self.image_id_list = override_image
         else:
             self.image_id_list = self.get_image_id_list()
-        if previous_image != self.previous_image:
+        if previous_image != self.image_id_list:
             self.refresh_attached_images()
 
     def refresh_attached_images(self):
@@ -1144,23 +1159,23 @@ class location(actors.actor):
             Returns the first unit in this cell with all the inputted permissions, or None if none are present
         Input:
             string list permissions: List of permissions to search for
-            int start_index=0: Index of contained_mobs to start search from - if starting in middle, wraps around iteration to ensure all items are still checked
+            int start_index=0: Index of subscribed_mobs to start search from - if starting in middle, wraps around iteration to ensure all items are still checked
                 Allows finding different units with repeated calls by changing start_index
             boolean get_all=False: If True, returns all units with the inputted permissions, otherwise returns the first
         Output:
             mob: Returns the first unit in this cell with all the inputted permissions, or None if none are present
                 If get_all, otherwise returns List[mob]: Returns all units in this cell with all the inputted permissions
         """
-        if not self.contained_mobs:
+        if not self.subscribed_mobs:
             return [] if get_all else None
 
         start_index = min(
-            start_index, len(self.contained_mobs) - 1
+            start_index, len(self.subscribed_mobs) - 1
         )  # Ensure that start_index is not after the end of the list
 
         iterated_list = (
-            self.contained_mobs[start_index : len(self.contained_mobs)]
-            + self.contained_mobs[0:start_index]
+            self.subscribed_mobs[start_index : len(self.subscribed_mobs)]
+            + self.subscribed_mobs[0:start_index]
         )  # Get all mobs starting from start_index, wrapping around to the beginning of the list
 
         if get_all:
@@ -1189,15 +1204,15 @@ class location(actors.actor):
         Output;
             mob: Returns the best combatant of the inputted type in this cell
         """
-        if not self.contained_mobs:
+        if not self.subscribed_mobs:
             return None
 
         max_modifier = max(
-            self.contained_mobs, key=lambda m: m.get_combat_modifier()
+            self.subscribed_mobs, key=lambda m: m.get_combat_modifier()
         ).get_combat_modifier()
         strongest_candidates = [
             current_mob
-            for current_mob in self.contained_mobs
+            for current_mob in self.subscribed_mobs
             if current_mob.get_combat_modifier() == max_modifier
         ]
         veteran_candidates = [
@@ -1221,17 +1236,17 @@ class location(actors.actor):
         """
         return [
             current_mob
-            for current_mob in self.contained_mobs
+            for current_mob in self.subscribed_mobs
             if current_mob.get_combat_strength() == 0
             and current_mob.get_permission(constants.PMOB_PERMISSION)
         ]
 
     def generate_batch_tooltip_text_list(self):
         self.update_tooltip()
-        for current_mob in self.contained_mobs:
+        for current_mob in self.subscribed_mobs:
             current_mob.update_tooltip()
         return [self.tooltip_text] + [
-            current_mob.tooltip_text for current_mob in self.contained_mobs
+            current_mob.tooltip_text for current_mob in self.subscribed_mobs
         ]
 
     def update_tooltip(self):
@@ -1390,7 +1405,7 @@ class location(actors.actor):
             None
         """
         return utility.add_dicts(
-            self.inventory, *[mob.inventory for mob in self.contained_mobs]
+            self.inventory, *[mob.inventory for mob in self.subscribed_mobs]
         )
 
     def consume_items(
@@ -1408,7 +1423,7 @@ class location(actors.actor):
         missing_consumption = {}
         for item_key, consumption_remaining in items.items():
             item_type = status.item_types[item_key]
-            for current_actor in [consuming_actor, self] + self.contained_mobs:
+            for current_actor in [consuming_actor, self] + self.subscribed_mobs:
                 if current_actor:
                     if consumption_remaining <= 0:
                         break
@@ -1478,7 +1493,7 @@ class location(actors.actor):
         return utility.add_dicts(
             *[
                 mob.get_item_upkeep(recurse=recurse, earth_exemption=earth_exemption)
-                for mob in self.contained_mobs
+                for mob in self.subscribed_mobs
             ]
         )
 

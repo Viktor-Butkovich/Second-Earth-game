@@ -473,7 +473,7 @@ Mobs and buildings exist in cells, while inventory exists in locations
 The tile info display subscribes to a tile, and the mob info display subscribes to the first mob in a cell
 Tiles, mobs, and buildings directly handle their own rendering and tooltips
 Mobs and buildings have to track which cells and which grids they are visible in
-    This introduces complications due to contained_mobs, contained_buildings, and tile inventory existing in non-unique entities
+    This introduces complications due to subscribed_mobs, contained_buildings, and tile inventory existing in non-unique entities
     Game logic is tightly coupled with the interface, resulting in unnecessary complexity and difficulty simulating
     Generally much clunkier, and it based on incremental design decisions that were reasonable at the time
 
@@ -488,14 +488,11 @@ Make sure name icons are rendered and handled correctly
 Rework rename function
 Remove "modes" attribute on actors - redundant, as entirely depends on the grid they're displayed in
 Update docstrings
-Selected location and one centered in the minimap grids don't seem to match
-Selecting a location in the minimap grid should calibrate to make it the center
-Remove references to get_equivalent_tiles
 Rework end_turn_move to be move to a location in a world by coordinate, rather than a cell in a grid
 Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
 Transfer hosted_images from tile to location
 Transfer buildings from cell to location
-Transfer contained_mobs from cell to location
+Transfer subscribed_mobs from cell to location
 Transfer tile inventory from tile to location
 Transfer settlements from cell to location
 Transfer set_image from tile to location
@@ -504,21 +501,14 @@ Transfer hosted_images from tile to location
 Fix directional indicator images not showing
 Make sure location inherits actor's manage_inventory_attrition
 Any rendering handled by actor images should be handled elsewhere now - go to grid logic is now redundant, but pygame image and tooltip box rendering are still required elsewhere
-Implement location's all_contained_mobs property
-Implement cell's draw function
+Implement location subscribed_mobs_recursive property to get all mobs who would map to this with get_location()
 Modify actors in general to not require any "modes" logic - should draw purely based on subscribed cells and info displays, which already handle this
-Modify location's add_cell function to update cell's rendered image to match the location
 Make a function handling the following minimap grid calibration pattern: Something like focus_location
     for attached_cell in location.attached_cells:s
         attached_cell.grid.calibrate(location.x, location.y)
 Replace cell icons with extra images directly added to locations - a location should be fully in control of what it displays
 Add rename function to worlds
 Transfer logistics_incident_list from cell to location
-Make sure remove_complete on a world recursively removes all locations
-Make sure remove_complete on a location recursively removes all mobs, buildings, settlements, and other objects linked to it
-    Note that interface components like grids and cells can be detached and removed independently before the location
-Modify actors to never have to handle touching_mouse or tooltip rendering logic - if cell is hovered, it should access its
-    location's tooltips and render them
 Modify non-location actors to save as part of their location - this means the location manages their save dict, and they do not
     need to remember location, coordinates, etc.
 Convert all tooltips to act similar to location tooltips, with centralized rendering logic
@@ -532,7 +522,6 @@ Work to define what an actor is - maybe it is a concept that can have an invento
     Some shared functionality with ministers, who also have names and can be selected
         Possibly differ between actors who have inventory, which is a subset of actors who can be selected
     Buildings and cell icons do not qualify as an actor, and should instead be constructs within a location
-Next steps: Refactor of actor class so that it makes sense to be inherited by locations and mobs
 """
 
 # Investigate water disappearing during terraforming - definitely occurs on Venus and Mars maps

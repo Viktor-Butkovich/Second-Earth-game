@@ -40,7 +40,7 @@ class cell:
         self.location = None
         self.image: images.cell_image = images.cell_image(self)
         self.batch_tooltip_box_list: List[pygame.Rect] = []
-        self.grid.world_handler.find_location(self.x, self.y).add_cell(self)
+        self.grid.world_handler.find_location(self.x, self.y).subscribe_cell(self)
 
     @property
     def batch_tooltip_list(self):
@@ -96,43 +96,7 @@ class cell:
             self.Rect,
         )
         self.image.draw()
-
-        # Instead, have some stored pygame surface corresponding to the rendered version of the location and all its contents
-        #   From the location, fetch an image ID list of all desired images to render
-        #   Cell should have a single image object that takes this image ID list and renders it into a surface
-        #   When the cell draws, it should instruct its image to draw at the cell's pixel location
-        """
-        if self.location:
-            for current_image in self.location.images:
-                current_image.draw()
-            if self.get_location().visible and self.contained_mobs:
-                for current_image in self.contained_mobs[0].images:
-                    current_image.draw()
-                self.show_num_mobs()
-        """
-
-    def show_num_mobs(self):
-        """
-        Description:
-            Draws a number showing how many mobs are in this cell if it contains multiple mobs, otherwise does nothing
-        Input:
-            None
-        Output:
-            None
-        """
-        length = len(self.contained_mobs)
-        if length >= 2:
-            message = str(length)
-            font = constants.fonts["max_detail_white"]
-            font_width = self.width * 0.13 * 1.3
-            font_height = self.width * 0.3 * 1.3
-            textsurface = font.pygame_font.render(message, False, font.color)
-            textsurface = pygame.transform.scale(
-                textsurface, (font_width * len(message), font_height)
-            )
-            text_x = self.pixel_x + self.width - (font_width * (len(message) + 0.3))
-            text_y = self.pixel_y + (-0.8 * self.height) - (0.5 * font_height)
-            constants.game_display.blit(textsurface, (text_x, text_y))
+        self.image.show_num_mobs()
 
     def touching_mouse(self):
         """
@@ -164,3 +128,64 @@ class cell:
                 self.Rect,
                 self.image.outline_width,
             )
+
+
+"""
+Port over flashing outline logic -
+mob:
+    def draw_outline(self):
+        if flags.show_selection_outlines:
+            for current_image in self.images:
+                if (
+                    current_image.current_cell
+                    and self == current_image.current_cell.contained_mobs[0]
+                    and current_image.current_cell.grid.showing
+                ):  # only draw outline if on top of stack
+                    pygame.draw.rect(
+                        constants.game_display,
+                        constants.color_dict[self.selection_outline_color],
+                        (current_image.outline),
+                        current_image.outline_width,
+                    )
+
+pmob:
+    def draw_outline(self):
+        return
+        if flags.show_selection_outlines:
+            for current_image in self.images:
+                if (
+                    current_image.current_cell
+                    and current_image.current_cell.contained_mobs
+                    and self == current_image.current_cell.contained_mobs[0]
+                    and current_image.current_cell.grid.showing
+                ):  # Only draw outline if on top of stack
+                    pygame.draw.rect(
+                        constants.game_display,
+                        constants.color_dict[self.selection_outline_color],
+                        (current_image.outline),
+                        current_image.outline_width,
+                    )
+
+                    if len(self.base_automatic_route) > 0:
+                        start_coordinates = self.base_automatic_route[0]
+                        end_coordinates = self.base_automatic_route[-1]
+                        for current_coordinates in self.base_automatic_route:
+                            if current_coordinates == start_coordinates:
+                                color = constants.COLOR_PURPLE
+                            elif current_coordinates == end_coordinates:
+                                color = constants.COLOR_YELLOW
+                            else:
+                                color = constants.COLOR_BRIGHT_BLUE
+                            for attached_cell in (
+                                self.get_location()
+                                .get_world_handler()
+                                .find_location(
+                                    current_coordinates[0], current_coordinates[1]
+                                )
+                                .attached_cells
+                            ):
+                                attached_cell.location.draw_destination_outline(color)
+            if self.end_turn_destination:
+                for attached_cell in self.end_turn_destination.attached_cells:
+                    attached_cell.location.draw_destination_outline()
+"""

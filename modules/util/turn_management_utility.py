@@ -425,7 +425,7 @@ def manage_upkeep_expenditure() -> None:
     """
     for current_world in status.world_list:
         for current_location in current_world.get_flat_location_list():
-            if current_location.contained_mobs:
+            if current_location.subscribed_mobs:
                 item_upkeep = current_location.get_item_upkeep(recurse=True)
                 item_request = current_location.create_item_request(item_upkeep)
                 unfulfilled_item_request = current_location.fulfill_item_request(
@@ -444,9 +444,9 @@ def manage_upkeep_expenditure() -> None:
                     print(
                         f"{name} unfulfilled external requests {unfulfilled_item_request}"
                     )
-                for current_mob in current_location.contained_mobs:
+                for current_mob in current_location.subscribed_mobs:
                     current_mob.check_item_availability()
-                for current_mob in current_location.contained_mobs:
+                for current_mob in current_location.subscribed_mobs:
                     current_mob.consume_item_upkeep()
                 current_location.set_inventory(
                     status.item_types[constants.ENERGY_ITEM], 0
@@ -873,7 +873,7 @@ def end_turn_warnings():
             num_leaving = 0
             num_reserve = 0
             # Number of vehicles leaving and number of vehicles staying behind, respectively
-            for current_mob in current_location.contained_mobs:
+            for current_mob in current_location.subscribed_mobs:
                 if current_mob.end_turn_destination and current_mob.get_permission(
                     constants.VEHICLE_PERMISSION
                 ):
@@ -882,7 +882,7 @@ def end_turn_warnings():
                     constants.VEHICLE_PERMISSION, constants.ACTIVE_PERMISSION
                 ):
                     num_reserve += 1
-            num_stranded = len(current_location.contained_mobs) - (
+            num_stranded = len(current_location.subscribed_mobs) - (
                 num_leaving + num_reserve
             )  # Number of non-vehicles left behind
             if (
@@ -925,7 +925,7 @@ def end_turn_warnings():
 
     for current_world in status.world_list:
         for current_location in current_world.get_flat_location_list():
-            if current_location.contained_mobs:
+            if current_location.subscribed_mobs:
                 item_upkeep = current_location.get_item_upkeep(recurse=True)
                 item_request = current_location.create_item_request(item_upkeep)
                 if constants.ENERGY_ITEM in item_request:

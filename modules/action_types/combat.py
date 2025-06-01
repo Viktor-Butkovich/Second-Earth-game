@@ -646,7 +646,7 @@ class combat(action.action):
                     )
             else:
                 if (
-                    len(combat_location.contained_mobs) > 2
+                    len(combat_location.subscribed_mobs) > 2
                 ):  # len == 2 if only attacker and defender in location
                     self.current_unit.retreat()  # Attacker retreats in draw or if more defenders remaining
                 elif (

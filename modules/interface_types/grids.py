@@ -109,12 +109,11 @@ class grid(interface_elements.interface_element):
         ):
             for attached_cell in status.displayed_location.attached_cells:
                 attached_cell.draw_actor_match_outline()
-        if (
-            status.displayed_mob
-            and (
-                self in status.displayed_mob.get_location().get_world_handler().attached_grids or
-                self in status.displayed_mob.end_turn_destination.get_world_handler().attached_grids
-            )
+        if status.displayed_mob and (
+            self
+            in status.displayed_mob.get_location().get_world_handler().attached_grids
+            or self
+            in status.displayed_mob.end_turn_destination.get_world_handler().attached_grids
         ):
             # If displayed mob or its end turn destination are on this grid, draw the mob's outline
             status.displayed_mob.draw_outline()
@@ -492,7 +491,7 @@ class mini_grid(grid):
                     for y in range(self.coordinate_height):
                         self.world_handler.find_location(
                             *self.get_absolute_coordinates(x, y)
-                        ).add_cell(
+                        ).subscribe_cell(
                             self.find_cell(x, y)
                         )  # Calibrate each cell to its the new location
 

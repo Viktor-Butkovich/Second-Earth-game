@@ -155,7 +155,7 @@ class npmob(mob):
             None
         """
         status.minimap_grid.calibrate(self.x, self.y)
-        for current_mob in self.get_location().contained_mobs:
+        for current_mob in self.get_location().subscribed_mobs:
             if current_mob.get_permission(constants.VEHICLE_PERMISSION):
                 current_mob.eject_passengers()
                 current_mob.eject_crew()

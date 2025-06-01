@@ -67,7 +67,7 @@ class embark_all_passengers_button(button):
             if can_embark:
                 if vehicle.sentry_mode:
                     vehicle.set_sentry_mode(False)
-                for contained_mob in vehicle.get_location().contained_mobs:
+                for contained_mob in vehicle.get_location().subscribed_mobs.copy():
                     passenger = contained_mob
                     if passenger.get_permission(
                         constants.PMOB_PERMISSION
@@ -77,7 +77,7 @@ class embark_all_passengers_button(button):
                         passenger.embark_vehicle(
                             vehicle,
                             focus=contained_mob
-                            == vehicle.get_location().contained_mobs[-1],
+                            == vehicle.get_location().subscribed_mobs[-1],
                         )
         else:
             text_utility.print_to_screen(
@@ -1738,17 +1738,19 @@ class toggle_button(button):
             )
             if self.toggle_variable in ["remove_fog_of_war", "show_clouds"]:
                 constants.update_terrain_knowledge_requirements()
-                status.minimap_grid.calibrate(
-                    status.minimap_grid.center_x, status.minimap_grid.center_y
-                )
-                if status.displayed_mob:
-                    actor_utility.calibrate_actor_info_display(
-                        status.mob_info_display, status.displayed_mob
-                    )
-                if status.displayed_location:
-                    actor_utility.calibrate_actor_info_display(
-                        status.location_info_display, status.displayed_location
-                    )
+                # status.minimap_grid.calibrate(
+                #    status.minimap_grid.center_x, status.minimap_grid.center_y
+                # )
+                for current_world in status.world_list:
+                    current_world.update_location_image_bundles()
+                # if status.displayed_mob:
+                #    actor_utility.calibrate_actor_info_display(
+                #        status.mob_info_display, status.displayed_mob
+                #    )
+                # if status.displayed_location:
+                #    actor_utility.calibrate_actor_info_display(
+                #        status.location_info_display, status.displayed_location
+                #    )
             elif self.toggle_variable in [
                 "earth_preset",
                 "mars_preset",

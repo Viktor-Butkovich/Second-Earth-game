@@ -1687,24 +1687,10 @@ class loading_image_template(free_image):
         return True
 
 
+"""
 class actor_image(image):
-    """
-    Image that is attached to an actor and a grid, representing the actor on a certain grid. An actor will have a different actor_image for each grid on which it appears
-    """
 
     def __init__(self, actor, width, height, grid, image_description):
-        """
-        Description:
-            Initializes this object
-        Input:
-            actor actor: actor to which this image is attached
-            int width: Pixel width of this image
-            int height: Pixel height of this image
-            grid grid: actor's grid on which this image appears. Each of an actor's images appears on a different grid
-            string image_description: Key in this image's actor's image_dict corresponding to the appearance that this image has. For example, a 'default' actor_image will show the actor's default appearance
-        Output:
-            None
-        """
         return
         self.image_type = "actor"
         super().__init__(width, height)
@@ -1740,14 +1726,6 @@ class actor_image(image):
         )
 
     def get_center_coordinates(self):
-        """
-        Description:
-            Returns the pixel coordinates of the center of this image's cell
-        Input:
-            None
-        Output:
-            int tuple: Two values representing x and y pixel coordinates of the center of this image's cell
-        """
         cell_width = self.grid.get_cell_width()
         cell_height = self.grid.get_cell_height()
         return (
@@ -1756,15 +1734,6 @@ class actor_image(image):
         )
 
     def set_image(self, new_image_description):
-        """
-        Description:
-            Changes this image to reflect this image's actor's image_dict file path value for the inputted key
-        Input:
-            string new_image_description: Key in this image's actor's image_dict corresponding to this image's new appearance. For example, 'default' will change this actor_image to show the actor's default appearance
-            or string list new_image_description: List of image file paths corresponding to this image's new appearance
-        Output:
-            None
-        """
         if (
             isinstance(new_image_description, str)
             and new_image_description in self.actor.image_dict
@@ -1819,14 +1788,6 @@ class actor_image(image):
                 self.image = image_bundle(self, self.image_id)
 
     def draw(self):
-        """
-        Description:
-            Draws this image if it should currently be visible. Unlike free images, actor images appear at their actor's grid coordinates
-        Input:
-            None
-        Output:
-            None
-        """
         if self.can_show():
             if (
                 self.grid.is_mini_grid
@@ -1842,14 +1803,6 @@ class actor_image(image):
                 self.complete_draw()
 
     def go_to_cell(self, coordinates):
-        """
-        Description:
-            Moves this image to the pixel coordinates corresponding to the inputted grid coordinates
-        Input:
-            int tuple coordinates: Two values representing x and y coordinates on this image's grid
-        Output:
-            None
-        """
         self.x, self.y = self.grid.convert_coordinates(coordinates)
         self.Rect.x = self.x
         self.Rect.y = self.y - self.height
@@ -1860,14 +1813,6 @@ class actor_image(image):
             self.image.y = self.y
 
     def set_tooltip(self, tooltip_text):
-        """
-        Description:
-            Sets this image's tooltip to the inputted list, with each item representing a line of the tooltip
-        Input:
-            string list tooltip_text: Lines for this actor's tooltip
-        Output:
-            None
-        """
         self.tooltip_text = tooltip_text
         tooltip_width = 10  # minimum tooltip width
         font = constants.fonts["default"]
@@ -1889,38 +1834,16 @@ class actor_image(image):
         )
 
     def can_show(self, skip_parent_collection=False):
-        """
-        Description:
-            Returns whether this image can be shown. By default, it can be shown during game modes in which this image can appear
-        Input:
-            None
-        Output:
-            boolean: Returns True if this image can appear during the current game mode, otherwise returns False
-        """
         if constants.current_game_mode in self.modes:
             return True
         else:
             return False
+"""
 
-
+"""
 class mob_image(actor_image):
-    """
-    actor image attached to a mob rather than an actor, gaining the ability to manage the cells corresponding to this image's mob's coordinates
-    """
 
     def __init__(self, actor, width, height, grid, image_description):
-        """
-        Description:
-            Initializes this object
-        Input:
-            actor actor: actor to which this image is attached
-            int width: Pixel width of this image
-            int height: Pixel height of this image
-            grid grid: actor's grid on which this image appears. Each of an actor's images appears on a different grid
-            string image_description: Key in this image's actor's image_dict corresponding to the appearance that this image has. For example, a 'default' actor_image will show the actor's default appearance
-        Output:
-            None
-        """
         return
         super().__init__(actor, width, height, grid, image_description)
         self.current_cell = None
@@ -1928,14 +1851,6 @@ class mob_image(actor_image):
         self.add_to_cell()
 
     def remove_from_cell(self):
-        """
-        Description:
-            Removes this image and its mob from this image's cell
-        Input:
-            None
-        Output:
-            None
-        """
         if self.current_cell:
             self.current_cell.contained_mobs = utility.remove_from_list(
                 self.current_cell.contained_mobs, self.actor
@@ -1943,15 +1858,6 @@ class mob_image(actor_image):
         self.current_cell = None
 
     def add_to_cell(self):
-        """
-        Description:
-            Moves this image to the cell corresponding to its grid coordinates, causing this image's actor to be considered to be in the cell. Removes this image from its previous cell. Unlike go_to_cell, which handles pixel location,
-                this handles grid location
-        Input:
-            None
-        Output:
-            None
-        """
         if (
             self.grid.is_mini_grid
         ):  # if on minimap and within its smaller range of coordinates, convert actor's coordinates to minimap coordinates and draw image there
@@ -1990,20 +1896,13 @@ class mob_image(actor_image):
             self.go_to_cell((self.current_cell.x, self.current_cell.y))
 
     def can_show(self, skip_parent_collection=False):
-        """
-        Description:
-            Returns whether this image can be shown. By default, it can be shown when its mob should be visible
-        Input:
-            None
-        Output:
-            boolean: Returns True if this image can appear during the current game mode and if its mob is not attached to another actor or behind another mob, otherwise returns False
-        """
         return self.actor.can_show() and super().can_show()
+"""
 
 
-class button_image(actor_image):
+class button_image(image):  # Used to be attached to actor_image
     """
-    actor image attached to a button rather than an actor, causing it to be located at a pixel coordinate location where its button should be rather than within a grid cell
+    image attached to a button, causing it to be located at a pixel coordinate location
     """
 
     def __init__(self, button, width, height, image_id):
@@ -2113,27 +2012,13 @@ class button_image(actor_image):
             )
             self.complete_draw()
 
+    """
     def draw_tooltip(self):
-        """
-        Description:
-            Usually draws a tooltip when moused over. However, since buttons, unlike actors, manage their own tooltips, button images do not need any tooltip functionality
-        Input:
-            None
-        Output:
-            None
-        """
         return ()
 
     def set_tooltip(self, tooltip_text):
-        """
-        Description:
-            Usually sets an image's tooltip to the inputted list, with each item representing a line of the tooltip. However, since buttons, unlike actors, manage their own tooltips, button images do not need any tooltip functionality
-        Input:
-            string list tooltip_text: Lines for this image's tooltip
-        Output:
-            None
-        """
         return ()
+    """
 
 
 class collection_image(button_image):
@@ -2157,3 +2042,26 @@ class cell_image(image):
 
     def set_image(self, image_id_list):
         self.image = image_bundle(self, image_id_list)
+
+    def show_num_mobs(self):
+        """
+        Description:
+            Draws a number showing how many mobs are in this image's location, if it contains multiple mobs
+        Input:
+            None
+        Output:
+            None
+        """
+        length = len(self.cell.location.subscribed_mobs)
+        if length >= 2:
+            message = str(length)
+            font = constants.fonts["max_detail_white"]
+            font_width = self.width * 0.13 * 1.3
+            font_height = self.width * 0.3 * 1.3
+            textsurface = font.pygame_font.render(message, False, font.color)
+            textsurface = pygame.transform.scale(
+                textsurface, (font_width * len(message), font_height)
+            )
+            text_x = self.x + self.width - (font_width * (len(message) + 0.3))
+            text_y = self.y + (-0.8 * self.height) - (0.5 * font_height)
+            constants.game_display.blit(textsurface, (text_x, text_y))

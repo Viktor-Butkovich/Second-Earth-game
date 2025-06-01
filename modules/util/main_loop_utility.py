@@ -365,25 +365,24 @@ def manage_rmb_down(clicked_button):
                 for current_cell in current_grid.get_flat_cell_list():
                     if current_cell.touching_mouse():
                         stopping = True  # if doesn't reach this point, do same as lmb
-                        if len(current_cell.contained_mobs) > 1:
-                            moved_mob = current_cell.contained_mobs[1]
-                            for current_image in moved_mob.images:
-                                if current_image.current_cell:
-                                    while (
-                                        moved_mob
-                                        != current_image.current_cell.contained_mobs[0]
-                                    ):
-                                        current_image.current_cell.contained_mobs.append(
-                                            current_image.current_cell.contained_mobs.pop(
-                                                0
-                                            )
-                                        )
+                        current_location = current_cell.get_location()
+                        if len(current_location.subscribed_mobs) > 1:
+                            moved_mob = current_location.subscribed_mobs[1]
+                            while moved_mob != current_location.subscribed_mobs[0]:
+                                current_location.subscribed_mobs.append(
+                                    current_location.subscribed_mobs.pop(0)
+                                )
+                            current_location.update_image_bundle()
                             flags.show_selection_outlines = True
                             constants.last_selection_outline_switch = (
                                 constants.current_time
                             )
-                            if status.minimap_grid in moved_mob.grids:
-                                status.minimap_grid.calibrate(moved_mob.x, moved_mob.y)
+
+                            for attached_cell in current_location.attached_cells:
+                                if attached_cell.grid.is_mini_grid:
+                                    attached_cell.grid.calibrate(
+                                        current_location.x, current_location.y
+                                    )
                             moved_mob.select()
                             if moved_mob.get_permission(constants.PMOB_PERMISSION):
                                 moved_mob.selection_sound()
@@ -630,8 +629,8 @@ def click_move_minimap(select_unit: bool = True):
         if current_grid.showing:
             for current_cell in current_grid.get_flat_cell_list():
                 if current_cell.touching_mouse():
-                    if select_unit and current_cell.get_location().contained_mobs:
-                        current_cell.get_location().contained_mobs[0].select()
+                    if select_unit and current_cell.get_location().subscribed_mobs:
+                        current_cell.get_location().subscribed_mobs[0].select()
                     else:
                         actor_utility.calibrate_actor_info_display(
                             status.location_info_display, current_cell.get_location()

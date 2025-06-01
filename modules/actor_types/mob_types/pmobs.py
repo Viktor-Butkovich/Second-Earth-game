@@ -133,13 +133,7 @@ class pmob(mob):
         self.set_permission(constants.IN_VEHICLE_PERMISSION, True)
         self.hide_images()
         vehicle.set_crew(self)
-        moved_mob = vehicle
-        for current_image in moved_mob.images:  # Moves vehicle to front
-            if current_image.current_cell:
-                while not moved_mob == current_image.current_cell.contained_mobs[0]:
-                    current_image.current_cell.contained_mobs.append(
-                        current_image.current_cell.contained_mobs.pop(0)
-                    )
+        vehicle.move_to_front()
         self.remove_from_turn_queue()
         vehicle.add_to_turn_queue()
         if (
@@ -996,54 +990,6 @@ class pmob(mob):
         super().remove()
         status.pmob_list = utility.remove_from_list(status.pmob_list, self)
 
-    def draw_outline(self):
-        """
-        Description:
-            Draws a flashing outline around this mob if it is selected, also shows its end turn destination, if any
-        Input:
-            None
-        Output:
-            None
-        """
-        return
-        if flags.show_selection_outlines:
-            for current_image in self.images:
-                if (
-                    current_image.current_cell
-                    and current_image.current_cell.contained_mobs
-                    and self == current_image.current_cell.contained_mobs[0]
-                    and current_image.current_cell.grid.showing
-                ):  # Only draw outline if on top of stack
-                    pygame.draw.rect(
-                        constants.game_display,
-                        constants.color_dict[self.selection_outline_color],
-                        (current_image.outline),
-                        current_image.outline_width,
-                    )
-
-                    if len(self.base_automatic_route) > 0:
-                        start_coordinates = self.base_automatic_route[0]
-                        end_coordinates = self.base_automatic_route[-1]
-                        for current_coordinates in self.base_automatic_route:
-                            if current_coordinates == start_coordinates:
-                                color = constants.COLOR_PURPLE
-                            elif current_coordinates == end_coordinates:
-                                color = constants.COLOR_YELLOW
-                            else:
-                                color = constants.COLOR_BRIGHT_BLUE
-                            for attached_cell in (
-                                self.get_location()
-                                .get_world_handler()
-                                .find_location(
-                                    current_coordinates[0], current_coordinates[1]
-                                )
-                                .attached_cells
-                            ):
-                                attached_cell.location.draw_destination_outline(color)
-            if self.end_turn_destination:
-                for attached_cell in self.end_turn_destination.attached_cells:
-                    attached_cell.location.draw_destination_outline()
-
     def end_turn_move(self):
         """
         Description:
@@ -1054,10 +1000,7 @@ class pmob(mob):
             None
         """
         if self.end_turn_destination and self.can_travel():
-            self.go_to_grid(
-                self.end_turn_destination.grids[0],
-                (self.end_turn_destination.x, self.end_turn_destination.y),
-            )
+            self.end_turn_destination.subscribe_mob(self)
             self.manage_inventory_attrition()  # do an inventory check when crossing ocean, using the destination's terrain
             self.end_turn_destination = None
             self.set_permission(constants.TRAVELING_PERMISSION, False)

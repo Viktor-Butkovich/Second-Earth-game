@@ -163,6 +163,17 @@ class full_world_handler(world_handlers.world_handler):
             "init_type": constants.FULL_WORLD,
         }
 
+    def update_location_image_bundles(self, update_globe: bool = True) -> None:
+        super().update_location_image_bundles(update_globe=update_globe)
+        if update_globe:
+            self.update_globe_projection(
+                center_coordinates=(
+                    status.scrolling_strategic_map_grid.center_x,
+                    status.scrolling_strategic_map_grid.center_y,
+                ),
+                update_button=True,
+            )
+
     def simulate_temperature_equilibrium(self, iterations: int = 5) -> None:
         """
         Description:

@@ -19,6 +19,7 @@ class world_handler:
             bool from_save: True if loading world, False if creating new one
             dictionary input_dict: Dictionary of saved information necessary to recreate this location if loading grid, or None if creating new location
         """
+        status.world_list.append(self)
         self.attached_grids: List[Any] = []
         if not self.is_orbital_world:
             self.name: str = input_dict.get("name")
@@ -123,6 +124,15 @@ class world_handler:
     @property
     def is_orbital_world(self) -> bool:
         return False
+
+    def remove_complete(self) -> None:
+        status.world_list.remove(self)
+        for current_location in self.get_flat_location_list():
+            current_location.remove_complete()
+
+    def update_location_image_bundles(self, update_globe: bool = False) -> None:
+        for current_location in self.get_flat_location_list():
+            current_location.update_image_bundle()
 
     def rename(self, new_name: str) -> None:
         """
@@ -1903,6 +1913,7 @@ class world_handler:
         Output:
             None
         """
+        self.update_location_image_bundles(update_globe=False)
         cloud_albedo = 0.75
         cloud_frequency = min(
             1,
