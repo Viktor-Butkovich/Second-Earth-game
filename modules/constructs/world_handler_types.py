@@ -8,8 +8,25 @@ from modules.constants import constants, status, flags
 
 class abstract_world_handler(world_handlers.world_handler):
     def __init__(self, from_save: bool, input_dict: Dict[str, Any]) -> None:
-        self.abstract_world_type = input_dict["abstract_world_type"]
+        self.abstract_world_type: str = input_dict["abstract_world_type"]
+        self.image_id_list: List[any] = input_dict.get("image_id_list", [])
         super().__init__(from_save, input_dict)
+        self.set_image(input_dict.get("image_id_list", []))
+        self.find_location(0, 0).set_name(
+            self.name
+        )  # Create a way to ensure abstract location name and world name always match
+        # Probably replace .name in location with get_name and set_name, which can access world name as needed
+
+    def set_image(self, new_image: List[any]) -> None:
+        self.image_id_list = new_image
+        self.find_location(0, 0).update_image_bundle()
+
+    def to_save_dict(self) -> Dict[str, Any]:
+        return {
+            **super().to_save_dict(),
+            "init_type": constants.ABSTRACT_WORLD,
+            "abstract_world_type": self.abstract_world_type,
+        }
 
     @property
     def coordinate_width(self) -> int:
@@ -140,9 +157,11 @@ class full_world_handler(world_handlers.world_handler):
         )
 
     def to_save_dict(self) -> Dict[str, Any]:
-        save_dict = super().to_save_dict()
-        save_dict["orbital_world"] = self.orbital_world.to_save_dict()
-        return save_dict
+        return {
+            **super().to_save_dict(),
+            "orbital_world": self.orbital_world.to_save_dict(),
+            "init_type": constants.FULL_WORLD,
+        }
 
     def simulate_temperature_equilibrium(self, iterations: int = 5) -> None:
         """
@@ -332,7 +351,7 @@ class full_world_handler(world_handlers.world_handler):
             ),
         )
 
-        status.current_world.orbital_world.find_location(0, 0).set_image(
+        status.current_world.orbital_world.set_image(
             [
                 "misc/space.png",
                 {

@@ -25,7 +25,6 @@ class cell_icon(actor):
             None
         """
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.actor_type = constants.CELL_ICON_ACTOR_TYPE
         status.independent_interface_elements.append(self)
         self.showing = False
         self.image_dict = {"default": input_dict["image"]}
@@ -40,6 +39,10 @@ class cell_icon(actor):
             for current_grid in self.grids
         ]
         self.finish_init(original_constructor, from_save, input_dict)
+
+    @property
+    def actor_type(self) -> str:
+        return constants.CELL_ICON_ACTOR_TYPE
 
     def can_show(self, skip_parent_collection=False):
         """

@@ -48,11 +48,12 @@ class mob(actor):
         self.unit_type.num_instances += 1
         self.controlling_minister: ministers.minister = None
         self.update_controlling_minister()
-        self.actor_type = constants.MOB_ACTOR_TYPE
         self.habitability = constants.HABITABILITY_PERFECT
         self.ambient_sound_channel: pygame.mixer.Channel = None
         self.locked_ambient_sound: bool = False
-        self.portrait_image_id_list: List[any] = input_dict.get("portrait_image_id_list", [])
+        self.portrait_image_id_list: List[any] = input_dict.get(
+            "portrait_image_id_list", []
+        )
         self.left_portrait_image_id_list: List[any] = input_dict.get(
             "left_portrait_image_id_list", []
         )
@@ -114,6 +115,10 @@ class mob(actor):
         if self.location:
             self.location.add_mob(self)
         self.finish_init(original_constructor, from_save, input_dict)
+
+    @property
+    def actor_type(self) -> str:
+        return constants.MOB_ACTOR_TYPE
 
     def get_radio_effect(self) -> bool:
         """
@@ -386,7 +391,9 @@ class mob(actor):
                         )
                     )
                 else:
-                    self.portrait_image_id_list = input_dict.get("portrait_image_id_list", [])
+                    self.portrait_image_id_list = input_dict.get(
+                        "portrait_image_id_list", []
+                    )
             if not from_save:
                 self.reselect()
             self.set_permission(constants.INIT_COMPLETE_PERMISSION, True)
@@ -802,6 +809,7 @@ class mob(actor):
         Output:
             None
         """
+        return
         if new_grid == status.earth_grid:
             self.modes.append(constants.EARTH_MODE)
         else:  # If mob was spawned on Earth, make it so that it does not appear in the Earth screen after leaving
@@ -946,6 +954,7 @@ class mob(actor):
         super().update_image_bundle()
         if self.previous_image != previous_image:
             self.reselect()
+        # Add logic to tell location to update appearance of attached cells and info displays
 
     def update_tooltip(self):
         """
@@ -1027,7 +1036,7 @@ class mob(actor):
             top_message = "Item upkeep per turn:"
             if not item_upkeep:
                 top_message += " None"
-            elif self.get_location().get_world_handler() == status.earth_world:
+            elif self.get_location().get_world_handler().is_earth:
                 top_message += " (exempt while on Earth)"
             elif (
                 self.get_location().get_unit_habitability()

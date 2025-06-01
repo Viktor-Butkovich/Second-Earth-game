@@ -234,7 +234,7 @@ class advertising_campaign(action.campaign):
             None
         """
         if super().on_click(unit):
-            if status.earth_grid in unit.grids:
+            if unit.get_location().get_world_handler().is_earth:
                 if constants.current_game_mode != constants.EARTH_MODE:
                     game_transitions.set_game_mode(constants.EARTH_MODE)
                     unit.select()

@@ -537,10 +537,14 @@ class world_handler:
             return
         if constants.effect_manager.effect_active("earth_preset"):
             for location in self.get_flat_location_list():
-                location.set_parameter(constants.SOIL, random.randrange(0, 6), update_display=False)
+                location.set_parameter(
+                    constants.SOIL, random.randrange(0, 6), update_display=False
+                )
         else:
             for location in self.get_flat_location_list():
-                location.set_parameter(constants.SOIL, random.randrange(0, 3), update_display=False)
+                location.set_parameter(
+                    constants.SOIL, random.randrange(0, 3), update_display=False
+                )
 
         num_worms = random.randrange(
             self.get_tuning("min_soil_multiplier"),
@@ -605,7 +609,9 @@ class world_handler:
             self.smooth(constants.VEGETATION)
         else:
             for current_location in self.get_flat_location_list():
-                current_location.set_parameter(constants.VEGETATION, 0, update_display=False)
+                current_location.set_parameter(
+                    constants.VEGETATION, 0, update_display=False
+                )
 
     def generate_terrain_parameters(self):
         """
@@ -623,7 +629,9 @@ class world_handler:
         self.generate_soil()
         self.generate_vegetation()
 
-    def bound(self, parameter: str, minimum: int, maximum: int, update_display: bool = True) -> None:
+    def bound(
+        self, parameter: str, minimum: int, maximum: int, update_display: bool = True
+    ) -> None:
         """
         Description:
             Bounds the inputted parameter to the inputted minimum and maximum values

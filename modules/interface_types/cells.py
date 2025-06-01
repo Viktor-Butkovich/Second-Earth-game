@@ -1,8 +1,9 @@
 # Contains functionality for grid cells
 
 import pygame
-import random
 from typing import Dict, List, Any
+from modules.constructs import images
+from modules.util import scaling
 from modules.constants import constants, status, flags
 
 
@@ -25,21 +26,60 @@ class cell:
         """
         self.x: int = x
         self.y: int = y
+        self.supports_batch_tooltip: bool = True
         self.width: int = width
         self.height: int = height
         self.grid = grid
         self.color: tuple[int, int, int] = color
+        self.selection_outline_color = constants.COLOR_YELLOW
+        self.actor_match_outline_color = constants.COLOR_WHITE
         self.pixel_x, self.pixel_y = self.grid.convert_coordinates((self.x, self.y))
         self.Rect: pygame.Rect = pygame.Rect(
             self.pixel_x, self.pixel_y - self.height, self.width, self.height
         )  # (left, top, width, height)
         self.location = None
+        self.image: images.cell_image = images.cell_image(self)
+        self.batch_tooltip_box_list: List[pygame.Rect] = []
         self.grid.world_handler.find_location(self.x, self.y).add_cell(self)
-        self.selection_outline_color = constants.COLOR_YELLOW
-        self.actor_match_outline_color = constants.COLOR_WHITE
+
+    @property
+    def batch_tooltip_list(self):
+        batch_tooltip_list: List[Dict[str, Any]] = []
+        batch_tooltip_text_list = self.get_location().generate_batch_tooltip_text_list()
+        self.batch_tooltip_box_list = []
+        font = constants.fonts["default"]
+        tooltip_outline_width = 1
+        tooltip_width = 0
+        for tooltip_text in batch_tooltip_text_list:
+            for text_line in tooltip_text:
+                tooltip_width = max(
+                    tooltip_width,
+                    font.calculate_size(text_line) + scaling.scale_width(10),
+                )
+            tooltip_height = (len(tooltip_text) * font.size) + scaling.scale_height(5)
+
+            batch_tooltip_list.append(
+                {
+                    "text": tooltip_text,
+                    "box": pygame.Rect(
+                        self.pixel_x, self.pixel_y, tooltip_width, tooltip_height
+                    ),
+                    "outline": pygame.Rect(
+                        self.pixel_x - tooltip_outline_width,
+                        self.pixel_y + tooltip_outline_width,
+                        tooltip_width + (2 * tooltip_outline_width),
+                        tooltip_height + (tooltip_outline_width * 2),
+                    ),
+                    "outline_width": tooltip_outline_width,
+                }
+            )
+        return batch_tooltip_list
 
     def get_location(self):
         return self.location
+
+    def can_show_tooltip(self):
+        return self.grid.can_show() and self.touching_mouse()
 
     def draw(self):
         """
@@ -55,6 +95,7 @@ class cell:
             (self.color[0], self.color[1], self.color[2]),
             self.Rect,
         )
+        self.image.draw()
 
         # Instead, have some stored pygame surface corresponding to the rendered version of the location and all its contents
         #   From the location, fetch an image ID list of all desired images to render

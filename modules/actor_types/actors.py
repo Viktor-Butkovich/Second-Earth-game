@@ -41,7 +41,12 @@ class actor:
         self.infinite_inventory_capacity = False
         self.inventory_capacity = 0
         self.inventory: Dict[str, int] = input_dict.get("inventory", {})
-        self.default_image_id: str = input_dict.get("default_image_id", "")
+        self.default_image_id: str = input_dict.get(
+            "default_image_id", ""
+        )  # Single image file as basic default
+        self.image_id_list: List[str] = (
+            []
+        )  # Stored version of fully generated image ID list, passed to info displays and cells
         self.finish_init(original_constructor, from_save, input_dict)
 
     def finish_init(
@@ -87,33 +92,6 @@ class actor:
             "name": self.name,
             "inventory": self.inventory,
         }
-
-    def set_image(self, new_image):
-        """
-        Description:
-            Changes this actor's images to reflect the inputted image file path
-        Input:
-            string/image new_image: Image file path to change this actor's images to, or an image to copy
-        Output:
-            None
-        """
-        if new_image != self.previous_image:
-            self.previous_image = new_image
-        else:
-            return
-        for current_image in self.images:
-            if current_image.change_with_other_images:
-                current_image.set_image(new_image)
-        if self.actor_type == constants.MOB_ACTOR_TYPE:
-            if status.displayed_mob == self:
-                actor_utility.calibrate_actor_info_display(
-                    status.mob_info_display, self
-                )
-        elif self.actor_type == constants.LOCATION_ACTOR_TYPE:
-            if status.displayed_location == self.get_location():
-                actor_utility.calibrate_actor_info_display(
-                    status.location_info_display, self.get_location()
-                )
 
     def item_present(self, item_type: item_types.item_type) -> bool:
         """
@@ -394,8 +372,6 @@ class actor:
             None
         """
         self.tooltip_text = new_tooltip
-        for current_image in self.images:
-            current_image.set_tooltip(new_tooltip)
 
     def update_tooltip(self):
         """
@@ -431,102 +407,6 @@ class actor:
         """
         return
 
-    def touching_mouse(self):
-        """
-        Description:
-            Returns whether any of this actor's images is colliding with the mouse
-        Input:
-            None
-        Output:
-            boolean: Returns True if any of this actor's images is colliding with the mouse, otherwise returns False
-        """
-        for current_image in self.images:
-            if current_image.Rect.collidepoint(
-                pygame.mouse.get_pos()
-            ):  # if mouse is in image
-                return True
-        return False  # return false if None touch mouse
-
-    def can_show_tooltip(self):
-        """
-        Description:
-            Returns whether this actor's tooltip can be shown. By default, its tooltip can be shown when it is visible and colliding with the mouse
-        Input:
-            None
-        Output:
-            None
-        """
-        if (
-            self.touching_mouse() and constants.current_game_mode in self.modes
-        ):  # and not targeting_ability
-            return True
-        else:
-            return False
-
-    def draw_tooltip(self, below_screen, beyond_screen, height, width, y_displacement):
-        """
-        Description:
-            Draws this actor's tooltip when moused over. The tooltip's location may vary when the tooltip is near the edge of the screen or if multiple tooltips are being shown
-        Input:
-            boolean below_screen: Whether any of the currently showing tooltips would be below the bottom edge of the screen. If True, moves all tooltips up to prevent any from being below the screen
-            boolean beyond_screen: Whether any of the currently showing tooltips would be beyond the right edge of the screen. If True, moves all tooltips to the left to prevent any from being beyond the screen
-            int height: Combined pixel height of all tooltips
-            int width: Pixel width of the widest tooltip
-            int y_displacement: How many pixels below the mouse this tooltip should be, depending on the order of the tooltips
-        Output:
-            None
-        """
-        self.update_tooltip()
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        if below_screen:
-            mouse_y = constants.display_height + 10 - height
-        if beyond_screen:
-            mouse_x = constants.display_width - width
-        mouse_y += y_displacement
-
-        if hasattr(self, "images"):
-            tooltip_image = self.images[0]
-            for (
-                current_image
-            ) in (
-                self.images
-            ):  # only draw tooltip from the image that the mouse is touching
-                if current_image.Rect.collidepoint((mouse_x, mouse_y)):
-                    tooltip_image = current_image
-        else:
-            tooltip_image = self
-
-        if (mouse_x + tooltip_image.tooltip_box.width) > constants.display_width:
-            mouse_x = constants.display_width - tooltip_image.tooltip_box.width
-        tooltip_image.tooltip_box.x = mouse_x
-        tooltip_image.tooltip_box.y = mouse_y
-        tooltip_image.tooltip_outline.x = (
-            tooltip_image.tooltip_box.x - tooltip_image.tooltip_outline_width
-        )
-        tooltip_image.tooltip_outline.y = (
-            tooltip_image.tooltip_box.y - tooltip_image.tooltip_outline_width
-        )
-        pygame.draw.rect(
-            constants.game_display,
-            constants.color_dict[constants.COLOR_BLACK],
-            tooltip_image.tooltip_outline,
-        )
-        pygame.draw.rect(
-            constants.game_display,
-            constants.color_dict[constants.COLOR_WHITE],
-            tooltip_image.tooltip_box,
-        )
-        for text_line_index in range(len(tooltip_image.tooltip_text)):
-            text_line = tooltip_image.tooltip_text[text_line_index]
-            constants.game_display.blit(
-                text_utility.text(text_line, constants.myfont),
-                (
-                    tooltip_image.tooltip_box.x + scaling.scale_width(10),
-                    tooltip_image.tooltip_box.y
-                    + (text_line_index * constants.fonts["default"].size),
-                ),
-            )
-
     def get_default_image_id_list(self, override_values={}):
         return self.default_image_id
 
@@ -551,7 +431,7 @@ class actor:
         Output:
             None
         """
-        self.set_image(self.get_image_id_list())
+        return  # Handled by subclasses
 
     def set_inventory_capacity(self, new_value):
         """

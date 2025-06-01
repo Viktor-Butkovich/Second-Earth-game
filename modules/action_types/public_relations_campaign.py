@@ -22,9 +22,9 @@ class public_relations_campaign(action.campaign):
             None
         """
         super().initial_setup()
-        constants.transaction_descriptions[
-            self.action_type
-        ] = "public relations campaigning"
+        constants.transaction_descriptions[self.action_type] = (
+            "public relations campaigning"
+        )
         self.name = "public relations campaign"
         self.requirements += [
             constants.OFFICER_PERMISSION,
@@ -99,7 +99,7 @@ class public_relations_campaign(action.campaign):
             None
         """
         if super().on_click(unit):
-            if status.earth_grid in unit.grids:
+            if unit.get_location().get_world_handler().is_earth:
                 self.start(unit)
             else:
                 text_utility.print_to_screen(

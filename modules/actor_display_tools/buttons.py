@@ -1884,7 +1884,7 @@ class change_parameter_button(button):
         ):
             return (
                 super().can_show(skip_parent_collection=skip_parent_collection)
-                and self.attached_label.actor.cell.grid != status.earth_grid
+                and self.attached_label.actor.get_world_handler().is_earth
             )
         else:
             return super().can_show(skip_parent_collection=skip_parent_collection)

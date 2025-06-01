@@ -478,6 +478,8 @@ Mobs and buildings have to track which cells and which grids they are visible in
     Generally much clunkier, and it based on incremental design decisions that were reasonable at the time
 
 Location rework backlog:
+Make sure Earth world's image is set somewhere - seems to be empty
+Red outline of minimap grid on scrolling strategic map is not showing
 Rework actor_image and mob_image classes
 A location should be able to generate its full image (for map rendering) and its image with no mobs (for location info display rendering)
 A mob should be able to generate its own image, which can be retrieved by locations and the mob info display as needed
@@ -519,6 +521,9 @@ Modify actors to never have to handle touching_mouse or tooltip rendering logic 
     location's tooltips and render them
 Modify non-location actors to save as part of their location - this means the location manages their save dict, and they do not
     need to remember location, coordinates, etc.
+Convert all tooltips to act similar to location tooltips, with centralized rendering logic
+    Ideally, an object returns a tooltip as a list of strings or a 2-dimensional list of strings, and the main loop entirely
+        handles rendering this tooltip when needed - no reason for any further complexity
 
 Notes:
 In location-centric design, game logic is centralized and as independent as possible from interface elements

@@ -46,7 +46,7 @@ def cycle_player_turn(start_of_turn=False):
         cycled_mob = turn_queue[0]
         if (
             constants.current_game_mode == constants.EARTH_MODE
-            and not status.earth_grid in cycled_mob.grids
+            and not cycled_mob.get_location().get_world_handler().is_earth
         ):
             set_game_mode(constants.STRATEGIC_MODE)
         elif constants.current_game_mode == constants.MINISTERS_MODE:
@@ -306,7 +306,7 @@ def create_grids() -> None:
         }
     )
 
-    status.earth_grid = constants.actor_creation_manager.create_interface_element(
+    earth_grid = constants.actor_creation_manager.create_interface_element(
         input_dict={
             "init_type": constants.ABSTRACT_GRID,
             "world_handler": status.earth_world,

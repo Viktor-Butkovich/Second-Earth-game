@@ -2142,3 +2142,18 @@ class collection_image(button_image):
             self.x = self.button.x
             self.y = constants.display_height + self.height - self.button.y
             self.complete_draw()
+
+
+class cell_image(image):
+    def __init__(self, cell):
+        super().__init__(cell.width, cell.height)
+        self.cell = cell
+        self.x, self.y = self.cell.pixel_x, self.cell.pixel_y
+        self.Rect = pygame.Rect(
+            self.x, self.y - self.height, self.width, self.height
+        )  # (left, top, width, height), bottom left on coordinates
+        self.outline_width = self.cell.grid.grid_line_width + 1
+        self.contains_bundle = True
+
+    def set_image(self, image_id_list):
+        self.image = image_bundle(self, image_id_list)

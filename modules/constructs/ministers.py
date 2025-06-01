@@ -37,9 +37,6 @@ class minister:
         Output:
             None
         """
-        self.actor_type = (
-            constants.MINISTER_ACTOR_TYPE
-        )  # used for actor display labels and images
         status.minister_list.append(self)
         self.tooltip_text: List[str] = []
         if from_save:
@@ -152,6 +149,10 @@ class minister:
         self.stolen_already: bool = False
         self.update_tooltip()
         status.minister_loading_image.calibrate(self)  # Load in all images on creation
+
+    @property
+    def actor_type(self) -> str:
+        return constants.MINISTER_ACTOR_TYPE
 
     def get_radio_effect(self) -> bool:
         """
@@ -467,9 +468,9 @@ class minister:
         save_dict["apparent_skills"] = self.apparent_skills
         save_dict["apparent_skill_descriptions"] = self.apparent_skill_descriptions
         save_dict["apparent_corruption"] = self.apparent_corruption
-        save_dict[
-            "apparent_corruption_description"
-        ] = self.apparent_corruption_description
+        save_dict["apparent_corruption_description"] = (
+            self.apparent_corruption_description
+        )
         save_dict["interests"] = self.interests
         save_dict["corruption"] = self.corruption
         save_dict["undetected_corruption_events"] = self.undetected_corruption_events

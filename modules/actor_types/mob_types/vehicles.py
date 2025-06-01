@@ -331,6 +331,7 @@ class vehicle(pmob):
         Output:
             None
         """
+        return
         super().go_to_grid(new_grid, new_coordinates)
         for current_sub_mob in self.get_sub_mobs():
             current_sub_mob.go_to_grid(new_grid, new_coordinates)

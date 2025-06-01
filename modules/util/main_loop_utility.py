@@ -25,45 +25,42 @@ def update_display():
     if flags.loading:
         draw_loading_screen()
     else:
-        possible_tooltip_drawers = []
         traversal_utility.draw_interface_elements(status.independent_interface_elements)
         # could modify with a layer dictionary to display elements on different layers - currently, drawing elements in order of collection creation is working w/o overlap
         # issues
 
-        first_tooltip_cell = None
-        for current_grid in status.grid_list:
-            if not first_tooltip_cell:
-                first_tooltip_cell = next(
-                    (
-                        current_cell
-                        for current_cell in current_grid.get_flat_cell_list()
-                        if current_cell.can_show_tooltip()
-                    ),
-                    None,
-                )  # Find the first cell that can draw a tooltip
-        if first_tooltip_cell:
-            possible_tooltip_drawers.append(first_tooltip_cell.get_location())
-            possible_tooltip_drawers += first_tooltip_cell.get_location().contained_mobs
+        tooltip_drawer = None
+        if (
+            time.time() > constants.mouse_moved_time + 0.15
+        ):  # Wait until mouse is still before drawing tooltips
+            for current_grid in status.grid_list:
+                if not tooltip_drawer:
+                    tooltip_drawer = next(
+                        (
+                            current_cell
+                            for current_cell in current_grid.get_flat_cell_list()
+                            if current_cell.can_show_tooltip()
+                        ),
+                        None,
+                    )  # Find the first cell that can draw a tooltip
 
-        notification_tooltip_button = None
-        for current_button in status.button_list:
-            if (
-                current_button.can_show_tooltip()
-            ):  # While multiple actor tooltips can be shown at once, if a button tooltip is showing no other tooltips should be showing
-                if (
-                    current_button.in_notification
-                    and current_button != status.current_instructions_page
-                ):
-                    notification_tooltip_button = current_button
-                else:
-                    possible_tooltip_drawers = [current_button]
+            notification_tooltip_button = False
+            for current_button in status.button_list:
+                if current_button.can_show_tooltip():
+                    if (
+                        current_button.in_notification
+                        and current_button != status.current_instructions_page
+                    ):
+                        tooltip_drawer = current_button
+                        notification_tooltip_button = True
+                    else:
+                        tooltip_drawer = current_button
 
-        if notification_tooltip_button:
-            possible_tooltip_drawers = [notification_tooltip_button]
-        else:
-            for current_free_image in status.free_image_list:
-                if current_free_image.can_show_tooltip():
-                    possible_tooltip_drawers = [current_free_image]
+            if not notification_tooltip_button:
+                for current_free_image in status.free_image_list:
+                    if current_free_image.can_show_tooltip():
+                        tooltip_drawer = current_free_image
+                        break
 
         draw_text_box()
 
@@ -73,17 +70,15 @@ def update_display():
             status.current_instructions_page.draw()
             if (
                 status.current_instructions_page.can_show_tooltip()
-            ):  # while multiple actor tooltips can be shown at once, if a button tooltip is showing no other tooltips should be showing
-                possible_tooltip_drawers = [
+            ):  # While multiple actor tooltips can be shown at once, if a button tooltip is showing no other tooltips should be showing
+                tooltip_drawer = (
                     status.current_instructions_page
-                ]  # instructions have priority over everything
+                )  # instructions have highest priority over everything
         if (constants.old_mouse_x, constants.old_mouse_y) != pygame.mouse.get_pos():
             constants.mouse_moved_time = constants.current_time
             constants.old_mouse_x, constants.old_mouse_y = pygame.mouse.get_pos()
-        if (
-            time.time() > constants.mouse_moved_time + 0.15
-        ):  # show tooltip when mouse is still
-            manage_tooltip_drawing(possible_tooltip_drawers)
+        if tooltip_drawer:
+            manage_tooltip_drawing(tooltip_drawer)
 
     pygame.display.update()
 
@@ -153,57 +148,28 @@ def draw_loading_screen():
                 pygame.display.update()
 
 
-def manage_tooltip_drawing(possible_tooltip_drawers):
+def manage_tooltip_drawing(tooltip_drawer):
     """
     Description:
         Decides whether each of the inputted objects should have their tooltips drawn based on if they are covered by other objects. The tooltip of each chosen object is drawn in order with correct placement and spacing
     Input:
-        object list possible_tooltip_drawers: All objects that possess tooltips and are currently touching the mouse and being drawn
+        object tooltip_drawer: Object to draw tooltip for
     Output:
         None
     """
-    possible_tooltip_drawers_length = len(possible_tooltip_drawers)
     font = constants.fonts["default"]
     y_displacement = scaling.scale_width(30)  # estimated mouse size
-    if possible_tooltip_drawers_length == 0:
-        return ()
-    elif possible_tooltip_drawers_length == 1:
-        height = y_displacement
-        height += font.size * (len(possible_tooltip_drawers[0].tooltip_text) + 1)
-        possible_tooltip_drawers[0].update_tooltip()
-        width = possible_tooltip_drawers[0].tooltip_box.width
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        below_screen = False
-        beyond_screen = False
-        if (constants.display_height + 10 - mouse_y) - height < 0:
-            below_screen = True
-        if mouse_x + width > constants.display_width:
-            beyond_screen = True
-        possible_tooltip_drawers[0].draw_tooltip(
-            below_screen, beyond_screen, height, width, y_displacement
-        )
-    else:
-        stopping = False
+    if (
+        hasattr(tooltip_drawer, "supports_batch_tooltip")
+        and tooltip_drawer.supports_batch_tooltip
+    ):
         height = y_displacement
         width = 0
-        for possible_tooltip_drawer in possible_tooltip_drawers:
-            possible_tooltip_drawer.update_tooltip()
-            if possible_tooltip_drawer == status.current_instructions_page:
-                height += font.size * (len(possible_tooltip_drawer.tooltip_text) + 1)
-                width = possible_tooltip_drawer.tooltip_box.width
-                stopping = True
-            elif (
-                possible_tooltip_drawer in status.button_list
-                and possible_tooltip_drawer.in_notification
-            ) and not stopping:
-                height += font.size * (len(possible_tooltip_drawer.tooltip_text) + 1)
-                width = possible_tooltip_drawer.tooltip_box.width
-                stopping = True
-        if not stopping:
-            for possible_tooltip_drawer in possible_tooltip_drawers:
-                height += font.size * (len(possible_tooltip_drawer.tooltip_text) + 1)
-                if possible_tooltip_drawer.tooltip_box.width > width:
-                    width = possible_tooltip_drawer.tooltip_box.width
+        batch_tooltip_list = tooltip_drawer.batch_tooltip_list
+        for tooltip in batch_tooltip_list:
+            height += font.size * (len(tooltip["text"]) + 1)
+            if tooltip["box"].width > width:
+                width = tooltip["box"].width
         mouse_x, mouse_y = pygame.mouse.get_pos()
         below_screen = False  # if goes below bottom side
         beyond_screen = False  # if goes beyond right side
@@ -211,35 +177,75 @@ def manage_tooltip_drawing(possible_tooltip_drawers):
             below_screen = True
         if mouse_x + width > constants.display_width:
             beyond_screen = True
-        stopping = False
-        for possible_tooltip_drawer in possible_tooltip_drawers:
-            if possible_tooltip_drawer == status.current_instructions_page:
-                possible_tooltip_drawer.draw_tooltip(
-                    below_screen, beyond_screen, height, width, y_displacement
-                )
-                y_displacement += font.size * (
-                    len(possible_tooltip_drawer.tooltip_text) + 1
-                )
-                stopping = True
-            elif (
-                possible_tooltip_drawer in status.button_list
-                and possible_tooltip_drawer.in_notification
-            ) and not stopping:
-                possible_tooltip_drawer.draw_tooltip(
-                    below_screen, beyond_screen, height, width, y_displacement
-                )
-                y_displacement += font.size * (
-                    len(possible_tooltip_drawer.tooltip_text) + 1
-                )
-                stopping = True
-        if not stopping:
-            for possible_tooltip_drawer in possible_tooltip_drawers:
-                possible_tooltip_drawer.draw_tooltip(
-                    below_screen, beyond_screen, height, width, y_displacement
-                )
-                y_displacement += font.size * (
-                    len(possible_tooltip_drawer.tooltip_text) + 1
-                )
+
+        for tooltip in batch_tooltip_list:
+            draw_tooltip(
+                tooltip, below_screen, beyond_screen, height, width, y_displacement
+            )
+            y_displacement += font.size * (len(tooltip["text"]) + 1)
+    else:  # If only showing 1 tooltip
+        height = y_displacement
+        height += font.size * (len(tooltip_drawer.tooltip_text) + 1)
+        tooltip_drawer.update_tooltip()
+        width = tooltip_drawer.tooltip_box.width
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        below_screen = False
+        beyond_screen = False
+        if (constants.display_height + 10 - mouse_y) - height < 0:
+            below_screen = True
+        if mouse_x + width > constants.display_width:
+            beyond_screen = True
+        tooltip_drawer.draw_tooltip(
+            below_screen, beyond_screen, height, width, y_displacement
+        )
+
+
+def draw_tooltip(tooltip, below_screen, beyond_screen, height, width, y_displacement):
+    """
+    Description:
+        Draws the inputted tooltip when moused over. The tooltip's location may vary when the tooltip is near the edge of the screen or if multiple tooltips are being shown
+    Input:
+        dict tooltip: Dictionary containing the tooltip's text (string list), box (pygame.Rect), and outline (pygame.Rect)
+        boolean below_screen: Whether any of the currently showing tooltips would be below the bottom edge of the screen. If True, moves all tooltips up to prevent any from being below the screen
+        boolean beyond_screen: Whether any of the currently showing tooltips would be beyond the right edge of the screen. If True, moves all tooltips to the left to prevent any from being beyond the screen
+        int height: Combined pixel height of all tooltips
+        int width: Pixel width of the widest tooltip
+        int y_displacement: How many pixels below the mouse this tooltip should be, depending on the order of the tooltips
+    Output:
+        None
+    """
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+    if below_screen:
+        mouse_y = constants.display_height + 10 - height
+    if beyond_screen:
+        mouse_x = constants.display_width - width
+    mouse_y += y_displacement
+
+    if (mouse_x + tooltip["box"].width) > constants.display_width:
+        mouse_x = constants.display_width - tooltip["box"].width
+    tooltip["box"].x = mouse_x
+    tooltip["box"].y = mouse_y
+    tooltip["outline"].x = tooltip["box"].x - tooltip["outline_width"]
+    tooltip["outline"].y = tooltip["box"].y - tooltip["outline_width"]
+    pygame.draw.rect(
+        constants.game_display,
+        constants.color_dict[constants.COLOR_BLACK],
+        tooltip["outline"],
+    )
+    pygame.draw.rect(
+        constants.game_display,
+        constants.color_dict[constants.COLOR_WHITE],
+        tooltip["box"],
+    )
+    for text_line_index in range(len(tooltip["text"])):
+        text_line = tooltip["text"][text_line_index]
+        constants.game_display.blit(
+            text_utility.text(text_line, constants.myfont),
+            (
+                tooltip["box"].x + scaling.scale_width(10),
+                tooltip["box"].y + (text_line_index * constants.fonts["default"].size),
+            ),
+        )
 
 
 def draw_text_box():

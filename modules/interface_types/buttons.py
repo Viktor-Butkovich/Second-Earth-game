@@ -1539,8 +1539,7 @@ class button(interface_elements.interface_element):
                 if (
                     status.displayed_location
                     and status.displayed_location.get_world_handler().is_abstract_world
-                    and status.displayed_location.get_world_handler()
-                    != status.earth_world
+                    and (not status.displayed_location.get_world_handler().is_earth)
                 ):
                     return True
                 return False
@@ -1807,11 +1806,7 @@ class same_location_icon(button):
         Output:
             None
         """
-        if (
-            status.displayed_location
-            and status.displayed_location.visible
-            and super().can_show()
-        ):
+        if super().can_show():
             displayed_location = status.displayed_location
             if displayed_location:
                 new_contained_mobs = displayed_location.contained_mobs

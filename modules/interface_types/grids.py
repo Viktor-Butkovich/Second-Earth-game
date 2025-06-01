@@ -111,10 +111,10 @@ class grid(interface_elements.interface_element):
                 attached_cell.draw_actor_match_outline()
         if (
             status.displayed_mob
-            and self
-            in status.displayed_mob.get_location().get_world_handler().attached_grids
-            or self
-            in status.displayed_mob.end_turn_destination.get_world_handler().attached_grids
+            and (
+                self in status.displayed_mob.get_location().get_world_handler().attached_grids or
+                self in status.displayed_mob.end_turn_destination.get_world_handler().attached_grids
+            )
         ):
             # If displayed mob or its end turn destination are on this grid, draw the mob's outline
             status.displayed_mob.draw_outline()

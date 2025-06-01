@@ -58,7 +58,6 @@ class location(actors.actor):
         self.minima = {constants.TEMPERATURE: -6}
         self.maxima = {constants.TEMPERATURE: 11}
         self.terrain: str = None
-        self.image_dict: Dict[str, Any] = {"default": None}
         self.terrain_features: Dict[str, bool] = {}
         for terrain_feature in input_dict.get("terrain_features", {}).values():
             self.add_terrain_feature(terrain_feature)
@@ -84,6 +83,10 @@ class location(actors.actor):
                 )
         self.hosted_images = []
         self.settlement: Any = None
+
+    @property
+    def actor_type(self) -> str:
+        return constants.LOCATION_ACTOR_TYPE
 
     @property
     def all_contained_mobs(self) -> List[Any]:
@@ -684,6 +687,7 @@ class location(actors.actor):
         return {
             **super().to_save_dict(),
             "init_type": constants.LOCATION,
+            "coordinates": (self.x, self.y),
             "terrain_variant": self.terrain_variant,
             "terrain_features": self.terrain_features,
             "terrain_parameters": self.terrain_parameters,
@@ -757,6 +761,7 @@ class location(actors.actor):
             cell.get_location().remove_cell(cell)
         self.attached_cells.append(cell)
         cell.location = self
+        self.refresh_attached_images()
         # Update cell's rendered image
 
     def add_mob(self, mob) -> None:
@@ -963,129 +968,134 @@ class location(actors.actor):
                 }
             ] - uses the most recently generated globe projection
         """
-        image_id_list = []
-        if (
-            (not allow_mapmodes)
-            or constants.current_map_mode == "terrain"
-            or constants.MAP_MODE_ALPHA
-        ):
-            image_id_list.append(
-                {
-                    "image_id": self.default_image_id,
-                    "level": -9,
-                    "color_filter": self.get_color_filter(),
-                    "green_screen": self.get_green_screen(),
-                    "pixellated": force_pixellated
-                    or not self.knowledge_available(constants.TERRAIN_KNOWLEDGE),
-                    "detail_level": constants.TERRAIN_DETAIL_LEVEL,
-                }
-            )
-            if allow_clouds:
-                for terrain_overlay_image in self.get_overlay_images():
-                    if type(terrain_overlay_image) == str:
-                        terrain_overlay_image = {
-                            "image_id": terrain_overlay_image,
-                        }
-                    terrain_overlay_image.update(
-                        {
-                            "level": -8,
-                            "color_filter": self.get_color_filter(),
-                            "pixellated": force_pixellated
-                            or not self.knowledge_available(
-                                constants.TERRAIN_KNOWLEDGE
-                            ),
-                            "detail_level": terrain_overlay_image.get(
-                                "detail_level", constants.TERRAIN_DETAIL_LEVEL
-                            ),
-                        }
-                    )
-                    if not terrain_overlay_image.get("green_screen", None):
-                        terrain_overlay_image["green_screen"] = self.get_green_screen()
-                    image_id_list.append(terrain_overlay_image)
-            if allow_clouds and (
-                constants.effect_manager.effect_active("show_clouds")
-                or force_clouds
-                or not self.knowledge_available(constants.TERRAIN_KNOWLEDGE)
+        if self.get_world_handler().is_abstract_world:
+            image_id_list = self.get_world_handler().image_id_list
+        else:
+            image_id_list = []
+            if (
+                (not allow_mapmodes)
+                or constants.current_map_mode == "terrain"
+                or constants.MAP_MODE_ALPHA
             ):
-                for cloud_image in self.current_clouds:
-                    image_id_list.append(cloud_image.copy())
-                    if not image_id_list[-1].get("detail_level", None):
-                        image_id_list[-1][
-                            "detail_level"
-                        ] = constants.TERRAIN_DETAIL_LEVEL
-                    image_id_list[-1]["level"] = -7
-                    if not image_id_list[-1].get("green_screen", None):
-                        image_id_list[-1]["green_screen"] = self.get_green_screen()
-            if not terrain_only:
-                for terrain_feature in self.terrain_features:
-                    new_image_id = self.terrain_features[terrain_feature].get(
-                        "image_id",
-                        status.terrain_feature_types[terrain_feature].image_id,
-                    )
-                    if new_image_id != "misc/empty.png":
-                        if type(new_image_id) == str and not new_image_id.endswith(
-                            ".png"
-                        ):
-                            new_image_id = actor_utility.generate_label_image_id(
-                                new_image_id, y_offset=-0.75
-                            )
-                        image_id_list = utility.combine(image_id_list, new_image_id)
-                # if (
-                #    self.get_location().resource
-                # ):  # If resource visible based on current knowledge
-                #    resource_icon = actor_utility.generate_resource_icon(self)
-                #    if type(resource_icon) == str:
-                #        image_id_list.append(resource_icon)
-                #    else:
-                #        image_id_list += resource_icon
-                image_id_list += [
-                    image_id
-                    for current_building in self.get_buildings()
-                    for image_id in current_building.get_image_id_list()
-                ]  # Add each of each building's images to the image ID list
-            for current_image in self.hosted_images:
-                if (
-                    not current_image.anchor_key in ["south_pole", "north_pole"]
-                    and not terrain_only
-                ):
-                    image_id_list += current_image.get_image_id_list()
-
-        if constants.current_map_mode != "terrain" and allow_mapmodes:
-            map_mode_image = "misc/map_modes/none.png"
-            if constants.current_map_mode in constants.terrain_parameters:
-                if self.knowledge_available(constants.TERRAIN_PARAMETER_KNOWLEDGE):
-                    if constants.current_map_mode in [
-                        constants.WATER,
-                        constants.TEMPERATURE,
-                        constants.VEGETATION,
-                    ]:
-                        map_mode_image = f"misc/map_modes/{constants.current_map_mode}/{self.get_parameter(constants.current_map_mode)}.png"
-                    else:
-                        map_mode_image = f"misc/map_modes/{self.get_parameter(constants.current_map_mode)}.png"
-            elif constants.current_map_mode == "magnetic":
-                if self.terrain_features.get(
-                    "southern tropic", False
-                ) or self.terrain_features.get("northern tropic", False):
-                    map_mode_image = "misc/map_modes/equator.png"
-                elif self.terrain_features.get("north pole", False):
-                    map_mode_image = "misc/map_modes/north_pole.png"
-                elif self.terrain_features.get("south pole", False):
-                    map_mode_image = "misc/map_modes/south_pole.png"
-            if constants.MAP_MODE_ALPHA:
                 image_id_list.append(
                     {
-                        "image_id": map_mode_image,
-                        "detail_level": 1.0,
-                        "alpha": constants.MAP_MODE_ALPHA,
+                        "image_id": self.default_image_id,
+                        "level": -9,
+                        "color_filter": self.get_color_filter(),
+                        "green_screen": self.get_green_screen(),
+                        "pixellated": force_pixellated
+                        or not self.knowledge_available(constants.TERRAIN_KNOWLEDGE),
+                        "detail_level": constants.TERRAIN_DETAIL_LEVEL,
                     }
                 )
-            else:
-                image_id_list = [
-                    {
-                        "image_id": map_mode_image,
-                        "detail_level": 1.0,
-                    }
-                ]
+                if allow_clouds:
+                    for terrain_overlay_image in self.get_overlay_images():
+                        if type(terrain_overlay_image) == str:
+                            terrain_overlay_image = {
+                                "image_id": terrain_overlay_image,
+                            }
+                        terrain_overlay_image.update(
+                            {
+                                "level": -8,
+                                "color_filter": self.get_color_filter(),
+                                "pixellated": force_pixellated
+                                or not self.knowledge_available(
+                                    constants.TERRAIN_KNOWLEDGE
+                                ),
+                                "detail_level": terrain_overlay_image.get(
+                                    "detail_level", constants.TERRAIN_DETAIL_LEVEL
+                                ),
+                            }
+                        )
+                        if not terrain_overlay_image.get("green_screen", None):
+                            terrain_overlay_image["green_screen"] = (
+                                self.get_green_screen()
+                            )
+                        image_id_list.append(terrain_overlay_image)
+                if allow_clouds and (
+                    constants.effect_manager.effect_active("show_clouds")
+                    or force_clouds
+                    or not self.knowledge_available(constants.TERRAIN_KNOWLEDGE)
+                ):
+                    for cloud_image in self.current_clouds:
+                        image_id_list.append(cloud_image.copy())
+                        if not image_id_list[-1].get("detail_level", None):
+                            image_id_list[-1][
+                                "detail_level"
+                            ] = constants.TERRAIN_DETAIL_LEVEL
+                        image_id_list[-1]["level"] = -7
+                        if not image_id_list[-1].get("green_screen", None):
+                            image_id_list[-1]["green_screen"] = self.get_green_screen()
+                if not terrain_only:
+                    for terrain_feature in self.terrain_features:
+                        new_image_id = self.terrain_features[terrain_feature].get(
+                            "image_id",
+                            status.terrain_feature_types[terrain_feature].image_id,
+                        )
+                        if new_image_id != "misc/empty.png":
+                            if type(new_image_id) == str and not new_image_id.endswith(
+                                ".png"
+                            ):
+                                new_image_id = actor_utility.generate_label_image_id(
+                                    new_image_id, y_offset=-0.75
+                                )
+                            image_id_list = utility.combine(image_id_list, new_image_id)
+                    # if (
+                    #    self.resource
+                    # ):  # If resource visible based on current knowledge
+                    #    resource_icon = actor_utility.generate_resource_icon(self)
+                    #    if type(resource_icon) == str:
+                    #        image_id_list.append(resource_icon)
+                    #    else:
+                    #        image_id_list += resource_icon
+                    image_id_list += [
+                        image_id
+                        for current_building in self.get_buildings()
+                        for image_id in current_building.get_image_id_list()
+                    ]  # Add each of each building's images to the image ID list
+                for current_image in self.hosted_images:
+                    if (
+                        not current_image.anchor_key in ["south_pole", "north_pole"]
+                        and not terrain_only
+                    ):
+                        image_id_list += current_image.get_image_id_list()
+
+            if constants.current_map_mode != "terrain" and allow_mapmodes:
+                map_mode_image = "misc/map_modes/none.png"
+                if constants.current_map_mode in constants.terrain_parameters:
+                    if self.knowledge_available(constants.TERRAIN_PARAMETER_KNOWLEDGE):
+                        if constants.current_map_mode in [
+                            constants.WATER,
+                            constants.TEMPERATURE,
+                            constants.VEGETATION,
+                        ]:
+                            map_mode_image = f"misc/map_modes/{constants.current_map_mode}/{self.get_parameter(constants.current_map_mode)}.png"
+                        else:
+                            map_mode_image = f"misc/map_modes/{self.get_parameter(constants.current_map_mode)}.png"
+                elif constants.current_map_mode == "magnetic":
+                    if self.terrain_features.get(
+                        "southern tropic", False
+                    ) or self.terrain_features.get("northern tropic", False):
+                        map_mode_image = "misc/map_modes/equator.png"
+                    elif self.terrain_features.get("north pole", False):
+                        map_mode_image = "misc/map_modes/north_pole.png"
+                    elif self.terrain_features.get("south pole", False):
+                        map_mode_image = "misc/map_modes/south_pole.png"
+                if constants.MAP_MODE_ALPHA:
+                    image_id_list.append(
+                        {
+                            "image_id": map_mode_image,
+                            "detail_level": 1.0,
+                            "alpha": constants.MAP_MODE_ALPHA,
+                        }
+                    )
+                else:
+                    image_id_list = [
+                        {
+                            "image_id": map_mode_image,
+                            "detail_level": 1.0,
+                        }
+                    ]
         for current_image in self.hosted_images:
             if (
                 current_image.anchor_key in ["south_pole", "north_pole"]
@@ -1107,38 +1117,27 @@ class location(actors.actor):
         """
         previous_image = self.previous_image
         if override_image:
-            self.set_image(override_image)
+            self.image_id_list = override_image
         else:
-            self.set_image(self.get_image_id_list())
+            self.image_id_list = self.get_image_id_list()
         if previous_image != self.previous_image:
-            self.reselect()
+            self.refresh_attached_images()
 
-    def reselect(self):
-        """
-        Description:
-            Deselects and reselects this mob if it was already selected
-        Input:
-            None
-        Output:
-            None
-        """
-        if status.displayed_location == self.get_location():
-            actor_utility.calibrate_actor_info_display(
-                status.location_info_display, None
-            )
+    def refresh_attached_images(self):
+        if self == status.displayed_location:
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, self
             )
-
-    """
-    def set_image(self, new_image) -> None:
-        Load in new image and tell subscribed cells and info displays to update their images
-        Ideally avoid any rendering logic directly in location
-        Make sure cells use rendered image caching to re-use results
-        Actors in general should follow this new pattern:
-            Actor is reponsible for maintaining a valid image ID list and notifying subscribed cells and info displays when it changes
-            Cells and info displays are responsible for rendering image ID lists when notified
-    """
+        for current_cell in self.attached_cells:
+            current_cell.image.set_image(self.image_id_list)
+        # Add logic to update attached info displays and cells with the new image
+        # Consider how to handle this when mob image updates require updating the location's attached cells
+        # Load in new image and tell subscribed cells and info displays to update their images
+        # Ideally avoid any rendering logic directly in location
+        # Make sure cells use rendered image caching to re-use results
+        # Actors in general should follow this new pattern:
+        #     Actor is reponsible for maintaining a valid image ID list and notifying subscribed cells and info displays when it changes
+        #     Cells and info displays are responsible for rendering image ID lists when notified
 
     def has_unit_by_filter(self, permissions, required_number=1):
         """
@@ -1244,6 +1243,14 @@ class location(actors.actor):
             and current_mob.get_permission(constants.PMOB_PERMISSION)
         ]
 
+    def generate_batch_tooltip_text_list(self):
+        self.update_tooltip()
+        for current_mob in self.contained_mobs:
+            current_mob.update_tooltip()
+        return [self.tooltip_text] + [
+            current_mob.tooltip_text for current_mob in self.contained_mobs
+        ]
+
     def update_tooltip(self):
         """
         Description:
@@ -1254,7 +1261,7 @@ class location(actors.actor):
             None
         """
         tooltip_message = []
-        if self.get_location().get_world_handler().is_abstract_world:
+        if self.get_world_handler().is_abstract_world:
             tooltip_message.append(self.name)
         else:
             tooltip_message.append(f"Coordinates: ({self.x}, {self.y})")
@@ -1288,9 +1295,8 @@ class location(actors.actor):
             else:
                 tooltip_message.append(f"    Terrain unknown")
 
-        if (
-            self.get_location().get_world_handler().is_abstract_world
-            or self.knowledge_available(constants.TERRAIN_PARAMETER_KNOWLEDGE)
+        if self.get_world_handler().is_abstract_world or self.knowledge_available(
+            constants.TERRAIN_PARAMETER_KNOWLEDGE
         ):
             tooltip_message.append(
                 f"Habitability: {constants.HABITABILITY_DESCRIPTIONS[self.get_known_habitability()].capitalize()}"
@@ -1308,7 +1314,7 @@ class location(actors.actor):
         # if self.resource:  # If resource present, show resource
         #    tooltip_message.append("")
         #    tooltip_message.append(
-        #        f"this location has {utility.generate_article(self.get_location().resource.name)} {self.get_location().resource.name} resource"
+        #        f"this location has {utility.generate_article(self.resource.name)} {self.resource.name} resource"
         #    )
         for terrain_feature in self.terrain_features:
             if status.terrain_feature_types[terrain_feature].visible:

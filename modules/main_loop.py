@@ -279,7 +279,7 @@ def main_loop():
                 if constants.TIME_PASSING_EARTH_SCHEDULE[
                     constants.TIME_PASSING_ITERATIONS
                 ]:  # If scheduled to rotate Earth at this iteration
-                    status.earth_world.find_location(0, 0).set_image(
+                    status.earth_world.set_image(
                         [
                             "misc/space.png",
                             {
@@ -319,7 +319,7 @@ def main_loop():
                     ]
                 )
 
-                status.earth_world.find_location(0, 0).set_image(
+                status.earth_world.set_image(
                     [
                         "misc/space.png",
                         {

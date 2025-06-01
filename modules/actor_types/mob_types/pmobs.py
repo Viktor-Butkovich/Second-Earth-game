@@ -205,10 +205,7 @@ class pmob(mob):
                 and self.get_permission(constants.IN_GROUP_PERMISSION)
             ):
                 return {}
-        if (
-            earth_exemption
-            and self.get_location().get_world_handler() == status.earth_world
-        ):
+        if earth_exemption and self.get_location().get_world_handler().is_earth:
             return {}
         elif (
             earth_exemption
@@ -1090,23 +1087,6 @@ class pmob(mob):
             None
         """
         self.die("fired")
-
-    def can_show_tooltip(self):
-        """
-        Description:
-            Returns whether this mob's tooltip can be shown. Along with the superclass' requirements, mob tooltips cannot be shown when attached to another actor, such as when working in a building
-        Input:
-            None
-        Output:
-            None
-        """
-        return (
-            not self.any_permissions(
-                constants.IN_VEHICLE_PERMISSION,
-                constants.IN_GROUP_PERMISSION,
-                constants.IN_BUILDING_PERMISSION,
-            )
-        ) and super().can_show_tooltip()
 
     def embark_vehicle(self, vehicle, focus=True):
         """

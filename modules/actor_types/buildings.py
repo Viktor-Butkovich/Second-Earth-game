@@ -33,7 +33,6 @@ class building(actor):
         Output:
             None
         """
-        self.actor_type = constants.BUILDING_ACTOR_TYPE
         self.building_type: building_types.building_type = input_dict.get(
             "building_type", status.building_types[input_dict["init_type"]]
         )
@@ -73,6 +72,10 @@ class building(actor):
             if self.building_type.can_damage:
                 self.set_damaged(True, True)
         self.finish_init(original_constructor, from_save, input_dict)
+
+    @property
+    def actor_type(self) -> str:
+        return constants.BUILDING_ACTOR_TYPE
 
     def get_location(self) -> locations.location:
         """
