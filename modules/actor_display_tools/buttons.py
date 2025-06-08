@@ -1623,7 +1623,7 @@ class automatic_route_button(button):
         """
         attached_mob = status.displayed_mob
         if main_loop_utility.action_possible():
-            if not attached_mob.get_location().get_world_handler().is_abstract_world:
+            if not attached_mob.get_location().is_abstract_location:
                 if self.button_type == constants.CLEAR_AUTOMATIC_ROUTE_BUTTON:
                     attached_mob.clear_automatic_route()
 
@@ -1823,28 +1823,24 @@ class change_parameter_button(button):
                 self.attached_label.actor_label_type.removesuffix("_label")
                 in constants.global_parameters
             ):
-                status.displayed_location.get_world_handler().change_parameter(
+                status.displayed_location.get_true_world_handler().change_parameter(
                     self.attached_label.actor_label_type.removesuffix("_label"),
                     self.change,
                 )
             elif self.attached_label.actor_label_type == constants.AVERAGE_WATER_LABEL:
                 if self.change > 0:
-                    for i in range(abs(self.change) - 1):
-                        status.displayed_location.get_world_handler().place_water(
-                            repeat_on_fail=True, radiation_effect=False
+                    for i in range(abs(self.change)):
+                        status.displayed_location.get_true_world_handler().place_water(
+                            update_display=False,
+                            repeat_on_fail=True,
+                            radiation_effect=False,
                         )
-                    status.displayed_location.get_world_handler().place_water(
-                        update_display=True, repeat_on_fail=True, radiation_effect=False
-                    )
                 else:
-                    for i in range(abs(self.change) - 1):
-                        status.displayed_location.get_world_handler().remove_water()
-                    status.displayed_location.get_world_handler().remove_water(
-                        update_display=True
-                    )
-                actor_utility.calibrate_actor_info_display(
-                    status.location_info_display, status.displayed_location
-                )
+                    for i in range(abs(self.change)):
+                        status.displayed_location.get_true_world_handler().remove_water(
+                            update_display=False
+                        )
+                status.displayed_location.get_true_world_handler().update_location_image_bundles()
             else:
                 status.displayed_location.change_parameter(
                     self.attached_label.actor_label_type.removesuffix("_label"),
@@ -1873,7 +1869,7 @@ class change_parameter_button(button):
         ):
             return (
                 super().can_show(skip_parent_collection=skip_parent_collection)
-                and self.attached_label.actor.get_world_handler().is_earth
+                and not self.attached_label.actor.is_earth_location
             )
         else:
             return super().can_show(skip_parent_collection=skip_parent_collection)
@@ -1900,7 +1896,7 @@ class help_button(button):
             in constants.help_manager.subjects[constants.HELP_GLOBAL_PARAMETERS]
         ):
             context[constants.HELP_WORLD_HANDLER_CONTEXT] = (
-                self.attached_label.actor.cell.grid.world_handler
+                self.attached_label.actor.get_true_world_handler()
             )
         return context
 

@@ -283,6 +283,9 @@ def generate_earth_world_input_dict() -> Dict[str, Any]:
     return_dict["cloud_frequency"] = constants.terrain_manager.get_tuning(
         "earth_cloud_frequency"
     )
+    return_dict["image_id_list"] = generate_abstract_world_image(
+        planet=constants.EARTH_WORLD
+    )
     return return_dict
 
 

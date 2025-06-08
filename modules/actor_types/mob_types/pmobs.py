@@ -196,7 +196,7 @@ class pmob(mob):
                 and self.get_permission(constants.IN_GROUP_PERMISSION)
             ):
                 return {}
-        if earth_exemption and self.get_location().get_world_handler().is_earth:
+        if earth_exemption and self.get_location().is_earth_location:
             return {}
         elif (
             earth_exemption

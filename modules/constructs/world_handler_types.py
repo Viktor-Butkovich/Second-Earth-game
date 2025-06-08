@@ -26,6 +26,7 @@ class abstract_world_handler(world_handlers.world_handler):
             **super().to_save_dict(),
             "init_type": constants.ABSTRACT_WORLD,
             "abstract_world_type": self.abstract_world_type,
+            "image_id_list": self.image_id_list,
         }
 
     @property

@@ -1059,18 +1059,18 @@ class actor_display_label(label):
                     tooltip_text.append(
                         f"Gravity is the weight caused by the planet's pull, with Earth having 1.0 g"
                     )
-                    if not self.actor.get_world_handler().is_earth:
+                    if not self.actor.is_earth_location:
                         tooltip_text.append(
-                            f"Approximately {self.actor.get_world_handler().get_parameter(constants.GRAVITY) * 100}% Earth's gravity"
+                            f"Approximately {self.actor.get_true_world_handler().get_parameter(constants.GRAVITY) * 100}% Earth's gravity"
                         )
                         tooltip_text.append(
-                            f"Approximately {round(self.actor.get_world_handler().size / self.actor.get_world_handler().earth_size, 2) * 100}% Earth's size"
+                            f"Approximately {round(self.actor.get_true_world_handler().size / self.actor.get_true_world_handler().earth_size, 2) * 100}% Earth's size"
                         )
                 elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
                     tooltip_text.append(
                         f"    Average temperature = absolute zero + total heat"
                     )
-                    if not self.actor.get_world_handler().is_earth:
+                    if not self.actor.is_earth_location:
                         tooltip_text.append(f"Earth is an average of 58.0 °F")
                 elif self.actor_label_type == constants.RADIATION_LABEL:
                     tooltip_text.append(f"Represents cosmic radiation and solar winds")
@@ -1090,10 +1090,10 @@ class actor_display_label(label):
                     )
                     tooltip_text.append(f"    Insolation = 1 / (star distance)^2")
                     tooltip_text.append(
-                        f"    {self.actor.get_world_handler().get_insolation()} = 1 / ({self.actor.get_world_handler().star_distance})^2"
+                        f"    {self.actor.get_true_world_handler().get_insolation()} = 1 / ({self.actor.get_true_world_handler().star_distance})^2"
                     )
                     tooltip_text.append(
-                        f"By the Stefan-Boltzmann law, a planet with {self.actor.get_world_handler().get_insolation()}x Earth's insolation receives {round(self.actor.get_world_handler().get_sun_effect(), 2)} °F heat"
+                        f"By the Stefan-Boltzmann law, a planet with {self.actor.get_true_world_handler().get_insolation()}x Earth's insolation receives {round(self.actor.get_true_world_handler().get_sun_effect(), 2)} °F heat"
                     )
 
                 if self.actor_label_type in [
@@ -1154,14 +1154,16 @@ class actor_display_label(label):
             tooltip_text = [self.message]
             if self.actor:
                 habitability_dict = self.actor.get_habitability_dict()
-                if not self.actor.get_world_handler().is_abstract_world:
+                if not self.actor.is_abstract_location:
                     tooltip_text.append(
                         f"    Overall habitability is the minimum of all parts of the local conditions"
                     )
                 else:
                     habitability_dict[constants.TEMPERATURE] = (
                         actor_utility.get_temperature_habitability(
-                            round(self.actor.get_world_handler().average_temperature)
+                            round(
+                                self.actor.get_true_world_handler().average_temperature
+                            )
                         )
                     )
                     if (
@@ -1172,7 +1174,7 @@ class actor_display_label(label):
                 tooltip_text.append(
                     f"Represents the habitability for humans to live and work here"
                 )
-                if (not self.actor.get_world_handler().is_abstract_world) and (
+                if (not self.actor.is_abstract_location) and (
                     self.actor.get_parameter(constants.KNOWLEDGE)
                     < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
                 ):
@@ -1230,7 +1232,7 @@ class actor_display_label(label):
                 self.set_label(f"{self.message_start}({new_actor.x}, {new_actor.y})")
 
             elif self.actor_label_type == constants.TERRAIN_LABEL:
-                if not new_actor.get_world_handler().is_abstract_world:
+                if not new_actor.is_abstract_location:
                     if self.actor.knowledge_available(constants.TERRAIN_KNOWLEDGE):
                         self.set_label(
                             f"{self.message_start}{new_actor.terrain.replace('_', ' ')}"
@@ -1239,8 +1241,8 @@ class actor_display_label(label):
                         self.set_label(self.message_start + "unknown")
 
             elif self.actor_label_type == constants.PLANET_NAME_LABEL:
-                if new_actor.get_world_handler().is_abstract_world:
-                    if not new_actor.get_world_handler().is_earth:
+                if new_actor.is_abstract_location:
+                    if not new_actor.is_earth_location:
                         self.set_label(
                             f"{utility.capitalize(new_actor.name)} (in orbit)"
                         )
@@ -1248,7 +1250,7 @@ class actor_display_label(label):
                         self.set_label(utility.capitalize(new_actor.name))
 
             elif self.actor_label_type == constants.RESOURCE_LABEL:
-                if new_actor.get_world_handler().is_abstract_world:
+                if new_actor.is_abstract_location:
                     self.set_label(f"{self.message_start}n/a")
                 else:
                     self.set_label(f"{self.message_start}{new_actor.resource}")
@@ -1259,9 +1261,9 @@ class actor_display_label(label):
             elif (
                 self.actor_label_type == constants.RESOURCE
             ):  # Resource building, distinct from terrain resource label
-                if (
-                    not new_actor.get_world_handler().is_abstract_world
-                ) and new_actor.has_building(constants.RESOURCE):
+                if (not new_actor.is_abstract_location) and new_actor.has_building(
+                    constants.RESOURCE
+                ):
                     self.set_label(
                         new_actor.get_building(constants.RESOURCE).name.capitalize()
                     )
@@ -1535,13 +1537,13 @@ class actor_display_label(label):
                 in constants.global_parameters
             ):
                 parameter = self.actor_label_type.removesuffix("_label")
-                value = self.actor.get_world_handler().get_parameter(parameter)
+                value = self.actor.get_true_world_handler().get_parameter(parameter)
                 if parameter in [constants.PRESSURE] + constants.ATMOSPHERE_COMPONENTS:
                     if (
                         parameter == constants.PRESSURE
                     ):  # Pressure: 1200/2400 (50% Earth)
                         atm = round(
-                            self.actor.get_world_handler().get_pressure_ratio(
+                            self.actor.get_true_world_handler().get_pressure_ratio(
                                 parameter
                             ),
                             2,
@@ -1550,7 +1552,9 @@ class actor_display_label(label):
                             atm = "<0.01"
                         self.set_label(f"{self.message_start}{value:,} u ({atm} atm)")
                     elif (
-                        self.actor.get_world_handler().get_parameter(constants.PRESSURE)
+                        self.actor.get_true_world_handler().get_parameter(
+                            constants.PRESSURE
+                        )
                         == 0.0
                         or value == 0
                     ):
@@ -1559,7 +1563,7 @@ class actor_display_label(label):
                         )
                     else:  # 42% Oxygen: 1008 u (0.42 atm)
                         atm = round(
-                            self.actor.get_world_handler().get_pressure_ratio(
+                            self.actor.get_true_world_handler().get_pressure_ratio(
                                 parameter
                             ),
                             2,
@@ -1567,10 +1571,10 @@ class actor_display_label(label):
                         if atm < 0.01:
                             atm = "<0.01"
                         self.set_label(
-                            f"{round(100 * value / self.actor.get_world_handler().get_parameter(constants.PRESSURE), 1)}% {self.message_start}{value:,} u ({atm} atm)"
+                            f"{round(100 * value / self.actor.get_true_world_handler().get_parameter(constants.PRESSURE), 1)}% {self.message_start}{value:,} u ({atm} atm)"
                         )
                 elif parameter == constants.GRAVITY:
-                    if self.actor.get_world_handler().is_earth:
+                    if self.actor.is_earth_location:
                         self.set_label(f"{self.message_start}{value} g")
                     else:
                         self.set_label(f"{self.message_start}{value} g")
@@ -1594,12 +1598,12 @@ class actor_display_label(label):
                         )
             elif self.actor_label_type == constants.AVERAGE_WATER_LABEL:
                 original_value = (
-                    self.actor.get_world_handler().average_water
+                    self.actor.get_true_world_handler().average_water
                     / constants.terrain_manager.get_tuning("earth_average_water_target")
                 )
                 if original_value != 0 and round(original_value * 100) == 0:
                     original_value = 0.01
-                if self.actor.get_world_handler().is_earth:
+                if self.actor.is_earth_location:
                     self.set_label(f"{self.message_start}100% Earth")
                 else:
                     self.set_label(
@@ -1607,49 +1611,49 @@ class actor_display_label(label):
                     )
             elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
                 self.set_label(
-                    f"{self.message_start}{round(utility.fahrenheit(self.actor.get_world_handler().average_temperature), 2)} °F"
+                    f"{self.message_start}{round(utility.fahrenheit(self.actor.get_true_world_handler().average_temperature), 2)} °F"
                 )
             elif self.actor_label_type == constants.GHG_EFFECT_LABEL:
-                if self.actor.get_world_handler().ghg_multiplier == 1.0:
+                if self.actor.get_true_world_handler().ghg_multiplier == 1.0:
                     self.set_label(f"{self.message_start}+0%")
                 else:
-                    if self.actor.get_world_handler().ghg_multiplier > 1.0:
+                    if self.actor.get_true_world_handler().ghg_multiplier > 1.0:
                         sign = "+"
                     else:
                         sign = ""
                     self.set_label(
-                        f"{self.message_start}{sign}{round((self.actor.get_world_handler().ghg_multiplier - 1.0) * 100, 2)}%"
+                        f"{self.message_start}{sign}{round((self.actor.get_true_world_handler().ghg_multiplier - 1.0) * 100, 2)}%"
                     )
             elif self.actor_label_type == constants.WATER_VAPOR_EFFECT_LABEL:
-                if self.actor.get_world_handler().water_vapor_multiplier == 1.0:
+                if self.actor.get_true_world_handler().water_vapor_multiplier == 1.0:
                     self.set_label(f"{self.message_start}+0%")
                 else:
                     self.set_label(
-                        f"{self.message_start}+{round((self.actor.get_world_handler().water_vapor_multiplier - 1.0) * 100, 2)}%"
+                        f"{self.message_start}+{round((self.actor.get_true_world_handler().water_vapor_multiplier - 1.0) * 100, 2)}%"
                     )
             elif (
                 self.actor_label_type == constants.ALBEDO_EFFECT_LABEL
             ):  # Continue troubleshooting
                 self.set_label(
-                    f"{self.message_start}-{round((1.0 - self.actor.get_world_handler().albedo_multiplier) * 100)}%"
+                    f"{self.message_start}-{round((1.0 - self.actor.get_true_world_handler().albedo_multiplier) * 100)}%"
                 )
             elif self.actor_label_type == constants.TOTAL_HEAT_LABEL:
-                total_heat = self.actor.get_world_handler().get_total_heat()
+                total_heat = self.actor.get_true_world_handler().get_total_heat()
                 earth_total_heat = status.earth_world.get_total_heat()
                 self.set_label(
                     f"{self.message_start}{total_heat} °F ({round((total_heat / earth_total_heat) * 100)}% Earth)"
                 )
             elif self.actor_label_type == constants.STAR_DISTANCE_LABEL:
                 self.set_label(
-                    f"{self.message_start}{self.actor.get_world_handler().star_distance} AU"
+                    f"{self.message_start}{self.actor.get_true_world_handler().star_distance} AU"
                 )
             elif self.actor_label_type == constants.INSOLATION_LABEL:
                 self.set_label(
-                    f"{self.message_start}{round(self.actor.get_world_handler().get_sun_effect(), 2)} °F ({round((self.actor.get_world_handler().get_sun_effect() / status.earth_world.get_sun_effect()) * 100)}% Earth)"
+                    f"{self.message_start}{round(self.actor.get_true_world_handler().get_sun_effect(), 2)} °F ({round((self.actor.get_true_world_handler().get_sun_effect() / status.earth_world.get_sun_effect()) * 100)}% Earth)"
                 )
             elif self.actor_label_type == constants.HABITABILITY_LABEL:
                 overall_habitability = self.actor.get_known_habitability()
-                if (not self.actor.get_world_handler().is_abstract_world) and (
+                if (not self.actor.is_abstract_location) and (
                     self.actor.get_parameter(constants.KNOWLEDGE)
                     < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
                 ):  # If location with no local temperature knowledge
@@ -1687,8 +1691,7 @@ class actor_display_label(label):
         elif not self.actor:
             return False
         elif self.actor_label_type == constants.RESOURCE_LABEL and (
-            self.actor.resource == None
-            or self.actor.get_world_handler().is_abstract_world
+            self.actor.resource == None or self.actor.is_abstract_location
         ):
             return False
         elif self.actor_label_type == constants.RESOURCE and (
@@ -1698,7 +1701,7 @@ class actor_display_label(label):
             return False
         elif (
             self.actor_label_type == constants.COORDINATES_LABEL
-            and self.actor.get_world_handler().is_abstract_world
+            and self.actor.is_abstract_location
         ):
             return False
         elif self.actor_label_type in [
@@ -1775,9 +1778,9 @@ class actor_display_label(label):
         elif self.actor_label_type == constants.EQUIPMENT_LABEL:
             return bool(self.actor.equipment)
         elif self.actor_label_type == constants.PLANET_NAME_LABEL:
-            return self.actor.get_world_handler().is_abstract_world
+            return self.actor.is_abstract_location
         elif self.actor_label_type == constants.TERRAIN_LABEL:
-            return not self.actor.get_world_handler().is_abstract_world
+            return not self.actor.is_abstract_location
         else:
             return result
 

@@ -931,8 +931,13 @@ class button(interface_elements.interface_element):
                                             not status.displayed_notification
                                         ):  # If attacking, don't reembark
                                             for current_passenger in passengers:
-                                                if current_passenger.get_location() == current_mob.get_location():
-                                                    current_passenger.embark_vehicle(current_mob)
+                                                if (
+                                                    current_passenger.get_location()
+                                                    == current_mob.get_location()
+                                                ):
+                                                    current_passenger.embark_vehicle(
+                                                        current_mob
+                                                    )
                                         if (
                                             last_moved
                                             and not last_moved.get_permission(
@@ -1410,9 +1415,11 @@ class button(interface_elements.interface_element):
 
         elif self.button_type == constants.RENAME_PLANET_BUTTON:
             if override_action_possible or main_loop_utility.action_possible():
-                constants.message = status.displayed_location.get_world_handler().name
+                constants.message = (
+                    status.displayed_location.get_true_world_handler().name
+                )
                 constants.input_manager.start_receiving_input(
-                    status.displayed_location.get_world_handler().rename,
+                    status.displayed_location.get_true_world_handler().rename,
                     prompt="Type a new name for this planet: ",
                 )
             else:
@@ -1495,13 +1502,13 @@ class button(interface_elements.interface_element):
             ]:
                 return (
                     status.displayed_location
-                    and status.displayed_location.get_world_handler().is_earth
+                    and status.displayed_location.is_earth_location
                     and self.attached_label.actor.current_item.can_sell
                 )
             elif self.button_type == constants.SELL_EACH_ITEM_BUTTON:
                 if (
                     status.displayed_location
-                    and status.displayed_location.get_world_handler().is_earth
+                    and status.displayed_location.is_earth_location
                 ):
                     for current_item_type in status.displayed_location.get_held_items():
                         if current_item_type.can_sell:
@@ -1530,8 +1537,8 @@ class button(interface_elements.interface_element):
             elif self.button_type == constants.RENAME_PLANET_BUTTON:
                 if (
                     status.displayed_location
-                    and status.displayed_location.get_world_handler().is_abstract_world
-                    and (not status.displayed_location.get_world_handler().is_earth)
+                    and status.displayed_location.is_abstract_location
+                    and (not status.displayed_location.is_earth_location)
                 ):
                     return True
                 return False
@@ -2625,16 +2632,12 @@ class tab_button(button):
                     constants.PMOB_PERMISSION
                 )
             elif self.identifier == constants.LOCAL_CONDITIONS_PANEL:
-                return_value = (
-                    not status.displayed_location.get_world_handler().is_abstract_world
-                )
+                return_value = not status.displayed_location.is_abstract_location
             elif self.identifier in [
                 constants.GLOBAL_CONDITIONS_PANEL,
                 constants.TEMPERATURE_BREAKDOWN_PANEL,
             ]:
-                return_value = (
-                    status.displayed_location.get_world_handler().is_abstract_world
-                )
+                return_value = status.displayed_location.is_abstract_location
 
         if (
             self.linked_element

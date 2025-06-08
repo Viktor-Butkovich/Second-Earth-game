@@ -330,8 +330,8 @@ class actor:
             if flags.player_turn:
                 intro_text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports a logistical incident "
                 current_location = self.get_location()
-                if current_location.get_world_handler().is_abstract_world:
-                    intro_text += f"in orbit of {current_location.get_world_handler().name}: /n /n"
+                if current_location.is_abstract_location:
+                    intro_text += f"in orbit of {current_location.get_true_world_handler().name}: /n /n"
                 elif current_location.name != "default":
                     intro_text += f"at {current_location.name}: /n /n"
                 else:

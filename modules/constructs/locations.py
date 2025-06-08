@@ -116,6 +116,14 @@ class location(actors.actor):
         )  # Dynamically get all contained mobs, including work crews in buildings and sub-mobs of vehicles and groups
         #   Make sure to recursively get all sub-mobs: vehicle with crew should return vehicle, crew, crew's officer, and crew's colonists
 
+    @property
+    def is_abstract_location(self) -> bool:
+        return self.get_world_handler().is_abstract_world
+
+    @property
+    def is_earth_location(self) -> bool:
+        return self.get_true_world_handler().is_earth
+
     def local_attrition(self, attrition_type="health"):
         """
         Description:
@@ -131,7 +139,7 @@ class location(actors.actor):
             and random.randrange(1, 7) >= 4
         ):
             return True
-        if self.get_world_handler().is_earth:
+        if self.is_earth_location:
             if attrition_type == "health":  # No health attrition on Earth
                 return False
             elif (
@@ -364,7 +372,9 @@ class location(actors.actor):
             int: Returns the habitability effect of the inputted parameter, from 0 to 5 (5 is perfect, 0 is deadly)
         """
         if parameter_name in constants.global_parameters:
-            return self.get_world_handler().get_parameter_habitability(parameter_name)
+            return self.get_true_world_handler().get_parameter_habitability(
+                parameter_name
+            )
         elif parameter_name == constants.TEMPERATURE:
             return actor_utility.get_temperature_habitability(
                 self.get_parameter(parameter_name)
@@ -372,7 +382,7 @@ class location(actors.actor):
         elif parameter_name == constants.WATER:
             if self.get_parameter(constants.WATER) >= 4 and self.get_parameter(
                 constants.TEMPERATURE
-            ) > self.get_world_handler().get_tuning("water_freezing_point"):
+            ) > self.get_true_world_handler().get_tuning("water_freezing_point"):
                 return constants.HABITABILITY_DEADLY
             else:
                 return constants.HABITABILITY_PERFECT
@@ -409,7 +419,7 @@ class location(actors.actor):
             int: Returns habitability of this location for the inputted unit
         """
         if (
-            self.world_handler.is_abstract_world
+            self.is_abstract_location
             and self.world_handler.abstract_world_type == constants.ORBITAL_WORLD
         ):
             default_habitability = constants.HABITABILITY_DEADLY
@@ -435,10 +445,10 @@ class location(actors.actor):
             int: Returns the habitability of this location based on current knowledge
         """
         habitability_dict = self.get_habitability_dict()
-        if self.get_world_handler().is_abstract_world:  # If global habitability
+        if self.is_abstract_location:  # If global habitability
             habitability_dict[constants.TEMPERATURE] = (
                 actor_utility.get_temperature_habitability(
-                    round(self.get_world_handler().average_temperature)
+                    round(self.get_true_world_handler().average_temperature)
                 )
             )
             overall_habitability = min(habitability_dict.values())
@@ -469,11 +479,11 @@ class location(actors.actor):
         Output:
             float: Expected temperature of this terrain
         """
-        if self.get_world_handler():
-            average_temperature = self.get_world_handler().average_temperature
+        if self.get_true_world_handler():
+            average_temperature = self.get_true_world_handler().average_temperature
             altitude_effect = (
                 -1 * self.get_parameter(constants.ALTITUDE)
-            ) + self.get_world_handler().average_altitude
+            ) + self.get_true_world_handler().average_altitude
             altitude_effect_weight = 0.5
             # Colder to the extent that location is higher than average altitude, and vice versa
             return (
@@ -573,20 +583,11 @@ class location(actors.actor):
             min(new_value, self.maxima.get(parameter_name, 5)),
         )
         new_value = self.terrain_parameters[parameter_name]
-        if (
-            parameter_name == constants.WATER
-            and not self.get_world_handler().is_abstract_world
-        ):
-            self.get_world_handler().update_average_water()
-        elif (
-            parameter_name == constants.ALTITUDE
-            and not self.get_world_handler().is_abstract_world
-        ):
-            self.get_world_handler().update_average_altitude()
-        elif (
-            parameter_name == constants.TEMPERATURE
-            and not self.get_world_handler().is_abstract_world
-        ):
+        if parameter_name == constants.WATER and not self.is_abstract_location:
+            self.get_true_world_handler().update_average_water()
+        elif parameter_name == constants.ALTITUDE and not self.is_abstract_location:
+            self.get_true_world_handler().update_average_altitude()
+        elif parameter_name == constants.TEMPERATURE and not self.is_abstract_location:
             # If changing temperature, re-distribute water around the planet
             # Causes melting glaciers and vice versa
             if new_value != old_value:
@@ -599,7 +600,7 @@ class location(actors.actor):
                     update_display=False,
                 )
                 for i in range(water_displaced):
-                    self.get_world_handler().place_water(
+                    self.get_true_world_handler().place_water(
                         radiation_effect=False,
                         repeat_on_fail=True,
                         update_display=update_display,
@@ -868,8 +869,8 @@ class location(actors.actor):
         Output:
             dictionary: Color filter for this location's world
         """
-        if self.get_world_handler():
-            color_filter = self.get_world_handler().color_filter.copy()
+        if self.get_true_world_handler():
+            color_filter = self.get_true_world_handler().color_filter.copy()
             for key in color_filter:
                 color_filter[key] = round(
                     color_filter[key]
@@ -895,6 +896,21 @@ class location(actors.actor):
             world_handler: World handler corresponding to this location, or None if none exists yet
         """
         return self.world_handler
+
+    def get_true_world_handler(self) -> world_handlers.world_handler:
+        """
+        Description:
+            Returns the actual world handler corresponding to this location, mapping to the actual world if this is an orbital world
+        Input:
+            None
+        Output:
+            world_handler: Actual world handler corresponding to this location, or None if none exists yet
+        """
+        world_handler = self.get_world_handler()
+        if world_handler.is_orbital_world:
+            return world_handler.full_world
+        else:
+            return world_handler
 
     def get_green_screen(self) -> Dict[str, Dict[str, any]]:
         """
@@ -940,9 +956,11 @@ class location(actors.actor):
         Output:
             float: Returns the average RGB value of this location's terrain
         """
-        if self.get_world_handler().is_earth:
-            return 1.0 - self.get_world_handler().get_tuning("earth_albedo_multiplier")
-        elif not self.get_world_handler().is_abstract_world:
+        if self.is_earth_location:
+            return 1.0 - self.get_true_world_handler().get_tuning(
+                "earth_albedo_multiplier"
+            )
+        elif not self.is_abstract_location:
             image_id = self.get_image_id_list(
                 terrain_only=True,
                 force_pixellated=True,
@@ -984,7 +1002,7 @@ class location(actors.actor):
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        if self.get_world_handler().is_abstract_world:
+        if self.is_abstract_location:
             image_id_list = self.get_world_handler().image_id_list
         else:
             image_id_list = []
@@ -1277,7 +1295,7 @@ class location(actors.actor):
             None
         """
         tooltip_message = []
-        if self.get_world_handler().is_abstract_world:
+        if self.is_abstract_location:
             tooltip_message.append(self.name)
         else:
             tooltip_message.append(f"Coordinates: ({self.x}, {self.y})")
@@ -1311,7 +1329,7 @@ class location(actors.actor):
             else:
                 tooltip_message.append(f"    Terrain unknown")
 
-        if self.get_world_handler().is_abstract_world or self.knowledge_available(
+        if self.is_abstract_location or self.knowledge_available(
             constants.TERRAIN_PARAMETER_KNOWLEDGE
         ):
             tooltip_message.append(
@@ -1582,7 +1600,7 @@ class location(actors.actor):
             None
         """
         super().set_name(new_name)
-        if (not self.get_world_handler().is_abstract_world) and new_name not in [
+        if (not self.is_abstract_location) and new_name not in [
             "default",
             "placeholder",
         ]:

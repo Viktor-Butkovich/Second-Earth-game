@@ -963,7 +963,7 @@ class mob(actor):
             top_message = "Item upkeep per turn:"
             if not item_upkeep:
                 top_message += " None"
-            elif self.get_location().get_world_handler().is_earth:
+            elif self.get_location().is_earth_location:
                 top_message += " (exempt while on Earth)"
             elif (
                 self.get_location().get_unit_habitability()
@@ -999,13 +999,13 @@ class mob(actor):
             )
 
         if self.end_turn_destination:
-            if not self.end_turn_destination.get_world_handler().is_abstract_world:
+            if not self.end_turn_destination.is_abstract_location:
                 tooltip_list.append(
-                    f"This unit has been issued an order to travel to ({self.end_turn_destination.x}, {self.end_turn_destination.y}) on {self.end_turn_destination.get_world_handler().name} at the end of the turn"
+                    f"This unit has been issued an order to travel to ({self.end_turn_destination.x}, {self.end_turn_destination.y}) on {self.end_turn_destination.get_true_world_handler().name} at the end of the turn"
                 )
             else:
                 tooltip_list.append(
-                    f"This unit has been issued an order to travel to {self.end_turn_destination.get_world_handler().name} at the end of the turn"
+                    f"This unit has been issued an order to travel to {self.end_turn_destination.get_true_world_handler().name} at the end of the turn"
                 )
 
         if self.get_permission(constants.NPMOB_PERMISSION):
@@ -1129,7 +1129,7 @@ class mob(actor):
         future_x = (current_location.x + x_change) % current_world.world_dimensions
         future_y = (current_location.y + y_change) % current_world.coordinate_height
         if minister_utility.get_minister(constants.TRANSPORTATION_MINISTER):
-            if not self.get_location().get_world_handler().is_abstract_world:
+            if not self.get_location().is_abstract_location:
                 future_location = current_world.find_location(future_x, future_y)
                 if (
                     future_location.get_unit_habitability(self)

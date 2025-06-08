@@ -986,7 +986,7 @@ class ordered_collection(interface_collection):
                 ]
             )
         elif self == status.global_conditions_collection and new_actor:
-            if new_actor.get_world_handler().is_earth:
+            if new_actor.is_earth_location:
                 planet = constants.EARTH_WORLD
             else:
                 planet = constants.GLOBE_PROJECTION_WORLD

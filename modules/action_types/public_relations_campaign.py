@@ -99,7 +99,7 @@ class public_relations_campaign(action.campaign):
             None
         """
         if super().on_click(unit):
-            if unit.get_location().get_world_handler().is_earth:
+            if unit.get_location().is_earth_location:
                 self.start(unit)
             else:
                 text_utility.print_to_screen(

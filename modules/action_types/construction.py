@@ -118,7 +118,7 @@ class construction(action.action):
 
         if (
             status.displayed_mob
-            and not status.displayed_mob.get_location().get_world_handler().is_earth
+            and not status.displayed_mob.get_location().is_earth_location
         ):
             terrain = status.displayed_mob.get_location().terrain
             if not self.building_type.key in [constants.TRAIN]:
@@ -324,7 +324,7 @@ class construction(action.action):
                     text_utility.print_to_screen(
                         f"This location already contains a {self.building_name} building."
                     )
-            elif unit.get_location().get_world_handler().is_earth:
+            elif unit.get_location().is_earth_location:
                 text_utility.print_to_screen(
                     "This building can only be built on the planet."
                 )

@@ -451,11 +451,7 @@ def manage_lmb_down(clicked_button):
                         if current_cell.touching_mouse():
                             click_move_minimap(select_unit=False)
                             target_location = None
-                            if (
-                                current_cell.get_location()
-                                .get_world_handler()
-                                .is_abstract_world
-                            ):
+                            if current_cell.get_location().is_abstract_location:
                                 target_location = current_cell.get_location()
                             else:
                                 target_location = (
@@ -500,11 +496,7 @@ def manage_lmb_down(clicked_button):
             for current_grid in status.grid_list:  # destination_grids:
                 for current_cell in current_grid.get_flat_cell_list():
                     if current_cell.touching_mouse():
-                        if (
-                            current_cell.get_location()
-                            .get_world_handler()
-                            .is_abstract_world
-                        ):
+                        if current_cell.get_location().is_abstract_location:
                             text_utility.print_to_screen(
                                 "Only locations adjacent to the most recently chosen destination can be added to the movement route."
                             )

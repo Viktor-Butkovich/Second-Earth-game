@@ -279,8 +279,8 @@ def manage_logistics_report() -> None:
             else:
                 text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports the following logistical incidents "
 
-            if location.get_world_handler().is_abstract_world:
-                text += f"in orbit of {location.get_world_handler().name}: /n /n"
+            if location.is_abstract_location:
+                text += f"in orbit of {location.get_true_world_handler().name}: /n /n"
             elif location.name != "default":
                 text += f"at {location.name}: /n /n"
             else:

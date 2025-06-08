@@ -46,7 +46,7 @@ def cycle_player_turn(start_of_turn=False):
         cycled_mob = turn_queue[0]
         if (
             constants.current_game_mode == constants.EARTH_MODE
-            and not cycled_mob.get_location().get_world_handler().is_earth
+            and not cycled_mob.get_location().is_earth_location
         ):
             set_game_mode(constants.STRATEGIC_MODE)
         elif constants.current_game_mode == constants.MINISTERS_MODE:
@@ -123,8 +123,7 @@ def set_game_mode(new_game_mode):
         constants.MINISTERS_MODE,
     ]:
         if new_game_mode == constants.MINISTERS_MODE or not (
-            status.displayed_location
-            and status.displayed_location.get_world_handler().is_earth
+            status.displayed_location and status.displayed_location.is_earth_location
         ):
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, None, override_exempt=True

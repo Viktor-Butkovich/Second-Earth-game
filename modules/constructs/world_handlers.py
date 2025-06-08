@@ -368,11 +368,11 @@ class world_handler:
             None
         """
         for _ in range(round(self.average_water_target * (self.world_dimensions**2))):
-            self.place_water(radiation_effect=True)
+            self.place_water(radiation_effect=True, update_display=False)
         if constants.effect_manager.effect_active("map_customization"):
             attempts = 0
             while attempts < 10000 and not self.find_average(constants.WATER) == 5.0:
-                self.place_water(radiation_effect=True)
+                self.place_water(radiation_effect=True, update_display=False)
                 attempts += 1
         self.update_target_average_temperature(update_albedo=True)
         self.change_to_temperature_target()
@@ -385,7 +385,7 @@ class world_handler:
         self,
         frozen_bound=0,
         radiation_effect: bool = False,
-        update_display: bool = False,
+        update_display: bool = True,
         repeat_on_fail: bool = False,
     ) -> None:
         """
@@ -510,7 +510,7 @@ class world_handler:
                 repeat_on_fail=repeat_on_fail,
             )
 
-    def remove_water(self, update_display: bool = False) -> None:
+    def remove_water(self, update_display: bool = True) -> None:
         """
         Description:
             Removes 1 unit of water from the map, depending on altitude and temperature
@@ -932,7 +932,8 @@ class world_handler:
             int: Returns the distance between the two locations
         """
         return (
-            self.x_distance(location1, location2) ** 2 + self.y_distance(location1, location2) ** 2
+            self.x_distance(location1, location2) ** 2
+            + self.y_distance(location1, location2) ** 2
         ) ** 0.5
 
     def manhattan_distance(self, location1, location2):
@@ -1014,7 +1015,9 @@ class world_handler:
             }
         )
 
-        equatorial_distance = self.euclidean_distance(status.north_pole, status.south_pole) / 2
+        equatorial_distance = (
+            self.euclidean_distance(status.north_pole, status.south_pole) / 2
+        )
         for (
             location
         ) in (
@@ -1178,7 +1181,10 @@ class world_handler:
                 status.location_info_display, status.displayed_location
             )
         for mob in status.mob_list:
-            if mob.get_location() and mob.get_location().get_world_handler() == self:
+            if (
+                mob.get_location()
+                and mob.get_location().get_true_world_handler() == self
+            ):
                 mob.update_habitability()
 
     def update_pressure(self) -> None:
