@@ -25,8 +25,8 @@ class officer(pmob):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple - Required if from save, None if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination_coordinates': int tuple value - None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_world_index': int value - Index of the world of the end turn destination, if any
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'veteran': boolean value - Required if from save, whether this officer is a veteran
@@ -127,8 +127,8 @@ class officer(pmob):
             None
         """
         self.group = group
+        self.get_location().unsubscribe_mob(self)
         self.set_permission(constants.IN_GROUP_PERMISSION, True)
-        self.hide_images()
         self.remove_from_turn_queue()
 
     def leave_group(self, group, focus=True):
@@ -142,10 +142,7 @@ class officer(pmob):
         """
         self.group = None
         self.set_permission(constants.IN_GROUP_PERMISSION, False)
-        self.x = group.x
-        self.y = group.y
-        self.show_images()
-        # self.go_to_grid(self.get_cell().grid, (self.x, self.y))
+        self.get_location().subscribe_mob(self)
         if focus:
             self.select()
         if self.movement_points > 0:

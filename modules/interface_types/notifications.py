@@ -60,13 +60,9 @@ class notification(multi_line_label):
 
             if target.actor_type == constants.LOCATION_ACTOR_TYPE:
                 actor_utility.calibrate_actor_info_display(
-                    status.mob_info_display, None
-                )
-                actor_utility.calibrate_actor_info_display(
                     status.location_info_display, target
                 )
-                for attached_cell in target.attached_cells:
-                    attached_cell.grid.calibrate(target.x, target.y)
+                actor_utility.focus_minimap_grids(target)
             elif target.actor_type == constants.MOB_ACTOR_TYPE:
                 target.select()
 

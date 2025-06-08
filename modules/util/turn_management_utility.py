@@ -97,10 +97,10 @@ def start_player_turn(first_turn=False):
     if not first_turn:
         market_utility.adjust_prices()
 
-    status.minimap_grid.calibrate(
+    actor_utility.calibrate_minimap_grids(
+        status.current_world,
         status.minimap_grid.center_x,
         status.minimap_grid.center_y,
-        calibrate_center=False,
     )
     actor_utility.calibrate_actor_info_display(
         status.location_info_display, status.displayed_location

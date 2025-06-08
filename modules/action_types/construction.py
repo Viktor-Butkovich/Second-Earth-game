@@ -370,11 +370,9 @@ class construction(action.action):
         """
         if self.roll_result >= self.current_min_success:
             input_dict = {
-                "coordinates": (self.current_unit.x, self.current_unit.y),
-                "grids": self.current_unit.grids,
-                "name": self.building_name,
-                "modes": self.current_unit.grids[0].modes,
                 "init_type": self.building_type.key,
+                "location": self.current_unit.get_location(),
+                "name": self.building_name,
             }
 
             if not self.building_type.key in [constants.TRAIN]:

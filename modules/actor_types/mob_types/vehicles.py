@@ -24,8 +24,8 @@ class vehicle(pmob):
                 'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_spaceship.png'
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination_coordinates': int tuple value - None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_world_index': int value - Index of the world of the end turn destination, if any
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'crew': worker, string, or dictionary value - If no crew, equals None. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
@@ -48,13 +48,17 @@ class vehicle(pmob):
                 self.set_crew(None)
             else:
                 constants.actor_creation_manager.create(
-                    True, input_dict["crew"]
+                    True, {**input_dict["crew"], "location": input_dict["location"]}
                 ).crew_vehicle(
                     self
                 )  # creates worker and merges it as crew
             for current_passenger in input_dict["passenger_dicts"]:
                 constants.actor_creation_manager.create(
-                    True, current_passenger
+                    True,
+                    {
+                        **current_passenger,
+                        "location": input_dict["location"],
+                    },
                 ).embark_vehicle(
                     self
                 )  # create passengers and merge as passengers
@@ -152,34 +156,6 @@ class vehicle(pmob):
             return self.moving_image_id
         else:
             return super().get_default_image_id_list(override_values)
-
-    def move(self, x_change, y_change):
-        """
-        Description:
-            Moves this mob x_change to the right and y_change upward, also making sure to update the positions of the vehicle's crew and passengers
-        Input:
-            int x_change: How many cells are moved to the right in the movement
-            int y_change: How many cells are moved upward in the movement
-        Output:
-            None
-        """
-        super().move(x_change, y_change)
-        self.calibrate_sub_mob_positions()
-
-    def calibrate_sub_mob_positions(self):
-        """
-        Description:
-            Updates the positions of this mob's submobs (mobs inside of a building or other mob that are not able to be independently viewed or selected) to match this mob
-        Input:
-            None
-        Output:
-            None
-        """
-        for current_passenger in self.get_sub_mobs():
-            current_passenger.x = self.x
-            current_passenger.y = self.y
-            if current_passenger.get_permission(constants.GROUP_PERMISSION):
-                current_passenger.calibrate_sub_mob_positions()
 
     def get_sub_mobs(self) -> List[pmob]:
         """
@@ -320,31 +296,6 @@ class vehicle(pmob):
         elif can_print:
             text_utility.print_to_screen(f"A {self.name} cannot move without a crew.")
         return False
-
-    def go_to_grid(self, new_grid, new_coordinates):
-        """
-        Description:
-            Links this vehicle to a grid, causing it to appear on that grid and its minigrid at certain coordinates. Used when crossing the ocean. Also moves this vehicle's crew and its passengers
-        Input:
-            grid new_grid: grid that this vehicle is linked to
-            int tuple new_coordinates: Two values representing x and y coordinates to start at on the inputted grid
-        Output:
-            None
-        """
-        return
-        super().go_to_grid(new_grid, new_coordinates)
-        for current_sub_mob in self.get_sub_mobs():
-            current_sub_mob.go_to_grid(new_grid, new_coordinates)
-            current_sub_mob.set_permission(constants.IN_VEHICLE_PERMISSION, True)
-            current_sub_mob.hide_images()
-        if new_grid == status.earth_grid or self.images[
-            0
-        ].current_cell.has_intact_building(constants.SPACEPORT):
-            self.eject_passengers(focus=False)
-            self.drop_inventory()
-        elif new_grid.world_handler.is_earth:
-            self.eject_passengers(focus=False)
-        self.on_move()
 
     def get_worker(self) -> "pmob":
         """

@@ -181,26 +181,9 @@ class save_load_manager_template:
             item_type.to_save_dict() for key, item_type in status.item_types.items()
         ]
 
-        saved_actor_dicts = []
-        for current_pmob in status.pmob_list:
-            if not current_pmob.any_permissions(
-                constants.IN_GROUP_PERMISSION,
-                constants.IN_VEHICLE_PERMISSION,
-                constants.IN_BUILDING_PERMISSION,
-            ):  # Containers save their contents and load them in, contents don't need to be saved/loaded separately
-                saved_actor_dicts.append(current_pmob.to_save_dict())
-
-        for current_npmob in status.npmob_list:
-            saved_actor_dicts.append(current_npmob.to_save_dict())
-
-        for current_building in status.building_list:
-            saved_actor_dicts.append(current_building.to_save_dict())
-
-        for current_settlement in status.settlement_list:
-            saved_actor_dicts.append(current_settlement.to_save_dict())
-
-        for current_loan in status.loan_list:
-            saved_actor_dicts.append(current_loan.to_save_dict())
+        saved_loan_dicts = [
+            current_loan.to_save_dict() for current_loan in status.loan_list
+        ]
 
         saved_minister_dicts = []
         for current_minister in status.minister_list:
@@ -216,7 +199,7 @@ class save_load_manager_template:
             pickle.dump(saved_flags, handle)
             pickle.dump(saved_worlds, handle)
             pickle.dump(saved_unit_types, handle)
-            pickle.dump(saved_actor_dicts, handle)
+            pickle.dump(saved_loan_dicts, handle)
             pickle.dump(saved_minister_dicts, handle)
             pickle.dump(saved_item_types, handle)
             handle.close()
@@ -248,7 +231,7 @@ class save_load_manager_template:
                 saved_flags = pickle.load(handle)
                 saved_worlds = pickle.load(handle)
                 saved_worker_types = pickle.load(handle)
-                saved_actor_dicts = pickle.load(handle)
+                saved_loan_dicts = pickle.load(handle)
                 saved_minister_dicts = pickle.load(handle)
                 saved_item_types = pickle.load(handle)
                 handle.close()
@@ -274,6 +257,7 @@ class save_load_manager_template:
         text_utility.print_to_screen("Turn " + str(constants.turn))
 
         world_utility.load_worlds(saved_worlds)
+        # Note that loading in worlds loads locations, which loads settlements, mobs, and buildings
 
         game_transitions.create_grids()
 
@@ -287,8 +271,8 @@ class save_load_manager_template:
             constants.actor_creation_manager.create_minister(
                 True, current_minister_dict
             )
-        for current_actor_dict in saved_actor_dicts:
-            constants.actor_creation_manager.create(True, current_actor_dict)
+        for current_loan_dict in saved_loan_dicts:
+            constants.actor_creation_manager.create(True, current_loan_dict)
 
         for current_item_type_dict in saved_item_types:
             status.item_types[current_item_type_dict["key"]].apply_save_dict(
@@ -299,7 +283,8 @@ class save_load_manager_template:
         minister_utility.update_available_minister_display()
         status.item_prices_label.update_label()
 
-        status.minimap_grid.calibrate(
+        actor_utility.calibrate_minimap_grids(
+            status.current_world,
             round(0.75 * status.current_world.world_dimensions),
             round(0.75 * status.current_world.world_dimensions),
         )

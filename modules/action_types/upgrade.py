@@ -237,5 +237,5 @@ class upgrade(action.action):
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, self.current_unit.get_location()
             )  # update location display to show building upgrade
-            status.minimap_grid.calibrate(self.current_unit.x, self.current_unit.y)
+            actor_utility.focus_minimap_grids(self.current_unit.get_location())
         super().complete()

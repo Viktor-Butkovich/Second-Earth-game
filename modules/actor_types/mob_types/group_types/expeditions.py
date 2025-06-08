@@ -25,9 +25,6 @@ class expedition(group):
         flags.show_selection_outlines = True
         flags.show_minimap_outlines = True
         constants.last_selection_outline_switch = constants.current_time
-
-        future_x = (self.x + x_change) % self.grid.coordinate_width
-        future_y = (self.y + y_change) % self.grid.coordinate_height
         if x_change > 0:
             direction = "east"
         elif x_change < 0:
@@ -38,12 +35,14 @@ class expedition(group):
             direction = "south"
         else:
             direction = None
-        future_cell = self.grid.find_cell(future_x, future_y)
-        if (
-            not self.get_location()
+        current_location = self.get_location()
+        future_location = (
+            current_location
             .get_world_handler()
-            .find_location(future_x, future_y)
-            .visible
+            .find_location(current_location.x + x_change, current_location.y + y_change)
+        )
+        if (
+            not future_location.visible
         ):  # if moving to unexplored area, try to explore it
             status.actions["exploration"].on_click(
                 self,

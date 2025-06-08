@@ -172,10 +172,11 @@ class combat(action.action):
         if subject == "confirmation":
             text += f"Are you sure you want to spend {str(self.get_price())} money to attack the {self.opponent.name} to the {self.direction}? /n /nRegardless of the result, the rest of this unit's movement points will be consumed."
         elif subject == "initial":
+            current_location = self.current_unit.get_location()
             if self.defending:
-                text += f"{utility.capitalize(self.opponent.name)} {utility.conjugate('be', self.opponent.unit_type.number)} attacking your {self.current_unit.name} at ({str(self.current_unit.x)}, {str(self.current_unit.y)})."
+                text += f"{utility.capitalize(self.opponent.name)} {utility.conjugate('be', self.opponent.unit_type.number)} attacking your {self.current_unit.name} at ({str(self.current_location.x)}, {str(self.current_location.y)})."
             else:
-                text += f"Your {self.current_unit.name} {utility.conjugate('be', self.current_unit.unit_type.number)} attacking the {self.opponent.name} at ({str(self.current_unit.x)}, {str(self.current_unit.y)})."
+                text += f"Your {self.current_unit.name} {utility.conjugate('be', self.current_unit.unit_type.number)} attacking the {self.opponent.name} at ({str(self.current_location.x)}, {str(self.current_location.y)})."
 
         elif subject == "modifier_breakdown":
             text += f"The {self.current_unit.name} {utility.conjugate('attempt', self.current_unit.unit_type.number)} to defeat the {self.opponent.name}. /n /n"
@@ -301,12 +302,14 @@ class combat(action.action):
         if on_click_info_dict.get("attack_confirmed", False):
             return False
         else:
-            future_cell = unit.grid.find_cell(
-                self.x_change + unit.x, self.y_change + unit.y
+            current_location = unit.get_location()
+            future_location = current_location.get_world_handler().find_location(
+                current_location.x + self.x_change,
+                current_location.y + self.y_change,
             )
             opponent = None
             if unit.get_permission(constants.BATTALION_PERMISSION):
-                opponent = future_cell.get_best_combatant("npmob")
+                opponent = future_location.get_best_combatant("npmob")
                 self.action_type = "combat"
             if not opponent:
                 return False
@@ -329,9 +332,9 @@ class combat(action.action):
                     self.defending = False
                     self.start(unit)
                     unit.create_cell_icon(
-                        unit.x + self.x_change,
-                        unit.y + self.y_change,
-                        "misc/attack_mark/" + self.direction + ".png",
+                        future_location.x,
+                        future_location.y,
+                        f"misc/attack_mark/self.direction.png",
                     )
             return True
 

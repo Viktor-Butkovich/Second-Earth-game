@@ -16,20 +16,13 @@ class settlement:
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
+                'location': location value - Where this settlement is located
                 'name': string value - Required if from save, starting name of settlement
         Output:
             None
         """
-        return
-        # Rework settlements to be part of locations and saved with them
         self.x, self.y = input_dict["coordinates"]
-        if from_save:
-            self.location = status.world_list[
-                input_dict["world_handler_index"]
-            ].find_location(self.x, self.y)
-        else:
-            self.location = input_dict["location"]
+        self.location = input_dict["location"]
         self.location.settlement = self
         if not from_save:
             self.name = constants.flavor_text_manager.generate_flavor_text(
@@ -101,10 +94,6 @@ class settlement:
         save_dict = {}
         save_dict["init_type"] = constants.SETTLEMENT
         save_dict["name"] = self.name
-        save_dict["coordinates"] = (self.x, self.y)
-        save_dict["world_handler_index"] = status.world_list.index(
-            self.location.get_world_handler()
-        )
         return save_dict
 
     def remove(self):
@@ -117,4 +106,4 @@ class settlement:
             None
         """
         status.settlement_list = utility.remove_from_list(status.settlement_list, self)
-        self.cell.settlement = None
+        self.location.settlement = None

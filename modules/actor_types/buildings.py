@@ -1,15 +1,14 @@
 # Contains functionality for buildings
 
 import pygame
-import random
 from typing import Dict
-from modules.actor_types.actors import actor
-from modules.util import utility, scaling, actor_utility, text_utility, minister_utility
+from modules.actor_types import actors
+from modules.util import utility, scaling, actor_utility, text_utility
 from modules.constructs import building_types, item_types, locations
 from modules.constants import constants, status, flags
 
 
-class building(actor):
+class building(actors.actor):
     """
     Actor that exists in cells of multiple grids in front of locations and behind mobs that cannot be clicked
     """
@@ -21,14 +20,12 @@ class building(actor):
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
+                'location': location value - Where this building is located
                 'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this building's name
                 'building_type': string value - Type of building, like 'port'
-                'modes': string list value - Game modes during which this building's images can appear
                 'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
         Output:
             None
@@ -36,6 +33,7 @@ class building(actor):
         self.building_type: building_types.building_type = input_dict.get(
             "building_type", status.building_types[input_dict["init_type"]]
         )
+        self.location: locations.location = input_dict["location"]
         self.damaged = False
         self.upgrade_fields: Dict[str, int] = {}
         for upgrade_field in self.building_type.upgrade_fields:
@@ -319,14 +317,12 @@ class infrastructure_building(building):
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
+                'location': location value - Where this building is located
                 'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this building's name
                 'infrastructure_type': string value - Type of infrastructure, like 'road' or 'railroad'
-                'modes': string list value - Game modes during which this building's images can appear
                 'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
         Output:
             None
@@ -454,13 +450,11 @@ class warehouses(building):
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
+                'location': location value - Where this building is located
                 'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this building's name
-                'modes': string list value - Game modes during which this building's images can appear
                 'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
                 'warehouse_level': int value - Required if from save, size of warehouse (9 inventory capacity per level)
         Output:
@@ -517,14 +511,12 @@ class resource_building(building):
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
+                'location': location value - Where this building is located
                 'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this building's name
                 'resource_type': item_type value - Type of resource produced by this building, like "Gold"
-                'modes': string list value - Game modes during which this building's images can appear
                 'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
                 'scale': int value - Required if from save, maximum number of work crews that can be attached to this building
                 'efficiency': int value - Required if from save, number of rolls made by work crews each turn to produce resources at this building

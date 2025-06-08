@@ -28,8 +28,8 @@ class pmob(mob):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination_coordinates': int tuple value - None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_world_index': int value - Index of the world of the end turn destination, if any
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'sentry_mode': boolean value - Required if from save, whether this unit is in sentry mode, preventing it from being in the turn order
@@ -130,8 +130,8 @@ class pmob(mob):
             None
         """
         self.vehicle = vehicle
+        self.get_location().unsubscribe_mob(self)
         self.set_permission(constants.IN_VEHICLE_PERMISSION, True)
-        self.hide_images()
         vehicle.set_crew(self)
         vehicle.move_to_front()
         self.remove_from_turn_queue()
@@ -158,10 +158,7 @@ class pmob(mob):
             None
         """
         self.vehicle = None
-        self.x = vehicle.x
-        self.y = vehicle.y
         self.set_permission(constants.IN_VEHICLE_PERMISSION, False)
-        self.show_images()
         if not self.get_location().get_intact_building(constants.SPACEPORT):
             if constants.ALLOW_DISORGANIZED:
                 self.set_permission(constants.DISORGANIZED_PERMISSION, True)
@@ -171,7 +168,7 @@ class pmob(mob):
             constants.TRAVELING_PERMISSION, False, update_image=False
         )
         vehicle.remove_from_turn_queue()
-        self.update_image_bundle()
+        self.get_location().subscribe_mob(self)
         if focus:
             self.select()
             constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)
@@ -514,29 +511,28 @@ class pmob(mob):
             string init_type='cell icon': init type of actor to create
             dictionary extra_parameters=None: dictionary of any extra parameters to pass to the created actor
         """
+        cell_icon_location = self.get_location().get_world_handler().find_location(x, y)
         self.attached_cell_icon_list.append(
             constants.actor_creation_manager.create(
                 False,
                 {
-                    "coordinates": (x, y),
-                    "grids": self.grids,
+                    "location": cell_icon_location,
                     "image": image_id,
-                    "modes": self.grids[0].modes,
                     "init_type": constants.CELL_ICON,
                 },
             )
         )
 
-    def add_to_automatic_route(self, new_coordinates):
+    def add_to_automatic_route(self, new_location):
         """
         Description:
             Adds the inputted coordinates to this unit's automated movement route, changing the in-progress route as needed
         Input:
-            int tuple new_coordinates: New x and y coordinates to add to the route
+            location tuple new_coordinates: New x and y coordinates to add to the route
         Output:
             None
         """
-        self.base_automatic_route.append(new_coordinates)
+        self.base_automatic_route.append(new_location)
         self.calculate_automatic_route()
         if self == status.displayed_mob:
             actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
@@ -580,13 +576,14 @@ class pmob(mob):
         Output
             boolean: Returns whether the next step of this unit's in-progress movement route could be completed at this moment
         """
+        current_location = self.get_location()
         next_step = self.in_progress_automatic_route[0]
         if next_step == "end":  # can drop off freely unless train without train station
             if not (
                 self.all_permissions(
                     constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                 )
-                and not self.get_location().has_intact_building(constants.TRAIN_STATION)
+                and not current_location.has_intact_building(constants.TRAIN_STATION)
             ):
                 return True
             else:
@@ -596,14 +593,13 @@ class pmob(mob):
             if (
                 self.wait_until_full
                 and (
-                    self.get_location().get_inventory_used() >= self.inventory_capacity
-                    or self.get_location().get_inventory_remaining() <= 0
+                    current_location.get_inventory_used() >= self.inventory_capacity
+                    or current_location.get_inventory_remaining() <= 0
                 )
             ) or (
                 (not self.wait_until_full)
                 and (
-                    len(self.get_location().get_held_items(ignore_consumer_goods=True))
-                    > 0
+                    len(current_location.get_held_items(ignore_consumer_goods=True)) > 0
                     or self.get_inventory_used() > 0
                 )
             ):  # Only start round trip if there is something to deliver, either from location or if already in inventory
@@ -612,7 +608,7 @@ class pmob(mob):
                     self.all_permissions(
                         constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                     )
-                    and not self.get_location().has_intact_building(
+                    and not current_location.has_intact_building(
                         constants.TRAIN_STATION
                     )
                 ):  # Pick up freely unless train without train station
@@ -622,8 +618,8 @@ class pmob(mob):
             else:
                 return False
         else:  # Must have enough movement points, not blocked
-            x_change = next_step[0] - self.x
-            y_change = next_step[1] - self.y
+            x_change = next_step.x - current_location.x
+            y_change = next_step.y - current_location.y
             return self.can_move(x_change, y_change, False)
 
     def follow_automatic_route(self):
@@ -659,8 +655,9 @@ class pmob(mob):
                             self.pick_up_all_items(
                                 True
                             )  # Attempt to pick up items both before and after moving
-                    x_change = next_step[0] - self.x
-                    y_change = next_step[1] - self.y
+                    initial_location = self.get_location()
+                    x_change = next_step.x - initial_location.x
+                    y_change = next_step.y - initial_location.y
                     self.move(x_change, y_change)
                     if not (
                         self.all_permissions(
@@ -1052,11 +1049,10 @@ class pmob(mob):
             self.get_location().change_inventory(current_item, amount_dropped)
 
         self.inventory = {}
-        self.hide_images()
+        self.get_location().unsubscribe_mob(self)
         self.remove_from_turn_queue()
         vehicle.contained_mobs.append(self)
-        vehicle.hide_images()
-        vehicle.show_images()  # moves vehicle images to front
+        vehicle.move_to_front()
         self.set_permission(constants.IN_VEHICLE_PERMISSION, True)
         if (
             focus and not flags.loading_save
@@ -1081,10 +1077,7 @@ class pmob(mob):
         vehicle.contained_mobs = utility.remove_from_list(vehicle.contained_mobs, self)
         self.vehicle = None
         self.set_permission(constants.IN_VEHICLE_PERMISSION, False)
-        self.x = vehicle.x
-        self.y = vehicle.y
-        for current_image in self.images:
-            current_image.add_to_cell()
+        self.get_location().subscribe_mob(self)
         if (
             self.get_permission(constants.CARAVAN_PERMISSION)
             and self.inventory_capacity > 0

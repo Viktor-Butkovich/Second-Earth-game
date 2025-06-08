@@ -321,7 +321,8 @@ def create_grids() -> None:
         }
     )
 
-    status.minimap_grid.calibrate(
+    actor_utility.calibrate_minimap_grids(
+        status.current_world,
         round(0.75 * status.current_world.world_dimensions),
         round(0.75 * status.current_world.world_dimensions),
     )

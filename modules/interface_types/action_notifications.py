@@ -1,7 +1,7 @@
 # Contains functionality for multi-step notifications
 
 from modules.interface_types.notifications import notification
-from modules.util import scaling, action_utility
+from modules.util import scaling, action_utility, actor_utility
 from modules.constants import constants, status, flags
 
 
@@ -291,8 +291,7 @@ class adjacent_location_exploration_notification(action_notification):
             pass
             # Increase location's knowledge level
 
-        for attached_cell in target_location.attached_cells:
-            attached_cell.grid.calibrate(target_location.x, target_location.y)
+        actor_utility.focus_minimap_grids(target_location)
         super().__init__(input_dict)
         constants.public_opinion_tracker.change(public_opinion_increase)
         constants.money_tracker.change(money_increase)
@@ -306,5 +305,5 @@ class adjacent_location_exploration_notification(action_notification):
         Output:
             None
         """
-        status.minimap_grid.calibrate(status.displayed_mob.x, status.displayed_mob.y)
+        actor_utility.focus_minimap_grids(status.display_mob.get_location())
         super().remove()

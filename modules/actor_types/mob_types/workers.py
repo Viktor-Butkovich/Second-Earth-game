@@ -26,8 +26,8 @@ class worker(pmob):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination_coordinates': int tuple value - None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_world_index': int value - Index of the world of the end turn destination, if any
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'worker_type': worker_type value - Type of worker this is, like 'Colonist'. Each type of worker has a separate upkeep, labor pool, and abilities
@@ -86,15 +86,13 @@ class worker(pmob):
         """
         super().replace()
         if attached_group:
-            destination = attached_group
+            recipient = attached_group
         else:
-            destination = self
-        destination_message = (
-            f" for the {destination.name} at ({destination.x}, {destination.y})"
-        )
+            recipient = self
+        recipient_location = recipient.get_location()
         self.worker_type.on_recruit()
         text_utility.print_to_screen(
-            f"Replacement {self.worker_type.name} have been automatically hired{destination_message}."
+            f"Replacement {self.worker_type.name} have been automatically hired for the {recipient.name} at ({recipient_location.x}, {recipient_location.y})."
         )
 
     def fire(self, wander=True):
@@ -120,8 +118,8 @@ class worker(pmob):
             None
         """
         self.group = group
+        self.get_location().unsubscribe_mob(self)
         self.set_permission(constants.IN_GROUP_PERMISSION, True)
-        self.hide_images()
         self.remove_from_turn_queue()
 
     def leave_group(self, group, focus=True):
@@ -134,15 +132,12 @@ class worker(pmob):
             None
         """
         self.group = None
-        self.x = group.x
-        self.y = group.y
-        self.show_images()
         self.set_permission(constants.IN_GROUP_PERMISSION, False)
         self.set_permission(
             constants.DISORGANIZED_PERMISSION,
             group.get_permission(constants.DISORGANIZED_PERMISSION),
         )
-        # self.go_to_grid(self.get_cell().grid, (self.x, self.y))
+        self.get_location().subscribe_mob(self)
         if focus:
             self.select()
         if self.movement_points > 0:

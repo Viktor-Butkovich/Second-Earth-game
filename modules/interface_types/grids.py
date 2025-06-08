@@ -5,7 +5,7 @@ import pygame
 import itertools
 from typing import Dict, Tuple
 from modules.interface_types import cells, interface_elements
-from modules.util import utility
+from modules.util import utility, actor_utility
 from modules.constructs import world_handlers
 from modules.constants import constants, status, flags
 
@@ -471,45 +471,39 @@ class mini_grid(grid):
     def is_mini_grid(self) -> bool:
         return True
 
-    def calibrate(self, center_x, center_y, recursive=False, calibrate_center=True):
+    def calibrate(self, center_x, center_y):
         """
         Description:
             Centers this mini grid on the cell at the inputted coordinates of the attached world, moving any displayed actors, terrain, and resources on this grid to their new locations as needed
         Input:
             int center_x: x coordinate on the attached world to center on
             int center_y: y coordinate on the attached world to center on
-            boolean recursive: Whether this is a recursive calibrate call - prevents infinite recursion
         Output:
             None
         """
-        if recursive:
-            if constants.current_game_mode in self.modes:
-                self.center_x = center_x
-                self.center_y = center_y
+        if constants.current_game_mode in self.modes:
+            self.center_x = center_x
+            self.center_y = center_y
 
-                for x in range(self.coordinate_width):
-                    for y in range(self.coordinate_height):
-                        self.world_handler.find_location(
-                            *self.get_absolute_coordinates(x, y)
-                        ).subscribe_cell(
-                            self.find_cell(x, y)
-                        )  # Calibrate each cell to its the new location
+            for x in range(self.coordinate_width):
+                for y in range(self.coordinate_height):
+                    self.world_handler.find_location(
+                        *self.get_absolute_coordinates(x, y)
+                    ).subscribe_cell(
+                        self.find_cell(x, y)
+                    )  # Calibrate each cell to its the new location
 
-                for current_mob in status.mob_list:
-                    for current_image in current_mob.images:
-                        if current_image.grid == self:
-                            current_image.add_to_cell()
-                if self == status.minimap_grid:
-                    for (
-                        directional_indicator_image
-                    ) in status.directional_indicator_image_list:
-                        directional_indicator_image.calibrate()
-            if self == status.scrolling_strategic_map_grid:
-                status.current_world.update_globe_projection()
-        else:
-            for current_grid in self.world_handler.attached_grids:
-                if current_grid.is_mini_grid:
-                    current_grid.calibrate(center_x, center_y, recursive=True)
+            for current_mob in status.mob_list:
+                for current_image in current_mob.images:
+                    if current_image.grid == self:
+                        current_image.add_to_cell()
+            if self == status.minimap_grid:
+                for (
+                    directional_indicator_image
+                ) in status.directional_indicator_image_list:
+                    directional_indicator_image.calibrate()
+        if self == status.scrolling_strategic_map_grid:
+            status.current_world.update_globe_projection()
 
     def get_absolute_coordinates(self, mini_x, mini_y):
         """

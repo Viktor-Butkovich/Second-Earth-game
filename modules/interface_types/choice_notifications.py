@@ -253,7 +253,10 @@ class recruitment_choice_button(choice_button):
         Output:
             None
         """
-        input_dict = {"select_on_creation": True, "coordinates": (0, 0)}
+        input_dict = {
+            "select_on_creation": True,
+            "location": status.earth_world.find_location(0, 0),
+        }
         constants.money_tracker.change(
             -1 * self.recruitment_type.recruitment_cost, "unit_recruitment"
         )

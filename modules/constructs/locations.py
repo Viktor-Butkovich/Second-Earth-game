@@ -70,10 +70,11 @@ class location(actors.actor):
         )
         self.attached_cells: list = []
         self.expected_temperature_offset: float = 0.0
-        self.contained_buildings: Dict[str, Any] = {}
         self.subscribed_mobs: List[actors.actor] = (
             []
         )  # List of top-level contained mobs
+        self.contained_buildings: Dict[str, Any] = {}
+        self.settlement: Any = None
         if from_save:
             for current_mob_dict in input_dict.get("subscribed_mobs", []):
                 constants.actor_creation_manager.create(
@@ -83,8 +84,25 @@ class location(actors.actor):
                         "location": self,
                     },
                 )
+            for current_building_dict in input_dict.get(
+                "contained_buildings", {}
+            ).values():
+                constants.actor_creation_manager.create(
+                    from_save=True,
+                    input_dict={
+                        **current_building_dict,
+                        "location": self,
+                    },
+                )
+            if input_dict.get("settlement", None):
+                constants.actor_creation_manager.create(
+                    from_save=True,
+                    input_dict={
+                        **input_dict["settlement"],
+                        "location": self,
+                    },
+                )
         self.hosted_images = []
-        self.settlement: Any = None
         self.update_image_bundle()
 
     @property

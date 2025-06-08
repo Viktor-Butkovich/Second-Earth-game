@@ -39,7 +39,6 @@ from modules.interface_types.labels import (
     multi_line_label,
     label,
 )
-from modules.actor_types.actors import actor
 from modules.actor_types.buildings import building, resource_building
 from modules.actor_types.mobs import mob
 from modules.actor_types.mob_types.pmobs import pmob

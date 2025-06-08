@@ -2,7 +2,7 @@
 
 import random
 from modules.action_types import action
-from modules.util import action_utility
+from modules.util import action_utility, actor_utility
 from modules.constants import constants, status, flags
 
 
@@ -95,13 +95,10 @@ class exploration(action.action):
         if subject == "confirmation":
             text += f"Are you sure you want to spend {self.get_price()} money to attempt an exploration to the {self.direction}?"
         elif subject == "initial":
-            self.target_location = (
-                self.current_unit.get_location()
-                .get_world_handler()
-                .find_location(
-                    self.current_unit.x + self.x_change,
-                    self.current_unit.y + self.y_change,
-                )
+            current_location = self.current_unit.get_location()
+            self.target_location = current_location.get_world_handler().find_location(
+                current_location.x + self.x_change,
+                current_location.y + self.y_change,
             )
             text += "The expedition heads towards the " + self.direction + ". /n /n"
             text += f"{constants.flavor_text_manager.generate_flavor_text(self.action_type)} /n /n"
@@ -166,10 +163,11 @@ class exploration(action.action):
             self.y_change = on_click_info_dict["y_change"]
             self.direction = on_click_info_dict["direction"]
             self.start(unit)
+            current_location = unit.get_location()
             unit.create_cell_icon(
-                unit.x + self.x_change,
-                unit.y + self.y_change,
-                "misc/exploration_x/" + self.direction + "_x.png",
+                current_location.x + self.x_change,
+                current_location.y + self.y_change,
+                f"misc/exploration_x/{self.direction}_x.png",
             )
             return True
         return False
@@ -228,16 +226,15 @@ class exploration(action.action):
                 ):  # checks for npmobs in explored location
                     self.current_unit.move(self.x_change, self.y_change)
                 else:
-                    status.minimap_grid.calibrate(
-                        self.current_unit.x, self.current_unit.y
-                    )  # changes minimap to show unexplored location without moving
+                    actor_utility.focus_minimap_grids(self.current_unit.get_location())
+                    # Changes minimap to show unexplored location without moving
             else:
                 constants.notification_manager.display_notification(
                     {
                         "message": f"This unit's {self.initial_movement_points} remaining movement points are not enough to move into the newly explored location. /n /n",
                     }
                 )
-                status.minimap_grid.calibrate(self.current_unit.x, self.current_unit.y)
+                actor_utility.focus_minimap_grids(self.current_unit.get_location())
         self.current_unit.set_movement_points(0)
         self.current_unit.clear_attached_cell_icons()
         super().complete()

@@ -931,16 +931,8 @@ class button(interface_elements.interface_element):
                                             not status.displayed_notification
                                         ):  # If attacking, don't reembark
                                             for current_passenger in passengers:
-                                                if (
-                                                    current_passenger.x,
-                                                    current_passenger.y,
-                                                ) == (
-                                                    current_mob.x,
-                                                    current_mob.y,
-                                                ):  # Re-embark any units that couldn't move
-                                                    current_passenger.embark_vehicle(
-                                                        current_mob
-                                                    )
+                                                if current_passenger.get_location() == current_mob.get_location():
+                                                    current_passenger.embark_vehicle(current_mob)
                                         if (
                                             last_moved
                                             and not last_moved.get_permission(

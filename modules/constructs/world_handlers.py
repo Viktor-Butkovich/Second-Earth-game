@@ -921,28 +921,28 @@ class world_handler:
             abs(y1 - (y2 - self.world_dimensions)),
         )
 
-    def distance(self, cell1, cell2):
+    def euclidean_distance(self, location1, location2):
         """
         Description:
-            Calculates and returns the distance between two cells
-        Input:
-            cell cell1: First cell
-            cell cell2: Second cell
-        Output:
-            int: Returns the distance between the two cells
-        """
-        return (
-            self.x_distance(cell1, cell2) ** 2 + self.y_distance(cell1, cell2) ** 2
-        ) ** 0.5
-
-    def location_distance(self, location1, location2):
-        """
-        Description:
-            Calculates and returns the non-diagonal distance between two cells
+            Calculates and returns the Euclidean distance between two locations (Pythagorean theorem)
         Input:
             location location1: First location
             location location2: Second location
-        Output: int: Returns the non-diagonal distance between the two cells
+        Output:
+            int: Returns the distance between the two locations
+        """
+        return (
+            self.x_distance(location1, location2) ** 2 + self.y_distance(location1, location2) ** 2
+        ) ** 0.5
+
+    def manhattan_distance(self, location1, location2):
+        """
+        Description:
+            Calculates and returns the Manhattan distance between two locations (absolute differences on each axis)
+        Input:
+            location location1: First location
+            location location2: Second location
+        Output: int: Returns the non-diagonal distance between the two locations
         """
         return self.x_distance(location1, location2) + self.y_distance(
             location1, location2
@@ -1004,8 +1004,8 @@ class world_handler:
 
         south_pole = None
         for location in self.get_flat_location_list():
-            if self.distance(location, status.north_pole) > max_distance:
-                max_distance = self.distance(location, status.north_pole)
+            if self.euclidean_distance(location, status.north_pole) > max_distance:
+                max_distance = self.euclidean_distance(location, status.north_pole)
                 south_pole = location
 
         south_pole.add_terrain_feature(
@@ -1014,14 +1014,14 @@ class world_handler:
             }
         )
 
-        equatorial_distance = self.distance(status.north_pole, status.south_pole) / 2
+        equatorial_distance = self.euclidean_distance(status.north_pole, status.south_pole) / 2
         for (
             location
         ) in (
             self.get_flat_location_list()
         ):  # Results in clean equator lines in odd-sized planets
-            north_pole_distance = self.distance(location, status.north_pole)
-            south_pole_distance = self.distance(location, status.south_pole)
+            north_pole_distance = self.euclidean_distance(location, status.north_pole)
+            south_pole_distance = self.euclidean_distance(location, status.south_pole)
             location.pole_distance_multiplier = max(
                 min(
                     min(north_pole_distance, south_pole_distance) / equatorial_distance,
@@ -1061,7 +1061,7 @@ class world_handler:
                 )
 
             if (
-                self.location_distance(status.south_pole, location)
+                self.manhattan_distance(status.south_pole, location)
                 == self.world_dimensions // 3
             ):
                 location.add_terrain_feature(
@@ -1071,7 +1071,7 @@ class world_handler:
                 )
 
             if (
-                self.location_distance(status.north_pole, location)
+                self.manhattan_distance(status.north_pole, location)
                 == self.world_dimensions // 3
             ):
                 location.add_terrain_feature(
@@ -1103,15 +1103,7 @@ class world_handler:
         return itertools.chain.from_iterable(self.location_list)
 
     def find_location(self, x: int, y: int) -> Any:
-        if (
-            x >= 0
-            and x < self.coordinate_width
-            and y >= 0
-            and y < self.coordinate_height
-        ):
-            return self.location_list[x][y]
-        else:
-            return None
+        return self.location_list[x % self.coordinate_width][y % self.coordinate_height]
 
     def change_to_temperature_target(self, estimate_water_vapor: bool = False):
         """

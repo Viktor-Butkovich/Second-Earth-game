@@ -2,7 +2,7 @@
 
 import random
 from modules.actor_types.mobs import mob
-from modules.util import utility, turn_management_utility
+from modules.util import utility, turn_management_utility, actor_utility
 from modules.constants import constants, status, flags
 
 
@@ -36,7 +36,9 @@ class npmob(mob):
         self.npmob_type = "npmob"
         self.aggro_distance = 0
         self.selection_outline_color = constants.COLOR_BRIGHT_RED
-        if self.y == 0:  # should fix any case of npmob trying to retreat off the map
+        if (
+            self.get_location().y == 0
+        ):  # should fix any case of npmob trying to retreat off the map
             self.last_move_direction = (0, 1)
         else:
             self.last_move_direction = (0, -1)
@@ -109,8 +111,9 @@ class npmob(mob):
         min_distance = -1
         closest_targets = [None]
         for possible_target in target_list:
+            target_location = possible_target.get_location()
             if (
-                not possible_target.y == 0
+                not target_location.y == 0
             ):  # Ignore units in the ocean if can't swim in ocean
                 if (
                     possible_target.actor_type == constants.BUILDING_ACTOR_TYPE
@@ -120,7 +123,10 @@ class npmob(mob):
                         constants.IN_BUILDING_PERMISSION,
                     )
                 ):
-                    distance = utility.find_grid_distance(self, possible_target)
+                    current_location = self.get_location()
+                    distance = current_location.get_world_handler().manhattan_distance(
+                        current_location, target_location
+                    )
                     if (
                         distance <= self.aggro_distance
                     ):  # Ignore player's units more than 6 locations away
@@ -154,16 +160,15 @@ class npmob(mob):
         Output:
             None
         """
-        status.minimap_grid.calibrate(self.x, self.y)
-        for current_mob in self.get_location().subscribed_mobs:
+        current_location = self.get_location()
+        actor_utility.focus_minimap_grids(current_location)
+        for current_mob in current_location.subscribed_mobs:
             if current_mob.get_permission(constants.VEHICLE_PERMISSION):
                 current_mob.eject_passengers()
                 current_mob.eject_crew()
-        if self.get_location().has_intact_building(constants.RESOURCE):
-            self.get_location().get_intact_building(
-                constants.RESOURCE
-            ).eject_work_crews()
-        defender = self.get_location().get_best_combatant("pmob", self.npmob_type)
+        if current_location.has_intact_building(constants.RESOURCE):
+            current_location.get_intact_building(constants.RESOURCE).eject_work_crews()
+        defender = current_location.get_best_combatant("pmob", self.npmob_type)
         if defender:
             status.actions["combat"].middle(
                 {"defending": True, "opponent": self, "current_unit": defender}
@@ -187,11 +192,12 @@ class npmob(mob):
         Output:
             None
         """
-        noncombatants = self.get_location().get_noncombatants("pmob")
+        current_location = self.get_location()
+        noncombatants = current_location.get_noncombatants("pmob")
         for current_noncombatant in noncombatants:
             constants.notification_manager.display_notification(
                 {
-                    "message": f"The undefended {current_noncombatant.name} has been killed by {self.name} at ({self.get_location().x}, {self.get_location().y}). /n"
+                    "message": f"The undefended {current_noncombatant.name} has been killed by {self.name} at ({current_location.x}, {current_location.y}). /n"
                 }
             )
             current_noncombatant.die()
@@ -205,11 +211,12 @@ class npmob(mob):
         Output:
             None
         """
-        for current_building in self.get_location().get_intact_buildings():
+        current_location = self.get_location()
+        for current_building in current_location.get_intact_buildings():
             if current_building.building_type.can_damage:
                 constants.notification_manager.display_notification(
                     {
-                        "message": f"The undefended {current_building.name} has been damaged by {self.name} at ({self.x}, {self.y}). /n"
+                        "message": f"The undefended {current_building.name} has been damaged by {self.name} at ({current_location.x}, {current_location.y}). /n"
                     }
                 )
                 current_building.set_damaged(True)
@@ -225,26 +232,30 @@ class npmob(mob):
             None
         """
         closest_target = self.find_closest_target()
+        initial_location = self.get_location()
         if random.randrange(1, 7) <= 3:  # Half chance of moving randomly instead
-            closest_target = random.choice(self.get_location().adjacent_list)
+            closest_target = random.choice(initial_location.adjacent_list)
             while (
-                closest_target.y == 0
+                closest_target.get_location().y == 0
             ):  # npmobs avoid the ocean if can't swim in ocean
-                closest_target = random.choice(self.get_location().adjacent_list)
+                closest_target = random.choice(initial_location.adjacent_list)
+        target_location = closest_target.get_location() if closest_target else None
         if closest_target:
             if (
-                closest_target.x != self.x or closest_target.y != self.y
+                initial_location != target_location
             ):  # Don't move if target is in the same location
-                if closest_target.x > self.x:  # Decides moving left or right
+                if (
+                    target_location.x > initial_location.x
+                ):  # Decides moving left or right
                     horizontal_multiplier = 1
-                elif closest_target.x == self.x:
+                elif target_location.x == initial_location.x:
                     horizontal_multiplier = 0
                 else:
                     horizontal_multiplier = -1
 
-                if closest_target.y > self.y:  # Decides moving up or down
+                if target_location.y > initial_location.y:  # Decides moving up or down
                     vertical_multiplier = 1
-                elif closest_target.y == self.y:
+                elif target_location.y == initial_location.y:
                     vertical_multiplier = 0
                 else:
                     vertical_multiplier = -1
@@ -267,17 +278,17 @@ class npmob(mob):
                     else:
                         self.movement_points -= 1
                 else:
-                    horizontal_difference = abs(
-                        self.x - closest_target.x
+                    horizontal_distance = abs(
+                        initial_location.x - target_location.x
                     )  # Decides moving left/right or up/down
-                    vertical_difference = abs(self.y - closest_target.y)
-                    total_difference = (
-                        horizontal_difference + vertical_difference
+                    vertical_distance = abs(initial_location.y - target_location.y)
+                    manhattan_distance = (
+                        horizontal_distance + vertical_distance
                     )  # If horizontal is 3 and vertical is 2, move horizontally if random from 1 to 5 is 3 or lower: 60% chance of moving horizontally, 40% of moving vertically
                     if (
-                        random.randrange(0, total_difference + 1)
-                        <= horizontal_difference
-                    ):  # Allows weighting of movement to be more likely to move along more different axis
+                        random.randrange(0, manhattan_distance + 1)
+                        <= horizontal_distance
+                    ):  # Allows weighting of movement to be more likely to move along axis w/ greater distance
                         if self.movement_points >= self.get_movement_cost(
                             1 * horizontal_multiplier, 0
                         ):
@@ -313,23 +324,3 @@ class npmob(mob):
                 self.turn_done = True
         else:
             self.turn_done = True
-
-    def move(self, x_change, y_change):
-        """
-        Description:
-            Moves this mob x_change to the right and y_change upward
-        Input:
-            int x_change: How many cells are moved to the right in the movement
-            int y_change: How many cells are moved upward in the movement
-        Output:
-            None
-        """
-        for current_image in self.images:
-            current_image.remove_from_cell()
-        self.movement_points -= self.get_movement_cost(x_change, y_change)
-        self.x += x_change
-        self.y += y_change
-        for current_image in self.images:
-            current_image.add_to_cell()
-        self.movement_sound()
-        self.last_move_direction = (x_change, y_change)

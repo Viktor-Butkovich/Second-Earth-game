@@ -659,3 +659,12 @@ def summarize_amount_dict(item_dict: Dict[str, float]):
             line = f"and {line}"
         text += line
     return text
+
+
+def calibrate_minimap_grids(world_handler: any, x: int, y: int) -> None:
+    for current_grid in world_handler.attached_grids:
+        current_grid.calibrate(x, y)
+
+
+def focus_minimap_grids(location: any) -> None:
+    calibrate_minimap_grids(location.get_world_handler(), location.x, location.y)

@@ -1640,9 +1640,7 @@ class automatic_route_button(button):
                         )
                         return ()
                     attached_mob.clear_automatic_route()
-                    attached_mob.add_to_automatic_route(
-                        (attached_mob.x, attached_mob.y)
-                    )
+                    attached_mob.add_to_automatic_route(attached_mob.get_location())
                     flags.drawing_automatic_route = True
 
                 elif self.button_type == constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON:
@@ -1738,19 +1736,8 @@ class toggle_button(button):
             )
             if self.toggle_variable in ["remove_fog_of_war", "show_clouds"]:
                 constants.update_terrain_knowledge_requirements()
-                # status.minimap_grid.calibrate(
-                #    status.minimap_grid.center_x, status.minimap_grid.center_y
-                # )
                 for current_world in status.world_list:
                     current_world.update_location_image_bundles()
-                # if status.displayed_mob:
-                #    actor_utility.calibrate_actor_info_display(
-                #        status.mob_info_display, status.displayed_mob
-                #    )
-                # if status.displayed_location:
-                #    actor_utility.calibrate_actor_info_display(
-                #        status.location_info_display, status.displayed_location
-                #    )
             elif self.toggle_variable in [
                 "earth_preset",
                 "mars_preset",

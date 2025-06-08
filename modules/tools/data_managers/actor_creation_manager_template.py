@@ -360,11 +360,9 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         return self.create(
             False,
             {
-                "coordinates": (officer.x, officer.y),
-                "grids": officer.grids,
+                "location": worker.get_location(),
                 "worker": worker,
                 "officer": officer,
-                "modes": officer.modes,
                 "init_type": officer.unit_type.group_type.key,
                 "image": "misc/empty.png",
                 "name": actor_utility.generate_group_name(worker, officer),

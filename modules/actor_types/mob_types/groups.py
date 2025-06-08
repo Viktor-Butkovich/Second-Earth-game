@@ -27,8 +27,8 @@ class group(pmob):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this group's name
                 'modes': string list value - Game modes during which this group's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination_coordinates': int tuple value - None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_world_index': int value - Index of the world of the end turn destination, if any
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'worker': worker or dictionary value - If creating a new group, equals a worker that is part of this group. If loading, equals a dictionary of the saved information necessary to recreate the worker
@@ -41,10 +41,18 @@ class group(pmob):
             self.officer: pmob = input_dict["officer"]
         else:
             self.worker: pmob = constants.actor_creation_manager.create(
-                True, input_dict["worker"]
+                True,
+                {
+                    **input_dict["worker"],
+                    "location": input_dict["location"],
+                },
             )
             self.officer: pmob = constants.actor_creation_manager.create(
-                True, input_dict["officer"]
+                True,
+                {
+                    **input_dict["officer"],
+                    "location": input_dict["location"],
+                },
             )
         super().__init__(from_save, input_dict, original_constructor=False)
         self.worker.join_group(self)
@@ -160,19 +168,18 @@ class group(pmob):
         Output:
             None
         """
-        input_dict = {
-            "coordinates": (self.x, self.y),
-            "grids": self.grids,
-            "modes": self.modes,
-        }
-
-        input_dict.update(new_worker_type.generate_input_dict())
         constants.money_tracker.change(
             -1 * new_worker_type.recruitment_cost,
             "unit_recruitment",
         )
         previous_selected = status.displayed_mob
-        new_worker = constants.actor_creation_manager.create(False, input_dict)
+        new_worker = constants.actor_creation_manager.create(
+            False,
+            {
+                "location": self.get_location(),
+                **new_worker_type.generate_input_dict(),
+            },
+        )
         new_worker.set_automatically_replace(self.worker.automatically_replace)
         self.worker.fire(wander=False)
         self.worker = new_worker
@@ -181,34 +188,6 @@ class group(pmob):
         self.update_image_bundle()
         if previous_selected:
             previous_selected.select()
-
-    def move(self, x_change, y_change):
-        """
-        Description:
-            Moves this mob x_change to the right and y_change upward, also making sure to update the positions of the group's worker and officer
-        Input:
-            int x_change: How many cells are moved to the right in the movement
-            int y_change: How many cells are moved upward in the movement
-        Output:
-            None
-        """
-        super().move(x_change, y_change)
-        self.calibrate_sub_mob_positions()
-
-    def calibrate_sub_mob_positions(self):
-        """
-        Description:
-            Updates the positions of this mob's submobs (mobs inside of a building or other mob that are not able to be independently viewed or selected) to match this mob
-        Input:
-            None
-        Output:
-            None
-        """
-        self.officer.x = self.x
-        self.officer.y = self.y
-        self.worker.x = self.x
-        self.worker.y = self.y
-        self.on_move()
 
     def fire(self):
         """

@@ -359,9 +359,7 @@ def manage_rmb_down(clicked_button):
     stopping = False
     if (not clicked_button) and action_possible():
         for current_grid in status.grid_list:
-            if (
-                current_grid.showing
-            ):  # if constants.current_game_mode in current_grid.modes:
+            if current_grid.showing:
                 for current_cell in current_grid.get_flat_cell_list():
                     if current_cell.touching_mouse():
                         stopping = True  # if doesn't reach this point, do same as lmb
@@ -377,12 +375,7 @@ def manage_rmb_down(clicked_button):
                             constants.last_selection_outline_switch = (
                                 constants.current_time
                             )
-
-                            for attached_cell in current_location.attached_cells:
-                                if attached_cell.grid.is_mini_grid:
-                                    attached_cell.grid.calibrate(
-                                        current_location.x, current_location.y
-                                    )
+                            actor_utility.focus_minimap_grids(current_location)
                             moved_mob.select()
                             if moved_mob.get_permission(constants.PMOB_PERMISSION):
                                 moved_mob.selection_sound()
@@ -413,7 +406,7 @@ def manage_rmb_down(clicked_button):
             text_utility.print_to_screen(
                 "The created route must go between at least 2 locations"
             )
-        status.minimap_grid.calibrate(status.displayed_mob.x, status.displayed_mob.y)
+        actor_utility.focus_minimap_grids(status.displayed_mob.get_location())
         actor_utility.calibrate_actor_info_display(
             status.location_info_display, status.displayed_mob.get_location()
         )
@@ -517,18 +510,13 @@ def manage_lmb_down(clicked_button):
                             )
                         else:
                             target_location = current_cell.get_location()
-                            destination_x, destination_y = (
-                                target_location.x,
-                                target_location.y,
+                            previous_location = (
+                                status.displayed_mob.base_automatic_route[-1]
                             )
-                            (
-                                previous_destination_x,
-                                previous_destination_y,
-                            ) = status.displayed_mob.base_automatic_route[-1]
+                            current_world = target_location.get_world_handler()
                             if (
-                                utility.find_coordinate_distance(
-                                    (destination_x, destination_y),
-                                    (previous_destination_x, previous_destination_y),
+                                current_world.manhattan_distance(
+                                    target_location, previous_location
                                 )
                                 == 1
                             ):
@@ -629,19 +617,14 @@ def click_move_minimap(select_unit: bool = True):
         if current_grid.showing:
             for current_cell in current_grid.get_flat_cell_list():
                 if current_cell.touching_mouse():
-                    if select_unit and current_cell.get_location().subscribed_mobs:
-                        current_cell.get_location().subscribed_mobs[0].select()
+                    current_location = current_cell.get_location()
+                    if select_unit and current_location.subscribed_mobs:
+                        current_location.subscribed_mobs[0].select()
                     else:
                         actor_utility.calibrate_actor_info_display(
-                            status.location_info_display, current_cell.get_location()
+                            status.location_info_display, current_location
                         )
-
-                    (absolute_x, absolute_y) = (
-                        current_cell.get_location().x,
-                        current_cell.get_location().y,
-                    )
-                    for attached_cell in current_cell.get_location().attached_cells:
-                        attached_cell.grid.calibrate(absolute_x, absolute_y)
+                    actor_utility.focus_minimap_grids(current_location)
                     return
 
 

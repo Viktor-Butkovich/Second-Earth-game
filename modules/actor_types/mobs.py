@@ -27,13 +27,11 @@ class mob(actor):
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
+                'location': location value - Where this mob is located
                 'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this mob's name
-                'modes': string list value - Game modes during which this mob's images can appear
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
         Output:
@@ -798,45 +796,6 @@ class mob(actor):
         else:
             self.set_movement_points(self.movement_points + increase)
 
-    def go_to_grid(self, new_grid, new_coordinates):
-        """
-        Description:
-            Links this mob to a grid, causing it to appear on that grid and its minigrid at certain coordinates. Used when crossing the ocean and when a mob that was previously attached to another actor becomes independent and visible,
-                like when a building's worker leaves. Also moves this unit's status icons as necessary
-        Input:
-            grid new_grid: grid that this mob is linked to
-            int tuple new_coordinates: Two values representing x and y coordinates to start at on the inputted grid
-        Output:
-            None
-        """
-        return
-        if new_grid == status.earth_grid:
-            self.modes.append(constants.EARTH_MODE)
-        else:  # If mob was spawned on Earth, make it so that it does not appear in the Earth screen after leaving
-            self.modes = utility.remove_from_list(self.modes, constants.EARTH_MODE)
-        self.x, self.y = new_coordinates
-        old_image_id = self.images[0].image_id
-        for current_image in self.images:
-            current_image.remove_from_cell()
-        self.location = new_grid.world_handler.find_location(
-            new_coordinates[0], new_coordinates[1]
-        )
-        self.update_attached_grids()
-
-        self.images = []
-        for current_grid in self.grids:
-            self.images.append(
-                images.mob_image(
-                    self,
-                    current_grid.get_cell_width(),
-                    current_grid.get_cell_height(),
-                    current_grid,
-                    old_image_id,
-                )
-            )
-            self.images[-1].add_to_cell()
-        self.on_move()
-
     def reselect(self):
         """
         Description:
@@ -870,8 +829,7 @@ class mob(actor):
             status.location_info_display, self.get_location()
         )
         actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
-        for grid in self.grids:
-            grid.calibrate(self.x, self.y)
+        actor_utility.focus_minimap_grids(self.get_location())
 
     def cycle_select(self):
         """
@@ -1166,15 +1124,13 @@ class mob(actor):
         Output:
             boolean: Returns True if this mob can move to the proposed destination, otherwise returns False
         """
-        future_x = (self.x + x_change) % self.grid.coordinate_width
-        future_y = (self.y + y_change) % self.grid.coordinate_height
+        current_location = self.get_location()
+        current_world = current_location.get_world_handler()
+        future_x = (current_location.x + x_change) % current_world.world_dimensions
+        future_y = (current_location.y + y_change) % current_world.coordinate_height
         if minister_utility.get_minister(constants.TRANSPORTATION_MINISTER):
             if not self.get_location().get_world_handler().is_abstract_world:
-                future_location = (
-                    self.get_location()
-                    .get_world_handler()
-                    .find_location(future_x, future_y)
-                )
+                future_location = current_world.find_location(future_x, future_y)
                 if (
                     future_location.get_unit_habitability(self)
                     == constants.HABITABILITY_DEADLY
@@ -1189,10 +1145,10 @@ class mob(actor):
 
                 if self.unit_type.required_infrastructure:
                     if not (
-                        self.get_location().has_intact_building(
+                        current_location.has_intact_building(
                             self.unit_type.required_infrastructure.key
                         )
-                        and self.get_location().has_intact_building(
+                        and current_location.has_intact_building(
                             self.unit_type.required_infrastructure.key
                         )
                     ):
@@ -1329,18 +1285,13 @@ class mob(actor):
         self.end_turn_destination = None  # Cancels planned movements
         status.displayed_mob.set_permission(constants.TRAVELING_PERMISSION, False)
         self.change_movement_points(-1 * self.get_movement_cost(x_change, y_change))
-        for current_image in self.images:
-            current_image.remove_from_cell()
-        self.x = (self.x + x_change) % self.grid.coordinate_width
-        self.y = (self.y + y_change) % self.grid.coordinate_height
-        status.minimap_grid.calibrate(self.x, self.y)
-        for current_image in self.images:
-            current_image.add_to_cell()
-
+        current_location = self.get_location()
+        new_location = current_location.get_world_handler().find_location(
+            current_location.x + x_change, current_location.y + y_change
+        )
+        new_location.subscribe_mob(self)
+        actor_utility.focus_minimap_grids(new_location)
         self.movement_sound()
-
-        actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
-
         if self.get_permission(
             constants.PMOB_PERMISSION
         ):  # Do an inventory attrition check when moving, using the destination's terrain
@@ -1372,16 +1323,10 @@ class mob(actor):
         Output:
             boolean: True if any of this mob's images is colliding with the mouse, otherwise return False
         """
-        for current_image in self.images:
-            if current_image.Rect.collidepoint(
-                pygame.mouse.get_pos()
-            ):  # if mouse is in image
-                if not (
-                    current_image.grid == status.minimap_grid
-                    and not current_image.grid.is_on_mini_grid(self.x, self.y)
-                ):  # do not consider as touching mouse if off-map
-                    return True
-        return False
+        return any(
+            current_cell.touching_mouse()
+            for current_cell in self.get_location().attached_cells
+        )
 
     def set_name(self, new_name):
         """
@@ -1395,32 +1340,6 @@ class mob(actor):
         super().set_name(new_name)
         if status.displayed_mob == self:
             actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
-
-    def hide_images(self):
-        """
-        Description:
-            Hides this mob's images, allowing it to be hidden but still stored at certain coordinates when it is attached to another actor or otherwise not visible
-        Input:
-            None
-        Output:
-            None
-        """
-        if status.displayed_mob == self:
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
-        for current_image in self.images:
-            current_image.remove_from_cell()
-
-    def show_images(self):
-        """
-        Description:
-            Shows this mob's images at its stored coordinates, allowing it to be visible after being attached to another actor or otherwise not visible
-        Input:
-            None
-        Output:
-            None
-        """
-        for current_image in self.images:
-            current_image.add_to_cell()
 
     def start_ambient_sound(self):
         """

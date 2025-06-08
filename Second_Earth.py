@@ -415,7 +415,15 @@ except Exception:  # Displays error message and records error message in crash l
         Integration and interface tests would be possible:
             Did this interface interaction result in the correct transition, does this transition result in the intended state, etc.
         Continues current effort of splitting game logic away from grid/cell/location interface
-    Also enables using the game as a "playground" environment for data science concepts rather than just a game
+26. Implementing real-world data science concepts
+    Agentic "gym" environment to apply reinforcement learning, decision trees, etc.
+    Statistical analysis of expected vs actual outcomes of actions
+    Survival analysis for attrition
+    Network-based supply chain model enabling optimization and network flow algorithms
+    Behavioral economics and other population dynamics
+    Configurable visualization dashboards, including flexible reporting on historical data and forecasts
+    Vegetation/wildlife spread and interaction models
+    NLP or LLM-based dynamic content or descriptions - e.g. RAG-based "help" box that can reference an instructions repository
 """
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
@@ -478,7 +486,6 @@ Mobs and buildings have to track which cells and which grids they are visible in
     Generally much clunkier, and it based on incremental design decisions that were reasonable at the time
 
 Location rework backlog:
-Modify mob creation to pass in a location object to attach to
 Red outline of minimap grid on scrolling strategic map is not showing
 Rework actor_image and mob_image classes
 A location should be able to generate its full image (for map rendering) and its image with no mobs (for location info display rendering)
@@ -486,7 +493,6 @@ A mob should be able to generate its own image, which can be retrieved by locati
   No reason for separate image objects to exist?
 Make sure name icons are rendered and handled correctly
 Rework rename function
-Remove "modes" attribute on actors - redundant, as entirely depends on the grid they're displayed in
 Update docstrings
 Rework end_turn_move to be move to a location in a world by coordinate, rather than a cell in a grid
 Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
@@ -494,18 +500,12 @@ Transfer hosted_images from tile to location
 Transfer buildings from cell to location
 Transfer subscribed_mobs from cell to location
 Transfer tile inventory from tile to location
-Transfer settlements from cell to location
-Transfer set_image from tile to location
 Transfer set_name from tile to location
 Transfer hosted_images from tile to location
 Fix directional indicator images not showing
 Make sure location inherits actor's manage_inventory_attrition
 Any rendering handled by actor images should be handled elsewhere now - go to grid logic is now redundant, but pygame image and tooltip box rendering are still required elsewhere
 Implement location subscribed_mobs_recursive property to get all mobs who would map to this with get_location()
-Modify actors in general to not require any "modes" logic - should draw purely based on subscribed cells and info displays, which already handle this
-Make a function handling the following minimap grid calibration pattern: Something like focus_location
-    for attached_cell in location.attached_cells:s
-        attached_cell.grid.calibrate(location.x, location.y)
 Replace cell icons with extra images directly added to locations - a location should be fully in control of what it displays
 Add rename function to worlds
 Transfer logistics_incident_list from cell to location

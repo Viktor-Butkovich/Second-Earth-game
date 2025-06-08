@@ -2217,7 +2217,7 @@ def trial_screen():
     status.defense_info_display = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "coordinates": (defense_x, defense_y),
+                "coordinates": scaling.scale_coordinates(defense_x, defense_y),
                 "width": 10,
                 "height": 10,
                 "modes": [constants.TRIAL_MODE],
@@ -2294,7 +2294,7 @@ def trial_screen():
     status.prosecution_info_display = (
         constants.actor_creation_manager.create_interface_element(
             {
-                "coordinates": (prosecution_x, prosecution_y),
+                "coordinates": scaling.scale_coordinates(prosecution_x, prosecution_y),
                 "width": 10,
                 "height": 10,
                 "modes": [constants.TRIAL_MODE],
