@@ -136,6 +136,7 @@ class grid(interface_elements.interface_element):
                     self.convert_coordinates((x, self.coordinate_height)),
                     self.grid_line_width,
                 )
+
             for y in range(0, self.coordinate_height + 1):
                 pygame.draw.line(
                     constants.game_display,
@@ -144,111 +145,58 @@ class grid(interface_elements.interface_element):
                     self.convert_coordinates((self.coordinate_width, y)),
                     self.grid_line_width,
                 )
-        pygame.draw.line(
-            constants.game_display,
-            constants.color_dict[self.external_line_color],
-            self.convert_coordinates((0, 0)),
-            self.convert_coordinates((0, self.coordinate_height)),
-            self.grid_line_width + 1,
-        )
-        pygame.draw.line(
-            constants.game_display,
-            constants.color_dict[self.external_line_color],
-            self.convert_coordinates((self.coordinate_width, 0)),
-            self.convert_coordinates((self.coordinate_width, self.coordinate_height)),
-            self.grid_line_width + 1,
-        )
-        pygame.draw.line(
-            constants.game_display,
-            constants.color_dict[self.external_line_color],
-            self.convert_coordinates((0, 0)),
-            self.convert_coordinates((self.coordinate_width, 0)),
-            self.grid_line_width + 1,
-        )
-        pygame.draw.line(
-            constants.game_display,
-            constants.color_dict[self.external_line_color],
-            self.convert_coordinates((0, self.coordinate_height)),
-            self.convert_coordinates((self.coordinate_width, self.coordinate_height)),
-            self.grid_line_width + 1,
-        )
-        if (
-            self.coordinate_width < self.world_handler.world_dimensions
-            and flags.show_minimap_outlines
-        ):  # If only a portion of the world, use minimap outlines
-            mini_map_outline_color = status.minimap_grid.external_line_color
-            if self == status.scrolling_strategic_map_grid:
-                left_x = (
-                    self.coordinate_width // 2
-                    - status.minimap_grid.coordinate_width // 2
-                )
-                right_x = (
-                    self.coordinate_width // 2
-                    + status.minimap_grid.coordinate_width // 2
-                    + 1
-                )
-                down_y = (
-                    self.coordinate_height // 2
-                    - status.minimap_grid.coordinate_height // 2
-                )
-                up_y = (
-                    self.coordinate_height // 2
-                    + status.minimap_grid.coordinate_height // 2
-                    + 1
-                )
-            else:
-                left_x = status.minimap_grid.center_x - (
-                    (status.minimap_grid.coordinate_width - 1) / 2
-                )
-                right_x = (
-                    status.minimap_grid.center_x
-                    + ((status.minimap_grid.coordinate_width - 1) / 2)
-                    + 1
-                )
-                down_y = status.minimap_grid.center_y - (
-                    (status.minimap_grid.coordinate_height - 1) / 2
-                )
-                up_y = (
-                    status.minimap_grid.center_y
-                    + ((status.minimap_grid.coordinate_height - 1) / 2)
-                    + 1
-                )
-                if right_x > self.coordinate_width:
-                    right_x = self.coordinate_width
-                if left_x < 0:
-                    left_x = 0
-                if up_y > self.coordinate_height:
-                    up_y = self.coordinate_height
-                if down_y < 0:
-                    down_y = 0
+
+        for origin, destination in [
+            ((0, 0), (0, self.coordinate_height)),
+            (
+                (self.coordinate_width, 0),
+                (self.coordinate_width, self.coordinate_height),
+            ),
+            ((0, 0), (self.coordinate_width, 0)),
+            (
+                (0, self.coordinate_height),
+                (self.coordinate_width, self.coordinate_height),
+            ),
+        ]:
             pygame.draw.line(
                 constants.game_display,
-                constants.color_dict[mini_map_outline_color],
-                self.convert_coordinates((left_x, down_y)),
-                self.convert_coordinates((left_x, up_y)),
+                constants.color_dict[self.external_line_color],
+                self.convert_coordinates(origin),
+                self.convert_coordinates(destination),
                 self.grid_line_width + 1,
             )
-            pygame.draw.line(
-                constants.game_display,
-                constants.color_dict[mini_map_outline_color],
-                self.convert_coordinates((left_x, up_y)),
-                self.convert_coordinates((right_x, up_y)),
-                self.grid_line_width + 1,
+
+        if flags.show_minimap_outlines and self == status.scrolling_strategic_map_grid:
+            # Show an outline of the area that the minimap grid covers
+            left_x = (
+                self.coordinate_width // 2 - status.minimap_grid.coordinate_width // 2
             )
-            pygame.draw.line(
-                constants.game_display,
-                constants.color_dict[mini_map_outline_color],
-                self.convert_coordinates((right_x, up_y)),
-                self.convert_coordinates((right_x, down_y)),
-                self.grid_line_width + 1,
+            right_x = (
+                self.coordinate_width // 2
+                + status.minimap_grid.coordinate_width // 2
+                + 1
             )
-            pygame.draw.line(
-                constants.game_display,
-                constants.color_dict[mini_map_outline_color],
-                self.convert_coordinates((right_x, down_y)),
-                self.convert_coordinates((left_x, down_y)),
-                self.grid_line_width + 1,
+            down_y = (
+                self.coordinate_height // 2 - status.minimap_grid.coordinate_height // 2
             )
+            up_y = (
+                self.coordinate_height // 2
+                + status.minimap_grid.coordinate_height // 2
+                + 1
+            )
+            for origin, destination in [
+                ((left_x, down_y), (left_x, up_y)),
+                ((left_x, up_y), (right_x, up_y)),
+                ((right_x, up_y), (right_x, down_y)),
+                ((right_x, down_y), (left_x, down_y)),
+            ]:
+                pygame.draw.line(
+                    constants.game_display,
+                    constants.color_dict[status.minimap_grid.external_line_color],
+                    self.convert_coordinates(origin),
+                    self.convert_coordinates(destination),
+                    self.grid_line_width + 1,
+                )
 
     def find_cell_center(self, coordinates) -> Tuple[int, int]:
         """

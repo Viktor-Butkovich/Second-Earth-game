@@ -486,15 +486,17 @@ Mobs and buildings have to track which cells and which grids they are visible in
     Generally much clunkier, and it based on incremental design decisions that were reasonable at the time
 
 Location rework backlog:
-Red outline of minimap grid on scrolling strategic map is not showing
+Fix directional indicators
 Rework actor_image and mob_image classes
+    Try to recruit mobs to see what issues occur
 A location should be able to generate its full image (for map rendering) and its image with no mobs (for location info display rendering)
 A mob should be able to generate its own image, which can be retrieved by locations and the mob info display as needed
   No reason for separate image objects to exist?
 Make sure name icons are rendered and handled correctly
 Rework rename function
 Update docstrings
-Rework end_turn_move to be move to a location in a world by coordinate, rather than a cell in a grid
+Test out end turn movement with a colony ship
+Test out buildings (spaceports, etc.)
 Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
 Transfer hosted_images from tile to location
 Transfer buildings from cell to location
