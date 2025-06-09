@@ -31,6 +31,7 @@ class terrain_feature_type:
         self.terrain_feature_type = input_dict["terrain_feature_type"]
         self.description: List[str] = input_dict.get("description", [])
         self.tracking_type: str = input_dict.get("tracking_type", None)
+        self.display_type: str = input_dict.get("display_type", "icon")
         self.visible: bool = input_dict.get("visible", True)
         self.image_id = input_dict.get(
             "image_id",

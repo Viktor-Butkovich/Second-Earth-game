@@ -516,10 +516,10 @@ class mini_grid(grid):
         """
         minimap_x = (
             original_x - self.center_x + (round(self.coordinate_width - 1) / 2)
-        ) % self.attached_grid.coordinate_width
+        ) % status.current_world.world_dimensions
         minimap_y = (
             original_y - self.center_y + (round(self.coordinate_height - 1) / 2)
-        ) % self.attached_grid.coordinate_height
+        ) % status.current_world.world_dimensions
         if (
             minimap_x >= 0
             and minimap_x < self.coordinate_width

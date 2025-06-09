@@ -486,7 +486,6 @@ Mobs and buildings have to track which cells and which grids they are visible in
     Generally much clunkier, and it based on incremental design decisions that were reasonable at the time
 
 Location rework backlog:
-Fix directional indicators
 Rework actor_image and mob_image classes
     Try to recruit mobs to see what issues occur
 A location should be able to generate its full image (for map rendering) and its image with no mobs (for location info display rendering)
@@ -504,7 +503,6 @@ Transfer subscribed_mobs from cell to location
 Transfer tile inventory from tile to location
 Transfer set_name from tile to location
 Transfer hosted_images from tile to location
-Fix directional indicator images not showing
 Make sure location inherits actor's manage_inventory_attrition
 Any rendering handled by actor images should be handled elsewhere now - go to grid logic is now redundant, but pygame image and tooltip box rendering are still required elsewhere
 Implement location subscribed_mobs_recursive property to get all mobs who would map to this with get_location()

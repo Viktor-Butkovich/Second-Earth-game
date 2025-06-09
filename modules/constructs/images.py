@@ -1205,11 +1205,11 @@ class directional_indicator_image(tooltip_free_image):
                 'height': int value - Pixel height of this image
                 'modes': string list value - Game modes during which this button can appear
                 'to_front' = False: boolean value - If True, allows this image to appear in front of most other objects instead of being behind them
-                'anchor_key': string value - String status key identifying cell to point to when minimap is calibrated
+                'anchor_key': string value - String status key identifying cell to point to when minimap is calibrated, like "north_pole"
         Output:
             None
         """
-        self.hosting_location = None
+        self.anchor_location = None
         self.anchor_key = input_dict["anchor_key"]
         status.directional_indicator_image_list.append(self)
         super().__init__(input_dict)
@@ -1228,39 +1228,19 @@ class directional_indicator_image(tooltip_free_image):
     def can_show(self, skip_parent_collection=False):
         """
         Description:
-            Returns whether this image can be shown
+            Returns whether this image can be shown - shows when its location is not visible on the minimap
         Input:
             None
         Output:
-            boolean: Returns True if this image can currently appear, otherwise returns False
+            boolean: Returns whether this image can currently appear
         """
         return (
             super().can_show(skip_parent_collection=skip_parent_collection)
-            and self.hosting_location == None
+            and self.anchor_location
+            and not status.minimap_grid.is_on_mini_grid(
+                self.anchor_location.x, self.anchor_location.y
+            )
         )
-
-    def get_image_id_list(self):
-        """
-        Description:
-            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
-                orientation
-        Input:
-            None
-        Output:
-            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
-        """
-        image_id_list = super().get_image_id_list()
-        for index, current_image in enumerate(image_id_list):
-            if type(current_image) == str:
-                image_id_list[index] = {
-                    "image_id": current_image,
-                    "override_width": self.width,
-                    "override_height": self.height,
-                }
-            elif type(current_image) == dict:
-                current_image["override_width"] = self.width
-                current_image["override_height"] = self.height
-        return image_id_list
 
     def calibrate(self):
         """
@@ -1271,41 +1251,17 @@ class directional_indicator_image(tooltip_free_image):
         Output:
             None
         """
-        return
-        # Directional indicator images should be much simpler with location system
-        # Rather than tracking the cell corresponding to the anchor, just attach to the anchor location, which only changes on save/load
-        # Once attached, the directional indicator should appear at the correct location
-        #   Directional indicators should always be shown at the center of scrolling strategic map grid cells
-        #   If anchor isn't visible on the minimap, indicator should appear at the edge of the location instead of directly in it
-        #   Unusual case where image on minimap and scrolling strategic map is different
-        #       Probably better to implement as a free image like before, rather than part of the location's image
-
-        anchor = getattr(status, self.anchor_key, None)
+        self.anchor_location = getattr(status, self.anchor_key, None)
+        if not self.anchor_location:
+            return  # If anchor location is not yet defined, do not attempt to calibrate
         # Anchor corresponds to a status.___ location, such as status.north_pole
-        if (
-            not anchor
-        ):  # Don't attempt to calibrate if anchor location is not yet defined
-            return
 
-        if not self.hosting_location:
-            anchor.add_hosted_image(self)
-
-        status.current_world.find_location(anchor.x, anchor.y)
-        status.scrolling_strategic_map_grid.find_cell(
-            *status.scrolling_strategic_map_grid.get_mini_grid_coordinates(
-                anchor.x, anchor.y
-            )
-        ).location.add_hosted_image(self)
-        if status.minimap_grid.is_on_mini_grid(anchor.x, anchor.y):
-            status.minimap_grid.find_cell(
-                *status.minimap_grid.get_mini_grid_coordinates(anchor.x, anchor.y)
-            ).location.add_hosted_image(self)
-        else:
-            if self.hosting_location:
-                self.hosting_location.remove_hosted_image(self)
+        if not status.minimap_grid.is_on_mini_grid(
+            self.anchor_location.x, self.anchor_location.y
+        ):
             anchor_scrolling_cell = status.scrolling_strategic_map_grid.find_cell(
                 *status.scrolling_strategic_map_grid.get_mini_grid_coordinates(
-                    anchor.x, anchor.y
+                    self.anchor_location.x, self.anchor_location.y
                 )
             )
             anchor_scrolling_coordinates = (

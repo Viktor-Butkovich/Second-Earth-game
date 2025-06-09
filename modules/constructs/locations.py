@@ -1062,18 +1062,14 @@ class location(actors.actor):
                             image_id_list[-1]["green_screen"] = self.get_green_screen()
                 if not terrain_only:
                     for terrain_feature in self.terrain_features:
-                        new_image_id = self.terrain_features[terrain_feature].get(
-                            "image_id",
-                            status.terrain_feature_types[terrain_feature].image_id,
-                        )
-                        if new_image_id != "misc/empty.png":
-                            if type(new_image_id) == str and not new_image_id.endswith(
-                                ".png"
-                            ):
-                                new_image_id = actor_utility.generate_label_image_id(
-                                    new_image_id, y_offset=-0.75
-                                )
-                            image_id_list = utility.combine(image_id_list, new_image_id)
+                        if (
+                            status.terrain_feature_types[terrain_feature].display_type
+                            == constants.APPENDED_IMAGE_TERRAIN_FEATURE
+                        ):
+                            image_id_list = utility.combine(
+                                image_id_list,
+                                status.terrain_feature_types[terrain_feature].image_id,
+                            )
                     # if (
                     #    self.resource
                     # ):  # If resource visible based on current knowledge
@@ -1087,11 +1083,12 @@ class location(actors.actor):
                         for current_building in self.get_buildings()
                         for image_id in current_building.get_image_id_list()
                     ]  # Add each of each building's images to the image ID list
-                for current_image in self.hosted_images:
-                    if (
-                        not current_image.anchor_key in ["south_pole", "north_pole"]
-                        and not terrain_only
-                    ):
+                if not terrain_only:
+                    for current_image in self.hosted_images:
+                        # if (
+                        #    not current_image.anchor_key in ["south_pole", "north_pole"]
+                        #    and not terrain_only
+                        # ):
                         image_id_list += current_image.get_image_id_list()
 
             if constants.current_map_mode != "terrain" and allow_mapmodes:
@@ -1115,29 +1112,34 @@ class location(actors.actor):
                         map_mode_image = "misc/map_modes/north_pole.png"
                     elif self.terrain_features.get("south pole", False):
                         map_mode_image = "misc/map_modes/south_pole.png"
+                image_id_list.append(
+                    {
+                        "image_id": map_mode_image,
+                        "detail_level": 1.0,
+                        "level": -1,
+                    }
+                )
                 if constants.MAP_MODE_ALPHA:
-                    image_id_list.append(
-                        {
-                            "image_id": map_mode_image,
-                            "detail_level": 1.0,
-                            "alpha": constants.MAP_MODE_ALPHA,
-                        }
-                    )
-                else:
-                    image_id_list = [
-                        {
-                            "image_id": map_mode_image,
-                            "detail_level": 1.0,
-                        }
-                    ]
-        for current_image in self.hosted_images:
-            if (
-                current_image.anchor_key in ["south_pole", "north_pole"]
-                and not terrain_only
-            ):
-                image_id_list += current_image.get_image_id_list()
-
+                    image_id_list[-1]["alpha"] = constants.MAP_MODE_ALPHA
         return image_id_list
+
+    def get_minimap_overlay_image_id_list(self):
+        """
+        Description:
+            Gets a list of image IDs for each minimap overlay terrain feature in this location
+        Input:
+            None
+        Output:
+            image_id list: List of image IDs for each minimap overlay terrain feature in this location
+        """
+        return utility.combine(
+            *[
+                status.terrain_feature_types[terrain_feature].image_id
+                for terrain_feature in self.terrain_features
+                if status.terrain_feature_types[terrain_feature].display_type
+                == constants.MINIMAP_OVERLAY_TERRAIN_FEATURE
+            ]
+        )
 
     def update_image_bundle(self, override_image=None):
         """
@@ -1163,7 +1165,12 @@ class location(actors.actor):
                 status.location_info_display, self
             )
         for current_cell in self.attached_cells:
-            current_cell.image.set_image(self.image_id_list)
+            if current_cell.grid == status.minimap_grid:
+                current_cell.image.set_image(
+                    self.image_id_list + self.get_minimap_overlay_image_id_list()
+                )
+            else:
+                current_cell.image.set_image(self.image_id_list)
         # Add logic to update attached info displays and cells with the new image
         # Consider how to handle this when mob image updates require updating the location's attached cells
         # Load in new image and tell subscribed cells and info displays to update their images
@@ -1407,11 +1414,6 @@ class location(actors.actor):
         if new_image.hosting_location:
             new_image.hosting_location.remove_hosted_image(new_image)
         new_image.hosting_location = self
-        # if hasattr(new_image, "hosting_location"):
-        #    if new_image.hosting_location:
-        #        new_image.hosting_location.remove_hosted_image(new_image)
-        #    new_image.hosting_location = self
-
         self.hosted_images.append(new_image)
         self.update_image_bundle()
 
