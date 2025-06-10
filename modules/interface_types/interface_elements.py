@@ -28,6 +28,7 @@ class interface_element:
         Output:
             None
         """
+        self.image: images.image = None
         self.can_show_override = None
         self.width = input_dict["width"]
         self.height = input_dict["height"]
@@ -131,7 +132,7 @@ class interface_element:
         Output:
             boolean: Returns whether it would be valid to call this object's draw()
         """
-        return self.showing and hasattr(self, "image")
+        return self.showing and self.image
 
     def can_show(self, skip_parent_collection=False):
         """

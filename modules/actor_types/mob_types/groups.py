@@ -1,10 +1,9 @@
 # Contains functionality for group units
 
-import random
 import math
 from typing import Dict, List
 from modules.actor_types.mob_types.pmobs import pmob
-from modules.util import actor_utility, minister_utility, utility
+from modules.util import actor_utility, utility
 from modules.constants import constants, status, flags
 
 
@@ -54,6 +53,9 @@ class group(pmob):
                     "location": input_dict["location"],
                 },
             )
+        input_dict["image_id"] = (
+            "misc/empty.png"  # Groups have no default image, just unit component portraits
+        )
         super().__init__(from_save, input_dict, original_constructor=False)
         self.worker.join_group(self)
         self.officer.join_group(self)

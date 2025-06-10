@@ -116,10 +116,10 @@ def generate_capitalized_article(word):
         return "A "
 
 
-def pretty_print_image_dict(image_dict: dict):
+def pretty_print_image_id(image_dict: dict):
     """
     Description:
-        Pretty-prints an image_dict, displaying indented image_id and metadata for each component
+        Pretty-prints an image ID dictionary, displaying indented image_id and metadata for each component
     Input:
         dict image_dict: image_dict in following format:
         {

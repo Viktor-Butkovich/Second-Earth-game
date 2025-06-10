@@ -581,7 +581,10 @@ class bundle_image:
                     self.apply_per_pixel_mutations()
             else:
                 self.text = True
-                self.image = text_utility.text(self.image_id, self.font)
+                try:
+                    self.image = text_utility.text(self.image_id, self.font)
+                except:
+                    raise Exception(f"Invalid image id: {self.image_id}")
             if self.is_offset:
                 if self.light_pixellated:
                     self.image = pygame.transform.scale(

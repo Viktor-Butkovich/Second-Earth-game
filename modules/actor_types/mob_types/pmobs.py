@@ -425,7 +425,7 @@ class pmob(mob):
         """
         super().on_move()
         current_location = self.get_location()
-        if current_location:
+        if current_location and not current_location.is_abstract_location:
             for location in [current_location] + current_location.adjacent_list:
                 if location == current_location:  # Show knowledge 3 about current cell
                     requirement = constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
@@ -517,7 +517,7 @@ class pmob(mob):
                 False,
                 {
                     "location": cell_icon_location,
-                    "image": image_id,
+                    "image_id": image_id,
                     "init_type": constants.CELL_ICON,
                 },
             )
@@ -778,12 +778,12 @@ class pmob(mob):
         elif self.get_permission(constants.WORKER_PERMISSION):
             image_id_list += self.insert_equipment(
                 actor_utility.generate_unit_component_portrait(
-                    self.image_dict.get("left portrait", []), "left"
+                    self.left_portrait_image_id_list, "left"
                 )
             )
             image_id_list += self.insert_equipment(
                 actor_utility.generate_unit_component_portrait(
-                    self.image_dict.get("right portrait", []), "right"
+                    self.right_portrait_image_id_list, "right"
                 )
             )
         return image_id_list

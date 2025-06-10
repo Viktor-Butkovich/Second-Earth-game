@@ -364,7 +364,6 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
                 "worker": worker,
                 "officer": officer,
                 "init_type": officer.unit_type.group_type.key,
-                "image": "misc/empty.png",
                 "name": actor_utility.generate_group_name(worker, officer),
             },
         )

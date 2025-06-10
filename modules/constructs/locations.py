@@ -1623,7 +1623,7 @@ class location(actors.actor):
             self.name_icon = constants.actor_creation_manager.create(
                 False,
                 {
-                    "image": actor_utility.generate_label_image_id(
+                    "image_id": actor_utility.generate_label_image_id(
                         new_name, y_offset=y_offset
                     ),
                     "init_type": constants.CELL_ICON,

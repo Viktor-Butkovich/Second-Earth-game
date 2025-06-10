@@ -21,7 +21,9 @@ class vehicle(pmob):
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
                 'grids': grid list value - grids in which this mob's images can appear
-                'image_dict': string/string dictionary value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_spaceship.png'
+                'image_id': image ID value - Image ID to use as this vehicle's default, crewed image
+                'uncrewed_image_id': image ID value - Image ID to use as this vehicle's uncrewed image
+                'moving_image_id': image ID value - Image ID to use as this vehicle's image when moving
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
                 'end_turn_destination_coordinates': int tuple value - None if no saved destination, destination coordinates if saved destination
@@ -256,10 +258,12 @@ class vehicle(pmob):
         Output:
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
                 Along with superclass outputs, also saves the following values:
-                'image_dict': string value - dictionary of image type keys and file path values to the images used by this object in various situations, such as 'crewed': 'crewed_spaceship.png'
+                'uncrewed_image_id': image ID value - Image ID to use as this vehicle's uncrewed image
+                'moving_image_id': image ID value - Image ID to use as this vehicle's image when moving
                 'crew': string or dictionary value - If no crew, equals None. Otherwise, equals a dictionary of the saved information necessary to recreate the worker to serve as crew
                 'passenger_dicts': dictionary list value - List of dictionaries of saved information necessary to recreate each of this vehicle's passengers
         """
+
         save_dict = super().to_save_dict()
         save_dict["uncrewed_image_id"] = self.uncrewed_image_id
         save_dict["moving_image_id"] = self.moving_image_id

@@ -1,7 +1,7 @@
 # Contains functionality for actor display images
 
 from modules.constructs.images import free_image
-from modules.util import action_utility
+from modules.util import utility, action_utility
 from modules.constants import constants, status, flags
 
 
@@ -84,7 +84,7 @@ class actor_display_free_image(free_image):
             image_id_list = action_utility.generate_background_image_id_list()
             if self.default_image_id:
                 if type(self.default_image_id) == str:
-                    image_id_list.append(self.default_image_id)
+                    image_id_list.append({"image_id": self.default_image_id})
                 else:
                     image_id_list += self.default_image_id
                 image_id_list.append(

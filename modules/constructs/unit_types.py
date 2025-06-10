@@ -19,7 +19,7 @@ class unit_type:
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'key': string value - Constant uniquely identifying this type of worker across the program
+                'key': string value - Constant uniquely identifying this type of unit across the program
                 'permissions': boolean dictionary value - Dictionary of this unit type's default permissions, with True/False permissions
                 'can_recruit': boolean value - Whether this unit type can be recruited
                     'recruitment_verb': string value - Verb to use when recruiting this unit, default of 'recruit'
@@ -155,7 +155,7 @@ class unit_type:
             None
         Output:
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
-                'key': string value - Constant uniquely identifying this type of worker across the program
+                'key': string value - Constant uniquely identifying this type of unit across the program
                 'recruitment_cost': float value - Cost of recruiting this unit
         """
         return {
@@ -167,25 +167,25 @@ class unit_type:
     def get_total_upkeep(self) -> float:
         """
         Description:
-            Calculates and returns the total upkeep of this worker type's units
+            Calculates and returns the total upkeep of this unit type's units
         Input:
             None
         Output:
-            float: Returns the total upkeep of this worker type's units
+            float: Returns the total upkeep of this unit type's units
         """
         return self.num_instances * self.upkeep
 
     def generate_input_dict(self) -> Dict:
         """
         Description:
-            Generates an input dict to create a worker of this type
+            Generates an input dict to create a unit of this type
         Input:
             None
         Output:
-            dictionary: Returns dictionary with standard entries for this worker type
+            dictionary: Returns dictionary with standard entries for this unit type
         """
         input_dict = {
-            "image": self.image_id,
+            "default_image_id": self.image_id,
             "name": self.name,
             "init_type": self.key,
             "unit_type": self,
@@ -258,7 +258,7 @@ class group_type(unit_type):
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'key': string value - Constant uniquely identifying this type of worker across the program
+                'key': string value - Constant uniquely identifying this type of unit across the program
                 'permissions': boolean dictionary value - Dictionary of this unit type's default permissions, with True/False permissions
                 'can_recruit': boolean value - Whether this unit type can be recruited
                     'recruitment_verb': string value - Verb to use when recruiting this unit, default of 'recruit'
@@ -287,7 +287,7 @@ class vehicle_type(unit_type):
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'key': string value - Constant uniquely identifying this type of worker across the program
+                'key': string value - Constant uniquely identifying this type of unit across the program
                 'permissions': boolean dictionary value - Dictionary of this unit type's default permissions, with True/False permissions
                 'can_recruit': boolean value - Whether this unit type can be recruited
                     'recruitment_verb': string value - Verb to use when recruiting this unit, default of 'recruit'
@@ -314,11 +314,8 @@ class vehicle_type(unit_type):
             dictionary: Returns dictionary with standard entries for this unit type
         """
         input_dict = super().generate_input_dict()
-        input_dict["image_dict"] = {
-            "default": self.image_id,
-            "uncrewed": self.uncrewed_image_id,
-            "moving": self.moving_image_id,
-        }
+        input_dict["uncrewed_image_id"] = self.uncrewed_image_id
+        input_dict["moving_image_id"] = self.moving_image_id
         input_dict["crew"] = None
         return input_dict
 

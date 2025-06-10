@@ -24,10 +24,12 @@ class cell_icon(actor):
         Output:
             None
         """
+        raise Exception("Deprecated class cell_icon")
+        return
         super().__init__(from_save, input_dict, original_constructor=False)
         status.independent_interface_elements.append(self)
         self.showing = False
-        self.image_dict = {"default": input_dict["image"]}
+        self.image_dict = {"default": input_dict["image_id"]}
         self.images = [
             images.actor_image(
                 self,

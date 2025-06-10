@@ -109,9 +109,9 @@ class mob(actor):
                 self.creation_turn = 0
             else:
                 self.creation_turn = constants.turn
-        self.location: locations.location = input_dict.get("location", None)
-        if self.location:
-            self.location.subscribe_mob(self)
+        self.location: locations.location = None
+        if input_dict.get("location", None):
+            input_dict["location"].subscribe_mob(self)
         self.finish_init(original_constructor, from_save, input_dict)
 
     @property
@@ -409,12 +409,11 @@ class mob(actor):
         """
         self.image_variants = actor_utility.get_image_variants(self.default_image_id)
         if not from_save:
-            if not from_save:
-                self.image_variant = random.randrange(0, len(self.image_variants))
-                self.default_image_id = [self.image_variants[self.image_variant]]
+            self.image_variant = random.randrange(0, len(self.image_variants))
+            self.default_image_id = self.image_variants[self.image_variant]
         elif from_save and "image_variant" in input_dict:
             self.image_variant = input_dict["image_variant"]
-            self.default_image_id = [self.image_variants[self.image_variant]]
+            self.default_image_id = self.image_variants[self.image_variant]
             if "second_image_variant" in input_dict:
                 self.second_image_variant = input_dict["second_image_variant"]
 
@@ -449,7 +448,7 @@ class mob(actor):
         save_dict["dehydration"] = self.get_permission(constants.DEHYDRATION_PERMISSION)
         save_dict["starvation"] = self.get_permission(constants.STARVATION_PERMISSION)
         if hasattr(self, "image_variant"):
-            save_dict["image"] = self.image_variants[0]
+            save_dict["image_id"] = self.image_variants[0]
             save_dict["image_variant"] = self.image_variant
             if hasattr(self, "second_image_variant"):
                 save_dict["second_image_variant"] = self.second_image_variant
@@ -500,7 +499,7 @@ class mob(actor):
         """
         image_id_list = []
         image_id_list += self.get_default_image_id_list()
-        image_id_list += self.insert_equipment(self.image_dict.get("portrait", []))
+        image_id_list += self.insert_equipment(self.portrait_image_id_list)
         if override_values.get(
             "disorganized", self.get_permission(constants.DISORGANIZED_PERMISSION)
         ):

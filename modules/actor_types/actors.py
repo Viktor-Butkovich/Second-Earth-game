@@ -409,7 +409,7 @@ class actor:
         return
 
     def get_default_image_id_list(self, override_values={}):
-        return self.default_image_id
+        return [{"image_id": self.default_image_id}]
 
     def get_image_id_list(self, override_values={}):
         """

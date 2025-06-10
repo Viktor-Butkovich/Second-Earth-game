@@ -383,7 +383,7 @@ class construction(action.action):
                         self.building_type.key
                     ).remove_complete()
             if self.building_type.key == constants.RESOURCE:
-                input_dict["image"] = "buildings/resource_building.png"
+                input_dict["image_id"] = "buildings/resource_building.png"
                 input_dict["resource_type"] = self.attached_resource
             elif self.building_type.key == constants.INFRASTRUCTURE:
                 building_image_id = None
@@ -393,18 +393,15 @@ class construction(action.action):
                     building_image_id = "buildings/infrastructure/railroad.png"
                 else:  # bridge image handled in infrastructure initialization to use correct horizontal/vertical version
                     building_image_id = "buildings/infrastructure/road.png"
-                input_dict["image"] = building_image_id
+                input_dict["image_id"] = building_image_id
                 input_dict["infrastructure_type"] = self.building_name.replace(" ", "_")
             elif self.building_type.key == constants.TRAIN:
-                image_dict = {
-                    "default": "mobs/train/default.png",
-                    "crewed": "mobs/train/default.png",
-                    "uncrewed": "mobs/train/uncrewed.png",
-                }
-                input_dict["image_dict"] = image_dict
+                input_dict["image_id"] = "mobs/train/default.png"
+                input_dict["uncrewed_image_id"] = "mobs/train/uncrewed.png"
+                input_dict["moving_image_id"] = "mobs/train/default.png"
                 input_dict["crew"] = None
             else:
-                input_dict["image"] = f"buildings/{self.building_type.key}.png"
+                input_dict["image_id"] = f"buildings/{self.building_type.key}.png"
             new_building = constants.actor_creation_manager.create(False, input_dict)
 
             if self.building_type.warehouse_level > 0:
@@ -416,7 +413,7 @@ class construction(action.action):
                         warehouses.set_damaged(False)
                     warehouses.upgrade()
                 else:
-                    input_dict["image"] = "misc/empty.png"
+                    input_dict["image_id"] = "misc/empty.png"
                     input_dict["name"] = "warehouses"
                     input_dict["init_type"] = constants.WAREHOUSES
                     constants.actor_creation_manager.create(False, input_dict)
