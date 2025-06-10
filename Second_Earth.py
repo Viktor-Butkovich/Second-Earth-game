@@ -486,6 +486,12 @@ Mobs and buildings have to track which cells and which grids they are visible in
     Generally much clunkier, and it based on incremental design decisions that were reasonable at the time
 
 Location rework backlog:
+Figure out how mob images will work
+    A mob should be able to provide an image ID list on demand
+    A location's image_id_list should have a flag that toggles whether to show the mob's image
+    A calibrated UI component might directly get the displayed mob's image ID list
+    Whenever one of the dependencies of a mob's image ID list changes, it should update the mob info display and its subscribed location
+        With this updated architecture, mob_image and actor_image as concepts should no longer be required
 Rework actor_image and mob_image classes
     Try to recruit mobs to see what issues occur
 A location should be able to generate its full image (for map rendering) and its image with no mobs (for location info display rendering)
@@ -514,6 +520,9 @@ Modify non-location actors to save as part of their location - this means the lo
 Convert all tooltips to act similar to location tooltips, with centralized rendering logic
     Ideally, an object returns a tooltip as a list of strings or a 2-dimensional list of strings, and the main loop entirely
         handles rendering this tooltip when needed - no reason for any further complexity
+Try to minimize calls to get_image_id_list, instead caching the result and changing it when dependencies change
+    Ideally, each mob and location maintains an updated image ID list for each configuration (with minimap overlay, with mobs, terrain only, etc.)
+Reintroduce mob draw_outline on end turn destination logic (reference cells.py)
 
 Notes:
 In location-centric design, game logic is centralized and as independent as possible from interface elements

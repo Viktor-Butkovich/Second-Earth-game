@@ -868,8 +868,6 @@ class pmob(mob):
         self.set_name(self.default_name)
         if self.get_permission(constants.VETERAN_PERMISSION):
             self.set_permission(constants.VETERAN_PERMISSION, False)
-            for current_image in self.images:
-                current_image.image.remove_member("veteran_icon")
 
     def manage_health_attrition(self) -> None:
         """

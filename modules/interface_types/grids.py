@@ -440,11 +440,6 @@ class mini_grid(grid):
                     ).subscribe_cell(
                         self.find_cell(x, y)
                     )  # Calibrate each cell to its the new location
-
-            for current_mob in status.mob_list:
-                for current_image in current_mob.images:
-                    if current_image.grid == self:
-                        current_image.add_to_cell()
             if self == status.minimap_grid:
                 for (
                     directional_indicator_image

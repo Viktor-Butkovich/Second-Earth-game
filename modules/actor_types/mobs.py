@@ -71,18 +71,7 @@ class mob(actor):
                     constants.TRAVELING_PERMISSION, True, update_image=False
                 )
         self.image_variants_setup(from_save, input_dict)
-        # self.images: List[images.mob_image] = []
         self.status_icons = []
-        # for current_grid in self.grids:
-        #    self.images.append(
-        #        images.mob_image(
-        #            self,
-        #            current_grid.get_cell_width(),
-        #            current_grid.get_cell_height(),
-        #            current_grid,
-        #            "default",
-        #        )
-        #    )
         status.mob_list.append(self)
         self.set_name(input_dict["name"])
         self.max_movement_points = 1

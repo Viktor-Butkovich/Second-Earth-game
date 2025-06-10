@@ -1832,7 +1832,7 @@ class same_location_icon(button):
 
                     elif len(self.previous_subscribed_mobs) > self.index:
                         self.attached_mob = self.previous_subscribed_mobs[self.index]
-                        self.image.set_image(self.attached_mob.images[0].image_id)
+                        self.image.set_image(self.attached_mob.get_image_id_list())
             else:
                 self.attached_mob = None
 
