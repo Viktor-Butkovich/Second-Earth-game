@@ -9,7 +9,6 @@ from modules.util import (
     text_utility,
     minister_utility,
 )
-from modules.interface_types import cells
 from modules.actor_types.actors import actor
 from modules.constants import constants, status, flags
 from typing import List, Dict, Any
@@ -49,16 +48,19 @@ class mob(actor):
         self.habitability = constants.HABITABILITY_PERFECT
         self.ambient_sound_channel: pygame.mixer.Channel = None
         self.locked_ambient_sound: bool = False
-        self.portrait_image_id_list: List[any] = input_dict.get(
-            "portrait_image_id_list", []
-        )
-        self.left_portrait_image_id_list: List[any] = input_dict.get(
-            "left_portrait_image_id_list", []
-        )
-        self.right_portrait_image_id_list: List[any] = input_dict.get(
-            "right_portrait_image_id_list", []
-        )
         super().__init__(from_save, input_dict, original_constructor=False)
+        self.image_dict = {
+            **self.image_dict,
+            constants.IMAGE_ID_LIST_PORTRAIT: input_dict.get(
+                constants.IMAGE_ID_LIST_PORTRAIT, []
+            ),
+            constants.IMAGE_ID_LIST_LEFT_PORTRAIT: input_dict.get(
+                constants.IMAGE_ID_LIST_LEFT_PORTRAIT, []
+            ),
+            constants.IMAGE_ID_LIST_RIGHT_PORTRAIT: input_dict.get(
+                constants.IMAGE_ID_LIST_RIGHT_PORTRAIT, []
+            ),
+        }
         self.end_turn_destination = None
         if from_save:
             if input_dict["end_turn_destination_coordinates"]:
@@ -372,14 +374,14 @@ class mob(actor):
                     metadata = {"body_image": self.default_image_id}
                     if self.get_permission(constants.OFFICER_PERMISSION):
                         metadata.update(self.character_info)
-                    self.portrait_image_id_list = (
+                    self.image_dict[constants.IMAGE_ID_LIST_PORTRAIT] = (
                         constants.character_manager.generate_unit_portrait(
                             self, metadata
                         )
                     )
                 else:
-                    self.portrait_image_id_list = input_dict.get(
-                        "portrait_image_id_list", []
+                    self.image_dict[constants.IMAGE_ID_LIST_PORTRAIT] = input_dict.get(
+                        constants.IMAGE_ID_LIST_PORTRAIT, []
                     )
             if not from_save:
                 self.reselect()
@@ -427,9 +429,15 @@ class mob(actor):
         save_dict["movement_points"] = self.movement_points
         save_dict["max_movement_points"] = self.max_movement_points
         save_dict["default_image_id"] = self.default_image_id
-        save_dict["portrait_image_id_list"] = self.portrait_image_id
-        save_dict["left_portrait_image_id_list"] = self.left_portrait_image_id_list
-        save_dict["right_portrait_image_id_list"] = self.right_portrait_image_id_list
+        save_dict[constants.IMAGE_ID_LIST_PORTRAIT] = self.image_dict[
+            constants.IMAGE_ID_LIST_PORTRAIT
+        ]
+        save_dict[constants.IMAGE_ID_LIST_LEFT_PORTRAIT] = self.image_dict[
+            constants.IMAGE_ID_LIST_LEFT_PORTRAIT
+        ]
+        save_dict[constants.IMAGE_ID_LIST_RIGHT_PORTRAIT] = self.image_dict[
+            constants.IMAGE_ID_LIST_RIGHT_PORTRAIT
+        ]
         save_dict["creation_turn"] = self.creation_turn
         save_dict["disorganized"] = self.get_permission(
             constants.DISORGANIZED_PERMISSION
@@ -488,7 +496,7 @@ class mob(actor):
         """
         image_id_list = []
         image_id_list += self.get_default_image_id_list()
-        image_id_list += self.insert_equipment(self.portrait_image_id_list)
+        image_id_list += self.insert_equipment(self.image_dict[constants.IMAGE_ID_LIST_PORTRAIT])
         if override_values.get(
             "disorganized", self.get_permission(constants.DISORGANIZED_PERMISSION)
         ):
@@ -864,12 +872,7 @@ class mob(actor):
         Output:
             None
         """
-        previous_image = self.previous_image
-        super().update_image_bundle()
-        if self.image_id_list != previous_image:
-            self.reselect()
-            self.previous_image = self.image_id_list
-        # Add logic to tell location to update appearance of attached cells and info displays
+        self.get_location().update_image_bundle(update_mob_only=True)
 
     def update_tooltip(self):
         """

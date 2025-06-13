@@ -404,13 +404,22 @@ def generate_group_image_id_list(worker, officer):
     """
     return (
         generate_unit_component_portrait(
-            worker.insert_equipment(worker.left_portrait_image_id_list), "group left"
+            worker.insert_equipment(
+                worker.image_dict[constants.IMAGE_ID_LIST_LEFT_PORTRAIT]
+            ),
+            "group left",
         )
         + generate_unit_component_portrait(
-            worker.insert_equipment(worker.right_portrait_image_id_list), "group right"
+            worker.insert_equipment(
+                worker.image_dict[constants.IMAGE_ID_LIST_RIGHT_PORTRAIT]
+            ),
+            "group right",
         )
         + generate_unit_component_portrait(
-            officer.insert_equipment(officer.portrait_image_id_list), "center"
+            officer.insert_equipment(
+                officer.image_dict[constants.IMAGE_ID_LIST_PORTRAIT]
+            ),
+            "center",
         )
     )
 

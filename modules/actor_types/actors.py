@@ -34,7 +34,6 @@ class actor:
         Output:
             None
         """
-        self.previous_image = None
         self.from_save = from_save
         self.set_name(input_dict.get("name", "placeholder"))
         self.tooltip_text = []
@@ -44,9 +43,10 @@ class actor:
         self.default_image_id: str = input_dict.get(
             "default_image_id", ""
         )  # Single image file as basic default
-        self.image_id_list: List[str] = (
-            []
-        )  # Stored version of fully generated image ID list, passed to info displays and cells
+        self.image_dict: Dict[str, List[str]] = {
+            constants.IMAGE_ID_LIST_DEFAULT: None,
+            constants.IMAGE_ID_LIST_INCLUDE_MOB: None,
+        }  # Stored versions of fully generated image ID list, passed to info displays and cells
         self.finish_init(original_constructor, from_save, input_dict)
 
     def finish_init(

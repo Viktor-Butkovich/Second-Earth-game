@@ -58,12 +58,12 @@ class worker(pmob):
         """
         if original_constructor:
             if not from_save:
-                self.left_portrait_image_id_list = (
+                self.image_dict[constants.IMAGE_ID_LIST_LEFT_PORTRAIT] = (
                     constants.character_manager.generate_unit_portrait(
                         self, metadata={"body_image": self.default_image_id}
                     )
                 )
-                self.right_portrait_image_id_list = (
+                self.image_dict[constants.IMAGE_ID_LIST_RIGHT_PORTRAIT] = (
                     constants.character_manager.generate_unit_portrait(
                         self,
                         metadata={

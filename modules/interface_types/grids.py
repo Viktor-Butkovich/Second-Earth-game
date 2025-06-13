@@ -108,15 +108,40 @@ class grid(interface_elements.interface_element):
             and self in status.displayed_location.get_world_handler().attached_grids
         ):
             for attached_cell in status.displayed_location.attached_cells:
-                attached_cell.draw_actor_match_outline()
+                attached_cell.draw_outline(constants.COLOR_WHITE)
         if status.displayed_mob and (
             self
             in status.displayed_mob.get_location().get_world_handler().attached_grids
             or self
             in status.displayed_mob.end_turn_destination.get_world_handler().attached_grids
         ):
-            # If displayed mob or its end turn destination are on this grid, draw the mob's outline
-            status.displayed_mob.draw_outline()
+            if flags.show_selection_outlines:
+                for subscribed_cell in status.displayed_location.attached_cells:
+                    subscribed_cell.draw_outline(constants.COLOR_BRIGHT_GREEN)
+
+                    if len(status.displayed_mob.base_automatic_route) > 0:
+                        start_coordinates = status.displayed_mob.base_automatic_route[0]
+                        end_coordinates = status.displayed_mob.base_automatic_route[-1]
+                        for (
+                            current_coordinates
+                        ) in status.displayed_mob.base_automatic_route:
+                            if current_coordinates == start_coordinates:
+                                color = constants.COLOR_PURPLE
+                            elif current_coordinates == end_coordinates:
+                                color = constants.COLOR_YELLOW
+                            else:
+                                color = constants.COLOR_BRIGHT_BLUE
+                            for automatic_route_cell in (
+                                status.displayed_location.get_world_handler()
+                                .find_location(
+                                    current_coordinates[0], current_coordinates[1]
+                                )
+                                .attached_cells
+                            ):
+                                automatic_route_cell.draw_outline(color)
+                if status.displayed_mob.end_turn_destination:
+                    for destination_cell in self.end_turn_destination.attached_cells:
+                        destination_cell.draw_outline(constants.COLOR_YELLOW)
 
     def draw_grid_lines(self):
         """

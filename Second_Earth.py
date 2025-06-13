@@ -384,7 +384,7 @@ except Exception:  # Displays error message and records error message in crash l
         Scientists
         Executive/lobbyist
         Medical officer
-        Environmental engineer
+        Environmental engineer (planetologist?)
         Astronaut commander
         Marines
         Do land vehicles require crew?
@@ -492,11 +492,6 @@ Figure out how mob images will work
     A calibrated UI component might directly get the displayed mob's image ID list
     Whenever one of the dependencies of a mob's image ID list changes, it should update the mob info display and its subscribed location
         With this updated architecture, mob_image and actor_image as concepts should no longer be required
-Rework actor_image and mob_image classes
-    Try to recruit mobs to see what issues occur
-A location should be able to generate its full image (for map rendering) and its image with no mobs (for location info display rendering)
-A mob should be able to generate its own image, which can be retrieved by locations and the mob info display as needed
-  No reason for separate image objects to exist?
 Make sure name icons are rendered and handled correctly
 Rework rename function
 Update docstrings
@@ -505,7 +500,6 @@ Test out buildings (spaceports, etc.)
 Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
 Transfer hosted_images from tile to location
 Transfer buildings from cell to location
-Transfer subscribed_mobs from cell to location
 Transfer tile inventory from tile to location
 Transfer set_name from tile to location
 Transfer hosted_images from tile to location
@@ -522,7 +516,6 @@ Convert all tooltips to act similar to location tooltips, with centralized rende
         handles rendering this tooltip when needed - no reason for any further complexity
 Try to minimize calls to get_image_id_list, instead caching the result and changing it when dependencies change
     Ideally, each mob and location maintains an updated image ID list for each configuration (with minimap overlay, with mobs, terrain only, etc.)
-Reintroduce mob draw_outline on end turn destination logic (reference cells.py)
 
 Notes:
 In location-centric design, game logic is centralized and as independent as possible from interface elements

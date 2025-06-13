@@ -31,8 +31,6 @@ class cell:
         self.height: int = height
         self.grid = grid
         self.color: tuple[int, int, int] = color
-        self.selection_outline_color = constants.COLOR_YELLOW
-        self.actor_match_outline_color = constants.COLOR_WHITE
         self.pixel_x, self.pixel_y = self.grid.convert_coordinates((self.x, self.y))
         self.Rect: pygame.Rect = pygame.Rect(
             self.pixel_x, self.pixel_y - self.height, self.width, self.height
@@ -75,6 +73,9 @@ class cell:
             )
         return batch_tooltip_list
 
+    def set_image(self, *args, **kwargs):
+        self.image.set_image(*args, **kwargs)
+
     def get_location(self):
         return self.location
 
@@ -98,6 +99,14 @@ class cell:
         self.image.draw()
         self.image.show_num_mobs()
 
+    def draw_outline(self, color: str) -> None:
+        pygame.draw.rect(
+            constants.game_display,
+            constants.color_dict[color],
+            self.Rect,
+            self.image.outline_width,
+        )
+
     def touching_mouse(self):
         """
         Description:
@@ -111,81 +120,3 @@ class cell:
             return True
         else:
             return False
-
-    def draw_actor_match_outline(self):
-        """
-        Description:
-            Draws an outline around the displayed cell
-        Input:
-            None
-        Output:
-            None
-        """
-        if self.grid.can_show():
-            pygame.draw.rect(
-                constants.game_display,
-                constants.color_dict[self.actor_match_outline_color],
-                self.Rect,
-                self.image.outline_width,
-            )
-
-
-"""
-Port over flashing outline logic -
-mob:
-    def draw_outline(self):
-        if flags.show_selection_outlines:
-            for current_image in self.images:
-                if (
-                    current_image.current_cell
-                    and self == current_image.current_cell.contained_mobs[0]
-                    and current_image.current_cell.grid.showing
-                ):  # only draw outline if on top of stack
-                    pygame.draw.rect(
-                        constants.game_display,
-                        constants.color_dict[self.selection_outline_color],
-                        (current_image.outline),
-                        current_image.outline_width,
-                    )
-
-pmob:
-    def draw_outline(self):
-        return
-        if flags.show_selection_outlines:
-            for current_image in self.images:
-                if (
-                    current_image.current_cell
-                    and current_image.current_cell.contained_mobs
-                    and self == current_image.current_cell.contained_mobs[0]
-                    and current_image.current_cell.grid.showing
-                ):  # Only draw outline if on top of stack
-                    pygame.draw.rect(
-                        constants.game_display,
-                        constants.color_dict[self.selection_outline_color],
-                        (current_image.outline),
-                        current_image.outline_width,
-                    )
-
-                    if len(self.base_automatic_route) > 0:
-                        start_coordinates = self.base_automatic_route[0]
-                        end_coordinates = self.base_automatic_route[-1]
-                        for current_coordinates in self.base_automatic_route:
-                            if current_coordinates == start_coordinates:
-                                color = constants.COLOR_PURPLE
-                            elif current_coordinates == end_coordinates:
-                                color = constants.COLOR_YELLOW
-                            else:
-                                color = constants.COLOR_BRIGHT_BLUE
-                            for attached_cell in (
-                                self.get_location()
-                                .get_world_handler()
-                                .find_location(
-                                    current_coordinates[0], current_coordinates[1]
-                                )
-                                .attached_cells
-                            ):
-                                attached_cell.location.draw_destination_outline(color)
-            if self.end_turn_destination:
-                for attached_cell in self.end_turn_destination.attached_cells:
-                    attached_cell.location.draw_destination_outline()
-"""

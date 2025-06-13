@@ -1123,6 +1123,12 @@ class location(actors.actor):
                     image_id_list[-1]["alpha"] = constants.MAP_MODE_ALPHA
         return image_id_list
 
+    def get_mob_image_id_list(self):
+        if self.subscribed_mobs:
+            return self.subscribed_mobs[0].get_image_id_list()
+        else:
+            return []
+
     def get_minimap_overlay_image_id_list(self):
         """
         Description:
@@ -1141,7 +1147,7 @@ class location(actors.actor):
             ]
         )
 
-    def update_image_bundle(self, override_image=None):
+    def update_image_bundle(self, override_image=None, update_mob_only: bool = False):
         """
         Description:
             Updates this actor's images with its current image id list, also updating the minimap grid version if applicable
@@ -1151,12 +1157,33 @@ class location(actors.actor):
         Output:
             None
         """
-        previous_image = self.previous_image
-        if override_image:
-            self.image_id_list = override_image
-        else:
-            self.image_id_list = self.get_image_id_list()
-        if previous_image != self.image_id_list:
+        previous_image_default = self.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
+        if not update_mob_only:
+            if override_image:
+                self.image_dict[constants.IMAGE_ID_LIST_DEFAULT] = override_image
+            else:
+                self.image_dict[constants.IMAGE_ID_LIST_DEFAULT] = (
+                    self.get_image_id_list()
+                )
+
+        previous_image_include_mob = self.image_dict[
+            constants.IMAGE_ID_LIST_INCLUDE_MOB
+        ]
+        self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MOB] = (
+            self.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
+            + self.get_mob_image_id_list()
+        )
+
+        self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MINIMAP_OVERLAY] = (
+            self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MOB]
+            + self.get_minimap_overlay_image_id_list()
+        )
+
+        if (
+            previous_image_default != self.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
+            or previous_image_include_mob
+            != self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MOB]
+        ):
             self.refresh_attached_images()
 
     def refresh_attached_images(self):
@@ -1166,11 +1193,13 @@ class location(actors.actor):
             )
         for current_cell in self.attached_cells:
             if current_cell.grid == status.minimap_grid:
-                current_cell.image.set_image(
-                    self.image_id_list + self.get_minimap_overlay_image_id_list()
+                current_cell.set_image(
+                    self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MINIMAP_OVERLAY]
                 )
             else:
-                current_cell.image.set_image(self.image_id_list)
+                current_cell.set_image(
+                    self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MOB]
+                )
         # Add logic to update attached info displays and cells with the new image
         # Consider how to handle this when mob image updates require updating the location's attached cells
         # Load in new image and tell subscribed cells and info displays to update their images

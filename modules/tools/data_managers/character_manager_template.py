@@ -500,7 +500,7 @@ class character_manager_template:
                 "x_offset": -0.015,
                 "green_screen": green_screen,
                 "override_green_screen_colors": override_green_screen_colors,
-                "level": constants.DEFAULT_LEVEL,
+                "level": constants.DEFAULT_PORTRAIT_LEVEL,
                 "metadata": {"portrait_section": constants.FULL_BODY_PORTRAIT_SECTION},
             }
         )
@@ -542,7 +542,7 @@ class character_manager_template:
             {
                 "image_id": random.choice(self.skin_images[metadata["masculine"]]),
                 "green_screen": metadata["skin_color"],
-                "level": constants.DEFAULT_LEVEL,
+                "level": constants.DEFAULT_PORTRAIT_LEVEL,
                 "metadata": {"portrait_section": constants.SKIN_PORTRAIT_SECTION},
             }
         )
@@ -670,7 +670,7 @@ class character_manager_template:
                 "image_id": random.choice(self.nose_images),
                 "detail_level": 1.0,
                 "metadata": {"portrait_section": constants.NOSE_PORTRAIT_SECTION},
-                "level": constants.DEFAULT_LEVEL,
+                "level": constants.DEFAULT_PORTRAIT_LEVEL,
             }
         )
 
@@ -695,7 +695,7 @@ class character_manager_template:
                 "image_id": image_id,
                 "detail_level": 1.0,
                 "metadata": {"portrait_section": constants.MOUTH_PORTRAIT_SECTION},
-                "level": constants.DEFAULT_LEVEL,
+                "level": constants.DEFAULT_PORTRAIT_LEVEL,
             }
         )
 

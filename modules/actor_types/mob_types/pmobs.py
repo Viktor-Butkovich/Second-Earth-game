@@ -44,7 +44,6 @@ class pmob(mob):
         """
         self.sentry_mode = False
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.selection_outline_color = constants.COLOR_BRIGHT_GREEN
         status.pmob_list.append(self)
         self.equipment = {}
         self.upkeep_missing_penalty: str = None
@@ -778,12 +777,12 @@ class pmob(mob):
         elif self.get_permission(constants.WORKER_PERMISSION):
             image_id_list += self.insert_equipment(
                 actor_utility.generate_unit_component_portrait(
-                    self.left_portrait_image_id_list, "left"
+                    self.image_dict[constants.IMAGE_ID_LIST_LEFT_PORTRAIT], "left"
                 )
             )
             image_id_list += self.insert_equipment(
                 actor_utility.generate_unit_component_portrait(
-                    self.right_portrait_image_id_list, "right"
+                    self.image_dict[constants.IMAGE_ID_LIST_RIGHT_PORTRAIT], "right"
                 )
             )
         return image_id_list

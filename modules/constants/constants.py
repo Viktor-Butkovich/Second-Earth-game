@@ -559,17 +559,17 @@ map_modes: List[str] = [
 
 DEFAULT_MINISTER_OUTFIT_TYPE = "business"
 
-HAT_LEVEL: int = 9
-EYES_LEVEL: int = 3
-GLASSES_LEVEL: int = 4
-HAIR_LEVEL: int = 5
-FACIAL_HAIR_LEVEL: int = 8
-PORTRAIT_LEVEL: int = 10
-LABEL_LEVEL: int = 11
-FRONT_LEVEL: int = 20
+HAT_LEVEL: int = 19
+EYES_LEVEL: int = 13
+GLASSES_LEVEL: int = 14
+HAIR_LEVEL: int = 15
+FACIAL_HAIR_LEVEL: int = 18
+PORTRAIT_LEVEL: int = 20
+LABEL_LEVEL: int = 21
+FRONT_LEVEL: int = 30
 BACKGROUND_LEVEL: int = -5
-DEFAULT_LEVEL: int = 2
-BACKPACK_LEVEL: int = 1
+DEFAULT_PORTRAIT_LEVEL: int = 12
+BACKPACK_LEVEL: int = 11
 
 ALTITUDE_BRIGHTNESS_MULTIPLIER: float = 0.5
 PIXELLATED_SIZE: int = 2
@@ -1052,6 +1052,13 @@ MINIMAP_OVERLAY_TERRAIN_FEATURE: str = "miniap_overlay_terrain_feature"
 
 APPENDED_IMAGE_TERRAIN_FEATURE: str = "appended_image_terrain_feature"
 # Terrain feature that is included with the location's image, like a physically visible feature
+
+IMAGE_ID_LIST_DEFAULT: str = "image_id_list_default"
+IMAGE_ID_LIST_INCLUDE_MOB: str = "image_id_list_include_mob"
+IMAGE_ID_LIST_INCLUDE_MINIMAP_OVERLAY: str = "image_id_list_include_mob"
+IMAGE_ID_LIST_PORTRAIT: str = "image_id_list_portrait"
+IMAGE_ID_LIST_LEFT_PORTRAIT: str = "image_id_list_left_portrait"
+IMAGE_ID_LIST_RIGHT_PORTRAIT: str = "image_id_list_right_portrait"
 
 HABITABILITY_PERFECT: int = 5
 HABITABILITY_TOLERABLE: int = 4

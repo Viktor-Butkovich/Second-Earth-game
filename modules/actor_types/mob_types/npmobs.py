@@ -35,7 +35,6 @@ class npmob(mob):
         self.can_damage_buildings = False
         self.npmob_type = "npmob"
         self.aggro_distance = 0
-        self.selection_outline_color = constants.COLOR_BRIGHT_RED
         if (
             self.get_location().y == 0
         ):  # should fix any case of npmob trying to retreat off the map
