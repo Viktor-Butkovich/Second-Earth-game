@@ -108,42 +108,6 @@ class worker(pmob):
         super().fire()
         self.worker_type.on_fire(wander=wander)
 
-    def join_group(self, group):
-        """
-        Description:
-            Hides this worker when joining a group, preventing it from being directly interacted with until the group is disbanded
-        Input:
-            group group: Group this worker is joining
-        Output:
-            None
-        """
-        self.group = group
-        self.get_location().unsubscribe_mob(self)
-        self.set_permission(constants.IN_GROUP_PERMISSION, True)
-        self.remove_from_turn_queue()
-
-    def leave_group(self, group, focus=True):
-        """
-        Description:
-            Reveals this worker when its group is disbanded, allowing it to be directly interacted with. Does not select this worker, meaning that the officer will be selected rather than the worker when a group is disbanded
-        Input:
-            group group: group from which this worker is leaving
-        Output:
-            None
-        """
-        self.group = None
-        self.set_permission(constants.IN_GROUP_PERMISSION, False)
-        self.set_permission(
-            constants.DISORGANIZED_PERMISSION,
-            group.get_permission(constants.DISORGANIZED_PERMISSION),
-        )
-        self.get_location().subscribe_mob(self)
-        if focus:
-            self.select()
-        if self.movement_points > 0:
-            self.add_to_turn_queue()
-        self.update_image_bundle()
-
     def image_variants_setup(self, from_save, input_dict):
         """
         Description:

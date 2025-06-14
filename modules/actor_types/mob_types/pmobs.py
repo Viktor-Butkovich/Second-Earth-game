@@ -407,7 +407,7 @@ class pmob(mob):
                 moved_unit.disembark_vehicle(moved_unit.vehicle, focus=False)
         if self.get_permission(constants.IN_GROUP_PERMISSION):
             self.group.disband(focus=False)
-        super().die()
+        super().die(death_type=death_type)
         if (
             reembarked_units
         ):  # If group member passenger dies, reembark other group member
@@ -755,38 +755,6 @@ class pmob(mob):
                 status.mob_info_display, displayed_mob
             )
 
-    def get_image_id_list(self, override_values={}):
-        """
-        Description:
-            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
-                orientation
-        Input:
-            None
-        Output:
-            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
-        """
-        image_id_list = super().get_image_id_list(override_values)
-        if self.get_permission(constants.VETERAN_PERMISSION):
-            image_id_list.append("misc/veteran_icon.png")
-        if self.sentry_mode:
-            image_id_list.append("misc/sentry_icon.png")
-        if self.get_permission(constants.GROUP_PERMISSION):
-            image_id_list += actor_utility.generate_group_image_id_list(
-                self.worker, self.officer
-            )
-        elif self.get_permission(constants.WORKER_PERMISSION):
-            image_id_list += self.insert_equipment(
-                actor_utility.generate_unit_component_portrait(
-                    self.image_dict[constants.IMAGE_ID_LIST_LEFT_PORTRAIT], "left"
-                )
-            )
-            image_id_list += self.insert_equipment(
-                actor_utility.generate_unit_component_portrait(
-                    self.image_dict[constants.IMAGE_ID_LIST_RIGHT_PORTRAIT], "right"
-                )
-            )
-        return image_id_list
-
     def set_sentry_mode(self, new_value):
         """
         Description:
@@ -1107,3 +1075,39 @@ class pmob(mob):
             worker: Returns the worker associated with this unit, if any
         """
         return None
+
+    def leave_group(self, group, focus=True):
+        """
+        Description:
+            Reveals this unit when its group is disbanded, allowing it to be directly interacted with
+        Input:
+            group group: group from which this unit is leaving
+        Output:
+            None
+        """
+        self.get_location().subscribe_mob(self)
+        self.group = None
+        self.set_permission(constants.IN_GROUP_PERMISSION, False)
+        if self.get_permission(constants.WORKER_PERMISSION):
+            self.set_permission(
+                constants.DISORGANIZED_PERMISSION,
+                group.get_permission(constants.DISORGANIZED_PERMISSION),
+            )
+        if focus:
+            self.select()
+        if self.movement_points > 0:
+            self.add_to_turn_queue()
+
+    def join_group(self, group):
+        """
+        Description:
+            Hides this officer when joining a group, preventing it from being directly interacted with until the group is disbanded
+        Input:
+            group group: Group this officer is joining
+        Output:
+            None
+        """
+        self.group = group
+        self.set_permission(constants.IN_GROUP_PERMISSION, True)
+        self.get_location().unsubscribe_mob(self)
+        self.remove_from_turn_queue()

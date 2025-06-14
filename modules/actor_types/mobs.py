@@ -85,13 +85,16 @@ class mob(actor):
             self.set_movement_points(input_dict["movement_points"])
             self.creation_turn = input_dict["creation_turn"]
             self.set_permission(
-                constants.DISORGANIZED_PERMISSION, input_dict.get("disorganized", False)
+                constants.DISORGANIZED_PERMISSION,
+                input_dict.get(constants.DISORGANIZED_PERMISSION, False),
             )
             self.set_permission(
-                constants.DEHYDRATION_PERMISSION, input_dict.get("dehydration", False)
+                constants.DEHYDRATION_PERMISSION,
+                input_dict.get(constants.DEHYDRATION_PERMISSION, False),
             )
             self.set_permission(
-                constants.STARVATION_PERMISSION, input_dict.get("starvation", False)
+                constants.STARVATION_PERMISSION,
+                input_dict.get(constants.STARVATION_PERMISSION, False),
             )
         else:
             self.unit_type.on_recruit()
@@ -398,7 +401,13 @@ class mob(actor):
         Output:
             None
         """
-        self.image_variants = actor_utility.get_image_variants(self.default_image_id)
+        if from_save:
+            self.image_variant_base = input_dict.get("image_variant_base", None)
+        else:
+            self.image_variant_base = self.default_image_id
+        # Image variant base not switched to the chosen variant - e.g. stays as colonist.png, not colonist4.png
+
+        self.image_variants = actor_utility.get_image_variants(self.image_variant_base)
         if not from_save:
             self.image_variant = random.randrange(0, len(self.image_variants))
             self.default_image_id = self.image_variants[self.image_variant]
@@ -439,14 +448,19 @@ class mob(actor):
             constants.IMAGE_ID_LIST_RIGHT_PORTRAIT
         ]
         save_dict["creation_turn"] = self.creation_turn
-        save_dict["disorganized"] = self.get_permission(
+        save_dict[constants.DISORGANIZED_PERMISSION] = self.get_permission(
             constants.DISORGANIZED_PERMISSION
         )
-        save_dict["dehydration"] = self.get_permission(constants.DEHYDRATION_PERMISSION)
-        save_dict["starvation"] = self.get_permission(constants.STARVATION_PERMISSION)
+        save_dict[constants.DEHYDRATION_PERMISSION] = self.get_permission(
+            constants.DEHYDRATION_PERMISSION
+        )
+        save_dict[constants.STARVATION_PERMISSION] = self.get_permission(
+            constants.STARVATION_PERMISSION
+        )
         if hasattr(self, "image_variant"):
             save_dict["image_id"] = self.image_variants[0]
             save_dict["image_variant"] = self.image_variant
+            save_dict["image_variant_base"] = self.image_variant_base
             if hasattr(self, "second_image_variant"):
                 save_dict["second_image_variant"] = self.second_image_variant
         return save_dict
@@ -484,7 +498,7 @@ class mob(actor):
                         portrait[portrait_index]["image_id"] = section_image_id
         return portrait
 
-    def get_image_id_list(self, override_values={}):
+    def get_image_id_list(self, override_permissions=None):
         """
         Description:
             Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
@@ -494,25 +508,61 @@ class mob(actor):
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
+        if not override_permissions:
+            override_permissions = {}
         image_id_list = []
-        image_id_list += self.get_default_image_id_list()
-        image_id_list += self.insert_equipment(self.image_dict[constants.IMAGE_ID_LIST_PORTRAIT])
-        if override_values.get(
-            "disorganized", self.get_permission(constants.DISORGANIZED_PERMISSION)
+
+        if self.get_permission(constants.GROUP_PERMISSION):
+            image_id_list += actor_utility.generate_group_image_id_list(
+                self.worker, self.officer
+            )  # Handle generating central, left, and right portraits, bodies, and equipment
+        elif self.get_permission(constants.WORKER_PERMISSION):
+            image_id_list += self.insert_equipment(
+                actor_utility.generate_unit_component_portrait(
+                    self.image_dict[constants.IMAGE_ID_LIST_LEFT_PORTRAIT], "left"
+                )
+            )  # Add left portrait, body, and equipment
+            image_id_list += self.insert_equipment(
+                actor_utility.generate_unit_component_portrait(
+                    self.image_dict[constants.IMAGE_ID_LIST_RIGHT_PORTRAIT], "right"
+                )
+            )  # Add right portrait, body, and equipment
+        else:
+            image_id_list += (
+                self.get_default_image_id_list()
+            )  # Add single default image (like officer outfit) - empty for groups/workers
+            image_id_list += self.insert_equipment(
+                self.image_dict[constants.IMAGE_ID_LIST_PORTRAIT]
+            )  # Add unit portrait (like officer face) along with equipments
+
+        if override_permissions.get(
+            constants.DISORGANIZED_PERMISSION,
+            self.get_permission(constants.DISORGANIZED_PERMISSION),
         ):
             image_id_list.append("misc/disorganized_icon.png")
-        if override_values.get(
-            "dehydration", self.get_permission(constants.DEHYDRATION_PERMISSION)
+        if override_permissions.get(
+            constants.DEHYDRATION_PERMISSION,
+            self.get_permission(constants.DEHYDRATION_PERMISSION),
         ):
             image_id_list.append("misc/dehydration_icon.png")
-        if override_values.get(
-            "starvation", self.get_permission(constants.STARVATION_PERMISSION)
+        if override_permissions.get(
+            constants.STARVATION_PERMISSION,
+            self.get_permission(constants.STARVATION_PERMISSION),
         ):
             image_id_list.append("misc/starvation_icon.png")
-        if not override_values.get(
-            "survivable", self.get_permission(constants.SURVIVABLE_PERMISSION)
+        if not override_permissions.get(
+            constants.SURVIVABLE_PERMISSION,
+            self.get_permission(constants.SURVIVABLE_PERMISSION),
         ):
             image_id_list.append("misc/deadly_icon.png")
+        if override_permissions.get(
+            constants.VETERAN_PERMISSION,
+            self.get_permission(constants.VETERAN_PERMISSION),
+        ):
+            image_id_list.append("misc/veteran_icon.png")
+
+        if self.sentry_mode:
+            image_id_list.append("misc/sentry_icon.png")
         return image_id_list
 
     def get_combat_modifier(self, opponent=None, include_location=False):
@@ -1067,7 +1117,7 @@ class mob(actor):
         Output:
             None
         """
-        if self.get_permission(constants.PMOB_PERMISSION):
+        if self.get_permission(constants.PMOB_PERMISSION) and death_type == "violent":
             self.death_sound(death_type)
         self.drop_inventory()
         self.remove_complete()

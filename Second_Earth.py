@@ -486,12 +486,9 @@ Mobs and buildings have to track which cells and which grids they are visible in
     Generally much clunkier, and it based on incremental design decisions that were reasonable at the time
 
 Location rework backlog:
-Figure out how mob images will work
-    A mob should be able to provide an image ID list on demand
-    A location's image_id_list should have a flag that toggles whether to show the mob's image
-    A calibrated UI component might directly get the displayed mob's image ID list
-    Whenever one of the dependencies of a mob's image ID list changes, it should update the mob info display and its subscribed location
-        With this updated architecture, mob_image and actor_image as concepts should no longer be required
+Fix vehicle crewing/uncrewing
+Transfer inventory system
+After equipping spacesuits on Earth, temperature tab is incorrectly selected instead of global conditions, and shows wrong tab name
 Make sure name icons are rendered and handled correctly
 Rework rename function
 Update docstrings
@@ -504,7 +501,6 @@ Transfer tile inventory from tile to location
 Transfer set_name from tile to location
 Transfer hosted_images from tile to location
 Make sure location inherits actor's manage_inventory_attrition
-Any rendering handled by actor images should be handled elsewhere now - go to grid logic is now redundant, but pygame image and tooltip box rendering are still required elsewhere
 Implement location subscribed_mobs_recursive property to get all mobs who would map to this with get_location()
 Replace cell icons with extra images directly added to locations - a location should be fully in control of what it displays
 Add rename function to worlds

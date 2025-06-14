@@ -57,8 +57,6 @@ class group(pmob):
             "misc/empty.png"  # Groups have no default image, just unit component portraits
         )
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.worker.join_group(self)
-        self.officer.join_group(self)
         for current_mob in [
             self.worker,
             self.officer,
@@ -109,6 +107,8 @@ class group(pmob):
         if self.get_permission(constants.EXPEDITION_PERMISSION):
             self.on_move()
         self.finish_init(original_constructor, from_save, input_dict)
+        self.worker.join_group(self)
+        self.officer.join_group(self)
 
     def get_item_upkeep(
         self, recurse: bool = False, earth_exemption: bool = True

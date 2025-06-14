@@ -116,34 +116,3 @@ class officer(pmob):
         if not self.get_permission(constants.VETERAN_PERMISSION):
             self.set_name("veteran " + self.name)
             self.set_permission(constants.VETERAN_PERMISSION, True)
-
-    def join_group(self, group):
-        """
-        Description:
-            Hides this officer when joining a group, preventing it from being directly interacted with until the group is disbanded
-        Input:
-            group group: Group this officer is joining
-        Output:
-            None
-        """
-        self.group = group
-        self.get_location().unsubscribe_mob(self)
-        self.set_permission(constants.IN_GROUP_PERMISSION, True)
-        self.remove_from_turn_queue()
-
-    def leave_group(self, group, focus=True):
-        """
-        Description:
-            Reveals this officer when its group is disbanded, allowing it to be directly interacted with. Also selects this officer, rather than the group's worker
-        Input:
-            group group: Group from which this officer is leaving
-        Output:
-            None
-        """
-        self.group = None
-        self.set_permission(constants.IN_GROUP_PERMISSION, False)
-        self.get_location().subscribe_mob(self)
-        if focus:
-            self.select()
-        if self.movement_points > 0:
-            self.add_to_turn_queue()

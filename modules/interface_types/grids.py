@@ -112,8 +112,11 @@ class grid(interface_elements.interface_element):
         if status.displayed_mob and (
             self
             in status.displayed_mob.get_location().get_world_handler().attached_grids
-            or self
-            in status.displayed_mob.end_turn_destination.get_world_handler().attached_grids
+            or (
+                status.displayed_mob.end_turn_destination
+                and self
+                in status.displayed_mob.end_turn_destination.get_world_handler().attached_grids
+            )
         ):
             if flags.show_selection_outlines:
                 for subscribed_cell in status.displayed_location.attached_cells:

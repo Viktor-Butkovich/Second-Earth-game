@@ -943,19 +943,6 @@ FOOD_ITEM: str = "food"
 WATER_ITEM: str = "water"
 AIR_ITEM: str = "air"
 
-UPKEEP_MISSING_PENALTY_DEATH: str = 4  # Highest penalty takes precedent
-UPKEEP_MISSING_PENALTY_DEHYDRATION: str = 3
-UPKEEP_MISSING_PENALTY_STARVATION: str = 2
-UPKEEP_MISSING_PENALTY_MORALE: str = 1
-UPKEEP_MISSING_PENALTY_NONE: str = 0
-UPKEEP_MISSING_PENALTY_CODES: Dict[str, int] = {
-    4: "death",
-    3: "dehydration",
-    2: "starvation",
-    1: "morale",
-    0: "none",
-}
-
 PMOB_PERMISSION: str = "pmob"
 NPMOB_PERMISSION: str = "npmob"
 VEHICLE_PERMISSION: str = "vehicle"
@@ -1020,6 +1007,19 @@ CREW_PERMISSIONS: Dict[str, Any] = {
 }
 
 ALLOW_DISORGANIZED: bool = False
+
+UPKEEP_MISSING_PENALTY_DEATH: str = 4  # Highest penalty takes precedent
+UPKEEP_MISSING_PENALTY_DEHYDRATION: str = 3
+UPKEEP_MISSING_PENALTY_STARVATION: str = 2
+UPKEEP_MISSING_PENALTY_MORALE: str = 1
+UPKEEP_MISSING_PENALTY_NONE: str = 0
+UPKEEP_MISSING_PENALTY_CODES: Dict[str, int] = {
+    4: "death",
+    3: DEHYDRATION_PERMISSION,
+    2: STARVATION_PERMISSION,
+    1: "morale",
+    0: "none",
+}
 
 INITIAL_MONEY: int = 1000
 INITIAL_PUBLIC_OPINION: int = 50

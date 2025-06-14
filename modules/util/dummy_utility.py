@@ -23,7 +23,8 @@ required_dummy_attributes = [
     "officer",
     "worker",
     "character_info",
-    "image_id",
+    "image_dict",
+    "default_image_id",
 ]
 
 
@@ -46,13 +47,7 @@ def generate_autofill_actors(
     if status.displayed_mob and status.displayed_mob.get_permission(
         constants.PMOB_PERMISSION
     ):
-        dummy_input_dict = {
-            "actor_type": constants.MOB_ACTOR_TYPE,
-            "images": [
-                constants.actor_creation_manager.create_dummy({"image_id": None})
-            ],
-        }
-
+        dummy_input_dict = {}
         for target in targets:
             if status.displayed_mob.get_permission(target):
                 if constants.MERGE_PROCEDURE in allowed_procedures and target in [
@@ -188,9 +183,6 @@ def create_dummy_copy(
         dummy: Returns dummy object copied from inputted unit
     """
     dummy_input_dict["unit_type"] = unit.unit_type
-    dummy_input_dict["image_id_list"] = unit.get_image_id_list(
-        override_values={"override_permissions": override_permissions}
-    )
     for attribute in required_dummy_attributes:
         if hasattr(unit, attribute):
             if type(getattr(unit, attribute)) in [list, dict]:
@@ -214,7 +206,6 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
     Output:
         dummy: Returns dummy object representing group that would be created from merging inputted officer and worker
     """
-    return_value = None
     if officer and worker:
         for attribute in required_dummy_attributes:
             if hasattr(officer, attribute):
@@ -299,10 +290,6 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
                 ],
             }
         )
-        dummy_input_dict["image_id"] = "misc/empty.png"
-        dummy_input_dict[constants.IMAGE_ID_LIST_PORTRAIT] = (
-            actor_utility.generate_group_image_id_list(dummy_worker, dummy_officer)
-        )
         dummy_group = constants.actor_creation_manager.create_dummy(dummy_input_dict)
         for (
             equipment_type,
@@ -385,7 +372,6 @@ def simulate_split(unit, required_dummy_attributes, dummy_input_dict):
     dummy_officer = create_dummy_copy(
         unit.officer, dummy_officer_dict, required_dummy_attributes
     )
-    dummy_officer.image_id = deepcopy(unit.image_id)
 
     for (
         equipment_type,
