@@ -24,7 +24,6 @@ required_dummy_attributes = [
     "worker",
     "character_info",
     "image_dict",
-    "default_image_id",
 ]
 
 

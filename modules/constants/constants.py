@@ -1059,6 +1059,8 @@ IMAGE_ID_LIST_INCLUDE_MINIMAP_OVERLAY: str = "image_id_list_include_mob"
 IMAGE_ID_LIST_PORTRAIT: str = "image_id_list_portrait"
 IMAGE_ID_LIST_LEFT_PORTRAIT: str = "image_id_list_left_portrait"
 IMAGE_ID_LIST_RIGHT_PORTRAIT: str = "image_id_list_right_portrait"
+IMAGE_ID_LIST_VEHICLE_UNCREWED: str = "image_id_list_vehicle_uncrewed"
+IMAGE_ID_LIST_VEHICLE_MOVING: str = "image_id_list_vehicle_moving"
 
 HABITABILITY_PERFECT: int = 5
 HABITABILITY_TOLERABLE: int = 4

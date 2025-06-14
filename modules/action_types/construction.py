@@ -396,9 +396,23 @@ class construction(action.action):
                 input_dict["image_id"] = building_image_id
                 input_dict["infrastructure_type"] = self.building_name.replace(" ", "_")
             elif self.building_type.key == constants.TRAIN:
-                input_dict["image_id"] = "mobs/train/default.png"
-                input_dict["uncrewed_image_id"] = "mobs/train/uncrewed.png"
-                input_dict["moving_image_id"] = "mobs/train/default.png"
+                input_dict["image_dict"] = {
+                    constants.IMAGE_ID_LIST_DEFAULT: [
+                        {
+                            "image_id": "mobs/train/default.png",
+                        }
+                    ],
+                    constants.IMAGE_ID_LIST_VEHICLE_UNCREWED: [
+                        {
+                            "image_id": "mobs/train/uncrewed.png",
+                        }
+                    ],
+                    constants.IMAGE_ID_LIST_VEHICLE_MOVING: [
+                        {
+                            "image_id": "mobs/train/default.png",
+                        }
+                    ],
+                }
                 input_dict["crew"] = None
             else:
                 input_dict["image_id"] = f"buildings/{self.building_type.key}.png"

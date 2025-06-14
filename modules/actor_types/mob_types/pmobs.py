@@ -156,6 +156,7 @@ class pmob(mob):
         Output:
             None
         """
+        self.get_location().subscribe_mob(self)
         self.vehicle = None
         self.set_permission(constants.IN_VEHICLE_PERMISSION, False)
         if not self.get_location().get_intact_building(constants.SPACEPORT):
@@ -167,7 +168,6 @@ class pmob(mob):
             constants.TRAVELING_PERMISSION, False, update_image=False
         )
         vehicle.remove_from_turn_queue()
-        self.get_location().subscribe_mob(self)
         if focus:
             self.select()
             constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)

@@ -40,12 +40,10 @@ class actor:
         self.infinite_inventory_capacity = False
         self.inventory_capacity = 0
         self.inventory: Dict[str, int] = input_dict.get("inventory", {})
-        self.default_image_id: str = input_dict.get(
-            "default_image_id", ""
-        )  # Single image file as basic default
         self.image_dict: Dict[str, List[str]] = {
-            constants.IMAGE_ID_LIST_DEFAULT: None,
-            constants.IMAGE_ID_LIST_INCLUDE_MOB: None,
+            constants.IMAGE_ID_LIST_DEFAULT: input_dict.get(
+                constants.IMAGE_ID_LIST_DEFAULT, []
+            ),
         }  # Stored versions of fully generated image ID list, passed to info displays and cells
         self.finish_init(original_constructor, from_save, input_dict)
 
@@ -408,9 +406,6 @@ class actor:
         """
         return
 
-    def get_default_image_id_list(self, override_values={}):
-        return [{"image_id": self.default_image_id}]
-
     def get_image_id_list(self, override_values={}):
         """
         Description:
@@ -421,7 +416,7 @@ class actor:
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        return self.get_default_image_id_list(override_values)
+        return self.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
 
     def update_image_bundle(self):
         """

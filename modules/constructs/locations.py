@@ -27,6 +27,7 @@ class location(actors.actor):
         """
         self.world_handler: world_handlers.world_handler = input_dict["world_handler"]
         super().__init__(from_save, input_dict, original_constructor == False)
+        self.image_dict = {**self.image_dict, constants.IMAGE_ID_LIST_INCLUDE_MOB: []}
         self.x: int = input_dict["coordinates"][0]
         self.y: int = input_dict["coordinates"][1]
         self.adjacent_list: List[location] = []
@@ -1241,9 +1242,9 @@ class location(actors.actor):
         if not self.subscribed_mobs:
             return [] if get_all else None
 
-        start_index = min(
-            start_index, len(self.subscribed_mobs) - 1
-        )  # Ensure that start_index is not after the end of the list
+        start_index = start_index % len(
+            self.subscribed_mobs
+        )  # Wrap around start_index to ensure it is within bounds
 
         iterated_list = (
             self.subscribed_mobs[start_index : len(self.subscribed_mobs)]

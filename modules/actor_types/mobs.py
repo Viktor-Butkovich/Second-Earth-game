@@ -51,6 +51,9 @@ class mob(actor):
         super().__init__(from_save, input_dict, original_constructor=False)
         self.image_dict = {
             **self.image_dict,
+            constants.IMAGE_ID_LIST_DEFAULT: input_dict.get(
+                constants.IMAGE_ID_LIST_DEFAULT, [{"image_id": "misc/empty.png"}]
+            ),
             constants.IMAGE_ID_LIST_PORTRAIT: input_dict.get(
                 constants.IMAGE_ID_LIST_PORTRAIT, []
             ),
@@ -79,6 +82,9 @@ class mob(actor):
         self.max_movement_points = 1
         self.movement_points = self.max_movement_points
         self.movement_cost = 1
+        self.location: locations.location = None
+        if input_dict.get("location", None):
+            input_dict["location"].subscribe_mob(self)
         self.permissions_setup()
         if from_save:
             self.set_max_movement_points(input_dict["max_movement_points"])
@@ -103,9 +109,6 @@ class mob(actor):
                 self.creation_turn = 0
             else:
                 self.creation_turn = constants.turn
-        self.location: locations.location = None
-        if input_dict.get("location", None):
-            input_dict["location"].subscribe_mob(self)
         self.finish_init(original_constructor, from_save, input_dict)
 
     @property
@@ -374,7 +377,11 @@ class mob(actor):
         if original_constructor:
             if create_portrait:
                 if not from_save:
-                    metadata = {"body_image": self.default_image_id}
+                    metadata = {
+                        "body_image": self.image_dict[constants.IMAGE_ID_LIST_DEFAULT][
+                            0
+                        ]["image_id"]
+                    }
                     if self.get_permission(constants.OFFICER_PERMISSION):
                         metadata.update(self.character_info)
                     self.image_dict[constants.IMAGE_ID_LIST_PORTRAIT] = (
@@ -404,16 +411,22 @@ class mob(actor):
         if from_save:
             self.image_variant_base = input_dict.get("image_variant_base", None)
         else:
-            self.image_variant_base = self.default_image_id
+            self.image_variant_base = self.image_dict[constants.IMAGE_ID_LIST_DEFAULT][
+                0
+            ]["image_id"]
         # Image variant base not switched to the chosen variant - e.g. stays as colonist.png, not colonist4.png
 
         self.image_variants = actor_utility.get_image_variants(self.image_variant_base)
         if not from_save:
             self.image_variant = random.randrange(0, len(self.image_variants))
-            self.default_image_id = self.image_variants[self.image_variant]
+            self.image_dict[constants.IMAGE_ID_LIST_DEFAULT] = [
+                {"image_id": self.image_variants[self.image_variant]}
+            ]
         elif from_save and "image_variant" in input_dict:
             self.image_variant = input_dict["image_variant"]
-            self.default_image_id = self.image_variants[self.image_variant]
+            self.image_dict[constants.IMAGE_ID_LIST_DEFAULT] = [
+                {"image_id": self.image_variants[self.image_variant]}
+            ]
             if "second_image_variant" in input_dict:
                 self.second_image_variant = input_dict["second_image_variant"]
 
@@ -437,7 +450,9 @@ class mob(actor):
         save_dict["init_type"] = self.unit_type.key
         save_dict["movement_points"] = self.movement_points
         save_dict["max_movement_points"] = self.max_movement_points
-        save_dict["default_image_id"] = self.default_image_id
+        save_dict[constants.IMAGE_ID_LIST_DEFAULT] = self.image_dict[
+            constants.IMAGE_ID_LIST_DEFAULT
+        ]
         save_dict[constants.IMAGE_ID_LIST_PORTRAIT] = self.image_dict[
             constants.IMAGE_ID_LIST_PORTRAIT
         ]
@@ -527,10 +542,25 @@ class mob(actor):
                     self.image_dict[constants.IMAGE_ID_LIST_RIGHT_PORTRAIT], "right"
                 )
             )  # Add right portrait, body, and equipment
+        elif self.get_permission(constants.VEHICLE_PERMISSION):
+            if not override_permissions.get(
+                constants.ACTIVE_PERMISSION,
+                self.get_permission(constants.ACTIVE_PERMISSION),
+            ):
+                image_id_list += self.image_dict[
+                    constants.IMAGE_ID_LIST_VEHICLE_UNCREWED
+                ]
+            elif override_permissions.get(
+                constants.TRAVELING_PERMISSION,
+                self.get_permission(constants.TRAVELING_PERMISSION),
+            ):
+                image_id_list += self.image_dict[constants.IMAGE_ID_LIST_VEHICLE_MOVING]
+            else:
+                image_id_list += self.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
+            # Add vehicle image based on current status
         else:
-            image_id_list += (
-                self.get_default_image_id_list()
-            )  # Add single default image (like officer outfit) - empty for groups/workers
+            image_id_list += self.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
+            # Add single default image (like officer outfit) - empty for groups/workers
             image_id_list += self.insert_equipment(
                 self.image_dict[constants.IMAGE_ID_LIST_PORTRAIT]
             )  # Add unit portrait (like officer face) along with equipments

@@ -143,7 +143,9 @@ class grid(interface_elements.interface_element):
                             ):
                                 automatic_route_cell.draw_outline(color)
                 if status.displayed_mob.end_turn_destination:
-                    for destination_cell in self.end_turn_destination.attached_cells:
+                    for (
+                        destination_cell
+                    ) in status.displayed_mob.end_turn_destination.attached_cells:
                         destination_cell.draw_outline(constants.COLOR_YELLOW)
 
     def draw_grid_lines(self):

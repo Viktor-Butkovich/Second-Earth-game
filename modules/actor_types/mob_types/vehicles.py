@@ -36,13 +36,24 @@ class vehicle(pmob):
         Output:
             None
         """
-        self.uncrewed_image_id: List[any] = input_dict["uncrewed_image_id"]
-        self.moving_image_id: List[any] = input_dict["moving_image_id"]
         self.crew: pmob = None
         self.contained_mobs: List[pmob] = []
         self.ejected_crew = None
         self.ejected_passengers = []
         super().__init__(from_save, input_dict, original_constructor=False)
+        self.image_dict = {
+            **self.image_dict,
+            constants.IMAGE_ID_LIST_VEHICLE_UNCREWED: [
+                {
+                    "image_id": input_dict[constants.IMAGE_ID_LIST_VEHICLE_UNCREWED],
+                }
+            ],
+            constants.IMAGE_ID_LIST_VEHICLE_MOVING: [
+                {
+                    "image_id": input_dict[constants.IMAGE_ID_LIST_VEHICLE_MOVING],
+                }
+            ],
+        }
         if not from_save:
             self.set_crew(input_dict["crew"])
         else:  # Create crew and passengers through recruitment_manager and embark them
@@ -148,17 +159,6 @@ class vehicle(pmob):
             )
             self.set_inventory_capacity(0)
 
-    def get_default_image_id_list(self, override_values={}):
-        if not self.get_permission(
-            constants.ACTIVE_PERMISSION,
-            one_time_permissions=override_values.get("override_permissions", {}),
-        ):
-            return self.uncrewed_image_id
-        elif self.get_permission(constants.TRAVELING_PERMISSION):
-            return self.moving_image_id
-        else:
-            return super().get_default_image_id_list(override_values)
-
     def get_sub_mobs(self) -> List[pmob]:
         """
         Description:
@@ -258,15 +258,17 @@ class vehicle(pmob):
         Output:
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
                 Along with superclass outputs, also saves the following values:
-                'uncrewed_image_id': image ID value - Image ID to use as this vehicle's uncrewed image
-                'moving_image_id': image ID value - Image ID to use as this vehicle's image when moving
                 'crew': string or dictionary value - If no crew, equals None. Otherwise, equals a dictionary of the saved information necessary to recreate the worker to serve as crew
                 'passenger_dicts': dictionary list value - List of dictionaries of saved information necessary to recreate each of this vehicle's passengers
         """
 
         save_dict = super().to_save_dict()
-        save_dict["uncrewed_image_id"] = self.uncrewed_image_id
-        save_dict["moving_image_id"] = self.moving_image_id
+        save_dict[constants.IMAGE_ID_LIST_VEHICLE_UNCREWED] = self.image_dict[
+            constants.IMAGE_ID_LIST_VEHICLE_UNCREWED
+        ]
+        save_dict[constants.IMAGE_ID_LIST_VEHICLE_MOVING] = self.image_dict[
+            constants.IMAGE_ID_LIST_VEHICLE_MOVING
+        ]
         if self.crew:
             save_dict["crew"] = self.crew.to_save_dict()
         else:

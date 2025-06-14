@@ -60,7 +60,12 @@ class worker(pmob):
             if not from_save:
                 self.image_dict[constants.IMAGE_ID_LIST_LEFT_PORTRAIT] = (
                     constants.character_manager.generate_unit_portrait(
-                        self, metadata={"body_image": self.default_image_id}
+                        self,
+                        metadata={
+                            "body_image": self.image_dict[
+                                constants.IMAGE_ID_LIST_DEFAULT
+                            ][0]["image_id"]
+                        },
                     )
                 )
                 self.image_dict[constants.IMAGE_ID_LIST_RIGHT_PORTRAIT] = (

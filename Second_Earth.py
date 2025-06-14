@@ -486,13 +486,11 @@ Mobs and buildings have to track which cells and which grids they are visible in
     Generally much clunkier, and it based on incremental design decisions that were reasonable at the time
 
 Location rework backlog:
-Fix vehicle crewing/uncrewing
 Transfer inventory system
 After equipping spacesuits on Earth, temperature tab is incorrectly selected instead of global conditions, and shows wrong tab name
 Make sure name icons are rendered and handled correctly
 Rework rename function
 Update docstrings
-Test out end turn movement with a colony ship
 Test out buildings (spaceports, etc.)
 Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
 Transfer hosted_images from tile to location
@@ -505,14 +503,13 @@ Implement location subscribed_mobs_recursive property to get all mobs who would 
 Replace cell icons with extra images directly added to locations - a location should be fully in control of what it displays
 Add rename function to worlds
 Transfer logistics_incident_list from cell to location
-Modify non-location actors to save as part of their location - this means the location manages their save dict, and they do not
-    need to remember location, coordinates, etc.
 Convert all tooltips to act similar to location tooltips, with centralized rendering logic
     Ideally, an object returns a tooltip as a list of strings or a 2-dimensional list of strings, and the main loop entirely
         handles rendering this tooltip when needed - no reason for any further complexity
 Try to minimize calls to get_image_id_list, instead caching the result and changing it when dependencies change
     Ideally, each mob and location maintains an updated image ID list for each configuration (with minimap overlay, with mobs, terrain only, etc.)
-
+Make reorganization tooltips reponsive to describe what type of selected units are required
+    
 Notes:
 In location-centric design, game logic is centralized and as independent as possible from interface elements
 Work to define what an actor is - maybe it is a concept that can have an inventory and be selected on the LHS info displays

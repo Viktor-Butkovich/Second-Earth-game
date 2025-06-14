@@ -61,7 +61,11 @@ class unit_type:
             ]
             self.number: int = input_dict.get("number", 1)
             self.num_instances: int = 0
-            self.image_id = f"mobs/{self.key}/default.png"
+            self.image_dict = {
+                constants.IMAGE_ID_LIST_DEFAULT: [
+                    {"image_id": f"mobs/{self.key}/default.png"}
+                ]
+            }
             self.name: str = input_dict.get("name", "default")
             self.movement_points: int = input_dict.get("movement_points", 4)
             self.required_infrastructure: building_types.building_type = input_dict.get(
@@ -85,7 +89,12 @@ class unit_type:
             image_id list: List of image IDs for the recruitment button center image
         """
         image_id = constants.character_manager.generate_unit_portrait(
-            dummy_recruited_unit, metadata={"body_image": self.image_id}
+            dummy_recruited_unit,
+            metadata={
+                "body_image": self.image_dict[constants.IMAGE_ID_LIST_DEFAULT][0][
+                    "image_id"
+                ]
+            },
         )
         for image in image_id:
             if (
@@ -184,13 +193,12 @@ class unit_type:
         Output:
             dictionary: Returns dictionary with standard entries for this unit type
         """
-        input_dict = {
-            "default_image_id": self.image_id,
+        return {
             "name": self.name,
             "init_type": self.key,
             "unit_type": self,
+            **self.image_dict,
         }
-        return input_dict
 
     def on_recruit(self) -> None:
         """
@@ -301,8 +309,11 @@ class vehicle_type(unit_type):
             None
         """
         super().__init__(from_save, input_dict)
-        self.uncrewed_image_id = f"mobs/{self.key}/uncrewed.png"
-        self.moving_image_id = f"mobs/{self.key}/moving.png"
+        self.image_dict = {
+            **self.image_dict,
+            constants.IMAGE_ID_LIST_VEHICLE_UNCREWED: f"mobs/{self.key}/uncrewed.png",
+            constants.IMAGE_ID_LIST_VEHICLE_MOVING: f"mobs/{self.key}/moving.png",
+        }
 
     def generate_input_dict(self) -> Dict:
         """
@@ -313,11 +324,10 @@ class vehicle_type(unit_type):
         Output:
             dictionary: Returns dictionary with standard entries for this unit type
         """
-        input_dict = super().generate_input_dict()
-        input_dict["uncrewed_image_id"] = self.uncrewed_image_id
-        input_dict["moving_image_id"] = self.moving_image_id
-        input_dict["crew"] = None
-        return input_dict
+        return {
+            **super().generate_input_dict(),
+            "crew": None,
+        }
 
     def generate_center_recruitment_image(self, dummy_recruited_unit) -> List[Dict]:
         """
@@ -328,7 +338,7 @@ class vehicle_type(unit_type):
         Output
             image_id list: List of image IDs for the recruitment button center image
         """
-        return self.uncrewed_image_id
+        return self.image_dict[constants.IMAGE_ID_LIST_VEHICLE_UNCREWED]
 
 
 class worker_type(unit_type):
@@ -379,7 +389,10 @@ class worker_type(unit_type):
             image_id list: List of image IDs for the recruitment button center image
         """
         worker_images = random.choices(
-            actor_utility.get_image_variants(self.image_id), k=2
+            actor_utility.get_image_variants(
+                self.image_dict[constants.IMAGE_ID_LIST_DEFAULT][0]["image_id"]
+            ),
+            k=2,
         )
         image_id = utility.combine(
             actor_utility.generate_unit_component_portrait(
