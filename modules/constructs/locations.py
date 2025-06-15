@@ -125,6 +125,16 @@ class location(actors.actor):
     def is_earth_location(self) -> bool:
         return self.get_true_world_handler().is_earth
 
+    @property
+    def infinite_inventory_capacity(self) -> bool:
+        return self.is_earth_location
+
+    @property
+    def insufficient_inventory_capacity(self) -> bool:
+        return (
+            not self.infinite_inventory_capacity
+        ) and self.get_inventory_used() > self.inventory_capacity
+
     def local_attrition(self, attrition_type="health"):
         """
         Description:

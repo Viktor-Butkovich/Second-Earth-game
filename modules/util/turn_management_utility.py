@@ -846,10 +846,7 @@ def end_turn_warnings():
 
     for current_world in status.world_list:  # Warn for insufficient warehouses
         for current_location in current_world.get_flat_location_list():
-            if (
-                current_location.get_inventory_used()
-                > current_location.inventory_capacity
-            ):
+            if current_location.insufficient_inventory_capacity:
                 if current_world.is_abstract_world:
                     constants.notification_manager.display_notification(
                         {

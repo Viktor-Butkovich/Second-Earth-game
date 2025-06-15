@@ -562,29 +562,31 @@ class bundle_image:
         if key in status.cached_images:  # if image already loaded, use it
             self.image = status.cached_images[key]
         else:  # If image not loaded, load it and add it to the loaded images
-            if full_image_id.endswith(".png"):
-                self.text = False
-                try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
-                    self.image = pygame.image.load(full_image_id)
-                except:
-                    self.image = pygame.image.load(full_image_id)
-                self.image.convert()
-                size = self.image.get_size()
-                self.image = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
-                    self.image,
-                    (
-                        math.floor(size[0] * self.detail_level),
-                        math.floor(size[1] * self.detail_level),
-                    ),
-                )
-                if self.is_offset and (self.has_green_screen or self.has_color_filter):
-                    self.apply_per_pixel_mutations()
-            else:
-                self.text = True
-                try:
+            try:
+                if full_image_id.endswith(".png"):
+                    self.text = False
+                    try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
+                        self.image = pygame.image.load(full_image_id)
+                    except:
+                        self.image = pygame.image.load(full_image_id)
+                    self.image.convert()
+                    size = self.image.get_size()
+                    self.image = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
+                        self.image,
+                        (
+                            math.floor(size[0] * self.detail_level),
+                            math.floor(size[1] * self.detail_level),
+                        ),
+                    )
+                    if self.is_offset and (
+                        self.has_green_screen or self.has_color_filter
+                    ):
+                        self.apply_per_pixel_mutations()
+                else:
+                    self.text = True
                     self.image = text_utility.text(self.image_id, self.font)
-                except:
-                    raise Exception(f"Invalid image id: {self.image_id}")
+            except:
+                raise Exception(f"Invalid image id: {self.image_id}")
             if self.is_offset:
                 if self.light_pixellated:
                     self.image = pygame.transform.scale(

@@ -43,15 +43,11 @@ class vehicle(pmob):
         super().__init__(from_save, input_dict, original_constructor=False)
         self.image_dict = {
             **self.image_dict,
-            constants.IMAGE_ID_LIST_VEHICLE_UNCREWED: [
-                {
-                    "image_id": input_dict[constants.IMAGE_ID_LIST_VEHICLE_UNCREWED],
-                }
+            constants.IMAGE_ID_LIST_VEHICLE_UNCREWED: input_dict[
+                constants.IMAGE_ID_LIST_VEHICLE_UNCREWED
             ],
-            constants.IMAGE_ID_LIST_VEHICLE_MOVING: [
-                {
-                    "image_id": input_dict[constants.IMAGE_ID_LIST_VEHICLE_MOVING],
-                }
+            constants.IMAGE_ID_LIST_VEHICLE_MOVING: input_dict[
+                constants.IMAGE_ID_LIST_VEHICLE_MOVING
             ],
         }
         if not from_save:

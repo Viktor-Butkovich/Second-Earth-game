@@ -37,7 +37,6 @@ class actor:
         self.from_save = from_save
         self.set_name(input_dict.get("name", "placeholder"))
         self.tooltip_text = []
-        self.infinite_inventory_capacity = False
         self.inventory_capacity = 0
         self.inventory: Dict[str, int] = input_dict.get("inventory", {})
         self.image_dict: Dict[str, List[str]] = {
@@ -46,6 +45,10 @@ class actor:
             ),
         }  # Stored versions of fully generated image ID list, passed to info displays and cells
         self.finish_init(original_constructor, from_save, input_dict)
+
+    @property
+    def infinite_inventory_capacity(self) -> bool:
+        return False
 
     def finish_init(
         self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]

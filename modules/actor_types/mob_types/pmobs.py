@@ -593,7 +593,7 @@ class pmob(mob):
                 self.wait_until_full
                 and (
                     current_location.get_inventory_used() >= self.inventory_capacity
-                    or current_location.get_inventory_remaining() <= 0
+                    or current_location.insufficient_inventory_capacity
                 )
             ) or (
                 (not self.wait_until_full)

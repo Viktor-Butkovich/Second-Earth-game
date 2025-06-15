@@ -839,7 +839,7 @@ class actor_display_label(label):
                 if self.actor:
                     if self.actor.infinite_inventory_capacity:
                         tooltip_text.append(
-                            "this location can hold an infinite number of items"
+                            "this location can hold an unlimited number of items"
                         )
                     else:
                         tooltip_text.append(
@@ -1399,9 +1399,7 @@ class actor_display_label(label):
                 constants.LOCATION_INVENTORY_CAPACITY_LABEL,
             ]:
                 inventory_used = self.actor.get_inventory_used()
-                if self.actor_label_type == constants.LOCATION_INVENTORY_CAPACITY_LABEL:
-                    text = self.message_start + "n/a"
-                elif self.actor.infinite_inventory_capacity:
+                if self.actor.infinite_inventory_capacity:
                     text = self.message_start + "unlimited"
                 else:
                     text = f"{self.message_start}{inventory_used}/{self.actor.inventory_capacity}"
