@@ -203,7 +203,12 @@ class group(pmob):
         self.drop_inventory()
         self.officer.fire()
         self.worker.fire()
-        self.remove_complete()
+        super().fire()
+
+    def remove(self):
+        self.officer.remove()
+        self.worker.remove()
+        super().remove()
 
     def to_save_dict(self):
         """
@@ -247,23 +252,6 @@ class group(pmob):
                 status.mob_info_display, self.vehicle
             )
 
-    def go_to_grid(self, new_grid, new_coordinates):
-        """
-        Description:
-            Links this group to a grid, causing it to appear on that grid and its minigrid at certain coordinates. Used when crossing the ocean and when a group that was previously attached to another actor becomes independent and
-                visible, like when a group disembarks a ship. Also moves its officer and worker to the new grid
-        Input:
-            grid new_grid: grid that this group is linked to
-            int tuple new_coordinates: Two values representing x and y coordinates to start at on the inputted grid
-        Output:
-            None
-        """
-        super().go_to_grid(new_grid, new_coordinates)
-        self.officer.go_to_grid(new_grid, new_coordinates)
-        self.officer.join_group(self)
-        self.worker.go_to_grid(new_grid, new_coordinates)
-        self.worker.join_group(self)
-
     def disband(self, focus=True):
         """
         Description:
@@ -295,7 +283,7 @@ class group(pmob):
         self.officer.set_movement_points(
             math.floor(movement_ratio_remaining * self.officer.max_movement_points)
         )
-        self.remove_complete()
+        super().remove()
 
     def die(self, death_type="violent"):
         """

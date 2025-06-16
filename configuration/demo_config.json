@@ -10,6 +10,7 @@
         "hide_old_units",
         "hide_old_buttons",
         "allow_toggle_god_mode",
+        "rotate_game_mode_buttons",
         "skip_intro"
     ],
     "effects": [

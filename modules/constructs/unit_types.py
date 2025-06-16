@@ -311,8 +311,12 @@ class vehicle_type(unit_type):
         super().__init__(from_save, input_dict)
         self.image_dict = {
             **self.image_dict,
-            constants.IMAGE_ID_LIST_VEHICLE_UNCREWED: f"mobs/{self.key}/uncrewed.png",
-            constants.IMAGE_ID_LIST_VEHICLE_MOVING: f"mobs/{self.key}/moving.png",
+            constants.IMAGE_ID_LIST_VEHICLE_UNCREWED: [
+                {"image_id": f"mobs/{self.key}/uncrewed.png"}
+            ],
+            constants.IMAGE_ID_LIST_VEHICLE_MOVING: [
+                {"image_id": f"mobs/{self.key}/moving.png"}
+            ],
         }
 
     def generate_input_dict(self) -> Dict:

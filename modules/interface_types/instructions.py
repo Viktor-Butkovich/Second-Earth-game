@@ -23,7 +23,7 @@ class instructions_button(button):
         if status.current_instructions_page == None:
             display_instructions_page(0)
         else:
-            status.current_instructions_page.remove_complete()
+            status.current_instructions_page.remove()
             status.current_instructions_page = None
             constants.current_instructions_page_index = 0
 
@@ -75,10 +75,10 @@ class instructions_page(label):
             status.current_instructions_page = instructions_page(
                 constants.current_instructions_page_text
             )
-            self.remove_complete()
+            self.remove()
         else:
             status.current_instructions_page = None
-            self.remove_complete()
+            self.remove()
 
     def set_label(self, new_message):
         """

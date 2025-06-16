@@ -234,9 +234,7 @@ class die(button):
                         self.outline_color = self.outcome_color_dict["crit_fail"]
                     else:  # if normal fail
                         self.outline_color = self.outcome_color_dict["fail"]
-            self.image.set_image(
-                "misc/dice/" + str(self.roll_result) + ".png"
-            )  # self.set_label(str(self.roll_result))
+            self.image.set_image(f"misc/dice/{self.roll_result}.png")
             self.rolls_completed += 1
 
     def draw(self):

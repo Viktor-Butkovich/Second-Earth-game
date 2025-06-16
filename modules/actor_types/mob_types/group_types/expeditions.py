@@ -36,10 +36,8 @@ class expedition(group):
         else:
             direction = None
         current_location = self.get_location()
-        future_location = (
-            current_location
-            .get_world_handler()
-            .find_location(current_location.x + x_change, current_location.y + y_change)
+        future_location = current_location.get_world_handler().find_location(
+            current_location.x + x_change, current_location.y + y_change
         )
         if (
             not future_location.visible

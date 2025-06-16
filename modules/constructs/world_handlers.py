@@ -125,10 +125,10 @@ class world_handler:
     def is_orbital_world(self) -> bool:
         return False
 
-    def remove_complete(self) -> None:
+    def remove(self) -> None:
         status.world_list.remove(self)
         for current_location in self.get_flat_location_list():
-            current_location.remove_complete()
+            current_location.remove()
 
     def update_location_image_bundles(self, update_globe: bool = False) -> None:
         for current_location in self.get_flat_location_list():

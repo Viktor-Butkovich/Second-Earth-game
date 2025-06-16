@@ -59,18 +59,6 @@ class image:
         return self.Rect and self.Rect.collidepoint(pygame.mouse.get_pos())
         # If mouse is in button
 
-    def remove_complete(self):
-        """
-        Description:
-            Removes this object and deallocates its memory - defined for any removable object w/o a superclass
-        Input:
-            None
-        Output:
-            None
-        """
-        self.remove()
-        del self
-
     def remove(self):
         """
         Description:
@@ -895,19 +883,16 @@ class free_image(image):
         )
         status.free_image_list = utility.remove_from_list(status.free_image_list, self)
 
-    def remove_recursive(self, complete=False):
+    def remove_recursive(self):
         """
         Description:
             Recursively removes a collection and its members
         Input:
-            boolean complete=False: Whether to use remove_complete or remove for each item
+            None
         Output:
             None
         """
-        if complete:
-            self.remove_complete()
-        else:
-            self.remove()
+        self.remove()
 
     def set_image(self, new_image):
         """
@@ -1480,6 +1465,18 @@ class dice_roll_minister_image(tooltip_free_image):
             self.set_tooltip(self.attached_minister.tooltip_text)
         else:
             self.set_tooltip([])
+
+    def can_show_tooltip(self):
+        """
+        Description:
+            Returns whether this image's tooltip can currently be shown.
+                Only shows for "portrait" images, so that accompanying "position" images don't have a double tooltip
+        Input:
+            None
+        Output:
+            bool:  Returns True if this image's tooltip can currently be shown, otherwise returns False
+        """
+        return self.minister_image_type == "portrait" and super().can_show_tooltip()
 
 
 class minister_type_image(tooltip_free_image):

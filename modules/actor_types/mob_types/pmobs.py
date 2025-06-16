@@ -439,10 +439,6 @@ class pmob(mob):
                             requirement,
                             location.get_parameter(constants.KNOWLEDGE),
                         ),
-                        update_display=location
-                        == current_location.adjacent_list[
-                            -1
-                        ],  # Only update display on last cell
                     )
 
     def to_save_dict(self):
@@ -496,7 +492,7 @@ class pmob(mob):
             None
         """
         for current_cell_icon in self.attached_cell_icon_list:
-            current_cell_icon.remove_complete()
+            current_cell_icon.remove()
         self.attached_cell_icon_list = []
 
     def create_cell_icon(self, x, y, image_id):
@@ -928,12 +924,7 @@ class pmob(mob):
         if not explanation:
             raise ValueError(f"Invalid incident type {incident_type}")
 
-        status.logistics_incident_list.append(
-            {
-                "unit": self,
-                "explanation": f"{name} {explanation}",
-            }
-        )
+        actor_utility.add_logistics_incident_to_report(self, f"{name} {explanation}")
 
     def remove(self):
         """
@@ -963,24 +954,12 @@ class pmob(mob):
         """
         if self.end_turn_destination and self.can_travel():
             self.end_turn_destination.subscribe_mob(self)
+            self.on_move()
             self.manage_inventory_attrition()  # do an inventory check when crossing ocean, using the destination's terrain
             self.end_turn_destination = None
             self.set_permission(constants.TRAVELING_PERMISSION, False)
             self.movement_sound()
 
-    def set_inventory(self, item: item_types.item_type, new_value: int) -> None:
-        """
-        Description:
-            Sets the number of items of a certain type held by this mob. Also ensures that the mob info display is updated correctly
-        Input:
-            item_type item: Item type to set the inventory of
-            int new_value: Amount of items of the inputted type to set inventory to
-        Output:
-            None
-        """
-        super().set_inventory(item, new_value)
-        if status.displayed_mob == self:
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
 
     def fire(self):
         """
@@ -1040,9 +1019,9 @@ class pmob(mob):
             None
         """
         vehicle.contained_mobs = utility.remove_from_list(vehicle.contained_mobs, self)
+        self.get_location().subscribe_mob(self)
         self.vehicle = None
         self.set_permission(constants.IN_VEHICLE_PERMISSION, False)
-        self.get_location().subscribe_mob(self)
         if (
             self.get_permission(constants.CARAVAN_PERMISSION)
             and self.inventory_capacity > 0

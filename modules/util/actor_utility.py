@@ -604,15 +604,18 @@ def generate_frame(
         )
 
     elif type(image_id) == list:
+        framed_image = []
         for image in image_id:
+            next_image = image.copy()
             if "x_size" in image and "y_size" in image:
-                image["x_size"] = image.get("x_size", 1) * size
-                image["y_size"] = image.get("y_size", 1) * size
+                next_image["x_size"] = image.get("x_size", 1) * size
+                next_image["y_size"] = image.get("y_size", 1) * size
             else:
-                image["size"] = image.get("size", 1) * size
-            image["x_offset"] = image.get("x_offset", 0) + x_offset
-            image["y_offset"] = image.get("y_offset", 0) + y_offset
-        return utility.combine(frame, image_id)
+                next_image["size"] = image.get("size", 1) * size
+            next_image["x_offset"] = image.get("x_offset", 0) + x_offset
+            next_image["y_offset"] = image.get("y_offset", 0) + y_offset
+            framed_image.append(next_image)
+        return utility.combine(frame, framed_image)
 
 
 def get_temperature_habitability(temperature: int) -> int:
@@ -677,3 +680,22 @@ def calibrate_minimap_grids(world_handler: any, x: int, y: int) -> None:
 
 def focus_minimap_grids(location: any) -> None:
     calibrate_minimap_grids(location.get_world_handler(), location.x, location.y)
+
+
+def add_logistics_incident_to_report(subject, explanation: str) -> None:
+    if subject.actor_type == constants.LOCATION_ACTOR_TYPE:
+        status.logistics_incident_list.append(
+            {
+                "unit": None,
+                "location": subject,
+                "explanation": explanation,
+            }
+        )
+    else:
+        status.logistics_incident_list.append(
+            {
+                "unit": subject,
+                "location": subject.get_location(),  # Note that if unit dies before report is created, location cannot be derived
+                "explanation": explanation,
+            }
+        )

@@ -67,18 +67,6 @@ class settlement:
             status.location_info_display, status.displayed_location
         )
 
-    def remove_complete(self):
-        """
-        Description:
-            Removes this object and deallocates its memory - defined for any removable object w/o a superclass
-        Input:
-            None
-        Output:
-            None
-        """
-        self.remove()
-        del self
-
     def to_save_dict(self):
         """
         Description:

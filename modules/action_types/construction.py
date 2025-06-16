@@ -381,7 +381,7 @@ class construction(action.action):
                 ):  # if building of same type exists, remove it and replace with new one
                     self.current_unit.get_location().get_building(
                         self.building_type.key
-                    ).remove_complete()
+                    ).remove()
             if self.building_type.key == constants.RESOURCE:
                 input_dict["image_id"] = "buildings/resource_building.png"
                 input_dict["resource_type"] = self.attached_resource

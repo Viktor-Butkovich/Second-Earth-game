@@ -63,31 +63,16 @@ class interface_element:
         if "image_id" in input_dict:
             self.create_image(input_dict["image_id"])
 
-    def remove_recursive(self, complete=False):
+    def remove_recursive(self):
         """
         Description:
             Recursively removes a collection and its members
-        Input:
-            boolean complete=False: Whether to use remove_complete or remove for each item
-        Output:
-            None
-        """
-        if complete:
-            self.remove_complete()
-        else:
-            self.remove()
-
-    def remove_complete(self):
-        """
-        Description:
-            Removes this object and deallocates its memory - defined for any removable object w/o a superclass
         Input:
             None
         Output:
             None
         """
         self.remove()
-        del self
 
     def remove(self):
         """
@@ -474,23 +459,19 @@ class interface_collection(interface_element):
         status.independent_interface_elements.append(removed_member)
         self.members.remove(removed_member)
 
-    def remove_recursive(self, complete=False):
+    def remove_recursive(self):
         """
         Description:
             Recursively removes a collection and its members
         Input:
-            boolean complete=False: Whether to use remove_complete or remove for each item
+            None
         Output:
             None
         """
         for current_member in self.members.copy():
             self.remove_member(current_member)
-            current_member.remove_recursive(complete=complete)
-
-        if complete:
-            super().remove_complete()
-        else:
-            super().remove()
+            current_member.remove_recursive()
+        super().remove()
 
     def remove(self):
         """

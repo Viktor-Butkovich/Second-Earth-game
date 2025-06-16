@@ -565,6 +565,7 @@ GLASSES_LEVEL: int = 14
 HAIR_LEVEL: int = 15
 FACIAL_HAIR_LEVEL: int = 18
 PORTRAIT_LEVEL: int = 20
+OVERLAY_ICON_LEVEL: int = 21
 LABEL_LEVEL: int = 21
 FRONT_LEVEL: int = 30
 BACKGROUND_LEVEL: int = -5
@@ -1055,7 +1056,7 @@ APPENDED_IMAGE_TERRAIN_FEATURE: str = "appended_image_terrain_feature"
 
 IMAGE_ID_LIST_DEFAULT: str = "image_id_list_default"
 IMAGE_ID_LIST_INCLUDE_MOB: str = "image_id_list_include_mob"
-IMAGE_ID_LIST_INCLUDE_MINIMAP_OVERLAY: str = "image_id_list_include_mob"
+IMAGE_ID_LIST_INCLUDE_MINIMAP_OVERLAY: str = "image_id_list_include_minimap_overlay"
 IMAGE_ID_LIST_PORTRAIT: str = "image_id_list_portrait"
 IMAGE_ID_LIST_LEFT_PORTRAIT: str = "image_id_list_left_portrait"
 IMAGE_ID_LIST_RIGHT_PORTRAIT: str = "image_id_list_right_portrait"

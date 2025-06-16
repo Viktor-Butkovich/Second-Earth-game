@@ -1,9 +1,8 @@
 # Contains functionality for vehicle units
 
-import random
 from typing import List, Dict
 from modules.actor_types.mob_types.pmobs import pmob
-from modules.util import text_utility, minister_utility, utility
+from modules.util import text_utility, utility
 from modules.constants import constants, status, flags
 
 
@@ -244,6 +243,11 @@ class vehicle(pmob):
         self.contained_mobs = []
         self.set_crew(None)
         super().fire()
+
+    def remove(self):
+        for current_sub_mob in self.get_sub_mobs().copy():
+            current_sub_mob.remove()
+        super().remove()
 
     def to_save_dict(self):
         """

@@ -465,7 +465,6 @@ If a location updates its image ID, it needs to update its subscribed cells and 
 If a mob updates its image ID, if it is the first mob in its location, it needs to update the mob info display and the subscribed cells
 All warehouse interactions are resolved at the location/mob level
 Sometimes, a mob will move between locations, in which case it subscribes to the new location and is shown as part of its info displays/cells
-It does not matter which world the new location is in, and no special go_to_grid logic should be required
 Mobs and locations never have to track whether they are showing or not - they are rendered when cells or info displays are rendered
     (world should track mode information)
 A cell should be able to fetch and render a tooltip based on if the mouse is hovering over it, using content from its location
@@ -486,29 +485,24 @@ Mobs and buildings have to track which cells and which grids they are visible in
     Generally much clunkier, and it based on incremental design decisions that were reasonable at the time
 
 Location rework backlog:
-Transfer inventory system
-After equipping spacesuits on Earth, temperature tab is incorrectly selected instead of global conditions, and shows wrong tab name
 Make sure name icons are rendered and handled correctly
 Rework rename function
-Update docstrings
 Test out buildings (spaceports, etc.)
-Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
-Transfer hosted_images from tile to location
 Transfer buildings from cell to location
-Transfer tile inventory from tile to location
+Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
 Transfer set_name from tile to location
-Transfer hosted_images from tile to location
-Make sure location inherits actor's manage_inventory_attrition
 Implement location subscribed_mobs_recursive property to get all mobs who would map to this with get_location()
+    This would probably make upkeep/attrition logic more elegant (if this is done, make sure the top-level unit never has attrition)
+    A top-level unit should be able to report the total upkeep of its components without actually requiring any itself`
 Replace cell icons with extra images directly added to locations - a location should be fully in control of what it displays
+    ^ Make sure cell icons are removed
 Add rename function to worlds
-Transfer logistics_incident_list from cell to location
 Convert all tooltips to act similar to location tooltips, with centralized rendering logic
     Ideally, an object returns a tooltip as a list of strings or a 2-dimensional list of strings, and the main loop entirely
         handles rendering this tooltip when needed - no reason for any further complexity
-Try to minimize calls to get_image_id_list, instead caching the result and changing it when dependencies change
-    Ideally, each mob and location maintains an updated image ID list for each configuration (with minimap overlay, with mobs, terrain only, etc.)
 Make reorganization tooltips reponsive to describe what type of selected units are required
+Update docstrings
+Eventually add DOM-style dependency system for images and (less important) tooltips, so they are only updated when needed
     
 Notes:
 In location-centric design, game logic is centralized and as independent as possible from interface elements

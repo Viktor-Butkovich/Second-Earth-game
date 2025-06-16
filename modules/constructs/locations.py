@@ -103,7 +103,6 @@ class location(actors.actor):
                         "location": self,
                     },
                 )
-        self.hosted_images = []
         self.update_image_bundle()
 
     @property
@@ -182,13 +181,13 @@ class location(actors.actor):
                     return False
         return True
 
-    def remove_complete(self) -> None:
+    def remove(self) -> None:
         for cell in self.attached_cells.copy():
             self.unsubscribe_cell(cell)
         for mob in self.subscribed_mobs.copy():
-            mob.remove_complete()
+            mob.remove()
         for building in self.contained_buildings.copy().values():
-            building.remove_complete()
+            building.remove()
 
     def has_building(self, building_type: str) -> bool:
         """
@@ -739,7 +738,8 @@ class location(actors.actor):
             "current_clouds": self.current_clouds,
             "local_weather_offset": self.local_weather_offset,
             "subscribed_mobs": [
-                current_mob.to_save_dict() for current_mob in self.subscribed_mobs
+                current_mob.to_save_dict()
+                for current_mob in reversed(self.subscribed_mobs)
             ],
         }
 
@@ -813,6 +813,10 @@ class location(actors.actor):
         self.subscribed_mobs.append(mob)
         mob.location = self
         self.update_image_bundle()
+        if mob == status.displayed_mob:
+            actor_utility.calibrate_actor_info_display(
+                status.location_info_display, self
+            )
 
     def unsubscribe_cell(self, cell) -> None:
         """
@@ -1094,13 +1098,6 @@ class location(actors.actor):
                         for current_building in self.get_buildings()
                         for image_id in current_building.get_image_id_list()
                     ]  # Add each of each building's images to the image ID list
-                if not terrain_only:
-                    for current_image in self.hosted_images:
-                        # if (
-                        #    not current_image.anchor_key in ["south_pole", "north_pole"]
-                        #    and not terrain_only
-                        # ):
-                        image_id_list += current_image.get_image_id_list()
 
             if constants.current_map_mode != "terrain" and allow_mapmodes:
                 map_mode_image = "misc/map_modes/none.png"
@@ -1201,6 +1198,10 @@ class location(actors.actor):
         if self == status.displayed_location:
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, self
+            )
+        if status.displayed_mob and status.displayed_mob.get_location() == self:
+            actor_utility.calibrate_actor_info_display(
+                status.mob_info_display, status.displayed_mob
             )
         for current_cell in self.attached_cells:
             if current_cell.grid == status.minimap_grid:
@@ -1426,37 +1427,6 @@ class location(actors.actor):
 
         self.set_tooltip(tooltip_message)
 
-    def remove_hosted_image(self, old_image):
-        """
-        Description:
-            Removes the inputted image from this location's hosted images and updates this location's image bundle
-        Input:
-            image old_image: Image to remove from this location's hosted images
-        Output:
-            None
-        """
-        if old_image in self.hosted_images:
-            self.hosted_images.remove(old_image)
-            old_image.hosting_location = None
-            self.update_image_bundle()
-            # if hasattr(old_image, "hosting_location"):
-            #    old_image.hosting_location = None
-
-    def add_hosted_image(self, new_image):
-        """
-        Description:
-            Adds the inputted image to this location's hosted images and updates this location's image bundle
-        Input:
-            image new_image: Image to add to this location's hosted images
-        Output:
-            None
-        """
-        if new_image.hosting_location:
-            new_image.hosting_location.remove_hosted_image(new_image)
-        new_image.hosting_location = self
-        self.hosted_images.append(new_image)
-        self.update_image_bundle()
-
     def select(self, music_override: bool = False):
         """
         Description:
@@ -1625,11 +1595,9 @@ class location(actors.actor):
                 was_word = "was"
             else:
                 was_word = "were"
-            status.logistics_incident_list.append(
-                {
-                    "unit": self,
-                    "explanation": f"{actor_utility.summarize_amount_dict(lost_items)} {was_word} lost due to insufficient storage space.",
-                }
+            actor_utility.add_logistics_incident_to_report(
+                self,
+                f"{actor_utility.summarize_amount_dict(lost_items)} {was_word} lost due to insufficient storage space.",
             )
 
     def set_name(self, new_name):
@@ -1642,13 +1610,10 @@ class location(actors.actor):
             None
         """
         super().set_name(new_name)
-        if (not self.is_abstract_location) and new_name not in [
-            "default",
-            "placeholder",
-        ]:
+        if (not self.is_abstract_location) and new_name != "default":
             # Make sure user is not allowed to input default or *.png as a location name
             if self.name_icon:
-                self.name_icon.remove_complete()
+                self.name_icon.remove()
 
             y_offset = -0.75
             has_building = any(

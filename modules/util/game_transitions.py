@@ -202,21 +202,22 @@ def to_main_menu(override=False):
     )
     actor_utility.calibrate_actor_info_display(status.location_info_display, None)
     minister_utility.calibrate_minister_info_display(None)
-    for current_grid in status.grid_list:
-        current_grid.remove_complete()
-    for current_world in status.world_list:
-        current_world.remove_complete()
-    for current_minister in status.minister_list:
-        current_minister.remove_complete()
-    for current_die in status.dice_list:
-        current_die.remove_complete()
-    status.loan_list = []
+    for current_grid in status.grid_list.copy():
+        current_grid.remove()
+    for current_world in status.world_list.copy():
+        current_world.remove()
+    for current_minister in status.minister_list.copy():
+        current_minister.remove()
+    for current_die in status.dice_list.copy():
+        current_die.remove()
+    for current_loan in status.loan_list.copy():
+        current_loan.remove()
     status.displayed_mob = None
     status.displayed_location = None
     constants.message = ""
     status.player_turn_queue = []
     if status.current_instructions_page:
-        status.current_instructions_page.remove_complete()
+        status.current_instructions_page.remove()
         status.current_instructions_page = None
     for key, terrain_feature_type in status.terrain_feature_types.items():
         terrain_feature_type.clear_tracking()

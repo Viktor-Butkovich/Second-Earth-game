@@ -250,19 +250,7 @@ class loan:
         self.remaining_duration -= 1
         self.total_to_pay -= self.interest
         if self.total_to_pay <= 0:
-            self.remove_complete()
-
-    def remove_complete(self):
-        """
-        Description:
-            Removes this object and deallocates its memory - defined for any removable object w/o a superclass
-        Input:
-            None
-        Output:
-            None
-        """
-        self.remove()
-        del self
+            self.remove()
 
     def remove(self):
         """

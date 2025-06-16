@@ -262,7 +262,7 @@ def manage_logistics_report() -> None:
     )
     attrition_binned_by_location = {}
     for attrition_cause_dict in status.logistics_incident_list:
-        location_string = str(attrition_cause_dict["unit"].get_location())
+        location_string = str(attrition_cause_dict["location"])
         attrition_binned_by_location[location_string] = (
             attrition_binned_by_location.get(location_string, [])
             + [attrition_cause_dict]
@@ -273,7 +273,8 @@ def manage_logistics_report() -> None:
         while remaining_incidents:
             first_n_incidents = remaining_incidents[:n]
             remaining_incidents = remaining_incidents[n:]
-            location = local_logistics_incident_list[0].get("unit").get_location()
+            # Recall that any dead unit can no longer check their location
+            location = local_logistics_incident_list[0]["location"]
             if len(local_logistics_incident_list) == 1:
                 text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports a logistical incident "
             else:
@@ -623,21 +624,21 @@ def manage_ministers():
     for current_minister in status.minister_list.copy():
         if current_minister.just_removed and not current_minister.current_position:
             current_minister.respond("fired")
-            current_minister.remove_complete()
+            current_minister.remove()
     for current_minister in status.minister_list.copy():
         if constants.effect_manager.effect_active(
             "farm_upstate"
         ):  # Retire all ministers
             current_minister.respond("retirement")
             current_minister.appoint(None)
-            current_minister.remove_complete()
+            current_minister.remove()
         elif (
             current_minister.current_position == None
             and random.randrange(1, 7) == 1
             and random.randrange(1, 7) <= 2
         ):  # 1/18 chance of switching out available ministers
             current_minister.respond("retirement")
-            current_minister.remove_complete()
+            current_minister.remove()
         elif current_minister.current_position:
             if (
                 random.randrange(1, 7) == 1
@@ -650,7 +651,7 @@ def manage_ministers():
             ):
                 current_minister.respond("retirement")
                 current_minister.appoint(None)
-                current_minister.remove_complete()
+                current_minister.remove()
             else:  # If remaining in office
                 if (
                     random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1

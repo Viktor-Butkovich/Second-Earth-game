@@ -65,16 +65,13 @@ class mob(actor):
             ),
         }
         self.end_turn_destination = None
+        self.loading_end_turn_destination = None
         if from_save:
             if input_dict["end_turn_destination_coordinates"]:
-                self.end_turn_destination = status.world_list[
-                    input_dict["end_turn_destination_world_index"]
-                ].find_location(
-                    *input_dict["end_turn_destination_coordinates"]
-                )  # Re-create the end turn destination from the saved world and coordinates
-                self.set_permission(
-                    constants.TRAVELING_PERMISSION, True, update_image=False
-                )
+                self.loading_end_turn_destination = {
+                    "world_index": input_dict["end_turn_destination_world_index"],
+                    "coordinates": input_dict["end_turn_destination_coordinates"],
+                }
         self.image_variants_setup(from_save, input_dict)
         self.status_icons = []
         status.mob_list.append(self)
@@ -114,6 +111,26 @@ class mob(actor):
     @property
     def actor_type(self) -> str:
         return constants.MOB_ACTOR_TYPE
+
+    def load_end_turn_destination(self):
+        """
+        Description:
+            Loads in this unit's end turn destination from the saved world and coordinates
+                Must be called after all worlds are loaded in
+        Input:
+            None
+        Output:
+            None
+        """
+        if self.loading_end_turn_destination:
+            world_index = self.loading_end_turn_destination["world_index"]
+            coordinates = self.loading_end_turn_destination["coordinates"]
+            self.end_turn_destination = status.world_list[world_index].find_location(
+                *coordinates
+            )
+            # Re-create the end turn destination from the saved world and coordinates
+            self.set_permission(constants.TRAVELING_PERMISSION, True)
+            del self.loading_end_turn_destination
 
     def get_radio_effect(self) -> bool:
         """
@@ -569,30 +586,60 @@ class mob(actor):
             constants.DISORGANIZED_PERMISSION,
             self.get_permission(constants.DISORGANIZED_PERMISSION),
         ):
-            image_id_list.append("misc/disorganized_icon.png")
+            image_id_list.append(
+                {
+                    "image_id": "misc/disorganized_icon.png",
+                    "level": constants.OVERLAY_ICON_LEVEL,
+                }
+            )
         if override_permissions.get(
             constants.DEHYDRATION_PERMISSION,
             self.get_permission(constants.DEHYDRATION_PERMISSION),
         ):
-            image_id_list.append("misc/dehydration_icon.png")
+            image_id_list.append(
+                {
+                    "image_id": "misc/dehydration_icon.png",
+                    "level": constants.OVERLAY_ICON_LEVEL,
+                }
+            )
         if override_permissions.get(
             constants.STARVATION_PERMISSION,
             self.get_permission(constants.STARVATION_PERMISSION),
         ):
-            image_id_list.append("misc/starvation_icon.png")
+            image_id_list.append(
+                {
+                    "image_id": "misc/starvation_icon.png",
+                    "level": constants.OVERLAY_ICON_LEVEL,
+                }
+            )
         if not override_permissions.get(
             constants.SURVIVABLE_PERMISSION,
             self.get_permission(constants.SURVIVABLE_PERMISSION),
         ):
-            image_id_list.append("misc/deadly_icon.png")
+            image_id_list.append(
+                {
+                    "image_id": "misc/deadly_icon.png",
+                    "level": constants.OVERLAY_ICON_LEVEL,
+                }
+            )
         if override_permissions.get(
             constants.VETERAN_PERMISSION,
             self.get_permission(constants.VETERAN_PERMISSION),
         ):
-            image_id_list.append("misc/veteran_icon.png")
+            image_id_list.append(
+                {
+                    "image_id": "misc/veteran_icon.png",
+                    "level": constants.OVERLAY_ICON_LEVEL,
+                }
+            )
 
         if self.sentry_mode:
-            image_id_list.append("misc/sentry_icon.png")
+            image_id_list.append(
+                {
+                    "image_id": "misc/sentry_icon.png",
+                    "level": constants.OVERLAY_ICON_LEVEL,
+                }
+            )
         return image_id_list
 
     def get_combat_modifier(self, opponent=None, include_location=False):
@@ -746,10 +793,10 @@ class mob(actor):
                     and adjacent_infrastructure.infrastructure_type == constants.FERRY
                 ):
                     cost = 2
-                if (not adjacent_location.visible) and self.get_permission(
-                    constants.EXPEDITION_PERMISSION
-                ):
-                    cost = self.movement_cost
+                # if (not adjacent_location.visible) and self.get_permission(
+                #     constants.EXPEDITION_PERMISSION
+                # ):
+                #     cost = self.movement_cost
         return cost
 
     def adjacent_to_water(self):
@@ -922,8 +969,7 @@ class mob(actor):
                 self.location.subscribed_mobs.insert(0, self)
                 self.location.update_image_bundle()
                 self.select()
-                if self.get_permission(constants.PMOB_PERMISSION):
-                    self.selection_sound()
+                self.selection_sound()
         else:
             text_utility.print_to_screen(
                 "You are busy and cannot select a different unit"
@@ -1133,7 +1179,7 @@ class mob(actor):
         super().remove()
         status.mob_list = utility.remove_from_list(status.mob_list, self)
         for current_status_icon in self.status_icons:
-            current_status_icon.remove_complete()
+            current_status_icon.remove()
         self.status_icons = []
         self.unit_type.on_remove()
 
@@ -1150,7 +1196,7 @@ class mob(actor):
         if self.get_permission(constants.PMOB_PERMISSION) and death_type == "violent":
             self.death_sound(death_type)
         self.drop_inventory()
-        self.remove_complete()
+        self.remove()
 
     def death_sound(self, death_type: str = "violent"):
         """

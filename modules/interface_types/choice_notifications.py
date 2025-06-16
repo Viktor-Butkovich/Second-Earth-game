@@ -107,7 +107,7 @@ class choice_notification(action_notifications.action_notification):
         """
         super().remove()
         for current_choice_button in self.choice_buttons:
-            current_choice_button.remove_complete()
+            current_choice_button.remove()
 
 
 class choice_button(buttons.button):

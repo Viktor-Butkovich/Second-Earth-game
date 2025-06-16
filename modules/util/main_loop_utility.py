@@ -377,8 +377,7 @@ def manage_rmb_down(clicked_button):
                             )
                             actor_utility.focus_minimap_grids(current_location)
                             moved_mob.select()
-                            if moved_mob.get_permission(constants.PMOB_PERMISSION):
-                                moved_mob.selection_sound()
+                            moved_mob.selection_sound()
     elif flags.drawing_automatic_route:
         stopping = True
         flags.drawing_automatic_route = False
@@ -612,6 +611,7 @@ def click_move_minimap(select_unit: bool = True):
                     current_location = current_cell.get_location()
                     if select_unit and current_location.subscribed_mobs:
                         current_location.subscribed_mobs[0].select()
+                        status.displayed_mob.selection_sound()
                     else:
                         actor_utility.calibrate_actor_info_display(
                             status.location_info_display, current_location

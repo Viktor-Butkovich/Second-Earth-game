@@ -399,7 +399,7 @@ class trial(action.campaign):
             defense.appoint(None)
             minister_utility.calibrate_minister_info_display(None)
             defense.respond("prison")
-            defense.remove_complete()
+            defense.remove()
             constants.fear_tracker.change(1)
             text = "Whether or not the defendant was truly guilty, this vigilant show of force may make your ministers reconsider any attempts to steal money for the time being. /n /n"
             constants.notification_manager.display_notification(

@@ -126,7 +126,7 @@ class notification_manager_template:
 
         if transferred_interface_elements and not valid_transfer:
             for element in transferred_interface_elements:
-                element.remove_recursive(complete=True)
+                element.remove()
 
     def set_lock(self, new_lock):
         """

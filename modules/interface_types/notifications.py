@@ -104,7 +104,7 @@ class notification(multi_line_label):
         """
         if self.can_remove or override_can_remove:
             if self.has_parent_collection:
-                self.parent_collection.remove_recursive(complete=False)
+                self.parent_collection.remove_recursive()
             else:
                 self.remove()
             constants.notification_manager.handle_next_notification()

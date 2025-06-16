@@ -69,6 +69,9 @@ def load_worlds(save_dicts: Dict[str, Dict[str, Any]]) -> None:
     status.earth_world = constants.actor_creation_manager.create(
         True, save_dicts["earth_world"]
     )
+    for current_mob in status.mob_list:
+        current_mob.load_end_turn_destination()
+        # Loading end turn destinations depends on worlds being fully loaded
 
 
 def new_worlds() -> None:

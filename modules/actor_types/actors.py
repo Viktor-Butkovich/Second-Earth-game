@@ -35,7 +35,7 @@ class actor:
             None
         """
         self.from_save = from_save
-        self.set_name(input_dict.get("name", "placeholder"))
+        self.set_name(input_dict.get("name", "default"))
         self.tooltip_text = []
         self.inventory_capacity = 0
         self.inventory: Dict[str, int] = input_dict.get("inventory", {})
@@ -103,7 +103,9 @@ class actor:
         Output:
             bool: Returns whether the inputted item type is present anywhere in this unit's location
         """
-        for current_actor in [self.get_location(), self.get_location().subscribed_mobs]:
+        for current_actor in [
+            self.get_location()
+        ] + self.get_location().subscribed_mobs:
             if current_actor.get_inventory(item_type) > 0:
                 return True
         return False
@@ -201,6 +203,16 @@ class actor:
             )  # If new value is an integer, set inventory to integer
         if round(new_value, 2) <= 0:
             del self.inventory[item.key]
+        if self.actor_type == constants.MOB_ACTOR_TYPE:
+            if status.displayed_mob == self:
+                actor_utility.calibrate_actor_info_display(
+                    status.mob_info_display, self
+                )
+        elif self.actor_type == constants.LOCATION_ACTOR_TYPE:
+            if status.displayed_location == self:
+                actor_utility.calibrate_actor_info_display(
+                    status.location_info_display, self
+                )
 
     def get_held_items(self, ignore_consumer_goods=False) -> List[item_types.item_type]:
         """
@@ -246,6 +258,11 @@ class actor:
                 transportation_minister = minister_utility.get_minister(
                     constants.TRANSPORTATION_MINISTER
                 )
+
+                if self.actor_type == constants.LOCATION_ACTOR_TYPE:
+                    location = self
+                elif self.actor_type == constants.MOB_ACTOR_TYPE:
+                    location = self.get_location()
                 if (
                     random.randrange(1, 7) <= 2
                     and transportation_minister.check_corruption()
@@ -253,7 +270,7 @@ class actor:
                     self.trigger_inventory_attrition(stealing=True)
                     return
                 elif (
-                    self.get_location().local_attrition("inventory")
+                    location.local_attrition("inventory")
                     and transportation_minister.no_corruption_roll(6) < 4
                 ):  # 1/6 chance of doing local conditions check, if passes minister needs to make a 4+ roll to avoid attrition
                     self.trigger_inventory_attrition()
@@ -344,12 +361,7 @@ class actor:
                     text, override_input_dict={"zoom_destination": self}
                 )
             else:
-                status.logistics_incident_list.append(
-                    {
-                        "unit": self,
-                        "explanation": text,
-                    }
-                )
+                actor_utility.add_logistics_incident_to_report(self, text)
         if stealing and value_stolen > 0:
             transportation_minister.steal_money(value_stolen, "inventory_attrition")
 
@@ -385,18 +397,6 @@ class actor:
             None
         """
         self.set_tooltip([self.name.capitalize()])
-
-    def remove_complete(self):
-        """
-        Description:
-            Removes this object and deallocates its memory - defined for any removable object w/o a superclass
-        Input:
-            None
-        Output:
-            None
-        """
-        self.remove()
-        del self
 
     def remove(self):
         """

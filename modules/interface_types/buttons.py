@@ -1310,7 +1310,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.CHOICE_CONFIRM_FIRE_MINISTER_BUTTON:
             status.displayed_minister.respond("fired")
             status.displayed_minister.appoint(None, update_display=False)
-            status.displayed_minister.remove_complete()
+            status.displayed_minister.remove()
             minister_utility.calibrate_minister_info_display(None)
 
         elif self.button_type == constants.GENERATE_CRASH_BUTTON:

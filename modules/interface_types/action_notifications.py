@@ -137,7 +137,7 @@ class action_notification(notification):
                 transferred_interface_elements.append(interface_element)
 
         if self.has_parent_collection:
-            self.parent_collection.remove_recursive(complete=False)
+            self.parent_collection.remove_recursive()
         else:
             self.remove()
 
