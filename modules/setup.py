@@ -492,6 +492,7 @@ def terrain_feature_types_config():
                     constants.minimap_grid_pixel_width
                     / constants.minimap_grid_coordinate_size
                 ),
+                "level": constants.OVERLAY_ICON_LEVEL,
             },  # Scales to 25x25 pixels in the minimap grid - minimap cells are 750 pixels total / 7 cells = 107.14 pixels
             "display_type": constants.MINIMAP_OVERLAY_TERRAIN_FEATURE,
             "description": ["North pole of the planet"],
@@ -509,6 +510,7 @@ def terrain_feature_types_config():
                     constants.minimap_grid_pixel_width
                     / constants.minimap_grid_coordinate_size
                 ),
+                "level": constants.OVERLAY_ICON_LEVEL,
             },  # Scales to 25x25 pixels in the minimap grid - minimap cells are 750 pixels total / 7 cells = 107.14 pixels
             "display_type": constants.MINIMAP_OVERLAY_TERRAIN_FEATURE,
             "description": ["South pole of the planet"],
@@ -820,6 +822,7 @@ def building_types_config():
                     ],
                 },
             },
+            "image_id": [],
         }
     )
     # building_types.building_type(

@@ -1,6 +1,6 @@
 # Contains functionality for settlements
 
-from modules.util import utility, actor_utility
+from modules.util import actor_utility
 from modules.constants import constants, status, flags
 
 
@@ -21,7 +21,6 @@ class settlement:
         Output:
             None
         """
-        self.x, self.y = input_dict["coordinates"]
         self.location = input_dict["location"]
         self.location.settlement = self
         if not from_save:
@@ -50,7 +49,6 @@ class settlement:
         else:
             self.name = input_dict["name"]
         self.location.set_name(self.name)
-        status.settlement_list.append(self)
 
     def rename(self, new_name: str):
         """
@@ -63,9 +61,6 @@ class settlement:
         """
         self.name = new_name
         status.displayed_location.set_name(self.name)
-        actor_utility.calibrate_actor_info_display(
-            status.location_info_display, status.displayed_location
-        )
 
     def to_save_dict(self):
         """
@@ -83,15 +78,3 @@ class settlement:
         save_dict["init_type"] = constants.SETTLEMENT
         save_dict["name"] = self.name
         return save_dict
-
-    def remove(self):
-        """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
-        """
-        status.settlement_list = utility.remove_from_list(status.settlement_list, self)
-        self.location.settlement = None

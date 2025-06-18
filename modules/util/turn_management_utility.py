@@ -282,7 +282,7 @@ def manage_logistics_report() -> None:
 
             if location.is_abstract_location:
                 text += f"in orbit of {location.get_true_world_handler().name}: /n /n"
-            elif location.name != "default":
+            elif location.name != None:
                 text += f"at {location.name}: /n /n"
             else:
                 text += f"at ({location.x}, {location.y}): /n /n"
@@ -433,10 +433,7 @@ def manage_upkeep_expenditure() -> None:
                     item_request.copy()
                 )
                 if constants.effect_manager.effect_active("track_item_requests"):
-                    if (
-                        current_world.is_abstract_world
-                        or current_location.name != "default"
-                    ):
+                    if current_world.is_abstract_world or current_location.name != None:
                         name = current_location.name.capitalize()
                     else:
                         name = f"({current_location.x}, {current_location.y})"
@@ -937,10 +934,7 @@ def end_turn_warnings():
                 if (
                     item_request
                 ):  # For each current_location that cannot meet its upkeep requirements, issue a warning
-                    if (
-                        current_world.is_abstract_world
-                        or current_location.name != "default"
-                    ):
+                    if current_world.is_abstract_world or current_location.name != None:
                         name = current_location.name.capitalize()
                     else:
                         name = f"({current_location.x}, {current_location.y})"

@@ -1064,7 +1064,7 @@ class actor_display_label(label):
                             f"Approximately {self.actor.get_true_world_handler().get_parameter(constants.GRAVITY) * 100}% Earth's gravity"
                         )
                         tooltip_text.append(
-                            f"Approximately {round(self.actor.get_true_world_handler().size / self.actor.get_true_world_handler().earth_size, 2) * 100}% Earth's size"
+                            f"Approximately {round(self.actor.get_true_world_handler().world_dimensions / constants.earth_dimensions, 2) * 100}% Earth's size"
                         )
                 elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
                     tooltip_text.append(
@@ -1488,7 +1488,7 @@ class actor_display_label(label):
             elif self.actor_label_type in status.building_types.keys():
                 if self.actor.has_building(self.actor_label_type):
                     self.set_label(
-                        f"{self.message_start}{self.actor.get_building(self.actor_label_type).name.capitalize()}"
+                        f"{self.message_start}{self.actor.get_building(self.actor_label_type).building_type.name.capitalize()}"
                     )
 
             elif self.actor_label_type == constants.INVENTORY_NAME_LABEL:
@@ -1688,13 +1688,16 @@ class actor_display_label(label):
             return True
         elif not self.actor:
             return False
-        elif self.actor_label_type == constants.RESOURCE_LABEL and (
-            self.actor.resource == None or self.actor.is_abstract_location
+        elif (
+            self.actor_label_type == constants.RESOURCE_LABEL
+            and (  # Denotes terrain resource
+                self.actor.resource == None or self.actor.is_abstract_location
+            )
         ):
             return False
-        elif self.actor_label_type == constants.RESOURCE and (
-            (not self.actor.visible)
-            or (not self.actor.has_building(constants.RESOURCE))
+        elif (
+            self.actor_label_type == constants.RESOURCE  # Denotes resource building
+            and not self.actor.has_building(constants.RESOURCE)
         ):
             return False
         elif (

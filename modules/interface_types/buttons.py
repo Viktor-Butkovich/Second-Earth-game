@@ -1492,8 +1492,14 @@ class button(interface_elements.interface_element):
                 constants.MOVE_LEFT_BUTTON,
                 constants.MOVE_RIGHT_BUTTON,
             ]:
-                if status.displayed_mob == None or (
-                    not status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
+                if (
+                    status.displayed_mob == None
+                    or (
+                        not status.displayed_mob.get_permission(
+                            constants.PMOB_PERMISSION
+                        )
+                    )
+                    or status.displayed_mob.get_location().is_abstract_location
                 ):
                     return False
             elif self.button_type in [

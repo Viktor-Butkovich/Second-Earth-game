@@ -35,7 +35,6 @@ class actor:
             None
         """
         self.from_save = from_save
-        self.set_name(input_dict.get("name", "default"))
         self.tooltip_text = []
         self.inventory_capacity = 0
         self.inventory: Dict[str, int] = input_dict.get("inventory", {})
@@ -44,6 +43,7 @@ class actor:
                 constants.IMAGE_ID_LIST_DEFAULT, []
             ),
         }  # Stored versions of fully generated image ID list, passed to info displays and cells
+        self.name: str = None
         self.finish_init(original_constructor, from_save, input_dict)
 
     @property
@@ -63,6 +63,7 @@ class actor:
             None
         """
         if original_constructor:
+            self.set_name(input_dict.get("name", self.name))
             self.update_image_bundle()
             self.update_tooltip()
 
@@ -350,7 +351,7 @@ class actor:
                 current_location = self.get_location()
                 if current_location.is_abstract_location:
                     intro_text += f"in orbit of {current_location.get_true_world_handler().name}: /n /n"
-                elif current_location.name != "default":
+                elif current_location.name != None:
                     intro_text += f"at {current_location.name}: /n /n"
                 else:
                     intro_text += (

@@ -115,8 +115,7 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
     if info_display == status.location_info_display:
         for current_same_location_icon in status.same_location_icon_list:
             current_same_location_icon.reset()
-        if new_actor != status.displayed_location:
-            calibrate_actor_info_display(status.location_inventory_info_display, None)
+        calibrate_actor_info_display(status.location_inventory_info_display, None)
         status.displayed_location = new_actor
         if new_actor:
             new_actor.select()  # Plays correct music based on location selected - main menu/earth music
@@ -132,7 +131,7 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
         if changed_displayed_mob:
             if status.displayed_mob:
                 status.displayed_mob.stop_ambient_sound()
-            calibrate_actor_info_display(status.mob_inventory_info_display, None)
+        calibrate_actor_info_display(status.mob_inventory_info_display, None)
         status.displayed_mob = new_actor
         if changed_displayed_mob and new_actor:
             new_actor.start_ambient_sound()
@@ -534,7 +533,7 @@ def generate_label_image_id(text: str, y_offset=0):
             "x_offset": x_offset - 0.01,
             "y_offset": y_offset,
             "free": True,
-            "level": constants.LABEL_LEVEL,
+            "level": constants.OVERLAY_ICON_LEVEL,
             "x_size": x_size + 0.02,
             "y_size": y_size,
         },
@@ -545,7 +544,7 @@ def generate_label_image_id(text: str, y_offset=0):
                 "x_offset": x_offset,
                 "y_offset": y_offset,
                 "free": True,
-                "level": constants.LABEL_LEVEL,
+                "level": constants.OVERLAY_ICON_LEVEL,
                 "override_height": None,
                 "override_width": None,
                 "x_size": x_size,

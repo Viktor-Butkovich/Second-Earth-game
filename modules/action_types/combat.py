@@ -331,10 +331,14 @@ class combat(action.action):
                     self.opponent = opponent
                     self.defending = False
                     self.start(unit)
-                    unit.create_cell_icon(
-                        future_location.x,
-                        future_location.y,
-                        f"misc/attack_mark/self.direction.png",
+                    constants.actor_creation_manager.create_interface_element(
+                        input_dict={
+                            "init_type": constants.HOSTED_ICON,
+                            "location": future_location,
+                            "image_id": [
+                                {"image_id": f"misc/attack_mark/{self.direction}.png"}
+                            ],
+                        },
                     )
             return True
 
@@ -378,10 +382,10 @@ class combat(action.action):
                             "message": "Attack",
                         },
                         {
-                            "on_click": (
-                                self.current_unit.clear_attached_cell_icons,
-                                [],
-                            ),
+                            # "on_click": (
+                            #    self.current_unit.clear_attached_cell_icons,
+                            #    [],
+                            # ),
                             "tooltip": ["Stop attack"],
                             "message": "Stop attack",
                         },
@@ -445,7 +449,7 @@ class combat(action.action):
             self.current_unit.select()
 
         else:
-            self.current_unit.clear_attached_cell_icons()
+            # self.current_unit.clear_attached_cell_icons()
             self.current_unit.move(self.x_change, self.y_change, True)
 
         self.roll_lists = []

@@ -3,7 +3,7 @@ import math
 from typing import List, Dict, Any
 from modules.util import actor_utility, main_loop_utility, utility
 from modules.actor_types import actors
-from modules.constructs import world_handlers, item_types
+from modules.constructs import world_handlers, item_types, settlements
 from modules.constants import constants, status, flags
 
 
@@ -26,6 +26,8 @@ class location(actors.actor):
             dictionary input_dict: Dictionary of saved information necessary to recreate this location if loading grid, or None if creating new location
         """
         self.world_handler: world_handlers.world_handler = input_dict["world_handler"]
+        self.name_icon = None
+        self.hosted_icons = []
         super().__init__(from_save, input_dict, original_constructor == False)
         self.image_dict = {**self.image_dict, constants.IMAGE_ID_LIST_INCLUDE_MOB: []}
         self.x: int = input_dict["coordinates"][0]
@@ -75,7 +77,7 @@ class location(actors.actor):
             []
         )  # List of top-level contained mobs
         self.contained_buildings: Dict[str, Any] = {}
-        self.settlement: Any = None
+        self.settlement: settlements.settlement = None
         if from_save:
             for current_mob_dict in input_dict.get("subscribed_mobs", []):
                 constants.actor_creation_manager.create(
@@ -741,6 +743,7 @@ class location(actors.actor):
                 current_mob.to_save_dict()
                 for current_mob in reversed(self.subscribed_mobs)
             ],
+            "settlement": self.settlement.to_save_dict() if self.settlement else None,
         }
 
     def get_parameter(self, parameter_name: str) -> int:
@@ -1093,11 +1096,11 @@ class location(actors.actor):
                     #        image_id_list.append(resource_icon)
                     #    else:
                     #        image_id_list += resource_icon
-                    image_id_list += [
-                        image_id
-                        for current_building in self.get_buildings()
-                        for image_id in current_building.get_image_id_list()
-                    ]  # Add each of each building's images to the image ID list
+                image_id_list += [
+                    image_id
+                    for current_building in self.get_buildings()
+                    for image_id in current_building.get_image_id_list()
+                ]  # Add each of each building's images to the image ID list
 
             if constants.current_map_mode != "terrain" and allow_mapmodes:
                 map_mode_image = "misc/map_modes/none.png"
@@ -1152,7 +1155,8 @@ class location(actors.actor):
                 for terrain_feature in self.terrain_features
                 if status.terrain_feature_types[terrain_feature].display_type
                 == constants.MINIMAP_OVERLAY_TERRAIN_FEATURE
-            ]
+            ],
+            *[hosted_icon.get_image_id_list() for hosted_icon in self.hosted_icons],
         )
 
     def update_image_bundle(self, override_image=None, update_mob_only: bool = False):
@@ -1165,7 +1169,8 @@ class location(actors.actor):
         Output:
             None
         """
-        previous_image_default = self.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
+        previous_image_dict = self.image_dict.copy()
+
         if not update_mob_only:
             if override_image:
                 self.image_dict[constants.IMAGE_ID_LIST_DEFAULT] = override_image
@@ -1174,9 +1179,6 @@ class location(actors.actor):
                     self.get_image_id_list()
                 )
 
-        previous_image_include_mob = self.image_dict[
-            constants.IMAGE_ID_LIST_INCLUDE_MOB
-        ]
         self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MOB] = (
             self.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
             + self.get_mob_image_id_list()
@@ -1187,11 +1189,7 @@ class location(actors.actor):
             + self.get_minimap_overlay_image_id_list()
         )
 
-        if (
-            previous_image_default != self.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
-            or previous_image_include_mob
-            != self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MOB]
-        ):
+        if previous_image_dict != self.image_dict:
             self.refresh_attached_images()
 
     def refresh_attached_images(self):
@@ -1610,7 +1608,11 @@ class location(actors.actor):
             None
         """
         super().set_name(new_name)
-        if (not self.is_abstract_location) and new_name != "default":
+        if new_name == None:
+            return
+        if (
+            not self.is_abstract_location
+        ):  # Don't include name icon for abstract locations
             # Make sure user is not allowed to input default or *.png as a location name
             if self.name_icon:
                 self.name_icon.remove()
@@ -1625,13 +1627,17 @@ class location(actors.actor):
             ):  # Modify location of name icon if any non-infrastructure buildings are present
                 y_offset += 0.3
 
-            self.name_icon = constants.actor_creation_manager.create(
-                False,
+            self.name_icon = constants.actor_creation_manager.create_interface_element(
                 {
                     "image_id": actor_utility.generate_label_image_id(
                         new_name, y_offset=y_offset
                     ),
-                    "init_type": constants.CELL_ICON,
+                    "init_type": constants.HOSTED_ICON,
                     "location": self,
                 },
             )
+        self.update_image_bundle()
+        if self == status.displayed_location:
+            actor_utility.calibrate_actor_info_display(
+                status.location_info_display, self
+            )  # Update location info display with new name

@@ -143,11 +143,11 @@ class world_handler:
         Output:
             None
         """
-        self.name = new_name
-        if self.is_abstract_world:
-            self.find_location(0, 0).name = new_name
-            if status.displayed_location == self.find_location(0, 0):
-                status.displayed_location.set_name(self.name)
+        if self.is_orbital_world:
+            self.find_location(0, 0).set_name(new_name)
+        elif not self.is_abstract_world:  # If full world
+            self.name = new_name
+            self.orbital_world.rename(new_name)
 
     def add_grid(self, grid: Any) -> None:
         self.attached_grids.append(grid)

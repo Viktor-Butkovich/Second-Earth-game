@@ -56,14 +56,16 @@ class embark_all_passengers_button(button):
         if main_loop_utility.action_possible():
             vehicle = status.displayed_mob
             can_embark = True
-            if self.vehicle_type == constants.TRAIN_PERMISSION:
-                if not vehicle.get_location().get_inact_building(
+            if (
+                self.vehicle_type == constants.TRAIN_PERMISSION
+                and not vehicle.get_location().get_inact_building(
                     constants.TRAIN_STATION
-                ):
-                    text_utility.print_to_screen(
-                        "A train can only pick up passengers at a train station."
-                    )
-                    can_embark = False
+                )
+            ):
+                text_utility.print_to_screen(
+                    "A train can only pick up passengers at a train station."
+                )
+                can_embark = False
             if can_embark:
                 if vehicle.sentry_mode:
                     vehicle.set_sentry_mode(False)
@@ -93,22 +95,22 @@ class embark_all_passengers_button(button):
         Output:
             boolean: Returns False if the selected vehicle has no crew, otherwise returns same as superclass
         """
-        result = super().can_show(skip_parent_collection=skip_parent_collection)
+        result = super().can_show(
+            skip_parent_collection=skip_parent_collection
+        ) and status.displayed_mob.get_permission(constants.ACTIVE_VEHICLE_PERMISSION)
         if result:
-            displayed_mob = status.displayed_mob
-            if displayed_mob.get_permission(constants.ACTIVE_PERMISSION):
-                if (
-                    displayed_mob.get_permission(constants.SPACESHIP_PERMISSION)
-                    and self.vehicle_type != constants.SPACESHIP_PERMISSION
-                ):
-                    self.vehicle_type = constants.SPACESHIP_PERMISSION
-                    self.image.set_image(f"buttons/embark_spaceship_button.png")
-                elif (
-                    displayed_mob.get_permission(constants.TRAIN_PERMISSION)
-                    and self.vehicle_type != constants.TRAIN_PERMISSION
-                ):
-                    self.vehicle_type = constants.TRAIN_PERMISSION
-                    self.image.set_image(f"buttons/embark_train_button.png")
+            if (
+                status.displayed_mob.get_permission(constants.SPACESHIP_PERMISSION)
+                and self.vehicle_type != constants.SPACESHIP_PERMISSION
+            ):
+                self.vehicle_type = constants.SPACESHIP_PERMISSION
+                self.image.set_image(f"buttons/embark_spaceship_button.png")
+            elif (
+                status.displayed_mob.get_permission(constants.TRAIN_PERMISSION)
+                and self.vehicle_type != constants.TRAIN_PERMISSION
+            ):
+                self.vehicle_type = constants.TRAIN_PERMISSION
+                self.image.set_image(f"buttons/embark_train_button.png")
         return result
 
 
@@ -177,22 +179,20 @@ class disembark_all_passengers_button(button):
         Output:
             boolean: Returns False if the selected vehicle has no crew, otherwise returns same as superclass
         """
-        result = super().can_show(skip_parent_collection=skip_parent_collection)
+        result = super().can_show(skip_parent_collection=skip_parent_collection) and status.displayed_mob.get_permission(constants.ACTIVE_VEHICLE_PERMISSION)
         if result:
-            displayed_mob = status.displayed_mob
-            if displayed_mob.get_permission(constants.ACTIVE_PERMISSION):
-                if (
-                    displayed_mob.get_permission(constants.SPACESHIP_PERMISSION)
-                    and self.vehicle_type != constants.SPACESHIP_PERMISSION
-                ):
-                    self.vehicle_type = constants.SPACESHIP_PERMISSION
-                    self.image.set_image(f"buttons/disembark_spaceship_button.png")
-                elif (
-                    displayed_mob.get_permission(constants.TRAIN_PERMISSION)
-                    and self.vehicle_type != constants.TRAIN_PERMISSION
-                ):
-                    self.vehicle_type = constants.TRAIN_PERMISSION
-                    self.image.set_image(f"buttons/disembark_train_button.png")
+            if (
+                status.displayed_mob.get_permission(constants.SPACESHIP_PERMISSION)
+                and self.vehicle_type != constants.SPACESHIP_PERMISSION
+            ):
+                self.vehicle_type = constants.SPACESHIP_PERMISSION
+                self.image.set_image(f"buttons/disembark_spaceship_button.png")
+            elif (
+                status.displayed_mob.get_permission(constants.TRAIN_PERMISSION)
+                and self.vehicle_type != constants.TRAIN_PERMISSION
+            ):
+                self.vehicle_type = constants.TRAIN_PERMISSION
+                self.image.set_image(f"buttons/disembark_train_button.png")
         return result
 
 
@@ -216,6 +216,8 @@ class enable_sentry_mode_button(button):
             if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 return False
             elif displayed_mob.sentry_mode:
+                return False
+            elif displayed_mob.get_permission(constants.VEHICLE_PERMISSION) and not displayed_mob.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
                 return False
         return result
 

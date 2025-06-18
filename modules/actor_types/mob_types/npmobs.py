@@ -100,12 +100,13 @@ class npmob(mob):
             string/actor: Returns one of the closest reachable pmobs or buildings, or returns None if none are reachable
         """
         target_list = []
-        for current_building in status.building_list:
-            if (
-                current_building.building_type.can_damage
-                and not current_building.damaged
-            ):
-                target_list.append(current_building)
+        #for current_building in status.building_list:
+        #    if (
+        #        current_building.building_type.can_damage
+        #        and not current_building.damaged
+        #    ):
+        #        target_list.append(current_building)
+        # Modify this to use settlements instead
         target_list += status.pmob_list
         min_distance = -1
         closest_targets = [None]
@@ -114,13 +115,10 @@ class npmob(mob):
             if (
                 not target_location.y == 0
             ):  # Ignore units in the ocean if can't swim in ocean
-                if (
-                    possible_target.actor_type == constants.BUILDING_ACTOR_TYPE
-                    or not possible_target.any_permissions(
-                        constants.IN_VEHICLE_PERMISSION,
-                        constants.IN_GROUP_PERMISSION,
-                        constants.IN_BUILDING_PERMISSION,
-                    )
+                if not possible_target.any_permissions(
+                    constants.IN_VEHICLE_PERMISSION,
+                    constants.IN_GROUP_PERMISSION,
+                    constants.IN_BUILDING_PERMISSION,
                 ):
                     current_location = self.get_location()
                     distance = current_location.get_world_handler().manhattan_distance(

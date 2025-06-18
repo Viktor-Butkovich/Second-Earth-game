@@ -18,7 +18,6 @@ from modules.interface_types import (
     instructions,
     action_notifications,
     interface_elements,
-    cell_icons,
     earth_transactions,
     inventory_interface,
     grids,
@@ -27,6 +26,7 @@ from modules.actor_display_tools import buttons as actor_display_buttons
 from modules.actor_display_tools import labels as actor_display_labels
 from modules.actor_display_tools import images as actor_display_images
 from modules.constructs import (
+    hosted_icons,
     ministers,
     images,
     settlements,
@@ -81,7 +81,6 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.WAREHOUSES: buildings.warehouses,
             constants.RESOURCE: buildings.resource_building,
             constants.SETTLEMENT: settlements.settlement,
-            constants.CELL_ICON: cell_icons.cell_icon,
             constants.LOAN: market_utility.loan,
             constants.LOCATION: locations.location,
             constants.FULL_WORLD: world_handler_types.full_world_handler,
@@ -275,6 +274,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.ADJACENT_LOCATION_EXPLORATION_NOTIFICATION: action_notifications.adjacent_location_exploration_notification,
             constants.MINI_GRID: grids.mini_grid,
             constants.ABSTRACT_GRID: grids.abstract_grid,
+            constants.HOSTED_ICON: hosted_icons.hosted_icon,
         }
 
     def create(self, from_save, input_dict):

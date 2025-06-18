@@ -43,7 +43,6 @@ from modules.actor_types.buildings import building, resource_building
 from modules.actor_types.mobs import mob
 from modules.actor_types.mob_types.pmobs import pmob
 from modules.actor_types.mob_types.npmobs import npmob
-from modules.constructs.settlements import settlement
 from modules.constructs.world_handlers import world_handler
 from modules.util.market_utility import loan
 from modules.action_types.action import action
@@ -93,7 +92,6 @@ available_minister_portrait_list: List[button] = []
 mob_list: List[mob] = []
 pmob_list: List[pmob] = []
 npmob_list: List[npmob] = []
-settlement_list: List[settlement] = []
 building_list: List[building] = []
 resource_building_list: List[resource_building] = []
 loan_list: List[loan] = []

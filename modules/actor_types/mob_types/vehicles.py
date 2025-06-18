@@ -124,6 +124,8 @@ class vehicle(pmob):
         Output:
             None
         """
+        if new_crew == self.crew:
+            return
         self.crew = new_crew
         if new_crew:
             self.set_permission(
@@ -153,6 +155,7 @@ class vehicle(pmob):
                 constants.INACTIVE_VEHICLE_PERMISSION, True, override=True
             )
             self.set_inventory_capacity(0)
+        self.set_sentry_mode(False)
 
     def get_sub_mobs(self) -> List[pmob]:
         """

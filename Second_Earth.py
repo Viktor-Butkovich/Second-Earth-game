@@ -424,6 +424,24 @@ except Exception:  # Displays error message and records error message in crash l
     Configurable visualization dashboards, including flexible reporting on historical data and forecasts
     Vegetation/wildlife spread and interaction models
     NLP or LLM-based dynamic content or descriptions - e.g. RAG-based "help" box that can reference an instructions repository
+27. DOM bus for efficient data transfer
+    status.dom_bus - Global object that allows the following:
+        Registering a callback to be invoked upon a particular topic being published
+            The tile temperature label should register its calibrate with "selected_location/set_parameter"
+            The location assigned the artifical ID 2 should register its update_image_bundle with "2/update_image_bundle"
+        Modify functions to publish to particular topics when they are invoked
+            set_parameter on location w/ object ID 2 should publish to "2/set_parameter"
+            set_parameter on selected location should publish to "selected_location/set_parameter"
+                These could both occur at the same time, but a callback will generally only be registered to one
+        dom_bus maintains a dictionary of topics mapping to a list of callback functions to invoke when the topic is published
+        The above model means that, when a location changes a parameter, it results in all relevant images and labels updating
+        This could be modified with more granularity by adding arguments to the topic, such as "2/set_parameter/temperature"
+    location_2/selected_location.set_parameter(constants.TEMPERATURE, 4)
+        Publishes to "2/set_parameter" and "selected_location/set_parameter"
+        Invokes tile_temperature_label.calibrate() and location_2.update_image_bundle()
+    Requires that all objects who want to be updated when a topic is published register a callback with some global topic or a topic
+        derived from an artificial, sequential ID
+    Could possibly remove all requirements for manual calibrate_info_display() and update_image_bundle() calls
 """
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
@@ -485,25 +503,21 @@ Mobs and buildings have to track which cells and which grids they are visible in
     Generally much clunkier, and it based on incremental design decisions that were reasonable at the time
 
 Location rework backlog:
-Make sure name icons are rendered and handled correctly
-Rework rename function
-Test out buildings (spaceports, etc.)
-Transfer buildings from cell to location
-Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
-Transfer set_name from tile to location
 Implement location subscribed_mobs_recursive property to get all mobs who would map to this with get_location()
     This would probably make upkeep/attrition logic more elegant (if this is done, make sure the top-level unit never has attrition)
-    A top-level unit should be able to report the total upkeep of its components without actually requiring any itself`
-Replace cell icons with extra images directly added to locations - a location should be fully in control of what it displays
-    ^ Make sure cell icons are removed
-Add rename function to worlds
+    A top-level unit should be able to report the total upkeep of its components without actually requiring any itself
 Convert all tooltips to act similar to location tooltips, with centralized rendering logic
     Ideally, an object returns a tooltip as a list of strings or a 2-dimensional list of strings, and the main loop entirely
         handles rendering this tooltip when needed - no reason for any further complexity
 Make reorganization tooltips reponsive to describe what type of selected units are required
 Update docstrings
+Move buildings.py to constructs, move locations.py to actor_types, and move actor_types to be within constructs
 Eventually add DOM-style dependency system for images and (less important) tooltips, so they are only updated when needed
-    
+    Find the dom_bus architecture above ^
+Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
+    Probably no longer needed with DOM system
+
+
 Notes:
 In location-centric design, game logic is centralized and as independent as possible from interface elements
 Work to define what an actor is - maybe it is a concept that can have an inventory and be selected on the LHS info displays

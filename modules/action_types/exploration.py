@@ -164,11 +164,19 @@ class exploration(action.action):
             self.direction = on_click_info_dict["direction"]
             self.start(unit)
             current_location = unit.get_location()
-            unit.create_cell_icon(
+            future_location = current_location.get_world_handler().find_location(
                 current_location.x + self.x_change,
                 current_location.y + self.y_change,
-                f"misc/exploration_x/{self.direction}_x.png",
             )
+            constants.actor_creation_manager.create_interface_element(
+                input_dict={
+                    "init_type": constants.HOSTED_ICON,
+                    "location": future_location,
+                    "image_id": [
+                        {"image_id": f"misc/exploration_x/{self.direction}.png"}
+                    ],
+                },
+            )  # Track this icon and remove it when it should disappear
             return True
         return False
 
@@ -194,10 +202,10 @@ class exploration(action.action):
                             "message": "Explore",
                         },
                         {
-                            "on_click": (
-                                self.current_unit.clear_attached_cell_icons,
-                                [],
-                            ),
+                            # "on_click": (
+                            #    self.current_unit.clear_attached_cell_icons,
+                            #    [],
+                            # ),
                             "tooltip": ["Cancel"],
                             "message": "Cancel",
                         },
@@ -236,7 +244,7 @@ class exploration(action.action):
                 )
                 actor_utility.focus_minimap_grids(self.current_unit.get_location())
         self.current_unit.set_movement_points(0)
-        self.current_unit.clear_attached_cell_icons()
+        # self.current_unit.clear_attached_cell_icons()
         super().complete()
         if self.roll_result <= self.current_max_crit_fail:
             self.current_unit.die()
