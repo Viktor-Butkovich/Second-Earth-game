@@ -16,7 +16,7 @@ required_dummy_attributes = [
     "inventory_capacity",
     "inventory",
     "equipment",
-    "contained_mobs",
+    "subscribed_passengers",
     "sentry_mode",
     "base_automatic_route",
     "end_turn_destination",

@@ -410,7 +410,7 @@ class button(interface_elements.interface_element):
                 tooltip_text = [f"Cycles through this vehicle's passengers"]
                 tooltip_text.append("Passengers: ")
                 if self.showing:
-                    for current_passenger in status.displayed_mob.contained_mobs:
+                    for current_passenger in status.displayed_mob.subscribed_passengers:
                         tooltip_text.append(f"    {current_passenger.name}")
                 self.set_tooltip(tooltip_text)
 
@@ -420,8 +420,8 @@ class button(interface_elements.interface_element):
             if self.showing:
                 for current_work_crew in status.displayed_location.get_building(
                     constants.RESOURCE
-                ).contained_work_crews:
-                    tooltip_text.append("    " + current_work_crew.name)
+                ).subscribed_work_crews:
+                    tooltip_text.append(f"    {current_work_crew.name}")
             self.set_tooltip(tooltip_text)
 
         elif self.button_type == constants.CYCLE_SAME_LOCATION_BUTTON:
@@ -913,8 +913,8 @@ class button(interface_elements.interface_element):
                                 elif current_mob.get_permission(
                                     constants.VEHICLE_PERMISSION
                                 ):  # If moving into unreachable land, have each passenger attempt to move
-                                    if current_mob.contained_mobs:
-                                        passengers = current_mob.contained_mobs.copy()
+                                    if current_mob.subscribed_passengers:
+                                        passengers = current_mob.subscribed_passengers.copy()
                                         current_mob.eject_passengers()
                                         last_moved = None
                                         for current_passenger in passengers:
@@ -2909,7 +2909,7 @@ class reorganize_unit_button(button):
                     if (
                         procedure_actors[
                             constants.ACTIVE_VEHICLE_PERMISSION
-                        ].contained_mobs
+                        ].subscribed_passengers
                         or procedure_actors[
                             constants.ACTIVE_VEHICLE_PERMISSION
                         ].get_held_items()

@@ -36,7 +36,7 @@ class vehicle(pmob):
             None
         """
         self.crew: pmob = None
-        self.contained_mobs: List[pmob] = []
+        self.subscribed_passengers: List[pmob] = []
         self.ejected_crew = None
         self.ejected_passengers = []
         super().__init__(from_save, input_dict, original_constructor=False)
@@ -73,6 +73,19 @@ class vehicle(pmob):
         if not self.get_permission(constants.ACTIVE_PERMISSION):
             self.remove_from_turn_queue()
         self.finish_init(original_constructor, from_save, input_dict)
+
+    @property
+    def contained_mobs(self) -> List[pmob]:
+        """
+        All mobs contained within this actor, including itself
+            Can use instead of manually finding all mobs somewhere, even ones that are not directly subscribed to the location
+        """
+        contained_mobs = [self]
+        if self.crew:
+            contained_mobs += self.crew.contained_mobs
+        for current_passenger in self.subscribed_passengers:
+            contained_mobs += current_passenger.contained_mobs
+        return contained_mobs
 
     def get_item_upkeep(
         self, recurse: bool = False, earth_exemption: bool = True
@@ -167,9 +180,9 @@ class vehicle(pmob):
             list: Returns a list of units managed by this unit
         """
         if self.crew:
-            return [self.crew] + self.contained_mobs
+            return [self.crew] + self.subscribed_passengers
         else:
-            return self.contained_mobs
+            return self.subscribed_passengers
 
     def eject_crew(self, focus=True):
         """
@@ -193,10 +206,10 @@ class vehicle(pmob):
         Output:
             None
         """
-        while len(self.contained_mobs) > 0:
-            current_mob = self.contained_mobs.pop(0)
+        while len(self.subscribed_passengers) > 0:
+            current_mob = self.subscribed_passengers.pop(0)
             current_mob.disembark_vehicle(
-                self, focus=focus and len(self.contained_mobs) == 1
+                self, focus=focus and len(self.subscribed_passengers) == 1
             )  # Only focus on the last
             if (not flags.player_turn) or flags.enemy_combat_phase:
                 self.ejected_passengers.append(current_mob)
@@ -243,7 +256,7 @@ class vehicle(pmob):
         """
         for current_sub_mob in self.get_sub_mobs():
             current_sub_mob.fire()
-        self.contained_mobs = []
+        self.subscribed_passengers = []
         self.set_crew(None)
         super().fire()
 
@@ -278,7 +291,7 @@ class vehicle(pmob):
             save_dict["crew"] = None
 
         save_dict["passenger_dicts"] = [
-            current_mob.to_save_dict() for current_mob in self.contained_mobs
+            current_mob.to_save_dict() for current_mob in self.subscribed_passengers
         ]
         # List of dictionaries for each passenger, on load a vehicle creates all of its passengers and embarks them
         return save_dict
@@ -319,16 +332,3 @@ class vehicle(pmob):
             return self.crew
         else:
             return super().get_worker()
-
-    def update_habitability(self):
-        """
-        Description:
-            Updates this unit's habitability and that of its passengers, based on the location it is in
-        Input:
-            None
-        Output:
-            None
-        """
-        super().update_habitability()
-        for current_mob in self.contained_mobs:
-            current_mob.update_habitability()

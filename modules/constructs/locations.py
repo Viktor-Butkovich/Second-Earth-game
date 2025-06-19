@@ -112,11 +112,17 @@ class location(actors.actor):
         return constants.LOCATION_ACTOR_TYPE
 
     @property
-    def subscribed_mobs_recursive(self) -> List[Any]:
-        return (
-            []
-        )  # Dynamically get all contained mobs, including work crews in buildings and sub-mobs of vehicles and groups
-        #   Make sure to recursively get all sub-mobs: vehicle with crew should return vehicle, crew, crew's officer, and crew's colonists
+    def contained_mobs(self) -> List[Any]:
+        """
+        All mobs contained within this actor, including itself
+            Can use instead of manually finding all mobs somewhere, even ones that are not directly subscribed to the location
+        """
+        contained_mobs = []
+        for current_mob in self.subscribed_mobs:
+            contained_mobs += current_mob.contained_mobs
+        if self.get_building(constants.RESOURCE):
+            contained_mobs += self.get_building(constants.RESOURCE).contained_mobs
+        return contained_mobs
 
     @property
     def is_abstract_location(self) -> bool:
@@ -639,8 +645,8 @@ class location(actors.actor):
                 status.location_info_display, self
             )
 
-        for mob in self.subscribed_mobs_recursive:
-            mob.update_habitability()
+        for current_mob in self.contained_mobs:
+            current_mob.update_habitability()
 
     def has_snow(self) -> bool:
         """

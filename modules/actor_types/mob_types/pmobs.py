@@ -171,7 +171,8 @@ class pmob(mob):
             self.select()
             constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)
         self.add_to_turn_queue()
-        self.update_habitability()
+        for current_mob in self.contained_mobs:
+            current_mob.update_habitability()
 
     def get_item_upkeep(
         self, recurse: bool = False, earth_exemption: bool = True
@@ -957,7 +958,7 @@ class pmob(mob):
         self.inventory = {}
         self.get_location().unsubscribe_mob(self)
         self.remove_from_turn_queue()
-        vehicle.contained_mobs.append(self)
+        vehicle.subscribed_passengers.append(self)
         vehicle.move_to_front()
         self.set_permission(constants.IN_VEHICLE_PERMISSION, True)
         if (
@@ -980,7 +981,9 @@ class pmob(mob):
         Output:
             None
         """
-        vehicle.contained_mobs = utility.remove_from_list(vehicle.contained_mobs, self)
+        vehicle.subscribed_passengers = utility.remove_from_list(
+            vehicle.subscribed_passengers, self
+        )
         self.get_location().subscribe_mob(self)
         self.vehicle = None
         self.set_permission(constants.IN_VEHICLE_PERMISSION, False)
@@ -1004,7 +1007,8 @@ class pmob(mob):
         if focus:
             self.select()
             constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)
-        self.update_habitability()
+        for current_mob in self.contained_mobs:
+            current_mob.update_habitability()
 
     def get_worker(self) -> "pmob":
         """

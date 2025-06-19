@@ -503,19 +503,19 @@ Mobs and buildings have to track which cells and which grids they are visible in
     Generally much clunkier, and it based on incremental design decisions that were reasonable at the time
 
 Location rework backlog:
-Implement location subscribed_mobs_recursive property to get all mobs who would map to this with get_location()
-    This would probably make upkeep/attrition logic more elegant (if this is done, make sure the top-level unit never has attrition)
-    A top-level unit should be able to report the total upkeep of its components without actually requiring any itself
+Make reorganization tooltips reponsive to describe what type of selected units are required
 Convert all tooltips to act similar to location tooltips, with centralized rendering logic
     Ideally, an object returns a tooltip as a list of strings or a 2-dimensional list of strings, and the main loop entirely
         handles rendering this tooltip when needed - no reason for any further complexity
-Make reorganization tooltips reponsive to describe what type of selected units are required
+    Particularly, an object should never have to deal with its own tooltip renderin
 Update docstrings
 Move buildings.py to constructs, move locations.py to actor_types, and move actor_types to be within constructs
 Eventually add DOM-style dependency system for images and (less important) tooltips, so they are only updated when needed
     Find the dom_bus architecture above ^
+    To make sure this is actually helpful, try caching get_image_id_list results and using these for minimap calibration
 Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
     Probably no longer needed with DOM system
+Could refactor location-level total upkeep required with contained_mobs - avoids manual traversals, just get total upkeep for every contained mob
 
 
 Notes:
@@ -553,4 +553,3 @@ Work to define what an actor is - maybe it is a concept that can have an invento
 # Add task-specific unit voicelines, with separate unit and minister voice sets
 # Add modern minister outfits
 # Add crater and flood basalt terrain variants
-# Try out fuzzy logic for planetary simulation

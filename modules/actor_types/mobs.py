@@ -112,6 +112,10 @@ class mob(actor):
     def actor_type(self) -> str:
         return constants.MOB_ACTOR_TYPE
 
+    @property
+    def contained_mobs(self) -> List[Any]:
+        return [self]
+
     def load_end_turn_destination(self):
         """
         Description:
@@ -244,9 +248,10 @@ class mob(actor):
         Output:
             None
         """
-        self.update_habitability()
-        if self.equipment:  # Update spacesuit image for local conditions
-            self.update_image_bundle()
+        for current_mob in self.contained_mobs:
+            current_mob.update_habitability()
+            if current_mob.equipment:  # Update spacesuit image for local conditions
+                current_mob.update_image_bundle()
 
     def permissions_setup(self) -> None:
         """
@@ -297,7 +302,8 @@ class mob(actor):
             task in [constants.VEHICLE_PERMISSION, constants.SPACESUITS_PERMISSION]
             and (not self.get_permission(constants.DUMMY_PERMISSION))
         ):
-            self.update_habitability()
+            for current_mob in self.contained_mobs:
+                current_mob.update_habitability()
         elif task == constants.TRAVELING_PERMISSION and self.get_permission(
             constants.SPACESHIP_PERMISSION
         ):
@@ -1012,17 +1018,17 @@ class mob(actor):
         tooltip_list = []
 
         tooltip_list.append(
-            "Unit type: " + self.name[:1].capitalize() + self.name[1:]
+            f"Unit type: {self.name[:1].capitalize()}{self.name[1:]}"
         )  # Capitalizes first letter while keeping rest the same
         if self.get_permission(constants.OFFICER_PERMISSION):
-            tooltip_list.append("Name: " + self.character_info["name"])
+            tooltip_list.append(f"Name: {self.character_info["name"]}")
         if self.get_permission(constants.PMOB_PERMISSION):
             if self.get_permission(constants.GROUP_PERMISSION):
-                tooltip_list.append("    Officer: " + self.officer.name.capitalize())
+                tooltip_list.append(f"    Officer: {self.officer.name.capitalize()}")
                 tooltip_list.append(
-                    "        Name: " + self.officer.character_info["name"]
+                    f"        Name: {self.officer.character_info["name"]}"
                 )
-                tooltip_list.append("    Workers: " + self.worker.name.capitalize())
+                tooltip_list.append(f"    Workers: {self.worker.name.capitalize()}")
             elif self.get_permission(constants.VEHICLE_PERMISSION):
                 if self.get_permission(constants.ACTIVE_PERMISSION):
                     tooltip_list.append("    Crew: " + self.crew.name.capitalize())
@@ -1032,10 +1038,10 @@ class mob(actor):
                         f"    A {self.name} cannot move or take passengers or cargo without crew"
                     )
 
-                if len(self.contained_mobs) > 0:
+                if len(self.subscribed_passengers) > 0:
                     tooltip_list.append("    Passengers: ")
-                    for current_mob in self.contained_mobs:
-                        tooltip_list.append("        " + current_mob.name.capitalize())
+                    for current_mob in self.subscribed_passengers:
+                        tooltip_list.append(f"        {current_mob.name.capitalize()}")
                 else:
                     tooltip_list.append("    Passengers: None")
 

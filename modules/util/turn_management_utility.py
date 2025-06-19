@@ -348,7 +348,7 @@ def manage_production():
         expected_production[current_item.key] = 0
     for current_resource_building in status.resource_building_list:
         if not current_resource_building.damaged:
-            for current_work_crew in current_resource_building.contained_work_crews:
+            for current_work_crew in current_resource_building.subscribed_work_crews:
                 if current_work_crew.movement_points >= 1:
                     if current_work_crew.get_permission(constants.VETERAN_PERMISSION):
                         expected_production[

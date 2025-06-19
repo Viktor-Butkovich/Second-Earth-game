@@ -69,16 +69,15 @@ class embark_all_passengers_button(button):
             if can_embark:
                 if vehicle.sentry_mode:
                     vehicle.set_sentry_mode(False)
-                for contained_mob in vehicle.get_location().subscribed_mobs.copy():
-                    passenger = contained_mob
-                    if passenger.get_permission(
+                for subscribed_mob in vehicle.get_location().subscribed_mobs.copy():
+                    if subscribed_mob.get_permission(
                         constants.PMOB_PERMISSION
-                    ) and not passenger.get_permission(
+                    ) and not subscribed_mob.get_permission(
                         constants.VEHICLE_PERMISSION
                     ):  # vehicles and enemies won't be picked up as passengers
-                        passenger.embark_vehicle(
+                        subscribed_mob.embark_vehicle(
                             vehicle,
-                            focus=contained_mob
+                            focus=subscribed_mob
                             == vehicle.get_location().subscribed_mobs[-1],
                         )
         else:
@@ -162,8 +161,8 @@ class disembark_all_passengers_button(button):
             if can_disembark:
                 if vehicle.sentry_mode:
                     vehicle.set_sentry_mode(False)
-                if len(vehicle.contained_mobs) > 0:
-                    vehicle.contained_mobs[-1].selection_sound()
+                if len(vehicle.subscribed_passengers) > 0:
+                    vehicle.subscribed_passengers[-1].selection_sound()
                 vehicle.eject_passengers()
         else:
             text_utility.print_to_screen(
@@ -179,7 +178,9 @@ class disembark_all_passengers_button(button):
         Output:
             boolean: Returns False if the selected vehicle has no crew, otherwise returns same as superclass
         """
-        result = super().can_show(skip_parent_collection=skip_parent_collection) and status.displayed_mob.get_permission(constants.ACTIVE_VEHICLE_PERMISSION)
+        result = super().can_show(
+            skip_parent_collection=skip_parent_collection
+        ) and status.displayed_mob.get_permission(constants.ACTIVE_VEHICLE_PERMISSION)
         if result:
             if (
                 status.displayed_mob.get_permission(constants.SPACESHIP_PERMISSION)
@@ -217,7 +218,9 @@ class enable_sentry_mode_button(button):
                 return False
             elif displayed_mob.sentry_mode:
                 return False
-            elif displayed_mob.get_permission(constants.VEHICLE_PERMISSION) and not displayed_mob.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
+            elif displayed_mob.get_permission(
+                constants.VEHICLE_PERMISSION
+            ) and not displayed_mob.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
                 return False
         return result
 
@@ -670,7 +673,7 @@ class disembark_vehicle_button(button):
             None
         """
         if main_loop_utility.action_possible():
-            if len(self.attached_label.actor.contained_mobs) > 0:
+            if len(self.attached_label.actor.subscribed_passengers) > 0:
                 can_disembark = True
                 if self.vehicle_type == constants.TRAIN_PERMISSION:
                     if not self.attached_label.actor.get_location().has_intact_building(
@@ -897,7 +900,7 @@ class cycle_passengers_button(button):
             if not displayed_mob.get_permission(constants.VEHICLE_PERMISSION):
                 return False
             elif (
-                not len(displayed_mob.contained_mobs) > 3
+                not len(displayed_mob.subscribed_passengers) > 3
             ):  # only show if vehicle with 3+ passengers
                 return False
             if displayed_mob.get_permission(constants.SPACESHIP_PERMISSION):
@@ -917,8 +920,8 @@ class cycle_passengers_button(button):
         """
         if main_loop_utility.action_possible():
             displayed_mob = status.displayed_mob
-            moved_mob = displayed_mob.contained_mobs.pop(0)
-            displayed_mob.contained_mobs.append(moved_mob)
+            moved_mob = displayed_mob.subscribed_passengers.pop(0)
+            displayed_mob.subscribed_passengers.append(moved_mob)
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, displayed_mob
             )  # updates mob info display list to show changed passenger order
@@ -972,7 +975,7 @@ class cycle_work_crews_button(button):
                 len(
                     status.displayed_location.get_intact_building(
                         constants.RESOURCE
-                    ).contained_work_crews
+                    ).subscribed_work_crews
                 )
                 > 3
             ):
@@ -999,10 +1002,10 @@ class cycle_work_crews_button(button):
             displayed_location = status.displayed_location
             moved_mob = displayed_location.get_intact_building(
                 constants.RESOURCE
-            ).contained_work_crews.pop(0)
+            ).subscribed_work_crews.pop(0)
             displayed_location.get_intact_building(
                 constants.RESOURCE
-            ).contained_work_crews.append(moved_mob)
+            ).subscribed_work_crews.append(moved_mob)
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, displayed_location
             )  # Updates location info display list to show changed work crew order
@@ -1119,7 +1122,7 @@ class work_crew_to_building_button(button):
                 if self.attached_building.upgrade_fields[
                     constants.RESOURCE_SCALE
                 ] > len(
-                    self.attached_building.contained_work_crews
+                    self.attached_building.subscribed_work_crews
                 ):  # if has extra space
                     if self.attached_work_crew.sentry_mode:
                         self.attached_work_crew.set_sentry_mode(False)

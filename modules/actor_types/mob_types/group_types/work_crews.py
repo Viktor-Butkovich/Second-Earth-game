@@ -26,7 +26,7 @@ class work_crew(group):
         self.building = building
         self.get_location().unsubscribe_mob(self)
         self.remove_from_turn_queue()
-        building.contained_work_crews.append(self)
+        building.subscribed_work_crews.append(self)
         actor_utility.calibrate_actor_info_display(
             status.mob_info_display, None, override_exempt=True
         )
@@ -42,8 +42,8 @@ class work_crew(group):
         """
         self.set_permission(constants.IN_BUILDING_PERMISSION, False)
         self.building = None
-        building.contained_work_crews = utility.remove_from_list(
-            building.contained_work_crews, self
+        building.subscribed_work_crews = utility.remove_from_list(
+            building.subscribed_work_crews, self
         )
         self.get_location().subscribe_mob(self)
         self.add_to_turn_queue()

@@ -50,6 +50,14 @@ class actor:
     def infinite_inventory_capacity(self) -> bool:
         return False
 
+    @property
+    def contained_mobs(self) -> List["actor"]:
+        """
+        All mobs contained within this actor, including itself
+            Can use instead of manually finding all mobs somewhere, even ones that are not directly subscribed to the location
+        """
+        return []
+
     def finish_init(
         self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
     ):

@@ -110,6 +110,14 @@ class group(pmob):
         self.worker.join_group(self)
         self.officer.join_group(self)
 
+    @property
+    def contained_mobs(self) -> List[pmob]:
+        """
+        All mobs contained within this actor, including itself
+            Can use instead of manually finding all mobs somewhere, even ones that are not directly subscribed to the location
+        """
+        return [self, self.worker, self.officer]
+
     def get_item_upkeep(
         self, recurse: bool = False, earth_exemption: bool = True
     ) -> Dict[str, float]:

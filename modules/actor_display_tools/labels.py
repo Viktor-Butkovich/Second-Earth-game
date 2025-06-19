@@ -796,7 +796,7 @@ class actor_display_label(label):
             if self.actor:
                 if self.actor.get_permission(constants.ACTIVE_PERMISSION):
                     name_list = [self.message_start]
-                    for current_passenger in self.actor.contained_mobs:
+                    for current_passenger in self.actor.subscribed_passengers:
                         name_list.append(
                             "    " + utility.capitalize(current_passenger.name)
                         )
@@ -953,9 +953,9 @@ class actor_display_label(label):
             )
             if self.attached_building:
                 tooltip_text.append(
-                    f"Work crews: {len(self.attached_building.contained_work_crews)}/{self.attached_building.upgrade_fields[constants.RESOURCE_SCALE]}"
+                    f"Work crews: {len(self.attached_building.subscribed_work_crews)}/{self.attached_building.upgrade_fields[constants.RESOURCE_SCALE]}"
                 )
-                for current_work_crew in self.attached_building.contained_work_crews:
+                for current_work_crew in self.attached_building.subscribed_work_crews:
                     tooltip_text.append(
                         f"    {utility.capitalize(current_work_crew.name)}"
                     )
@@ -1337,7 +1337,9 @@ class actor_display_label(label):
                         self.attached_building = new_actor.get_building(
                             constants.RESOURCE
                         )
-                        self.attached_list = self.attached_building.contained_work_crews
+                        self.attached_list = (
+                            self.attached_building.subscribed_work_crews
+                        )
                         if len(self.attached_list) > self.list_index:
                             self.set_label(
                                 self.message_start
@@ -1363,15 +1365,15 @@ class actor_display_label(label):
                 if not self.actor.get_permission(constants.ACTIVE_PERMISSION):
                     self.set_label("Must be crewed by astronauts to function")
                 elif self.actor.get_permission(constants.VEHICLE_PERMISSION):
-                    if len(self.actor.contained_mobs) == 0:
+                    if len(self.actor.subscribed_passengers) == 0:
                         self.set_label(self.message_start + "none")
                     else:
                         self.set_label(self.message_start)
 
             elif self.actor_label_type == constants.CURRENT_PASSENGER_LABEL:
                 if self.actor.get_permission(constants.VEHICLE_PERMISSION):
-                    if len(self.actor.contained_mobs) > 0:
-                        self.attached_list = new_actor.contained_mobs
+                    if len(self.actor.subscribed_passengers) > 0:
+                        self.attached_list = new_actor.subscribed_passengers
                         if len(self.attached_list) > self.list_index:
                             self.set_label(
                                 self.message_start
@@ -2016,7 +2018,7 @@ class building_work_crews_label(actor_display_label):
             self.attached_building = new_actor.get_building(self.building_type)
             if self.attached_building:
                 self.set_label(
-                    f"{self.message_start}{len(self.attached_building.contained_work_crews)}/{self.attached_building.upgrade_fields[constants.RESOURCE_SCALE]}"
+                    f"{self.message_start}{len(self.attached_building.subscribed_work_crews)}/{self.attached_building.upgrade_fields[constants.RESOURCE_SCALE]}"
                 )
                 self.show_label = True
 

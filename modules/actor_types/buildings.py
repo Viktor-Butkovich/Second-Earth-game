@@ -21,7 +21,7 @@ class building:
                 'building_type': building_type value - Type of building
                 'location': location value - Where this building is located
                 'building_type': string value - Type of building, like 'port'
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
+                'subscribed_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
                 'damaged': boolean value - Required if from save, whether this building is currently damaged
         Output:
             None
@@ -35,9 +35,9 @@ class building:
         for upgrade_field in self.building_type.upgrade_fields:
             self.upgrade_fields[upgrade_field] = input_dict.get(upgrade_field, 1)
         status.building_list.append(self)
-        self.contained_work_crews = []
+        self.subscribed_work_crews = []
         if from_save:
-            for current_work_crew in input_dict["contained_work_crews"]:
+            for current_work_crew in input_dict["subscribed_work_crews"]:
                 constants.actor_creation_manager.create(
                     True, current_work_crew
                 ).work_building(self)
@@ -91,16 +91,16 @@ class building:
                 Along with superclass outputs, also saves the following values:
                 'building_type': string value - Type of building, like 'port'
                 'image': string value - File path to the image used by this object
-                'contained_work_crews': dictionary list value - list of dictionaries of saved information necessary to recreate each work crew working in this building
+                'subscribed_work_crews': dictionary list value - list of dictionaries of saved information necessary to recreate each work crew working in this building
                 'damaged': boolean value - whether this building is currently damaged
         """
         return {
             **super().to_save_dict(),
             **self.upgrade_fields,
             "init_type": self.building_type.key,
-            "contained_work_crews": [
+            "subscribed_work_crews": [
                 current_work_crew.to_save_dict()
-                for current_work_crew in self.contained_work_crews
+                for current_work_crew in self.subscribed_work_crews
             ],
             "damaged": self.damaged,
         }
@@ -131,10 +131,10 @@ class building:
         ]
         if self.building_type == constants.RESOURCE:
             self.tooltip_text.append(
-                f"Work crews: {len(self.contained_work_crews)}/{self.upgrade_fields[constants.RESOURCE_SCALE]}"
+                f"Work crews: {len(self.subscribed_work_crews)}/{self.upgrade_fields[constants.RESOURCE_SCALE]}"
             )
-            for current_work_crew in self.contained_work_crews:
-                self.tooltip_text.append("    " + current_work_crew.name)
+            for current_work_crew in self.subscribed_work_crews:
+                self.tooltip_text.append(f"    {current_work_crew.name}")
             self.tooltip_text.append(
                 f"Lets {self.upgrade_fields[constants.RESOURCE_SCALE]} attached work crews each attempt to produce {self.upgrade_fields[constants.RESOURCE_EFFICIENCY]} units of {self.resource_type.name} each turn"
             )
@@ -234,7 +234,7 @@ class building:
                     5: (-1, 1),  # top left
                     6: (1, 1),  # top right
                 }
-                if scale > len(self.contained_work_crews):
+                if scale > len(self.subscribed_work_crews):
                     resource_image_id = f"buildings/{constants.resource_building_dict[self.resource_type.key]}_no_work_crew.png"
                 else:
                     resource_image_id = f"buildings/{constants.resource_building_dict[self.resource_type.key]}.png"
@@ -276,7 +276,7 @@ class infrastructure_building(building):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this building's name
                 'infrastructure_type': string value - Type of infrastructure, like 'road' or 'railroad'
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
+                'subscribed_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
         Output:
             None
         """
@@ -411,7 +411,7 @@ class warehouses(building):
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this building's name
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
+                'subscribed_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
                 'warehouse_level': int value - Required if from save, size of warehouse (9 inventory capacity per level)
         Output:
             None
@@ -461,7 +461,7 @@ class resource_building(building):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this building's name
                 'resource_type': item_type value - Type of resource produced by this building, like "Gold"
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
+                'subscribed_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
                 'scale': int value - Required if from save, maximum number of work crews that can be attached to this building
                 'efficiency': int value - Required if from save, number of rolls made by work crews each turn to produce resources at this building
         Output:
@@ -494,7 +494,7 @@ class resource_building(building):
         Output:
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
                 Along with superclass outputs, also saves the following values:
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
+                'subscribed_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
                 'resource_type': string value - Type of resource produced by this building, like 'exotic wood'
                 'scale': int value - Maximum number of work crews that can be attached to this building
                 'efficiency': int value - Number of rolls made by work crews each turn to produce resources at this building
@@ -512,7 +512,7 @@ class resource_building(building):
         Output:
             None
         """
-        for current_work_crew in self.contained_work_crews:
+        for current_work_crew in self.subscribed_work_crews:
             if not current_work_crew in self.ejected_work_crews:
                 self.ejected_work_crews.append(current_work_crew)
                 current_work_crew.leave_building(self)
@@ -622,5 +622,5 @@ class resource_building(building):
         Output:
             None
         """
-        for current_work_crew in self.contained_work_crews:
+        for current_work_crew in self.subscribed_work_crews:
             current_work_crew.attempt_production(self)
