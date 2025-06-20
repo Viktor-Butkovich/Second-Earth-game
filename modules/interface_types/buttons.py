@@ -914,7 +914,9 @@ class button(interface_elements.interface_element):
                                     constants.VEHICLE_PERMISSION
                                 ):  # If moving into unreachable land, have each passenger attempt to move
                                     if current_mob.subscribed_passengers:
-                                        passengers = current_mob.subscribed_passengers.copy()
+                                        passengers = (
+                                            current_mob.subscribed_passengers.copy()
+                                        )
                                         current_mob.eject_passengers()
                                         last_moved = None
                                         for current_passenger in passengers:

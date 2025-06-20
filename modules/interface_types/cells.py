@@ -42,36 +42,7 @@ class cell:
 
     @property
     def batch_tooltip_list(self):
-        batch_tooltip_list: List[Dict[str, Any]] = []
-        batch_tooltip_text_list = self.get_location().generate_batch_tooltip_text_list()
-        self.batch_tooltip_box_list = []
-        font = constants.fonts["default"]
-        tooltip_outline_width = 1
-        tooltip_width = 0
-        for tooltip_text in batch_tooltip_text_list:
-            for text_line in tooltip_text:
-                tooltip_width = max(
-                    tooltip_width,
-                    font.calculate_size(text_line) + scaling.scale_width(10),
-                )
-            tooltip_height = (len(tooltip_text) * font.size) + scaling.scale_height(5)
-
-            batch_tooltip_list.append(
-                {
-                    "text": tooltip_text,
-                    "box": pygame.Rect(
-                        self.pixel_x, self.pixel_y, tooltip_width, tooltip_height
-                    ),
-                    "outline": pygame.Rect(
-                        self.pixel_x - tooltip_outline_width,
-                        self.pixel_y + tooltip_outline_width,
-                        tooltip_width + (2 * tooltip_outline_width),
-                        tooltip_height + (tooltip_outline_width * 2),
-                    ),
-                    "outline_width": tooltip_outline_width,
-                }
-            )
-        return batch_tooltip_list
+        return self.get_location().generate_batch_tooltip_text_list()
 
     def set_image(self, *args, **kwargs):
         self.image.set_image(*args, **kwargs)
