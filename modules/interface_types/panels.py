@@ -43,28 +43,6 @@ class panel(button):
         flags.choosing_destination = False
         return None
 
-    def update_tooltip(self):
-        """
-        Description:
-            Panels have no tooltips
-        Input:
-            None
-        Output:
-            None
-        """
-        return
-
-    def set_tooltip(self):
-        """
-        Description:
-            Panels have no tooltips
-        Input:
-            None
-        Output:
-            None
-        """
-        return
-
     def can_show_tooltip(self):
         """
         Description:

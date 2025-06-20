@@ -59,16 +59,12 @@ class label(button):
         self.image.set_image(self.image.image_id)
         self.image.Rect = self.Rect
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this label's tooltip - by default, labels have tooltips matching their text
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip([self.message])
+        return [self.message]
 
     def on_click(self):
         """
@@ -145,14 +141,10 @@ class value_label(label):
         """
         self.set_label(utility.capitalize(self.display_name + ": " + str(new_value)))
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this label's tooltip to what it should be. A value label's tooltip label's tooltip shows its text followed by a message related to the type of value represented
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         tooltip_text = [self.message]
         if self.value_name == "public_opinion":
@@ -162,7 +154,7 @@ class value_label(label):
             tooltip_text.append(
                 "Public opinion tends to approach the netural value of 50 over time"
             )
-        self.set_tooltip(tooltip_text)
+        return tooltip_text
 
 
 class money_label_template(value_label):
@@ -230,14 +222,10 @@ class money_label_template(value_label):
         """
         self.update_label(getattr(constants, self.tracker.value_key))
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this label's tooltip to what it should be. A money label's tooltip shows its text followed by the upkeep of the player's units each turn
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         tooltip_text = [self.message]
 
@@ -313,7 +301,7 @@ class money_label_template(value_label):
                 "Between these revenues and expenses, your company is expected to neither gain nor lose money at the end of the turn."
             )
 
-        self.set_tooltip(tooltip_text)
+        return tooltip_text
 
 
 class item_prices_label_template(label):
@@ -418,16 +406,12 @@ class item_prices_label_template(label):
                     ),
                 )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this label's tooltip to be the same as the text it displays
-        Input:
-            None
-        Output:
-            Sets this label's tooltip to be the same as the text it displays
+        Provides the tooltip for this object
         """
-        self.set_tooltip(self.message)
+        return self.message
 
 
 class multi_line_label(label):
@@ -493,14 +477,12 @@ class multi_line_label(label):
                     ),
                 )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Input:
-            None
-        Output:
-            Sets this label's tooltip to be the same as the text it displays
+        Provides the tooltip for this object
         """
-        self.set_tooltip(self.message)
+        return self.message
 
     def format_message(self):
         """

@@ -1,5 +1,6 @@
 # Contains functionality for notifications
 
+from typing import List
 from modules.interface_types.labels import multi_line_label
 from modules.util import actor_utility
 from modules.constants import constants, status, flags
@@ -79,19 +80,15 @@ class notification(multi_line_label):
         if self.can_remove:
             self.message.append("Click to remove this notification.")
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this notification's tooltip to what it should be. By default, notifications prompt the player to close them
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.can_remove:
-            self.set_tooltip(["Click to remove this notification"])
+            return ["Click to remove this notification"]
         else:
-            self.set_tooltip(self.message)
+            return self.message
 
     def on_click(self, override_can_remove=False):
         """

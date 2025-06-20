@@ -1,5 +1,6 @@
 # Contains all functionality for building upgrades
 
+from typing import List
 from modules.action_types import action
 from modules.util import actor_utility, action_utility
 from modules.constructs import building_types
@@ -61,14 +62,10 @@ class upgrade(action.action):
         initial_input_dict["keybind_id"] = self.upgrade_dict.get("keybind", None)
         return initial_input_dict
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this tooltip of a button linked to this action
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         message = []
         unit = status.displayed_mob

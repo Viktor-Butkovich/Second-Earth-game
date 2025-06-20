@@ -70,8 +70,6 @@ class button(interface_elements.interface_element):
         self.enable_shader = input_dict.get("enable_shader", False)
         self.showing_outline = False
         self.showing_background = True
-        self.tooltip_text = []
-        self.update_tooltip()
         self.confirming = False
         self.being_pressed = False
         self.in_notification = (
@@ -132,14 +130,10 @@ class button(interface_elements.interface_element):
         self.outline.y = self.Rect.y - self.outline_width
         self.outline.x = self.Rect.x - self.outline_width
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip to what it should be, depending on its button_type
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.button_type in [
             constants.MOVE_UP_BUTTON,
@@ -195,15 +189,16 @@ class button(interface_elements.interface_element):
                         )
                         and adjacent_location.get_best_combatant("npmob") != None
                     ):
-                        tooltip_text += status.actions["combat"].update_tooltip(
-                            tooltip_info_dict={
-                                "adjacent_infrastructure": adjacent_infrastructure,
-                                "local_infrastructure": local_infrastructure,
-                                "x_change": x_change,
-                                "y_change": y_change,
-                                "adjacent_location": adjacent_location,
-                            }
-                        )
+                        tooltip_text += status.actions["combat"].tooltip_text
+                        # (
+                        #    tooltip_info_dict={
+                        #        "adjacent_infrastructure": adjacent_infrastructure,
+                        #        "local_infrastructure": local_infrastructure,
+                        #        "x_change": x_change,
+                        #        "y_change": y_change,
+                        #        "adjacent_location": adjacent_location,
+                        #    }
+                        # )
                     else:
                         message = ""
                         if status.displayed_mob.all_permissions(
@@ -247,93 +242,80 @@ class button(interface_elements.interface_element):
                             "Moving between 2 locations with roads or railroads costs half as many movement points."
                         )
                 else:
-                    tooltip_text += status.actions["exploration"].update_tooltip(
-                        tooltip_info_dict={"direction": direction}
-                    )
+                    tooltip_text += status.actions["exploration"].tooltip_text
+                    # (
+                    #    tooltip_info_dict={"direction": direction}
+                    # )
 
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.button_type == constants.EXECUTE_MOVEMENT_ROUTES_BUTTON:
-            self.set_tooltip(
-                ["Press to move all valid units along their designated movement routes"]
-            )
+            return [
+                "Press to move all valid units along their designated movement routes"
+            ]
 
         elif self.button_type == constants.INSTRUCTIONS_BUTTON:
-            self.set_tooltip(
-                [
-                    "Shows the game's instructions",
-                    "Press this when instructions are not opened to open them",
-                    "Press this when instructions are opened to close them",
-                ]
-            )
+            return [
+                "Shows the game's instructions",
+                "Press this when instructions are not opened to open them",
+                "Press this when instructions are opened to close them",
+            ]
 
         elif self.button_type == constants.MERGE_PROCEDURE:
             if status.displayed_mob and status.displayed_mob.all_permissions(
                 constants.OFFICER_PERMISSION, constants.EVANGELIST_PERMISSION
             ):
-                self.set_tooltip(
-                    [
-                        "Merges this evangelist with church volunteers in the same location to form a group of missionaries",
-                        "Requires that an evangelist is selected in the same location as church volunteers",
-                    ]
-                )
+                return [
+                    "Merges this evangelist with church volunteers in the same location to form a group of missionaries",
+                    "Requires that an evangelist is selected in the same location as church volunteers",
+                ]
             else:
-                self.set_tooltip(
-                    [
-                        "Merges this officer with a worker in the same location to form a group with a type based on that of the officer",
-                        "Requires that an officer is selected in the same location as a worker",
-                    ]
-                )
+                return [
+                    "Merges this officer with a worker in the same location to form a group with a type based on that of the officer",
+                    "Requires that an officer is selected in the same location as a worker",
+                ]
 
         elif self.button_type == constants.SPLIT_PROCEDURE:
-            self.set_tooltip(["Splits a group into its worker and officer"])
+            return ["Splits a group into its worker and officer"]
 
         elif self.button_type == constants.CREW_PROCEDURE:  # clicked on vehicle side
-            self.set_tooltip(
-                [
-                    f"Merges this vehicle with a worker in the same location to form a crewed vehicle",
-                    f"Requires that an uncrewed vehicle is selected in the same location as a worker",
-                ]
-            )
+            return [
+                f"Merges this vehicle with a worker in the same location to form a crewed vehicle",
+                f"Requires that an uncrewed vehicle is selected in the same location as a worker",
+            ]
 
         elif self.button_type == constants.UNCREW_PROCEDURE:
-            self.set_tooltip([f"Orders this vehicle's crew to abandon the vehicle."])
+            return [f"Orders this vehicle's crew to abandon the vehicle."]
 
         elif self.button_type == constants.EMBARK_VEHICLE_BUTTON:
-            self.set_tooltip(
-                [
-                    f"Orders this unit to embark a vehicle in the same location",
-                ]
-            )
+            return [
+                f"Orders this unit to embark a vehicle in the same location",
+            ]
 
         elif self.button_type == constants.DISEMBARK_VEHICLE_BUTTON:
-            self.set_tooltip(["Orders this unit to disembark the vehicle"])
+            return ["Orders this unit to disembark the vehicle"]
 
         elif self.button_type == constants.EMBARK_ALL_PASSENGERS_BUTTON:
-            self.set_tooltip(
-                [
-                    f"Orders this vehicle to take all non-vehicle units in this location as passengers"
-                ]
-            )
+            return [
+                f"Orders this vehicle to take all non-vehicle units in this location as passengers"
+            ]
 
         elif self.button_type == constants.DISEMBARK_ALL_PASSENGERS_BUTTON:
-            self.set_tooltip([f"Orders this vehicle to disembark all passengers"])
+            return [f"Orders this vehicle to disembark all passengers"]
 
         elif self.button_type == constants.REMOVE_WORK_CREW_BUTTON:
             if self.attached_label.attached_building:
-                self.set_tooltip(
-                    [
-                        "Detaches this work crew from the "
-                        + self.attached_label.attached_building.name
-                    ]
-                )
+                return [
+                    "Detaches this work crew from the "
+                    + self.attached_label.attached_building.name
+                ]
             else:
-                self.set_tooltip(["none"])
+                return ["none"]
 
         elif (
             self.button_type == constants.END_TURN_BUTTON
         ):  # different from end turn from choice buttons - start end turn brings up a choice notification
-            self.set_tooltip(["Ends the current turn"])
+            return ["Ends the current turn"]
 
         elif self.button_type in [
             constants.SELL_ITEM_BUTTON,
@@ -342,68 +324,57 @@ class button(interface_elements.interface_element):
         ]:
             if status.displayed_location:
                 if self.button_type == constants.SELL_ITEM_BUTTON:
-                    self.set_tooltip(
-                        [
-                            f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell 1 unit of {self.attached_label.actor.current_item.name} for about {self.attached_label.actor.current_item.price} money at the end of the turn",
-                            "The amount each item was sold for is reported at the beginning of your next turn",
-                            f"Each unit of {self.attached_label.actor.current_item.name} sold has a chance of reducing its sale price",
-                        ]
-                    )
+                    return [
+                        f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell 1 unit of {self.attached_label.actor.current_item.name} for about {self.attached_label.actor.current_item.price} money at the end of the turn",
+                        "The amount each item was sold for is reported at the beginning of your next turn",
+                        f"Each unit of {self.attached_label.actor.current_item.name} sold has a chance of reducing its sale price",
+                    ]
                 elif self.button_type == constants.SELL_ALL_ITEM_BUTTON:
                     num_present = status.displayed_location.get_inventory(
                         self.attached_label.actor.current_item
                     )
-                    self.set_tooltip(
-                        [
-                            f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell your entire stockpile of {self.attached_label.actor.current_item.name} for about {self.attached_label.actor.current_item.price} money each at the end of the turn, for a total of about {self.attached_label.actor.current_item.price * num_present} money",
-                            "The amount each item was sold for is reported at the beginning of your next turn",
-                            f"Each unit of {self.attached_label.actor.current_item.name} sold has a chance of reducing its sale price",
-                        ]
-                    )
+                    return [
+                        f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell your entire stockpile of {self.attached_label.actor.current_item.name} for about {self.attached_label.actor.current_item.price} money each at the end of the turn, for a total of about {self.attached_label.actor.current_item.price * num_present} money",
+                        "The amount each item was sold for is reported at the beginning of your next turn",
+                        f"Each unit of {self.attached_label.actor.current_item.name} sold has a chance of reducing its sale price",
+                    ]
                 else:
-                    self.set_tooltip(
-                        [
-                            f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell all items at the end of the turn, "
-                            f"The amount each item was sold for is reported at the beginning of your next turn",
-                            "Each item sold has a chance of reducing its sale price",
-                        ]
-                    )
+                    return [
+                        f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell all items at the end of the turn, "
+                        f"The amount each item was sold for is reported at the beginning of your next turn",
+                        "Each item sold has a chance of reducing its sale price",
+                    ]
             else:
-                self.set_tooltip(["none"])
+                return ["none"]
 
         elif self.button_type == constants.PICK_UP_EACH_ITEM_BUTTON:
-            self.set_tooltip(["Orders the selected unit to pick up all items"])
+            return ["Orders the selected unit to pick up all items"]
 
         elif self.button_type == constants.DROP_EACH_ITEM_BUTTON:
-            self.set_tooltip(["Orders the selected unit to drop all items"])
+            return ["Orders the selected unit to drop all items"]
 
         elif self.button_type == constants.USE_EQUIPMENT_BUTTON:
             if status.displayed_location:
-                self.set_tooltip(
-                    [
-                        f"Orders the selected unit to equip {self.attached_label.actor.current_item.name}"
-                    ]
-                )
+                return [
+                    f"Orders the selected unit to equip {self.attached_label.actor.current_item.name}"
+                ]
 
         elif self.button_type == constants.REMOVE_EQUIPMENT_BUTTON:
             if status.displayed_mob:
-                self.set_tooltip(
-                    [f"Click to unequip {self.equipment_type}"]
-                    + self.equipment_type.description
-                )
+                return [
+                    f"Click to unequip {self.equipment_type}"
+                ] + self.equipment_type.description
 
         elif self.button_type == constants.USE_EACH_EQUIPMENT_BUTTON:
-            self.set_tooltip(["Orders the selected unit to equip all eligible items"])
+            return ["Orders the selected unit to equip all eligible items"]
 
         elif self.button_type == constants.SWITCH_THEATRE_BUTTON:
-            self.set_tooltip(
-                [
-                    "Moves this ship across space to another theatre at the end of the turn",
-                    "Once clicked, the mouse pointer can be used to click on the destination",
-                    "The destination, once chosen, will having a flashing yellow outline",
-                    "Requires that this spaceship is able to move",
-                ]
-            )
+            return [
+                "Moves this ship across space to another theatre at the end of the turn",
+                "Once clicked, the mouse pointer can be used to click on the destination",
+                "The destination, once chosen, will having a flashing yellow outline",
+                "Requires that this spaceship is able to move",
+            ]
 
         elif self.button_type == constants.CYCLE_PASSENGERS_BUTTON:
             if self.vehicle_type:
@@ -412,7 +383,7 @@ class button(interface_elements.interface_element):
                 if self.showing:
                     for current_passenger in status.displayed_mob.subscribed_passengers:
                         tooltip_text.append(f"    {current_passenger.name}")
-                self.set_tooltip(tooltip_text)
+                return tooltip_text
 
         elif self.button_type == constants.CYCLE_WORK_CREWS_BUTTON:
             tooltip_text = ["Cycles through this  building's work crews"]
@@ -422,7 +393,7 @@ class button(interface_elements.interface_element):
                     constants.RESOURCE
                 ).subscribed_work_crews:
                     tooltip_text.append(f"    {current_work_crew.name}")
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.button_type == constants.CYCLE_SAME_LOCATION_BUTTON:
             tooltip_text = ["Cycles through this location's units"]
@@ -432,20 +403,18 @@ class button(interface_elements.interface_element):
                     f"    {current_mob.name}"
                     for current_mob in status.displayed_location.subscribed_mobs
                 ]
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.button_type == constants.BUILD_TRAIN_BUTTON:
             cost = actor_utility.get_building_cost(
                 status.displayed_mob, status.building_types[constants.TRAIN]
             )
-            self.set_tooltip(
-                [
-                    f"Orders parts for and attempts to assemble a train in this unit's location for {cost} money",
-                    "Can only be assembled on a train station",
-                    "Costs all remaining movement points, at least 1",
-                    "Unlike buildings, the cost of vehicle assembly is not impacted by local terrain",
-                ]
-            )
+            return [
+                f"Orders parts for and attempts to assemble a train in this unit's location for {cost} money",
+                "Can only be assembled on a train station",
+                "Costs all remaining movement points, at least 1",
+                "Unlike buildings, the cost of vehicle assembly is not impacted by local terrain",
+            ]
 
         elif self.button_type == constants.CYCLE_UNITS_BUTTON:
             tooltip_text = ["Selects the next unit in the turn order"]
@@ -453,81 +422,68 @@ class button(interface_elements.interface_element):
             if len(turn_queue) > 0:
                 for current_pmob in turn_queue:
                     tooltip_text.append(f"    {utility.capitalize(current_pmob.name)}")
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.button_type == constants.NEW_GAME_BUTTON:
-            self.set_tooltip(["Starts a new game"])
+            return ["Starts a new game"]
 
         elif self.button_type == constants.SAVE_GAME_BUTTON:
-            self.set_tooltip(["Saves this game"])
+            return ["Saves this game"]
 
         elif self.button_type == constants.LOAD_GAME_BUTTON:
-            self.set_tooltip(["Loads a saved game"])
+            return ["Loads a saved game"]
 
         elif self.button_type == constants.CYCLE_AVAILABLE_MINISTERS_BUTTON:
-            self.set_tooltip(
-                ["Cycles through the candidates available to be appointed"]
-            )
+            return ["Cycles through the candidates available to be appointed"]
 
         elif self.button_type == constants.APPOINT_MINISTER_BUTTON:
-            self.set_tooltip(["Appoints this candidate as " + self.appoint_type.name])
+            return ["Appoints this candidate as " + self.appoint_type.name]
 
         elif self.button_type == constants.FIRE_MINISTER_BUTTON:
-            self.set_tooltip(
-                [
-                    "Fires this minister, incurring a public opinion penalty based on their social status",
-                ]
-            )
+            return [
+                "Fires this minister, incurring a public opinion penalty based on their social status",
+            ]
+
         elif self.button_type == constants.REAPPOINT_MINISTER_BUTTON:
-            self.set_tooltip(
-                [
-                    "Removes this minister from their current office, allowing them to be reappointed",
-                    "If this minister is not reappointed by the end of the turn, they will be automatically fired",
-                ]
-            )
+            return [
+                "Removes this minister from their current office, allowing them to be reappointed",
+                "If this minister is not reappointed by the end of the turn, they will be automatically fired",
+            ]
 
         elif self.button_type == constants.TO_TRIAL_BUTTON:
-            self.set_tooltip(
-                [
-                    "Opens the trial planning screen to attempt to imprison this minister for corruption",
-                    "A trial has a higher success chance as more evidence of that minister's corruption is found",
-                    f"While entering this screen is free, a trial costs {constants.action_prices['trial']} money once started",
-                    "Each trial attempted doubles the cost of other trials in the same turn",
-                ]
-            )
+            return [
+                "Opens the trial planning screen to attempt to imprison this minister for corruption",
+                "A trial has a higher success chance as more evidence of that minister's corruption is found",
+                f"While entering this screen is free, a trial costs {constants.action_prices['trial']} money once started",
+                "Each trial attempted doubles the cost of other trials in the same turn",
+            ]
 
         elif self.button_type == constants.FABRICATE_EVIDENCE_BUTTON:
             if constants.current_game_mode == constants.TRIAL_MODE:
-                self.set_tooltip(
-                    [
-                        f"Creates a unit of fake evidence against this minister to improve the trial's success chance for {self.get_cost()} money",
-                        "Each piece of evidence fabricated in a trial becomes increasingly expensive.",
-                        "Unlike real evidence, fabricated evidence disappears at the end of the turn and is never preserved after a failed trial",
-                    ]
-                )
+                return [
+                    f"Creates a unit of fake evidence against this minister to improve the trial's success chance for {self.get_cost()} money",
+                    "Each piece of evidence fabricated in a trial becomes increasingly expensive.",
+                    "Unlike real evidence, fabricated evidence disappears at the end of the turn and is never preserved after a failed trial",
+                ]
             else:
-                self.set_tooltip(["placeholder"])
+                return ["placeholder"]
 
         elif self.button_type == constants.BRIBE_JUDGE_BUTTON:
-            self.set_tooltip(
-                [
-                    f"Bribes the judge of the next trial this turn for {self.get_cost()} money",
-                    "While having unpredictable results, bribing the judge may swing the trial in your favor or blunt the defense's efforts to do the same",
-                ]
-            )
+            return [
+                f"Bribes the judge of the next trial this turn for {self.get_cost()} money",
+                "While having unpredictable results, bribing the judge may swing the trial in your favor or blunt the defense's efforts to do the same",
+            ]
 
         elif self.button_type == constants.RENAME_SETTLEMENT_BUTTON:
-            self.set_tooltip(["Renames this settlement"])
+            return ["Renames this settlement"]
 
         elif self.button_type == constants.RENAME_PLANET_BUTTON:
-            self.set_tooltip(["Renames this planet"])
+            return ["Renames this planet"]
 
         elif self.button_type == constants.SHOW_PREVIOUS_REPORTS_BUTTON:
-            self.set_tooltip(
-                [
-                    "Displays the previous turn's production, sales, and financial reports"
-                ]
-            )
+            return [
+                "Displays the previous turn's production, sales, and financial reports"
+            ]
 
         elif self.button_type in [
             constants.ENABLE_SENTRY_MODE_BUTTON,
@@ -537,12 +493,10 @@ class button(interface_elements.interface_element):
                 verb = "enable"
             elif self.button_type == constants.DISABLE_SENTRY_MODE_BUTTON:
                 verb = "disable"
-            self.set_tooltip(
-                [
-                    utility.capitalize(verb) + "s sentry mode for this unit",
-                    "A unit in sentry mode is removed from the turn order and will be skipped when cycling through unmoved units",
-                ]
-            )
+            return [
+                utility.capitalize(verb) + "s sentry mode for this unit",
+                "A unit in sentry mode is removed from the turn order and will be skipped when cycling through unmoved units",
+            ]
 
         elif self.button_type in [
             constants.ENABLE_AUTOMATIC_REPLACEMENT_BUTTON,
@@ -558,80 +512,66 @@ class button(interface_elements.interface_element):
                 target = "unit"
             else:
                 target = "unit's " + self.target_type  # worker or officer
-            self.set_tooltip(
-                [
-                    f"{utility.capitalize(verb)}s automatic replacement for this {target}",
-                    "A unit with automatic replacement will be automatically replaced if it dies from attrition",
-                    f"This {target} is currently set to {operator}be automatically replaced",
-                ]
-            )
+            return [
+                f"{utility.capitalize(verb)}s automatic replacement for this {target}",
+                "A unit with automatic replacement will be automatically replaced if it dies from attrition",
+                f"This {target} is currently set to {operator}be automatically replaced",
+            ]
 
         elif self.button_type == constants.WAKE_UP_ALL_BUTTON:
-            self.set_tooltip(
-                [
-                    "Disables sentry mode for all units",
-                    "A unit in sentry mode is removed from the turn order and will be skipped when cycling through unmoved units",
-                ]
-            )
+            return [
+                "Disables sentry mode for all units",
+                "A unit in sentry mode is removed from the turn order and will be skipped when cycling through unmoved units",
+            ]
 
         elif self.button_type == constants.END_UNIT_TURN_BUTTON:
-            self.set_tooltip(
-                [
-                    "Ends this unit's turn, skipping it when cycling through unmoved units for the rest of the turn"
-                ]
-            )
+            return [
+                "Ends this unit's turn, skipping it when cycling through unmoved units for the rest of the turn"
+            ]
 
         elif self.button_type == constants.CLEAR_AUTOMATIC_ROUTE_BUTTON:
-            self.set_tooltip(
-                ["Removes this unit's currently designated movement route"]
-            )
+            return ["Removes this unit's currently designated movement route"]
 
         elif self.button_type == constants.DRAW_AUTOMATIC_ROUTE_BUTTON:
-            self.set_tooltip(
-                [
-                    "Starts customizing a new movement route for this unit",
-                    "Add to the route by clicking on valid locations adjacent to the current destination",
-                    "The start is outlined in purple, the destination is outlined in yellow, and the path is outlined in blue",
-                    "When moving along its route, a unit will pick up as many items as possible at the start and drop them at the destination",
-                    "A unit may not be able to move along its route because of enemy units, a lack of movement points, or not having any items to pick up at the start",
-                ]
-            )
+            return [
+                "Starts customizing a new movement route for this unit",
+                "Add to the route by clicking on valid locations adjacent to the current destination",
+                "The start is outlined in purple, the destination is outlined in yellow, and the path is outlined in blue",
+                "When moving along its route, a unit will pick up as many items as possible at the start and drop them at the destination",
+                "A unit may not be able to move along its route because of enemy units, a lack of movement points, or not having any items to pick up at the start",
+            ]
 
         elif self.button_type == constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON:
-            self.set_tooltip(
-                ["Moves this unit along its currently designated movement route"]
-            )
+            return ["Moves this unit along its currently designated movement route"]
 
         elif self.button_type == constants.GENERATE_CRASH_BUTTON:
-            self.set_tooltip(["Exits the game"])
+            return ["Exits the game"]
 
         elif self.button_type == constants.MINIMIZE_INTERFACE_COLLECTION_BUTTON:
             if self.parent_collection.minimized:
                 verb = "Opens"
             else:
                 verb = "Minimizes"
-            self.set_tooltip([f"{verb} the {self.parent_collection.description}"])
+            return [f"{verb} the {self.parent_collection.description}"]
 
         elif self.button_type == constants.MOVE_INTERFACE_COLLECTION_BUTTON:
             if self.parent_collection.move_with_mouse_config["moving"]:
                 verb = "Stops moving"
             else:
                 verb = "Moves"
-            self.set_tooltip([f"{verb} the {self.parent_collection.description}"])
+            return [f"{verb} the {self.parent_collection.description}"]
 
         elif self.button_type == constants.RESET_INTERFACE_COLLECTION_BUTTON:
-            self.set_tooltip(
-                [
-                    f"Resets the {self.parent_collection.description} to its original location"
-                ]
-            )
+            return [
+                f"Resets the {self.parent_collection.description} to its original location"
+            ]
 
         elif self.button_type == constants.TAB_BUTTON:
             if hasattr(self.linked_element, "description"):
                 description = f"{self.linked_element.tab_button.tab_name} panel"
             else:
                 description = "attached panel"
-            self.set_tooltip(["Displays the " + description])
+            return ["Displays the " + description]
 
         elif self.button_type == constants.CYCLE_AUTOFILL_BUTTON:
             if self.parent_collection.autofill_actors.get(
@@ -641,20 +581,16 @@ class button(interface_elements.interface_element):
                 if self.autofill_target_type == constants.WORKER_PERMISSION:
                     amount = 2
                 verb = utility.conjugate("be", amount, "preterite")  # was or were
-                self.set_tooltip(
-                    [
-                        f"The {self.parent_collection.autofill_actors[self.autofill_target_type].name} here {verb} automatically selected for the {self.parent_collection.autofill_actors[constants.AUTOFILL_PROCEDURE]} procedure",
-                        f"Press to cycle to the next available choice",
-                    ]
-                )
-        elif self.button_type == constants.CHANGE_PARAMETER_BUTTON:
-            self.set_tooltip(
-                [
-                    f"Changes this location's {self.attached_label.actor_label_type.removesuffix('_label').replace('_', ' ')} by {self.change}"
+                return [
+                    f"The {self.parent_collection.autofill_actors[self.autofill_target_type].name} here {verb} automatically selected for the {self.parent_collection.autofill_actors[constants.AUTOFILL_PROCEDURE]} procedure",
+                    f"Press to cycle to the next available choice",
                 ]
-            )
+        elif self.button_type == constants.CHANGE_PARAMETER_BUTTON:
+            return [
+                f"Changes this location's {self.attached_label.actor_label_type.removesuffix('_label').replace('_', ' ')} by {self.change}"
+            ]
         else:
-            self.set_tooltip(["placeholder"])
+            return ["placeholder"]
 
     def set_keybind(self, new_keybind):
         """
@@ -716,33 +652,12 @@ class button(interface_elements.interface_element):
         }
         self.keybind_name = keybind_name_dict[new_keybind]
 
-    def set_tooltip(self, tooltip_text: List[str]):
-        """
-        Description:
-            Sets this actor's tooltip to the inputted list, with each inputted list representing a line of the tooltip
-        Input:
-            string list new_tooltip: Lines for this actor's tooltip
-        Output:
-            None
-        """
-        self.tooltip_text = tooltip_text
+    @property
+    def batch_tooltip_list(self):
         if self.has_keybind:
-            self.tooltip_text.append(f"Press {self.keybind_name} to use.")
-        font = constants.fonts["default"]
-        tooltip_width = font.size
-        for text_line in tooltip_text:
-            tooltip_width = max(
-                tooltip_width, font.calculate_size(text_line) + scaling.scale_width(10)
-            )
-        tooltip_height = (len(self.tooltip_text) * font.size) + scaling.scale_height(5)
-        self.tooltip_box = pygame.Rect(self.x, self.y, tooltip_width, tooltip_height)
-        self.tooltip_outline_width = 1
-        self.tooltip_outline = pygame.Rect(
-            self.x - self.tooltip_outline_width,
-            self.y + self.tooltip_outline_width,
-            tooltip_width + (2 * self.tooltip_outline_width),
-            tooltip_height + (self.tooltip_outline_width * 2),
-        )
+            return [self.tooltip_text]
+        else:
+            return [self.tooltip_text + [f"Press {self.keybind_name} to use."]]
 
     def touching_mouse(self):
         """
@@ -808,51 +723,6 @@ class button(interface_elements.interface_element):
                             constants.display_height
                             - (self.y + self.height - scaling.scale_height(5))
                         ),
-                    ),
-                )
-
-    def draw_tooltip(self, below_screen, beyond_screen, height, width, y_displacement):
-        """
-        Description:
-            Draws this button's tooltip when moused over. The tooltip's location may vary when the tooltip is near the edge of the screen or if multiple tooltips are being shown
-        Input:
-            boolean below_screen: Whether any of the currently showing tooltips would be below the bottom edge of the screen. If True, moves all tooltips up to prevent any from being below the screen
-            boolean beyond_screen: Whether any of the currently showing tooltips would be beyond the right edge of the screen. If True, moves all tooltips to the left to prevent any from being beyond the screen
-            int height: Combined pixel height of all tooltips
-            int width: Pixel width of the widest tooltip
-            int y_displacement: How many pixels below the mouse this tooltip should be, depending on the order of the tooltips
-        Output:
-            None
-        """
-        if self.showing:
-            self.update_tooltip()
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            if below_screen:
-                mouse_y = constants.display_height + 10 - height
-            if beyond_screen:
-                mouse_x = constants.display_width - width
-            mouse_y += y_displacement
-            self.tooltip_box.x = mouse_x
-            self.tooltip_box.y = mouse_y
-            self.tooltip_outline.x = self.tooltip_box.x - self.tooltip_outline_width
-            self.tooltip_outline.y = self.tooltip_box.y - self.tooltip_outline_width
-            pygame.draw.rect(
-                constants.game_display,
-                constants.color_dict[constants.COLOR_BLACK],
-                self.tooltip_outline,
-            )
-            pygame.draw.rect(
-                constants.game_display,
-                constants.color_dict[constants.COLOR_WHITE],
-                self.tooltip_box,
-            )
-            for text_line_index in range(len(self.tooltip_text)):
-                text_line = self.tooltip_text[text_line_index]
-                constants.game_display.blit(
-                    text_utility.text(text_line, constants.myfont),
-                    (
-                        self.tooltip_box.x + scaling.scale_width(10),
-                        self.tooltip_box.y + (text_line_index * constants.font_size),
                     ),
                 )
 
@@ -1869,25 +1739,18 @@ class same_location_icon(button):
                     )
             super().draw()
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip to what it should be, depending on its button_type. This type of button copies the tooltip of its attached mob
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if not self.showing:
-            self.set_tooltip([])
+            return []
         else:
             if self.is_last:
-                self.set_tooltip(["More: "] + self.name_list)
+                return ["More: "] + self.name_list
             else:
-                self.attached_mob.update_tooltip()
-                self.set_tooltip(
-                    self.attached_mob.tooltip_text + ["Click to select this unit"]
-                )
+                return self.attached_mob.tooltip_text + ["Click to select this unit"]
 
 
 class fire_unit_button(button):
@@ -1965,17 +1828,13 @@ class fire_unit_button(button):
                 return True
         return False
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip to what it should be, depending on its button_type. This type of button describes how firing units works
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if not self.showing:
-            self.set_tooltip([])
+            return []
         else:
             tooltip_text = ["Click to fire this unit"]
             if self.attached_mob.any_permissions(
@@ -1988,7 +1847,7 @@ class fire_unit_button(button):
                 tooltip_text.append(
                     "Firing this unit will also fire all of its passengers."
                 )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
 
 class switch_game_mode_button(button):
@@ -2055,16 +1914,12 @@ class switch_game_mode_button(button):
         else:
             text_utility.print_to_screen("You are busy and cannot switch screens.")
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip to what it should be, depending on its button_type. This type of button describes which game mode it switches to
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(utility.copy_list(self.to_mode_tooltip_dict[self.to_mode]))
+        return utility.copy_list(self.to_mode_tooltip_dict[self.to_mode])
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -2245,8 +2100,6 @@ class minister_portrait_image(button):
                 new_minister = None
 
         if new_minister:
-            new_minister.update_tooltip()
-            self.tooltip_text = new_minister.tooltip_text
             if constants.MINISTERS_MODE in self.modes:
                 self.image.set_image(
                     self.background_image_id
@@ -2260,31 +2113,25 @@ class minister_portrait_image(button):
         elif (
             constants.MINISTERS_MODE in self.modes
         ):  # Show empty minister if minister screen icon
-            if not self.minister_type:  # If available minister portrait
-                self.tooltip_text = ["There is no available candidate in this slot."]
-            else:  # If appointed minister portrait
-                self.tooltip_text = [
-                    f"No {self.minister_type.name} is currently appointed.",
-                    f"Without a {self.minister_type.name}, {self.minister_type.skill_type.replace('_', ' ')}-oriented actions are not possible",
-                ]
             self.image.set_image(self.empty_image_id)
         else:  # If minister icon on strategic mode, no need to show empty minister
             self.image.set_image("misc/empty.png")
         self.current_minister = new_minister
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip to what it should be, depending on its button_type. This type of button copies the tooltip text of its attached minister, or says there is no attached minister if there is none attached
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.current_minister:
-            self.current_minister.update_tooltip()
-            self.tooltip_text = self.current_minister.tooltip_text
-        self.set_tooltip(self.tooltip_text)
+            return self.current_minister.tooltip_text
+        elif self.minister_type:  # If available minister portrait
+            return [
+                f"No {self.minister_type.name} is currently appointed.",
+                f"Without a {self.minister_type.name}, {self.minister_type.skill_type.replace('_', ' ')}-oriented actions are not possible",
+            ]
+        else:  # If appointed minister portrait
+            return ["There is no available candidate in this slot."]
 
 
 class cycle_available_ministers_button(button):
@@ -2429,24 +2276,18 @@ class scroll_button(button):
             skip_parent_collection=skip_parent_collection
         ) and self.parent_collection.show_scroll_button(self)
 
-    def update_tooltip(self) -> None:
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip to what it should be, describing its scroll functionality
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.increment > 0:
             descriptor = "down"
         elif self.increment < 0:
             descriptor = "up"
-        self.set_tooltip(
-            [
-                f"Click to scroll {descriptor} {abs(self.increment)} {self.value_name.replace('_', ' ')}"
-            ]
-        )
+        return [
+            f"Click to scroll {descriptor} {abs(self.increment)} {self.value_name.replace('_', ' ')}"
+        ]
 
 
 class sellable_item_button(button):
@@ -2749,27 +2590,23 @@ class reorganize_unit_button(button):
             self.keybind_id = self.default_keybind_id
         return result
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip to what it should be, depending on its button_type. This type of button describes the current procedure that it would complete
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if (
             constants.MERGE_PROCEDURE in self.allowed_procedures
             or constants.CREW_PROCEDURE in self.allowed_procedures
         ):
-            self.tooltip_text = [
+            tooltip_text = [
                 "Combines the units on the left to form the unit on the right"
             ]
         elif (
             constants.SPLIT_PROCEDURE in self.allowed_procedures
             or constants.UNCREW_PROCEDURE in self.allowed_procedures
         ):
-            self.tooltip_text = [
+            tooltip_text = [
                 "Separates the unit on the right to form the units on the left"
             ]
         if (
@@ -2786,11 +2623,11 @@ class reorganize_unit_button(button):
                         constants.WORKER_PERMISSION
                     ]
                 ):
-                    self.tooltip_text.append(
+                    tooltip_text.append(
                         f"Press to combine the {self.parent_collection.autofill_actors[constants.OFFICER_PERMISSION].name} and the {self.parent_collection.autofill_actors[constants.WORKER_PERMISSION].name} into a {self.parent_collection.autofill_actors[constants.GROUP_PERMISSION].name}"
                     )
                 else:
-                    self.tooltip_text += [
+                    tooltip_text += [
                         "Merging requires both a worker and an officer to be present",
                         "The current combination of units has no valid reorganization procedure",
                     ]
@@ -2798,7 +2635,7 @@ class reorganize_unit_button(button):
                 self.parent_collection.autofill_actors[constants.AUTOFILL_PROCEDURE]
                 == constants.SPLIT_PROCEDURE
             ):
-                self.tooltip_text.append(
+                tooltip_text.append(
                     f"Press to separate the {self.parent_collection.autofill_actors[constants.GROUP_PERMISSION].name} into a {self.parent_collection.autofill_actors[constants.OFFICER_PERMISSION].name} and {self.parent_collection.autofill_actors[constants.WORKER_PERMISSION].name}"
                 )
             elif (
@@ -2813,11 +2650,11 @@ class reorganize_unit_button(button):
                         constants.CREW_VEHICLE_PERMISSION
                     ]
                 ):
-                    self.tooltip_text.append(
+                    tooltip_text.append(
                         f"Press to combine the {self.parent_collection.autofill_actors[constants.INACTIVE_VEHICLE_PERMISSION].name} and the {self.parent_collection.autofill_actors[constants.CREW_VEHICLE_PERMISSION].name} into a crewed {self.parent_collection.autofill_actors[constants.ACTIVE_VEHICLE_PERMISSION].name}"
                     )
                 else:
-                    self.tooltip_text += [
+                    tooltip_text += [
                         "Crewing a vehicle requires both an uncrewed vehicle and a crew to be present",
                         "The current combination of units has no valid reorganization procedure",
                     ]
@@ -2825,19 +2662,19 @@ class reorganize_unit_button(button):
                 self.parent_collection.autofill_actors[constants.AUTOFILL_PROCEDURE]
                 == constants.UNCREW_PROCEDURE
             ):
-                self.tooltip_text.append(
+                tooltip_text.append(
                     f"Press to separate the {self.parent_collection.autofill_actors[constants.ACTIVE_VEHICLE_PERMISSION].name} into {self.parent_collection.autofill_actors[constants.CREW_VEHICLE_PERMISSION].name} and a non-crewed {self.parent_collection.autofill_actors[constants.INACTIVE_VEHICLE_PERMISSION].name}"
                 )
         elif self.parent_collection.autofill_actors[constants.AUTOFILL_PROCEDURE]:
-            self.tooltip_text.append(
+            tooltip_text.append(
                 f"The {self.parent_collection.autofill_actors[constants.AUTOFILL_PROCEDURE]} procedure is controlled by the other button"
             )
         else:
-            self.tooltip_text.append(
+            tooltip_text.append(
                 "The current combination of units has no valid reorganization procedure"
             )
 
-        self.set_tooltip(self.tooltip_text)
+        return tooltip_text
 
     def on_click(self, allow_sound: bool = True):
         """
@@ -3101,16 +2938,12 @@ class action_button(button):
             and self.corresponding_action.can_show()
         )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip to what it should be, depending on its mapped 'update_tooltip' function
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(self.corresponding_action.update_tooltip())
+        return self.corresponding_action.tooltip_text
 
     def get_matching_unit(self):
         """
@@ -3230,16 +3063,12 @@ class anonymous_button(button):
                 ),
             )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its button_type
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(self.tooltip)
+        return self.tooltip
 
 
 class map_mode_button(button):
@@ -3299,13 +3128,9 @@ class map_mode_button(button):
             status.mob_info_display, status.displayed_mob
         )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip to what it should be, depending on its mapped 'update_tooltip' function
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip([f"Sets the map mode to {self.map_mode}"])
+        return [f"Sets the map mode to {self.map_mode}"]

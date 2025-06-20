@@ -37,12 +37,11 @@ class cell:
         )  # (left, top, width, height)
         self.location = None
         self.image: images.cell_image = images.cell_image(self)
-        self.batch_tooltip_box_list: List[pygame.Rect] = []
         self.grid.world_handler.find_location(self.x, self.y).subscribe_cell(self)
 
     @property
     def batch_tooltip_list(self):
-        return self.get_location().generate_batch_tooltip_text_list()
+        return self.get_location().batch_tooltip_list
 
     def set_image(self, *args, **kwargs):
         self.image.set_image(*args, **kwargs)

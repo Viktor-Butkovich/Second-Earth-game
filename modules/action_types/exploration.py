@@ -1,6 +1,7 @@
 # Contains all functionality for exploration
 
 import random
+from typing import List
 from modules.action_types import action
 from modules.util import action_utility, actor_utility
 from modules.constants import constants, status, flags
@@ -57,27 +58,23 @@ class exploration(action.action):
         self.public_relations_change = 0
         self.initial_movement_points = unit.movement_points
 
-    def update_tooltip(self, tooltip_info_dict=None):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this tooltip of a button linked to this action
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         message = []
         if status.displayed_mob.get_permission(constants.EXPEDITION_PERMISSION):
-            message.append(
-                "Press to attempt to explore in the " + tooltip_info_dict["direction"]
-            )
+            # message.append(
+            #    "Press to attempt to explore in the " + tooltip_info_dict["direction"]
+            # )
             message.append(
                 f"Attempting to explore would cost {self.get_price()} money and all remaining movement points, at least 1"
             )
         else:
-            message.append(
-                f"This unit cannot currently move to the {tooltip_info_dict['direction']}"
-            )
+            # message.append(
+            #    f"This unit cannot currently move to the {tooltip_info_dict['direction']}"
+            # )
             message.append("This unit cannot move into unexplored areas")
         return message
 

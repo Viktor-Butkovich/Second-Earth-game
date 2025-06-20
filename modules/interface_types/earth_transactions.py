@@ -1,6 +1,7 @@
 # Contains functionality for buttons relating to the Earth headquarters screen
 
 import random
+from typing import List
 from modules.interface_types.buttons import button
 from modules.util import (
     main_loop_utility,
@@ -66,29 +67,19 @@ class recruitment_button(button):
         else:
             text_utility.print_to_screen("You are busy and cannot recruit a unit")
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its button_type. This type of button has a tooltip describing the type of unit it recruits
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.recruitment_type.number >= 2:
-            self.set_tooltip(
-                [
-                    f"Recruits a unit of {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money."
-                ]
-                + self.recruitment_type.get_list_description()
-            )
+            return [
+                f"Recruits a unit of {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money."
+            ] + self.recruitment_type.get_list_description()
         else:
-            self.set_tooltip(
-                [
-                    f"Recruits a {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money."
-                ]
-                + self.recruitment_type.get_list_description()
-            )
+            return [
+                f"Recruits a {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money."
+            ] + self.recruitment_type.get_list_description()
 
 
 class buy_item_button(button):
@@ -192,18 +183,11 @@ class buy_item_button(button):
                 f"You are busy and cannot purchase {self.item_type.name}."
             )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its button_type. This type of button has a tooltip describing the item that it buys and its price
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        new_tooltip = []
-        new_tooltip.append(
+        return [
             f"Purchases 1 unit of {self.item_type.name} for {self.item_type.price} money."
-        )
-        new_tooltip += self.item_type.description
-        self.set_tooltip(new_tooltip)
+        ] + self.item_type.description

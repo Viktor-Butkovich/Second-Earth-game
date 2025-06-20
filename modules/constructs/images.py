@@ -2,6 +2,7 @@
 
 import pygame
 import math
+from typing import List
 from modules.util import (
     utility,
     drawing_utility,
@@ -1078,45 +1079,18 @@ class tooltip_free_image(free_image):
             self.height,
         )
         self.Rect.y = self.y - self.height
-        self.tooltip_text = input_dict.get("tooltip_text", [])
-        self.update_tooltip()
+        self.preset_tooltip_text = input_dict.get("preset_tooltip_text", [])
 
-    def set_tooltip(self, tooltip_text):
-        """
-        Description:
-            Sets this image's tooltip to the inputted list, with each inputted list representing a line of the tooltip
-        Input:
-            string list new_tooltip: Lines for this image's tooltip
-        Output:
-            None
-        """
-        self.tooltip_text = tooltip_text
-        tooltip_width = 0
-        font = constants.fonts["default"]
-        for text_line in tooltip_text:
-            tooltip_width = max(
-                tooltip_width, font.calculate_size(text_line) + scaling.scale_width(10)
-            )
-        tooltip_height = (len(self.tooltip_text) * font.size) + scaling.scale_height(5)
-        self.tooltip_box = pygame.Rect(self.x, self.y, tooltip_width, tooltip_height)
-        self.tooltip_outline_width = 1
-        self.tooltip_outline = pygame.Rect(
-            self.x - self.tooltip_outline_width,
-            self.y + self.tooltip_outline_width,
-            tooltip_width + (2 * self.tooltip_outline_width),
-            tooltip_height + (self.tooltip_outline_width * 2),
-        )
+    @property
+    def batch_tooltip_list(self):
+        return [self.tooltip_text]
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its subclass. By default, tooltip free images do not have any tooltip text
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(self.tooltip_text)
+        return self.preset_tooltip_text
 
     def can_show_tooltip(self):
         """
@@ -1131,51 +1105,6 @@ class tooltip_free_image(free_image):
             return True
         else:
             return False
-
-    def draw_tooltip(self, below_screen, beyond_screen, height, width, y_displacement):
-        """
-        Description:
-            Draws this image's tooltip when moused over. The tooltip's location may vary when the tooltip is near the edge of the screen or if multiple tooltips are being shown
-        Input:
-            boolean below_screen: Whether any of the currently showing tooltips would be below the bottom edge of the screen. If True, moves all tooltips up to prevent any from being below the screen
-            boolean beyond_screen: Whether any of the currently showing tooltips would be beyond the right edge of the screen. If True, moves all tooltips to the left to prevent any from being beyond the screen
-            int height: Combined pixel height of all tooltips
-            int width: Pixel width of the widest tooltip
-            int y_displacement: How many pixels below the mouse this tooltip should be, depending on the order of the tooltips
-        Output:
-            None
-        """
-        if self.can_show():
-            self.update_tooltip()
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            if below_screen:
-                mouse_y = constants.display_height + 10 - height
-            if beyond_screen:
-                mouse_x = constants.display_width - width
-            mouse_y += y_displacement
-            self.tooltip_box.x = mouse_x
-            self.tooltip_box.y = mouse_y
-            self.tooltip_outline.x = self.tooltip_box.x - self.tooltip_outline_width
-            self.tooltip_outline.y = self.tooltip_box.y - self.tooltip_outline_width
-            pygame.draw.rect(
-                constants.game_display,
-                constants.color_dict[constants.COLOR_BLACK],
-                self.tooltip_outline,
-            )
-            pygame.draw.rect(
-                constants.game_display,
-                constants.color_dict[constants.COLOR_WHITE],
-                self.tooltip_box,
-            )
-            for text_line_index in range(len(self.tooltip_text)):
-                text_line = self.tooltip_text[text_line_index]
-                constants.game_display.blit(
-                    text_utility.text(text_line, constants.myfont),
-                    (
-                        self.tooltip_box.x + scaling.scale_width(10),
-                        self.tooltip_box.y + (text_line_index * constants.font_size),
-                    ),
-                )
 
 
 class directional_indicator_image(tooltip_free_image):
@@ -1204,16 +1133,12 @@ class directional_indicator_image(tooltip_free_image):
         status.directional_indicator_image_list.append(self)
         super().__init__(input_dict)
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its subclass. By default, tooltip free images do not have any tooltip text
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip([f"Points towards the {self.anchor_key.replace('_', ' ')}"])
+        return [f"Points towards the {self.anchor_key.replace('_', ' ')}"]
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -1381,14 +1306,10 @@ class indicator_image(tooltip_free_image):
                 return True
         return False
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its attached variable
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.indicator_type == "prosecution_bribed_judge":
             text = []
@@ -1396,16 +1317,16 @@ class indicator_image(tooltip_free_image):
                 "The judge has been bribed, giving you an advantage in the next trial this turn"
             )
             text.append("This bonus will fade at the end of the turn if not used")
-            self.set_tooltip(text)
+            return text
         elif self.indicator_type == "not prosecution_bribed_judge":
             text = []
             text.append("The judge has not yet been bribed")
             text.append(
                 "Bribing the judge may give you an advantage in the next trial this turn or blunt the impact of any bribes made by the defense."
             )
-            self.set_tooltip(text)
+            return text
         else:
-            self.set_tooltip([])
+            return []
 
 
 class dice_roll_minister_image(tooltip_free_image):
@@ -1451,20 +1372,15 @@ class dice_roll_minister_image(tooltip_free_image):
         super().__init__(input_dict)
         self.to_front = True
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its subclass. A dice roll minister image's tooltip copies the tooltip of the minister, which describes their name and position. Only the portrait image has a
-                tooltip, preventing a double tooltip from the position image
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.minister_image_type == "portrait":
-            self.set_tooltip(self.attached_minister.tooltip_text)
+            return self.attached_minister.tooltip_text
         else:
-            self.set_tooltip([])
+            return []
 
     def can_show_tooltip(self):
         """
@@ -1539,21 +1455,17 @@ class minister_type_image(tooltip_free_image):
                 self.attached_label.actor.unit_type.controlling_minister_type
             )
         if current_minister_type:
-            self.tooltip_text = current_minister_type.get_description()
+            self.preset_tooltip_text = current_minister_type.get_description()
             image_id_list = [f"ministers/icons/{current_minister_type.skill_type}.png"]
             self.set_image(image_id_list)
         self.update_image_bundle()
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its subclass. A minister type image's tooltip describes what the office of its office icon does
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(self.tooltip_text)
+        return self.preset_tooltip_text
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -1756,14 +1668,6 @@ class button_image(image):  # Used to be attached to actor_image
                 constants.display_height - (self.button.y + self.height) + self.height
             )
             self.complete_draw()
-
-    """
-    def draw_tooltip(self):
-        return ()
-
-    def set_tooltip(self, tooltip_text):
-        return ()
-    """
 
 
 class collection_image(button_image):

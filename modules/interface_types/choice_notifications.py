@@ -1,5 +1,6 @@
 # Contains functionality for choice notifications
 
+from typing import List
 from modules.interface_types import buttons, action_notifications
 from modules.util import utility, text_utility, scaling
 from modules.constructs import unit_types
@@ -84,16 +85,12 @@ class choice_notification(action_notifications.action_notification):
             super().on_click()
         return  # does not remove self when clicked
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this notification's tooltip to what it should be. Choice notifications prompt the user to click on one of its choice buttons to close it
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(["Choose an option to close this notification"])
+        return ["Choose an option to close this notification"]
 
     def remove(self):
         """
@@ -200,43 +197,35 @@ class choice_button(buttons.button):
                 ),
             )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its button_type
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.button_type == constants.RECRUITMENT_CHOICE_BUTTON:
             if self.recruitment_type.number >= 2:
-                self.set_tooltip(
-                    [
-                        f"{utility.capitalize(self.recruitment_type.recruitment_verb)} a unit of {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money"
-                    ]
-                )
+                return [
+                    f"{utility.capitalize(self.recruitment_type.recruitment_verb)} a unit of {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money"
+                ]
             else:
-                self.set_tooltip(
-                    [
-                        f"{utility.capitalize(self.recruitment_type.recruitment_verb)} a {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money"
-                    ]
-                )
+                return [
+                    f"{utility.capitalize(self.recruitment_type.recruitment_verb)} a {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money"
+                ]
 
         elif self.button_type == constants.CHOICE_END_TURN_BUTTON:
-            self.set_tooltip(["End the current turn"])
+            return ["End the current turn"]
 
         elif self.button_type == constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON:
-            self.set_tooltip(["Exits to the main menu without saving"])
+            return ["Exits to the main menu without saving"]
 
         elif self.button_type == constants.CHOICE_QUIT_BUTTON:
-            self.set_tooltip(["Exits the game without saving"])
+            return ["Exits the game without saving"]
 
         elif self.button_type == None:
-            self.set_tooltip(["Cancel"])
+            return ["Cancel"]
 
         else:
-            self.set_tooltip([self.message])
+            return [self.message]
 
 
 class recruitment_choice_button(choice_button):

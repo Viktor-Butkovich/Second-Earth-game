@@ -1,5 +1,6 @@
 # Contains functionality for instructions pages
 
+from typing import List
 from modules.interface_types.labels import label
 from modules.interface_types.buttons import button
 from modules.util import scaling, text_utility
@@ -150,21 +151,15 @@ class instructions_page(label):
 
         self.message = new_message
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this page's tooltip to what it should be. By default, instructions pages describe how to close the instructions or go to the next page
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(
-            [
-                "Click to go to the next instructions page.",
-                "Press the display instructions button on the right side of the screen again to close the instructions.",
-            ]
-        )
+        return [
+            "Click to go to the next instructions page.",
+            "Press the display instructions button on the right side of the screen again to close the instructions.",
+        ]
 
 
 def display_instructions_page(page_number):

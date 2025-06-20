@@ -1,6 +1,7 @@
 # Contains functionality for actor display labels
 
 import pygame
+from typing import List
 from modules.actor_types import actors
 from modules.interface_types.labels import label
 from modules.util import utility, scaling, actor_utility
@@ -772,25 +773,19 @@ class actor_display_label(label):
             member_config,
         )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this label's tooltip based on the label's type and the information of the actor it is attached to
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.actor_label_type in [
             constants.CURRENT_BUILDING_WORK_CREW_LABEL,
             constants.CURRENT_PASSENGER_LABEL,
         ]:
             if len(self.attached_list) > self.list_index:
-                self.attached_list[self.list_index].update_tooltip()
-                tooltip_text = self.attached_list[self.list_index].tooltip_text
-                self.set_tooltip(tooltip_text)
+                return self.attached_list[self.list_index].tooltip_text
             else:
-                super().update_tooltip()
+                return super().tooltip_text
 
         elif self.actor_label_type == constants.PASSENGERS_LABEL:
             if self.actor:
@@ -802,25 +797,21 @@ class actor_display_label(label):
                         )
                     if len(name_list) == 1:
                         name_list[0] = self.message_start + " none"
-                    self.set_tooltip(name_list)
+                    return name_list
                 else:
-                    super().update_tooltip()
+                    return super().tooltip_text
 
         elif self.actor_label_type == constants.CREW_LABEL:
             if self.actor and self.actor.crew:
-                self.actor.crew.update_tooltip()
-                tooltip_text = self.actor.crew.tooltip_text
-                self.set_tooltip(tooltip_text)
+                return self.actor.crew.tooltip_text
             else:
-                super().update_tooltip()
+                return super().tooltip_text
 
         elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
             if self.actor:
-                self.actor.update_tooltip()
-                tooltip_text = self.actor.tooltip_text
-                self.set_tooltip(tooltip_text)
+                return self.actor.tooltip_text
             elif self.default_tooltip_text:
-                self.set_tooltip(self.default_tooltip_text)
+                return self.default_tooltip_text
 
         elif self.actor_label_type in [
             constants.MOB_INVENTORY_CAPACITY_LABEL,
@@ -851,12 +842,11 @@ class actor_display_label(label):
                         tooltip_text.append(
                             "If this location's inventory exceeds its capacity before resource production at the end of the turn, extra items will be lost"
                         )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_LABEL:
             tooltip_text = []
             if self.actor:
-                self.actor.update_tooltip()
                 if self.actor.controlling_minister:
                     tooltip_text = self.actor.controlling_minister.tooltip_text
                 else:
@@ -864,7 +854,7 @@ class actor_display_label(label):
                         f"The {self.actor.unit_type.controlling_minister_type.name} is responsible for controlling this unit",
                         f"As there is currently no {self.actor.unit_type.controlling_minister_type.name}, this unit will not be able to complete most actions until one is appointed",
                     ]
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.EVIDENCE_LABEL:
             tooltip_text = []
@@ -896,21 +886,21 @@ class actor_display_label(label):
                     tooltip_text.append(
                         "If you believe a minister is corrupt, evidence against them can be used in a criminal trial to justify appointing a new minister in their position"
                     )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_BACKGROUND_LABEL:
             tooltip_text = [self.message]
             tooltip_text.append(
                 "A minister's personal background determines their social status and may give them additional expertise in certain areas"
             )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_ETHNICITY_LABEL:
             tooltip_text = [self.message]
             tooltip_text.append(
                 "A minister's ethnicity influences their name and appearance"
             )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_SOCIAL_STATUS_LABEL:
             tooltip_text = [self.message]
@@ -920,14 +910,14 @@ class actor_display_label(label):
             tooltip_text.append(
                 "Ministers with higher social status tend to be more influential, with the power and resources to help or hinder your cause"
             )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_INTERESTS_LABEL:
             tooltip_text = [self.message]
             tooltip_text.append(
                 "While some interests are derived from a minister's legitimate talent or experience in a particular field, others are mere fancies"
             )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_ABILITY_LABEL:
             tooltip_text = [self.message]
@@ -940,11 +930,11 @@ class actor_display_label(label):
                             tooltip_text.append(
                                 f"    {rank}. {skill_type.capitalize()}: {self.actor.apparent_skill_descriptions[skill_type]}"
                             )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_LOYALTY_LABEL:
             tooltip_text = [self.message]
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.BUILDING_WORK_CREWS_LABEL:
             tooltip_text = []
@@ -959,7 +949,7 @@ class actor_display_label(label):
                     tooltip_text.append(
                         f"    {utility.capitalize(current_work_crew.name)}"
                     )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.BUILDING_EFFICIENCY_LABEL:
             tooltip_text = [self.message]
@@ -969,18 +959,14 @@ class actor_display_label(label):
             tooltip_text.append(
                 "Increase work crew efficiency by upgrading the building's efficiency with a construction crew"
             )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.TERRAIN_FEATURE_LABEL:
-            self.set_tooltip(
-                status.terrain_feature_types[self.terrain_feature_type].description
-            )
+            return status.terrain_feature_types[self.terrain_feature_type].description
 
         elif self.actor_label_type in status.building_types.keys():
             if self.actor:
-                current_building = self.actor.get_building(self.actor_label_type)
-                current_building.update_tooltip()
-                self.set_tooltip(current_building.tooltip_text)
+                return self.actor.get_building(self.actor_label_type).tooltip_text
 
         elif self.actor_label_type == constants.COMBAT_STRENGTH_LABEL:
             tooltip_text = [self.message]
@@ -1009,7 +995,7 @@ class actor_display_label(label):
                         tooltip_text.append(
                             f"In combat, this unit would roll 1 die with a {sign}{modifier} modifier"
                         )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif (
             self.actor_label_type.removesuffix("_label") in constants.terrain_parameters
@@ -1020,7 +1006,7 @@ class actor_display_label(label):
                     tooltip_text.append(
                         "Represents the amount of water in this location, including both standing water and average precipitation"
                     )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type.removesuffix(
             "_label"
@@ -1149,7 +1135,7 @@ class actor_display_label(label):
                     tooltip_text.append(
                         f"Any radiation exceeding magnetic field strength can harm life and slowly strip away atmosphere, particularly oxygen, inert gases, and non-frozen water"
                     )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
         elif self.actor_label_type == constants.HABITABILITY_LABEL:
             tooltip_text = [self.message]
             if self.actor:
@@ -1187,18 +1173,17 @@ class actor_display_label(label):
                     tooltip_text.append(
                         f"    {utility.capitalize(key.replace('_', ' '))}: {constants.HABITABILITY_DESCRIPTIONS[value]}"
                     )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
         elif self.actor_label_type == constants.BANNER_LABEL:
             if self.banner_type == "absolute zero":
                 tooltip_text = [self.message]
                 tooltip_text.append(
                     "Absolute zero is the coldest possible temperature, and is the natural temperature when there is no heat"
                 )
-                self.set_tooltip(tooltip_text)
+                return tooltip_text
             else:
-                super().update_tooltip()
-        else:
-            super().update_tooltip()
+                return super().tooltip_text
+        return super().tooltip_text
 
     def calibrate(self, new_actor: actors.actor):
         """

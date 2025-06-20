@@ -38,7 +38,6 @@ class minister:
             None
         """
         status.minister_list.append(self)
-        self.tooltip_text: List[str] = []
         if from_save:
             self.first_name: str = input_dict["first_name"]
             self.last_name: str = input_dict["last_name"]
@@ -147,7 +146,6 @@ class minister:
         self.last_voice_line: str = None
         minister_utility.update_available_minister_display()
         self.stolen_already: bool = False
-        self.update_tooltip()
         status.minister_loading_image.calibrate(self)  # Load in all images on creation
 
     @property
@@ -179,31 +177,25 @@ class minister:
         else:
             return f"{self.first_name[0]}. {self.last_name}"
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this minister's tooltip to what it should be whenever the player looks at the tooltip. By default, sets tooltip to this minister's name and current office
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.tooltip_text = []
+        tooltip_text = []
         if self.current_position:
-            self.tooltip_text.append(
-                f"Name: {self.name} ({self.current_position.name})"
-            )
+            tooltip_text.append(f"Name: {self.name} ({self.current_position.name})")
         else:
-            self.tooltip_text.append(f"Name: {self.name}")
-        self.tooltip_text.append(f"Ethnicity: {self.ethnicity}")
-        self.tooltip_text.append(f"Background: {self.background}")
-        self.tooltip_text.append(f"    Social status: {self.status}")
-        self.tooltip_text.append(
+            tooltip_text.append(f"Name: {self.name}")
+        tooltip_text.append(f"Ethnicity: {self.ethnicity}")
+        tooltip_text.append(f"Background: {self.background}")
+        tooltip_text.append(f"    Social status: {self.status}")
+        tooltip_text.append(
             f"Interests: {self.interests[0].replace('_', ' ')}, {self.interests[1].replace('_', ' ')}"
         )
 
         if self.apparent_corruption_description != "unknown":
-            self.tooltip_text.append(f"Loyalty: {self.apparent_corruption_description}")
+            tooltip_text.append(f"Loyalty: {self.apparent_corruption_description}")
 
         if self.current_position:
             displayed_skill = self.current_position.skill_type
@@ -216,25 +208,26 @@ class minister:
                     message = f"{displayed_skill.capitalize()} ability: {self.apparent_skill_descriptions[displayed_skill]}"
                 else:
                     message = f"Highest ability: {self.apparent_skill_descriptions[displayed_skill]} ({displayed_skill})"
-                self.tooltip_text.append(message)
+                tooltip_text.append(message)
 
         rank = 0
         for skill_value in range(6, 0, -1):  # iterates backwards from 6 to 1
             for skill_type in self.apparent_skills:
                 if self.apparent_skills[skill_type] == skill_value:
                     rank += 1
-                    self.tooltip_text.append(
+                    tooltip_text.append(
                         f"    {rank}. {skill_type.capitalize()}: {self.apparent_skill_descriptions[skill_type]}"
                     )
 
-        self.tooltip_text.append("Evidence: " + str(self.corruption_evidence))
+        tooltip_text.append("Evidence: " + str(self.corruption_evidence))
         if self.just_removed and not self.current_position:
-            self.tooltip_text.append(
+            tooltip_text.append(
                 "This minister was just removed from office and expects to be reappointed to an office by the end of the turn."
             )
-            self.tooltip_text.append(
+            tooltip_text.append(
                 "If not reappointed by the end of the turn, they will be permanently fired, incurring a large public opinion penalty."
             )
+        return tooltip_text
 
     def generate_icon_input_dicts(self, alignment="left"):
         """
@@ -758,8 +751,6 @@ class minister:
             self.apparent_skill_descriptions[skill_type] = random.choice(
                 constants.minister_skill_to_description_dict[new_value]
             )
-            if not setup:
-                self.update_tooltip()
             if status.displayed_minister == self:
                 minister_utility.calibrate_minister_info_display(self)
 
@@ -828,8 +819,6 @@ class minister:
             self.apparent_corruption_description = random.choice(
                 constants.minister_corruption_to_description_dict[new_value]
             )
-            if not setup:
-                self.update_tooltip()
             if status.displayed_minister == self:
                 minister_utility.calibrate_minister_info_display(self)
 

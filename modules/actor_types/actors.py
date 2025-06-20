@@ -35,7 +35,6 @@ class actor:
             None
         """
         self.from_save = from_save
-        self.tooltip_text = []
         self.inventory_capacity = 0
         self.inventory: Dict[str, int] = input_dict.get("inventory", {})
         self.image_dict: Dict[str, List[str]] = {
@@ -73,7 +72,6 @@ class actor:
         if original_constructor:
             self.set_name(input_dict.get("name", self.name))
             self.update_image_bundle()
-            self.update_tooltip()
 
     def get_location(self) -> "actor":
         """
@@ -385,27 +383,16 @@ class actor:
         """
         self.name = new_name
 
-    def set_tooltip(self, new_tooltip):
-        """
-        Description:
-            Sets this actor's tooltip to the inputted list, with each item representing a line of the tooltip
-        Input:
-            string list new_tooltip: Lines for this actor's tooltip
-        Output:
-            None
-        """
-        self.tooltip_text = new_tooltip
+    @property
+    def batch_tooltip_list(self):
+        return [self.tooltip_text]
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this actor's tooltip to what it should be whenever the player looks at the tooltip. By default, sets tooltip to this actor's name
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip([self.name.capitalize()])
+        return [self.name.capitalize()]
 
     def remove(self):
         """

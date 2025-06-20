@@ -67,8 +67,6 @@ class building:
                 },
             )
 
-        self.tooltip_text: List[str] = []
-
     def get_location(self) -> locations.location:
         """
         Description:
@@ -117,37 +115,34 @@ class building:
         self.get_location().remove_building(self)
         status.building_list = utility.remove_from_list(status.building_list, self)
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be whenever the player looks at the tooltip. For buildings, sets tooltip to a description of the building
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.tooltip_text = [
+        tooltip_text = [
             text_utility.remove_underscores(self.building_type.name.capitalize())
         ]
         if self.building_type == constants.RESOURCE:
-            self.tooltip_text.append(
+            tooltip_text.append(
                 f"Work crews: {len(self.subscribed_work_crews)}/{self.upgrade_fields[constants.RESOURCE_SCALE]}"
             )
             for current_work_crew in self.subscribed_work_crews:
-                self.tooltip_text.append(f"    {current_work_crew.name}")
-            self.tooltip_text.append(
+                tooltip_text.append(f"    {current_work_crew.name}")
+            tooltip_text.append(
                 f"Lets {self.upgrade_fields[constants.RESOURCE_SCALE]} attached work crews each attempt to produce {self.upgrade_fields[constants.RESOURCE_EFFICIENCY]} units of {self.resource_type.name} each turn"
             )
         elif self.building_type == constants.WAREHOUSES:
-            self.tooltip_text.append(
+            tooltip_text.append(
                 f"Level {self.upgrade_fields[constants.WAREHOUSE_LEVEL]} warehouses allow an inventory capacity of {9 * self.upgrade_fields[constants.WAREHOUSE_LEVEL]}"
             )
         else:
-            self.tooltip_text += self.building_type.description
+            tooltip_text += self.building_type.description
         if self.damaged:
-            self.tooltip_text.append(
+            tooltip_text.append(
                 "This building is damaged and is currently not functional."
             )
+        return tooltip_text
 
     def set_damaged(self, new_value, mid_setup=False):
         """

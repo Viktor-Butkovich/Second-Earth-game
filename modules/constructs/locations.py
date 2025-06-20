@@ -1329,22 +1329,16 @@ class location(actors.actor):
             and current_mob.get_permission(constants.PMOB_PERMISSION)
         ]
 
-    def generate_batch_tooltip_text_list(self):
-        self.update_tooltip()
-        for current_mob in self.subscribed_mobs:
-            current_mob.update_tooltip()
+    @property
+    def batch_tooltip_list(self):
         return [self.tooltip_text] + [
             current_mob.tooltip_text for current_mob in self.subscribed_mobs
         ]
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Updates this location's tooltip to match its current state
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         tooltip_message = []
         if self.is_abstract_location:
@@ -1393,7 +1387,6 @@ class location(actors.actor):
             )
 
         for current_building in self.get_buildings():
-            current_building.update_tooltip()
             tooltip_message.append("")
             tooltip_message += current_building.tooltip_text
 
@@ -1429,7 +1422,7 @@ class location(actors.actor):
                         f"    {item_type.name.capitalize()}: {self.get_inventory(item_type)}"
                     )
 
-        self.set_tooltip(tooltip_message)
+        return tooltip_message
 
     def select(self, music_override: bool = False):
         """

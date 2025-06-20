@@ -74,7 +74,7 @@ def detect_tooltip_drawer():
         None
     Output:
         object: The object that can show a tooltip, or None if no such object exists
-            This can be any object that supports update_tooltip() and populates tooltip_text
+            This can be any object that supports @tooltip_text
     """
     if (
         status.current_instructions_page
@@ -600,9 +600,7 @@ def manage_lmb_down(clicked_button):
                                     )
                                     return ()
 
-                                status.displayed_mob.add_to_automatic_route(
-                                    (destination_x, destination_y)
-                                )
+                                status.displayed_mob.add_to_automatic_route(target_location)
                                 click_move_minimap()
                                 flags.show_selection_outlines = True
                                 constants.last_selection_outline_switch = (

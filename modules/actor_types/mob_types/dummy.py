@@ -20,17 +20,6 @@ class dummy(pmobs.pmob):
             setattr(self, key, input_dict[key])
         self.set_permission(constants.DUMMY_PERMISSION, True)
 
-    def set_tooltip(self, tooltip_text):
-        """
-        Description:
-            Sets this actor's tooltip to the inputted list without attempting to modify member images
-        Input:
-            string list new_tooltip: Lines for this actor's tooltip
-        Output:
-            None
-        """
-        self.tooltip_text = tooltip_text
-
     def get_image_id_list(self):
         """
         Description:

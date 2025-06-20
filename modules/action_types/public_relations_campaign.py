@@ -2,6 +2,7 @@
 
 import pygame
 import random
+from typing import List
 from modules.action_types import action
 from modules.util import action_utility, text_utility
 from modules.constants import constants, status, flags
@@ -44,14 +45,10 @@ class public_relations_campaign(action.campaign):
         initial_input_dict["keybind_id"] = pygame.K_r
         return super().button_setup(initial_input_dict)
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this tooltip of a button linked to this action
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         return [
             f"Attempts to spread word of your company's benevolent goals and righteous deeds in Africa for {self.get_price()} money",

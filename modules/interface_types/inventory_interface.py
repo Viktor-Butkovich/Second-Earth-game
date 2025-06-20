@@ -2,6 +2,7 @@
 
 import pygame
 import math
+from typing import List
 from modules.interface_types.interface_elements import ordered_collection
 from modules.interface_types.buttons import button
 from modules.util import actor_utility
@@ -281,21 +282,15 @@ class item_icon(button):
             and self.in_inventory_capacity
         )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip depending on its contained item
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.current_item:
-            self.set_tooltip(
-                [self.current_item.name.capitalize()] + self.current_item.description
-            )
+            return [self.current_item.name.capitalize()] + self.current_item.description
         else:
-            self.set_tooltip(["Empty"])
+            return ["Empty"]
 
     def on_click(self):
         """

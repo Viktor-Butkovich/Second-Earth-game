@@ -1,6 +1,7 @@
 # Contains all functionality for loan searches
 
 import pygame
+from typing import List
 from modules.action_types import action
 from modules.util import action_utility, text_utility, market_utility
 from modules.constants import constants, status, flags
@@ -42,14 +43,10 @@ class loan_search(action.campaign):
         initial_input_dict["keybind_id"] = pygame.K_l
         return super().button_setup(initial_input_dict)
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this tooltip of a button linked to this action
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         return [
             f"Attempts to find a 100 money loan offer with a favorable interest rate for {self.get_price()} money",

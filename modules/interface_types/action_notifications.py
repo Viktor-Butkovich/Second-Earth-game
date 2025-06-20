@@ -1,5 +1,6 @@
 # Contains functionality for multi-step notifications
 
+from typing import List
 from modules.interface_types.notifications import notification
 from modules.util import scaling, action_utility, actor_utility
 from modules.constants import constants, status, flags
@@ -164,16 +165,12 @@ class dice_rolling_notification(action_notification):
     Notification that is removed when a dice roll is completed rather than when clicked
     """
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this notification's tooltip to what it should be. Dice rolling notifications tell the user to wait for the dice to finish rolling
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(["Wait for the dice to finish rolling"])
+        return ["Wait for the dice to finish rolling"]
 
     def on_click(self, die_override=False):
         """

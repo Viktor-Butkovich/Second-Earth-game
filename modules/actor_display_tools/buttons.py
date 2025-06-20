@@ -1,7 +1,6 @@
 # Contains functionality for actor display buttons
 
-import random
-from typing import Dict, Any
+from typing import Dict, List, Any
 from modules.interface_types.buttons import button
 from modules.actor_types import buildings
 from modules.util import (
@@ -1080,33 +1079,24 @@ class work_crew_to_building_button(button):
             and self.attached_work_crew.get_permission(constants.WORK_CREW_PERMISSION)
         )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip depending on the building it assigns workers to
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.attached_work_crew and self.attached_building:
             if self.building_type == constants.RESOURCE:
-                self.set_tooltip(
-                    [
-                        f"Assigns the selected work crew to the {self.attached_building.name}, producing {self.attached_building.resource_type.name} over time."
-                    ]
-                )
+                return [
+                    f"Assigns the selected work crew to the {self.attached_building.name}, producing {self.attached_building.resource_type.name} over time."
+                ]
             else:
-                self.set_tooltip(["placeholder"])
+                return ["placeholder"]
         elif self.attached_work_crew:
             if self.building_type == constants.RESOURCE:
-                self.set_tooltip(
-                    [
-                        "Assigns the selected work crew to a resource building, producing resources over time."
-                    ]
-                )
-        else:
-            self.set_tooltip(["placeholder"])
+                return [
+                    "Assigns the selected work crew to a resource building, producing resources over time."
+                ]
+        return ["placeholder"]
 
     def on_click(self):
         """
@@ -1778,23 +1768,17 @@ class toggle_button(button):
                     return True
         return False
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip depending on the variable it toggles
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(
-            [
-                constants.toggle_button_tooltips[self.toggle_variable]["default"],
-                constants.toggle_button_tooltips[self.toggle_variable][
-                    str(self.get_value())
-                ],
-            ]
-        )
+        return [
+            constants.toggle_button_tooltips[self.toggle_variable]["default"],
+            constants.toggle_button_tooltips[self.toggle_variable][
+                str(self.get_value())
+            ],
+        ]
 
 
 class change_parameter_button(button):
@@ -1946,19 +1930,13 @@ class help_button(button):
                 "You are busy and cannot receive a help message."
             )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip depending on the attached label
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(
-            constants.help_manager.generate_tooltip(
-                self.attached_label.actor_label_type, context=self.generate_context()
-            )
+        return constants.help_manager.generate_tooltip(
+            self.attached_label.actor_label_type, context=self.generate_context()
         )
 
     def can_show(self):

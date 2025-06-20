@@ -297,7 +297,6 @@ class mob(actor):
             and update_image
         ):
             self.update_image_bundle()
-            self.update_tooltip()
         if task == constants.IN_VEHICLE_PERMISSION or (
             task in [constants.VEHICLE_PERMISSION, constants.SPACESUITS_PERMISSION]
             and (not self.get_permission(constants.DUMMY_PERMISSION))
@@ -1006,14 +1005,10 @@ class mob(actor):
         """
         self.get_location().update_image_bundle(update_mob_only=True)
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this mob's tooltip to what it should be whenever the player mouses over one of its images
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         tooltip_list = []
 
@@ -1140,7 +1135,7 @@ class mob(actor):
         elif self.get_permission(constants.PMOB_PERMISSION) and self.sentry_mode:
             tooltip_list.append("This unit is in sentry mode")
 
-        self.set_tooltip(tooltip_list)
+        return tooltip_list
 
     def drop_inventory(self):
         """

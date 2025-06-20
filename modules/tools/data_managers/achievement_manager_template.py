@@ -134,7 +134,7 @@ class achievement_manager_template:
                         "parent_collection": self.achievement_displays[
                             len(self.achievements) // 16
                         ],
-                        "tooltip_text": [
+                        "preset_tooltip_text": [
                             f"{achievement_type}: {self.get_description(achievement_type)}",
                             self.get_quote(achievement_type),
                         ],

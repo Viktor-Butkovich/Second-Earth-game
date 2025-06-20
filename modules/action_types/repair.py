@@ -82,14 +82,10 @@ class repair(action.action):
         ].button.keybind_id
         return initial_input_dict
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this tooltip of a button linked to this action
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         message = []
         unit = status.displayed_mob

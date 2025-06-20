@@ -504,10 +504,6 @@ Mobs and buildings have to track which cells and which grids they are visible in
 
 Location rework backlog:
 Make reorganization tooltips reponsive to describe what type of selected units are required
-Convert all tooltips to act similar to location tooltips, with centralized rendering logic
-    Ideally, an object returns a tooltip as a list of strings or a 2-dimensional list of strings, and the main loop entirely
-        handles rendering this tooltip when needed - no reason for any further complexity
-    Particularly, an object should never have to deal with its own tooltip renderin
 Update docstrings
 Move buildings.py to constructs, move locations.py to actor_types, and move actor_types to be within constructs
 Eventually add DOM-style dependency system for images and (less important) tooltips, so they are only updated when needed

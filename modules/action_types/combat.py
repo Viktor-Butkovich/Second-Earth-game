@@ -1,6 +1,7 @@
 # Contains all functionality for combat
 
 import random
+from typing import List
 from modules.action_types import action
 from modules.util import (
     action_utility,
@@ -52,36 +53,32 @@ class combat(action.action):
         """
         return
 
-    def update_tooltip(self, tooltip_info_dict=None):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this tooltip of a button linked to this action - in this case, the tooltip is added to movement button tooltips when an attack is possible
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         message = []
-        final_movement_cost = status.displayed_mob.get_movement_cost(
-            tooltip_info_dict["x_change"], tooltip_info_dict["y_change"]
-        )
+        # final_movement_cost = status.displayed_mob.get_movement_cost(
+        #    tooltip_info_dict["x_change"], tooltip_info_dict["y_change"]
+        # )
         message.append(
             "Attacking an enemy unit costs 5 money and requires only 1 movement point, but staying in the enemy's location afterward would require the usual movement"
         )
-        text = f"Staying afterward would cost {final_movement_cost - 1} more movement point{utility.generate_plural(final_movement_cost - 1)} because the adjacent location has {tooltip_info_dict['adjacent_location'].terrain.replace('_', ' ')} terrain"
+        # text = f"Staying afterward would cost {final_movement_cost - 1} more movement point{utility.generate_plural(final_movement_cost - 1)} because the adjacent location has {tooltip_info_dict['adjacent_location'].terrain.replace('_', ' ')} terrain"
 
-        local_infrastructure = tooltip_info_dict["local_infrastructure"]
-        adjacent_infrastructure = tooltip_info_dict["adjacent_infrastructure"]
-        if local_infrastructure and adjacent_infrastructure:
-            text += " and connecting roads"
-        elif local_infrastructure == None and adjacent_infrastructure:
-            text += " and no connecting roads"
-        elif local_infrastructure:
-            text += " and no connecting roads"
-        else:
-            text += " and no connecting roads"
+        # local_infrastructure = tooltip_info_dict["local_infrastructure"]
+        # adjacent_infrastructure = tooltip_info_dict["adjacent_infrastructure"]
+        # if local_infrastructure and adjacent_infrastructure:
+        #    text += " and connecting roads"
+        # elif local_infrastructure == None and adjacent_infrastructure:
+        #    text += " and no connecting roads"
+        # elif local_infrastructure:
+        #    text += " and no connecting roads"
+        # else:
+        #    text += " and no connecting roads"
 
-        message.append(text)
+        # message.append(text)
         return message
 
     def generate_attached_interface_elements(self, subject):

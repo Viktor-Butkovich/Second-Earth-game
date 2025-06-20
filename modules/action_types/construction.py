@@ -1,5 +1,6 @@
 # Contains all functionality for construction
 
+from typing import List
 from modules.action_types import action
 from modules.util import action_utility, utility, actor_utility, text_utility
 from modules.constructs import building_types, item_types
@@ -69,14 +70,10 @@ class construction(action.action):
         initial_input_dict["keybind_id"] = self.building_type.build_keybind
         return initial_input_dict
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this tooltip of a button linked to this action
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         message = []
         message.append(f"Attempts to build a {self.building_name} in this location")

@@ -1,7 +1,7 @@
 # Contains all functionality for minister investigations
 
 import random
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 from modules.util import text_utility, minister_utility, utility
 from modules.action_types import action
 from modules.constants import constants, status, flags
@@ -42,14 +42,10 @@ class active_investigation(action.campaign):
         initial_input_dict["modes"] = [constants.MINISTERS_MODE]
         return super().button_setup(initial_input_dict)
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this tooltip of a button linked to this action
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if status.displayed_minister:
             return [
@@ -210,30 +206,30 @@ class active_investigation(action.campaign):
                                 minister_utility.calibrate_minister_info_display(target)
                     else:
                         if category == "loyalty":
-                            previous_values[
-                                category
-                            ] = target.apparent_corruption_description
+                            previous_values[category] = (
+                                target.apparent_corruption_description
+                            )
                         else:
-                            previous_values[
-                                category
-                            ] = target.apparent_skill_descriptions[category]
+                            previous_values[category] = (
+                                target.apparent_skill_descriptions[category]
+                            )
                         target.attempt_rumor(category, prosecutor)
                         if category == "loyalty":
                             if (
                                 target.apparent_corruption_description
                                 != previous_values[category]
                             ):
-                                new_values[
-                                    category
-                                ] = target.apparent_corruption_description
+                                new_values[category] = (
+                                    target.apparent_corruption_description
+                                )
                         else:
                             if (
                                 target.apparent_skill_descriptions[category]
                                 != previous_values[category]
                             ):
-                                new_values[
-                                    category
-                                ] = target.apparent_skill_descriptions[category]
+                                new_values[category] = (
+                                    target.apparent_skill_descriptions[category]
+                                )
         message = ""
         audio = None
         if new_values or corruption_event:
