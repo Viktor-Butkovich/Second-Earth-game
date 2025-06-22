@@ -1,3 +1,5 @@
+# Contains player profile achievement management singleton
+
 import pickle
 import os
 from typing import List

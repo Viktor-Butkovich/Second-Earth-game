@@ -1,4 +1,4 @@
-# Contains functions used in the game's main loop and event management
+# Contains functions used in the game's main loop and pygame input event management
 
 import pygame
 import time
@@ -238,7 +238,7 @@ def main_loop():
         if constants.current_time - constants.last_selection_outline_switch > 1:
             flags.show_selection_outlines = not flags.show_selection_outlines
             constants.last_selection_outline_switch = constants.current_time
-        constants.EventManager.update(constants.current_time)
+        constants.JobScheduler.update(constants.current_time)
         if (
             not flags.player_turn
             and constants.previous_turn_time + constants.end_turn_wait_time

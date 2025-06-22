@@ -1,4 +1,4 @@
-# Contains functionality for creating new games, saving, and loading
+# Contains .pickle game state saving/loading management singleton
 
 import random
 import pickle

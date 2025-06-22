@@ -11,7 +11,7 @@ from modules.managers.input_manager import input_manager
 from modules.managers.actor_creation_manager import (
     actor_creation_manager,
 )
-from modules.managers.event_manager import event_manager
+from modules.managers.job_scheduler import job_scheduler
 from modules.managers.achievement_manager import (
     achievement_manager,
 )
@@ -206,7 +206,7 @@ CharacterManager: character_manager = (
 AchievementManager: achievement_manager = (
     None  # requires additional setup before initialization
 )
-EventManager: event_manager = event_manager()
+JobScheduler: job_scheduler = job_scheduler()
 NotificationManager: notification_manager = (
     None  # requires additional setup before initialization
 )

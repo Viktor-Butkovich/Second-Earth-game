@@ -1,8 +1,10 @@
+# Contains variable getter/setter/display management singletons
+
 from modules.constants import constants, status, flags
 
 
 class value_tracker:
-    """
+    """`
     Object that controls the value of a certain variable
     """
 

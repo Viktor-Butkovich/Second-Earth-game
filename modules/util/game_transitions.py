@@ -79,7 +79,7 @@ def set_game_mode(new_game_mode):
             constants.MAIN_MENU_MODE,
             constants.NEW_GAME_SETUP_MODE,
         ]:
-            constants.EventManager.clear()
+            constants.JobScheduler.clear()
             constants.SoundManager.play_random_music("earth")
         elif (
             not previous_game_mode
@@ -88,7 +88,7 @@ def set_game_mode(new_game_mode):
             constants.MAIN_MENU_MODE,
             constants.NEW_GAME_SETUP_MODE,
         ]:  # game starts in None mode so this would work on startup
-            constants.EventManager.clear()
+            constants.JobScheduler.clear()
             constants.SoundManager.play_random_music("main menu")
 
         if (

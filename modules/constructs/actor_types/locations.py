@@ -1455,7 +1455,7 @@ class location(actors.actor):
             flags.player_turn and main_loop_utility.action_possible()
         ):
             if constants.SoundManager.previous_state != "earth":
-                constants.EventManager.clear()
+                constants.JobScheduler.clear()
                 constants.SoundManager.play_random_music("earth")
 
     def get_all_local_inventory(self) -> Dict[str, float]:

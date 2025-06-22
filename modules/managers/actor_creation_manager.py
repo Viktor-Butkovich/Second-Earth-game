@@ -1,4 +1,4 @@
-# Contains functionality for creating new instances of mobs, buildings, dice, and ministers
+# Contains actor/interface element creation factory singleton
 
 import random
 from modules.constructs.actor_types import locations, mobs
