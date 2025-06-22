@@ -2,7 +2,7 @@
 
 import pygame
 from modules.constructs import images
-from modules.util import scaling, utility, dummy_utility, actor_utility
+from modules.util import scaling, utility, dummy_utility, actor_utility, world_utility
 from modules.constants import constants, status, flags
 
 
@@ -28,6 +28,7 @@ class interface_element:
         Output:
             None
         """
+        self.image: images.image = None
         self.can_show_override = None
         self.width = input_dict["width"]
         self.height = input_dict["height"]
@@ -62,40 +63,15 @@ class interface_element:
         if "image_id" in input_dict:
             self.create_image(input_dict["image_id"])
 
-    def remove_recursive(self, complete=False):
+    def remove_recursive(self):
         """
-        Description:
-            Recursively removes a collection and its members
-        Input:
-            boolean complete=False: Whether to use remove_complete or remove for each item
-        Output:
-            None
-        """
-        if complete:
-            self.remove_complete()
-        else:
-            self.remove()
-
-    def remove_complete(self):
-        """
-        Description:
-            Removes this object and deallocates its memory - defined for any removable object w/o a superclass
-        Input:
-            None
-        Output:
-            None
+        Recursively removes a collection and its members
         """
         self.remove()
-        del self
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         if self.has_parent_collection:
             self.parent_collection.remove_member(self)
@@ -105,12 +81,7 @@ class interface_element:
 
     def draw(self):
         """
-        Description:
-            Draws this element's image - should only call if can_draw()
-        Input:
-            None
-        Output:
-            None
+        Draws this element's image - should only call if can_draw()
         """
         self.image.draw()
 
@@ -131,7 +102,7 @@ class interface_element:
         Output:
             boolean: Returns whether it would be valid to call this object's draw()
         """
-        return self.showing and hasattr(self, "image")
+        return self.showing and self.image
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -285,7 +256,7 @@ class interface_collection(interface_element):
     An entire collection can be displayed or hidden as a unit, along with individual components having their own conditions for being visible when the window is displayed
     A collection could have different modes that display different sub-windows under different conditions while keeping other elements constant
     A particular type of collection could have special ordered functionality, like a series of buttons that can be scrolled through, or a images displayed in horizontal rows w/ maximum widths
-    Older, informal collections such as the available minister scrollbar, the movement buttons, and the mob, tile, minister, prosecution, and defense displays should be able to be
+    Older, informal collections such as the available minister scrollbar, the movement buttons, and the mob, location, minister, prosecution, and defense displays should be able to be
         implemented as interface collections. Additionally, the "mode" system could possibly be changed to use overarching interface collections for each mode
     Like an image bundle, members of an interface collection should have independent types and characteristics but be controlled as a unit and created in a list with a dictionary or simple
         string. Unlike an image bundle, a collection does not necessarily have to be saved, and
@@ -387,18 +358,6 @@ class interface_collection(interface_element):
                 initial_member_dict
             )
 
-    def create_image(self, image_id):
-        """
-        Description:
-            Creates an image associated with this interface element - overrides parent version to create a collection image instead of the default button images at the same
-                initialization step
-        Input:
-            string/list/dict image_id: Single or list of string image file paths and/or offset image dictionaries
-        Output:
-            None
-        """
-        self.image = images.collection_image(self, self.width, self.height, image_id)
-
     def calibrate(self, new_actor, override_exempt=False):
         """
         Description:
@@ -473,32 +432,18 @@ class interface_collection(interface_element):
         status.independent_interface_elements.append(removed_member)
         self.members.remove(removed_member)
 
-    def remove_recursive(self, complete=False):
+    def remove_recursive(self):
         """
-        Description:
-            Recursively removes a collection and its members
-        Input:
-            boolean complete=False: Whether to use remove_complete or remove for each item
-        Output:
-            None
+        Recursively removes a collection and its members
         """
         for current_member in self.members.copy():
             self.remove_member(current_member)
-            current_member.remove_recursive(complete=complete)
-
-        if complete:
-            super().remove_complete()
-        else:
-            super().remove()
+            current_member.remove_recursive()
+        super().remove()
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         self.remove_recursive()
 
@@ -567,12 +512,7 @@ class interface_collection(interface_element):
 
     def update_collection(self):
         """
-        Description:
-            Makes any necessary modifications to members on calibration, if applicable
-        Input:
-            None
-        Output:
-            None
+        Makes any necessary modifications to members on calibration, if applicable
         """
         return
 
@@ -899,14 +839,9 @@ class ordered_collection(interface_collection):
         return size
 
     def update_collection(self):
-        """
-        Description:
-            Changes locations of collection members to put all visible members in order while skipping hidden ones. Each overlapped element follows ordering logic but
-                causes no change in the current ordering location (causing next element to appear at its location), while each exempt element ignores ordering logic
-        Input:
-            None
-        Output:
-            None
+        """n:
+        Changes locations of collection members to put all visible members in order while skipping hidden ones. Each overlapped element follows ordering logic but
+            causes no change in the current ordering location (causing next element to appear at its location), while each exempt element ignores ordering logic
         """
         super().update_collection()
         for key in self.second_dimension_coordinates:
@@ -986,19 +921,12 @@ class ordered_collection(interface_collection):
                 ]
             )
         elif self == status.global_conditions_collection and new_actor:
-            if new_actor.cell.grid == status.earth_grid:
-                globe_image = "locations/earth.png"
+            if new_actor.is_earth_location:
+                planet = constants.EARTH_WORLD
             else:
-                globe_image = status.globe_projection_surface
+                planet = constants.GLOBE_PROJECTION_WORLD
             self.tab_button.image.set_image(
                 actor_utility.generate_frame(
-                    "misc/space.png",
+                    world_utility.generate_abstract_world_image(size=0.6, planet=planet)
                 )
-                + [
-                    {
-                        "image_id": globe_image,
-                        "size": 0.6,
-                        "detail_level": 1.0,
-                    }
-                ]
             )

@@ -1,7 +1,8 @@
 # Contains functionality for multi-step notifications
 
+from typing import List
 from modules.interface_types.notifications import notification
-from modules.util import scaling, action_utility
+from modules.util import scaling, action_utility, actor_utility
 from modules.constants import constants, status, flags
 
 
@@ -76,15 +77,13 @@ class action_notification(notification):
                 index = 0
                 for element_input_dict in self.attached_interface_elements:
                     if type(element_input_dict) == dict:
-                        element_input_dict[
-                            "parent_collection"
-                        ] = (
+                        element_input_dict["parent_collection"] = (
                             self.notification_ordered_collection
                         )  # self.parent_collection
-                        self.attached_interface_elements[
-                            index
-                        ] = constants.actor_creation_manager.create_interface_element(
-                            element_input_dict
+                        self.attached_interface_elements[index] = (
+                            constants.actor_creation_manager.create_interface_element(
+                                element_input_dict
+                            )
                         )  # if given input dict, create it and add it to notification
                     else:
                         self.notification_ordered_collection.add_member(
@@ -99,13 +98,8 @@ class action_notification(notification):
 
     def on_click(self):
         """
-        Description:
-            Controls this notification's behavior when clicked - action notifications recursively remove their automatically generated parent collections and
-                transfer sibling ordered collection's interface elements, if applicable
-        Input:
-            None
-        Output:
-            None
+        Controls this notification's behavior when clicked - action notifications recursively remove their automatically generated parent collections and
+            transfer sibling ordered collection's interface elements, if applicable
         """
         transferred_interface_elements = []
         if self.attached_interface_elements and self.transfer_interface_elements:
@@ -139,7 +133,7 @@ class action_notification(notification):
                 transferred_interface_elements.append(interface_element)
 
         if self.has_parent_collection:
-            self.parent_collection.remove_recursive(complete=False)
+            self.parent_collection.remove_recursive()
         else:
             self.remove()
 
@@ -150,12 +144,10 @@ class action_notification(notification):
     def format_message(self):
         """
         Description:
-            Converts this notification's string message to a list of strings, with each string representing a line of text. Each line of text ends when its width exceeds the ideal_width or when a '/n' is encountered in the text. Unlike s
-                uperclass, this version removes the automatic prompt to close the notification, as action notifications often require more specific messages not add a prompt to close the notification.
-        Input:
-            None
-        Output:
-            None
+            Converts this notification's string message to a list of strings, with each string representing a line of text.
+                Each line of text ends when its width exceeds the ideal_width or when a '/n' is encountered in the text.
+                Unlike superclass, this version removes the automatic prompt to close the notification, as action
+                notifications often require more specific messages not add a prompt to close the notification.
         """
         super().format_message()
         self.message.pop(-1)
@@ -166,25 +158,16 @@ class dice_rolling_notification(action_notification):
     Notification that is removed when a dice roll is completed rather than when clicked
     """
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this notification's tooltip to what it should be. Dice rolling notifications tell the user to wait for the dice to finish rolling
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(["Wait for the dice to finish rolling"])
+        return ["Wait for the dice to finish rolling"]
 
     def on_click(self, die_override=False):
         """
-        Description:
-            Controls this notification's behavior when clicked. Unlike superclass, dice rolling notifications are not removed when clicked
-        Input:
-            None
-        Output:
-            None
+        Controls this notification's behavior when clicked. Unlike superclass, dice rolling notifications are not removed when clicked
         """
         if die_override:
             super().on_click()
@@ -193,13 +176,8 @@ class dice_rolling_notification(action_notification):
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. When a notification is removed, the next notification is shown, if there is one. Dice rolling notifications are
-                removed when all dice finish rolling rather than when clicked. Upon removal, dice rolling notifications highlight the chosen die with a color corresponding to the roll's outcome
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. When a notification is removed, the next notification is shown, if there is one. Dice rolling notifications are
+            removed when all dice finish rolling rather than when clicked. Upon removal, dice rolling notifications highlight the chosen die with a color corresponding to the roll's outcome
         """
         super().remove()
         num_dice = len(status.dice_list)
@@ -240,9 +218,9 @@ class dice_rolling_notification(action_notification):
             status.dice_list[0].highlighted = True
 
 
-class off_tile_exploration_notification(action_notification):
+class adjacent_location_exploration_notification(action_notification):
     """
-    Notification that shows a tile explored by an expedition in an adjacent tile, focusing on the new tile and returning minimap to original position upon removal
+    Notification that shows a location explored by an expedition in an adjacent location, focusing on the new location and returning minimap to original position upon removal
     """
 
     def __init__(self, input_dict):
@@ -265,8 +243,8 @@ class off_tile_exploration_notification(action_notification):
         Output:
             None
         """
-        cell = input_dict["extra_parameters"]["cell"]
-        reveal_cell = input_dict["extra_parameters"].get("reveal_cell", True)
+        target_location = input_dict["extra_parameters"]["target_location"]
+        reveal = input_dict["extra_parameters"].get("reveal", True)
         public_opinion_increase = input_dict["extra_parameters"].get(
             "public_opinion_increase", 0
         )
@@ -278,9 +256,7 @@ class off_tile_exploration_notification(action_notification):
             input_dict["attached_interface_elements"] = []
         input_dict["attached_interface_elements"].append(
             action_utility.generate_free_image_input_dict(
-                action_utility.generate_tile_image_id_list(
-                    cell, force_visibility=(reveal_cell or cell.terrain_handler.visible)
-                ),
+                action_utility.generate_location_image_id_list(target_location),
                 250,
                 override_input_dict={
                     "member_config": {
@@ -291,21 +267,18 @@ class off_tile_exploration_notification(action_notification):
             )
         )
 
-        if reveal_cell:
-            cell.terrain_handler.set_visibility(True)
-        status.minimap_grid.calibrate(cell.x, cell.y)
+        if reveal:
+            pass
+            # Increase location's knowledge level
+
+        actor_utility.focus_minimap_grids(target_location)
         super().__init__(input_dict)
         constants.public_opinion_tracker.change(public_opinion_increase)
         constants.money_tracker.change(money_increase)
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. When a notification is removed, the next notification is shown, if there is one
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. When a notification is removed, the next notification is shown, if there is one
         """
-        status.minimap_grid.calibrate(status.displayed_mob.x, status.displayed_mob.y)
+        actor_utility.focus_minimap_grids(status.display_mob.location)
         super().remove()

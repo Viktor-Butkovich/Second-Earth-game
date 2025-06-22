@@ -28,8 +28,8 @@ class pmob(mob):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination_coordinates': int tuple value - None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_world_index': int value - Index of the world of the end turn destination, if any
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'sentry_mode': boolean value - Required if from save, whether this unit is in sentry mode, preventing it from being in the turn order
@@ -44,7 +44,6 @@ class pmob(mob):
         """
         self.sentry_mode = False
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.selection_outline_color = constants.COLOR_BRIGHT_GREEN
         status.pmob_list.append(self)
         self.equipment = {}
         self.upkeep_missing_penalty: str = None
@@ -54,25 +53,10 @@ class pmob(mob):
             if input_dict.get("equipment", {}).get(current_equipment, False):
                 status.equipment_types[current_equipment].equip(self)
         if from_save:
-            if input_dict[
-                "end_turn_destination"
-            ]:  # end turn destination is a tile and can't be pickled, need to find it again after loading
-                end_turn_destination_x, end_turn_destination_y = input_dict[
-                    "end_turn_destination"
-                ]
-                end_turn_destination_grid = getattr(
-                    status, input_dict["end_turn_destination_grid_type"]
-                )
-                self.end_turn_destination = end_turn_destination_grid.find_cell(
-                    end_turn_destination_x, end_turn_destination_y
-                ).tile
-                self.set_permission(
-                    constants.TRAVELING_PERMISSION, True, update_image=False
-                )
             self.default_name = input_dict["default_name"]
             self.set_name(self.default_name)
             self.set_automatically_replace(input_dict["automatically_replace"])
-            if input_dict["in_turn_queue"] and not input_dict["end_turn_destination"]:
+            if input_dict["in_turn_queue"] and not self.end_turn_destination:
                 self.add_to_turn_queue()
             else:
                 self.remove_from_turn_queue()
@@ -91,7 +75,6 @@ class pmob(mob):
                 []
             )  # first item is next step, last item is current location
             self.wait_until_full = False
-        self.attached_cell_icon_list = []
         self.finish_init(original_constructor, from_save, input_dict)
 
     def finish_init(
@@ -125,12 +108,7 @@ class pmob(mob):
 
     def permissions_setup(self) -> None:
         """
-        Description:
-            Sets up this mob's permissions
-        Input:
-            None
-        Output:
-            None
+        Sets up this mob's permissions
         """
         super().permissions_setup()
         self.set_permission(constants.PMOB_PERMISSION, True)
@@ -145,16 +123,10 @@ class pmob(mob):
             None
         """
         self.vehicle = vehicle
+        self.location.unsubscribe_mob(self)
         self.set_permission(constants.IN_VEHICLE_PERMISSION, True)
-        self.hide_images()
         vehicle.set_crew(self)
-        moved_mob = vehicle
-        for current_image in moved_mob.images:  # Moves vehicle to front
-            if current_image.current_cell:
-                while not moved_mob == current_image.current_cell.contained_mobs[0]:
-                    current_image.current_cell.contained_mobs.append(
-                        current_image.current_cell.contained_mobs.pop(0)
-                    )
+        vehicle.move_to_front()
         self.remove_from_turn_queue()
         vehicle.add_to_turn_queue()
         if (
@@ -178,12 +150,10 @@ class pmob(mob):
         Output:
             None
         """
+        self.location.subscribe_mob(self)
         self.vehicle = None
-        self.x = vehicle.x
-        self.y = vehicle.y
         self.set_permission(constants.IN_VEHICLE_PERMISSION, False)
-        self.show_images()
-        if not self.get_cell().get_intact_building(constants.SPACEPORT):
+        if not self.location.get_intact_building(constants.SPACEPORT):
             if constants.ALLOW_DISORGANIZED:
                 self.set_permission(constants.DISORGANIZED_PERMISSION, True)
         vehicle.set_crew(None)
@@ -192,12 +162,12 @@ class pmob(mob):
             constants.TRAVELING_PERMISSION, False, update_image=False
         )
         vehicle.remove_from_turn_queue()
-        self.update_image_bundle()
         if focus:
             self.select()
             constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)
         self.add_to_turn_queue()
-        self.update_habitability()
+        for current_mob in self.contained_mobs:
+            current_mob.update_habitability()
 
     def get_item_upkeep(
         self, recurse: bool = False, earth_exemption: bool = True
@@ -220,12 +190,11 @@ class pmob(mob):
                 and self.get_permission(constants.IN_GROUP_PERMISSION)
             ):
                 return {}
-        if earth_exemption and self.get_cell().grid == status.earth_grid:
+        if earth_exemption and self.location.is_earth_location:
             return {}
         elif (
             earth_exemption
-            and self.get_cell().terrain_handler.get_unit_habitability()
-            > constants.HABITABILITY_DEADLY
+            and self.location.get_unit_habitability() > constants.HABITABILITY_DEADLY
         ):
             item_upkeep = self.unit_type.item_upkeep.copy()
             item_upkeep.pop(
@@ -256,18 +225,15 @@ class pmob(mob):
 
     def consume_item_upkeep(self) -> None:
         """
-        Description:
-            Consumes all available items required for this unit's item upkeep, logging an upkeep missing penalty for the most important missing item type
-                Item upkeep of sub-mobs needs to be handled separately
-        Input:
-            None
-        Output:
-            None
+        Consumes all available items required for this unit's item upkeep, logging an upkeep missing penalty for the most important missing item type
+            Item upkeep of sub-mobs needs to be handled separately
         """
         if self.in_deadly_environment():
             return  # Don't consume upkeep when in instant death conditions
 
-        missing_upkeep = self.consume_items(self.get_item_upkeep(recurse=False))
+        missing_upkeep = self.location.consume_items(
+            self.get_item_upkeep(recurse=False), consuming_actor=self
+        )
         for (
             item_key,
             item_present,
@@ -336,12 +302,7 @@ class pmob(mob):
 
     def check_item_availability(self) -> None:
         """
-        Description:
-            Checks whether any of the items required for this unit's item upkeep are present (regardless of amount)
-        Input:
-            None
-        Output:
-            None
+        Checks whether any of the items required for this unit's item upkeep are present (regardless of amount)
         """
         self.item_upkeep_present = {}
         for item_key in self.get_item_upkeep():
@@ -355,12 +316,7 @@ class pmob(mob):
 
     def record_upkeep_missing_penalty(self) -> None:
         """
-        Description:
-            Records this unit's most severe upkeep missing penalty as a message to display at the start of the turn
-        Input:
-            None
-        Output:
-            None
+        Records this unit's most severe upkeep missing penalty as a message to display at the start of the turn
         """
         if self.upkeep_missing_penalty != constants.UPKEEP_MISSING_PENALTY_NONE:
             self.record_logistics_incident(
@@ -370,12 +326,7 @@ class pmob(mob):
 
     def resolve_upkeep_missing_penalty(self) -> None:
         """
-        Description:
-            Apply an effect based on the most severe upkeep missing penalty type due to missing item upkeep from earlier in the turn (if any)
-        Input:
-            None
-        Output:
-            None
+        Apply an effect based on the most severe upkeep missing penalty type due to missing item upkeep from earlier in the turn (if any)
         """
         if self.upkeep_missing_penalty == constants.UPKEEP_MISSING_PENALTY_DEATH:
             self.die()
@@ -430,7 +381,7 @@ class pmob(mob):
                 moved_unit.disembark_vehicle(moved_unit.vehicle, focus=False)
         if self.get_permission(constants.IN_GROUP_PERMISSION):
             self.group.disband(focus=False)
-        super().die()
+        super().die(death_type=death_type)
         if (
             reembarked_units
         ):  # If group member passenger dies, reembark other group member
@@ -438,34 +389,27 @@ class pmob(mob):
 
     def on_move(self):
         """
-        Description:
-            Automatically called when unit arrives in a tile for any reason
-        Input:
-            None
-        Output:
-            None
+        Automatically called when unit arrives in a location for any reason
         """
         super().on_move()
-        current_cell = self.get_cell()
-        if current_cell:
-            for cell in [current_cell] + current_cell.adjacent_list:
-                if cell == current_cell:  # Show knowledge 3 about current cell
+        current_location = self.location
+        if current_location and not current_location.is_abstract_location:
+            for location in [current_location] + current_location.adjacent_list:
+                if (
+                    location == current_location
+                ):  # Show knowledge 3 about current location
                     requirement = constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
                     category = constants.TERRAIN_PARAMETER_KNOWLEDGE
-                else:  # Show knowledge 2 about adjacent cells
+                else:  # Show knowledge 2 about adjacent locations
                     requirement = constants.TERRAIN_KNOWLEDGE_REQUIREMENT
                     category = constants.TERRAIN_KNOWLEDGE
-                if not cell.terrain_handler.knowledge_available(category):
-                    cell.terrain_handler.set_parameter(
+                if not location.knowledge_available(category):
+                    location.set_parameter(
                         constants.KNOWLEDGE,
                         max(
                             requirement,
-                            cell.terrain_handler.get_parameter(constants.KNOWLEDGE),
+                            location.get_parameter(constants.KNOWLEDGE),
                         ),
-                        update_display=cell
-                        == current_cell.adjacent_list[
-                            -1
-                        ],  # Only update display on last cell
                     )
 
     def to_save_dict(self):
@@ -478,8 +422,8 @@ class pmob(mob):
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
                 Along with superclass outputs, also saves the following values:
                 'default_name': string value - This actor's name without modifications like veteran
-                'end_turn_destination': string or int tuple value - None if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination_coordinates': int tuple value - None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_world_index': int value - Index of the world of the end turn destination, if any
                 'sentry_mode': boolean value - Whether this unit is in sentry mode, preventing it from being in the turn order
                 'in_turn_queue': boolean value - Whether this unit is in the turn order, allowing end unit turn commands, etc. to persist after saving/loading
                 'base_automatic_route': int tuple list value - List of the coordinates in this unit's automatic movement route, with the first coordinates being the start and the last being the end. List empty if
@@ -490,14 +434,14 @@ class pmob(mob):
         """
         save_dict = super().to_save_dict()
         if not self.end_turn_destination:
-            save_dict["end_turn_destination"] = None
-        else:  # end turn destination is a tile and can't be pickled, need to save its location to find it again after loading
-            for grid_type in constants.grid_types_list:
-                if self.end_turn_destination.grid == getattr(status, grid_type):
-                    save_dict["end_turn_destination_grid_type"] = grid_type
-            save_dict["end_turn_destination"] = (
+            save_dict["end_turn_destination_coordinates"] = None
+        else:
+            save_dict["end_turn_destination_coordinates"] = (
                 self.end_turn_destination.x,
                 self.end_turn_destination.y,
+            )
+            save_dict["end_turn_destination_world_index"] = status.world_list.index(
+                self.end_turn_destination.world_handler
             )
         save_dict["default_name"] = self.default_name
         save_dict["sentry_mode"] = self.sentry_mode
@@ -509,65 +453,23 @@ class pmob(mob):
         save_dict["equipment"] = self.equipment
         return save_dict
 
-    def clear_attached_cell_icons(self):
-        """
-        Description:
-            Removes all of this unit's cell icons
-        Input:
-            None
-        Output:
-            None
-        """
-        for current_cell_icon in self.attached_cell_icon_list:
-            current_cell_icon.remove_complete()
-        self.attached_cell_icon_list = []
-
-    def create_cell_icon(self, x, y, image_id):
-        """
-        Description:
-            Creates a cell icon managed by this mob with the inputted image at the inputted coordinates
-        Input:
-            int x: cell icon's x coordinate on main grid
-            int y: cell icon's y coordinate on main grid
-            string image_id: cell icon's image_id
-            string init_type='cell icon': init type of actor to create
-            dictionary extra_parameters=None: dictionary of any extra parameters to pass to the created actor
-        """
-        self.attached_cell_icon_list.append(
-            constants.actor_creation_manager.create(
-                False,
-                {
-                    "coordinates": (x, y),
-                    "grids": self.grids,
-                    "image": image_id,
-                    "modes": self.grids[0].modes,
-                    "init_type": constants.CELL_ICON,
-                },
-            )
-        )
-
-    def add_to_automatic_route(self, new_coordinates):
+    def add_to_automatic_route(self, new_location):
         """
         Description:
             Adds the inputted coordinates to this unit's automated movement route, changing the in-progress route as needed
         Input:
-            int tuple new_coordinates: New x and y coordinates to add to the route
+            location tuple new_coordinates: New x and y coordinates to add to the route
         Output:
             None
         """
-        self.base_automatic_route.append(new_coordinates)
+        self.base_automatic_route.append(new_location)
         self.calculate_automatic_route()
         if self == status.displayed_mob:
             actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
 
     def calculate_automatic_route(self):
         """
-        Description:
-            Creates an in-progress movement route based on the base movement route when the base movement route changes
-        Input:
-            None
-        Output:
-            None
+        Creates an in-progress movement route based on the base movement route when the base movement route changes
         """
         reversed_base_automatic_route = utility.copy_list(self.base_automatic_route)
         reversed_base_automatic_route.reverse()
@@ -599,13 +501,14 @@ class pmob(mob):
         Output
             boolean: Returns whether the next step of this unit's in-progress movement route could be completed at this moment
         """
+        current_location = self.location
         next_step = self.in_progress_automatic_route[0]
         if next_step == "end":  # can drop off freely unless train without train station
             if not (
                 self.all_permissions(
                     constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                 )
-                and not self.get_cell().has_intact_building(constants.TRAIN_STATION)
+                and not current_location.has_intact_building(constants.TRAIN_STATION)
             ):
                 return True
             else:
@@ -615,43 +518,39 @@ class pmob(mob):
             if (
                 self.wait_until_full
                 and (
-                    self.get_cell().tile.get_inventory_used() >= self.inventory_capacity
-                    or self.get_cell().tile.get_inventory_remaining() <= 0
+                    current_location.get_inventory_used() >= self.inventory_capacity
+                    or current_location.insufficient_inventory_capacity
                 )
             ) or (
                 (not self.wait_until_full)
                 and (
-                    len(self.get_cell().tile.get_held_items(ignore_consumer_goods=True))
-                    > 0
+                    len(current_location.get_held_items(ignore_consumer_goods=True)) > 0
                     or self.get_inventory_used() > 0
                 )
-            ):  # only start round trip if there is something to deliver, either from tile or in inventory already
+            ):  # Only start round trip if there is something to deliver, either from location or if already in inventory
                 # If wait until full, instead wait until full load to transport or no warehouse space left
                 if not (
                     self.all_permissions(
                         constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                     )
-                    and not self.get_cell().has_intact_building(constants.TRAIN_STATION)
-                ):  # can pick up freely unless train without train station
+                    and not current_location.has_intact_building(
+                        constants.TRAIN_STATION
+                    )
+                ):  # Pick up freely unless train without train station
                     return True
                 else:
                     return False
             else:
                 return False
-        else:  # must have enough movement points, not blocked
-            x_change = next_step[0] - self.x
-            y_change = next_step[1] - self.y
+        else:  # Must have enough movement points, not blocked
+            x_change = next_step.x - current_location.x
+            y_change = next_step.y - current_location.y
             return self.can_move(x_change, y_change, False)
 
     def follow_automatic_route(self):
         """
-        Description:
-            Moves along this unit's in-progress movement route until it cannot complete the next step. A unit will wait for items to transport from the start, then pick them up and move along the path, picking up others along
-                the way. At the end of the path, it drops all items and moves back towards the start
-        Input:
-            None
-        Output:
-            None
+        Moves along this unit's in-progress movement route until it cannot complete the next step. A unit will wait for items to transport from the start, then pick them up and move along the path, picking up others along
+            the way. At the end of the path, it drops all items and moves back towards the start
         """
         progressed = False
         if len(self.in_progress_automatic_route) > 0:
@@ -666,7 +565,7 @@ class pmob(mob):
                         self.all_permissions(
                             constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                         )
-                        and not self.get_cell().has_intact_building(
+                        and not self.location.has_intact_building(
                             constants.TRAIN_STATION
                         )
                     ):
@@ -676,14 +575,15 @@ class pmob(mob):
                             self.pick_up_all_items(
                                 True
                             )  # Attempt to pick up items both before and after moving
-                    x_change = next_step[0] - self.x
-                    y_change = next_step[1] - self.y
+                    initial_location = self.location
+                    x_change = next_step.x - initial_location.x
+                    y_change = next_step.y - initial_location.y
                     self.move(x_change, y_change)
                     if not (
                         self.all_permissions(
                             constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                         )
-                        and not self.get_cell().has_intact_building(
+                        and not self.location.has_intact_building(
                             constants.TRAIN_STATION
                         )
                     ):
@@ -717,33 +617,32 @@ class pmob(mob):
         Description:
             Adds as many local items to this unit's inventory as possible, possibly choosing not to pick up consumer goods based on the inputted boolean
         Input:
-            boolean ignore_consumer_goods = False: Whether to not pick up consumer goods from this unit's tile
+            boolean ignore_consumer_goods = False: Whether to not pick up consumer goods from this unit's location
         Output:
             None
         """
-        tile = self.get_cell().tile
         while (
             self.get_inventory_remaining() > 0
-            and len(tile.get_held_items(ignore_consumer_goods=ignore_consumer_goods))
+            and len(
+                self.location.get_held_items(
+                    ignore_consumer_goods=ignore_consumer_goods
+                )
+            )
             > 0
         ):
-            items_present = tile.get_held_items(
+            items_present = self.location.get_held_items(
                 ignore_consumer_goods=ignore_consumer_goods
             )
             amount_transferred = min(
-                self.get_inventory_remaining(), tile.get_inventory(items_present[0])
+                self.get_inventory_remaining(),
+                self.location.get_inventory(items_present[0]),
             )
             self.change_inventory(items_present[0], amount_transferred)
-            tile.change_inventory(items_present[0], -amount_transferred)
+            self.location.change_inventory(items_present[0], -amount_transferred)
 
     def clear_automatic_route(self):
         """
-        Description:
-            Removes this unit's saved automatic movement route
-        Input:
-            None
-        Output:
-            None
+        Removes this unit's saved automatic movement route
         """
         self.base_automatic_route = []
         self.in_progress_automatic_route = []
@@ -771,38 +670,6 @@ class pmob(mob):
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, displayed_mob
             )
-
-    def get_image_id_list(self, override_values={}):
-        """
-        Description:
-            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
-                orientation
-        Input:
-            None
-        Output:
-            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
-        """
-        image_id_list = super().get_image_id_list(override_values)
-        if self.get_permission(constants.VETERAN_PERMISSION):
-            image_id_list.append("misc/veteran_icon.png")
-        if self.sentry_mode:
-            image_id_list.append("misc/sentry_icon.png")
-        if self.get_permission(constants.GROUP_PERMISSION):
-            image_id_list += actor_utility.generate_group_image_id_list(
-                self.worker, self.officer
-            )
-        elif self.get_permission(constants.WORKER_PERMISSION):
-            image_id_list += self.insert_equipment(
-                actor_utility.generate_unit_component_portrait(
-                    self.image_dict.get("left portrait", []), "left"
-                )
-            )
-            image_id_list += self.insert_equipment(
-                actor_utility.generate_unit_component_portrait(
-                    self.image_dict.get("right portrait", []), "right"
-                )
-            )
-        return image_id_list
 
     def set_sentry_mode(self, new_value):
         """
@@ -843,12 +710,7 @@ class pmob(mob):
 
     def add_to_turn_queue(self):
         """
-        Description:
-            At the start of the turn or once removed from another actor/building, attempts to add this unit to the list of units to cycle through with tab. Units in sentry mode or without movement are not added
-        Input:
-            None
-        Output:
-            None
+        At the start of the turn or once removed from another actor/building, attempts to add this unit to the list of units to cycle through with tab. Units in sentry mode or without movement are not added
         """
         if (
             (not self.sentry_mode)
@@ -861,12 +723,7 @@ class pmob(mob):
 
     def remove_from_turn_queue(self):
         """
-        Description:
-            Removes this unit from the list of units to cycle through with tab
-        Input:
-            None
-        Output:
-            None
+        Removes this unit from the list of units to cycle through with tab
         """
         status.player_turn_queue = utility.remove_from_list(
             status.player_turn_queue, self
@@ -874,27 +731,15 @@ class pmob(mob):
 
     def replace(self):
         """
-        Description:
-            Replaces this unit for a new version of itself when it dies from attrition, removing all experience and name modifications
-        Input:
-            None
-        Output:
-            None
+        Replaces this unit for a new version of itself when it dies from attrition, removing all experience and name modifications
         """
         self.set_name(self.default_name)
         if self.get_permission(constants.VETERAN_PERMISSION):
             self.set_permission(constants.VETERAN_PERMISSION, False)
-            for current_image in self.images:
-                current_image.image.remove_member("veteran_icon")
 
     def manage_health_attrition(self) -> None:
         """
-        Description:
-            Checks this mob for health attrition each turn
-        Input:
-            None
-        Output:
-            None
+        Checks this mob for health attrition each turn
         """
         if self.any_permissions(
             constants.VEHICLE_PERMISSION, constants.GROUP_PERMISSION
@@ -913,7 +758,7 @@ class pmob(mob):
             return
 
         if (
-            self.get_cell().local_attrition() and random.randrange(1, 7) <= 2
+            self.location.local_attrition() and random.randrange(1, 7) <= 2
         ):  # If local conditions may cause attrition, 1/3 chance of attrition check
             if (
                 minister_utility.get_minister(
@@ -979,147 +824,42 @@ class pmob(mob):
         if not explanation:
             raise ValueError(f"Invalid incident type {incident_type}")
 
-        status.logistics_incident_list.append(
-            {
-                "unit": self,
-                "cell": self.get_cell(),
-                "explanation": f"{name} {explanation}",
-            }
-        )
+        actor_utility.add_logistics_incident_to_report(self, f"{name} {explanation}")
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also deselects this mob and drops any items it is carrying
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also deselects this mob and drops any items it is carrying
         """
-        if self.get_cell() and self.get_cell().tile:  # Drop inventory on death
-            current_tile = self.get_cell().tile
-            for current_item_type in self.get_held_items():
-                current_tile.change_inventory(
-                    current_item_type, self.get_inventory(current_item_type)
-                )
+        for current_item_type in self.get_held_items():
+            self.location.change_inventory(
+                current_item_type, self.get_inventory(current_item_type)
+            )
         self.remove_from_turn_queue()
         super().remove()
         status.pmob_list = utility.remove_from_list(status.pmob_list, self)
 
-    def draw_outline(self):
-        """
-        Description:
-            Draws a flashing outline around this mob if it is selected, also shows its end turn destination, if any
-        Input:
-            None
-        Output:
-            None
-        """
-        if flags.show_selection_outlines:
-            for current_image in self.images:
-                if (
-                    current_image.current_cell
-                    and current_image.current_cell.contained_mobs
-                    and self == current_image.current_cell.contained_mobs[0]
-                    and current_image.current_cell.grid.showing
-                ):  # Only draw outline if on top of stack
-                    pygame.draw.rect(
-                        constants.game_display,
-                        constants.color_dict[self.selection_outline_color],
-                        (current_image.outline),
-                        current_image.outline_width,
-                    )
-
-                    if len(self.base_automatic_route) > 0:
-                        start_coordinates = self.base_automatic_route[0]
-                        end_coordinates = self.base_automatic_route[-1]
-                        for current_coordinates in self.base_automatic_route:
-                            current_tile = (
-                                self.grids[0]
-                                .find_cell(
-                                    current_coordinates[0], current_coordinates[1]
-                                )
-                                .tile
-                            )
-                            if current_coordinates == start_coordinates:
-                                color = constants.COLOR_PURPLE
-                            elif current_coordinates == end_coordinates:
-                                color = constants.COLOR_YELLOW
-                            else:
-                                color = constants.COLOR_BRIGHT_BLUE
-                            current_tile.draw_destination_outline(color)
-                            for equivalent_tile in current_tile.get_equivalent_tiles():
-                                equivalent_tile.draw_destination_outline(color)
-            if self.end_turn_destination:
-                self.end_turn_destination.draw_destination_outline()
-                for equivalent_tile in self.end_turn_destination.get_equivalent_tiles():
-                    equivalent_tile.draw_destination_outline()
-
     def end_turn_move(self):
         """
-        Description:
-            If this mob has any pending movement orders at the end of the turn, this executes the movement. Currently used to move ships between Earth and the planet at the end of the turn
-        Input:
-            None
-        Output:
-            None
+        If this mob has any pending movement orders at the end of the turn, this executes the movement. Currently used to move ships between Earth and the planet at the end of the turn
         """
         if self.end_turn_destination and self.can_travel():
-            self.go_to_grid(
-                self.end_turn_destination.grids[0],
-                (self.end_turn_destination.x, self.end_turn_destination.y),
-            )
+            self.end_turn_destination.subscribe_mob(self)
+            self.on_move()
             self.manage_inventory_attrition()  # do an inventory check when crossing ocean, using the destination's terrain
             self.end_turn_destination = None
             self.set_permission(constants.TRAVELING_PERMISSION, False)
             self.movement_sound()
 
-    def set_inventory(self, item: item_types.item_type, new_value: int) -> None:
-        """
-        Description:
-            Sets the number of items of a certain type held by this mob. Also ensures that the mob info display is updated correctly
-        Input:
-            item_type item: Item type to set the inventory of
-            int new_value: Amount of items of the inputted type to set inventory to
-        Output:
-            None
-        """
-        super().set_inventory(item, new_value)
-        if status.displayed_mob == self:
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
-
     def fire(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Has different effects from die in certain subclasses
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Has different effects from die in certain subclasses
         """
         self.die("fired")
-
-    def can_show_tooltip(self):
-        """
-        Description:
-            Returns whether this mob's tooltip can be shown. Along with the superclass' requirements, mob tooltips cannot be shown when attached to another actor, such as when working in a building
-        Input:
-            None
-        Output:
-            None
-        """
-        return (
-            not self.any_permissions(
-                constants.IN_VEHICLE_PERMISSION,
-                constants.IN_GROUP_PERMISSION,
-                constants.IN_BUILDING_PERMISSION,
-            )
-        ) and super().can_show_tooltip()
 
     def embark_vehicle(self, vehicle, focus=True):
         """
         Description:
-            Hides this mob and embarks it on the inputted vehicle as a passenger. Any items held by this mob are put on the vehicle if there is cargo space, or dropped in its tile if there is no cargo space
+            Hides this mob and embarks it on the inputted vehicle as a passenger. Any items held by this mob are put on the vehicle if there is cargo space, or dropped in its location if there is no cargo space
         Input:
             vehicle vehicle: vehicle that this mob becomes a passenger of
             boolean focus = False: Whether this action is being "focused on" by the player or done automatically
@@ -1134,14 +874,13 @@ class pmob(mob):
             vehicle.change_inventory(current_item, amount_transferred)
 
             amount_dropped = amount_held - amount_transferred
-            self.get_cell().tile.change_inventory(current_item, amount_dropped)
+            self.location.change_inventory(current_item, amount_dropped)
 
         self.inventory = {}
-        self.hide_images()
+        self.location.unsubscribe_mob(self)
         self.remove_from_turn_queue()
-        vehicle.contained_mobs.append(self)
-        vehicle.hide_images()
-        vehicle.show_images()  # moves vehicle images to front
+        vehicle.subscribed_passengers.append(self)
+        vehicle.move_to_front()
         self.set_permission(constants.IN_VEHICLE_PERMISSION, True)
         if (
             focus and not flags.loading_save
@@ -1163,13 +902,12 @@ class pmob(mob):
         Output:
             None
         """
-        vehicle.contained_mobs = utility.remove_from_list(vehicle.contained_mobs, self)
+        vehicle.subscribed_passengers = utility.remove_from_list(
+            vehicle.subscribed_passengers, self
+        )
+        self.location.subscribe_mob(self)
         self.vehicle = None
         self.set_permission(constants.IN_VEHICLE_PERMISSION, False)
-        self.x = vehicle.x
-        self.y = vehicle.y
-        for current_image in self.images:
-            current_image.add_to_cell()
         if (
             self.get_permission(constants.CARAVAN_PERMISSION)
             and self.inventory_capacity > 0
@@ -1190,7 +928,8 @@ class pmob(mob):
         if focus:
             self.select()
             constants.sound_manager.play_sound("effects/metal_footsteps", volume=1.0)
-        self.update_habitability()
+        for current_mob in self.contained_mobs:
+            current_mob.update_habitability()
 
     def get_worker(self) -> "pmob":
         """
@@ -1202,3 +941,39 @@ class pmob(mob):
             worker: Returns the worker associated with this unit, if any
         """
         return None
+
+    def leave_group(self, group, focus=True):
+        """
+        Description:
+            Reveals this unit when its group is disbanded, allowing it to be directly interacted with
+        Input:
+            group group: group from which this unit is leaving
+        Output:
+            None
+        """
+        self.location.subscribe_mob(self)
+        self.group = None
+        self.set_permission(constants.IN_GROUP_PERMISSION, False)
+        if self.get_permission(constants.WORKER_PERMISSION):
+            self.set_permission(
+                constants.DISORGANIZED_PERMISSION,
+                group.get_permission(constants.DISORGANIZED_PERMISSION),
+            )
+        if focus:
+            self.select()
+        if self.movement_points > 0:
+            self.add_to_turn_queue()
+
+    def join_group(self, group):
+        """
+        Description:
+            Hides this officer when joining a group, preventing it from being directly interacted with until the group is disbanded
+        Input:
+            group group: Group this officer is joining
+        Output:
+            None
+        """
+        self.group = group
+        self.set_permission(constants.IN_GROUP_PERMISSION, True)
+        self.location.unsubscribe_mob(self)
+        self.remove_from_turn_queue()

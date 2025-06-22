@@ -239,39 +239,17 @@ class loan:
 
     def make_payment(self):
         """
-        Description:
-            Makes a payment on this loan, paying its interest cost and reducing its remaining duration
-        Input:
-            None
-        Output:
-            None
+        Makes a payment on this loan, paying its interest cost and reducing its remaining duration
         """
         constants.money_tracker.change(-1 * self.interest, "loan_interest")
         self.remaining_duration -= 1
         self.total_to_pay -= self.interest
         if self.total_to_pay <= 0:
-            self.remove_complete()
-
-    def remove_complete(self):
-        """
-        Description:
-            Removes this object and deallocates its memory - defined for any removable object w/o a superclass
-        Input:
-            None
-        Output:
-            None
-        """
-        self.remove()
-        del self
+            self.remove()
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         total_paid = self.interest * 10
         text_utility.print_to_screen(

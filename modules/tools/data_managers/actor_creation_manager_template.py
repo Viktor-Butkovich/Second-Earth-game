@@ -18,14 +18,22 @@ from modules.interface_types import (
     instructions,
     action_notifications,
     interface_elements,
-    cell_icons,
     earth_transactions,
     inventory_interface,
+    grids,
 )
 from modules.actor_display_tools import buttons as actor_display_buttons
 from modules.actor_display_tools import labels as actor_display_labels
 from modules.actor_display_tools import images as actor_display_images
-from modules.constructs import ministers, images, settlements, unit_types
+from modules.constructs import (
+    hosted_icons,
+    ministers,
+    images,
+    settlements,
+    unit_types,
+    locations,
+    world_handler_types,
+)
 from modules.util import utility, actor_utility, market_utility
 from modules.tools import mouse_followers
 from modules.constants import constants, status, flags
@@ -38,12 +46,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
 
     def __init__(self):
         """
-        Description:
-            Initializes this object
-        Input:
-            None
-        Output:
-            None
+        Initializes this object
         """
         self.actor_constructors = {
             constants.MOB: mobs.mob,
@@ -72,11 +75,12 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.SPACEPORT: buildings.building,
             constants.WAREHOUSES: buildings.warehouses,
             constants.RESOURCE: buildings.resource_building,
-            constants.SLUMS: buildings.slums,
             constants.SETTLEMENT: settlements.settlement,
-            constants.CELL_ICON: cell_icons.cell_icon,
-            constants.NAME_ICON: cell_icons.name_icon,
             constants.LOAN: market_utility.loan,
+            constants.LOCATION: locations.location,
+            constants.FULL_WORLD: world_handler_types.full_world_handler,
+            constants.ABSTRACT_WORLD: world_handler_types.abstract_world_handler,
+            constants.ORBITAL_WORLD: world_handler_types.orbital_world_handler,
         }
         self.interface_constructors = {
             constants.BUTTON: buttons.button,
@@ -111,7 +115,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.INVENTORY_GRID: inventory_interface.inventory_grid,
             constants.TABBED_COLLECTION: interface_elements.tabbed_collection,
             constants.END_TURN_BUTTON: buttons.end_turn_button,
-            constants.CYCLE_SAME_TILE_BUTTON: buttons.cycle_same_tile_button,
+            constants.CYCLE_SAME_LOCATION_BUTTON: buttons.cycle_same_location_button,
             constants.FIRE_UNIT_BUTTON: buttons.fire_unit_button,
             constants.SWITCH_GAME_MODE_BUTTON: buttons.switch_game_mode_button,
             constants.CYCLE_AVAILABLE_MINISTERS_BUTTON: buttons.cycle_available_ministers_button,
@@ -156,7 +160,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.TOGGLE_BUTTON: actor_display_buttons.toggle_button,
             constants.CHANGE_PARAMETER_BUTTON: actor_display_buttons.change_parameter_button,
             constants.HELP_BUTTON: actor_display_buttons.help_button,
-            constants.SAME_TILE_ICON: buttons.same_tile_icon,
+            constants.SAME_LOCATION_ICON: buttons.same_location_icon,
             constants.MINISTER_PORTRAIT_IMAGE: buttons.minister_portrait_image,
             constants.ITEM_ICON: inventory_interface.item_icon,
             constants.DIE_ELEMENT: dice.die,
@@ -228,11 +232,10 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.ALBEDO_EFFECT_LABEL: actor_display_labels.actor_display_label,
             constants.TOTAL_HEAT_LABEL: actor_display_labels.actor_display_label,
             constants.MOB_INVENTORY_CAPACITY_LABEL: actor_display_labels.actor_display_label,
-            constants.TILE_INVENTORY_CAPACITY_LABEL: actor_display_labels.actor_display_label,
+            constants.LOCATION_INVENTORY_CAPACITY_LABEL: actor_display_labels.actor_display_label,
             constants.INVENTORY_NAME_LABEL: actor_display_labels.actor_display_label,
             constants.INVENTORY_QUANTITY_LABEL: actor_display_labels.actor_display_label,
             constants.SETTLEMENT: actor_display_labels.actor_display_label,
-            constants.SLUMS: actor_display_labels.actor_display_label,
             constants.RESOURCE: actor_display_labels.actor_display_label,
             constants.SPACEPORT: actor_display_labels.actor_display_label,
             constants.INFRASTRUCTURE: actor_display_labels.actor_display_label,
@@ -263,7 +266,10 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
             constants.CHOICE_NOTIFICATION: choice_notifications.choice_notification,
             constants.ACTION_NOTIFICATION: action_notifications.action_notification,
             constants.DICE_ROLLING_NOTIFICATION: action_notifications.dice_rolling_notification,
-            constants.OFF_TILE_EXPLORATION_NOTIFICATION: action_notifications.off_tile_exploration_notification,
+            constants.ADJACENT_LOCATION_EXPLORATION_NOTIFICATION: action_notifications.adjacent_location_exploration_notification,
+            constants.MINI_GRID: grids.mini_grid,
+            constants.ABSTRACT_GRID: grids.abstract_grid,
+            constants.HOSTED_ICON: hosted_icons.hosted_icon,
         }
 
     def create(self, from_save, input_dict):
@@ -349,25 +355,17 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         return self.create(
             False,
             {
-                "coordinates": (officer.x, officer.y),
-                "grids": officer.grids,
+                "location": worker.location,
                 "worker": worker,
                 "officer": officer,
-                "modes": officer.modes,
                 "init_type": officer.unit_type.group_type.key,
-                "image": "misc/empty.png",
                 "name": actor_utility.generate_group_name(worker, officer),
             },
         )
 
     def create_initial_ministers(self):
         """
-        Description:
-            Creates a varying number of unappointed ministers at the start of the game
-        Input:
-            None
-        Output:
-            None
+        Creates a varying number of unappointed ministers at the start of the game
         """
         if constants.effect_manager.effect_active("speed_loading"):
             for i in range(8):

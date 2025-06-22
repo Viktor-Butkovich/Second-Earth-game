@@ -1,5 +1,6 @@
 # Contains functionality for notifications
 
+from typing import List
 from modules.interface_types.labels import multi_line_label
 from modules.util import actor_utility
 from modules.constants import constants, status, flags
@@ -57,83 +58,48 @@ class notification(multi_line_label):
 
         if input_dict.get("zoom_destination", None):
             target = input_dict["zoom_destination"]
-            if target.actor_type == constants.BUILDING_ACTOR_TYPE:
-                target = target.cell.tile
 
-            if target.actor_type == constants.TILE_ACTOR_TYPE:
+            if target.actor_type == constants.LOCATION_ACTOR_TYPE:
                 actor_utility.calibrate_actor_info_display(
-                    status.mob_info_display, None
+                    status.location_info_display, target
                 )
-                actor_utility.calibrate_actor_info_display(
-                    status.tile_info_display, target
-                )
-                for mini_grid in target.cell.grid.mini_grids:
-                    mini_grid.calibrate(target.x, target.y)
+                actor_utility.focus_minimap_grids(target)
             elif target.actor_type == constants.MOB_ACTOR_TYPE:
-                if (
-                    target.get_cell()
-                ):  # If non-hidden mob, move to front of tile and select
-                    target.select()
-                else:  # If hidden mob, move to location and select tile
-                    for mini_grid in target.grids[0].mini_grids:
-                        mini_grid.calibrate(target.x, target.y)
-                    actor_utility.calibrate_actor_info_display(
-                        status.tile_info_display,
-                        target.grids[0].find_cell(target.x, target.y).tile,
-                    )
+                target.select()
 
     def format_message(self):
         """
-        Description:
-            Converts this notification's string message to a list of strings, with each string representing a line of text. Each line of text ends when its width exceeds the ideal_width or when a '/n' is encountered in the text
-        Input:
-            None
-        Output:
-            None
+        Converts this notification's string message to a list of strings, with each string representing a line of text. Each line of text ends when its width exceeds the ideal_width or when a '/n' is encountered in the text
         """
         super().format_message()
         if self.can_remove:
             self.message.append("Click to remove this notification.")
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this notification's tooltip to what it should be. By default, notifications prompt the player to close them
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.can_remove:
-            self.set_tooltip(["Click to remove this notification"])
+            return ["Click to remove this notification"]
         else:
-            self.set_tooltip(self.message)
+            return self.message
 
     def on_click(self, override_can_remove=False):
         """
-        Description:
-            Controls this notification's behavior when clicked. By default, notifications are removed when clicked
-        Input:
-            None
-        Output:
-            None
+        Controls this notification's behavior when clicked. By default, notifications are removed when clicked
         """
         if self.can_remove or override_can_remove:
             if self.has_parent_collection:
-                self.parent_collection.remove_recursive(complete=False)
+                self.parent_collection.remove_recursive()
             else:
                 self.remove()
             constants.notification_manager.handle_next_notification()
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. By default, notifications are removed when clicked. When a notification is removed, the next notification is shown,
-                if there is one
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. By default, notifications are removed when clicked. When a notification is removed, the next notification is shown,
+            if there is one
         """
         for current_on_remove in self.on_remove:
             current_on_remove[0](*current_on_remove[1])

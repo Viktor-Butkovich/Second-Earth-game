@@ -51,12 +51,12 @@ def double_action_price(action_type):
     constants.action_prices[action_type] *= 2
 
 
-def get_building_cost(constructor, building_type, building_name="n/a"):
+def get_building_cost(builder, building_type, building_name="n/a"):
     """
     Description:
         Returns the cost of the inputted unit attempting to construct the inputted building
     Input:
-        pmob/string constructor: Unit attempting to construct the building, or None if no location/unit type is needed
+        pmob/string builder: Unit attempting to construct the building, or None if no location/unit type is needed
         string building_type: Key of type of building to build, like 'infrastructure'
         string building_name = 'n/a': Name of building being built, used to differentiate roads from railroads
     Output:
@@ -67,8 +67,8 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
             " ", "_"
         )  # road, railroad, road_bridge, or railroad_bridge
     if building_type == constants.WAREHOUSES:
-        if constructor:
-            base_price = constructor.get_cell().get_warehouses_cost()
+        if builder:
+            base_price = builder.location.get_warehouses_cost()
         else:
             base_price = 5
     else:
@@ -76,37 +76,19 @@ def get_building_cost(constructor, building_type, building_name="n/a"):
 
     if building_type in [constants.TRAIN]:
         cost_multiplier = 1
-    elif (not constructor) or not status.strategic_map_grid in constructor.grids:
-        cost_multiplier = 1
+    elif (not builder) or builder.location.is_abstract_location:
+        cost_multiplier = 1  # Abstract world has no terrain for multiplier
     else:
         cost_multiplier = constants.terrain_build_cost_multiplier_dict.get(
-            constructor.get_cell().terrain_handler.terrain, 1
+            builder.location.terrain, 1
         )
     return base_price * cost_multiplier
-
-
-def create_image_dict(stem):
-    """
-    Description:
-        Creates a dictionary of image file paths for an actor to store and set its image to in different situations
-    Input:
-        string stem: Path to an actor's image folder
-    Output:
-        string/string dictionary: String image description keys and string file path values, like 'left': 'explorer/left.png'
-    """
-    stem = "mobs/" + stem
-    stem += "/"
-    image_dict = {}
-    image_dict["default"] = stem + "default.png"
-    image_dict["right"] = stem + "right.png"
-    image_dict["left"] = stem + "left.png"
-    return image_dict
 
 
 def update_roads():
     """
     Description:
-        Updates the road/railroad connections between tiles when a new one is built
+        Updates the road/railroad connections between locations when a new one is built
     Input:
         None
     Output:
@@ -114,62 +96,49 @@ def update_roads():
     """
     for current_building in status.building_list:
         if current_building.building_type == constants.INFRASTRUCTURE:
-            current_building.cell.tile.update_image_bundle()
-
-
-def get_random_ocean_coordinates():
-    """
-    Description:
-        Returns a random set of coordinates from the ocean section of the strategic map
-    Input:
-        None
-    Output:
-        int tuple: Two values representing x and y coordinates
-    """
-    start_x = random.randrange(0, status.strategic_map_grid.coordinate_width)
-    start_y = 0
-    return (start_x, start_y)
+            current_building.location.update_image_bundle()
 
 
 def calibrate_actor_info_display(info_display, new_actor, override_exempt=False):
     """
     Description:
-        Updates all relevant objects to display a certain mob or tile
+        Updates all relevant objects to display a certain mob or location
     Input:
         interface_collection info_display: Collection of interface elements to calibrate to the inputted actor
-        actor new_actor: The new mob or tile that is displayed
+        actor new_actor: The new mob or location that is displayed
         boolean override_exempt=False: Whether to calibrate interface elements that are normally exempt, such as the reorganization interface
     Output:
         None
     """
     if flags.loading:
         return
-    if info_display == status.tile_info_display:
-        for current_same_tile_icon in status.same_tile_icon_list:
-            current_same_tile_icon.reset()
-        if new_actor != status.displayed_tile:
-            calibrate_actor_info_display(status.tile_inventory_info_display, None)
-        status.displayed_tile = new_actor
+    if info_display == status.location_info_display:
+        for current_same_location_icon in status.same_location_icon_list:
+            current_same_location_icon.reset()
+        calibrate_actor_info_display(status.location_inventory_info_display, None)
+        status.displayed_location = new_actor
         if new_actor:
-            new_actor.select()  # plays correct music based on tile selected - main menu/earth music
+            new_actor.select()  # Plays correct music based on location selected - main menu/earth music
         if (
             not flags.choosing_destination
         ):  # Don't change tabs while choosing destination
-            select_default_tab(status.tile_tabbed_collection, status.displayed_tile)
+            select_default_tab(
+                status.location_tabbed_collection, status.displayed_location
+            )
 
     elif info_display == status.mob_info_display:
         changed_displayed_mob = new_actor != status.displayed_mob
         if changed_displayed_mob:
             if status.displayed_mob:
                 status.displayed_mob.stop_ambient_sound()
-            calibrate_actor_info_display(status.mob_inventory_info_display, None)
+        calibrate_actor_info_display(status.mob_inventory_info_display, None)
         status.displayed_mob = new_actor
         if changed_displayed_mob and new_actor:
             new_actor.start_ambient_sound()
         select_default_tab(status.mob_tabbed_collection, new_actor)
-        if new_actor and new_actor.get_cell().tile == status.displayed_tile:
-            for current_same_tile_icon in status.same_tile_icon_list:
-                current_same_tile_icon.reset()
+        if new_actor and new_actor.location == status.displayed_location:
+            for current_same_location_icon in status.same_location_icon_list:
+                current_same_location_icon.reset()
 
     target = None
     if new_actor:
@@ -183,29 +152,29 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
         Selects the default tab for the inputted tabbed collection based on the inputted displayed actor
     Input:
         interface_collection tabbed_collection: Tabbed collection to select tab of
-        actor displayed_actor: Mob or tile to select tab for
+        actor displayed_actor: Mob or location to select tab for
     Output:
         None
     """
     target_tab = None
     if displayed_actor:
-        if tabbed_collection == status.tile_tabbed_collection:
+        if tabbed_collection == status.location_tabbed_collection:
             if (
                 (
-                    status.tile_tabbed_collection.current_tabbed_member == None
-                    or status.tile_tabbed_collection.current_tabbed_member.tab_button.can_show()
+                    status.location_tabbed_collection.current_tabbed_member == None
+                    or status.location_tabbed_collection.current_tabbed_member.tab_button.can_show()
                 )
-                and status.tile_tabbed_collection.current_tabbed_member
+                and status.location_tabbed_collection.current_tabbed_member
                 != status.local_conditions_collection
             ):
-                target_tab = status.tile_tabbed_collection.current_tabbed_member
+                target_tab = status.location_tabbed_collection.current_tabbed_member
             elif (
                 constants.effect_manager.effect_active("link_inventory_tabs")
                 and status.mob_tabbed_collection.current_tabbed_member
                 == status.mob_inventory_collection
             ):
                 target_tab = status.mob_inventory_collection
-            elif status.displayed_tile.cell.settlement:
+            elif status.displayed_location.settlement:
                 target_tab = status.settlement_collection
             elif status.local_conditions_collection.tab_button.can_show():
                 target_tab = status.local_conditions_collection
@@ -213,8 +182,8 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
                 target_tab = status.global_conditions_collection
             # Except for local conditions, try to keep the current tab selected
             # If mob inventory tab, select inventory tab
-            # If can't keep local tile selected, select settlement, if present
-            # Otherwise, default to local or global conditions, based on tile type
+            # If can't keep current location selected, select settlement, if any
+            # Otherwise, default to local or global conditions, based on location type
 
         elif tabbed_collection == status.mob_tabbed_collection:
             if status.displayed_mob.get_permission(constants.PMOB_PERMISSION):
@@ -222,40 +191,42 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
                     target_tab = status.mob_inventory_collection
                 elif (
                     constants.effect_manager.effect_active("link_inventory_tabs")
-                    and status.tile_tabbed_collection.current_tabbed_member
-                    == status.tile_inventory_collection
+                    and status.location_tabbed_collection.current_tabbed_member
+                    == status.location_inventory_collection
                 ):
                     target_tab = status.mob_inventory_collection
                 else:
                     target_tab = status.mob_reorganization_collection
             # If unit has inventory and at least 1 item held, select inventory tab
-            # If tile inventory tab is selected, select inventory tab
+            # If location inventory tab is selected, select inventory tab
             # Otherwise, select reorganization tab
     if target_tab and (
-        target_tab == status.tile_inventory_collection or not target_tab.showing
+        target_tab == status.location_inventory_collection or not target_tab.showing
     ):
         select_interface_tab(tabbed_collection, target_tab)
 
 
-def generate_resource_icon(tile):
+def generate_resource_icon(location):
     """
     Description:
-        Generates and returns the correct string image file path based on the resource and buildings built in the inputted tile
+        Generates and returns the correct string image file path based on the resource and buildings built in the inputted location
     Input:
-        tile tile: Tile to generate a resource icon for
+        location location: Location to generate a resource icon for
     Output:
-        string/list: Returns string or list image id for tile's resource icon
+        string/list: Returns string or list image id for location's resource icon
     """
     image_id = [
         {
             "image_id": "misc/circle.png",
-            "green_screen": tile.cell.terrain_handler.resource.background_color,
+            "green_screen": location.resource.background_color,
             "size": 0.75,
         },
-        {"image_id": tile.cell.terrain_handler.resource.item_image, "size": 0.75},
+        {"image_id": location.resource.item_image, "size": 0.75},
     ]
 
-    if bool(tile.cell.get_buildings()):  # Make small icon if tile has any buildings
+    if bool(
+        location.get_buildings()
+    ):  # Switch to small icon if location has any buildings
         for (
             current_image
         ) in (
@@ -432,13 +403,22 @@ def generate_group_image_id_list(worker, officer):
     """
     return (
         generate_unit_component_portrait(
-            worker.insert_equipment(worker.image_dict["left portrait"]), "group left"
+            worker.insert_equipment(
+                worker.image_dict[constants.IMAGE_ID_LIST_LEFT_PORTRAIT]
+            ),
+            "group left",
         )
         + generate_unit_component_portrait(
-            worker.insert_equipment(worker.image_dict["right portrait"]), "group right"
+            worker.insert_equipment(
+                worker.image_dict[constants.IMAGE_ID_LIST_RIGHT_PORTRAIT]
+            ),
+            "group right",
         )
         + generate_unit_component_portrait(
-            officer.insert_equipment(officer.image_dict["portrait"]), "center"
+            officer.insert_equipment(
+                officer.image_dict[constants.IMAGE_ID_LIST_PORTRAIT]
+            ),
+            "center",
         )
     )
 
@@ -515,7 +495,7 @@ def select_interface_tab(tabbed_collection, target_tab):
     """
     if (
         tabbed_collection
-        in [status.tile_inventory_collection, status.mob_inventory_collection]
+        in [status.location_inventory_collection, status.mob_inventory_collection]
         or not target_tab.showing
     ):
         for tab_button in tabbed_collection.tabs_collection.members:
@@ -553,7 +533,7 @@ def generate_label_image_id(text: str, y_offset=0):
             "x_offset": x_offset - 0.01,
             "y_offset": y_offset,
             "free": True,
-            "level": constants.LABEL_LEVEL,
+            "level": constants.OVERLAY_ICON_LEVEL,
             "x_size": x_size + 0.02,
             "y_size": y_size,
         },
@@ -564,7 +544,7 @@ def generate_label_image_id(text: str, y_offset=0):
                 "x_offset": x_offset,
                 "y_offset": y_offset,
                 "free": True,
-                "level": constants.LABEL_LEVEL,
+                "level": constants.OVERLAY_ICON_LEVEL,
                 "override_height": None,
                 "override_width": None,
                 "x_size": x_size,
@@ -623,12 +603,18 @@ def generate_frame(
         )
 
     elif type(image_id) == list:
+        framed_image = []
         for image in image_id:
-            image["x_size"] = image.get("x_size", 1) * size
-            image["y_size"] = image.get("y_size", 1) * size
-            image["x_offset"] = image.get("x_offset", 0) + x_offset
-            image["y_offset"] = image.get("y_offset", 0) + y_offset
-        return utility.combine(frame, image_id)
+            next_image = image.copy()
+            if "x_size" in image and "y_size" in image:
+                next_image["x_size"] = image.get("x_size", 1) * size
+                next_image["y_size"] = image.get("y_size", 1) * size
+            else:
+                next_image["size"] = image.get("size", 1) * size
+            next_image["x_offset"] = image.get("x_offset", 0) + x_offset
+            next_image["y_offset"] = image.get("y_offset", 0) + y_offset
+            framed_image.append(next_image)
+        return utility.combine(frame, framed_image)
 
 
 def get_temperature_habitability(temperature: int) -> int:
@@ -684,3 +670,31 @@ def summarize_amount_dict(item_dict: Dict[str, float]):
             line = f"and {line}"
         text += line
     return text
+
+
+def calibrate_minimap_grids(world_handler: any, x: int, y: int) -> None:
+    for current_grid in world_handler.subscribed_grids:
+        current_grid.calibrate(x, y)
+
+
+def focus_minimap_grids(location: any) -> None:
+    calibrate_minimap_grids(location.world_handler, location.x, location.y)
+
+
+def add_logistics_incident_to_report(subject, explanation: str) -> None:
+    if subject.actor_type == constants.LOCATION_ACTOR_TYPE:
+        status.logistics_incident_list.append(
+            {
+                "unit": None,
+                "location": subject,
+                "explanation": explanation,
+            }
+        )
+    else:
+        status.logistics_incident_list.append(
+            {
+                "unit": subject,
+                "location": subject.location,  # Note that if unit dies before report is created, location cannot be derived
+                "explanation": explanation,
+            }
+        )

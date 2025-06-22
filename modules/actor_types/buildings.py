@@ -1,92 +1,83 @@
 # Contains functionality for buildings
 
-import pygame
-import random
-from typing import Dict
-from modules.actor_types.actors import actor
-from modules.util import utility, scaling, actor_utility, text_utility, minister_utility
-from modules.constructs import building_types, item_types
+from typing import Dict, List
+from modules.util import utility, actor_utility, text_utility
+from modules.constructs import building_types, item_types, locations
 from modules.constants import constants, status, flags
 
 
-class building(actor):
+class building:
     """
-    Actor that exists in cells of multiple grids in front of tiles and behind mobs that cannot be clicked
+    Modifiable point of interest within a location that is displayed but not directly selected
     """
 
-    def __init__(self, from_save, input_dict, original_constructor=True):
+    def __init__(self, from_save, input_dict):
         """
         Description:
             Initializes this object
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
-                'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'name': string value - Required if from save, this building's name
+                'building_type': building_type value - Type of building
+                'location': location value - Where this building is located
                 'building_type': string value - Type of building, like 'port'
-                'modes': string list value - Game modes during which this building's images can appear
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
+                'subscribed_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
+                'damaged': boolean value - Required if from save, whether this building is currently damaged
         Output:
             None
         """
-        self.actor_type = constants.BUILDING_ACTOR_TYPE
         self.building_type: building_types.building_type = input_dict.get(
             "building_type", status.building_types[input_dict["init_type"]]
         )
+        self.subscribed_location: locations.location = input_dict["location"]
         self.damaged = False
         self.upgrade_fields: Dict[str, int] = {}
         for upgrade_field in self.building_type.upgrade_fields:
             self.upgrade_fields[upgrade_field] = input_dict.get(upgrade_field, 1)
-        super().__init__(from_save, input_dict, original_constructor=False)
-        self.cell = self.grids[0].find_cell(self.x, self.y)
         status.building_list.append(self)
-        self.contained_work_crews = []
+        self.subscribed_work_crews = []
         if from_save:
-            for current_work_crew in input_dict["contained_work_crews"]:
+            for current_work_crew in input_dict["subscribed_work_crews"]:
                 constants.actor_creation_manager.create(
                     True, current_work_crew
                 ).work_building(self)
             if self.building_type.can_damage:
-                self.set_damaged(input_dict["damaged"], True)
+                self.set_damaged(input_dict["damaged"], mid_setup=True)
 
         if (not from_save) and self.building_type.can_damage:
             self.set_damaged(False, True)
-        self.cell.contained_buildings[self.building_type.key] = self
-        self.cell.tile.update_image_bundle()
+        self.location.add_building(self)
+
+        if (
+            constants.effect_manager.effect_active("damaged_buildings")
+            and self.building_type.can_damage
+        ):
+            self.set_damaged(True, mid_setup=True)
 
         if (
             (not from_save)
             and self.building_type.attached_settlement
-            and not self.cell.settlement
+            and not self.location.settlement
         ):
             constants.actor_creation_manager.create(
                 False,
                 {
                     "init_type": constants.SETTLEMENT,
-                    "coordinates": (self.cell.x, self.cell.y),
+                    "location": self.location,
                 },
             )
-        self.cell.tile.set_name(self.cell.tile.name)
 
-        if constants.effect_manager.effect_active("damaged_buildings"):
-            if self.building_type.can_damage:
-                self.set_damaged(True, True)
-        self.finish_init(original_constructor, from_save, input_dict)
-
-    def update_image_bundle(self):
+    @property
+    def location(self) -> locations.location:
         """
         Description:
-            A building has no images on its own, instead existing in a tile and modifying that tile's images
+            Returns the location this location is currently in
         Input:
             None
         Output:
-            None
+            location: Returns the location this location is currently in
         """
-        return
+        return self.subscribed_location
 
     def to_save_dict(self):
         """
@@ -99,57 +90,43 @@ class building(actor):
                 Along with superclass outputs, also saves the following values:
                 'building_type': string value - Type of building, like 'port'
                 'image': string value - File path to the image used by this object
-                'contained_work_crews': dictionary list value - list of dictionaries of saved information necessary to recreate each work crew working in this building
+                'subscribed_work_crews': dictionary list value - list of dictionaries of saved information necessary to recreate each work crew working in this building
                 'damaged': boolean value - whether this building is currently damaged
         """
-        save_dict = super().to_save_dict()
-        save_dict[
-            "contained_work_crews"
-        ] = (
-            []
-        )  # List of dictionaries for each work crew, on load a building creates all of its work crews and attaches them
-        save_dict["damaged"] = self.damaged
-        for current_work_crew in self.contained_work_crews:
-            save_dict["contained_work_crews"].append(current_work_crew.to_save_dict())
-        for upgrade_field in self.upgrade_fields:
-            save_dict[upgrade_field] = self.upgrade_fields[upgrade_field]
-        return save_dict
+        return {
+            **super().to_save_dict(),
+            **self.upgrade_fields,
+            "init_type": self.building_type.key,
+            "subscribed_work_crews": [
+                current_work_crew.to_save_dict()
+                for current_work_crew in self.subscribed_work_crews
+            ],
+            "damaged": self.damaged,
+        }
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also removes this building from the tiles it occupies
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also removes this building from its location
         """
-        self.cell.contained_buildings[self.building_type] = None
-        super().remove()
+        self.location.remove_building(self)
         status.building_list = utility.remove_from_list(status.building_list, self)
 
-    def update_tooltip(self):  # should be shown below mob tooltips
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be whenever the player looks at the tooltip. For buildings, sets tooltip to a description of the building
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        tooltip_text = [text_utility.remove_underscores(self.name.capitalize())]
+        tooltip_text = [
+            text_utility.remove_underscores(self.building_type.name.capitalize())
+        ]
         if self.building_type == constants.RESOURCE:
             tooltip_text.append(
-                f"Work crews: {len(self.contained_work_crews)}/{self.upgrade_fields[constants.RESOURCE_SCALE]}"
+                f"Work crews: {len(self.subscribed_work_crews)}/{self.upgrade_fields[constants.RESOURCE_SCALE]}"
             )
-            for current_work_crew in self.contained_work_crews:
-                tooltip_text.append("    " + current_work_crew.name)
+            for current_work_crew in self.subscribed_work_crews:
+                tooltip_text.append(f"    {current_work_crew.name}")
             tooltip_text.append(
                 f"Lets {self.upgrade_fields[constants.RESOURCE_SCALE]} attached work crews each attempt to produce {self.upgrade_fields[constants.RESOURCE_EFFICIENCY]} units of {self.resource_type.name} each turn"
-            )
-        elif self.building_type == constants.SLUMS:
-            tooltip_text.append(
-                f"Contains {self.available_workers} workers in search of employment"
             )
         elif self.building_type == constants.WAREHOUSES:
             tooltip_text.append(
@@ -161,36 +138,7 @@ class building(actor):
             tooltip_text.append(
                 "This building is damaged and is currently not functional."
             )
-
-        self.set_tooltip(tooltip_text)
-
-    def set_tooltip(self, tooltip_text):
-        """
-        Description:
-            Sets this building's tooltip to the inputted list, with each inputted list representing a line of the tooltip. Unlike most actors, buildings have no images and handle their own tooltips
-        Input:
-            string list new_tooltip: Lines for this image's tooltip
-        Output:
-            None
-        """
-        self.tooltip_text = tooltip_text
-        tooltip_width = 10  # minimum tooltip width
-        font = constants.fonts["default"]
-        for text_line in tooltip_text:
-            tooltip_width = max(
-                tooltip_width, font.calculate_size(text_line) + scaling.scale_width(10)
-            )
-        tooltip_height = (font.size * len(tooltip_text)) + scaling.scale_height(5)
-        self.tooltip_box = pygame.Rect(
-            self.cell.tile.x, self.cell.y, tooltip_width, tooltip_height
-        )
-        self.tooltip_outline_width = 1
-        self.tooltip_outline = pygame.Rect(
-            self.cell.tile.x - self.tooltip_outline_width,
-            self.cell.tile.y + self.tooltip_outline_width,
-            tooltip_width + (2 * self.tooltip_outline_width),
-            tooltip_height + (self.tooltip_outline_width * 2),
-        )
+        return tooltip_text
 
     def set_damaged(self, new_value, mid_setup=False):
         """
@@ -204,25 +152,11 @@ class building(actor):
         self.damaged = new_value
         if self.building_type == constants.INFRASTRUCTURE:
             actor_utility.update_roads()
-        if self.building_type.warehouse_level > 0 and self.cell.has_building(
+        if self.building_type.warehouse_level > 0 and self.location.has_building(
             constants.WAREHOUSES
         ):
-            self.cell.get_building(constants.WAREHOUSES).set_damaged(new_value)
-        self.cell.tile.update_image_bundle()
-
-    def touching_mouse(self):
-        """
-        Description:
-            Returns whether any tile containing this building is colliding with the mouse
-        Input:
-            None
-        Output:
-            boolean: Returns True if any of this building's images is colliding with the mouse, otherwise returns False
-        """
-        for tile in [self.cell.tile] + self.cell.tile.get_equivalent_tiles():
-            if tile.touching_mouse():
-                return True
-        return False
+            self.location.get_building(constants.WAREHOUSES).set_damaged(new_value)
+        self.location.update_image_bundle()
 
     def get_build_cost(self):
         """
@@ -246,7 +180,7 @@ class building(actor):
         """
         return self.get_build_cost() / 2
 
-    def get_image_id_list(self, override_values={}):
+    def get_image_id_list(self):
         """
         Description:
             Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
@@ -256,23 +190,30 @@ class building(actor):
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        return_list = self.building_type.image_id_list.copy()
         if self.building_type.display_coordinates == (0, 0):
-            modifiers = {}
+            modifiers = {
+                "level": constants.BUILDING_LEVEL,
+            }
         else:  # If not centered, make smaller and move to one of 6 top/bottom slots
             modifiers = {
                 "size": 0.75 * 0.45,
                 "x_offset": self.building_type.display_coordinates[0] * 0.33,
                 "y_offset": self.building_type.display_coordinates[1] * 0.33,
+                "level": constants.BUILDING_LEVEL,
             }
-        for image_id in return_list:
-            image_id.update(modifiers)
+        return_list = [
+            {
+                **image_id,
+                **modifiers,
+            }
+            for image_id in self.building_type.image_id_list
+        ]
         if self.building_type == constants.RESOURCE:
             return_list[0]["green_screen"] = constants.quality_colors[
                 self.upgrade_fields[constants.RESOURCE_EFFICIENCY]
             ]  # Set box to quality color based on efficiency
             return_list[0]["size"] = 0.6
-            return_list[0]["level"] = image_id.get("level", 0) + 1
+            return_list[0]["level"] = constants.BUILDING_INDICATOR_LEVEL
             for scale in range(1, self.upgrade_fields[constants.RESOURCE_SCALE] + 1):
                 scale_coordinates = {  # Place mine/camp/plantation icons in following order for each scale
                     1: (0, 1),  # top center
@@ -282,7 +223,7 @@ class building(actor):
                     5: (-1, 1),  # top left
                     6: (1, 1),  # top right
                 }
-                if scale > len(self.contained_work_crews):
+                if scale > len(self.subscribed_work_crews):
                     resource_image_id = f"buildings/{constants.resource_building_dict[self.resource_type.key]}_no_work_crew.png"
                 else:
                     resource_image_id = f"buildings/{constants.resource_building_dict[self.resource_type.key]}.png"
@@ -296,15 +237,19 @@ class building(actor):
                     }
                 )
         if self.damaged and self.building_type.can_construct:
-            damaged_id = {"image_id": "buildings/damaged.png", "level": 3}
-            damaged_id.update(modifiers)
-            return_list.append(damaged_id)
+            return_list.append(
+                {
+                    "image_id": "buildings/damaged.png",
+                    "level": constants.BULIDING_INDICATOR_LEVEL,
+                    **modifiers,
+                }
+            )
         return return_list
 
 
 class infrastructure_building(building):
     """
-    Building that eases movement between tiles and is a road or railroad. Has images that show connections with other tiles that have roads or railroads
+    Building that eases movement between locations and is a road or railroad. Has images that show connections with other locations that have roads or railroads
     """
 
     def __init__(self, from_save, input_dict):
@@ -314,18 +259,17 @@ class infrastructure_building(building):
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
+                'location': location value - Where this building is located
                 'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this building's name
                 'infrastructure_type': string value - Type of infrastructure, like 'road' or 'railroad'
-                'modes': string list value - Game modes during which this building's images can appear
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
+                'subscribed_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
         Output:
             None
         """
+        return
         self.infrastructure_type = input_dict["infrastructure_type"]
         if self.infrastructure_type == constants.RAILROAD:
             self.is_railroad = True
@@ -366,49 +310,11 @@ class infrastructure_building(building):
                 directions = ["vertical", "horizontal"]
             for direction in directions:
                 for building_type in building_types:
-                    self.connection_image_dict[
-                        f"{direction}_{building_type}"
-                    ] = f"buildings/infrastructure/{direction}_{building_type}.png"
+                    self.connection_image_dict[f"{direction}_{building_type}"] = (
+                        f"buildings/infrastructure/{direction}_{building_type}.png"
+                    )
 
         super().__init__(from_save, input_dict)
-        if self.is_bridge:
-            up_cell = self.grids[0].find_cell(self.x, self.y + 1)
-            down_cell = self.grids[0].find_cell(self.x, self.y - 1)
-            left_cell = self.grids[0].find_cell(self.x - 1, self.y)
-            right_cell = self.grids[0].find_cell(self.x + 1, self.y)
-            if (not (up_cell == None or down_cell == None)) and (
-                not (
-                    up_cell.terrain_handler.terrain == "water"
-                    or down_cell.terrain_handler.terrain == "water"
-                )
-            ):
-                self.connected_cells = [up_cell, down_cell]
-                if self.is_road:
-                    self.image_dict["default"] = self.connection_image_dict[
-                        "vertical_road_bridge"
-                    ]
-                elif self.is_railroad:
-                    self.image_dict["default"] = self.connection_image_dict[
-                        "vertical_railroad_bridge"
-                    ]
-                else:
-                    self.image_dict["default"] = self.connection_image_dict[
-                        "vertical_ferry"
-                    ]
-            else:
-                self.connected_cells = [left_cell, right_cell]
-                if self.is_road:
-                    self.image_dict["default"] = self.connection_image_dict[
-                        "horizontal_road_bridge"
-                    ]
-                elif self.is_railroad:
-                    self.image_dict["default"] = self.connection_image_dict[
-                        "horizontal_railroad_bridge"
-                    ]
-                else:
-                    self.image_dict["default"] = self.connection_image_dict[
-                        "horizontal_ferry"
-                    ]
         actor_utility.update_roads()
 
     def to_save_dict(self):
@@ -422,11 +328,12 @@ class infrastructure_building(building):
                 Along with superclass outputs, also saves the following values:
                 'infrastructure_type': string value - Type of infrastructure, like 'road' or 'railroad'
         """
+        return
         save_dict = super().to_save_dict()
         save_dict["infrastructure_type"] = self.infrastructure_type
         return save_dict
 
-    def get_image_id_list(self, override_values={}):
+    def get_image_id_list(self):
         """
         Description:
             Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
@@ -436,34 +343,34 @@ class infrastructure_building(building):
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        image_id_list = super().get_image_id_list(override_values)
-        if self.cell.terrain_handler.terrain != "water":
+        return
+        image_id_list = super().get_image_id_list()
+        if self.location.terrain != "water":
             connected_road, connected_railroad = (False, False)
             for direction in ["up", "down", "left", "right"]:
-                adjacent_cell = self.cell.adjacent_cells[direction]
-                if adjacent_cell:
-                    own_tile_infrastructure = self.cell.get_intact_building(
-                        constants.INFRASTRUCTURE
-                    )
-                    adjacent_cell_infrastructure = adjacent_cell.get_intact_building(
-                        constants.INFRASTRUCTURE
-                    )
-                    if adjacent_cell_infrastructure:
-                        if (
-                            adjacent_cell_infrastructure.is_railroad
-                            and own_tile_infrastructure.is_railroad
-                        ):
-                            image_id_list.append(
-                                self.connection_image_dict[direction + "_railroad"]
-                            )
-                        else:
-                            image_id_list.append(
-                                self.connection_image_dict[direction + "_road"]
-                            )
-                        if adjacent_cell_infrastructure.is_road:
-                            connected_road = True
-                        elif adjacent_cell_infrastructure.is_railroad:
-                            connected_railroad = True
+                adjacent_location = self.location.adjacent_locations[direction]
+                own_infrastructure = self.location.get_intact_building(
+                    constants.INFRASTRUCTURE
+                )
+                adjacent_infrastructure = adjacent_location.get_intact_building(
+                    constants.INFRASTRUCTURE
+                )
+                if adjacent_infrastructure:
+                    if (
+                        adjacent_infrastructure.is_railroad
+                        and own_infrastructure.is_railroad
+                    ):
+                        image_id_list.append(
+                            self.connection_image_dict[direction + "_railroad"]
+                        )
+                    else:
+                        image_id_list.append(
+                            self.connection_image_dict[direction + "_road"]
+                        )
+                    if adjacent_infrastructure.is_road:
+                        connected_road = True
+                    elif adjacent_infrastructure.is_railroad:
+                        connected_railroad = True
             if self.is_road and (connected_road or connected_railroad):
                 image_id_list.pop(0)
             elif self.is_railroad and connected_railroad:
@@ -488,20 +395,18 @@ class warehouses(building):
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
+                'location': location value - Where this building is located
                 'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this building's name
-                'modes': string list value - Game modes during which this building's images can appear
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
+                'subscribed_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
                 'warehouse_level': int value - Required if from save, size of warehouse (9 inventory capacity per level)
         Output:
             None
         """
         super().__init__(from_save, input_dict)
-        self.cell.tile.set_inventory_capacity(
+        self.location.set_inventory_capacity(
             self.upgrade_fields[constants.WAREHOUSE_LEVEL] * 9
         )
         if constants.effect_manager.effect_active("damaged_buildings"):
@@ -510,38 +415,21 @@ class warehouses(building):
 
     def get_upgrade_cost(self):
         """
-        Description:
-            Returns the cost of the next upgrade for this building. The first successful upgrade costs 5 money and each subsequent upgrade costs twice as much as the previous. Building a train station, resource production facility, or
-                port gives a free upgrade that does not affect the costs of future upgrades
-        Input:
-            None
-        Output:
-            None
+        Returns the cost of the next upgrade for this building. The first successful upgrade costs 5 money and each subsequent upgrade costs twice as much as the previous. Building a train station, resource production facility, or
+            port gives a free upgrade that does not affect the costs of future upgrades
         """
-        return self.cell.get_warehouses_cost()
+        return self.location.get_warehouses_cost()
 
     def upgrade(self, upgrade_type="warehouses_level"):
         super().upgrade(upgrade_type)
-        self.cell.tile.set_inventory_capacity(
+        self.location.set_inventory_capacity(
             self.upgrade_fields[constants.WAREHOUSE_LEVEL] * 9
         )
-
-    def get_image_id_list(self, override_values={}):
-        """
-        Description:
-            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
-                orientation. Warehouses have no images
-        Input:
-            None
-        Output:
-            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
-        """
-        return []
 
 
 class resource_building(building):
     """
-    Building in a resource tile that allows work crews to attach to this building to produce resources over time
+    Building on a resource that allows work crews to attach to this building to produce resources over time
     """
 
     def __init__(self, from_save, input_dict):
@@ -551,15 +439,13 @@ class resource_building(building):
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
+                'location': location value - Where this building is located
                 'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this building's name
                 'resource_type': item_type value - Type of resource produced by this building, like "Gold"
-                'modes': string list value - Game modes during which this building's images can appear
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
+                'subscribed_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
                 'scale': int value - Required if from save, maximum number of work crews that can be attached to this building
                 'efficiency': int value - Required if from save, number of rolls made by work crews each turn to produce resources at this building
         Output:
@@ -592,7 +478,7 @@ class resource_building(building):
         Output:
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
                 Along with superclass outputs, also saves the following values:
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
+                'subscribed_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
                 'resource_type': string value - Type of resource produced by this building, like 'exotic wood'
                 'scale': int value - Maximum number of work crews that can be attached to this building
                 'efficiency': int value - Number of rolls made by work crews each turn to produce resources at this building
@@ -603,14 +489,9 @@ class resource_building(building):
 
     def eject_work_crews(self):
         """
-        Description:
-            Removes this building's work crews
-        Input:
-            None
-        Output:
-            None
+        Removes this building's work crews
         """
-        for current_work_crew in self.contained_work_crews:
+        for current_work_crew in self.subscribed_work_crews:
             if not current_work_crew in self.ejected_work_crews:
                 self.ejected_work_crews.append(current_work_crew)
                 current_work_crew.leave_building(self)
@@ -631,12 +512,7 @@ class resource_building(building):
 
     def reattach_work_crews(self):
         """
-        Description:
-            After combat is finished, returns any surviving work crews to this building, if possible
-        Input:
-            None
-        Output:
-            None
+        After combat is finished, returns any surviving work crews to this building, if possible
         """
         for current_work_crew in self.ejected_work_crews:
             if current_work_crew in status.pmob_list:  # if not dead
@@ -645,12 +521,7 @@ class resource_building(building):
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists, prevents it from further appearing in or affecting the program, and removes it from the tiles it occupies
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists, prevents it from further appearing in or affecting the program, and removes it from the location it occupies
         """
         status.resource_building_list = utility.remove_from_list(
             status.resource_building_list, self
@@ -676,12 +547,7 @@ class resource_building(building):
 
     def get_upgrade_cost(self):
         """
-        Description:
-            Returns the cost of the next upgrade for this building. The first successful upgrade costs 20 money and each subsequent upgrade costs twice as much as the previous
-        Input:
-            None
-        Output:
-            None
+        Returns the cost of the next upgrade for this building. The first successful upgrade costs 20 money and each subsequent upgrade costs twice as much as the previous
         """
         if constants.effect_manager.effect_active("free_upgrades"):
             return 0
@@ -712,146 +578,8 @@ class resource_building(building):
 
     def produce(self):
         """
-        Description:
-            Orders each work crew attached to this building to attempt producing resources at the end of a turn. Based on work crew experience and minister skill/corruption, each work crew can produce a number of resources up to the
-                building's efficiency
-        Input:
-            None
-        Output:
-            None
+        Orders each work crew attached to this building to attempt producing resources at the end of a turn. Based on work crew experience and minister skill/corruption, each work crew can produce a number of resources up to the
+            building's efficiency
         """
-        for current_work_crew in self.contained_work_crews:
+        for current_work_crew in self.subscribed_work_crews:
             current_work_crew.attempt_production(self)
-
-
-class slums(building):
-    """
-    Building automatically formed by unemployed workers around places of employment
-    """
-
-    def __init__(self, from_save, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
-                'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'name': string value - Required if from save, this building's name
-                'building_type': string value - Type of building, like 'port'
-                'modes': string list value - Game modes during which this building's images can appear
-                'contained_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
-
-        Output:
-            None
-        """
-        status.slums_list.append(self)
-        self.available_workers = 0
-        if from_save:
-            self.available_workers = input_dict["available_workers"]
-        input_dict["image"] = "buildings/slums/default.png"
-        self.size_image_dict = {
-            "small": "buildings/slums/small.png",
-            "medium": "buildings/slums/default.png",
-            "large": "buildings/slums/large.png",
-        }
-        super().__init__(from_save, input_dict)
-        if self.cell.tile == status.displayed_tile:
-            actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, self.cell.tile
-            )  # show self after creation
-
-    def get_image_id_list(self, override_values={}):
-        """
-        Description:
-            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
-                orientation
-        Input:
-            None
-        Output:
-            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
-        """
-        image_id_list = super().get_image_id_list(override_values)
-        if self.available_workers <= 2:
-            image_id_list[0]["image_id"] = self.size_image_dict["small"]
-        elif self.available_workers <= 5:
-            image_id_list[0]["image_id"] = self.size_image_dict["medium"]
-        else:
-            image_id_list[0]["image_id"] = self.size_image_dict["large"]
-        for current_image_id in image_id_list:
-            current_image_id.update({"level": -2})
-        return image_id_list
-
-    def remove(self):
-        """
-        Description:
-            Removes this object from relevant lists, prevents it from further appearing in or affecting the program, and removes it from the tiles it occupies
-        Input:
-            None
-        Output:
-            None
-        """
-        super().remove()
-        status.slums_list = utility.remove_from_list(status.slums_list, self)
-
-    def change_population(self, change):
-        """
-        Description:
-            Changes this slum's population by the inputted amount. Updates the tile info display as applicable and destroys the slum if its population reaches 0
-        Input:
-            int change: amount this slum's population is changed by
-        Output:
-            None
-        """
-        self.available_workers += change
-        if self.available_workers < 0:
-            self.available_workers = 0
-        self.cell.tile.update_image_bundle()
-        if (
-            self.cell.tile == status.displayed_tile
-        ):  # if being displayed, change displayed population value
-            actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, self.cell.tile
-            )
-        if self.available_workers == 0:
-            tile = self.cell.tile
-            self.remove_complete()
-            actor_utility.calibrate_actor_info_display(status.tile_info_display, tile)
-            status.minimap_grid.calibrate(tile.x, tile.y)
-
-    def recruit_worker(self):
-        """
-        Description:
-            Hires one of this slum's available workers by creating a worker, reducing the slum's population
-        Input:
-            None
-        Output:
-            None
-        """
-        input_dict = {
-            "select_on_creation": True,
-            "coordinates": (self.cell.x, self.cell.y),
-            "grids": [self.cell.grid] + self.cell.grid.mini_grids,
-            "modes": self.cell.grid.modes,
-        }
-        constants.actor_creation_manager.create(False, input_dict)
-        self.change_population(-1)
-
-    def to_save_dict(self):
-        """
-        Description:
-            Uses this object's values to create a dictionary that can be saved and used as input to recreate it on loading
-        Input:
-            None
-        Output:
-            dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
-                Along with superclass outputs, also saves the following values:
-                'available_workers': int value - Number of unemployed workers in this slum
-        """
-        save_dict = super().to_save_dict()
-        save_dict["available_workers"] = self.available_workers
-        return save_dict

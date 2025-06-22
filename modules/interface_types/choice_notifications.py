@@ -1,5 +1,6 @@
 # Contains functionality for choice notifications
 
+from typing import List
 from modules.interface_types import buttons, action_notifications
 from modules.util import utility, text_utility, scaling
 from modules.constructs import unit_types
@@ -73,41 +74,27 @@ class choice_notification(action_notifications.action_notification):
 
     def on_click(self, choice_button_override=False):
         """
-        Description:
-            Controls this notification's behavior when clicked. Choice notifications do nothing when clicked, instead acting when their choice buttons are clicked
-        Input:
-            None
-        Output:
-            None
+        Controls this notification's behavior when clicked. Choice notifications do nothing when clicked, instead acting when their choice buttons are clicked
         """
         if choice_button_override:
             super().on_click()
         return  # does not remove self when clicked
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this notification's tooltip to what it should be. Choice notifications prompt the user to click on one of its choice buttons to close it
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(["Choose an option to close this notification"])
+        return ["Choose an option to close this notification"]
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. When a notification is removed, the next notification is shown, if there is one. Choice notifications are removed
-                when one of their choice buttons is clicked
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. When a notification is removed, the next notification is shown, if there is one. Choice notifications are removed
+            when one of their choice buttons is clicked
         """
         super().remove()
         for current_choice_button in self.choice_buttons:
-            current_choice_button.remove_complete()
+            current_choice_button.remove()
 
 
 class choice_button(buttons.button):
@@ -171,24 +158,14 @@ class choice_button(buttons.button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. Choice buttons remove their notifications when clicked, along with the normal behaviors associated with their button_type
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. Choice buttons remove their notifications when clicked, along with the normal behaviors associated with their button_type
         """
         super().on_click()
         self.notification.on_click(choice_button_override=True)
 
     def draw(self):
         """
-        Description:
-            Draws this button below its choice notification and draws a description of what it does on top of it
-        Input:
-            None
-        Output:
-            None
+        Draws this button below its choice notification and draws a description of what it does on top of it
         """
         super().draw()
         if self.showing:
@@ -200,43 +177,35 @@ class choice_button(buttons.button):
                 ),
             )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its button_type
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.button_type == constants.RECRUITMENT_CHOICE_BUTTON:
             if self.recruitment_type.number >= 2:
-                self.set_tooltip(
-                    [
-                        f"{utility.capitalize(self.recruitment_type.recruitment_verb)} a unit of {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money"
-                    ]
-                )
+                return [
+                    f"{utility.capitalize(self.recruitment_type.recruitment_verb)} a unit of {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money"
+                ]
             else:
-                self.set_tooltip(
-                    [
-                        f"{utility.capitalize(self.recruitment_type.recruitment_verb)} a {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money"
-                    ]
-                )
+                return [
+                    f"{utility.capitalize(self.recruitment_type.recruitment_verb)} a {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money"
+                ]
 
         elif self.button_type == constants.CHOICE_END_TURN_BUTTON:
-            self.set_tooltip(["End the current turn"])
+            return ["End the current turn"]
 
         elif self.button_type == constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON:
-            self.set_tooltip(["Exits to the main menu without saving"])
+            return ["Exits to the main menu without saving"]
 
         elif self.button_type == constants.CHOICE_QUIT_BUTTON:
-            self.set_tooltip(["Exits the game without saving"])
+            return ["Exits the game without saving"]
 
         elif self.button_type == None:
-            self.set_tooltip(["Cancel"])
+            return ["Cancel"]
 
         else:
-            self.set_tooltip([self.message])
+            return [self.message]
 
 
 class recruitment_choice_button(choice_button):
@@ -246,21 +215,12 @@ class recruitment_choice_button(choice_button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. Recruitment choice buttons recruit a unit, pay for the unit's cost, and remove their attached notification when clicked
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. Recruitment choice buttons recruit a unit, pay for the unit's cost, and remove their attached notification when clicked
         """
-        input_dict = {"select_on_creation": True, "coordinates": (0, 0)}
-        if (
-            status.displayed_tile
-        ):  # When recruiting in abstract grid, the correct tile will be selected - use that tile's grids
-            input_dict["grids"] = status.displayed_tile.grids
-        else:  # If no tile selected, assume recruiting on Earth
-            input_dict["grids"] = [status.earth_grid]
-        input_dict["modes"] = input_dict["grids"][0].modes
+        input_dict = {
+            "select_on_creation": True,
+            "location": status.earth_world.find_location(0, 0),
+        }
         constants.money_tracker.change(
             -1 * self.recruitment_type.recruitment_cost, "unit_recruitment"
         )

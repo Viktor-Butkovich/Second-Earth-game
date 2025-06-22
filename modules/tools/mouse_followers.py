@@ -28,12 +28,7 @@ class mouse_follower_template(free_image):
 
     def update(self):
         """'
-        Description:
-            Moves this image to follow the mouse pointer
-        Input:
-            None
-        Output:
-            None
+        Moves this image to follow the mouse pointer
         """
         self.x, self.y = pygame.mouse.get_pos()
         self.x -= self.width // 2
@@ -41,12 +36,7 @@ class mouse_follower_template(free_image):
 
     def draw(self):
         """
-        Description:
-            Draws this image if the player is currently choosing a movement destination
-        Input:
-            None
-        Output:
-            None
+        Draws this image if the player is currently choosing a movement destination
         """
         if (
             flags.choosing_destination

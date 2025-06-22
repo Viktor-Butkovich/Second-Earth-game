@@ -1,6 +1,8 @@
 # Contains functionality for actor display labels
 
 import pygame
+from typing import List, Callable
+from modules.actor_types import actors
 from modules.interface_types.labels import label
 from modules.util import utility, scaling, actor_utility
 from modules.constants import constants, status, flags
@@ -8,7 +10,7 @@ from modules.constants import constants, status, flags
 
 class actor_display_label(label):
     """
-    Label that changes its text to match the information of selected mobs or tiles
+    Label that changes its text to match the information of selected mobs or locations
     """
 
     def __init__(self, input_dict):
@@ -26,20 +28,27 @@ class actor_display_label(label):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
                 'actor_label_type': string value - Type of actor information shown
-                'actor_type': string value - Type of actor to display the information of, like 'mob', 'tile', or 'minister'
+                'actor_type': string value - Type of actor to display the information of, like 'mob', 'location', or 'minister'
         Output:
             None
         """
         self.attached_buttons = []
         self.has_label_collection = False
-        self.actor = None
+        self.actor: actors.actor = (
+            None  # Could technically be a minister, but it supports most actor interfaces
+        )
         self.actor_label_type = input_dict.get(
             "actor_label_type", input_dict["init_type"]
         )
         self.actor_type = input_dict[
             "actor_type"
-        ]  # constants.MOB_ACTOR_TYPE or constants.TILE_ACTOR_TYPE, None if does not scale with shown labels, like tooltip labels
-        self.default_tooltip_text = input_dict.get("default_tooltip_text", [])
+        ]  # constants.MOB_ACTOR_TYPE or constants.LOCATION_ACTOR_TYPE, None if does not scale with shown labels, like tooltip labels
+
+        self.dynamic_tooltip_factory: Callable[["actor_display_label"], List[str]] = (
+            input_dict.get("dynamic_tooltip_factory", None)
+        )  # Function that returns a list of strings to generate a tooltip
+        #   This allows greater tooltip customization for different instances of the same init type w/o extra class logic
+
         self.image_y_displacement = 0
         input_dict["message"] = ""
         super().__init__(input_dict)
@@ -292,11 +301,11 @@ class actor_display_label(label):
 
         elif self.actor_label_type in [
             constants.MOB_INVENTORY_CAPACITY_LABEL,
-            constants.TILE_INVENTORY_CAPACITY_LABEL,
+            constants.LOCATION_INVENTORY_CAPACITY_LABEL,
         ]:
             self.message_start = "Capacity: "
             input_dict["width"], input_dict["height"] = (m_size, m_size)
-            if self.actor_label_type == constants.TILE_INVENTORY_CAPACITY_LABEL:
+            if self.actor_label_type == constants.LOCATION_INVENTORY_CAPACITY_LABEL:
                 input_dict["init_type"] = constants.USE_EACH_EQUIPMENT_BUTTON
                 input_dict["image_id"] = "buttons/use_equipment_button.png"
                 self.add_attached_button(input_dict)
@@ -423,9 +432,6 @@ class actor_display_label(label):
                 input_dict["init_type"] = constants.BRIBE_JUDGE_BUTTON
                 self.add_attached_button(input_dict)
 
-        elif self.actor_label_type == constants.SLUMS:
-            self.message_start = "Slums population: "
-
         elif self.actor_label_type in status.building_types.keys():
             self.message_start = ""
 
@@ -472,7 +478,7 @@ class actor_display_label(label):
                 }
                 self.add_attached_button(input_dict)
 
-            elif self.actor_type == constants.TILE_ACTOR_TYPE:
+            elif self.actor_type == constants.LOCATION_ACTOR_TYPE:
                 original_input_dict = input_dict.copy()
                 input_dict["init_type"] = constants.ANONYMOUS_BUTTON
                 # constants.PICK_UP_ITEM_BUTTON
@@ -481,7 +487,7 @@ class actor_display_label(label):
                     "on_click": (
                         actor_utility.callback,
                         [
-                            "displayed_tile_inventory",
+                            "displayed_location_inventory",
                             "transfer",
                             1,
                         ],  # item_icon.transfer(
@@ -496,7 +502,7 @@ class actor_display_label(label):
                     "on_click": (
                         actor_utility.callback,
                         [
-                            "displayed_tile_inventory",
+                            "displayed_location_inventory",
                             "transfer",
                             None,
                         ],  # item_icon.transfer(
@@ -772,59 +778,46 @@ class actor_display_label(label):
             member_config,
         )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this label's tooltip based on the label's type and the information of the actor it is attached to
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        if self.actor_label_type in [
+        if self.dynamic_tooltip_factory:
+            return self.dynamic_tooltip_factory(self)
+
+        elif self.actor_label_type in [
             constants.CURRENT_BUILDING_WORK_CREW_LABEL,
             constants.CURRENT_PASSENGER_LABEL,
         ]:
             if len(self.attached_list) > self.list_index:
-                self.attached_list[self.list_index].update_tooltip()
-                tooltip_text = self.attached_list[self.list_index].tooltip_text
-                self.set_tooltip(tooltip_text)
+                return self.attached_list[self.list_index].tooltip_text
             else:
-                super().update_tooltip()
+                return super().tooltip_text
 
         elif self.actor_label_type == constants.PASSENGERS_LABEL:
             if self.actor:
                 if self.actor.get_permission(constants.ACTIVE_PERMISSION):
                     name_list = [self.message_start]
-                    for current_passenger in self.actor.contained_mobs:
+                    for current_passenger in self.actor.subscribed_passengers:
                         name_list.append(
                             "    " + utility.capitalize(current_passenger.name)
                         )
                     if len(name_list) == 1:
                         name_list[0] = self.message_start + " none"
-                    self.set_tooltip(name_list)
+                    return name_list
                 else:
-                    super().update_tooltip()
+                    return super().tooltip_text
 
         elif self.actor_label_type == constants.CREW_LABEL:
             if self.actor and self.actor.crew:
-                self.actor.crew.update_tooltip()
-                tooltip_text = self.actor.crew.tooltip_text
-                self.set_tooltip(tooltip_text)
+                return self.actor.crew.tooltip_text
             else:
-                super().update_tooltip()
-
-        elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
-            if self.actor:
-                self.actor.update_tooltip()
-                tooltip_text = self.actor.tooltip_text
-                self.set_tooltip(tooltip_text)
-            elif self.default_tooltip_text:
-                self.set_tooltip(self.default_tooltip_text)
+                return super().tooltip_text
 
         elif self.actor_label_type in [
             constants.MOB_INVENTORY_CAPACITY_LABEL,
-            constants.TILE_INVENTORY_CAPACITY_LABEL,
+            constants.LOCATION_INVENTORY_CAPACITY_LABEL,
         ]:
             tooltip_text = [self.message]
             if self.actor_label_type == constants.MOB_INVENTORY_CAPACITY_LABEL:
@@ -835,30 +828,27 @@ class actor_display_label(label):
                     tooltip_text.append(
                         f"This unit can hold a maximum of {self.actor.inventory_capacity} items"
                     )
-            elif self.actor_label_type == constants.TILE_INVENTORY_CAPACITY_LABEL:
+            elif self.actor_label_type == constants.LOCATION_INVENTORY_CAPACITY_LABEL:
                 if self.actor:
-                    if not self.actor.cell.terrain_handler.visible:
-                        tooltip_text.append("This tile has not been explored")
-                    elif self.actor.infinite_inventory_capacity:
+                    if self.actor.infinite_inventory_capacity:
                         tooltip_text.append(
-                            "This tile can hold an infinite number of items"
+                            "this location can hold an unlimited number of items"
                         )
                     else:
                         tooltip_text.append(
-                            f"This tile currently contains an inventory of {self.actor.get_inventory_used()} items"
+                            f"this location currently contains an inventory of {self.actor.get_inventory_used()} items"
                         )
                         tooltip_text.append(
-                            f"This tile can retain a maximum inventory of {self.actor.inventory_capacity} items"
+                            f"this location can retain a maximum inventory of {self.actor.inventory_capacity} items"
                         )
                         tooltip_text.append(
-                            "If this tile's inventory exceeds its capacity before resource production at the end of the turn, extra items will be lost"
+                            "If this location's inventory exceeds its capacity before resource production at the end of the turn, extra items will be lost"
                         )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_LABEL:
             tooltip_text = []
             if self.actor:
-                self.actor.update_tooltip()
                 if self.actor.controlling_minister:
                     tooltip_text = self.actor.controlling_minister.tooltip_text
                 else:
@@ -866,7 +856,7 @@ class actor_display_label(label):
                         f"The {self.actor.unit_type.controlling_minister_type.name} is responsible for controlling this unit",
                         f"As there is currently no {self.actor.unit_type.controlling_minister_type.name}, this unit will not be able to complete most actions until one is appointed",
                     ]
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.EVIDENCE_LABEL:
             tooltip_text = []
@@ -898,21 +888,21 @@ class actor_display_label(label):
                     tooltip_text.append(
                         "If you believe a minister is corrupt, evidence against them can be used in a criminal trial to justify appointing a new minister in their position"
                     )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_BACKGROUND_LABEL:
             tooltip_text = [self.message]
             tooltip_text.append(
                 "A minister's personal background determines their social status and may give them additional expertise in certain areas"
             )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_ETHNICITY_LABEL:
             tooltip_text = [self.message]
             tooltip_text.append(
                 "A minister's ethnicity influences their name and appearance"
             )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_SOCIAL_STATUS_LABEL:
             tooltip_text = [self.message]
@@ -922,14 +912,14 @@ class actor_display_label(label):
             tooltip_text.append(
                 "Ministers with higher social status tend to be more influential, with the power and resources to help or hinder your cause"
             )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_INTERESTS_LABEL:
             tooltip_text = [self.message]
             tooltip_text.append(
                 "While some interests are derived from a minister's legitimate talent or experience in a particular field, others are mere fancies"
             )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_ABILITY_LABEL:
             tooltip_text = [self.message]
@@ -942,11 +932,11 @@ class actor_display_label(label):
                             tooltip_text.append(
                                 f"    {rank}. {skill_type.capitalize()}: {self.actor.apparent_skill_descriptions[skill_type]}"
                             )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_LOYALTY_LABEL:
             tooltip_text = [self.message]
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.BUILDING_WORK_CREWS_LABEL:
             tooltip_text = []
@@ -955,13 +945,13 @@ class actor_display_label(label):
             )
             if self.attached_building:
                 tooltip_text.append(
-                    f"Work crews: {len(self.attached_building.contained_work_crews)}/{self.attached_building.upgrade_fields[constants.RESOURCE_SCALE]}"
+                    f"Work crews: {len(self.attached_building.subscribed_work_crews)}/{self.attached_building.upgrade_fields[constants.RESOURCE_SCALE]}"
                 )
-                for current_work_crew in self.attached_building.contained_work_crews:
+                for current_work_crew in self.attached_building.subscribed_work_crews:
                     tooltip_text.append(
                         f"    {utility.capitalize(current_work_crew.name)}"
                     )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.BUILDING_EFFICIENCY_LABEL:
             tooltip_text = [self.message]
@@ -971,25 +961,14 @@ class actor_display_label(label):
             tooltip_text.append(
                 "Increase work crew efficiency by upgrading the building's efficiency with a construction crew"
             )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type == constants.TERRAIN_FEATURE_LABEL:
-            self.set_tooltip(
-                status.terrain_feature_types[self.terrain_feature_type].description
-            )
-
-        elif self.actor_label_type == constants.SLUMS:
-            tooltip_text = [self.message]
-            tooltip_text.append(
-                "Slums can form around ports, train stations, and resource production facilities"
-            )
-            self.set_tooltip(tooltip_text)
+            return status.terrain_feature_types[self.terrain_feature_type].description
 
         elif self.actor_label_type in status.building_types.keys():
             if self.actor:
-                current_building = self.actor.cell.get_building(self.actor_label_type)
-                current_building.update_tooltip()
-                self.set_tooltip(current_building.tooltip_text)
+                return self.actor.get_building(self.actor_label_type).tooltip_text
 
         elif self.actor_label_type == constants.COMBAT_STRENGTH_LABEL:
             tooltip_text = [self.message]
@@ -1018,7 +997,7 @@ class actor_display_label(label):
                         tooltip_text.append(
                             f"In combat, this unit would roll 1 die with a {sign}{modifier} modifier"
                         )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif (
             self.actor_label_type.removesuffix("_label") in constants.terrain_parameters
@@ -1027,9 +1006,9 @@ class actor_display_label(label):
             if self.actor:
                 if self.actor_label_type == constants.WATER_LABEL:
                     tooltip_text.append(
-                        "Represents the amount of water in this tile, including both standing water and average precipitation"
+                        "Represents the amount of water in this location, including both standing water and average precipitation"
                     )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
 
         elif self.actor_label_type.removesuffix(
             "_label"
@@ -1050,7 +1029,7 @@ class actor_display_label(label):
                         f"Pressure is the total u (atmosphere units) on a planet, with Earth having 1.0 atm (atmospheres)"
                     )
                     tooltip_text.append(
-                        f"A total pressure of 1.0 atm is achieved by having 6 u of gas per tile on a planet"
+                        f"A total pressure of 1.0 atm is achieved by having 6 u of gas per location on a planet"
                     )
                 elif self.actor_label_type in [
                     constants.OXYGEN_LABEL,
@@ -1062,24 +1041,24 @@ class actor_display_label(label):
                         f"Partial pressure is the u (atmosphere units) of a particular gas on a planet"
                     )
                     tooltip_text.append(
-                        f"A total pressure of 1.0 atm is achieved by having 6 u of gas per tile on a planet"
+                        f"A total pressure of 1.0 atm is achieved by having 6 u of gas per location on a planet"
                     )
                 elif self.actor_label_type == constants.GRAVITY_LABEL:
                     tooltip_text.append(
                         f"Gravity is the weight caused by the planet's pull, with Earth having 1.0 g"
                     )
-                    if self.actor.grid != status.earth_grid:
+                    if not self.actor.is_earth_location:
                         tooltip_text.append(
-                            f"Approximately {self.actor.grid.world_handler.get_parameter(constants.GRAVITY) * 100}% Earth's gravity"
+                            f"Approximately {self.actor.true_world_handler.get_parameter(constants.GRAVITY) * 100}% Earth's gravity"
                         )
                         tooltip_text.append(
-                            f"Approximately {round(self.actor.grid.world_handler.size / self.actor.grid.world_handler.earth_size, 2) * 100}% Earth's size"
+                            f"Approximately {round(self.actor.true_world_handler.world_dimensions / constants.earth_dimensions, 2) * 100}% Earth's size"
                         )
                 elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
                     tooltip_text.append(
                         f"    Average temperature = absolute zero + total heat"
                     )
-                    if self.actor.grid != status.earth_grid:
+                    if not self.actor.is_earth_location:
                         tooltip_text.append(f"Earth is an average of 58.0 °F")
                 elif self.actor_label_type == constants.RADIATION_LABEL:
                     tooltip_text.append(f"Represents cosmic radiation and solar winds")
@@ -1099,10 +1078,10 @@ class actor_display_label(label):
                     )
                     tooltip_text.append(f"    Insolation = 1 / (star distance)^2")
                     tooltip_text.append(
-                        f"    {self.actor.grid.world_handler.get_insolation()} = 1 / ({self.actor.grid.world_handler.star_distance})^2"
+                        f"    {self.actor.true_world_handler.get_insolation()} = 1 / ({self.actor.true_world_handler.star_distance})^2"
                     )
                     tooltip_text.append(
-                        f"By the Stefan-Boltzmann law, a planet with {self.actor.grid.world_handler.get_insolation()}x Earth's insolation receives {round(self.actor.grid.world_handler.get_sun_effect(), 2)} °F heat"
+                        f"By the Stefan-Boltzmann law, a planet with {self.actor.true_world_handler.get_insolation()}x Earth's insolation receives {round(self.actor.true_world_handler.get_sun_effect(), 2)} °F heat"
                     )
 
                 if self.actor_label_type in [
@@ -1158,23 +1137,20 @@ class actor_display_label(label):
                     tooltip_text.append(
                         f"Any radiation exceeding magnetic field strength can harm life and slowly strip away atmosphere, particularly oxygen, inert gases, and non-frozen water"
                     )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
         elif self.actor_label_type == constants.HABITABILITY_LABEL:
             tooltip_text = [self.message]
             if self.actor:
-                habitability_dict = (
-                    self.actor.cell.terrain_handler.get_habitability_dict()
-                )
-
-                if not self.actor.cell.grid.is_abstract_grid:
+                habitability_dict = self.actor.get_habitability_dict()
+                if not self.actor.is_abstract_location:
                     tooltip_text.append(
                         f"    Overall habitability is the minimum of all parts of the local conditions"
                     )
                 else:
-                    habitability_dict[
-                        constants.TEMPERATURE
-                    ] = actor_utility.get_temperature_habitability(
-                        round(self.actor.cell.grid.world_handler.average_temperature)
+                    habitability_dict[constants.TEMPERATURE] = (
+                        actor_utility.get_temperature_habitability(
+                            round(self.actor.true_world_handler.average_temperature)
+                        )
                     )
                     if (
                         habitability_dict[constants.TEMPERATURE]
@@ -1184,8 +1160,8 @@ class actor_display_label(label):
                 tooltip_text.append(
                     f"Represents the habitability for humans to live and work here"
                 )
-                if (not self.actor.cell.grid.is_abstract_grid) and (
-                    self.actor.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
+                if (not self.actor.is_abstract_location) and (
+                    self.actor.get_parameter(constants.KNOWLEDGE)
                     < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
                 ):
                     if constants.TEMPERATURE in habitability_dict:
@@ -1197,20 +1173,19 @@ class actor_display_label(label):
                     tooltip_text.append(
                         f"    {utility.capitalize(key.replace('_', ' '))}: {constants.HABITABILITY_DESCRIPTIONS[value]}"
                     )
-            self.set_tooltip(tooltip_text)
+            return tooltip_text
         elif self.actor_label_type == constants.BANNER_LABEL:
             if self.banner_type == "absolute zero":
                 tooltip_text = [self.message]
                 tooltip_text.append(
                     "Absolute zero is the coldest possible temperature, and is the natural temperature when there is no heat"
                 )
-                self.set_tooltip(tooltip_text)
+                return tooltip_text
             else:
-                super().update_tooltip()
-        else:
-            super().update_tooltip()
+                return super().tooltip_text
+        return super().tooltip_text
 
-    def calibrate(self, new_actor):
+    def calibrate(self, new_actor: actors.actor):
         """
         Description:
             Attaches this label to the inputted actor and updates this label's information based on the inputted actor
@@ -1242,37 +1217,28 @@ class actor_display_label(label):
                 self.set_label(f"{self.message_start}({new_actor.x}, {new_actor.y})")
 
             elif self.actor_label_type == constants.TERRAIN_LABEL:
-                if not new_actor.grid.is_abstract_grid:
-                    if (
-                        self.actor.cell.terrain_handler.visible
-                        and self.actor.cell.terrain_handler.knowledge_available(
-                            constants.TERRAIN_KNOWLEDGE
-                        )
-                    ):
+                if not new_actor.is_abstract_location:
+                    if self.actor.knowledge_available(constants.TERRAIN_KNOWLEDGE):
                         self.set_label(
-                            f"{self.message_start}{new_actor.cell.terrain_handler.terrain.replace('_', ' ')}"
+                            f"{self.message_start}{new_actor.terrain.replace('_', ' ')}"
                         )
                     else:
                         self.set_label(self.message_start + "unknown")
 
             elif self.actor_label_type == constants.PLANET_NAME_LABEL:
-                if new_actor.grid.is_abstract_grid:
-                    if new_actor.grid != status.earth_grid:
+                if new_actor.is_abstract_location:
+                    if not new_actor.is_earth_location:
                         self.set_label(
-                            f"{utility.capitalize(new_actor.grid.name)} (in orbit)"
+                            f"{utility.capitalize(new_actor.name)} (in orbit)"
                         )
                     else:
-                        self.set_label(utility.capitalize(new_actor.grid.name))
+                        self.set_label(utility.capitalize(new_actor.name))
 
             elif self.actor_label_type == constants.RESOURCE_LABEL:
-                if new_actor.grid.is_abstract_grid:
-                    self.set_label(self.message_start + "n/a")
-                elif new_actor.cell.terrain_handler.visible:
-                    self.set_label(
-                        f"{self.message_start}{new_actor.cell.terrain_handler.resource}"
-                    )
+                if new_actor.is_abstract_location:
+                    self.set_label(f"{self.message_start}n/a")
                 else:
-                    self.set_label(self.message_start + "unknown")
+                    self.set_label(f"{self.message_start}{new_actor.resource}")
 
             elif self.actor_label_type == constants.TERRAIN_FEATURE_LABEL:
                 self.set_label(self.terrain_feature_type.capitalize())
@@ -1280,15 +1246,11 @@ class actor_display_label(label):
             elif (
                 self.actor_label_type == constants.RESOURCE
             ):  # Resource building, distinct from terrain resource label
-                if (
-                    (not new_actor.grid.is_abstract_grid)
-                    and new_actor.cell.terrain_handler.visible
-                    and new_actor.cell.has_building(constants.RESOURCE)
+                if (not new_actor.is_abstract_location) and new_actor.has_building(
+                    constants.RESOURCE
                 ):
                     self.set_label(
-                        new_actor.cell.get_building(
-                            constants.RESOURCE
-                        ).name.capitalize()
+                        new_actor.get_building(constants.RESOURCE).name.capitalize()
                     )
             elif self.actor_label_type == constants.EQUIPMENT_LABEL:
                 self.set_label(
@@ -1356,11 +1318,13 @@ class actor_display_label(label):
 
             elif self.actor_label_type == constants.CURRENT_BUILDING_WORK_CREW_LABEL:
                 if self.list_type == constants.RESOURCE:
-                    if new_actor.cell.has_building(constants.RESOURCE):
-                        self.attached_building = new_actor.cell.get_building(
+                    if new_actor.has_building(constants.RESOURCE):
+                        self.attached_building = new_actor.get_building(
                             constants.RESOURCE
                         )
-                        self.attached_list = self.attached_building.contained_work_crews
+                        self.attached_list = (
+                            self.attached_building.subscribed_work_crews
+                        )
                         if len(self.attached_list) > self.list_index:
                             self.set_label(
                                 self.message_start
@@ -1386,15 +1350,15 @@ class actor_display_label(label):
                 if not self.actor.get_permission(constants.ACTIVE_PERMISSION):
                     self.set_label("Must be crewed by astronauts to function")
                 elif self.actor.get_permission(constants.VEHICLE_PERMISSION):
-                    if len(self.actor.contained_mobs) == 0:
+                    if len(self.actor.subscribed_passengers) == 0:
                         self.set_label(self.message_start + "none")
                     else:
                         self.set_label(self.message_start)
 
             elif self.actor_label_type == constants.CURRENT_PASSENGER_LABEL:
                 if self.actor.get_permission(constants.VEHICLE_PERMISSION):
-                    if len(self.actor.contained_mobs) > 0:
-                        self.attached_list = new_actor.contained_mobs
+                    if len(self.actor.subscribed_passengers) > 0:
+                        self.attached_list = new_actor.subscribed_passengers
                         if len(self.attached_list) > self.list_index:
                             self.set_label(
                                 self.message_start
@@ -1419,15 +1383,10 @@ class actor_display_label(label):
 
             elif self.actor_label_type in [
                 constants.MOB_INVENTORY_CAPACITY_LABEL,
-                constants.TILE_INVENTORY_CAPACITY_LABEL,
+                constants.LOCATION_INVENTORY_CAPACITY_LABEL,
             ]:
                 inventory_used = self.actor.get_inventory_used()
-                if (
-                    self.actor_label_type == constants.TILE_INVENTORY_CAPACITY_LABEL
-                    and not self.actor.cell.terrain_handler.visible
-                ):
-                    text = self.message_start + "n/a"
-                elif self.actor.infinite_inventory_capacity:
+                if self.actor.infinite_inventory_capacity:
                     text = self.message_start + "unlimited"
                 else:
                     text = f"{self.message_start}{inventory_used}/{self.actor.inventory_capacity}"
@@ -1513,16 +1472,10 @@ class actor_display_label(label):
                 else:
                     self.set_label(self.message_start + "none")
 
-            elif self.actor_label_type == constants.SLUMS:
-                if self.actor.cell.has_building(constants.SLUMS):
-                    self.set_label(
-                        f"{self.message_start}{str(self.actor.cell.get_building(constants.SLUMS).available_workers)}"
-                    )
-
             elif self.actor_label_type in status.building_types.keys():
-                if self.actor.cell.has_building(self.actor_label_type):
+                if self.actor.has_building(self.actor_label_type):
                     self.set_label(
-                        f"{self.message_start}{self.actor.cell.get_building(self.actor_label_type).name.capitalize()}"
+                        f"{self.message_start}{self.actor.get_building(self.actor_label_type).building_type.name.capitalize()}"
                     )
 
             elif self.actor_label_type == constants.INVENTORY_NAME_LABEL:
@@ -1536,9 +1489,9 @@ class actor_display_label(label):
                 )
 
             elif self.actor_label_type == constants.SETTLEMENT:
-                if new_actor.cell.settlement:
+                if new_actor.settlement:
                     self.set_label(
-                        f"{self.message_start}{str(new_actor.cell.settlement.name)}"
+                        f"{self.message_start}{str(new_actor.settlement.name)}"
                     )
                 else:
                     self.set_label(f"{self.message_start} n/a")
@@ -1548,13 +1501,11 @@ class actor_display_label(label):
                 in constants.terrain_parameters
             ):
                 if (
-                    new_actor.cell.terrain_handler.knowledge_available(
-                        constants.TERRAIN_PARAMETER_KNOWLEDGE
-                    )
+                    new_actor.knowledge_available(constants.TERRAIN_PARAMETER_KNOWLEDGE)
                     or self.actor_label_type == constants.KNOWLEDGE_LABEL
                 ):
                     parameter = self.actor_label_type.removesuffix("_label")
-                    value = new_actor.cell.get_parameter(parameter)
+                    value = new_actor.get_parameter(parameter)
                     self.set_label(
                         f"{self.message_start}{constants.terrain_manager.terrain_parameter_keywords[parameter][value]}"
                     )
@@ -1563,7 +1514,7 @@ class actor_display_label(label):
 
             elif self.actor_label_type == constants.LOCAL_AVERAGE_TEMPERATURE_LABEL:
                 self.set_label(
-                    f"{self.message_start}{constants.terrain_manager.temperature_bounds[new_actor.cell.terrain_handler.get_parameter(constants.TEMPERATURE)]}"
+                    f"{self.message_start}{constants.terrain_manager.temperature_bounds[new_actor.get_parameter(constants.TEMPERATURE)]}"
                 )
 
             elif (
@@ -1571,20 +1522,20 @@ class actor_display_label(label):
                 in constants.global_parameters
             ):
                 parameter = self.actor_label_type.removesuffix("_label")
-                value = self.actor.grid.world_handler.get_parameter(parameter)
+                value = self.actor.true_world_handler.get_parameter(parameter)
                 if parameter in [constants.PRESSURE] + constants.ATMOSPHERE_COMPONENTS:
                     if (
                         parameter == constants.PRESSURE
                     ):  # Pressure: 1200/2400 (50% Earth)
                         atm = round(
-                            self.actor.grid.world_handler.get_pressure_ratio(parameter),
+                            self.actor.true_world_handler.get_pressure_ratio(parameter),
                             2,
                         )
                         if atm < 0.01:
                             atm = "<0.01"
                         self.set_label(f"{self.message_start}{value:,} u ({atm} atm)")
                     elif (
-                        self.actor.grid.world_handler.get_parameter(constants.PRESSURE)
+                        self.actor.true_world_handler.get_parameter(constants.PRESSURE)
                         == 0.0
                         or value == 0
                     ):
@@ -1593,21 +1544,21 @@ class actor_display_label(label):
                         )
                     else:  # 42% Oxygen: 1008 u (0.42 atm)
                         atm = round(
-                            self.actor.grid.world_handler.get_pressure_ratio(parameter),
+                            self.actor.true_world_handler.get_pressure_ratio(parameter),
                             2,
                         )
                         if atm < 0.01:
                             atm = "<0.01"
                         self.set_label(
-                            f"{round(100 * value / self.actor.grid.world_handler.get_parameter(constants.PRESSURE), 1)}% {self.message_start}{value:,} u ({atm} atm)"
+                            f"{round(100 * value / self.actor.true_world_handler.get_parameter(constants.PRESSURE), 1)}% {self.message_start}{value:,} u ({atm} atm)"
                         )
                 elif parameter == constants.GRAVITY:
-                    if self.actor.grid == status.earth_grid:
+                    if self.actor.is_earth_location:
                         self.set_label(f"{self.message_start}{value} g")
                     else:
                         self.set_label(f"{self.message_start}{value} g")
                 elif parameter in [constants.MAGNETIC_FIELD, constants.RADIATION]:
-                    ideal = status.earth_grid.world_handler.get_parameter(parameter)
+                    ideal = status.earth_world.get_parameter(parameter)
                     if value == 0:
                         self.set_label(f"{self.message_start}0/5 (0% Earth)")
                     else:
@@ -1615,7 +1566,7 @@ class actor_display_label(label):
                             f"{self.message_start}{value}/5 ({round(max(1, 100 * (float(value) / ideal))):,}% Earth)"
                         )
                 else:
-                    ideal = status.earth_grid.world_handler.get_parameter(
+                    ideal = status.earth_world.get_parameter(
                         self.actor_label_type.removesuffix("_label")
                     )
                     if value == 0:
@@ -1626,12 +1577,12 @@ class actor_display_label(label):
                         )
             elif self.actor_label_type == constants.AVERAGE_WATER_LABEL:
                 original_value = (
-                    self.actor.grid.world_handler.average_water
-                    / status.strategic_map_grid.get_tuning("earth_average_water_target")
+                    self.actor.true_world_handler.average_water
+                    / constants.terrain_manager.get_tuning("earth_average_water_target")
                 )
                 if original_value != 0 and round(original_value * 100) == 0:
                     original_value = 0.01
-                if self.actor.grid == status.earth_grid:
+                if self.actor.is_earth_location:
                     self.set_label(f"{self.message_start}100% Earth")
                 else:
                     self.set_label(
@@ -1639,58 +1590,56 @@ class actor_display_label(label):
                     )
             elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
                 self.set_label(
-                    f"{self.message_start}{round(utility.fahrenheit(self.actor.grid.world_handler.average_temperature), 2)} °F"
+                    f"{self.message_start}{round(utility.fahrenheit(self.actor.true_world_handler.average_temperature), 2)} °F"
                 )
             elif self.actor_label_type == constants.GHG_EFFECT_LABEL:
-                if self.actor.grid.world_handler.ghg_multiplier == 1.0:
+                if self.actor.true_world_handler.ghg_multiplier == 1.0:
                     self.set_label(f"{self.message_start}+0%")
                 else:
-                    if self.actor.grid.world_handler.ghg_multiplier > 1.0:
+                    if self.actor.true_world_handler.ghg_multiplier > 1.0:
                         sign = "+"
                     else:
                         sign = ""
                     self.set_label(
-                        f"{self.message_start}{sign}{round((self.actor.grid.world_handler.ghg_multiplier - 1.0) * 100, 2)}%"
+                        f"{self.message_start}{sign}{round((self.actor.true_world_handler.ghg_multiplier - 1.0) * 100, 2)}%"
                     )
             elif self.actor_label_type == constants.WATER_VAPOR_EFFECT_LABEL:
-                if self.actor.grid.world_handler.water_vapor_multiplier == 1.0:
+                if self.actor.true_world_handler.water_vapor_multiplier == 1.0:
                     self.set_label(f"{self.message_start}+0%")
                 else:
                     self.set_label(
-                        f"{self.message_start}+{round((self.actor.grid.world_handler.water_vapor_multiplier - 1.0) * 100, 2)}%"
+                        f"{self.message_start}+{round((self.actor.true_world_handler.water_vapor_multiplier - 1.0) * 100, 2)}%"
                     )
             elif (
                 self.actor_label_type == constants.ALBEDO_EFFECT_LABEL
             ):  # Continue troubleshooting
                 self.set_label(
-                    f"{self.message_start}-{round((1.0 - self.actor.grid.world_handler.albedo_multiplier) * 100)}%"
+                    f"{self.message_start}-{round((1.0 - self.actor.true_world_handler.albedo_multiplier) * 100)}%"
                 )
             elif self.actor_label_type == constants.TOTAL_HEAT_LABEL:
-                total_heat = self.actor.grid.world_handler.get_total_heat()
-                earth_total_heat = status.earth_grid.world_handler.get_total_heat()
+                total_heat = self.actor.true_world_handler.get_total_heat()
+                earth_total_heat = status.earth_world.get_total_heat()
                 self.set_label(
                     f"{self.message_start}{total_heat} °F ({round((total_heat / earth_total_heat) * 100)}% Earth)"
                 )
             elif self.actor_label_type == constants.STAR_DISTANCE_LABEL:
                 self.set_label(
-                    f"{self.message_start}{self.actor.grid.world_handler.star_distance} AU"
+                    f"{self.message_start}{self.actor.true_world_handler.star_distance} AU"
                 )
             elif self.actor_label_type == constants.INSOLATION_LABEL:
                 self.set_label(
-                    f"{self.message_start}{round(self.actor.grid.world_handler.get_sun_effect(), 2)} °F ({round((self.actor.grid.world_handler.get_sun_effect() / status.earth_grid.world_handler.get_sun_effect()) * 100)}% Earth)"
+                    f"{self.message_start}{round(self.actor.true_world_handler.get_sun_effect(), 2)} °F ({round((self.actor.true_world_handler.get_sun_effect() / status.earth_world.get_sun_effect()) * 100)}% Earth)"
                 )
             elif self.actor_label_type == constants.HABITABILITY_LABEL:
-                overall_habitability = (
-                    self.actor.cell.terrain_handler.get_known_habitability()
-                )
-                if (not self.actor.cell.grid.is_abstract_grid) and (
-                    self.actor.cell.terrain_handler.get_parameter(constants.KNOWLEDGE)
+                overall_habitability = self.actor.get_known_habitability()
+                if (not self.actor.is_abstract_location) and (
+                    self.actor.get_parameter(constants.KNOWLEDGE)
                     < constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
-                ):  # If local terrain handler with no local temperature knowledge
+                ):  # If location with no local temperature knowledge
                     self.set_label(
                         f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]} (estimated)"
                     )
-                else:  # If world terrain handler or local terrain with local temperature knowledge
+                else:  # If world handler or location with local temperature knowledge
                     self.set_label(
                         f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]}"
                     )
@@ -1713,27 +1662,23 @@ class actor_display_label(label):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if not result:
             return False
+        # elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
+        #     return True
         elif (
-            self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL
-            and self.default_tooltip_text
-        ):
-            return True
-        elif not self.actor:
-            return False
-        elif self.actor_label_type == constants.RESOURCE_LABEL and (
-            self.actor.cell.terrain_handler.resource == None
-            or (not self.actor.cell.terrain_handler.visible)
-            or self.actor.grid.is_abstract_grid
+            self.actor_label_type == constants.RESOURCE_LABEL
+            and (  # Denotes terrain resource
+                self.actor.resource == None or self.actor.is_abstract_location
+            )
         ):
             return False
-        elif self.actor_label_type == constants.RESOURCE and (
-            (not self.actor.cell.terrain_handler.visible)
-            or (not self.actor.cell.has_building(constants.RESOURCE))
+        elif (
+            self.actor_label_type == constants.RESOURCE  # Denotes resource building
+            and not self.actor.has_building(constants.RESOURCE)
         ):
             return False
         elif (
             self.actor_label_type == constants.COORDINATES_LABEL
-            and self.actor.cell.grid.is_abstract_grid
+            and self.actor.is_abstract_location
         ):
             return False
         elif self.actor_label_type in [
@@ -1748,22 +1693,30 @@ class actor_display_label(label):
             constants.OFFICER_LABEL,
         ] and not self.actor.get_permission(constants.GROUP_PERMISSION):
             return False
-        elif self.actor.actor_type == constants.MOB_ACTOR_TYPE and (
-            self.actor.any_permissions(
-                constants.IN_VEHICLE_PERMISSION,
-                constants.IN_GROUP_PERMISSION,
-                constants.IN_BUILDING_PERMISSION,
+        elif (
+            self.actor
+            and self.actor.actor_type == constants.MOB_ACTOR_TYPE
+            and (
+                self.actor.any_permissions(
+                    constants.IN_VEHICLE_PERMISSION,
+                    constants.IN_GROUP_PERMISSION,
+                    constants.IN_BUILDING_PERMISSION,
+                )
+            )
+            and not (
+                self.actor.get_permission(
+                    constants.DUMMY_PERMISSION
+                )  # Dummy units can always show in reorganization interface
             )
         ):  # Do not show mobs that are attached to another unit/building
             return False
         elif (
             self.actor_label_type in status.building_types.keys()
-            and not self.actor.cell.has_building(self.actor_label_type)
+            and not self.actor.has_building(self.actor_label_type)
         ):
             return False
         elif (
-            self.actor_label_type == constants.SETTLEMENT
-            and not self.actor.cell.settlement
+            self.actor_label_type == constants.SETTLEMENT and not self.actor.settlement
         ):
             return False
         elif (
@@ -1803,9 +1756,7 @@ class actor_display_label(label):
             self.actor_label_type.removesuffix("_label") in constants.terrain_parameters
             and self.actor_label_type != constants.KNOWLEDGE_LABEL
         ) or self.actor_label_type == constants.LOCAL_AVERAGE_TEMPERATURE_LABEL:
-            return self.actor.cell.terrain_handler.knowledge_available(
-                constants.TERRAIN_PARAMETER_KNOWLEDGE
-            )
+            return self.actor.knowledge_available(constants.TERRAIN_PARAMETER_KNOWLEDGE)
         elif self.actor_label_type == constants.OFFICER_NAME_LABEL:
             return self.actor.get_permission(constants.OFFICER_PERMISSION)
         elif self.actor_label_type == constants.GROUP_NAME_LABEL:
@@ -1813,9 +1764,9 @@ class actor_display_label(label):
         elif self.actor_label_type == constants.EQUIPMENT_LABEL:
             return bool(self.actor.equipment)
         elif self.actor_label_type == constants.PLANET_NAME_LABEL:
-            return self.actor.grid.is_abstract_grid
+            return self.actor.is_abstract_location
         elif self.actor_label_type == constants.TERRAIN_LABEL:
-            return not self.actor.grid.is_abstract_grid
+            return not self.actor.is_abstract_location
         else:
             return result
 
@@ -1840,7 +1791,7 @@ class banner(actor_display_label):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
                 'actor_label_type': string value - Type of actor information shown
-                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'tile'
+                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'location'
                 'banner_type': Type of banner to display, like 'terrain details' - determines behavior
                 'banner_text': string value - Text to display on the banner
         Output:
@@ -1863,10 +1814,8 @@ class banner(actor_display_label):
         if self.banner_type == "terrain details":
             return (
                 super().can_show(skip_parent_collection=skip_parent_collection)
-                and self.actor.cell.terrain_handler.knowledge_available(
-                    constants.TERRAIN_KNOWLEDGE
-                )
-                and not self.actor.cell.terrain_handler.knowledge_available(
+                and self.actor.knowledge_available(constants.TERRAIN_KNOWLEDGE)
+                and not self.actor.knowledge_available(
                     constants.TERRAIN_PARAMETER_KNOWLEDGE
                 )
             )
@@ -1917,7 +1866,7 @@ class list_item_label(actor_display_label):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
                 'actor_label_type': string value - Type of actor information shown
-                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'tile'
+                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'location'
                 'list_index': int value - Index to determine item of list reflected
                 'list_type': string value - Type of list associated with, like constants.RESOURCE along with label type of 'current building work crew' to show work crews attached to a resource
                     building
@@ -1962,28 +1911,23 @@ class actor_tooltip_label(actor_display_label):
 
     def on_click(self):
         """
-        Description:
-            Selects the calibrated unit when clicked - used to allow selecting units from reorganization interface
-        Input:
-            None
-        Output:
-            None
+        Selects the calibrated unit when clicked - used to allow selecting units from reorganization interface
         """
         if self.actor_type == constants.MINISTER_ACTOR_TYPE:
             return
-        if self.actor_type == constants.TILE_ACTOR_TYPE:
+        if self.actor_type == constants.LOCATION_ACTOR_TYPE:
             if (
-                self.actor.actor_type == constants.TILE_ACTOR_TYPE
-            ):  # If not tile_inventory
+                self.actor.actor_type == constants.LOCATION_ACTOR_TYPE
+            ):  # If not location_inventory
                 actor_utility.calibrate_actor_info_display(
-                    status.tile_info_display, self.actor
+                    status.location_info_display, self.actor
                 )
                 actor_utility.calibrate_actor_info_display(
                     status.mob_info_display, None
                 )
             else:
                 return
-        elif self.actor:
+        elif self.actor:  # Reorganization interface buttons
             if self.actor.get_permission(constants.DUMMY_PERMISSION):
                 if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
                     status.reorganize_vehicle_right_button.on_click(allow_sound=False)
@@ -2026,7 +1970,7 @@ class building_work_crews_label(actor_display_label):
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
-                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'tile'
+                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'location'
                 'building_type': string value - Type of building associated with, like constants.RESOURCE
         Output:
             None
@@ -2049,10 +1993,10 @@ class building_work_crews_label(actor_display_label):
         self.actor = new_actor
         self.show_label = False
         if new_actor != None:
-            self.attached_building = new_actor.cell.get_building(self.building_type)
+            self.attached_building = new_actor.get_building(self.building_type)
             if self.attached_building:
                 self.set_label(
-                    f"{self.message_start}{len(self.attached_building.contained_work_crews)}/{self.attached_building.upgrade_fields[constants.RESOURCE_SCALE]}"
+                    f"{self.message_start}{len(self.attached_building.subscribed_work_crews)}/{self.attached_building.upgrade_fields[constants.RESOURCE_SCALE]}"
                 )
                 self.show_label = True
 
@@ -2063,7 +2007,7 @@ class building_work_crews_label(actor_display_label):
         Input:
             None
         Output:
-            boolean: Returns same value as superclass as long as the displayed tile has a building of this label's building_type, otherwise returns False
+            boolean: Returns same value as superclass as long as the displayed location has a building of this label's building_type, otherwise returns False
         """
         if self.show_label:
             return super().can_show(skip_parent_collection=skip_parent_collection)
@@ -2090,7 +2034,7 @@ class building_efficiency_label(actor_display_label):
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
-                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'tile'
+                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'location'
                 'building_type': string value - Type of building associated with, like constants.RESOURCE
         Output:
             None
@@ -2113,7 +2057,7 @@ class building_efficiency_label(actor_display_label):
         self.actor = new_actor
         self.show_label = False
         if new_actor:
-            self.attached_building = new_actor.cell.get_building(self.building_type)
+            self.attached_building = new_actor.get_building(self.building_type)
             if self.attached_building:
                 self.set_label(
                     f"Efficiency: {self.attached_building.upgrade_fields[constants.RESOURCE_EFFICIENCY]}"
@@ -2127,7 +2071,7 @@ class building_efficiency_label(actor_display_label):
         Input:
             None
         Output:
-            boolean: Returns same value as superclass as long as the displayed tile has a building of this label's building_type, otherwise returns False
+            boolean: Returns same value as superclass as long as the displayed location has a building of this label's building_type, otherwise returns False
         """
         if self.show_label:
             return super().can_show(skip_parent_collection=skip_parent_collection)
@@ -2154,7 +2098,7 @@ class terrain_feature_label(actor_display_label):
                     Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'minimum_width': int value - Minimum pixel width of this label. Its width will increase if the contained text would extend past the edge of the label
-                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'tile'
+                'actor_type': string value - Type of actor to display the information of, like 'mob' or 'location'
                 'terrain_feature_type': string value - Type of terrain feature associated with, like 'equator'
         Output:
             None
@@ -2173,6 +2117,4 @@ class terrain_feature_label(actor_display_label):
         """
         return super().can_show(
             skip_parent_collection=skip_parent_collection
-        ) and self.actor.cell.terrain_handler.terrain_features.get(
-            self.terrain_feature_type, False
-        )
+        ) and self.actor.terrain_features.get(self.terrain_feature_type, False)

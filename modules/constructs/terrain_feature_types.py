@@ -1,4 +1,4 @@
-# Contains functionality for terrain feature types - non-resource points of interest in a tile
+# Contains functionality for terrain feature types - points of interest at a location
 
 import random
 from typing import Dict, List, Tuple
@@ -31,43 +31,37 @@ class terrain_feature_type:
         self.terrain_feature_type = input_dict["terrain_feature_type"]
         self.description: List[str] = input_dict.get("description", [])
         self.tracking_type: str = input_dict.get("tracking_type", None)
+        self.display_type: str = input_dict.get("display_type", "icon")
         self.visible: bool = input_dict.get("visible", True)
         self.image_id = input_dict.get(
             "image_id",
             {
-                "image_id": "terrains/features/" + self.terrain_feature_type + ".png",
+                "image_id": f"terrains/features/{self.terrain_feature_type}.png",
                 "level": -1,
             },
         )
-        if type(self.image_id) == dict:
-            self.image_id["level"] = input_dict.get("level", -1)
         self.requirements: Dict[str, any] = input_dict.get("requirements", {})
         self.frequency: Tuple[int, int] = input_dict.get("frequency", None)
         status.terrain_feature_types[self.terrain_feature_type] = self
 
     def clear_tracking(self) -> None:
         """
-        Description:
-            Clears all status tracking of this feature type
-        Input:
-            None
-        Output:
-            None
+        Clears all status tracking of this feature type
         """
         if self.tracking_type == constants.UNIQUE_FEATURE_TRACKING:
             setattr(status, self.terrain_feature_type.replace(" ", "_"), None)
         elif self.tracking_type == constants.LIST_FEATURE_TRACKING:
             setattr(status, self.terrain_feature_type.replace(" ", "_") + "_list", [])
 
-    def allow_place(self, cell) -> bool:
+    def allow_place(self, location) -> bool:
         """
         Description:
-            Calculates and returns whether to place one of this particular feature in the inputted cell during map generation, based on the feature's frequency and
+            Calculates and returns whether to place one of this particular feature in the inputted location during map generation, based on the feature's frequency and
                 requirements
         Input:
-            cell cell: Cell to place feature in
+            location location: Location to place feature in
         Output:
-            boolean: Returns whether to place one of this particular featuer in the inputted cell
+            boolean: Returns whether to place one of this particular featuer in the inputted location
         """
         if self.frequency:
             if (
@@ -75,19 +69,13 @@ class terrain_feature_type:
             ):  # For (1, 10), appear if random.randrange(1, 11) <= 1
                 for requirement in self.requirements:
                     if requirement == "terrain":
-                        if (
-                            self.requirements[requirement]
-                            != cell.terrain_handler.terrain
-                        ):
+                        if self.requirements[requirement] != location.terrain:
                             return False
                     elif requirement == "min_y":
-                        if cell.y < self.requirements[requirement]:
+                        if location.y < self.requirements[requirement]:
                             return False
                     elif requirement == "resource":
-                        if (
-                            cell.terrain_handler.resource
-                            != self.requirements[requirement]
-                        ):
+                        if location.resource != self.requirements[requirement]:
                             return False
                 return True
         return False

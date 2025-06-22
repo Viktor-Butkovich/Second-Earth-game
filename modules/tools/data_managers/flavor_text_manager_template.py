@@ -10,12 +10,7 @@ class flavor_text_manager_template:
 
     def __init__(self):
         """
-        Description:
-            Initializes this object
-        Input:
-            None
-        Output:
-            None
+        Initializes this object
         """
         self.subject_dict = {}
         self.set_flavor_text("exploration", "text/explorer.csv")

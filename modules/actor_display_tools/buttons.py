@@ -1,7 +1,6 @@
 # Contains functionality for actor display buttons
 
-import random
-from typing import Dict, Any
+from typing import Dict, List, Any
 from modules.interface_types.buttons import button
 from modules.actor_types import buildings
 from modules.util import (
@@ -19,7 +18,7 @@ from modules.constants import constants, status, flags
 
 class embark_all_passengers_button(button):
     """
-    Button that commands a vehicle to take all other mobs in its tile as passengers
+    Button that commands a vehicle to take all other mobs in its location as passengers
     """
 
     def __init__(self, input_dict):
@@ -46,36 +45,32 @@ class embark_all_passengers_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a vehicle to take all other mobs in its tile as passengers
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a vehicle to take all other mobs in its location as passengers
         """
         if main_loop_utility.action_possible():
             vehicle = status.displayed_mob
             can_embark = True
-            if self.vehicle_type == constants.TRAIN_PERMISSION:
-                if not vehicle.get_cell().get_inact_building(constants.TRAIN_STATION):
-                    text_utility.print_to_screen(
-                        "A train can only pick up passengers at a train station."
-                    )
-                    can_embark = False
+            if (
+                self.vehicle_type == constants.TRAIN_PERMISSION
+                and not vehicle.location.get_inact_building(constants.TRAIN_STATION)
+            ):
+                text_utility.print_to_screen(
+                    "A train can only pick up passengers at a train station."
+                )
+                can_embark = False
             if can_embark:
                 if vehicle.sentry_mode:
                     vehicle.set_sentry_mode(False)
-                for contained_mob in vehicle.get_cell().contained_mobs:
-                    passenger = contained_mob
-                    if passenger.get_permission(
+                for subscribed_mob in vehicle.location.subscribed_mobs.copy():
+                    if subscribed_mob.get_permission(
                         constants.PMOB_PERMISSION
-                    ) and not passenger.get_permission(
+                    ) and not subscribed_mob.get_permission(
                         constants.VEHICLE_PERMISSION
                     ):  # vehicles and enemies won't be picked up as passengers
-                        passenger.embark_vehicle(
+                        subscribed_mob.embark_vehicle(
                             vehicle,
-                            focus=contained_mob
-                            == vehicle.get_cell().contained_mobs[-1],
+                            focus=subscribed_mob
+                            == vehicle.location.subscribed_mobs[-1],
                         )
         else:
             text_utility.print_to_screen(
@@ -91,22 +86,22 @@ class embark_all_passengers_button(button):
         Output:
             boolean: Returns False if the selected vehicle has no crew, otherwise returns same as superclass
         """
-        result = super().can_show(skip_parent_collection=skip_parent_collection)
+        result = super().can_show(
+            skip_parent_collection=skip_parent_collection
+        ) and status.displayed_mob.get_permission(constants.ACTIVE_VEHICLE_PERMISSION)
         if result:
-            displayed_mob = status.displayed_mob
-            if displayed_mob.get_permission(constants.ACTIVE_PERMISSION):
-                if (
-                    displayed_mob.get_permission(constants.SPACESHIP_PERMISSION)
-                    and self.vehicle_type != constants.SPACESHIP_PERMISSION
-                ):
-                    self.vehicle_type = constants.SPACESHIP_PERMISSION
-                    self.image.set_image(f"buttons/embark_spaceship_button.png")
-                elif (
-                    displayed_mob.get_permission(constants.TRAIN_PERMISSION)
-                    and self.vehicle_type != constants.TRAIN_PERMISSION
-                ):
-                    self.vehicle_type = constants.TRAIN_PERMISSION
-                    self.image.set_image(f"buttons/embark_train_button.png")
+            if (
+                status.displayed_mob.get_permission(constants.SPACESHIP_PERMISSION)
+                and self.vehicle_type != constants.SPACESHIP_PERMISSION
+            ):
+                self.vehicle_type = constants.SPACESHIP_PERMISSION
+                self.image.set_image(f"buttons/embark_spaceship_button.png")
+            elif (
+                status.displayed_mob.get_permission(constants.TRAIN_PERMISSION)
+                and self.vehicle_type != constants.TRAIN_PERMISSION
+            ):
+                self.vehicle_type = constants.TRAIN_PERMISSION
+                self.image.set_image(f"buttons/embark_train_button.png")
         return result
 
 
@@ -139,18 +134,13 @@ class disembark_all_passengers_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a vehicle to eject all of its passengers
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a vehicle to eject all of its passengers
         """
         if main_loop_utility.action_possible():
             vehicle = status.displayed_mob
             can_disembark = True
             if vehicle.get_permission(constants.TRAIN_PERMISSION):
-                if not vehicle.get_cell().has_building(constants.TRAIN_STATION):
+                if not vehicle.location.has_building(constants.TRAIN_STATION):
                     text_utility.print_to_screen(
                         "A train can only drop off passengers at a train station."
                     )
@@ -158,8 +148,8 @@ class disembark_all_passengers_button(button):
             if can_disembark:
                 if vehicle.sentry_mode:
                     vehicle.set_sentry_mode(False)
-                if len(vehicle.contained_mobs) > 0:
-                    vehicle.contained_mobs[-1].selection_sound()
+                if len(vehicle.subscribed_passengers) > 0:
+                    vehicle.subscribed_passengers[-1].selection_sound()
                 vehicle.eject_passengers()
         else:
             text_utility.print_to_screen(
@@ -175,22 +165,22 @@ class disembark_all_passengers_button(button):
         Output:
             boolean: Returns False if the selected vehicle has no crew, otherwise returns same as superclass
         """
-        result = super().can_show(skip_parent_collection=skip_parent_collection)
+        result = super().can_show(
+            skip_parent_collection=skip_parent_collection
+        ) and status.displayed_mob.get_permission(constants.ACTIVE_VEHICLE_PERMISSION)
         if result:
-            displayed_mob = status.displayed_mob
-            if displayed_mob.get_permission(constants.ACTIVE_PERMISSION):
-                if (
-                    displayed_mob.get_permission(constants.SPACESHIP_PERMISSION)
-                    and self.vehicle_type != constants.SPACESHIP_PERMISSION
-                ):
-                    self.vehicle_type = constants.SPACESHIP_PERMISSION
-                    self.image.set_image(f"buttons/disembark_spaceship_button.png")
-                elif (
-                    displayed_mob.get_permission(constants.TRAIN_PERMISSION)
-                    and self.vehicle_type != constants.TRAIN_PERMISSION
-                ):
-                    self.vehicle_type = constants.TRAIN_PERMISSION
-                    self.image.set_image(f"buttons/disembark_train_button.png")
+            if (
+                status.displayed_mob.get_permission(constants.SPACESHIP_PERMISSION)
+                and self.vehicle_type != constants.SPACESHIP_PERMISSION
+            ):
+                self.vehicle_type = constants.SPACESHIP_PERMISSION
+                self.image.set_image(f"buttons/disembark_spaceship_button.png")
+            elif (
+                status.displayed_mob.get_permission(constants.TRAIN_PERMISSION)
+                and self.vehicle_type != constants.TRAIN_PERMISSION
+            ):
+                self.vehicle_type = constants.TRAIN_PERMISSION
+                self.image.set_image(f"buttons/disembark_train_button.png")
         return result
 
 
@@ -215,16 +205,15 @@ class enable_sentry_mode_button(button):
                 return False
             elif displayed_mob.sentry_mode:
                 return False
+            elif displayed_mob.get_permission(
+                constants.VEHICLE_PERMISSION
+            ) and not displayed_mob.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
+                return False
         return result
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button activates sentry mode for the selected unit
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button activates sentry mode for the selected unit
         """
         if main_loop_utility.action_possible():
             displayed_mob = status.displayed_mob
@@ -266,12 +255,7 @@ class disable_sentry_mode_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button deactivates sentry mode for the selected unit
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button deactivates sentry mode for the selected unit
         """
         if main_loop_utility.action_possible():
             displayed_mob = status.displayed_mob
@@ -352,12 +336,7 @@ class enable_automatic_replacement_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button enables automatic replacement for the selected unit
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button enables automatic replacement for the selected unit
         """
         if main_loop_utility.action_possible():
             displayed_mob = status.displayed_mob
@@ -444,12 +423,7 @@ class disable_automatic_replacement_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button disables automatic replacement for the selected unit
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button disables automatic replacement for the selected unit
         """
         if main_loop_utility.action_possible():
             displayed_mob = status.displayed_mob
@@ -513,12 +487,7 @@ class end_unit_turn_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes the selected unit from the current turn's turn cycle queue
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes the selected unit from the current turn's turn cycle queue
         """
         if main_loop_utility.action_possible():
             status.displayed_mob.remove_from_turn_queue()
@@ -577,18 +546,13 @@ class remove_work_crew_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes a work crew from a building
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes a work crew from a building
         """
         if main_loop_utility.action_possible():
             self.attached_label.attached_list[
                 self.attached_label.list_index
             ].leave_building(
-                self.attached_label.actor.cell.contained_buildings[self.building_type]
+                self.attached_label.actor.location.get_building(self.building_type)
             )
         else:
             text_utility.print_to_screen(
@@ -656,20 +620,15 @@ class disembark_vehicle_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button disembarks a passenger from a vehicle
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button disembarks a passenger from a vehicle
         """
         if main_loop_utility.action_possible():
-            if len(self.attached_label.actor.contained_mobs) > 0:
+            if len(self.attached_label.actor.subscribed_passengers) > 0:
                 can_disembark = True
                 if self.vehicle_type == constants.TRAIN_PERMISSION:
-                    if not self.attached_label.actor.images[
-                        0
-                    ].current_cell.contained_buildings[constants.TRAIN_STATION]:
+                    if not self.attached_label.actor.location.has_intact_building(
+                        constants.TRAIN_STATION
+                    ):
                         text_utility.print_to_screen(
                             "A train can only drop off passengers at a train station."
                         )
@@ -694,7 +653,7 @@ class disembark_vehicle_button(button):
 
 class embark_vehicle_button(button):
     """
-    Button that commands a selected mob to embark a vehicle of the correct type in the same tile
+    Button that commands a selected mob to embark a vehicle of the correct type in the same location
     """
 
     def __init__(self, input_dict):
@@ -728,7 +687,7 @@ class embark_vehicle_button(button):
         Input:
             None
         Output:
-            boolean: Returns False if the selected mob cannot embark vehicles or if there is no vehicle in the tile to embark, otherwise returns same as superclass
+            boolean: Returns False if the selected mob cannot embark vehicles or if there is no vehicle in the location to embark, otherwise returns same as superclass
         """
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
@@ -737,7 +696,7 @@ class embark_vehicle_button(button):
                 displayed_mob
                 and displayed_mob.get_permission(constants.PMOB_PERMISSION)
                 and not displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and displayed_mob.get_cell().has_unit(
+                and displayed_mob.location.has_unit_by_filter(
                     [self.vehicle_type, constants.ACTIVE_VEHICLE_PERMISSION]
                 )
             )
@@ -746,28 +705,21 @@ class embark_vehicle_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a selected mob to embark a vehicle of the correct type in the same tile
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a selected mob to embark a vehicle of the correct type in the same location
         """
         if main_loop_utility.action_possible():
-            if status.displayed_mob.get_cell().has_unit(
+            if status.displayed_mob.location.has_unit_by_filter(
                 [self.vehicle_type, constants.ACTIVE_VEHICLE_PERMISSION]
             ):
                 rider = status.displayed_mob
-                vehicles = rider.get_cell().get_unit(
+                vehicles = rider.location.get_unit_by_filter(
                     [self.vehicle_type, constants.ACTIVE_VEHICLE_PERMISSION],
                     get_all=True,
                 )
                 can_embark = True
                 if vehicles[0].get_permission(constants.TRAIN_PERMISSION):
-                    if (
-                        not vehicles[0]
-                        .get_cell()
-                        .contained_buildings[constants.TRAIN_STATION]
+                    if not vehicles[0].location.has_intact_building(
+                        constants.TRAIN_STATION
                     ):
                         text_utility.print_to_screen(
                             "A train can only pick up passengers at a train station."
@@ -814,7 +766,7 @@ class embark_vehicle_button(button):
                         rider.embark_vehicle(vehicle)
             else:
                 text_utility.print_to_screen(
-                    f"You must select a unit in the same tile as a crewed vehicle to embark."
+                    f"You must select a unit in the same location as a crewed vehicle to embark."
                 )
         else:
             text_utility.print_to_screen(f"You are busy and cannot embark.")
@@ -891,7 +843,7 @@ class cycle_passengers_button(button):
             if not displayed_mob.get_permission(constants.VEHICLE_PERMISSION):
                 return False
             elif (
-                not len(displayed_mob.contained_mobs) > 3
+                not len(displayed_mob.subscribed_passengers) > 3
             ):  # only show if vehicle with 3+ passengers
                 return False
             if displayed_mob.get_permission(constants.SPACESHIP_PERMISSION):
@@ -902,17 +854,12 @@ class cycle_passengers_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button cycles the order of passengers displayed in a vehicle
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button cycles the order of passengers displayed in a vehicle
         """
         if main_loop_utility.action_possible():
             displayed_mob = status.displayed_mob
-            moved_mob = displayed_mob.contained_mobs.pop(0)
-            displayed_mob.contained_mobs.append(moved_mob)
+            moved_mob = displayed_mob.subscribed_passengers.pop(0)
+            displayed_mob.subscribed_passengers.append(moved_mob)
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, displayed_mob
             )  # updates mob info display list to show changed passenger order
@@ -955,22 +902,21 @@ class cycle_work_crews_button(button):
         Input:
             None
         Output:
-            boolean: Returns same as superclass if the displayed tile's cell has a resource building containing more than 3 work crews, otherwise returns False
+            boolean: Returns same as superclass if the displayed location has a resource building containing more than 3 work crews, otherwise returns False
         """
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if result:
-            displayed_tile = status.displayed_tile
-            if not displayed_tile.cell.contained_buildings[constants.RESOURCE]:
+            if not status.displayed_location.has_intact_building(constants.RESOURCE):
                 self.previous_showing_result = False
                 return False
             elif (
-                not len(
-                    displayed_tile.cell.contained_buildings[
+                len(
+                    status.displayed_location.get_intact_building(
                         constants.RESOURCE
-                    ].contained_work_crews
+                    ).subscribed_work_crews
                 )
                 > 3
-            ):  # only show if building with 3+ work crews
+            ):
                 self.previous_showing_result = False
                 return False
         if self.previous_showing_result == False and result == True:
@@ -983,31 +929,26 @@ class cycle_work_crews_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button cycles the order of work crews displayed in a building
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button cycles the order of work crews displayed in a building
         """
         if main_loop_utility.action_possible():
-            displayed_tile = status.displayed_tile
-            moved_mob = displayed_tile.cell.contained_buildings[
+            displayed_location = status.displayed_location
+            moved_mob = displayed_location.get_intact_building(
                 constants.RESOURCE
-            ].contained_work_crews.pop(0)
-            displayed_tile.cell.contained_buildings[
+            ).subscribed_work_crews.pop(0)
+            displayed_location.get_intact_building(
                 constants.RESOURCE
-            ].contained_work_crews.append(moved_mob)
+            ).subscribed_work_crews.append(moved_mob)
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, displayed_tile
-            )  # updates tile info display list to show changed work crew order
+                status.location_info_display, displayed_location
+            )  # Updates location info display list to show changed work crew order
         else:
             text_utility.print_to_screen("You are busy and cannot cycle work crews.")
 
 
 class work_crew_to_building_button(button):
     """
-    Button that commands a work crew to work in a certain type of building in its tile
+    Button that commands a work crew to work in a certain type of building in its location
     """
 
     def __init__(self, input_dict):
@@ -1037,20 +978,15 @@ class work_crew_to_building_button(button):
 
     def update_info(self):
         """
-        Description:
-            Updates the building this button assigns workers to depending on the buildings present in this tile
-        Input:
-            None
-        Output:
-            None
+        Updates the building this button assigns workers to depending on the buildings present in this location
         """
         self.attached_work_crew = status.displayed_mob
         if self.attached_work_crew and self.attached_work_crew.get_permission(
             constants.WORK_CREW_PERMISSION
         ):
-            self.attached_building = self.attached_work_crew.images[
-                0
-            ].current_cell.get_intact_building(self.building_type)
+            self.attached_building = (
+                self.attached_work_crew.location.get_intact_building(self.building_type)
+            )
         else:
             self.attached_building = None
 
@@ -1070,49 +1006,35 @@ class work_crew_to_building_button(button):
             and self.attached_work_crew.get_permission(constants.WORK_CREW_PERMISSION)
         )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip depending on the building it assigns workers to
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.attached_work_crew and self.attached_building:
             if self.building_type == constants.RESOURCE:
-                self.set_tooltip(
-                    [
-                        f"Assigns the selected work crew to the {self.attached_building.name}, producing {self.attached_building.resource_type.name} over time."
-                    ]
-                )
+                return [
+                    f"Assigns the selected work crew to the {self.attached_building.name}, producing {self.attached_building.resource_type.name} over time."
+                ]
             else:
-                self.set_tooltip(["placeholder"])
+                return ["placeholder"]
         elif self.attached_work_crew:
             if self.building_type == constants.RESOURCE:
-                self.set_tooltip(
-                    [
-                        "Assigns the selected work crew to a resource building, producing resources over time."
-                    ]
-                )
-        else:
-            self.set_tooltip(["placeholder"])
+                return [
+                    "Assigns the selected work crew to a resource building, producing resources over time."
+                ]
+        return ["placeholder"]
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a work crew to work in a certain type of building in its tile
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a work crew to work in a certain type of building in its location
         """
         if main_loop_utility.action_possible():
             if self.attached_building:
                 if self.attached_building.upgrade_fields[
                     constants.RESOURCE_SCALE
                 ] > len(
-                    self.attached_building.contained_work_crews
+                    self.attached_building.subscribed_work_crews
                 ):  # if has extra space
                     if self.attached_work_crew.sentry_mode:
                         self.attached_work_crew.set_sentry_mode(False)
@@ -1126,7 +1048,7 @@ class work_crew_to_building_button(button):
                     )
             else:
                 text_utility.print_to_screen(
-                    "This work crew must be in the same tile as a resource production building to work in it"
+                    "This work crew must be in the same location as a resource production building to work in it"
                 )
         else:
             text_utility.print_to_screen(
@@ -1136,18 +1058,13 @@ class work_crew_to_building_button(button):
 
 class switch_theatre_button(button):
     """
-    Button starts choosing a destination for a spaceship to travel between theatres, like between Earth and the planet. A destination is chosen when the player clicks a tile in another theatre.
+    Button starts choosing a destination for a spaceship to travel between theatres, like between Earth and the current world. A destination is chosen when the player clicks a location in another theatre.
     """
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button starts choosing a destination for a spaceship to travel between theatres, like between Earth and the planet. A
-                destination is chosen when the player clicks a tile in another theatre.
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button starts choosing a destination for a spaceship to travel between theatres, like between Earth and the planet. A
+            destination is chosen when the player clicks a location in another theatre.
         """
         if main_loop_utility.action_possible():
             current_mob = status.displayed_mob
@@ -1230,12 +1147,7 @@ class appoint_minister_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button appoints the selected minister to the office corresponding to this button
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button appoints the selected minister to the office corresponding to this button
         """
         if main_loop_utility.action_possible():
             appointed_minister = status.displayed_minister
@@ -1269,13 +1181,8 @@ class reappoint_minister_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes the selected minister from their current office, returning them to the pool of available
-                ministers
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes the selected minister from their current office, returning them to the pool of available
+            ministers
         """
         if main_loop_utility.action_possible():
             status.displayed_minister.just_removed = True
@@ -1309,33 +1216,37 @@ class fire_minister_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes the selected minister from their current office, returning them to the pool of available
-                ministers
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes the selected minister from their current office, returning them to the pool of available
+            ministers
         """
         if main_loop_utility.action_possible():
-            appointed_minister = status.displayed_minister
-            public_opinion_penalty = appointed_minister.status_number
-            text = f"Are you sure you want to fire {appointed_minister.name}, your {appointed_minister.current_position.name}? /n /n"
-            text += f"This will incur a public opinion penalty: "
-            if appointed_minister.status_number >= 4:
-                text += f"{appointed_minister.name} is of very high social status, so firing them would cause widespread outrage. /n /n"
-            elif appointed_minister.status_number == 3:
-                text += f"{appointed_minister.name} is of high social status, so firing them would reflect particularly poorly on public opinion. /n /n"
-            elif appointed_minister.status_number == 2:
-                text += f"{appointed_minister.name} is of moderate social status, so firing them would have a modest impact on public opinion. /n /n"
-            elif appointed_minister.status_number <= 1:
-                text += f"{appointed_minister.name} is of low social status, so firing them would have a minimal impact on public opinion. /n /n"
-            constants.notification_manager.display_notification(
-                {
-                    "message": text,
-                    "choices": [constants.CHOICE_CONFIRM_FIRE_MINISTER_BUTTON, None],
-                }
-            )
+            if len(status.minister_list) > len(
+                status.minister_types
+            ):  # If there are sufficient appointees to refill the positions
+                appointed_minister = status.displayed_minister
+                text = f"Are you sure you want to fire {appointed_minister.name}, your {appointed_minister.current_position.name}? /n /n"
+                text += f"This will incur a public opinion penalty: "
+                if appointed_minister.status_number >= 4:
+                    text += f"{appointed_minister.name} is of very high social status, so firing them would cause widespread outrage. /n /n"
+                elif appointed_minister.status_number == 3:
+                    text += f"{appointed_minister.name} is of high social status, so firing them would reflect particularly poorly on public opinion. /n /n"
+                elif appointed_minister.status_number == 2:
+                    text += f"{appointed_minister.name} is of moderate social status, so firing them would have a modest impact on public opinion. /n /n"
+                elif appointed_minister.status_number <= 1:
+                    text += f"{appointed_minister.name} is of low social status, so firing them would have a minimal impact on public opinion. /n /n"
+                constants.notification_manager.display_notification(
+                    {
+                        "message": text,
+                        "choices": [
+                            constants.CHOICE_CONFIRM_FIRE_MINISTER_BUTTON,
+                            None,
+                        ],
+                    }
+                )
+            else:
+                text_utility.print_to_screen(
+                    "You do not have enough available candidates to refill this minister's position."
+                )
         else:
             text_utility.print_to_screen("You are busy and cannot remove a minister.")
 
@@ -1384,13 +1295,8 @@ class to_trial_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button goes to the trial screen to remove the selected minister from the game and confiscate a portion of their
-                stolen money
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button goes to the trial screen to remove the selected minister from the game and confiscate a portion of their
+            stolen money
         """
         if main_loop_utility.action_possible():
             if constants.money >= constants.action_prices["trial"]:
@@ -1454,12 +1360,7 @@ class fabricate_evidence_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button spends money to fabricate a piece of evidence against the selected minister
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button spends money to fabricate a piece of evidence against the selected minister
         """
         if main_loop_utility.action_possible():
             if constants.money >= self.get_cost():
@@ -1535,12 +1436,7 @@ class bribe_judge_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button spends money to bribe the judge
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button spends money to bribe the judge
         """
         if main_loop_utility.action_possible():
             if constants.money >= self.get_cost():
@@ -1598,18 +1494,13 @@ class automatic_route_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. Clear automatic route buttons remove the selected unit's automatic route. Draw automatic route buttons enter the route
-            drawing mode, in which the player can click on consecutive tiles to add them to the route. Execute automatic route buttons command the selected unit to execute its in-progress automatic route, stopping when it cannot
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. Clear automatic route buttons remove the selected unit's automatic route. Draw automatic route buttons enter the route
+            drawing mode, in which the player can click on consecutive locations to add them to the route. Execute automatic route buttons command the selected unit to execute its in-progress automatic route, stopping when it cannot
             continue the route for any reason
-        Input:
-            None
-        Output:
-            None
         """
         attached_mob = status.displayed_mob
         if main_loop_utility.action_possible():
-            if status.strategic_map_grid in attached_mob.grids:
+            if not attached_mob.location.is_abstract_location:
                 if self.button_type == constants.CLEAR_AUTOMATIC_ROUTE_BUTTON:
                     attached_mob.clear_automatic_route()
 
@@ -1617,7 +1508,7 @@ class automatic_route_button(button):
                     if (
                         attached_mob.get_permission(constants.VEHICLE_PERMISSION)
                         and attached_mob.vehicle_type == constants.TRAIN_PERMISSION
-                        and not attached_mob.get_cell().has_intact_building(
+                        and not attached_mob.location.has_intact_building(
                             constants.TRAIN_STATION
                         )
                     ):
@@ -1626,9 +1517,7 @@ class automatic_route_button(button):
                         )
                         return ()
                     attached_mob.clear_automatic_route()
-                    attached_mob.add_to_automatic_route(
-                        (attached_mob.x, attached_mob.y)
-                    )
+                    attached_mob.add_to_automatic_route(attached_mob.location)
                     flags.drawing_automatic_route = True
 
                 elif self.button_type == constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON:
@@ -1705,12 +1594,7 @@ class toggle_button(button):
 
     def on_click(self):
         """
-        Description:
-            Toggles this button's variable on the attached actor
-        Input:
-            None
-        Output:
-            None
+        Toggles this button's variable on the attached actor
         """
         if self.attached_to_actor:
             setattr(
@@ -1724,17 +1608,8 @@ class toggle_button(button):
             )
             if self.toggle_variable in ["remove_fog_of_war", "show_clouds"]:
                 constants.update_terrain_knowledge_requirements()
-                status.minimap_grid.calibrate(
-                    status.minimap_grid.center_x, status.minimap_grid.center_y
-                )
-                if status.displayed_mob:
-                    actor_utility.calibrate_actor_info_display(
-                        status.mob_info_display, status.displayed_mob
-                    )
-                if status.displayed_tile:
-                    actor_utility.calibrate_actor_info_display(
-                        status.tile_info_display, status.displayed_tile
-                    )
+                for current_world in status.world_list:
+                    current_world.update_location_image_bundles()
             elif self.toggle_variable in [
                 "earth_preset",
                 "mars_preset",
@@ -1770,28 +1645,22 @@ class toggle_button(button):
                     return True
         return False
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip depending on the variable it toggles
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(
-            [
-                constants.toggle_button_tooltips[self.toggle_variable]["default"],
-                constants.toggle_button_tooltips[self.toggle_variable][
-                    str(self.get_value())
-                ],
-            ]
-        )
+        return [
+            constants.toggle_button_tooltips[self.toggle_variable]["default"],
+            constants.toggle_button_tooltips[self.toggle_variable][
+                str(self.get_value())
+            ],
+        ]
 
 
 class change_parameter_button(button):
     """
-    Button that, when god mode is enabled, allows changing the selected tile's terrain handler parameter values
+    Button that, when god mode is enabled, allows changing the selected location's location's parameter values
     """
 
     def __init__(self, input_dict) -> None:
@@ -1808,42 +1677,33 @@ class change_parameter_button(button):
 
     def on_click(self) -> None:
         """
-        Description;
-            Changes this button's parameter of its label's tile's terrain handler
-        Input:
-            None
-        Output:
-            None
+        Changes this button's parameter of its label's location
         """
         if main_loop_utility.action_possible():
             if (
                 self.attached_label.actor_label_type.removesuffix("_label")
                 in constants.global_parameters
             ):
-                self.attached_label.actor.cell.grid.world_handler.change_parameter(
+                status.displayed_location.true_world_handler.change_parameter(
                     self.attached_label.actor_label_type.removesuffix("_label"),
                     self.change,
                 )
             elif self.attached_label.actor_label_type == constants.AVERAGE_WATER_LABEL:
                 if self.change > 0:
-                    for i in range(abs(self.change) - 1):
-                        self.attached_label.actor.cell.grid.world_handler.default_grid.place_water(
-                            repeat_on_fail=True, radiation_effect=False
+                    for i in range(abs(self.change)):
+                        status.displayed_location.true_world_handler.place_water(
+                            update_display=False,
+                            repeat_on_fail=True,
+                            radiation_effect=False,
                         )
-                    self.attached_label.actor.cell.grid.world_handler.default_grid.place_water(
-                        update_display=True, repeat_on_fail=True, radiation_effect=False
-                    )
                 else:
-                    for i in range(abs(self.change) - 1):
-                        self.attached_label.actor.cell.grid.world_handler.default_grid.remove_water()
-                    self.attached_label.actor.cell.grid.world_handler.default_grid.remove_water(
-                        update_display=True
-                    )
-                actor_utility.calibrate_actor_info_display(
-                    status.tile_info_display, status.displayed_tile
-                )
+                    for i in range(abs(self.change)):
+                        status.displayed_location.true_world_handler.remove_water(
+                            update_display=False
+                        )
+                status.displayed_location.true_world_handler.update_location_image_bundles()
             else:
-                self.attached_label.actor.cell.terrain_handler.change_parameter(
+                status.displayed_location.change_parameter(
                     self.attached_label.actor_label_type.removesuffix("_label"),
                     self.change,
                 )
@@ -1870,7 +1730,7 @@ class change_parameter_button(button):
         ):
             return (
                 super().can_show(skip_parent_collection=skip_parent_collection)
-                and self.attached_label.actor.cell.grid != status.earth_grid
+                and not self.attached_label.actor.is_earth_location
             )
         else:
             return super().can_show(skip_parent_collection=skip_parent_collection)
@@ -1896,19 +1756,14 @@ class help_button(button):
             and self.attached_label.actor_label_type
             in constants.help_manager.subjects[constants.HELP_GLOBAL_PARAMETERS]
         ):
-            context[
-                constants.HELP_WORLD_HANDLER_CONTEXT
-            ] = self.attached_label.actor.cell.grid.world_handler
+            context[constants.HELP_WORLD_HANDLER_CONTEXT] = (
+                self.attached_label.actor.true_world_handler
+            )
         return context
 
     def on_click(self):
         """
-        Description:
-            Displays a help message for the attached label
-        Input:
-            None
-        Output:
-            None
+        Displays a help message for the attached label
         """
         if main_loop_utility.action_possible():
             message = constants.help_manager.generate_message(
@@ -1942,19 +1797,13 @@ class help_button(button):
                 "You are busy and cannot receive a help message."
             )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip depending on the attached label
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(
-            constants.help_manager.generate_tooltip(
-                self.attached_label.actor_label_type, context=self.generate_context()
-            )
+        return constants.help_manager.generate_tooltip(
+            self.attached_label.actor_label_type, context=self.generate_context()
         )
 
     def can_show(self):

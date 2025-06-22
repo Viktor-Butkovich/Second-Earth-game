@@ -37,11 +37,7 @@ class minister:
         Output:
             None
         """
-        self.actor_type = (
-            constants.MINISTER_ACTOR_TYPE
-        )  # used for actor display labels and images
         status.minister_list.append(self)
-        self.tooltip_text: List[str] = []
         if from_save:
             self.first_name: str = input_dict["first_name"]
             self.last_name: str = input_dict["last_name"]
@@ -150,8 +146,14 @@ class minister:
         self.last_voice_line: str = None
         minister_utility.update_available_minister_display()
         self.stolen_already: bool = False
-        self.update_tooltip()
         status.minister_loading_image.calibrate(self)  # Load in all images on creation
+
+    @property
+    def actor_type(self) -> str:
+        """
+        Returns this object's actor type, differentiating it from locations and mobs
+        """
+        return constants.MINISTER_ACTOR_TYPE
 
     def get_radio_effect(self) -> bool:
         """
@@ -178,31 +180,25 @@ class minister:
         else:
             return f"{self.first_name[0]}. {self.last_name}"
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this minister's tooltip to what it should be whenever the player looks at the tooltip. By default, sets tooltip to this minister's name and current office
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.tooltip_text = []
+        tooltip_text = []
         if self.current_position:
-            self.tooltip_text.append(
-                f"Name: {self.name} ({self.current_position.name})"
-            )
+            tooltip_text.append(f"Name: {self.name} ({self.current_position.name})")
         else:
-            self.tooltip_text.append(f"Name: {self.name}")
-        self.tooltip_text.append(f"Ethnicity: {self.ethnicity}")
-        self.tooltip_text.append(f"Background: {self.background}")
-        self.tooltip_text.append(f"    Social status: {self.status}")
-        self.tooltip_text.append(
+            tooltip_text.append(f"Name: {self.name}")
+        tooltip_text.append(f"Ethnicity: {self.ethnicity}")
+        tooltip_text.append(f"Background: {self.background}")
+        tooltip_text.append(f"    Social status: {self.status}")
+        tooltip_text.append(
             f"Interests: {self.interests[0].replace('_', ' ')}, {self.interests[1].replace('_', ' ')}"
         )
 
         if self.apparent_corruption_description != "unknown":
-            self.tooltip_text.append(f"Loyalty: {self.apparent_corruption_description}")
+            tooltip_text.append(f"Loyalty: {self.apparent_corruption_description}")
 
         if self.current_position:
             displayed_skill = self.current_position.skill_type
@@ -215,25 +211,26 @@ class minister:
                     message = f"{displayed_skill.capitalize()} ability: {self.apparent_skill_descriptions[displayed_skill]}"
                 else:
                     message = f"Highest ability: {self.apparent_skill_descriptions[displayed_skill]} ({displayed_skill})"
-                self.tooltip_text.append(message)
+                tooltip_text.append(message)
 
         rank = 0
         for skill_value in range(6, 0, -1):  # iterates backwards from 6 to 1
             for skill_type in self.apparent_skills:
                 if self.apparent_skills[skill_type] == skill_value:
                     rank += 1
-                    self.tooltip_text.append(
+                    tooltip_text.append(
                         f"    {rank}. {skill_type.capitalize()}: {self.apparent_skill_descriptions[skill_type]}"
                     )
 
-        self.tooltip_text.append("Evidence: " + str(self.corruption_evidence))
+        tooltip_text.append("Evidence: " + str(self.corruption_evidence))
         if self.just_removed and not self.current_position:
-            self.tooltip_text.append(
+            tooltip_text.append(
                 "This minister was just removed from office and expects to be reappointed to an office by the end of the turn."
             )
-            self.tooltip_text.append(
+            tooltip_text.append(
                 "If not reappointed by the end of the turn, they will be permanently fired, incurring a large public opinion penalty."
             )
+        return tooltip_text
 
     def generate_icon_input_dicts(self, alignment="left"):
         """
@@ -289,6 +286,8 @@ class minister:
         Output:
             None
         """
+        if not override_input_dict:
+            override_input_dict = {}
         input_dict = {
             "message": text,
             "notification_type": constants.ACTION_NOTIFICATION,
@@ -297,9 +296,8 @@ class minister:
             ),
             "transfer_interface_elements": transfer,
             "on_remove": on_remove,
+            **override_input_dict,
         }
-        if override_input_dict:
-            input_dict.update(override_input_dict)
         if input_dict.get("notification_type") == constants.ACTION_NOTIFICATION:
             input_dict["message"] += "Click to remove this notification. /n /n"
         constants.notification_manager.display_notification(input_dict)
@@ -466,9 +464,9 @@ class minister:
         save_dict["apparent_skills"] = self.apparent_skills
         save_dict["apparent_skill_descriptions"] = self.apparent_skill_descriptions
         save_dict["apparent_corruption"] = self.apparent_corruption
-        save_dict[
-            "apparent_corruption_description"
-        ] = self.apparent_corruption_description
+        save_dict["apparent_corruption_description"] = (
+            self.apparent_corruption_description
+        )
         save_dict["interests"] = self.interests
         save_dict["corruption"] = self.corruption
         save_dict["undetected_corruption_events"] = self.undetected_corruption_events
@@ -709,12 +707,7 @@ class minister:
 
     def skill_setup(self):
         """
-        Description:
-            Sets up the general and specific skills for this minister when it is created
-        Input:
-            None
-        Output:
-            None
+        Sets up the general and specific skills for this minister when it is created
         """
         self.general_skill = random.randrange(
             1, 4
@@ -756,19 +749,12 @@ class minister:
             self.apparent_skill_descriptions[skill_type] = random.choice(
                 constants.minister_skill_to_description_dict[new_value]
             )
-            if not setup:
-                self.update_tooltip()
             if status.displayed_minister == self:
                 minister_utility.calibrate_minister_info_display(self)
 
     def interests_setup(self):
         """
-        Description:
-            Chooses and sets 2 interest categories for this minister. One of a minister's interests is one of their best skills, while the other is randomly chosen
-        Input:
-            None
-        Output:
-            None
+        Chooses and sets 2 interest categories for this minister. One of a minister's interests is one of their best skills, while the other is randomly chosen
         """
         highest_skills = []
         highest_skill_number = 0
@@ -793,12 +779,7 @@ class minister:
 
     def corruption_setup(self):
         """
-        Description:
-            Sets up the corruption level for this minister when it is created
-        Input:
-            None
-        Output:
-            None
+        Sets up the corruption level for this minister when it is created
         """
         self.corruption = random.randrange(
             1, 7
@@ -826,8 +807,6 @@ class minister:
             self.apparent_corruption_description = random.choice(
                 constants.minister_corruption_to_description_dict[new_value]
             )
-            if not setup:
-                self.update_tooltip()
             if status.displayed_minister == self:
                 minister_utility.calibrate_minister_info_display(self)
 
@@ -970,12 +949,7 @@ class minister:
 
     def gain_experience(self):
         """
-        Description:
-            Gives this minister a chance of gaining skill in their current cabinet position if they have one
-        Input:
-            None
-        Output:
-            None
+        Gives this minister a chance of gaining skill in their current cabinet position if they have one
         """
         if (
             self.current_position
@@ -1069,26 +1043,9 @@ class minister:
                     print(f"Attempted to give generic -1 modifier to {roll_type} roll.")
         return modifier
 
-    def remove_complete(self):
-        """
-        Description:
-            Removes this object and deallocates its memory - defined for any removable object w/o a superclass
-        Input:
-            None
-        Output:
-            None
-        """
-        self.remove()
-        del self
-
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         if self.current_position:
             self.current_position.on_remove()

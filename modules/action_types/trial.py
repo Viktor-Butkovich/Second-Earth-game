@@ -1,6 +1,7 @@
 # Contains all functionality for trial actions
 
 import random
+from typing import List
 from modules.action_types import action
 from modules.util import (
     text_utility,
@@ -80,14 +81,10 @@ class trial(action.campaign):
         self.current_min_success = 5  # alternative to subtracting a roll modifier, which would change the max crit fail
         self.current_min_crit_success = 5
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this tooltip of a button linked to this action
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         return [
             f"Tries the defending minister in an attempt to remove them from office and imprison them for corruption",
@@ -399,7 +396,7 @@ class trial(action.campaign):
             defense.appoint(None)
             minister_utility.calibrate_minister_info_display(None)
             defense.respond("prison")
-            defense.remove_complete()
+            defense.remove()
             constants.fear_tracker.change(1)
             text = "Whether or not the defendant was truly guilty, this vigilant show of force may make your ministers reconsider any attempts to steal money for the time being. /n /n"
             constants.notification_manager.display_notification(

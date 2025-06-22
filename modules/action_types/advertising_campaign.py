@@ -2,6 +2,7 @@
 
 import pygame
 import random
+from typing import List
 from modules.util import (
     action_utility,
     text_utility,
@@ -63,14 +64,10 @@ class advertising_campaign(action.campaign):
         initial_input_dict["keybind_id"] = pygame.K_r
         return super().button_setup(initial_input_dict)
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this tooltip of a button linked to this action
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         return [
             f"Attempts to advertise a chosen item and increase its price for {self.get_price()} money",
@@ -234,7 +231,7 @@ class advertising_campaign(action.campaign):
             None
         """
         if super().on_click(unit):
-            if status.earth_grid in unit.grids:
+            if unit.location.is_earth_location:
                 if constants.current_game_mode != constants.EARTH_MODE:
                     game_transitions.set_game_mode(constants.EARTH_MODE)
                     unit.select()

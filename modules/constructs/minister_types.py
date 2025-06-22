@@ -56,23 +56,13 @@ class minister_type:
 
     def on_appoint(self, new_minister) -> None:
         """
-        Description:
-            Makes any updates required when worker first recruited (not on load)
-        Input:
-            None
-        Output:
-            None
+        Makes any updates required when worker first recruited (not on load)
         """
         minister_utility.set_minister(self.key, new_minister)
 
     def on_remove(self):
         """
-        Description:
-            Makes any updates required when a minister is removed from this office
-        Input:
-            None
-        Output:
-            None
+        Makes any updates required when a minister is removed from this office
         """
         minister_utility.set_minister(self.key, None)
         for current_minister_type_image in status.minister_image_list:

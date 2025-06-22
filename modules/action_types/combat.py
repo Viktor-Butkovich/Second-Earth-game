@@ -1,6 +1,7 @@
 # Contains all functionality for combat
 
 import random
+from typing import List
 from modules.action_types import action
 from modules.util import (
     action_utility,
@@ -52,37 +53,32 @@ class combat(action.action):
         """
         return
 
-    def update_tooltip(self, tooltip_info_dict=None):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this tooltip of a button linked to this action - in this case, the tooltip is added to movement button tooltips when an attack is possible
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         message = []
-        final_movement_cost = status.displayed_mob.get_movement_cost(
-            tooltip_info_dict["x_change"], tooltip_info_dict["y_change"]
-        )
+        # final_movement_cost = status.displayed_mob.get_movement_cost(
+        #    tooltip_info_dict["x_change"], tooltip_info_dict["y_change"]
+        # )
         message.append(
-            "Attacking an enemy unit costs 5 money and requires only 1 movement point, but staying in the enemy's tile afterward would require the usual movement"
+            "Attacking an enemy unit costs 5 money and requires only 1 movement point, but staying in the enemy's location afterward would require the usual movement"
         )
-        text = f"Staying afterward would cost {final_movement_cost - 1} more movement point{utility.generate_plural(final_movement_cost - 1)} because the adjacent tile has {tooltip_info_dict['adjacent_cell'].terrain_handler.terrain.replace('_', ' ')} terrain"
-        if tooltip_info_dict["local_cell"].has_walking_connection(
-            tooltip_info_dict["adjacent_cell"]
-        ):
-            local_infrastructure = tooltip_info_dict["local_infrastructure"]
-            adjacent_infrastructure = tooltip_info_dict["adjacent_infrastructure"]
-            if local_infrastructure and adjacent_infrastructure:
-                text += " and connecting roads"
-            elif local_infrastructure == None and adjacent_infrastructure:
-                text += " and no connecting roads"
-            elif local_infrastructure:
-                text += " and no connecting roads"
-            else:
-                text += " and no connecting roads"
-        message.append(text)
+        # text = f"Staying afterward would cost {final_movement_cost - 1} more movement point{utility.generate_plural(final_movement_cost - 1)} because the adjacent location has {tooltip_info_dict['adjacent_location'].terrain.replace('_', ' ')} terrain"
+
+        # local_infrastructure = tooltip_info_dict["local_infrastructure"]
+        # adjacent_infrastructure = tooltip_info_dict["adjacent_infrastructure"]
+        # if local_infrastructure and adjacent_infrastructure:
+        #    text += " and connecting roads"
+        # elif local_infrastructure == None and adjacent_infrastructure:
+        #    text += " and no connecting roads"
+        # elif local_infrastructure:
+        #    text += " and no connecting roads"
+        # else:
+        #    text += " and no connecting roads"
+
+        # message.append(text)
         return message
 
     def generate_attached_interface_elements(self, subject):
@@ -174,9 +170,9 @@ class combat(action.action):
             text += f"Are you sure you want to spend {str(self.get_price())} money to attack the {self.opponent.name} to the {self.direction}? /n /nRegardless of the result, the rest of this unit's movement points will be consumed."
         elif subject == "initial":
             if self.defending:
-                text += f"{utility.capitalize(self.opponent.name)} {utility.conjugate('be', self.opponent.unit_type.number)} attacking your {self.current_unit.name} at ({str(self.current_unit.x)}, {str(self.current_unit.y)})."
+                text += f"{utility.capitalize(self.opponent.name)} {utility.conjugate('be', self.opponent.unit_type.number)} attacking your {self.current_unit.name} at ({str(self.current_location.x)}, {str(self.current_location.y)})."
             else:
-                text += f"Your {self.current_unit.name} {utility.conjugate('be', self.current_unit.unit_type.number)} attacking the {self.opponent.name} at ({str(self.current_unit.x)}, {str(self.current_unit.y)})."
+                text += f"Your {self.current_unit.name} {utility.conjugate('be', self.current_unit.unit_type.number)} attacking the {self.opponent.name} at ({str(self.current_location.x)}, {str(self.current_location.y)})."
 
         elif subject == "modifier_breakdown":
             text += f"The {self.current_unit.name} {utility.conjugate('attempt', self.current_unit.unit_type.number)} to defeat the {self.opponent.name}. /n /n"
@@ -192,8 +188,8 @@ class combat(action.action):
             if self.opponent.get_permission(constants.DISORGANIZED_PERMISSION):
                 text += f"The {self.opponent.name} {utility.conjugate('be', self.opponent.unit_type.number)} disorganized and will receive a -1 after their roll. /n"
 
-            if self.current_unit.get_cell().has_intact_building(constants.FORT):
-                text += f"The fort in this tile grants your {self.current_unit.name} a +1 bonus after their roll. /n"
+            if self.current_unit.location.has_intact_building(constants.FORT):
+                text += f"The fort in this location grants your {self.current_unit.name} a +1 bonus after their roll. /n"
 
             if self.current_unit.get_permission(constants.VETERAN_PERMISSION):
                 text += "The outcome will be based on the difference between your highest roll and the enemy's roll. /n /n"
@@ -284,7 +280,7 @@ class combat(action.action):
         else:
             roll_modifier = super().generate_current_roll_modifier()
             roll_modifier += self.current_unit.get_combat_modifier(
-                opponent=self.opponent, include_tile=True
+                opponent=self.opponent, include_location=True
             )
         return roll_modifier
 
@@ -302,12 +298,14 @@ class combat(action.action):
         if on_click_info_dict.get("attack_confirmed", False):
             return False
         else:
-            future_cell = unit.grid.find_cell(
-                self.x_change + unit.x, self.y_change + unit.y
+            current_location = unit.location
+            future_location = current_location.world_handler.find_location(
+                current_location.x + self.x_change,
+                current_location.y + self.y_change,
             )
             opponent = None
             if unit.get_permission(constants.BATTALION_PERMISSION):
-                opponent = future_cell.get_best_combatant("npmob")
+                opponent = future_location.get_best_combatant("npmob")
                 self.action_type = "combat"
             if not opponent:
                 return False
@@ -325,14 +323,18 @@ class combat(action.action):
                     self.direction = None
                 if (
                     opponent and not on_click_info_dict["attack_confirmed"]
-                ):  # if enemy in destination tile and attack not confirmed yet
+                ):  # if enemy in destination and attack not confirmed yet
                     self.opponent = opponent
                     self.defending = False
                     self.start(unit)
-                    unit.create_cell_icon(
-                        unit.x + self.x_change,
-                        unit.y + self.y_change,
-                        "misc/attack_mark/" + self.direction + ".png",
+                    constants.actor_creation_manager.create_interface_element(
+                        input_dict={
+                            "init_type": constants.HOSTED_ICON,
+                            "location": future_location,
+                            "image_id": [
+                                {"image_id": f"misc/attack_mark/{self.direction}.png"}
+                            ],
+                        },
                     )
             return True
 
@@ -376,10 +378,10 @@ class combat(action.action):
                             "message": "Attack",
                         },
                         {
-                            "on_click": (
-                                self.current_unit.clear_attached_cell_icons,
-                                [],
-                            ),
+                            # "on_click": (
+                            #    self.current_unit.clear_attached_cell_icons,
+                            #    [],
+                            # ),
                             "tooltip": ["Stop attack"],
                             "message": "Stop attack",
                         },
@@ -440,14 +442,10 @@ class combat(action.action):
             )  # do action set up if defense skipped to middle stage
             if self.current_unit.sentry_mode:
                 self.current_unit.set_sentry_mode(False)
-            if status.strategic_map_grid in self.current_unit.grids:
-                status.minimap_grid.calibrate(self.current_unit.x, self.current_unit.y)
-                self.current_unit.select()
-                actor_utility.calibrate_actor_info_display(
-                    status.mob_info_display, self.current_unit
-                )  # should solve issue with incorrect unit displayed during combat causing issues with combat notifications
+            self.current_unit.select()
+
         else:
-            self.current_unit.clear_attached_cell_icons()
+            # self.current_unit.clear_attached_cell_icons()
             self.current_unit.move(self.x_change, self.y_change, True)
 
         self.roll_lists = []
@@ -620,14 +618,14 @@ class combat(action.action):
         Output:
             None
         """
-        combat_cell = self.current_unit.get_cell()
+        combat_location = self.current_unit.location
         if self.total_roll_result <= -2:  # Defeat
             if self.defending:
                 self.current_unit.die()
-                if not combat_cell.get_best_combatant("pmob"):
+                if not combat_location.get_best_combatant("pmob"):
                     self.opponent.kill_noncombatants()
                     self.opponent.damage_buildings()
-                else:  # Return to original tile if non-defenseless enemies still in other tile, can't be in tile with enemy units or have more than 1 offensive combat per turn
+                else:  # Return to original location if non-defenseless enemies still in other location, can't be in location with enemy units or have more than 1 offensive combat per turn
                     self.opponent.retreat()
                 constants.public_opinion_tracker.change(self.public_opinion_change)
             else:
@@ -651,16 +649,16 @@ class combat(action.action):
                     )
             else:
                 if (
-                    len(combat_cell.contained_mobs) > 2
-                ):  # len == 2 if only attacker and defender in tile
+                    len(combat_location.subscribed_mobs) > 2
+                ):  # len == 2 if only attacker and defender in location
                     self.current_unit.retreat()  # Attacker retreats in draw or if more defenders remaining
                 elif (
                     self.current_unit.movement_points
                     < self.current_unit.get_movement_cost(0, 0, True)
-                ):  # If can't afford movement points to stay in attacked tile
+                ):  # If can't afford movement points to stay in attacked location
                     constants.notification_manager.display_notification(
                         {
-                            "message": f"While the attack was successful, this unit did not have the {self.current_unit.get_movement_cost(0, 0, True)} movement points required to fully move into the attacked tile and was forced to withdraw. /n /n",
+                            "message": f"While the attack was successful, this unit did not have the {self.current_unit.get_movement_cost(0, 0, True)} movement points required to fully move into the attacked location and was forced to withdraw. /n /n",
                         }
                     )
                     self.current_unit.retreat()
@@ -670,8 +668,7 @@ class combat(action.action):
         if not self.defending:
             self.current_unit.set_movement_points(0)
             if (
-                combat_cell.terrain_handler.terrain == "water"
-                and combat_cell.y > 0
+                combat_location.terrain == "water"
                 and not self.current_unit.get_permission(constants.SWIM_PERMISSION)
             ):  # if attacked water and can't swim, become disorganized after combat
                 self.current_unit.set_permission(

@@ -19,7 +19,7 @@ from modules.setup import (
     earth_screen,
     ministers_screen,
     trial_screen,
-    tile_interface,
+    location_interface,
     mob_interface,
     organization_interface,
     vehicle_organization_interface,
@@ -48,7 +48,7 @@ try:
         earth_screen,
         ministers_screen,
         trial_screen,
-        tile_interface,
+        location_interface,
         mob_interface,
         organization_interface,
         vehicle_organization_interface,
@@ -102,18 +102,18 @@ except Exception:  # Displays error message and records error message in crash l
             Dome itself can be upgraded to increase capacity
         Housing
             Workers must always have housing (housing can be a temporary vehicle, if necessary)
-            Housing must be within transportation network of workplace, spending some network capacity each turn to commute if in different tiles
+            Housing must be within transportation network of workplace, spending some network capacity each turn to commute if in different locations
                 A domed city could easily provide workers for a nearby outpost, if connected by a transportation network
             Some buildings will have some function as well as housing, such that its worker can live and work there - e.g. a fort, spaceship, etc.
                 Buildings would first provide housing to their own workers, but one like a spaceship may have extra housing for others
             Housing also follows the life support upgrade system
                 1/3 of upkeep/attrition should be allocated to housing, commute, and workplace
                     If living and working in the same dome, no suits required, and default attrition
-                    If living and working in shielded buildings in the same tile, no suits required, and default attrition
+                    If living and working in shielded buildings in the same location, no suits required, and default attrition
                     If living and working in shielded buildings w/ unshielded vehicle/path as commute, suits required, and use 1/3 of suit attrition
                     If living in shielded building w/ unshielded commute and workplace, suits required, and use 2/3 of suit attrition
                     If living in unshielded building w/ unshielded commute and workplace, use full suit attrition
-                        If a unit is not attached to a building, consider its workplace to be the most shielded building in its tile
+                        If a unit is not attached to a building, consider its workplace to be the most shielded building in its location
                 This allows quickly setting up outpost w/ minimal dome infrastructure, but requires more resources, suits, and attrition
                 Alternatively, a dome or habitable planet trivializes these concerns
         Air miners
@@ -135,7 +135,7 @@ except Exception:  # Displays error message and records error message in crash l
 4. Add depositing/extracting gas/unpurified water to/from environment
 5. Add atmosphere mechanics
     Pressure
-        A typical planet w/ 400 tiles would require an optimal of 2400 atmosphere units (6/tile) to be 15 psi or 1 bar
+        A typical planet w/ 400 locations would require an optimal of 2400 atmosphere units (6/location) to be 15 psi or 1 bar
             Each "transaction" will involve about 0.1 atmosphere units - a plant may have a chance of converting 0.1 GHG to 0.1 oxygen
             With optimal conditions:
                 78% inert gases
@@ -155,7 +155,7 @@ except Exception:  # Displays error message and records error message in crash l
         We could possibly have "effective pressure" that uses global pressure combined w/ altitude
             
     Water
-        A typical planet w/ 400 tiles would require an optimal of 4.5 water units per tile = 1800 water units
+        A typical planet w/ 400 locations would require an optimal of 4.5 water units per location = 1800 water units
     Temperature
         Keep track of planet's average temperature - distance from the sun and GHG levels should change levels until suitable average reached
             Create a function for what planet's average temperature should be
@@ -197,13 +197,13 @@ except Exception:  # Displays error message and records error message in crash l
             Mitigate radiation levels with global shielding from magnetic field, atmosphere, etc.
                 Show global radiation on global conditions panel and how much is blocked by magnetic field
             Mitigate radiation levels with local shielding from roughness
-                Show local radiation on tile conditions panel and how much it is blocked by roughness
+                Show local radiation on location conditions panel and how much it is blocked by roughness
             Suits/buildings need to be shielded enough to block the remaining radiation not blocked by global/local shielding
 
     Magnetic field
         Based on magnetic field strength
         Magnetic field blocks some amount of incoming radiation
-        Any unblocked radiation reaches tiles and causes a solar wind effect
+        Any unblocked radiation reaches locations and causes a solar wind effect
         Solar wind removes a small amount of each gas each turn
             Light solar winds only remove water (lightest gas)
             Moderate solar winds remove oxygen, inert gases, water (heavier gases)
@@ -216,7 +216,7 @@ except Exception:  # Displays error message and records error message in crash l
         Mars:
             No magnetic field - all atmosphere is eventually lost, with water being removed relatively quickly and oxygen/CO2 being removed very slowly
             0.006 bar atmsosphere
-                w/ 400 tiles, 15/2400 atmosphere units: 0.8/1872 inert gases, 0/504 O2, 14.2/24 GHG, 0/2.4 toxic gases
+                w/ 400 locations, 15/2400 atmosphere units: 0.8/1872 inert gases, 0/504 O2, 14.2/24 GHG, 0/2.4 toxic gases
                     GHG provides 9 F of warming - about 0.5 temperature units more than distance from sun would cause
             Strong radiation, mitigated by roughness locally (especially in chaos and canyon regions)
                 240-300 mSv/year, with suggested limit of 20 mSv/year
@@ -224,7 +224,7 @@ except Exception:  # Displays error message and records error message in crash l
         Venus:
             Light induced magnetic field - moderate amount of radiation gets through - introducing water long-term would require a magnetic field
             93 bar atmosphere - 3.5% inert gases, 95.5% GHG, 1% toxic gases
-                w/ 400 tiles, 223,200/2400 atmosphere units: 7,812/1872 inert gases, 0/504 O2, 213,156/24 GHG, 2,232/2.4 toxic gases
+                w/ 400 locations, 223,200/2400 atmosphere units: 7,812/1872 inert gases, 0/504 O2, 213,156/24 GHG, 2,232/2.4 toxic gases
             Moderate radiation, mitigated by roughness locally
             93 times ideal atmosphere pressure, 23x survivable atmosphere pressure
                 Has twice the insolation of Earth - with Earth's atmosphere, it would have about 8 average temperature (poles would be habitable)
@@ -233,19 +233,19 @@ except Exception:  # Displays error message and records error message in crash l
         Earth:
             Strong magnetic field - minimal radiation gets through
             1 bar atmosphere - 78.5% inert gases, 21% O2, 0.5% GHG
-                w/ 400 tiles, 2400/2400 atmosphere units: 1,884/1884 inert gases, 504/504 O2, 12/12 GHG, 0/2.4 toxic gases
+                w/ 400 locations, 2400/2400 atmosphere units: 1,884/1884 inert gases, 504/504 O2, 12/12 GHG, 0/2.4 toxic gases
         Create interface that conveys total pressure w/ proportions as well as quantities of O2, GHG, inert gases, toxic gases, followed by total water, radiation, and magnetic field
             - ~8 labels
     Appearance: Determine some random appearance of the atmosphere, based on composition and some random factors
         A planet with an Earth-like atmosphere would have an Earth-like blue sky and white clouds covering ~50% of the surface, but other compositions could be unpredictable
-        Show sky as a transparent ring around the perimeter of the globe projection, and show clouds both on the projection and optionally on the tile map
+        Show sky as a transparent ring around the perimeter of the globe projection, and show clouds both on the projection and optionally on the location map
             Mars has slight sky effect but no clouds due to low atmosphere, Venus is fully covered, Luna has no sky effect or clouds
         Additionally, the sky color largely determines the water color
             As atmosphere approaches 0, water color approaches space color or ground color, for deep water and shallow water, respectively
             For thicker atmosphere, sky color will be some random color based on composition, getting closer to Earth as atmosphere approaches earth-like composition
             For very thick atmospheres, sky effect should approach that of Venus
         When displaying clouds, have ~6 custom cloud images that are overlayed by picking 2
-            Cloud frequency should be based on the amount of liquid water in the tile and nearby tiles (or just average water?)
+            Cloud frequency should be based on the amount of liquid water in the location and nearby locations (or just average water?)
             Change clouds at end of turn and while globes are spinning
 
 6. Add alien vegetation
@@ -261,7 +261,7 @@ except Exception:  # Displays error message and records error message in crash l
     Once planet is chosen, only ever show that star system's map again
     Add new "solar" game mode, with most interface overlapping between "solar" and "strategic" maps
     While on "solar", display miniature planet map, which transitions to "strategic" when clicked, and vice versa (such that clicking "zooms in")
-    Unit can instantly (as an action) switch from "solar" to "strategic" map by landing/launching - only exists on 1 at a time - no hovering above a tile
+    Unit can instantly (as an action) switch from "solar" to "strategic" map by landing/launching - only exists on 1 at a time - no hovering above a location
     Star system map should be next to the planet map, between Earth and the planet
     Initial expedition could contain a shuttle ship that must stay on the colony ship
         Since the shuttle itself could have cargo, it should take a net of 9 cargo on the colony ship
@@ -301,16 +301,16 @@ except Exception:  # Displays error message and records error message in crash l
 11. Add ideology system
     Colonist morale and Earth public opinion should change based on your actions
     Colonist morale should approach 50 (indifferent), and Earth public opinion should approach 0 (constant progress expected)
-12. Modify most actions to spend resources/time, rather than money - initially only allow ones from tile/inventory, then allow transportation networks
+12. Modify most actions to spend resources/time, rather than money - initially only allow ones from location/inventory, then allow transportation networks
 13. Add energy system with energy networks
 14. Add supply networks
     Use network system for transportation/supply networks, energy networks, etc.
-    An area of connected tiles should have a certain transportation capacity between them - any needed resources will automatically be transported
+    An area of connected locations should have a certain transportation capacity between them - any needed resources will automatically be transported
         Have special inventory interface showing what could be delivered here this turn
     Possibly use some variant of a max-flow algorithm like Ford-Fulkerson to calculate capacity and routes
-    Supply network reaches out 1 tile from core (hiking distance)
+    Supply network reaches out 1 location from core (hiking distance)
     Trucks and rovers contribute less than trains but can extend the hiking distance to be a farther driving distance
-    An isolated, exploring unit could safely move within 1 tile of its vehicle (portable housing/warehouse)
+    An isolated, exploring unit could safely move within 1 location of its vehicle (portable housing/warehouse)
     Any networks without trains would be restricted to a core warehouse and vehicle driving distance away
     Include map modes for energy and supply networks
 15. Add volcanic activity
@@ -320,30 +320,30 @@ except Exception:  # Displays error message and records error message in crash l
         Plate tectonics allow deposition of GHG and toxic gases back out of the atmosphere, while planets w/o plate tectonics tend to accumulate them in the atmosphere
     Volcanic activity is generally (but not always) associated with a magnetic field, with both caused by a molten core
 16. Add outposts/colonies
-    Allow colonies on other planets/moons in the system - abstracted single tile that can produce resources not found on the planet
+    Allow colonies on other planets/moons in the system - abstracted single location that can produce resources not found on the planet
     Water import from Europa, ice/metals from Ceres, GHG/inert gases from Venus, etc., solid nitrogen/water from Pluto
     Various buildings could be built on the colony, but it is never directly colonized
     It would require a fully equipped colony ship like that on the main planet to colonize one of these
     Need to decide level of detail to require for colony management
     Many building could have outpost-specific variants
-        Outpost buildings can upgrade scale, efficiency, or number (equivalent to expanding to multiple tiles)
+        Outpost buildings can upgrade scale, efficiency, or number (equivalent to expanding to multiple locations)
     Possibly allow a shuttle (or higher technology ship) to create a transportation network within the system, allowing transporting resources automatically between them
     Reference notes/Planning.docx for Sol system outpost locations
         Particularly allow outposts to take the role of Io Mining Industries, Water Import from Europa, Phobos Space Haven, nitrogen imports, etc.
 17. Temperature rework
-    Local tile temperature could be a function of solation (distance from poles * distance from sun), GHG, random "weather modifier", albedo
+    Local temperature could be a function of solation (distance from poles * distance from sun), GHG, random "weather modifier", albedo
         Avoid loops where temperature determines terrain, which determines albedo, which determines temperature
     Temperature formula:
         Distance from sun: Base solation causing -6 through 11 F
             Modify with space mirrors, solar shaders
         Greenhouse effect: Apply some multiplier to solation for each atm of GHG, with diminishing returns
             Modify by releasing or storing GHG
-        Albedo effect: Apply some multiplier to solation based on average brightness of tiles
+        Albedo effect: Apply some multiplier to solation based on average brightness of locations
             Modify by changing color of terrain, adding plants/snow/black dust, etc.
     Ideal local temperature: Average temperature + distance from poles effect + local weather modifier
-        Local weather modifier is random for each tile, but can change over time based on local activities (releasing energy, etc.)
+        Local weather modifier is random for each location, but can change over time based on local activities (releasing energy, etc.)
         At start of turn, change local temperatures until global average is sufficiently close to ideal
-        First change tiles whose local temperatures are farthest from the ideal local temperature
+        First change locations whose local temperatures are farthest from the ideal local temperature
     Mars is 1.523x as far from the sun as Earth, so it receives 1 / (1.523^2) = 0.43x the solation
     Venus is 0.723x as far from the sun as Earth, so it receives 1 / (0.723^2) = 1.91x the solation
     Earth would be about 0 degrees Fahrenheit with no GHG, and is about 58 degrees Fahrenheit with current GHG levels
@@ -378,13 +378,13 @@ except Exception:  # Displays error message and records error message in crash l
     More able to predict these as the game progresses - when you first land, you haven't done the long-term study to know what is even possible
 21. New officer types
     The colony ship should include X number of each officer type, since Earth will send the most skilled people of every field
-    These officers should be recruitable from a limited pool in your "capital" tile, similar to SFA slums
+    These officers should be recruitable from a limited pool in your "capital" location, similar to SFA slums
         You should be able to return an officer to the pool whenever you want, with a button like sentry mode (should not allow instant transport)
     Officer types:
         Scientists
         Executive/lobbyist
         Medical officer
-        Environmental engineer
+        Environmental engineer (planetologist?)
         Astronaut commander
         Marines
         Do land vehicles require crew?
@@ -402,13 +402,46 @@ except Exception:  # Displays error message and records error message in crash l
     Add vegetation terrains, with Earth-dominated and alien-dominated variants
         Appearance should possibly depend on organisms present
 24. Supply chain system
-    Allow a tile to "request" a list of items - this will use the logistics system to see if the required items can be delivered (or are in the tile already)
+    Allow a location to "request" a list of items - this will use the logistics system to see if the required items can be delivered (or are in the location already)
     This returns an order form with the items requested and where they will come from - if it is sufficient, the deliveries are attempted
     Once deliveries are complete, the unit will attempt to consume the required items
-    When consuming items, the unit will first look in the tile's inventory, then its own inventory, then the inventories of other local units
+    When consuming items, the unit will first look in the location's inventory, then its own inventory, then the inventories of other local units
     This request/delivery/consumption system can be used for any item spending, and can encapsulate the warehouse/delivery system from spending systems
     If necessary, use a graph algorithm to find the optimal way to fill as many requests as possible, given current item locations
     May require encoding the grid w/ transportation routes as a graph - can be re-purposed for movement calculations as well
+25. Simulation/interface decoupling
+    Look into refactoring the entire game as a state transition machine - each state is a set of all saved information, with actions being transitions
+        This allows an entirely decoupling of the underlying simulation from the interface, allowing easier testing, more modularity, and a possible agentic environment
+        Integration and interface tests would be possible:
+            Did this interface interaction result in the correct transition, does this transition result in the intended state, etc.
+        Continues current effort of splitting game logic away from grid/cell/location interface
+26. Implementing real-world data science concepts
+    Agentic "gym" environment to apply reinforcement learning, decision trees, etc.
+    Statistical analysis of expected vs actual outcomes of actions
+    Survival analysis for attrition
+    Network-based supply chain model enabling optimization and network flow algorithms
+    Behavioral economics and other population dynamics
+    Configurable visualization dashboards, including flexible reporting on historical data and forecasts
+    Vegetation/wildlife spread and interaction models
+    NLP or LLM-based dynamic content or descriptions - e.g. RAG-based "help" box that can reference an instructions repository
+27. DOM bus for efficient data transfer
+    status.dom_bus - Global object that allows the following:
+        Registering a callback to be invoked upon a particular topic being published
+            The tile temperature label should register its calibrate with "selected_location/set_parameter"
+            The location assigned the artifical ID 2 should register its update_image_bundle with "2/update_image_bundle"
+        Modify functions to publish to particular topics when they are invoked
+            set_parameter on location w/ object ID 2 should publish to "2/set_parameter"
+            set_parameter on selected location should publish to "selected_location/set_parameter"
+                These could both occur at the same time, but a callback will generally only be registered to one
+        dom_bus maintains a dictionary of topics mapping to a list of callback functions to invoke when the topic is published
+        The above model means that, when a location changes a parameter, it results in all relevant images and labels updating
+        This could be modified with more granularity by adding arguments to the topic, such as "2/set_parameter/temperature"
+    location_2/selected_location.set_parameter(constants.TEMPERATURE, 4)
+        Publishes to "2/set_parameter" and "selected_location/set_parameter"
+        Invokes tile_temperature_label.calibrate() and location_2.update_image_bundle()
+    Requires that all objects who want to be updated when a topic is published register a callback with some global topic or a topic
+        derived from an artificial, sequential ID
+    Could possibly remove all requirements for manual calibrate_info_display() and update_image_bundle() calls
 """
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
@@ -430,7 +463,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Add manually created Earth map - should look similar to the UN flag, with a north pole projection
 # Transcribe Super-Earth planet names from https://science.nasa.gov/exoplanets/exoplanet-catalog/?pageno=1&planet_type=Super+Earth&content_list=true
 # God mode changes to make habitabilty deadly/not deadly not correctly calibrating reorganization projection of ship crew - fix if ever relevant outside of god mode
-# Maybe track when tiles change habitability, as well as display habitability mode
+# Maybe track when locations change habitability, as well as display habitability mode
 # Possibly use fuzzy logic for AI decision-making - relatively easily to convert natural language rules into behavior
 #   Could try making an EC system that trains a set of fuzzy rules - create a set of rules that match a list of i/o specifications
 #   Input would be input and output categories and rules, model just needs to tune the the rules until no specification cases fail
@@ -439,8 +472,18 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Move buildings.py to constructs, move locations.py to actor_types, and move actor_types to be within constructs
+# Eventually add DOM-style dependency system for images and (less important) tooltips, so they are only updated when needed
+#     Find the dom_bus architecture above ^
+#     To make sure this is actually helpful, try caching get_image_id_list results and using these for minimap calibration
+# Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
+#     Probably no longer needed with DOM system
+# Could refactor location-level total upkeep required with contained_mobs - avoids manual traversals, just get total upkeep for every contained mob
+# Investigate water disappearing during terraforming - definitely occurs on Venus and Mars maps
+# Colonist upkeep should be oxygen, outputs CO2 - nitrogen is required in the construction of life support/dome systems, but is not directly involved in the upkeep process
 # Next major step is to add basic economic mechanics, now that the baseline terraforming is functional
-# Add new resource types, with colonist upkeep, buying on Earth, transporting, and using to build when it is in the builder's tile
+# Add new resource types, with colonist upkeep, buying on Earth, transporting
+# , and using to build when it is in the builder's location
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
 # Expand permissions system to include temporary states, like sentry mode
@@ -452,37 +495,13 @@ except Exception:  # Displays error message and records error message in crash l
 # Show key/legend with keywords on parameter map modes
 # Use keywords instead of numbers for all local parameters (local fahrenheit average range for temperature)
 # Include penalties on most rolls for wearing spacesuits
-# Fix unit/tile outlines to blit in draw order, rather than appearing in front at all times (would fix occasional notification overlap)
+# Fix unit/location outlines to blit in draw order, rather than appearing in front at all times (would fix occasional notification overlap)
 # Store local resolution (possibly as save game metadata) to better recreate resolution errors
 # Improve clarity for astronauts acting as ship crew - include in tooltips, rather than just in labels
 # Improve parameter tooltips - most are currently empty
 # Create and display standard movement cost formula based on parameter values
 # Look into minister speech bubbles for minister messages, particularly tutorial messages
-# Possibly show solation as brightness on each tile (shouldn't affect albedo)
+# Possibly show solation as brightness on each location (shouldn't affect albedo)
 # Add task-specific unit voicelines, with separate unit and minister voice sets
 # Add modern minister outfits
 # Add crater and flood basalt terrain variants
-# Try out fuzzy logic for planetary simulation
-#
-# Fix this rare crash
-# ERROR:root:<class 'Exception'>
-# Traceback (most recent call last):
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\Second_Earth.py", line 30, in <module>
-#     main_loop.main_loop()
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\main_loop.py", line 56, in main_loop
-#     current_button.on_click()
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\buttons.py", line 1350, in on_click
-#     constants.save_load_manager.new_game()
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\tools\data_managers\save_load_manager_template.py", line 87, in new_game
-#     game_transitions.create_strategic_map(from_save=False)
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\util\game_transitions.py", line 191, in create_strategic_map
-#    current_grid.create_world(from_save)
-#  File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\world_grids.py", line 62, in create_world
-#     self.generate_terrain_parameters()
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\world_grids.py", line 430, in generate_terrain_parameters
-#     self.generate_temperature()
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\world_grids.py", line 210, in generate_temperature
-#     self.make_random_terrain_parameter_worm(
-#   File "c:\Users\vikto\Documents\Projects\Second Earth\modules\interface_types\world_grids.py", line 537, in make_random_terrain_parameter_worm
-#     original_value = self.find_cell(current_x, current_y).get_parameter(parameter)
-#  AttributeError: 'NoneType' object has no attribute 'get_parameter'

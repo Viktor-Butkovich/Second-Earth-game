@@ -1,5 +1,6 @@
 # Contains all functionality for building upgrades
 
+from typing import List
 from modules.action_types import action
 from modules.util import actor_utility, action_utility
 from modules.constructs import building_types
@@ -55,29 +56,25 @@ class upgrade(action.action):
             None
         """
         initial_input_dict = super().button_setup(initial_input_dict)
-        initial_input_dict[
-            "image_id"
-        ] = f"buttons/actions/upgrade_{self.building_type.key}_button.png"
+        initial_input_dict["image_id"] = (
+            f"buttons/actions/upgrade_{self.building_type.key}_button.png"
+        )
         initial_input_dict["keybind_id"] = self.upgrade_dict.get("keybind", None)
         return initial_input_dict
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this tooltip of a button linked to this action
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         message = []
         unit = status.displayed_mob
         if unit != None:
-            self.current_building = unit.get_cell().get_intact_building(
+            self.current_building = unit.location.get_intact_building(
                 self.building_type.key
             )
             if self.upgrade_type == constants.WAREHOUSE_LEVEL:
-                noun = "tile"
+                noun = "location"
             else:
                 noun = self.current_building.name
             value = self.current_building.upgrade_fields[self.upgrade_type]
@@ -106,7 +103,7 @@ class upgrade(action.action):
         text = super().generate_notification_text(subject)
 
         if self.building_type == constants.WAREHOUSE_LEVEL:
-            noun = "tile"
+            noun = "location"
         elif self.building_type in [
             constants.RESOURCE_EFFICIENCY,
             constants.RESOURCE_SCALE,
@@ -143,7 +140,7 @@ class upgrade(action.action):
         """
         building = self.current_building
         if not building:
-            building = status.displayed_mob.get_cell().get_intact_building(
+            building = status.displayed_mob.location.get_intact_building(
                 self.upgraded_building_type
             )
         return building.get_upgrade_cost()
@@ -151,13 +148,13 @@ class upgrade(action.action):
     def can_show(self):
         """
         Description:
-            Returns whether a button linked to this action should be drawn - if correct type of unit selected and building not yet present in tile
+            Returns whether a button linked to this action should be drawn - if correct type of unit selected and building not yet present in location
         Input:
             None
         Output:
             boolean: Returns whether a button linked to this action should be drawn
         """
-        building = status.displayed_mob.get_cell().get_intact_building(
+        building = status.displayed_mob.location.get_intact_building(
             self.building_type.key
         )
         return (
@@ -191,7 +188,7 @@ class upgrade(action.action):
             None
         """
         super().pre_start(unit)
-        self.current_building = unit.get_cell().get_intact_building(
+        self.current_building = unit.location.get_intact_building(
             self.upgraded_building_type
         )
 
@@ -235,7 +232,7 @@ class upgrade(action.action):
         if self.roll_result >= self.current_min_success:
             self.current_building.upgrade(self.building_type)
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, self.current_unit.get_cell().tile
-            )  # update tile display to show building upgrade
-            status.minimap_grid.calibrate(self.current_unit.x, self.current_unit.y)
+                status.location_info_display, self.current_unit.location
+            )  # update location display to show building upgrade
+            actor_utility.focus_minimap_grids(self.current_unit.location)
         super().complete()

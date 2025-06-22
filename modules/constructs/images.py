@@ -2,6 +2,7 @@
 
 import pygame
 import math
+from typing import List
 from modules.util import (
     utility,
     drawing_utility,
@@ -35,12 +36,7 @@ class image:
 
     def complete_draw(self):
         """
-        Description:
-            Draws this image after the necessary pre-call checks are done
-        Input:
-            None
-        Output:
-            None
+        Draws this image after the necessary pre-call checks are done
         """
         if self.contains_bundle:
             self.image.complete_draw()
@@ -59,26 +55,9 @@ class image:
         return self.Rect and self.Rect.collidepoint(pygame.mouse.get_pos())
         # If mouse is in button
 
-    def remove_complete(self):
-        """
-        Description:
-            Removes this object and deallocates its memory - defined for any removable object w/o a superclass
-        Input:
-            None
-        Output:
-            None
-        """
-        self.remove()
-        del self
-
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         return
 
@@ -95,24 +74,14 @@ class image:
 
     def draw(self):
         """
-        Description:
-            Draws this image if it should currently be visible
-        Input:
-            None
-        Output:
-            None
+        Draws this image if it should currently be visible
         """
         if self.can_show():
             self.complete_draw()
 
     def update_image_bundle(self):
         """
-        Description:
-            Updates this actor's images with its current image id list
-        Input:
-            None
-        Output:
-            None
+        Updates this actor's images with its current image id list
         """
         self.set_image(self.get_image_id_list())
 
@@ -190,12 +159,7 @@ class image_bundle(image):
 
     def scale(self):
         """
-        Description:
-            Sets this bundle to be the size of its attached images and scales each of its member images relative to the bundle size
-        Input:
-            None
-        Output:
-            None
+        Sets this bundle to be the size of its attached images and scales each of its member images relative to the bundle size
         """
         self.width = self.parent_image.width
         self.height = self.parent_image.height
@@ -276,12 +240,7 @@ class image_bundle(image):
 
     def complete_draw(self):
         """
-        Description:
-            Draws each of this bundle's member images in the correct order with each one's respective size and offsets
-        Input:
-            None
-        Output:
-            None
+        Draws each of this bundle's member images in the correct order with each one's respective size and offsets
         """
         drawing_utility.display_image(
             self.combined_surface,
@@ -321,12 +280,7 @@ class image_bundle(image):
 
     def clear(self):
         """
-        Description:
-            Removes all of this bundle's member images
-        Input:
-            None
-        Output:
-            None
+        Removes all of this bundle's member images
         """
         self.members = []
         self.combined_surface = self.generate_combined_surface()
@@ -387,9 +341,9 @@ class bundle_image:
                                 the new color as it did with the old color. If a spot of water is slightly darker than the base water color, replace it with something
                                 slightly darker than the replacement color, while ignoring anything that is not within 50 of the base water color.
                             Each category can have a preset base color/tolerance determined during asset creation, as well as a procedural replacement color
-                            Each category can have a preset smart green screen, with per-terrain or per-tile modifications controlled by world and terrain handlers
+                            Each category can have a preset smart green screen, with per-terrain or per-location modifications controlled by world handler and locations
                                 World handler handles per-terrain modifications, like dunes sand being slightly different from desert sand, while both are still "Mars red"
-                                Terrain handler handler per-tile modifications, like a tile with earth-imported soil looking different from default planet soil
+                                Locations handlers per-location modifications, like earth-imported soil looking different from default planet soil
                             This system could also work for skin shading, polar dust, light levels, vegetation, resources, building appearances, etc.
                     'color_filter': dictionary value - Dictionary of RGB values to add to each pixel in this image
             string member_type: String to designate this member's type, allowing it to be specifically removed or found based on type later, 'default' by default
@@ -431,10 +385,6 @@ class bundle_image:
             if "green_screen" in image_id:
                 self.has_green_screen = True
                 self.green_screen_colors = []
-                if image_id["green_screen"] == constants.WORLD_GREEN_SCREEN_DEFAULTS:
-                    image_id[
-                        "green_screen"
-                    ] = status.strategic_map_grid.world_handler.get_green_screen()
                 if type(image_id["green_screen"]) == list:
                     for index in range(0, len(image_id["green_screen"])):
                         self.green_screen_colors.append(image_id["green_screen"][index])
@@ -504,12 +454,7 @@ class bundle_image:
 
     def scale(self):
         """
-        Description:
-            Sets this image's size to one relative to its bundle's size based on its size multiplier
-        Input:
-            None
-        Output:
-            None
+        Sets this image's size to one relative to its bundle's size based on its size multiplier
         """
         if self.is_offset:
             if hasattr(self, "override_width"):
@@ -538,12 +483,7 @@ class bundle_image:
 
     def load(self):
         """
-        Description:
-            Loads in this image's image file on initialization
-        Input:
-            None
-        Output:
-            None
+        Loads in this image's image file on initialization
         """
         if type(self.image_id) == str and self.image_id.endswith(".png"):
             full_image_id = "graphics/" + self.image_id
@@ -566,26 +506,31 @@ class bundle_image:
         if key in status.cached_images:  # if image already loaded, use it
             self.image = status.cached_images[key]
         else:  # If image not loaded, load it and add it to the loaded images
-            if full_image_id.endswith(".png"):
-                self.text = False
-                try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
-                    self.image = pygame.image.load(full_image_id)
-                except:
-                    self.image = pygame.image.load(full_image_id)
-                self.image.convert()
-                size = self.image.get_size()
-                self.image = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
-                    self.image,
-                    (
-                        math.floor(size[0] * self.detail_level),
-                        math.floor(size[1] * self.detail_level),
-                    ),
-                )
-                if self.is_offset and (self.has_green_screen or self.has_color_filter):
-                    self.apply_per_pixel_mutations()
-            else:
-                self.text = True
-                self.image = text_utility.text(self.image_id, self.font)
+            try:
+                if full_image_id.endswith(".png"):
+                    self.text = False
+                    try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
+                        self.image = pygame.image.load(full_image_id)
+                    except:
+                        self.image = pygame.image.load(full_image_id)
+                    self.image.convert()
+                    size = self.image.get_size()
+                    self.image = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
+                        self.image,
+                        (
+                            math.floor(size[0] * self.detail_level),
+                            math.floor(size[1] * self.detail_level),
+                        ),
+                    )
+                    if self.is_offset and (
+                        self.has_green_screen or self.has_color_filter
+                    ):
+                        self.apply_per_pixel_mutations()
+                else:
+                    self.text = True
+                    self.image = text_utility.text(self.image_id, self.font)
+            except:
+                raise Exception(f"Invalid image id: {self.image_id}")
             if self.is_offset:
                 if self.light_pixellated:
                     self.image = pygame.transform.scale(
@@ -614,12 +559,7 @@ class bundle_image:
 
     def apply_per_pixel_mutations(self):
         """
-        Description:
-            Applies green screen and color filter changes to this image
-        Input:
-            None
-        Output:
-            None
+        Applies green screen and color filter changes to this image
         """
         width, height = self.image.get_size()
         smart_green_screen = (
@@ -710,7 +650,7 @@ class bundle_image:
                                 replaced_colors = self.override_green_screen_colors
                             else:
                                 replaced_colors = constants.green_screen_colors
-                            for (index, current_replaced_color) in enumerate(
+                            for index, current_replaced_color in enumerate(
                                 replaced_colors
                             ):
                                 # If pixel matches preset green screen color, replace it with the image's corresponding replacement color
@@ -881,12 +821,7 @@ class free_image(image):
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         super().remove()
         status.independent_interface_elements = utility.remove_from_list(
@@ -894,19 +829,11 @@ class free_image(image):
         )
         status.free_image_list = utility.remove_from_list(status.free_image_list, self)
 
-    def remove_recursive(self, complete=False):
+    def remove_recursive(self):
         """
-        Description:
-            Recursively removes a collection and its members
-        Input:
-            boolean complete=False: Whether to use remove_complete or remove for each item
-        Output:
-            None
+        Recursively removes a collection and its members
         """
-        if complete:
-            self.remove_complete()
-        else:
-            self.remove()
+        self.remove()
 
     def set_image(self, new_image):
         """
@@ -980,23 +907,13 @@ class free_image(image):
 
     def can_show_tooltip(self):
         """
-        Description:
-            Returns whether this image's tooltip can currently be shown. By default, free images do not have tooltips and this always returns False
-        Input:
-            None
-        Output:
-            Returns whether this image's tooltip can currently be shown
+        Returns whether this image's tooltip can currently be shown. By default, free images do not have tooltips and this always returns False
         """
         return False
 
     def get_actor_type(self) -> str:
         """
-        Description:
-            Recursively finds the type of actor this interface is attached to
-        Input:
-            None
-        Output:
-            str: Returns type of actor this interface is attached to
+        Recursively finds the type of actor this interface is attached to
         """
         if hasattr(self, "actor_type"):
             return self.actor_type
@@ -1092,109 +1009,36 @@ class tooltip_free_image(free_image):
             self.height,
         )
         self.Rect.y = self.y - self.height
-        self.tooltip_text = input_dict.get("tooltip_text", [])
-        self.update_tooltip()
+        self.preset_tooltip_text = input_dict.get("preset_tooltip_text", [])
 
-    def set_tooltip(self, tooltip_text):
+    @property
+    def batch_tooltip_list(self):
         """
-        Description:
-            Sets this image's tooltip to the inputted list, with each inputted list representing a line of the tooltip
-        Input:
-            string list new_tooltip: Lines for this image's tooltip
-        Output:
-            None
+        Gets a 2D list of strings to use as this object's tooltip
+            Each string is displayed on a separate line, while each sublist is displayed in a separate box
         """
-        self.tooltip_text = tooltip_text
-        tooltip_width = 0
-        font = constants.fonts["default"]
-        for text_line in tooltip_text:
-            tooltip_width = max(
-                tooltip_width, font.calculate_size(text_line) + scaling.scale_width(10)
-            )
-        tooltip_height = (len(self.tooltip_text) * font.size) + scaling.scale_height(5)
-        self.tooltip_box = pygame.Rect(self.x, self.y, tooltip_width, tooltip_height)
-        self.tooltip_outline_width = 1
-        self.tooltip_outline = pygame.Rect(
-            self.x - self.tooltip_outline_width,
-            self.y + self.tooltip_outline_width,
-            tooltip_width + (2 * self.tooltip_outline_width),
-            tooltip_height + (self.tooltip_outline_width * 2),
-        )
+        return [self.tooltip_text]
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its subclass. By default, tooltip free images do not have any tooltip text
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(self.tooltip_text)
+        return self.preset_tooltip_text
 
     def can_show_tooltip(self):
         """
-        Description:
-            Returns whether this image's tooltip can currently be shown. By default, its tooltip can be shown when it is visible and colliding with the mouse
-        Input:
-            None
-        Output:
-            Returns whether this image's tooltip can currently be shown
+        Returns whether this image's tooltip can currently be shown. By default, its tooltip can be shown when it is visible and colliding with the mouse
         """
         if self.touching_mouse() and self.can_show():
             return True
         else:
             return False
 
-    def draw_tooltip(self, below_screen, beyond_screen, height, width, y_displacement):
-        """
-        Description:
-            Draws this image's tooltip when moused over. The tooltip's location may vary when the tooltip is near the edge of the screen or if multiple tooltips are being shown
-        Input:
-            boolean below_screen: Whether any of the currently showing tooltips would be below the bottom edge of the screen. If True, moves all tooltips up to prevent any from being below the screen
-            boolean beyond_screen: Whether any of the currently showing tooltips would be beyond the right edge of the screen. If True, moves all tooltips to the left to prevent any from being beyond the screen
-            int height: Combined pixel height of all tooltips
-            int width: Pixel width of the widest tooltip
-            int y_displacement: How many pixels below the mouse this tooltip should be, depending on the order of the tooltips
-        Output:
-            None
-        """
-        if self.can_show():
-            self.update_tooltip()
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            if below_screen:
-                mouse_y = constants.display_height + 10 - height
-            if beyond_screen:
-                mouse_x = constants.display_width - width
-            mouse_y += y_displacement
-            self.tooltip_box.x = mouse_x
-            self.tooltip_box.y = mouse_y
-            self.tooltip_outline.x = self.tooltip_box.x - self.tooltip_outline_width
-            self.tooltip_outline.y = self.tooltip_box.y - self.tooltip_outline_width
-            pygame.draw.rect(
-                constants.game_display,
-                constants.color_dict[constants.COLOR_BLACK],
-                self.tooltip_outline,
-            )
-            pygame.draw.rect(
-                constants.game_display,
-                constants.color_dict[constants.COLOR_WHITE],
-                self.tooltip_box,
-            )
-            for text_line_index in range(len(self.tooltip_text)):
-                text_line = self.tooltip_text[text_line_index]
-                constants.game_display.blit(
-                    text_utility.text(text_line, constants.myfont),
-                    (
-                        self.tooltip_box.x + scaling.scale_width(10),
-                        self.tooltip_box.y + (text_line_index * constants.font_size),
-                    ),
-                )
-
 
 class directional_indicator_image(tooltip_free_image):
     """
-    Image that moves around minimap to indicate direction or location of a particular cell from status, automatically calibrating with minimap
+    Image that moves around minimap to indicate direction or exact placement of a particular location from status, automatically calibrating with minimap
     """
 
     def __init__(self, input_dict):
@@ -1209,91 +1053,54 @@ class directional_indicator_image(tooltip_free_image):
                 'height': int value - Pixel height of this image
                 'modes': string list value - Game modes during which this button can appear
                 'to_front' = False: boolean value - If True, allows this image to appear in front of most other objects instead of being behind them
-                'anchor_key': string value - String status key identifying cell to point to when minimap is calibrated
+                'anchor_key': string value - String status key identifying location to point to when minimap is calibrated, like "north_pole"
         Output:
             None
         """
-        self.hosting_tile = None
+        self.anchor_location = None
         self.anchor_key = input_dict["anchor_key"]
         status.directional_indicator_image_list.append(self)
         super().__init__(input_dict)
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its subclass. By default, tooltip free images do not have any tooltip text
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip([f"Points towards the {self.anchor_key.replace('_', ' ')}"])
+        return [f"Points towards the {self.anchor_key.replace('_', ' ')}"]
 
     def can_show(self, skip_parent_collection=False):
         """
         Description:
-            Returns whether this image can be shown
+            Returns whether this image can be shown - shows when its location is not visible on the minimap
         Input:
             None
         Output:
-            boolean: Returns True if this image can currently appear, otherwise returns False
+            boolean: Returns whether this image can currently appear
         """
         return (
             super().can_show(skip_parent_collection=skip_parent_collection)
-            and self.hosting_tile == None
+            and self.anchor_location
+            and not status.minimap_grid.is_on_mini_grid(
+                self.anchor_location.x, self.anchor_location.y
+            )
         )
-
-    def get_image_id_list(self):
-        """
-        Description:
-            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
-                orientation
-        Input:
-            None
-        Output:
-            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
-        """
-        image_id_list = super().get_image_id_list()
-        for index, current_image in enumerate(image_id_list):
-            if type(current_image) == str:
-                image_id_list[index] = {
-                    "image_id": current_image,
-                    "override_width": self.width,
-                    "override_height": self.height,
-                }
-            elif type(current_image) == dict:
-                current_image["override_width"] = self.width
-                current_image["override_height"] = self.height
-        return image_id_list
 
     def calibrate(self):
         """
-        Description:
-            Places this image on the anchor cell, if visible on minimap, or otherwise points towards it along the side of the minimap grid
-        Input:
-            None
-        Output:
-            None
+        Places this image on the anchor location, if visible on minimap, or otherwise points towards it along the side of the minimap grid
         """
-        anchor = getattr(status, self.anchor_key, None)
-        if not anchor:  # Don't attempt to calibrate if anchor cell is not yet defined
-            return
+        self.anchor_location = getattr(status, self.anchor_key, None)
+        if not self.anchor_location:
+            return  # If anchor location is not yet defined, do not attempt to calibrate
+        # Anchor corresponds to a status.___ location, such as status.north_pole
 
-        status.scrolling_strategic_map_grid.find_cell(
-            *status.scrolling_strategic_map_grid.get_mini_grid_coordinates(
-                anchor.x, anchor.y
-            )
-        ).tile.add_hosted_image(self)
-        if status.minimap_grid.is_on_mini_grid(anchor.x, anchor.y):
-            status.minimap_grid.find_cell(
-                *status.minimap_grid.get_mini_grid_coordinates(anchor.x, anchor.y)
-            ).tile.add_hosted_image(self)
-        else:
-            if self.hosting_tile:
-                self.hosting_tile.remove_hosted_image(self)
+        if not status.minimap_grid.is_on_mini_grid(
+            self.anchor_location.x, self.anchor_location.y
+        ):
             anchor_scrolling_cell = status.scrolling_strategic_map_grid.find_cell(
                 *status.scrolling_strategic_map_grid.get_mini_grid_coordinates(
-                    anchor.x, anchor.y
+                    self.anchor_location.x, self.anchor_location.y
                 )
             )
             anchor_scrolling_coordinates = (
@@ -1423,14 +1230,10 @@ class indicator_image(tooltip_free_image):
                 return True
         return False
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its attached variable
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.indicator_type == "prosecution_bribed_judge":
             text = []
@@ -1438,16 +1241,16 @@ class indicator_image(tooltip_free_image):
                 "The judge has been bribed, giving you an advantage in the next trial this turn"
             )
             text.append("This bonus will fade at the end of the turn if not used")
-            self.set_tooltip(text)
+            return text
         elif self.indicator_type == "not prosecution_bribed_judge":
             text = []
             text.append("The judge has not yet been bribed")
             text.append(
                 "Bribing the judge may give you an advantage in the next trial this turn or blunt the impact of any bribes made by the defense."
             )
-            self.set_tooltip(text)
+            return text
         else:
-            self.set_tooltip([])
+            return []
 
 
 class dice_roll_minister_image(tooltip_free_image):
@@ -1484,29 +1287,31 @@ class dice_roll_minister_image(tooltip_free_image):
             input_dict["image_id"] = self.attached_minister.image_id
         elif self.minister_image_type == "position":
             if self.minister_position_type:
-                input_dict[
-                    "image_id"
-                ] = f"ministers/icons/{self.minister_position_type.skill_type}.png"
+                input_dict["image_id"] = (
+                    f"ministers/icons/{self.minister_position_type.skill_type}.png"
+                )
             else:
                 input_dict["image_id"] = "misc/actor_backgrounds/mob_background.png"
         self.minister_message_image = input_dict.get("minister_message_image", False)
         super().__init__(input_dict)
         self.to_front = True
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its subclass. A dice roll minister image's tooltip copies the tooltip of the minister, which describes their name and position. Only the portrait image has a
-                tooltip, preventing a double tooltip from the position image
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.minister_image_type == "portrait":
-            self.set_tooltip(self.attached_minister.tooltip_text)
+            return self.attached_minister.tooltip_text
         else:
-            self.set_tooltip([])
+            return []
+
+    def can_show_tooltip(self):
+        """
+        Returns whether this image's tooltip can currently be shown.
+            Only shows for "portrait" images, so that accompanying "position" images don't have a double tooltip
+        """
+        return self.minister_image_type == "portrait" and super().can_show_tooltip()
 
 
 class minister_type_image(tooltip_free_image):
@@ -1569,21 +1374,17 @@ class minister_type_image(tooltip_free_image):
                 self.attached_label.actor.unit_type.controlling_minister_type
             )
         if current_minister_type:
-            self.tooltip_text = current_minister_type.get_description()
+            self.preset_tooltip_text = current_minister_type.get_description()
             image_id_list = [f"ministers/icons/{current_minister_type.skill_type}.png"]
             self.set_image(image_id_list)
         self.update_image_bundle()
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its subclass. A minister type image's tooltip describes what the office of its office icon does
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip(self.tooltip_text)
+        return self.preset_tooltip_text
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -1675,321 +1476,9 @@ class loading_image_template(free_image):
         return True
 
 
-class actor_image(image):
+class button_image(image):  # Used to be attached to actor_image
     """
-    Image that is attached to an actor and a grid, representing the actor on a certain grid. An actor will have a different actor_image for each grid on which it appears
-    """
-
-    def __init__(self, actor, width, height, grid, image_description):
-        """
-        Description:
-            Initializes this object
-        Input:
-            actor actor: actor to which this image is attached
-            int width: Pixel width of this image
-            int height: Pixel height of this image
-            grid grid: actor's grid on which this image appears. Each of an actor's images appears on a different grid
-            string image_description: Key in this image's actor's image_dict corresponding to the appearance that this image has. For example, a 'default' actor_image will show the actor's default appearance
-        Output:
-            None
-        """
-        self.image_type = "actor"
-        super().__init__(width, height)
-        self.actor = actor
-        self.Rect = pygame.Rect(
-            self.actor.x, self.actor.y - self.height, self.width, self.height
-        )  # (left, top, width, height), bottom left on coordinates
-        self.set_image(image_description)
-        self.image_description == image_description
-        self.grid = grid
-        self.modes = self.grid.modes
-        self.outline_width = self.grid.grid_line_width + 1
-        self.outline = pygame.Rect(
-            self.actor.x,
-            constants.display_height - (self.actor.y + self.height),
-            self.width,
-            self.height,
-        )
-        self.x, self.y = self.grid.convert_coordinates((self.actor.x, self.actor.y))
-        if (
-            self.grid.is_mini_grid
-        ):  # if on minimap and within its smaller range of coordinates, convert actor's coordinates to minimap coordinates and draw image there
-            grid_x, grid_y = self.grid.get_mini_grid_coordinates(
-                self.actor.x, self.actor.y
-            )
-        else:
-            grid_x = self.actor.x
-            grid_y = self.actor.y
-        self.go_to_cell((grid_x, grid_y))
-        self.set_tooltip("")
-        self.change_with_other_images = (
-            True  # determines whether set_image function of actor affects this image
-        )
-
-    def get_center_coordinates(self):
-        """
-        Description:
-            Returns the pixel coordinates of the center of this image's cell
-        Input:
-            None
-        Output:
-            int tuple: Two values representing x and y pixel coordinates of the center of this image's cell
-        """
-        cell_width = self.grid.get_cell_width()
-        cell_height = self.grid.get_cell_height()
-        return (
-            self.x + round(cell_width / 2),
-            constants.display_height - (self.y + round(cell_height / 2)),
-        )
-
-    def set_image(self, new_image_description):
-        """
-        Description:
-            Changes this image to reflect this image's actor's image_dict file path value for the inputted key
-        Input:
-            string new_image_description: Key in this image's actor's image_dict corresponding to this image's new appearance. For example, 'default' will change this actor_image to show the actor's default appearance
-            or string list new_image_description: List of image file paths corresponding to this image's new appearance
-        Output:
-            None
-        """
-        if (
-            isinstance(new_image_description, str)
-            and new_image_description in self.actor.image_dict
-        ):
-            self.image_description = new_image_description
-            self.image_id = self.actor.image_dict[new_image_description]
-        elif isinstance(new_image_description, image_bundle):
-            self.contains_bundle = True
-            self.image = new_image_description.copy()
-            self.image_id = self.image.image_id
-        elif isinstance(new_image_description, pygame.Surface):
-            self.image = new_image_description
-            self.contains_bundle = False
-        else:
-            self.image_description = "default"
-            self.image_id = new_image_description
-
-        if not isinstance(new_image_description, image_bundle):
-            if isinstance(self.image_id, str):  # if set to string image path
-                self.contains_bundle = False
-                if self.image_id.endswith(".png"):
-                    self.text = False
-                    full_image_id = "graphics/" + self.image_id
-                else:
-                    self.text = True
-                    full_image_id = self.image_id
-                if full_image_id in status.cached_images:
-                    self.image = status.cached_images[full_image_id]
-                else:
-                    if not self.text:
-                        try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
-                            self.image = pygame.image.load(full_image_id)
-                        except:
-                            print(full_image_id)
-                            self.image = pygame.image.load(full_image_id)
-                    else:
-                        self.image = text_utility.text(self.image_id, constants.myfont)
-                    size = self.image.get_size()
-                    self.image = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
-                        self.image,
-                        (
-                            math.floor(size[0] * constants.DETAIL_LEVEL),
-                            math.floor(size[1] * constants.DETAIL_LEVEL),
-                        ),
-                    )
-                    status.cached_images[full_image_id] = self.image
-                self.image = pygame.transform.scale(
-                    self.image, (self.width, self.height)
-                )
-            else:  # if set to image path list
-                self.contains_bundle = True
-                self.image = image_bundle(self, self.image_id)
-
-    def draw(self):
-        """
-        Description:
-            Draws this image if it should currently be visible. Unlike free images, actor images appear at their actor's grid coordinates
-        Input:
-            None
-        Output:
-            None
-        """
-        if self.can_show():
-            if (
-                self.grid.is_mini_grid
-            ):  # if on minimap and within its smaller range of coordinates, convert actor's coordinates to minimap coordinates and draw image there
-                if self.grid.is_on_mini_grid(self.actor.x, self.actor.y):
-                    grid_x, grid_y = self.grid.get_mini_grid_coordinates(
-                        self.actor.x, self.actor.y
-                    )
-                    self.go_to_cell((grid_x, grid_y))
-                    self.complete_draw()
-            else:
-                self.go_to_cell((self.actor.x, self.actor.y))
-                self.complete_draw()
-
-    def go_to_cell(self, coordinates):
-        """
-        Description:
-            Moves this image to the pixel coordinates corresponding to the inputted grid coordinates
-        Input:
-            int tuple coordinates: Two values representing x and y coordinates on this image's grid
-        Output:
-            None
-        """
-        self.x, self.y = self.grid.convert_coordinates(coordinates)
-        self.Rect.x = self.x
-        self.Rect.y = self.y - self.height
-        self.outline.x = self.x
-        self.outline.y = self.y - self.height
-        if self.contains_bundle:
-            self.image.x = self.x
-            self.image.y = self.y
-
-    def set_tooltip(self, tooltip_text):
-        """
-        Description:
-            Sets this image's tooltip to the inputted list, with each item representing a line of the tooltip
-        Input:
-            string list tooltip_text: Lines for this actor's tooltip
-        Output:
-            None
-        """
-        self.tooltip_text = tooltip_text
-        tooltip_width = 10  # minimum tooltip width
-        font = constants.fonts["default"]
-        for text_line in tooltip_text:
-            tooltip_width = max(
-                tooltip_width, font.calculate_size(text_line) + scaling.scale_width(10)
-            )
-        tooltip_height = (font.size * len(tooltip_text)) + scaling.scale_height(5)
-        self.tooltip_box = pygame.Rect(
-            self.actor.x, self.actor.y, tooltip_width, tooltip_height
-        )
-        self.actor.tooltip_box = self.tooltip_box
-        self.tooltip_outline_width = 1
-        self.tooltip_outline = pygame.Rect(
-            self.actor.x - self.tooltip_outline_width,
-            self.actor.y + self.tooltip_outline_width,
-            tooltip_width + (2 * self.tooltip_outline_width),
-            tooltip_height + (self.tooltip_outline_width * 2),
-        )
-
-    def can_show(self, skip_parent_collection=False):
-        """
-        Description:
-            Returns whether this image can be shown. By default, it can be shown during game modes in which this image can appear
-        Input:
-            None
-        Output:
-            boolean: Returns True if this image can appear during the current game mode, otherwise returns False
-        """
-        if constants.current_game_mode in self.modes:
-            return True
-        else:
-            return False
-
-
-class mob_image(actor_image):
-    """
-    actor image attached to a mob rather than an actor, gaining the ability to manage the cells corresponding to this image's mob's coordinates
-    """
-
-    def __init__(self, actor, width, height, grid, image_description):
-        """
-        Description:
-            Initializes this object
-        Input:
-            actor actor: actor to which this image is attached
-            int width: Pixel width of this image
-            int height: Pixel height of this image
-            grid grid: actor's grid on which this image appears. Each of an actor's images appears on a different grid
-            string image_description: Key in this image's actor's image_dict corresponding to the appearance that this image has. For example, a 'default' actor_image will show the actor's default appearance
-        Output:
-            None
-        """
-        super().__init__(actor, width, height, grid, image_description)
-        self.current_cell = None
-        self.image_type = "mob"
-        self.add_to_cell()
-
-    def remove_from_cell(self):
-        """
-        Description:
-            Removes this image and its mob from this image's cell
-        Input:
-            None
-        Output:
-            None
-        """
-        if self.current_cell:
-            self.current_cell.contained_mobs = utility.remove_from_list(
-                self.current_cell.contained_mobs, self.actor
-            )
-        self.current_cell = None
-
-    def add_to_cell(self):
-        """
-        Description:
-            Moves this image to the cell corresponding to its grid coordinates, causing this image's actor to be considered to be in the cell. Removes this image from its previous cell. Unlike go_to_cell, which handles pixel location,
-                this handles grid location
-        Input:
-            None
-        Output:
-            None
-        """
-        if (
-            self.grid.is_mini_grid
-        ):  # if on minimap and within its smaller range of coordinates, convert actor's coordinates to minimap coordinates and draw image there
-            mini_x, mini_y = self.grid.get_mini_grid_coordinates(
-                self.actor.x, self.actor.y
-            )
-            if self.grid.is_on_mini_grid(self.actor.x, self.actor.y):
-                old_cell = self.current_cell
-                self.current_cell = self.grid.find_cell(mini_x, mini_y)
-                if (
-                    old_cell != self.current_cell
-                    and not self.actor in self.current_cell.contained_mobs
-                    and not (
-                        self.actor.any_permissions(
-                            constants.IN_GROUP_PERMISSION,
-                            constants.IN_VEHICLE_PERMISSION,
-                            constants.IN_BUILDING_PERMISSION,
-                        )
-                    )
-                ):
-                    self.current_cell.contained_mobs.insert(0, self.actor)
-            else:
-                self.remove_from_cell()
-            self.go_to_cell((mini_x, mini_y))
-        else:
-            self.remove_from_cell()
-            self.current_cell = self.grid.find_cell(self.actor.x, self.actor.y)
-            if not self.actor in self.current_cell.contained_mobs and not (
-                self.actor.any_permissions(
-                    constants.IN_GROUP_PERMISSION,
-                    constants.IN_VEHICLE_PERMISSION,
-                    constants.IN_BUILDING_PERMISSION,
-                )
-            ):
-                self.current_cell.contained_mobs.insert(0, self.actor)
-            self.go_to_cell((self.current_cell.x, self.current_cell.y))
-
-    def can_show(self, skip_parent_collection=False):
-        """
-        Description:
-            Returns whether this image can be shown. By default, it can be shown when its mob should be visible
-        Input:
-            None
-        Output:
-            boolean: Returns True if this image can appear during the current game mode and if its mob is not attached to another actor or behind another mob, otherwise returns False
-        """
-        return self.actor.can_show() and super().can_show()
-
-
-class button_image(actor_image):
-    """
-    actor image attached to a button rather than an actor, causing it to be located at a pixel coordinate location where its button should be rather than within a grid cell
+    image attached to a button, causing it to be located at a pixel coordinate location
     """
 
     def __init__(self, button, width, height, image_id):
@@ -2085,12 +1574,7 @@ class button_image(actor_image):
 
     def draw(self):
         """
-        Description:
-            Draws this image if it should currently be visible at the coordinates of its button
-        Input:
-            None
-        Output:
-            None
+        Draws this image if it should currently be visible at the coordinates of its button
         """
         if self.button.showing:
             self.x = self.button.x
@@ -2099,86 +1583,55 @@ class button_image(actor_image):
             )
             self.complete_draw()
 
-    def draw_tooltip(self):
-        """
-        Description:
-            Usually draws a tooltip when moused over. However, since buttons, unlike actors, manage their own tooltips, button images do not need any tooltip functionality
-        Input:
-            None
-        Output:
-            None
-        """
-        return ()
 
-    def set_tooltip(self, tooltip_text):
-        """
-        Description:
-            Usually sets an image's tooltip to the inputted list, with each item representing a line of the tooltip. However, since buttons, unlike actors, manage their own tooltips, button images do not need any tooltip functionality
-        Input:
-            string list tooltip_text: Lines for this image's tooltip
-        Output:
-            None
-        """
-        return ()
-
-
-class collection_image(button_image):
-    def draw(self):
-        if self.button.showing:
-            self.x = self.button.x
-            self.y = constants.display_height + self.height - self.button.y
-            self.complete_draw()
-
-
-class tile_image(actor_image):
+class cell_image(image):
     """
-    actor_image attached to a tile rather than an actor, causing it to use file paths directly rather than an dictionary of image keys and file path values
+    Image for a grid cell
     """
 
-    def __init__(self, actor, width, height, grid, image_description):
+    def __init__(self, cell):
         """
         Description:
             Initializes this object
         Input:
-            actor actor: actor to which this image is attached
-            int width: Pixel width of this image
-            int height: Pixel height of this image
-            grid grid: actor's grid on which this image appears. Each of an actor's images appears on a different grid
-            string image_description: Key in this image's actor's image_dict corresponding to the appearance that this image has. For example, a 'default' actor_image will show the actor's default appearance
+            cell cell: Cell that this image represents
         Output:
             None
         """
-        super().__init__(actor, width, height, grid, image_description)
-        self.go_to_cell((self.actor.x, self.actor.y))
+        super().__init__(cell.width, cell.height)
+        self.cell = cell
+        self.x, self.y = self.cell.pixel_x, self.cell.pixel_y
+        self.Rect = pygame.Rect(
+            self.x, self.y - self.height, self.width, self.height
+        )  # (left, top, width, height), bottom left on coordinates
+        self.outline_width = self.cell.grid.grid_line_width + 1
+        self.contains_bundle = True
 
-    def go_to_cell(self, coordinates):
+    def set_image(self, image_id_list):
         """
         Description:
-            Moves this image to the pixel coordinates corresponding to the inputted grid coordinates
+            Changes the image reflected by this object, used when cell needs to re-calibrate to the location's image
         Input:
-            int tuple coordinates: Two values representing x and y coordinates on this image's grid
+            image ID list image_id_list: Image ID(s) for this image
         Output:
             None
         """
-        self.x, self.y = self.grid.convert_coordinates(coordinates)
-        self.Rect.x = self.x
-        self.Rect.y = self.y - self.height
-        self.outline.x = self.x - self.outline_width
-        self.outline.y = self.y - (self.height + self.outline_width)
+        self.image = image_bundle(self, image_id_list)
 
-    def draw(self):
+    def show_num_mobs(self):
         """
-        Description:
-            Draws this image if it should currently be visible
-        Input:
-            None
-        Output:
-            None
+        Draws a number showing how many mobs are in this image's location, if it contains multiple mobs
         """
-        if (
-            self.actor.name == "resource icon"
-            and not self.actor.cell.terrain_handler.visible
-        ):
-            return ()  # do not show if resource icon in undiscovered tile
-        self.go_to_cell((self.actor.x, self.actor.y))
-        self.complete_draw()
+        length = len(self.cell.subscribed_location.subscribed_mobs)
+        if length >= 2:
+            message = str(length)
+            font = constants.fonts["max_detail_white"]
+            font_width = self.width * 0.13 * 1.3
+            font_height = self.width * 0.3 * 1.3
+            textsurface = font.pygame_font.render(message, False, font.color)
+            textsurface = pygame.transform.scale(
+                textsurface, (font_width * len(message), font_height)
+            )
+            text_x = self.x + self.width - (font_width * (len(message) + 0.3))
+            text_y = self.y + (-0.8 * self.height) - (0.5 * font_height)
+            constants.game_display.blit(textsurface, (text_x, text_y))

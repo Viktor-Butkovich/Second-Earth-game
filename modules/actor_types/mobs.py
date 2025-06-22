@@ -1,7 +1,7 @@
 # Contains functionality for mobs
 
 import pygame, random
-from modules.constructs import images, unit_types, ministers, item_types
+from modules.constructs import images, unit_types, ministers, item_types, locations
 from modules.util import (
     utility,
     actor_utility,
@@ -9,7 +9,6 @@ from modules.util import (
     text_utility,
     minister_utility,
 )
-from modules.interface_types import cells
 from modules.actor_types.actors import actor
 from modules.constants import constants, status, flags
 from typing import List, Dict, Any
@@ -27,18 +26,17 @@ class mob(actor):
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates on one of the game grids
-                'grids': grid list value - grids in which this mob's images can appear
+                'location': location value - Where this mob is located
                 'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
                     Example of possible image: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this mob's name
-                'modes': string list value - Game modes during which this mob's images can appear
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
         Output:
             None
         """
+        super().__init__(from_save, input_dict, original_constructor=False)
         self.default_permissions: Dict[str, Any] = {}
         self.override_permissions: Dict[str, Any] = {}
         self.unit_type: unit_types.unit_type = input_dict.get(
@@ -47,47 +45,59 @@ class mob(actor):
         self.unit_type.num_instances += 1
         self.controlling_minister: ministers.minister = None
         self.update_controlling_minister()
-        self.actor_type = constants.MOB_ACTOR_TYPE
-        self.end_turn_destination = None
         self.habitability = constants.HABITABILITY_PERFECT
         self.ambient_sound_channel: pygame.mixer.Channel = None
         self.locked_ambient_sound: bool = False
         super().__init__(from_save, input_dict, original_constructor=False)
-        if isinstance(input_dict["image"], str):
-            self.image_dict = {"default": input_dict["image"]}
-        else:
-            self.image_dict = {"default": input_dict["image"]["image_id"]}
+        self.image_dict = {
+            **self.image_dict,
+            constants.IMAGE_ID_LIST_DEFAULT: input_dict.get(
+                constants.IMAGE_ID_LIST_DEFAULT, [{"image_id": "misc/empty.png"}]
+            ),
+            constants.IMAGE_ID_LIST_PORTRAIT: input_dict.get(
+                constants.IMAGE_ID_LIST_PORTRAIT, []
+            ),
+            constants.IMAGE_ID_LIST_LEFT_PORTRAIT: input_dict.get(
+                constants.IMAGE_ID_LIST_LEFT_PORTRAIT, []
+            ),
+            constants.IMAGE_ID_LIST_RIGHT_PORTRAIT: input_dict.get(
+                constants.IMAGE_ID_LIST_RIGHT_PORTRAIT, []
+            ),
+        }
+        self.end_turn_destination = None
+        self.loading_end_turn_destination = None
+        if from_save:
+            if input_dict["end_turn_destination_coordinates"]:
+                self.loading_end_turn_destination = {
+                    "world_index": input_dict["end_turn_destination_world_index"],
+                    "coordinates": input_dict["end_turn_destination_coordinates"],
+                }
         self.image_variants_setup(from_save, input_dict)
-        self.images: List[images.mob_image] = []
         self.status_icons = []
-        for current_grid in self.grids:
-            self.images.append(
-                images.mob_image(
-                    self,
-                    current_grid.get_cell_width(),
-                    current_grid.get_cell_height(),
-                    current_grid,
-                    "default",
-                )
-            )
         status.mob_list.append(self)
         self.set_name(input_dict["name"])
         self.max_movement_points = 1
         self.movement_points = self.max_movement_points
         self.movement_cost = 1
+        self.subscribed_location: locations.location = None
+        if input_dict.get("location", None):
+            input_dict["location"].subscribe_mob(self)
         self.permissions_setup()
         if from_save:
             self.set_max_movement_points(input_dict["max_movement_points"])
             self.set_movement_points(input_dict["movement_points"])
             self.creation_turn = input_dict["creation_turn"]
             self.set_permission(
-                constants.DISORGANIZED_PERMISSION, input_dict.get("disorganized", False)
+                constants.DISORGANIZED_PERMISSION,
+                input_dict.get(constants.DISORGANIZED_PERMISSION, False),
             )
             self.set_permission(
-                constants.DEHYDRATION_PERMISSION, input_dict.get("dehydration", False)
+                constants.DEHYDRATION_PERMISSION,
+                input_dict.get(constants.DEHYDRATION_PERMISSION, False),
             )
             self.set_permission(
-                constants.STARVATION_PERMISSION, input_dict.get("starvation", False)
+                constants.STARVATION_PERMISSION,
+                input_dict.get(constants.STARVATION_PERMISSION, False),
             )
         else:
             self.unit_type.on_recruit()
@@ -97,6 +107,32 @@ class mob(actor):
             else:
                 self.creation_turn = constants.turn
         self.finish_init(original_constructor, from_save, input_dict)
+
+    @property
+    def actor_type(self) -> str:
+        """
+        Returns this object's actor type, differentiating it from locations and ministers
+        """
+        return constants.MOB_ACTOR_TYPE
+
+    @property
+    def contained_mobs(self) -> List[Any]:
+        return [self]
+
+    def load_end_turn_destination(self):
+        """
+        Loads in this unit's end turn destination from the saved world and coordinates
+            Must be called after all worlds are loaded in
+        """
+        if self.loading_end_turn_destination:
+            world_index = self.loading_end_turn_destination["world_index"]
+            coordinates = self.loading_end_turn_destination["coordinates"]
+            self.end_turn_destination = status.world_list[world_index].find_location(
+                *coordinates
+            )
+            # Re-create the end turn destination from the saved world and coordinates
+            self.set_permission(constants.TRAVELING_PERMISSION, True)
+            del self.loading_end_turn_destination
 
     def get_radio_effect(self) -> bool:
         """
@@ -118,11 +154,11 @@ class mob(actor):
     def check_action_survivability(self, notify: bool = True) -> bool:
         """
         Description:
-            Checks whether this unit can survive doing an action in its current tile - no certain death actions are allowed
+            Checks whether this unit can survive doing an action in its current location - no certain death actions are allowed
         Input:
             bool notify: Whether to notify the player if it is not survivable
         Output:
-            bool: Returns True if this unit can survive doing an action in its current tile, False otherwise
+            bool: Returns True if this unit can survive doing an action in its current location, False otherwise
         """
         survivable = self.get_permission(constants.SURVIVABLE_PERMISSION)
         if notify and not survivable:
@@ -135,21 +171,13 @@ class mob(actor):
 
     def update_habitability(self):
         """
-        Description:
-            Updates this unit's habitability based on the tile it is in
-        Input:
-            None
-        Output:
-            None
+        Updates this unit's habitability based on its location
         """
-        if self.get_cell():
-            self.habitability = self.get_cell().terrain_handler.get_unit_habitability(
-                self
-            )
-            self.set_permission(
-                constants.SURVIVABLE_PERMISSION,
-                self.habitability != constants.HABITABILITY_DEADLY,
-            )
+        self.habitability = self.location.get_unit_habitability(self)
+        self.set_permission(
+            constants.SURVIVABLE_PERMISSION,
+            self.habitability != constants.HABITABILITY_DEADLY,
+        )
 
     def can_travel(self):
         """
@@ -158,7 +186,7 @@ class mob(actor):
         Input:
             None
         Output:
-            boolean: Returs True if this unit has travel permissions (based on unit type), is active (crewed), and is not disabled this turn
+            boolean: Returns True if this unit has travel permissions (based on unit type), is active (crewed), and is not disabled this turn
         """
         return self.all_permissions(
             constants.TRAVEL_PERMISSION, constants.ACTIVE_PERMISSION
@@ -166,12 +194,7 @@ class mob(actor):
 
     def update_controlling_minister(self):
         """
-        Description:
-            Sets the minister that controls this unit to the one occupying the office that has authority over this unit
-        Input:
-            None
-        Output:
-            None
+        Sets the minister that controls this unit to the one occupying the office that has authority over this unit
         """
         self.controlling_minister = minister_utility.get_minister(
             self.unit_type.controlling_minister_type.key
@@ -183,49 +206,40 @@ class mob(actor):
             ):
                 current_minister_type_image.calibrate(self.controlling_minister)
 
-    def get_cell(self) -> cells.cell:
+    @property
+    def location(self) -> locations.location:
         """
         Description:
-            Returns the cell this mob is currently in
+            Returns the location this mob is currently in
         Input:
             None
         Output:
-            cell: Returns the cell this mob is currently in
+            location: Returns the location this mob is currently in
         """
         if self.get_permission(constants.DUMMY_PERMISSION):
             if status.displayed_mob:
-                return status.displayed_mob.get_cell()
+                return status.displayed_mob.location
             else:
                 return None
         elif self.get_permission(constants.IN_VEHICLE_PERMISSION):
-            return self.vehicle.get_cell()
+            return self.vehicle.location
         elif self.get_permission(constants.IN_GROUP_PERMISSION):
-            return self.group.get_cell()
-        return self.images[0].current_cell
+            return self.group.location
+        else:
+            return self.subscribed_location
 
     def on_move(self):
         """
-        Description:
-            Automatically called when unit arrives in a tile for any reason
-        Input:
-            None
-        Output:
-            None
+        Automatically called when unit arrives at a location for any reason
         """
-        current_cell = self.get_cell()
-        if current_cell:
-            self.update_habitability()
-            if self.equipment:  # Update spacesuit image for local conditions
-                self.update_image_bundle()
+        for current_mob in self.contained_mobs:
+            current_mob.update_habitability()
+            if current_mob.equipment:  # Update spacesuit image for local conditions
+                current_mob.update_image_bundle()
 
     def permissions_setup(self) -> None:
         """
-        Description:
-            Sets up this mob's permissions
-        Input:
-            None
-        Output:
-            None
+        Sets up this mob's permissions
         """
         for permission, value in self.unit_type.permissions.items():
             self.set_permission(permission, value)
@@ -262,13 +276,12 @@ class mob(actor):
             and update_image
         ):
             self.update_image_bundle()
-            self.update_tooltip()
         if task == constants.IN_VEHICLE_PERMISSION or (
             task in [constants.VEHICLE_PERMISSION, constants.SPACESUITS_PERMISSION]
             and (not self.get_permission(constants.DUMMY_PERMISSION))
-            and self.get_cell()
         ):
-            self.update_habitability()
+            for current_mob in self.contained_mobs:
+                current_mob.update_habitability()
         elif task == constants.TRAVELING_PERMISSION and self.get_permission(
             constants.SPACESHIP_PERMISSION
         ):
@@ -365,16 +378,22 @@ class mob(actor):
         if original_constructor:
             if create_portrait:
                 if not from_save:
-                    metadata = {"body_image": self.image_dict["default"]}
+                    metadata = {
+                        "body_image": self.image_dict[constants.IMAGE_ID_LIST_DEFAULT][
+                            0
+                        ]["image_id"]
+                    }
                     if self.get_permission(constants.OFFICER_PERMISSION):
                         metadata.update(self.character_info)
-                    self.image_dict[
-                        "portrait"
-                    ] = constants.character_manager.generate_unit_portrait(
-                        self, metadata
+                    self.image_dict[constants.IMAGE_ID_LIST_PORTRAIT] = (
+                        constants.character_manager.generate_unit_portrait(
+                            self, metadata
+                        )
                     )
                 else:
-                    self.image_dict["portrait"] = input_dict.get("portrait", [])
+                    self.image_dict[constants.IMAGE_ID_LIST_PORTRAIT] = input_dict.get(
+                        constants.IMAGE_ID_LIST_PORTRAIT, []
+                    )
             if not from_save:
                 self.reselect()
             self.set_permission(constants.INIT_COMPLETE_PERMISSION, True)
@@ -390,16 +409,25 @@ class mob(actor):
         Output:
             None
         """
-        self.image_variants = actor_utility.get_image_variants(
-            self.image_dict["default"]
-        )
-        if self.image_dict["default"].endswith("default.png") and not from_save:
-            if not from_save:
-                self.image_variant = random.randrange(0, len(self.image_variants))
-                self.image_dict["default"] = self.image_variants[self.image_variant]
+        if from_save:
+            self.image_variant_base = input_dict.get("image_variant_base", None)
+        else:
+            self.image_variant_base = self.image_dict[constants.IMAGE_ID_LIST_DEFAULT][
+                0
+            ]["image_id"]
+        # Image variant base not switched to the chosen variant - e.g. stays as colonist.png, not colonist4.png
+
+        self.image_variants = actor_utility.get_image_variants(self.image_variant_base)
+        if not from_save:
+            self.image_variant = random.randrange(0, len(self.image_variants))
+            self.image_dict[constants.IMAGE_ID_LIST_DEFAULT] = [
+                {"image_id": self.image_variants[self.image_variant]}
+            ]
         elif from_save and "image_variant" in input_dict:
             self.image_variant = input_dict["image_variant"]
-            self.image_dict["default"] = self.image_variants[self.image_variant]
+            self.image_dict[constants.IMAGE_ID_LIST_DEFAULT] = [
+                {"image_id": self.image_variants[self.image_variant]}
+            ]
             if "second_image_variant" in input_dict:
                 self.second_image_variant = input_dict["second_image_variant"]
 
@@ -423,22 +451,32 @@ class mob(actor):
         save_dict["init_type"] = self.unit_type.key
         save_dict["movement_points"] = self.movement_points
         save_dict["max_movement_points"] = self.max_movement_points
-        save_dict["image"] = self.image_dict["default"]
-        if "portrait" in self.image_dict:
-            save_dict["portrait"] = self.image_dict["portrait"]
-        if "left portrait" in self.image_dict:
-            save_dict["left portrait"] = self.image_dict["left portrait"]
-        if "right portrait" in self.image_dict:
-            save_dict["right portrait"] = self.image_dict["right portrait"]
+        save_dict[constants.IMAGE_ID_LIST_DEFAULT] = self.image_dict[
+            constants.IMAGE_ID_LIST_DEFAULT
+        ]
+        save_dict[constants.IMAGE_ID_LIST_PORTRAIT] = self.image_dict[
+            constants.IMAGE_ID_LIST_PORTRAIT
+        ]
+        save_dict[constants.IMAGE_ID_LIST_LEFT_PORTRAIT] = self.image_dict[
+            constants.IMAGE_ID_LIST_LEFT_PORTRAIT
+        ]
+        save_dict[constants.IMAGE_ID_LIST_RIGHT_PORTRAIT] = self.image_dict[
+            constants.IMAGE_ID_LIST_RIGHT_PORTRAIT
+        ]
         save_dict["creation_turn"] = self.creation_turn
-        save_dict["disorganized"] = self.get_permission(
+        save_dict[constants.DISORGANIZED_PERMISSION] = self.get_permission(
             constants.DISORGANIZED_PERMISSION
         )
-        save_dict["dehydration"] = self.get_permission(constants.DEHYDRATION_PERMISSION)
-        save_dict["starvation"] = self.get_permission(constants.STARVATION_PERMISSION)
+        save_dict[constants.DEHYDRATION_PERMISSION] = self.get_permission(
+            constants.DEHYDRATION_PERMISSION
+        )
+        save_dict[constants.STARVATION_PERMISSION] = self.get_permission(
+            constants.STARVATION_PERMISSION
+        )
         if hasattr(self, "image_variant"):
-            save_dict["image"] = self.image_variants[0]
+            save_dict["image_id"] = self.image_variants[0]
             save_dict["image_variant"] = self.image_variant
+            save_dict["image_variant_base"] = self.image_variant_base
             if hasattr(self, "second_image_variant"):
                 save_dict["second_image_variant"] = self.second_image_variant
         return save_dict
@@ -476,7 +514,7 @@ class mob(actor):
                         portrait[portrait_index]["image_id"] = section_image_id
         return portrait
 
-    def get_image_id_list(self, override_values={}):
+    def get_image_id_list(self, override_permissions=None):
         """
         Description:
             Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
@@ -486,32 +524,109 @@ class mob(actor):
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        image_id_list = super().get_image_id_list(override_values)
-        if any(
-            section in self.image_dict and len(self.image_dict[section]) > 0
-            for section in ["portrait", "left portrait", "right portrait"]
+        if not override_permissions:
+            override_permissions = {}
+        image_id_list = []
+
+        if self.get_permission(constants.GROUP_PERMISSION):
+            image_id_list += actor_utility.generate_group_image_id_list(
+                self.worker, self.officer
+            )  # Handle generating central, left, and right portraits, bodies, and equipment
+        elif self.get_permission(constants.WORKER_PERMISSION):
+            image_id_list += self.insert_equipment(
+                actor_utility.generate_unit_component_portrait(
+                    self.image_dict[constants.IMAGE_ID_LIST_LEFT_PORTRAIT], "left"
+                )
+            )  # Add left portrait, body, and equipment
+            image_id_list += self.insert_equipment(
+                actor_utility.generate_unit_component_portrait(
+                    self.image_dict[constants.IMAGE_ID_LIST_RIGHT_PORTRAIT], "right"
+                )
+            )  # Add right portrait, body, and equipment
+        elif self.get_permission(constants.VEHICLE_PERMISSION):
+            if not override_permissions.get(
+                constants.ACTIVE_PERMISSION,
+                self.get_permission(constants.ACTIVE_PERMISSION),
+            ):
+                image_id_list += self.image_dict[
+                    constants.IMAGE_ID_LIST_VEHICLE_UNCREWED
+                ]
+            elif override_permissions.get(
+                constants.TRAVELING_PERMISSION,
+                self.get_permission(constants.TRAVELING_PERMISSION),
+            ):
+                image_id_list += self.image_dict[constants.IMAGE_ID_LIST_VEHICLE_MOVING]
+            else:
+                image_id_list += self.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
+            # Add vehicle image based on current status
+        else:
+            image_id_list += self.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
+            # Add single default image (like officer outfit) - empty for groups/workers
+            image_id_list += self.insert_equipment(
+                self.image_dict[constants.IMAGE_ID_LIST_PORTRAIT]
+            )  # Add unit portrait (like officer face) along with equipments
+
+        if override_permissions.get(
+            constants.DISORGANIZED_PERMISSION,
+            self.get_permission(constants.DISORGANIZED_PERMISSION),
         ):
-            image_id_list.remove(self.image_dict["default"])
-        image_id_list += self.insert_equipment(self.image_dict.get("portrait", []))
-        if override_values.get(
-            "disorganized", self.get_permission(constants.DISORGANIZED_PERMISSION)
+            image_id_list.append(
+                {
+                    "image_id": "misc/disorganized_icon.png",
+                    "level": constants.OVERLAY_ICON_LEVEL,
+                }
+            )
+        if override_permissions.get(
+            constants.DEHYDRATION_PERMISSION,
+            self.get_permission(constants.DEHYDRATION_PERMISSION),
         ):
-            image_id_list.append("misc/disorganized_icon.png")
-        if override_values.get(
-            "dehydration", self.get_permission(constants.DEHYDRATION_PERMISSION)
+            image_id_list.append(
+                {
+                    "image_id": "misc/dehydration_icon.png",
+                    "level": constants.OVERLAY_ICON_LEVEL,
+                }
+            )
+        if override_permissions.get(
+            constants.STARVATION_PERMISSION,
+            self.get_permission(constants.STARVATION_PERMISSION),
         ):
-            image_id_list.append("misc/dehydration_icon.png")
-        if override_values.get(
-            "starvation", self.get_permission(constants.STARVATION_PERMISSION)
+            image_id_list.append(
+                {
+                    "image_id": "misc/starvation_icon.png",
+                    "level": constants.OVERLAY_ICON_LEVEL,
+                }
+            )
+        if not override_permissions.get(
+            constants.SURVIVABLE_PERMISSION,
+            self.get_permission(constants.SURVIVABLE_PERMISSION),
         ):
-            image_id_list.append("misc/starvation_icon.png")
-        if not override_values.get(
-            "survivable", self.get_permission(constants.SURVIVABLE_PERMISSION)
+            image_id_list.append(
+                {
+                    "image_id": "misc/deadly_icon.png",
+                    "level": constants.OVERLAY_ICON_LEVEL,
+                }
+            )
+        if override_permissions.get(
+            constants.VETERAN_PERMISSION,
+            self.get_permission(constants.VETERAN_PERMISSION),
         ):
-            image_id_list.append("misc/deadly_icon.png")
+            image_id_list.append(
+                {
+                    "image_id": "misc/veteran_icon.png",
+                    "level": constants.OVERLAY_ICON_LEVEL,
+                }
+            )
+
+        if self.sentry_mode:
+            image_id_list.append(
+                {
+                    "image_id": "misc/sentry_icon.png",
+                    "level": constants.OVERLAY_ICON_LEVEL,
+                }
+            )
         return image_id_list
 
-    def get_combat_modifier(self, opponent=None, include_tile=False):
+    def get_combat_modifier(self, opponent=None, include_location=False):
         """
         Description:
             Calculates and returns the modifier added to this unit's combat rolls
@@ -531,7 +646,7 @@ class mob(actor):
                 modifier -= 1
                 if self.get_permission(constants.OFFICER_PERMISSION):
                     modifier -= 1
-            if include_tile and self.get_cell().has_intact_building(constants.FORT):
+            if include_location and self.location.has_intact_building(constants.FORT):
                 modifier += 1
         if self.get_permission(constants.DISORGANIZED_PERMISSION):
             modifier -= 1
@@ -579,85 +694,51 @@ class mob(actor):
     def combat_possible(self):
         """
         Description:
-            Returns whether this unit can start any combats in its current cell. A pmob can start combats with npmobs in its cell, and a hostile npmob can start combats with pmobs in its cell
+            Returns whether this unit can start any combats in its current location. A pmob can start combats with npmobs in its location, and a hostile npmob can start combats with pmobs in its location
         Input:
             None
         Output:
-            boolean: Returns whether this unit can start any combats in its current cell
+            boolean: Returns whether this unit can start any combats in its current location
         """
         if self.get_permission(constants.NPMOB_PERMISSION):
             if self.hostile:
-                if not self.get_cell():
-                    if (
-                        self.grids[0]
-                        .find_cell(self.x, self.y)
-                        .has_unit([constants.PMOB_PERMISSION])
-                    ):  # If hidden and in same tile as pmob
-                        return True
-                elif self.get_cell().has_unit(
+                if self.location.has_unit_by_filter(
                     [constants.PMOB_PERMISSION]
-                ):  # If visible and in same tile as pmob
+                ):  # If in same location as pmob
                     return True
         elif self.get_permission(constants.PMOB_PERMISSION):
-            if self.get_cell().has_unit([constants.NPMOB_PERMISSION]):
+            if self.location.has_unit_by_filter([constants.NPMOB_PERMISSION]):
                 return True
         return False
 
     def can_show(self, skip_parent_collection=False):
         """
         Description:
-            Returns whether this unit can be shown. By default, it can be shown when it is in a discovered cell during the correct game mode and is not attached to any other units or buildings
+            Returns whether this unit can be shown - if at front of visible location
         Input:
             None
         Output:
             boolean: Returns True if this image can appear during the current game mode, otherwise returns False
         """
-        if not self.any_permissions(
-            constants.IN_VEHICLE_PERMISSION,
-            constants.IN_GROUP_PERMISSION,
-            constants.IN_BUILDING_PERMISSION,
-        ):
-            if (
-                self.get_cell()
-                and self.get_cell().contained_mobs[0] == self
-                and constants.current_game_mode in self.modes
-            ):
-                if self.get_cell().terrain_handler.visible:
-                    return True
-        return False
-
-    def can_show_tooltip(self):
-        """
-        Description:
-            Returns whether this unit's tooltip can be shown. Along with superclass conditions, requires that it is in a discovered cell
-        Input:
-            None
-        Output:
-            None
-        """
         return (
-            super().can_show_tooltip()
-            and self.get_cell()
-            and self.get_cell().terrain_handler.visible
+            super().can_show(skip_parent_collection)
+            and self.location.subscribed_mobs
+            and self == self.location.subscribed_mobs[0]
         )
 
     def get_movement_cost(self, x_change, y_change):
         """
         Description:
-            Returns the cost in movement points of moving by the inputted amounts. Only works when one inputted amount is 0 and the other is 1 or -1, with 0 and -1 representing moving 1 cell downward
+            Returns the cost in movement points of moving by the inputted amounts. Only works when one inputted amount is 0 and the other is 1 or -1, with 0 and -1 representing moving 1 location downward
         Input:
-            int x_change: How many cells would be moved to the right in the hypothetical movement
-            int y_change: How many cells would be moved upward in the hypothetical movement
+            int x_change: How many locations would be moved to the right in the hypothetical movement
+            int y_change: How many locations would be moved upward in the hypothetical movement
         Output:
             double: How many movement points would be spent by moving by the inputted amount
         """
         cost = self.movement_cost
         if self.get_permission(constants.CONSTANT_MOVEMENT_COST_PERMISSION):
             return cost
-        if not (self.get_permission(constants.NPMOB_PERMISSION) and not self.visible()):
-            local_cell = self.get_cell()
-        else:
-            local_cell = self.grids[0].find_cell(self.x, self.y)
 
         direction = None
         if x_change < 0:
@@ -670,68 +751,53 @@ class mob(actor):
             direction = "down"
 
         if not direction:
-            adjacent_cell = local_cell
+            adjacent_location = self.location
         else:
-            adjacent_cell = local_cell.adjacent_cells[direction]
+            adjacent_location = self.location.adjacent_locations[direction]
 
-        if adjacent_cell:
+        if adjacent_location:
             cost *= constants.terrain_movement_cost_dict.get(
-                adjacent_cell.terrain_handler.terrain, 1
+                adjacent_location.terrain, 1
             )
             if self.get_permission(constants.PMOB_PERMISSION):
-                local_infrastructure = local_cell.get_intact_building(
+                local_infrastructure = self.location.get_intact_building(
                     constants.INFRASTRUCTURE
                 )
-                adjacent_infrastructure = adjacent_cell.get_intact_building(
+                adjacent_infrastructure = self.location.get_intact_building(
                     constants.INFRASTRUCTURE
                 )
-                if local_cell.has_walking_connection(adjacent_cell):
-                    if local_infrastructure and adjacent_infrastructure:
-                        # If both have infrastructure and connected by land or bridge, use discount
-                        cost = cost / 2
-                    # Otherwise, use default cost but not full cost (no canoe penantly)
-                    if (
-                        adjacent_infrastructure
-                        and adjacent_infrastructure.infrastructure_type
-                        == constants.FERRY
-                    ):
-                        cost = 2
-                elif adjacent_cell.terrain_handler.terrain == "water" and (
-                    self.get_permission(constants.WALK_PERMISSION)
-                    and not self.get_permission(constants.SWIM_PERMISSION)
-                ):  # Elif water without boats
-                    cost = self.max_movement_points
-                if (not adjacent_cell.terrain_handler.visible) and self.get_permission(
-                    constants.EXPEDITION_PERMISSION
+                if local_infrastructure and adjacent_infrastructure:
+                    # If both have infrastructure and connected by land or bridge, use discount
+                    cost = cost / 2
+                # Otherwise, use default cost but not full cost (no canoe penantly)
+                if (
+                    adjacent_infrastructure
+                    and adjacent_infrastructure.infrastructure_type == constants.FERRY
                 ):
-                    cost = self.movement_cost
+                    cost = 2
+                # if (not adjacent_location.visible) and self.get_permission(
+                #     constants.EXPEDITION_PERMISSION
+                # ):
+                #     cost = self.movement_cost
         return cost
 
     def adjacent_to_water(self):
         """
         Description:
-            Returns whether any of the cells directly adjacent to this mob's cell has the water terrain. Otherwise, returns False
+            Returns whether any of the locations directly adjacent to this mob's location has the water terrain. Otherwise, returns False
         Input:
             None
         Output:
-            boolean: Returns True if any of the cells directly adjacent to this mob's cell has the water terrain. Otherwise, returns False
+            boolean: Returns True if any of the locations directly adjacent to this mob's location has the water terrain. Otherwise, returns False
         """
-        for current_cell in self.get_cell().adjacent_list:
-            if (
-                current_cell.terrain_handler.terrain == "water"
-                and current_cell.terrain_handler.visible
-            ):
+        for current_location in self.location.adjacent_list:
+            if current_location.terrain == "water" and current_location.visible:
                 return True
         return False
 
     def change_movement_points(self, change):
         """
-        Description:
-            Changes this mob's movement points by the inputted amount. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
-        Input:
-            None
-        Output:
-            None
+        Changes this mob's movement points by the inputted amount. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
         """
         if not self.get_permission(constants.INFINITE_MOVEMENT_PERMISSION):
             self.movement_points += change
@@ -753,12 +819,7 @@ class mob(actor):
 
     def set_movement_points(self, new_value):
         """
-        Description:
-            Sets this mob's movement points to the inputted amount. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
-        Input:
-            None
-        Output:
-            None
+        Sets this mob's movement points to the inputted amount. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
         """
         if new_value < 0:
             new_value = 0
@@ -774,12 +835,7 @@ class mob(actor):
 
     def reset_movement_points(self):
         """
-        Description:
-            Sets this mob's movement points to its maximum number of movement points at the end of the turn. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
-        Input:
-            None
-        Output:
-            None
+        Sets this mob's movement points to its maximum number of movement points at the end of the turn. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
         """
         if self.get_permission(constants.MOVEMENT_DISABLED_PERMISSION):
             self.set_permission(
@@ -830,49 +886,9 @@ class mob(actor):
         else:
             self.set_movement_points(self.movement_points + increase)
 
-    def go_to_grid(self, new_grid, new_coordinates):
-        """
-        Description:
-            Links this mob to a grid, causing it to appear on that grid and its minigrid at certain coordinates. Used when crossing the ocean and when a mob that was previously attached to another actor becomes independent and visible,
-                like when a building's worker leaves. Also moves this unit's status icons as necessary
-        Input:
-            grid new_grid: grid that this mob is linked to
-            int tuple new_coordinates: Two values representing x and y coordinates to start at on the inputted grid
-        Output:
-            None
-        """
-        if new_grid == status.earth_grid:
-            self.modes.append(constants.EARTH_MODE)
-        else:  # If mob was spawned on Earth, make it so that it does not appear in the Earth screen after leaving
-            self.modes = utility.remove_from_list(self.modes, constants.EARTH_MODE)
-        self.x, self.y = new_coordinates
-        old_image_id = self.images[0].image_id
-        for current_image in self.images:
-            current_image.remove_from_cell()
-        self.grids = [new_grid] + new_grid.mini_grids
-        self.grid = new_grid
-        self.images = []
-        for current_grid in self.grids:
-            self.images.append(
-                images.mob_image(
-                    self,
-                    current_grid.get_cell_width(),
-                    current_grid.get_cell_height(),
-                    current_grid,
-                    old_image_id,
-                )
-            )
-            self.images[-1].add_to_cell()
-        self.on_move()
-
     def reselect(self):
         """
-        Description:
-            Deselects and reselects this mob if it was already selected
-        Input:
-            None
-        Output:
-            None
+        Deselects and reselects this mob if it was already selected
         """
         if status.displayed_mob == self:
             self.locked_ambient_sound = True
@@ -884,46 +900,28 @@ class mob(actor):
 
     def select(self):
         """
-        Description:
-            Selects this mob, causing this mob to be shown in the mob display and causing a selection outline to appear around it
-        Input:
-            None
-        Output:
-            None
+        Selects this mob, causing this mob to be shown in the mob display and causing a selection outline to appear around it
         """
         self.move_to_front()
         flags.show_selection_outlines = True
         constants.last_selection_outline_switch = constants.current_time
         actor_utility.calibrate_actor_info_display(
-            status.tile_info_display, self.get_cell().tile
+            status.location_info_display, self.location
         )
         actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
-        if self.grids[0].mini_grids:
-            for mini_grid in self.grid.mini_grids:
-                mini_grid.calibrate(self.x, self.y)
+        actor_utility.focus_minimap_grids(self.location)
 
     def cycle_select(self):
         """
-        Description:
-            Selects this mob while also moving it to the front of the tile and playing its selection sound - should be used when unit is clicked on
-        Input:
-            None
-        Output:
-            None
+        Selects this mob while also moving it to the front of the location and playing its selection sound - should be used when unit is clicked on
         """
         if main_loop_utility.action_possible():
             if status.displayed_mob != self:
+                self.subscribed_location.subscribed_mobs.remove(self)
+                self.subscribed_location.subscribed_mobs.insert(0, self)
+                self.subscribed_location.update_image_bundle()
                 self.select()
-                if self.get_permission(constants.PMOB_PERMISSION):
-                    self.selection_sound()
-                for (
-                    current_image
-                ) in self.images:  # move mob to front of each stack it is in
-                    if current_image.current_cell:
-                        while not self == current_image.current_cell.contained_mobs[0]:
-                            current_image.current_cell.contained_mobs.append(
-                                current_image.current_cell.contained_mobs.pop(0)
-                            )
+                self.selection_sound()
         else:
             text_utility.print_to_screen(
                 "You are busy and cannot select a different unit"
@@ -931,83 +929,38 @@ class mob(actor):
 
     def move_to_front(self):
         """
-        Description:
-            Moves the image of this unit to the front of the cell, making it visible and selected first when the cell is clicked
-        Input:
-            None
-        Output:
-            None
+        Moves the image of this unit to the front of the location, making it visible and selected first when the location is clicked
         """
-        for current_image in self.images:
-            current_cell = self.get_cell()
-            if self in current_cell.contained_mobs:
-                while (
-                    not current_cell.contained_mobs[0] == self
-                ):  # Move to front of tile
-                    current_cell.contained_mobs.append(
-                        current_cell.contained_mobs.pop(0)
-                    )
-
-    def draw_outline(self):
-        """
-        Description:
-            Draws a flashing outline around this mob if it is selected
-        Input:
-            None
-        Output:
-            None
-        """
-        if flags.show_selection_outlines:
-            for current_image in self.images:
-                if (
-                    current_image.current_cell
-                    and self == current_image.current_cell.contained_mobs[0]
-                    and current_image.current_cell.grid.showing
-                ):  # only draw outline if on top of stack
-                    pygame.draw.rect(
-                        constants.game_display,
-                        constants.color_dict[self.selection_outline_color],
-                        (current_image.outline),
-                        current_image.outline_width,
-                    )
+        current_location = self.location
+        current_location.subscribed_mobs.remove(self)
+        current_location.subscribed_mobs.insert(0, self)
+        current_location.update_image_bundle()
 
     def update_image_bundle(self):
         """
-        Description:
-            Updates this actor's images with its current image id list
-        Input:
-            None
-        Output:
-            None
+        Updates this actor's images with its current image id list
         """
-        previous_image = self.previous_image
-        super().update_image_bundle()
-        if self.previous_image != previous_image:
-            self.reselect()
+        self.location.update_image_bundle(update_mob_only=True)
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this mob's tooltip to what it should be whenever the player mouses over one of its images
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         tooltip_list = []
 
         tooltip_list.append(
-            "Unit type: " + self.name[:1].capitalize() + self.name[1:]
+            f"Unit type: {self.name[:1].capitalize()}{self.name[1:]}"
         )  # Capitalizes first letter while keeping rest the same
         if self.get_permission(constants.OFFICER_PERMISSION):
-            tooltip_list.append("Name: " + self.character_info["name"])
+            tooltip_list.append(f"Name: {self.character_info["name"]}")
         if self.get_permission(constants.PMOB_PERMISSION):
             if self.get_permission(constants.GROUP_PERMISSION):
-                tooltip_list.append("    Officer: " + self.officer.name.capitalize())
+                tooltip_list.append(f"    Officer: {self.officer.name.capitalize()}")
                 tooltip_list.append(
-                    "        Name: " + self.officer.character_info["name"]
+                    f"        Name: {self.officer.character_info["name"]}"
                 )
-                tooltip_list.append("    Workers: " + self.worker.name.capitalize())
+                tooltip_list.append(f"    Workers: {self.worker.name.capitalize()}")
             elif self.get_permission(constants.VEHICLE_PERMISSION):
                 if self.get_permission(constants.ACTIVE_PERMISSION):
                     tooltip_list.append("    Crew: " + self.crew.name.capitalize())
@@ -1017,10 +970,10 @@ class mob(actor):
                         f"    A {self.name} cannot move or take passengers or cargo without crew"
                     )
 
-                if len(self.contained_mobs) > 0:
+                if len(self.subscribed_passengers) > 0:
                     tooltip_list.append("    Passengers: ")
-                    for current_mob in self.contained_mobs:
-                        tooltip_list.append("        " + current_mob.name.capitalize())
+                    for current_mob in self.subscribed_passengers:
+                        tooltip_list.append(f"        {current_mob.name.capitalize()}")
                 else:
                     tooltip_list.append("    Passengers: None")
 
@@ -1065,13 +1018,9 @@ class mob(actor):
             top_message = "Item upkeep per turn:"
             if not item_upkeep:
                 top_message += " None"
-            elif self.get_cell() and self.get_cell().grid == status.earth_grid:
+            elif self.location.is_earth_location:
                 top_message += " (exempt while on Earth)"
-            elif (
-                self.get_cell()
-                and self.get_cell().terrain_handler.get_unit_habitability()
-                > constants.HABITABILITY_DEADLY
-            ):
+            elif self.location.get_unit_habitability() > constants.HABITABILITY_DEADLY:
                 show_air_exemption = True
             tooltip_list.append(top_message)
 
@@ -1102,13 +1051,13 @@ class mob(actor):
             )
 
         if self.end_turn_destination:
-            if self.end_turn_destination.cell.grid == status.strategic_map_grid:
+            if not self.end_turn_destination.is_abstract_location:
                 tooltip_list.append(
-                    f"This unit has been issued an order to travel to ({self.end_turn_destination.cell.x}, {self.end_turn_destination.cell.y}) on {status.strategic_map_grid.world_handler.name} at the end of the turn"
+                    f"This unit has been issued an order to travel to ({self.end_turn_destination.x}, {self.end_turn_destination.y}) on {self.end_turn_destination.true_world_handler.name} at the end of the turn"
                 )
             else:
                 tooltip_list.append(
-                    f"This unit has been issued an order to travel to {self.end_turn_destination.cell.grid.grid_type[:-5].capitalize()} at the end of the turn"
+                    f"This unit has been issued an order to travel to {self.end_turn_destination.true_world_handler.name} at the end of the turn"
                 )
 
         if self.get_permission(constants.NPMOB_PERMISSION):
@@ -1120,19 +1069,14 @@ class mob(actor):
         elif self.get_permission(constants.PMOB_PERMISSION) and self.sentry_mode:
             tooltip_list.append("This unit is in sentry mode")
 
-        self.set_tooltip(tooltip_list)
+        return tooltip_list
 
     def drop_inventory(self):
         """
-        Description:
-            Drops each item held in this actor's inventory into its current tile
-        Input:
-            None
-        Output:
-            None
+        Drops each item held in this actor's inventory into its current location
         """
         for current_item in self.get_held_items():
-            self.get_cell().tile.change_inventory(
+            self.location.change_inventory(
                 current_item, self.get_inventory(current_item)
             )
             self.set_inventory(current_item, 0)
@@ -1141,7 +1085,7 @@ class mob(actor):
         ):
             for current_equipment in self.equipment.copy():
                 if self.equipment[current_equipment]:
-                    self.get_cell().tile.change_inventory(
+                    self.location.change_inventory(
                         status.equipment_types[current_equipment], 1
                     )
                     status.equipment_types[current_equipment].unequip(self)
@@ -1149,23 +1093,18 @@ class mob(actor):
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also deselects this mob
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also deselects this mob
         """
         if status.displayed_mob == self:
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, None, override_exempt=True
             )
-        for current_image in self.images:
-            current_image.remove_from_cell()
+        if self.subscribed_location:
+            self.subscribed_location.unsubscribe_mob(self)
         super().remove()
         status.mob_list = utility.remove_from_list(status.mob_list, self)
         for current_status_icon in self.status_icons:
-            current_status_icon.remove_complete()
+            current_status_icon.remove()
         self.status_icons = []
         self.unit_type.on_remove()
 
@@ -1179,10 +1118,10 @@ class mob(actor):
         Output:
             None
         """
-        if self.get_permission(constants.PMOB_PERMISSION):
+        if self.get_permission(constants.PMOB_PERMISSION) and death_type == "violent":
             self.death_sound(death_type)
         self.drop_inventory()
-        self.remove_complete()
+        self.remove()
 
     def death_sound(self, death_type: str = "violent"):
         """
@@ -1220,39 +1159,40 @@ class mob(actor):
     def can_move(self, x_change: int, y_change: int, can_print: bool = False):
         """
         Description:
-            Returns whether this mob can move to the tile x_change to the right of it and y_change above it. Movement can be prevented by not being able to move on water/land, the edge of the map, limited movement points, etc.
+            Returns whether this mob can move to the location x_change to the right of it and y_change above it. Movement can be prevented by not being able to move on water/land, the edge of the map, limited movement points, etc.
         Input:
-            int x_change: How many cells would be moved to the right in the hypothetical movement
-            int y_change: How many cells would be moved upward in the hypothetical movement
+            int x_change: How many locations would be moved to the right in the hypothetical movement
+            int y_change: How many locations would be moved upward in the hypothetical movement
         Output:
             boolean: Returns True if this mob can move to the proposed destination, otherwise returns False
         """
-        future_x = (self.x + x_change) % self.grid.coordinate_width
-        future_y = (self.y + y_change) % self.grid.coordinate_height
+        current_location = self.location
+        current_world = current_location.world_handler
+        future_x = (current_location.x + x_change) % current_world.world_dimensions
+        future_y = (current_location.y + y_change) % current_world.coordinate_height
         if minister_utility.get_minister(constants.TRANSPORTATION_MINISTER):
-            if not self.grid.is_abstract_grid:
-                future_cell = self.grid.find_cell(future_x, future_y)
-
+            if not self.location.is_abstract_location:
+                future_location = current_world.find_location(future_x, future_y)
                 if (
-                    future_cell.terrain_handler.get_unit_habitability(self)
+                    future_location.get_unit_habitability(self)
                     == constants.HABITABILITY_DEADLY
                 ):
                     if can_print:
                         constants.notification_manager.display_notification(
                             {
-                                "message": "This unit cannot move into a tile with deadly environmental conditions without spacesuits. /n /n",
+                                "message": "This unit cannot move into deadly environmental conditions without spacesuits. /n /n",
                             }
                         )
                     return False
 
                 if self.unit_type.required_infrastructure:
                     if not (
-                        self.get_cell().has_intact_building(
+                        current_location.has_intact_building(
                             self.unit_type.required_infrastructure.key
                         )
-                        and self.grids[0]
-                        .find_cell(self.x + x_change, self.y + y_change)
-                        .has_intact_building(self.unit_type.required_infrastructure.key)
+                        and current_location.has_intact_building(
+                            self.unit_type.required_infrastructure.key
+                        )
                     ):
                         if can_print:
                             text_utility.print_to_screen(
@@ -1260,27 +1200,20 @@ class mob(actor):
                             )
                         return False
 
-                if future_cell.terrain_handler.visible or self.any_permissions(
-                    constants.EXPEDITION_PERMISSION, constants.NPMOB_PERMISSION
+                if (
+                    self.movement_points >= self.get_movement_cost(x_change, y_change)
+                    or self.get_permission(constants.INFINITE_MOVEMENT_PERMISSION)
+                    and self.movement_points > 0
                 ):
-                    if (
-                        self.movement_points
-                        >= self.get_movement_cost(x_change, y_change)
-                        or self.get_permission(constants.INFINITE_MOVEMENT_PERMISSION)
-                        and self.movement_points > 0
-                    ):
-                        return True
-                    elif can_print:
-                        text_utility.print_to_screen(
-                            "You do not have enough movement points to move."
-                        )
-                        text_utility.print_to_screen(
-                            f"You have {self.movement_points} movement points, while {self.get_movement_cost(x_change, y_change)} are required."
-                        )
+                    return True
                 elif can_print:
                     text_utility.print_to_screen(
-                        "You cannot move to an unexplored tile."
+                        "You do not have enough movement points to move."
                     )
+                    text_utility.print_to_screen(
+                        f"You have {self.movement_points} movement points, while {self.get_movement_cost(x_change, y_change)} are required."
+                    )
+
             elif can_print:
                 text_utility.print_to_screen("You cannot move while in this area.")
         elif can_print:
@@ -1321,12 +1254,7 @@ class mob(actor):
 
     def travel_sound(self):
         """
-        Description:
-            Plays a sound when this unit starts traveling between grids, with a varying sound based on this unit's type
-        Input:
-            None
-        Output:
-            None
+        Plays a sound when this unit starts traveling between grids, with a varying sound based on this unit's type
         """
         if self.get_permission(constants.SPACESHIP_PERMISSION):
             channel = self.selection_sound()
@@ -1339,12 +1267,7 @@ class mob(actor):
 
     def movement_sound(self):
         """
-        Description:
-            Plays a sound when this unit moves or embarks/disembarks a vehicle, with a varying sound based on this unit's type
-        Input:
-            None
-        Output:
-            None
+        Plays a sound when this unit moves or embarks/disembarks a vehicle, with a varying sound based on this unit's type
         """
         possible_sounds = []
         if self.get_permission(constants.PMOB_PERMISSION) or self.visible():
@@ -1357,11 +1280,8 @@ class mob(actor):
                     constants.sound_manager.play_sound("effects/ocean_splashing")
                     possible_sounds.append("effects/ship_propeller")
             else:
-                if (
-                    self.get_cell()
-                    and self.get_cell().terrain_handler.terrain == "water"
-                ):
-                    local_infrastructure = self.get_cell().get_intact_building(
+                if self.location.terrain == "water":
+                    local_infrastructure = self.location.get_intact_building(
                         constants.INFRASTRUCTURE
                     )
                     if (
@@ -1387,8 +1307,8 @@ class mob(actor):
         Description:
             Moves this mob x_change to the right and y_change upward
         Input:
-            int x_change: How many cells are moved to the right in the movement
-            int y_change: How many cells are moved upward in the movement
+            int x_change: How many locations are moved to the right in the movement
+            int y_change: How many locations are moved upward in the movement
         Output:
             None
         """
@@ -1397,20 +1317,13 @@ class mob(actor):
         self.end_turn_destination = None  # Cancels planned movements
         status.displayed_mob.set_permission(constants.TRAVELING_PERMISSION, False)
         self.change_movement_points(-1 * self.get_movement_cost(x_change, y_change))
-        if self.get_permission(constants.PMOB_PERMISSION):
-            previous_cell = self.get_cell()
-        for current_image in self.images:
-            current_image.remove_from_cell()
-        self.x = (self.x + x_change) % self.grid.coordinate_width
-        self.y = (self.y + y_change) % self.grid.coordinate_height
-        status.minimap_grid.calibrate(self.x, self.y)
-        for current_image in self.images:
-            current_image.add_to_cell()
-
+        current_location = self.location
+        new_location = current_location.world_handler.find_location(
+            current_location.x + x_change, current_location.y + y_change
+        )
+        new_location.subscribe_mob(self)
+        actor_utility.focus_minimap_grids(new_location)
         self.movement_sound()
-
-        actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
-
         if self.get_permission(
             constants.PMOB_PERMISSION
         ):  # Do an inventory attrition check when moving, using the destination's terrain
@@ -1421,37 +1334,12 @@ class mob(actor):
 
     def retreat(self):
         """
-        Description:
-            Causes a free movement to the last cell this unit moved from, following a failed attack
-        Input:
-            None
-        Output:
-            None
+        Causes a free movement to the last location this unit moved from, following a failed attack
         """
         original_movement_points = self.movement_points
         self.move(-1 * self.last_move_direction[0], -1 * self.last_move_direction[1])
 
         self.set_movement_points(original_movement_points)  # retreating is free
-
-    def touching_mouse(self):
-        """
-        Description:
-            Returns whether any of this mob's images is colliding with the mouse. Also ensures that no hidden images outside of the minimap are considered as colliding
-        Input:
-            None
-        Output:
-            boolean: True if any of this mob's images is colliding with the mouse, otherwise return False
-        """
-        for current_image in self.images:
-            if current_image.Rect.collidepoint(
-                pygame.mouse.get_pos()
-            ):  # if mouse is in image
-                if not (
-                    current_image.grid == status.minimap_grid
-                    and not current_image.grid.is_on_mini_grid(self.x, self.y)
-                ):  # do not consider as touching mouse if off-map
-                    return True
-        return False
 
     def set_name(self, new_name):
         """
@@ -1466,40 +1354,9 @@ class mob(actor):
         if status.displayed_mob == self:
             actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
 
-    def hide_images(self):
-        """
-        Description:
-            Hides this mob's images, allowing it to be hidden but still stored at certain coordinates when it is attached to another actor or otherwise not visible
-        Input:
-            None
-        Output:
-            None
-        """
-        if status.displayed_mob == self:
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
-        for current_image in self.images:
-            current_image.remove_from_cell()
-
-    def show_images(self):
-        """
-        Description:
-            Shows this mob's images at its stored coordinates, allowing it to be visible after being attached to another actor or otherwise not visible
-        Input:
-            None
-        Output:
-            None
-        """
-        for current_image in self.images:
-            current_image.add_to_cell()
-
     def start_ambient_sound(self):
         """
-        Description:
-            Starts the ambient sound for this unit, continuing looping sound until invalid or the unit is deselected
-        Input:
-            None
-        Output:
-            None
+        Starts the ambient sound for this unit, continuing looping sound until invalid or the unit is deselected
         """
         if self == status.displayed_mob and not self.locked_ambient_sound:
             if self.all_permissions(
@@ -1523,12 +1380,7 @@ class mob(actor):
 
     def stop_ambient_sound(self):
         """
-        Description:
-            Stops any ambient sound for this unit when the sound is invalid or the unit is deselected
-        Input:
-            None
-        Output:
-            None
+        Stops any ambient sound for this unit when the sound is invalid or the unit is deselected
         """
         if self.ambient_sound_channel and not self.locked_ambient_sound:
             constants.sound_manager.stop_looping_sound(self.ambient_sound_channel)

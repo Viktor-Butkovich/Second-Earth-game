@@ -19,7 +19,7 @@ class unit_type:
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'key': string value - Constant uniquely identifying this type of worker across the program
+                'key': string value - Constant uniquely identifying this type of unit across the program
                 'permissions': boolean dictionary value - Dictionary of this unit type's default permissions, with True/False permissions
                 'can_recruit': boolean value - Whether this unit type can be recruited
                     'recruitment_verb': string value - Verb to use when recruiting this unit, default of 'recruit'
@@ -61,7 +61,11 @@ class unit_type:
             ]
             self.number: int = input_dict.get("number", 1)
             self.num_instances: int = 0
-            self.image_id = f"mobs/{self.key}/default.png"
+            self.image_dict = {
+                constants.IMAGE_ID_LIST_DEFAULT: [
+                    {"image_id": f"mobs/{self.key}/default.png"}
+                ]
+            }
             self.name: str = input_dict.get("name", "default")
             self.movement_points: int = input_dict.get("movement_points", 4)
             self.required_infrastructure: building_types.building_type = input_dict.get(
@@ -85,7 +89,12 @@ class unit_type:
             image_id list: List of image IDs for the recruitment button center image
         """
         image_id = constants.character_manager.generate_unit_portrait(
-            dummy_recruited_unit, metadata={"body_image": self.image_id}
+            dummy_recruited_unit,
+            metadata={
+                "body_image": self.image_dict[constants.IMAGE_ID_LIST_DEFAULT][0][
+                    "image_id"
+                ]
+            },
         )
         for image in image_id:
             if (
@@ -155,7 +164,7 @@ class unit_type:
             None
         Output:
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
-                'key': string value - Constant uniquely identifying this type of worker across the program
+                'key': string value - Constant uniquely identifying this type of unit across the program
                 'recruitment_cost': float value - Cost of recruiting this unit
         """
         return {
@@ -167,61 +176,45 @@ class unit_type:
     def get_total_upkeep(self) -> float:
         """
         Description:
-            Calculates and returns the total upkeep of this worker type's units
+            Calculates and returns the total upkeep of this unit type's units
         Input:
             None
         Output:
-            float: Returns the total upkeep of this worker type's units
+            float: Returns the total upkeep of this unit type's units
         """
         return self.num_instances * self.upkeep
 
     def generate_input_dict(self) -> Dict:
         """
         Description:
-            Generates an input dict to create a worker of this type
+            Generates an input dict to create a unit of this type
         Input:
             None
         Output:
-            dictionary: Returns dictionary with standard entries for this worker type
+            dictionary: Returns dictionary with standard entries for this unit type
         """
-        input_dict = {
-            "image": self.image_id,
+        return {
             "name": self.name,
             "init_type": self.key,
             "unit_type": self,
+            **self.image_dict,
         }
-        return input_dict
 
     def on_recruit(self) -> None:
         """
-        Description:
-            Called when an instance of this unit is newly hired (not reconstructed from save)
-        Input:
-            None
-        Output:
-            None
+        Called when an instance of this unit is newly hired (not reconstructed from save)
         """
         return
 
     def on_remove(self) -> None:
         """
-        Description:
-            Called whenever an instance of this unit is removed, tracking how many instances remain
-        Input:
-            None
-        Output:
-            None
+        Called whenever an instance of this unit is removed, tracking how many instances remain
         """
         self.num_instances -= 1
 
     def reset(self) -> None:
         """
-        Description:
-            Resets this unit types value's when a new game is created, preventing any mutable values from carrying over
-        Input:
-            None
-        Output:
-            None
+        Resets this unit types value's when a new game is created, preventing any mutable values from carrying over
         """
         self.num_instances = 0
         if self.can_recruit:
@@ -258,7 +251,7 @@ class group_type(unit_type):
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'key': string value - Constant uniquely identifying this type of worker across the program
+                'key': string value - Constant uniquely identifying this type of unit across the program
                 'permissions': boolean dictionary value - Dictionary of this unit type's default permissions, with True/False permissions
                 'can_recruit': boolean value - Whether this unit type can be recruited
                     'recruitment_verb': string value - Verb to use when recruiting this unit, default of 'recruit'
@@ -287,7 +280,7 @@ class vehicle_type(unit_type):
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'key': string value - Constant uniquely identifying this type of worker across the program
+                'key': string value - Constant uniquely identifying this type of unit across the program
                 'permissions': boolean dictionary value - Dictionary of this unit type's default permissions, with True/False permissions
                 'can_recruit': boolean value - Whether this unit type can be recruited
                     'recruitment_verb': string value - Verb to use when recruiting this unit, default of 'recruit'
@@ -301,8 +294,15 @@ class vehicle_type(unit_type):
             None
         """
         super().__init__(from_save, input_dict)
-        self.uncrewed_image_id = f"mobs/{self.key}/uncrewed.png"
-        self.moving_image_id = f"mobs/{self.key}/moving.png"
+        self.image_dict = {
+            **self.image_dict,
+            constants.IMAGE_ID_LIST_VEHICLE_UNCREWED: [
+                {"image_id": f"mobs/{self.key}/uncrewed.png"}
+            ],
+            constants.IMAGE_ID_LIST_VEHICLE_MOVING: [
+                {"image_id": f"mobs/{self.key}/moving.png"}
+            ],
+        }
 
     def generate_input_dict(self) -> Dict:
         """
@@ -313,14 +313,10 @@ class vehicle_type(unit_type):
         Output:
             dictionary: Returns dictionary with standard entries for this unit type
         """
-        input_dict = super().generate_input_dict()
-        input_dict["image_dict"] = {
-            "default": self.image_id,
-            "uncrewed": self.uncrewed_image_id,
-            "moving": self.moving_image_id,
+        return {
+            **super().generate_input_dict(),
+            "crew": None,
         }
-        input_dict["crew"] = None
-        return input_dict
 
     def generate_center_recruitment_image(self, dummy_recruited_unit) -> List[Dict]:
         """
@@ -331,7 +327,7 @@ class vehicle_type(unit_type):
         Output
             image_id list: List of image IDs for the recruitment button center image
         """
-        return self.uncrewed_image_id
+        return self.image_dict[constants.IMAGE_ID_LIST_VEHICLE_UNCREWED]
 
 
 class worker_type(unit_type):
@@ -382,7 +378,10 @@ class worker_type(unit_type):
             image_id list: List of image IDs for the recruitment button center image
         """
         worker_images = random.choices(
-            actor_utility.get_image_variants(self.image_id), k=2
+            actor_utility.get_image_variants(
+                self.image_dict[constants.IMAGE_ID_LIST_DEFAULT][0]["image_id"]
+            ),
+            k=2,
         )
         image_id = utility.combine(
             actor_utility.generate_unit_component_portrait(
@@ -427,12 +426,7 @@ class worker_type(unit_type):
 
     def reset(self) -> None:
         """
-        Description:
-            Resets this unit types value's when a new game is created, preventing any mutable values from carrying over
-        Input:
-            None
-        Output:
-            None
+        Resets this unit types value's when a new game is created, preventing any mutable values from carrying over
         """
         super().reset()
         self.upkeep = self.initial_upkeep
@@ -463,12 +457,7 @@ class worker_type(unit_type):
 
     def on_recruit(self) -> None:
         """
-        Description:
-            Makes any updates required when worker first recruited (not on load)
-        Input:
-            None
-        Output:
-            None
+        Makes any updates required when worker first recruited (not on load)
         """
         super().on_recruit()
         if self.upkeep > 0:
@@ -476,12 +465,7 @@ class worker_type(unit_type):
 
     def on_remove(self):
         """
-        Description:
-            Called whenever an instance of this unit is removed, tracking how many instances remain
-        Input:
-            None
-        Output:
-            None
+        Called whenever an instance of this unit is removed, tracking how many instances remain
         """
         super().on_remove()
         constants.money_label.check_for_updates()

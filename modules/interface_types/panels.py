@@ -43,47 +43,15 @@ class panel(button):
         flags.choosing_destination = False
         return None
 
-    def update_tooltip(self):
-        """
-        Description:
-            Panels have no tooltips
-        Input:
-            None
-        Output:
-            None
-        """
-        return
-
-    def set_tooltip(self):
-        """
-        Description:
-            Panels have no tooltips
-        Input:
-            None
-        Output:
-            None
-        """
-        return
-
     def can_show_tooltip(self):
         """
-        Description:
-            Panels have no tooltips
-        Input:
-            None
-        Output:
-            None
+        Panels have no tooltips
         """
         return False
 
     def draw(self):
         """
-        Description:
-            Draws this panel, ignoring outlines from the panel being clicked
-        Input:
-            None
-        Output:
-            None
+        Draws this panel, ignoring outlines from the panel being clicked
         """
         if self.showing:
             super().draw(allow_show_outline=False)
@@ -104,7 +72,11 @@ class safe_click_panel(panel):
             boolean: Returns False if the selected vehicle has no crew, otherwise returns same as superclass
         """
         if super().can_show():
-            for parameter in ["displayed_mob", "displayed_tile", "displayed_minister"]:
+            for parameter in [
+                "displayed_mob",
+                "displayed_location",
+                "displayed_minister",
+            ]:
                 if getattr(status, parameter):
                     return True
         return False

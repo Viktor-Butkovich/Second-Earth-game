@@ -59,36 +59,22 @@ class label(button):
         self.image.set_image(self.image.image_id)
         self.image.Rect = self.Rect
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this label's tooltip - by default, labels have tooltips matching their text
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        self.set_tooltip([self.message])
+        return [self.message]
 
     def on_click(self):
         """
-        Description:
-            Controls this label's behavior when clicked. By default, labels do nothing when clicked, though label subclasses like notifications may still need on_click functionality
-        Input:
-            None
-        Output:
-            None
+        Controls this label's behavior when clicked. By default, labels do nothing when clicked, though label subclasses like notifications may still need on_click functionality
         """
         return
 
     def draw(self):
         """
-        Description:
-            Draws this label and draws its text on top of it, ignoring outlines from the label being clicked
-        Input:
-            None
-        Output:
-            None
+        Draws this label and draws its text on top of it, ignoring outlines from the label being clicked
         """
         if self.showing:
             super().draw(allow_show_outline=False)
@@ -145,14 +131,10 @@ class value_label(label):
         """
         self.set_label(utility.capitalize(self.display_name + ": " + str(new_value)))
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this label's tooltip to what it should be. A value label's tooltip label's tooltip shows its text followed by a message related to the type of value represented
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         tooltip_text = [self.message]
         if self.value_name == "public_opinion":
@@ -162,7 +144,7 @@ class value_label(label):
             tooltip_text.append(
                 "Public opinion tends to approach the netural value of 50 over time"
             )
-        self.set_tooltip(tooltip_text)
+        return tooltip_text
 
 
 class money_label_template(value_label):
@@ -221,23 +203,14 @@ class money_label_template(value_label):
 
     def check_for_updates(self):
         """
-        Description:
-            Updates the projected income shown by this label when the income would change for any reason, such as when a worker is hired
-        Input:
-            None
-        Output:
-            None
+        Updates the projected income shown by this label when the income would change for any reason, such as when a worker is hired
         """
         self.update_label(getattr(constants, self.tracker.value_key))
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this label's tooltip to what it should be. A money label's tooltip shows its text followed by the upkeep of the player's units each turn
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         tooltip_text = [self.message]
 
@@ -313,7 +286,7 @@ class money_label_template(value_label):
                 "Between these revenues and expenses, your company is expected to neither gain nor lose money at the end of the turn."
             )
 
-        self.set_tooltip(tooltip_text)
+        return tooltip_text
 
 
 class item_prices_label_template(label):
@@ -347,12 +320,7 @@ class item_prices_label_template(label):
 
     def update_label(self):
         """
-        Description:
-            Updates the values shown by this label when item prices change
-        Input:
-            None
-        Output:
-            None
+        Updates the values shown by this label when item prices change
         """
         message = ["Prices: "]
         market_items: List[item_types.item_type] = [
@@ -398,12 +366,7 @@ class item_prices_label_template(label):
 
     def draw(self):
         """
-        Description:
-            Draws this label and draws its text on top of it
-        Input:
-            None
-        Output:
-            None
+        Draws this label and draws its text on top of it
         """
         if constants.current_game_mode in self.modes:
             self.image.draw()
@@ -418,16 +381,12 @@ class item_prices_label_template(label):
                     ),
                 )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this label's tooltip to be the same as the text it displays
-        Input:
-            None
-        Output:
-            Sets this label's tooltip to be the same as the text it displays
+        Provides the tooltip for this object
         """
-        self.set_tooltip(self.message)
+        return self.message
 
 
 class multi_line_label(label):
@@ -464,12 +423,7 @@ class multi_line_label(label):
 
     def draw(self):
         """
-        Description:
-            Draws this label and draws each line of its text on top of it
-        Input:
-            None
-        Output:
-            None
+        Draws this label and draws each line of its text on top of it
         """
         if self.showing:
             self.image.draw()
@@ -493,23 +447,16 @@ class multi_line_label(label):
                     ),
                 )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Input:
-            None
-        Output:
-            Sets this label's tooltip to be the same as the text it displays
+        Provides the tooltip for this object
         """
-        self.set_tooltip(self.message)
+        return self.message
 
     def format_message(self):
         """
-        Description:
-            Converts this label's string message to a list of strings, with each string representing a line of text. Each line of text ends when its width exceeds the ideal_width or when a '/n' is encountered in the text
-        Input:
-            None
-        Output:
-            None
+        Converts this label's string message to a list of strings, with each string representing a line of text. Each line of text ends when its width exceeds the ideal_width or when a '/n' is encountered in the text
         """
         new_message = []
         next_line = ""

@@ -11,6 +11,7 @@
       "hide_old_units",
       "hide_old_buttons",
       "allow_toggle_god_mode",
+      "rotate_game_mode_buttons",
       "skip_intro"
    ],
    "effects": [
@@ -50,6 +51,7 @@
       "promote_on_sentry",
       "debug_print",
       "track_fps",
+      "track_mouse_position",
       "transparent_ministers",
       "reset_achievements",
       "fullscreen",

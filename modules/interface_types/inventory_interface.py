@@ -2,6 +2,7 @@
 
 import pygame
 import math
+from typing import List
 from modules.interface_types.interface_elements import ordered_collection
 from modules.interface_types.buttons import button
 from modules.util import actor_utility
@@ -41,13 +42,8 @@ class inventory_grid(ordered_collection):
         super().__init__(input_dict)
 
     def scroll_update(self) -> None:
-        """
-        Description:
-            Updates the display when this collection is scrolled
-        Input:
-            None
-        Output:
-            None
+        """:
+        Updates the display when this collection is scrolled
         """
         actor_type: str = self.get_actor_type()
         actor = getattr(status, f"displayed_{actor_type}")
@@ -250,12 +246,7 @@ class item_icon(button):
 
     def draw(self):
         """
-        Description:
-            Draws this button below its choice notification, along with an outline if it is selected
-        Input:
-            None
-        Output:
-            None
+        Draws this button below its choice notification, along with an outline if it is selected
         """
         if self.showing:
             if self == getattr(status, f"displayed_{self.actor_type}"):
@@ -281,30 +272,19 @@ class item_icon(button):
             and self.in_inventory_capacity
         )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this button's tooltip depending on its contained item
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.current_item:
-            self.set_tooltip(
-                [self.current_item.name.capitalize()] + self.current_item.description
-            )
+            return [self.current_item.name.capitalize()] + self.current_item.description
         else:
-            self.set_tooltip(["Empty"])
+            return ["Empty"]
 
     def on_click(self):
         """
-        Description:
-            Calibrates mob_inventory_info_display or tile_inventory_info_display to this icon, depending on this icon's actor type
-        Input:
-            None
-        Output:
-            None
+        Calibrates mob_inventory_info_display or location_inventory_info_display to this icon, depending on this icon's actor type
         """
         if not self.can_show(skip_parent_collection=True):
             self.current_item = None
@@ -314,9 +294,9 @@ class item_icon(button):
             )
             if self.actor_type == "mob_inventory":
                 actor_utility.calibrate_actor_info_display(
-                    getattr(status, "tile_inventory_info_display"), None
+                    getattr(status, "location_inventory_info_display"), None
                 )
-            elif self.actor_type == "tile_inventory":
+            elif self.actor_type == "location_inventory":
                 actor_utility.calibrate_actor_info_display(
                     getattr(status, "mob_inventory_info_display"), None
                 )
@@ -327,10 +307,10 @@ class item_icon(button):
 
     def transfer(
         self, amount: int = None
-    ) -> None:  # calling transfer but not doing anything from mob
+    ) -> None:  # Calling transfer but not doing anything from mob
         """
         Description:
-            Drops or picks up the inputted amount of this tile's current item type, depending on if this is a tile or mob item icon
+            Drops or picks up the inputted amount of this location's current item type, depending on if this is a location or mob item icon
         Input:
             int amount: Amount of item to transfer, or None if transferring all
         Output:

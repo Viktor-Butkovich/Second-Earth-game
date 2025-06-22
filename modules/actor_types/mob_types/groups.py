@@ -1,10 +1,9 @@
 # Contains functionality for group units
 
-import random
 import math
 from typing import Dict, List
 from modules.actor_types.mob_types.pmobs import pmob
-from modules.util import actor_utility, minister_utility, utility
+from modules.util import actor_utility, utility
 from modules.constants import constants, status, flags
 
 
@@ -27,8 +26,8 @@ class group(pmob):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this group's name
                 'modes': string list value - Game modes during which this group's images can appear
-                'end_turn_destination': string or int tuple value - Required if from save, None if no saved destination, destination coordinates if saved destination
-                'end_turn_destination_grid_type': string value - Required if end_turn_destination is not None, matches the status key of the end turn destination grid, allowing loaded object to have that grid as a destination
+                'end_turn_destination_coordinates': int tuple value - None if no saved destination, destination coordinates if saved destination
+                'end_turn_destination_world_index': int value - Index of the world of the end turn destination, if any
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'worker': worker or dictionary value - If creating a new group, equals a worker that is part of this group. If loading, equals a dictionary of the saved information necessary to recreate the worker
@@ -41,14 +40,23 @@ class group(pmob):
             self.officer: pmob = input_dict["officer"]
         else:
             self.worker: pmob = constants.actor_creation_manager.create(
-                True, input_dict["worker"]
+                True,
+                {
+                    **input_dict["worker"],
+                    "location": input_dict["location"],
+                },
             )
             self.officer: pmob = constants.actor_creation_manager.create(
-                True, input_dict["officer"]
+                True,
+                {
+                    **input_dict["officer"],
+                    "location": input_dict["location"],
+                },
             )
+        input_dict["image_id"] = (
+            "misc/empty.png"  # Groups have no default image, just unit component portraits
+        )
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.worker.join_group(self)
-        self.officer.join_group(self)
         for current_mob in [
             self.worker,
             self.officer,
@@ -69,7 +77,7 @@ class group(pmob):
                     ) and self.officer.equipment.get(
                         equipment, False
                     ):  # If both worker and officer had same equipment, drop extra
-                        self.get_cell().tile.change_inventory(equipment, 1)
+                        self.location.change_inventory(equipment, 1)
                     status.equipment_types[equipment].equip(self)
 
         if not from_save:
@@ -99,6 +107,16 @@ class group(pmob):
         if self.get_permission(constants.EXPEDITION_PERMISSION):
             self.on_move()
         self.finish_init(original_constructor, from_save, input_dict)
+        self.worker.join_group(self)
+        self.officer.join_group(self)
+
+    @property
+    def contained_mobs(self) -> List[pmob]:
+        """
+        All mobs contained within this actor, including itself
+            Can use instead of manually finding all mobs somewhere, even ones that are not directly subscribed to the location
+        """
+        return [self, self.worker, self.officer]
 
     def get_item_upkeep(
         self, recurse: bool = False, earth_exemption: bool = True
@@ -141,12 +159,7 @@ class group(pmob):
 
     def permissions_setup(self) -> None:
         """
-        Description:
-            Sets up this mob's permissions
-        Input:
-            None
-        Output:
-            None
+        Sets up this mob's permissions
         """
         super().permissions_setup()
         self.set_permission(constants.GROUP_PERMISSION, True)
@@ -160,19 +173,18 @@ class group(pmob):
         Output:
             None
         """
-        input_dict = {
-            "coordinates": (self.x, self.y),
-            "grids": self.grids,
-            "modes": self.modes,
-        }
-
-        input_dict.update(new_worker_type.generate_input_dict())
         constants.money_tracker.change(
             -1 * new_worker_type.recruitment_cost,
             "unit_recruitment",
         )
         previous_selected = status.displayed_mob
-        new_worker = constants.actor_creation_manager.create(False, input_dict)
+        new_worker = constants.actor_creation_manager.create(
+            False,
+            {
+                "location": self.location,
+                **new_worker_type.generate_input_dict(),
+            },
+        )
         new_worker.set_automatically_replace(self.worker.automatically_replace)
         self.worker.fire(wander=False)
         self.worker = new_worker
@@ -182,47 +194,19 @@ class group(pmob):
         if previous_selected:
             previous_selected.select()
 
-    def move(self, x_change, y_change):
-        """
-        Description:
-            Moves this mob x_change to the right and y_change upward, also making sure to update the positions of the group's worker and officer
-        Input:
-            int x_change: How many cells are moved to the right in the movement
-            int y_change: How many cells are moved upward in the movement
-        Output:
-            None
-        """
-        super().move(x_change, y_change)
-        self.calibrate_sub_mob_positions()
-
-    def calibrate_sub_mob_positions(self):
-        """
-        Description:
-            Updates the positions of this mob's submobs (mobs inside of a building or other mob that are not able to be independently viewed or selected) to match this mob
-        Input:
-            None
-        Output:
-            None
-        """
-        self.officer.x = self.x
-        self.officer.y = self.y
-        self.worker.x = self.x
-        self.worker.y = self.y
-        self.on_move()
-
     def fire(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also fires this group's worker and officer
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also fires this group's worker and officer
         """
         self.drop_inventory()
         self.officer.fire()
         self.worker.fire()
-        self.remove_complete()
+        super().fire()
+
+    def remove(self):
+        self.officer.remove()
+        self.worker.remove()
+        super().remove()
 
     def to_save_dict(self):
         """
@@ -243,13 +227,8 @@ class group(pmob):
 
     def promote(self):
         """
-        Description:
-            Promotes this group's officer to a veteran after performing various actions particularly well, improving the capabilities of groups the officer is attached to in the future. Creates a veteran star icon that follows this
-                group and its officer
-        Input:
-            None
-        Output:
-            None
+        Promotes this group's officer to a veteran after performing various actions particularly well, improving the capabilities of groups the officer is attached to in the future. Creates a veteran star icon that follows this
+            group and its officer
         """
         if self.get_permission(constants.PORTERS_PERMISSION):
             self.set_max_movement_points(6, initial_setup=False)
@@ -266,31 +245,9 @@ class group(pmob):
                 status.mob_info_display, self.vehicle
             )
 
-    def go_to_grid(self, new_grid, new_coordinates):
-        """
-        Description:
-            Links this group to a grid, causing it to appear on that grid and its minigrid at certain coordinates. Used when crossing the ocean and when a group that was previously attached to another actor becomes independent and
-                visible, like when a group disembarks a ship. Also moves its officer and worker to the new grid
-        Input:
-            grid new_grid: grid that this group is linked to
-            int tuple new_coordinates: Two values representing x and y coordinates to start at on the inputted grid
-        Output:
-            None
-        """
-        super().go_to_grid(new_grid, new_coordinates)
-        self.officer.go_to_grid(new_grid, new_coordinates)
-        self.officer.join_group(self)
-        self.worker.go_to_grid(new_grid, new_coordinates)
-        self.worker.join_group(self)
-
     def disband(self, focus=True):
         """
-        Description:
-            Separates this group into its officer and worker, destroying the group
-        Input:
-            None
-        Output:
-            None
+        Separates this group into its officer and worker, destroying the group
         """
         for equipment, equipped in list(self.equipment.items()):
             if equipped:
@@ -314,7 +271,7 @@ class group(pmob):
         self.officer.set_movement_points(
             math.floor(movement_ratio_remaining * self.officer.max_movement_points)
         )
-        self.remove_complete()
+        super().remove()
 
     def die(self, death_type="violent"):
         """

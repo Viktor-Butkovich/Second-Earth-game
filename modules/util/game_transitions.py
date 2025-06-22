@@ -7,7 +7,6 @@ from modules.util import (
     minister_utility,
     scaling,
 )
-from modules.actor_types import tiles
 from modules.constants import constants, status, flags
 
 
@@ -47,7 +46,7 @@ def cycle_player_turn(start_of_turn=False):
         cycled_mob = turn_queue[0]
         if (
             constants.current_game_mode == constants.EARTH_MODE
-            and not status.earth_grid in cycled_mob.grids
+            and not cycled_mob.location.is_earth_location
         ):
             set_game_mode(constants.STRATEGIC_MODE)
         elif constants.current_game_mode == constants.MINISTERS_MODE:
@@ -124,28 +123,28 @@ def set_game_mode(new_game_mode):
         constants.MINISTERS_MODE,
     ]:
         if new_game_mode == constants.MINISTERS_MODE or not (
-            status.displayed_tile and status.displayed_tile.grid == status.earth_grid
+            status.displayed_location and status.displayed_location.is_earth_location
         ):
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, None, override_exempt=True
             )  # Deselect actors/ministers and remove any actor info from display when switching screens
             actor_utility.calibrate_actor_info_display(
-                status.tile_info_display, None, override_exempt=True
+                status.location_info_display, None, override_exempt=True
             )
             minister_utility.calibrate_minister_info_display(None)
             if new_game_mode == constants.EARTH_MODE:
                 actor_utility.calibrate_actor_info_display(
-                    status.tile_info_display, status.earth_grid.cell_list[0][0].tile
-                )  # Calibrate tile info to Earth
+                    status.location_info_display, status.earth_world.find_location(0, 0)
+                )  # Calibrate location info to Earth
             elif new_game_mode == constants.STRATEGIC_MODE:
-                centered_cell = status.strategic_map_grid.find_cell(
-                    status.minimap_grid.center_x, status.minimap_grid.center_y
-                )
-                if centered_cell.tile:
+                if status.current_world:
                     actor_utility.calibrate_actor_info_display(
-                        status.tile_info_display, centered_cell.tile
-                    )
-                    # Calibrate tile info to minimap center
+                        status.location_info_display,
+                        status.current_world.find_location(
+                            status.minimap_grid.center_x,
+                            status.minimap_grid.center_y,
+                        ),
+                    )  # Calibrate location info to minimap center
     if new_game_mode == constants.MINISTERS_MODE:
         constants.available_minister_left_index = -2
         minister_utility.update_available_minister_display()
@@ -162,43 +161,6 @@ def set_game_mode(new_game_mode):
         constants.NEW_GAME_SETUP_MODE,
     ]:
         constants.notification_manager.update_notification_layout()
-
-
-def create_strategic_map(from_save=False):
-    """
-    Description:
-        Generates grid terrains/resources if not from save, and sets up tiles attached to each grid cell
-    Input:
-        None
-    Output:
-        None
-    """
-    # text_tools.print_to_screen('Creating map...')
-    main_loop_utility.update_display()
-
-    for current_grid in status.grid_list:
-        if current_grid.is_abstract_grid:  # if earth grid
-            tiles.abstract_tile(
-                False,
-                {
-                    "grid": current_grid,
-                    "name": current_grid.name,
-                    "modes": current_grid.modes,
-                },
-            )
-        else:
-            input_dict = {
-                "grid": current_grid,
-                "image": "misc/empty.png",
-                "name": "default",
-                "modes": current_grid.modes,
-                "show_terrain": True,
-            }
-            for cell in current_grid.get_flat_cell_list():
-                input_dict["coordinates"] = (cell.x, cell.y)
-                tiles.tile(False, input_dict)
-            if current_grid == status.strategic_map_grid:
-                current_grid.create_world(from_save)
 
 
 def start_loading(previous_game_mode: str = None, new_game_mode: str = None):
@@ -238,23 +200,24 @@ def to_main_menu(override=False):
     actor_utility.calibrate_actor_info_display(
         status.mob_info_display, None, override_exempt=True
     )
-    actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
+    actor_utility.calibrate_actor_info_display(status.location_info_display, None)
     minister_utility.calibrate_minister_info_display(None)
-    for current_actor in status.actor_list:
-        current_actor.remove_complete()
-    for current_grid in status.grid_list:
-        current_grid.remove_complete()
-    for current_minister in status.minister_list:
-        current_minister.remove_complete()
-    for current_die in status.dice_list:
-        current_die.remove_complete()
-    status.loan_list = []
+    for current_grid in status.grid_list.copy():
+        current_grid.remove()
+    for current_world in status.world_list.copy():
+        current_world.remove()
+    for current_minister in status.minister_list.copy():
+        current_minister.remove()
+    for current_die in status.dice_list.copy():
+        current_die.remove()
+    for current_loan in status.loan_list.copy():
+        current_loan.remove()
     status.displayed_mob = None
-    status.displayed_tile = None
+    status.displayed_location = None
     constants.message = ""
     status.player_turn_queue = []
     if status.current_instructions_page:
-        status.current_instructions_page.remove_complete()
+        status.current_instructions_page.remove()
         status.current_instructions_page = None
     for key, terrain_feature_type in status.terrain_feature_types.items():
         terrain_feature_type.clear_tracking()
@@ -277,4 +240,89 @@ def force_minister_appointment():
             "message": "You cannot do that until all minister positions have been appointed. /n /n",
             "notification_type": constants.NOTIFICATION,
         }
+    )
+
+
+def create_grids() -> None:
+    """
+    Description:
+        Creates grids (current world minimaps, Earth abstract grid, etc.) upon loading or creating a new game
+    Input:
+        None
+    Output:
+        None
+    """
+    status.scrolling_strategic_map_grid = (
+        constants.actor_creation_manager.create_interface_element(
+            input_dict={
+                "init_type": constants.MINI_GRID,
+                "world_handler": status.current_world,
+                "coordinates": scaling.scale_coordinates(
+                    constants.strategic_map_x_offset,
+                    constants.strategic_map_y_offset,
+                ),
+                "width": scaling.scale_width(constants.strategic_map_pixel_width),
+                "height": scaling.scale_height(constants.strategic_map_pixel_height),
+                "modes": [constants.STRATEGIC_MODE],
+                "coordinate_size": status.current_world.world_dimensions,
+                "grid_line_width": 2,
+                "parent_collection": status.grids_collection,
+            }
+        )
+    )
+
+    status.minimap_grid = constants.strategic_map_grid = (
+        constants.actor_creation_manager.create_interface_element(
+            input_dict={
+                "init_type": constants.MINI_GRID,
+                "world_handler": status.current_world,
+                "coordinates": scaling.scale_coordinates(
+                    constants.minimap_grid_x_offset,
+                    -1 * (constants.minimap_grid_pixel_height + 25)
+                    + constants.minimap_grid_y_offset,
+                ),
+                "width": scaling.scale_width(constants.minimap_grid_pixel_width),
+                "height": scaling.scale_height(constants.minimap_grid_pixel_height),
+                "modes": [constants.STRATEGIC_MODE],
+                "coordinate_size": constants.minimap_grid_coordinate_size,
+                "external_line_color": constants.COLOR_BRIGHT_RED,
+                "parent_collection": status.grids_collection,
+            }
+        )
+    )
+
+    globe_projection_grid = constants.actor_creation_manager.create_interface_element(
+        input_dict={
+            "init_type": constants.ABSTRACT_GRID,
+            "world_handler": status.current_world.orbital_world,
+            "coordinates": scaling.scale_coordinates(
+                constants.globe_projection_grid_x_offset,
+                constants.globe_projection_grid_y_offset,
+            ),
+            "width": scaling.scale_width(constants.globe_projection_grid_width),
+            "height": scaling.scale_height(constants.globe_projection_grid_height),
+            "modes": [constants.STRATEGIC_MODE],
+            "parent_collection": status.grids_collection,
+        }
+    )
+
+    earth_grid = constants.actor_creation_manager.create_interface_element(
+        input_dict={
+            "init_type": constants.ABSTRACT_GRID,
+            "world_handler": status.earth_world,
+            "coordinates": scaling.scale_coordinates(
+                constants.earth_grid_x_offset,
+                constants.earth_grid_y_offset,
+            ),
+            "width": scaling.scale_width(constants.earth_grid_width),
+            "height": scaling.scale_height(constants.earth_grid_height),
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            "parent_collection": status.grids_collection,
+        }
+    )
+
+    actor_utility.calibrate_minimap_grids(
+        status.current_world,
+        round(0.75 * status.current_world.world_dimensions),
+        round(0.75 * status.current_world.world_dimensions),
     )

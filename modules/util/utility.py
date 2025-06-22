@@ -5,51 +5,6 @@ from typing import List, Tuple, Dict
 from copy import deepcopy
 
 
-def find_object_distance(first, second):
-    """
-    Description:
-        Returns the distance between the positions of the inputted objects. Functions correctly regardless of whether the x and y coordinate attributes are pixel coordinates or grid coordinates
-    Input:
-        object first: Object with x and y coordinate attributes
-        object second: Object with x and y coordinate attributes
-    Output:
-        double: Returns the distance between the positions of the inputted objects
-    """
-    return (((first.x - second.x) ** 2) + ((first.y - second.y) ** 2)) ** 0.5
-
-
-def find_coordinate_distance(first, second):
-    """
-    Description:
-        Returns the distance between the positions of the inputted coordinates. Functions correctly regardless of whether the x and y coordinates are pixel coordinates or grid coordinates
-    Input:
-        int tuple first: Two values representing x and y coordinates
-        int tuple second: Two values representing x and y coordinates
-    Output:
-        double: Returns the distance between the positions of the inputted coordinates
-    """
-    first_x, first_y = first
-    second_x, second_y = second
-    return (((first_x - second_x) ** 2) + ((first_y - second_y) ** 2)) ** 0.5
-
-
-def find_grid_distance(first, second):
-    """
-    Description:
-        Returns the sum of the horizontal and vertical distances between the positions of the inputted objects. Works for calculating movement distance on a grid. Returns -1 for objects on different grids
-    Input:
-        object first: Object with x and y coordinate attributes
-        object second: Object with x and y coordinate attributes
-    Output:
-        int: Returns the sum of the horizontal and vertical distance between the positions of the inputted objects
-    """
-    horizontal_distance = abs(first.x - second.x)
-    vertical_distance = abs(first.y - second.y)
-    if not first.grids[0] in second.grids:
-        return -1
-    return horizontal_distance + vertical_distance
-
-
 def remove_from_list(received_list, item_to_remove):
     """
     Description:
@@ -161,10 +116,10 @@ def generate_capitalized_article(word):
         return "A "
 
 
-def pretty_print_image_dict(image_dict: dict):
+def pretty_print_image_id(image_dict: dict):
     """
     Description:
-        Pretty-prints an image_dict, displaying indented image_id and metadata for each component
+        Pretty-prints an image ID dictionary, displaying indented image_id and metadata for each component
     Input:
         dict image_dict: image_dict in following format:
         {
@@ -279,7 +234,7 @@ def combine(*args) -> List:
 def fahrenheit(temperature: int):
     """
     Description:
-        Returns the approximate fahrenheit temperature for the inputted tile temperature
+        Returns the approximate fahrenheit temperature for the inputted local temperature
     Input:
         int temperature: Temperature in game units
     Output:
@@ -296,7 +251,7 @@ def fahrenheit(temperature: int):
 def reverse_fahrenheit(temperature: int):
     """
     Description:
-        Returns the approximate tile temperature for the inputted fahrenheit temperature
+        Returns the approximate local temperature for the inputted fahrenheit temperature
     Input:
         int temperature: Temperature in fahrenheit
     Output:

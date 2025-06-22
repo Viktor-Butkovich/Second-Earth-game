@@ -1,6 +1,7 @@
 # Contains functionality for buttons relating to the Earth headquarters screen
 
 import random
+from typing import List
 from modules.interface_types.buttons import button
 from modules.util import (
     main_loop_utility,
@@ -39,20 +40,15 @@ class recruitment_button(button):
             None
         """
         self.recruitment_type: unit_types.unit_type = input_dict["recruitment_type"]
-        input_dict[
-            "image_id"
-        ] = self.recruitment_type.generate_framed_recruitment_image()
+        input_dict["image_id"] = (
+            self.recruitment_type.generate_framed_recruitment_image()
+        )
         input_dict["button_type"] = "recruitment"
         super().__init__(input_dict)
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. This type of button creates a new unit with a type depending on recruitment_type and places it on Earth
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. This type of button creates a new unit with a type depending on recruitment_type and places it on Earth
         """
         if main_loop_utility.action_possible():
             if constants.money_tracker.get() >= self.recruitment_type.recruitment_cost:
@@ -66,29 +62,19 @@ class recruitment_button(button):
         else:
             text_utility.print_to_screen("You are busy and cannot recruit a unit")
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its button_type. This type of button has a tooltip describing the type of unit it recruits
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         if self.recruitment_type.number >= 2:
-            self.set_tooltip(
-                [
-                    f"Recruits a unit of {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money."
-                ]
-                + self.recruitment_type.get_list_description()
-            )
+            return [
+                f"Recruits a unit of {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money."
+            ] + self.recruitment_type.get_list_description()
         else:
-            self.set_tooltip(
-                [
-                    f"Recruits a {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money."
-                ]
-                + self.recruitment_type.get_list_description()
-            )
+            return [
+                f"Recruits a {self.recruitment_type.name} for {self.recruitment_type.recruitment_cost} money."
+            ] + self.recruitment_type.get_list_description()
 
 
 class buy_item_button(button):
@@ -137,27 +123,22 @@ class buy_item_button(button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. This type of button buys a unit of the item
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. This type of button buys a unit of the item
         """
         if main_loop_utility.action_possible():
             if constants.money_tracker.get() >= self.item_type.price:
                 if minister_utility.positions_filled():
                     actor_utility.calibrate_actor_info_display(
-                        status.tile_info_display,
-                        status.earth_grid.cell_list[0][0].tile,
+                        status.location_info_display,
+                        status.earth_world.find_location(0, 0),
                     )
-                    status.earth_grid.cell_list[0][0].tile.change_inventory(
+                    status.earth_world.find_location(0, 0).change_inventory(
                         self.item_type, 1
-                    )  # Adds 1 of item bought to local tile
+                    )  # Adds 1 of item bought to Earth location
 
                     actor_utility.calibrate_actor_info_display(
-                        status.tile_inventory_info_display,
-                        status.displayed_tile_inventory,
+                        status.location_inventory_info_display,
+                        status.displayed_location_inventory,
                     )
                     # Update currently selected item icon with new contents and item quantity
 
@@ -178,7 +159,7 @@ class buy_item_button(button):
                             f"The price of {self.item_type.name} has increased from {self.item_type.price} to {self.item_type.price + 1}."
                         )
                         market_utility.change_price(self.item_type, 1)
-                    for linked_tab in status.tile_tabbed_collection.tabbed_members:
+                    for linked_tab in status.location_tabbed_collection.tabbed_members:
                         linked_tab_button = linked_tab.linked_tab_button
                         if linked_tab_button.identifier == constants.INVENTORY_PANEL:
                             linked_tab_button.on_click()
@@ -192,18 +173,11 @@ class buy_item_button(button):
                 f"You are busy and cannot purchase {self.item_type.name}."
             )
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its button_type. This type of button has a tooltip describing the item that it buys and its price
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
-        new_tooltip = []
-        new_tooltip.append(
+        return [
             f"Purchases 1 unit of {self.item_type.name} for {self.item_type.price} money."
-        )
-        new_tooltip += self.item_type.description
-        self.set_tooltip(new_tooltip)
+        ] + self.item_type.description

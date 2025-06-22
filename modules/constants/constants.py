@@ -228,6 +228,8 @@ fear: int = 0
 fear_tracker: value_tracker_template = None
 fps: int = 0
 fps_tracker: value_tracker_template = None
+mouse_position: Tuple[int, int] = None
+mouse_position_tracker: value_tracker_template = None
 frames_this_second: int = 0
 last_fps_update: float = 0.0
 
@@ -254,21 +256,6 @@ default_music_volume: float = 0.3
 current_instructions_page_index: int = 0
 current_instructions_page_text: str = ""
 message: str = ""
-
-STRATEGIC_MAP_GRID_TYPE: str = "strategic_map_grid"
-EARTH_GRID_TYPE: str = "earth_grid"
-GLOBE_PROJECTION_GRID_TYPE: str = "globe_projection_grid"
-SCROLLING_STRATEGIC_MAP_GRID_TYPE: str = "scrolling_strategic_map_grid"
-MINIMAP_GRID_TYPE: str = "minimap_grid"
-
-grid_types_list: List[str] = [
-    STRATEGIC_MAP_GRID_TYPE,
-    EARTH_GRID_TYPE,
-    GLOBE_PROJECTION_GRID_TYPE,
-    SCROLLING_STRATEGIC_MAP_GRID_TYPE,
-    MINIMAP_GRID_TYPE,
-]
-abstract_grid_type_list: List[str] = [EARTH_GRID_TYPE, GLOBE_PROJECTION_GRID_TYPE]
 
 grids_collection_x: int = default_display_width - 740
 grids_collection_y: int = default_display_height - 325
@@ -465,13 +452,13 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
     },
     "remove_fog_of_war": {
         "default": "Disables fog of war",
-        "True": "Fog of war disabled - no knowledge required to view tiles",
-        "False": "Fog of war active - knowledge required to view tiles",
+        "True": "Fog of war disabled - no knowledge required to view locations",
+        "False": "Fog of war active - knowledge required to view locations",
     },
     "show_clouds": {
-        "default": "Toggles cloud visibility on explored tiles",
-        "True": "Currently showing clouds, even on explored tiles",
-        "False": "Currently showing clouds on unexplored tiles only",
+        "default": "Toggles cloud visibility on explored locations",
+        "True": "Currently showing clouds, even on explored locations",
+        "False": "Currently showing clouds on unexplored locations only",
     },
     "god_mode": {
         "default": "Toggles god mode, allowing manual control of planetary global/local parameters",
@@ -495,7 +482,14 @@ toggle_button_tooltips: Dict[str, Dict[str, str]] = {
     },
 }
 
-map_size_options: List[str] = None
+world_dimensions_options: List[int] = None
+earth_dimensions: int = None
+
+EARTH_WORLD: str = "earth"
+MARS_WORLD: str = "mars"
+VENUS_WORLD: str = "venus"
+GLOBE_PROJECTION_WORLD: str = "globe_projection"
+
 current_game_mode: str = None
 STRATEGIC_MODE: str = "strategic"
 EARTH_MODE: str = "earth"
@@ -565,17 +559,19 @@ map_modes: List[str] = [
 
 DEFAULT_MINISTER_OUTFIT_TYPE = "business"
 
-HAT_LEVEL: int = 9
-EYES_LEVEL: int = 3
-GLASSES_LEVEL: int = 4
-HAIR_LEVEL: int = 5
-FACIAL_HAIR_LEVEL: int = 8
-PORTRAIT_LEVEL: int = 10
-LABEL_LEVEL: int = 11
-FRONT_LEVEL: int = 20
+HAT_LEVEL: int = 19
+EYES_LEVEL: int = 13
+GLASSES_LEVEL: int = 14
+HAIR_LEVEL: int = 15
+FACIAL_HAIR_LEVEL: int = 18
+PORTRAIT_LEVEL: int = 20
+OVERLAY_ICON_LEVEL: int = 21
+FRONT_LEVEL: int = 30
 BACKGROUND_LEVEL: int = -5
-DEFAULT_LEVEL: int = 2
-BACKPACK_LEVEL: int = 1
+DEFAULT_PORTRAIT_LEVEL: int = 12
+BACKPACK_LEVEL: int = 11
+BUILDING_LEVEL: int = 5
+BUILDING_INDICATOR_LEVEL: int = 6
 
 ALTITUDE_BRIGHTNESS_MULTIPLIER: float = 0.5
 PIXELLATED_SIZE: int = 2
@@ -600,7 +596,6 @@ TERRAIN_KNOWLEDGE_REQUIREMENT: int = 0
 TERRAIN_PARAMETER_KNOWLEDGE: str = "terrain_parameter"
 TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT: int = 0
 
-WORLD_GREEN_SCREEN_DEFAULTS: str = "world_green_screen_defaults"
 TIME_PASSING_ROTATION: int = 0
 TIME_PASSING_INITIAL_ORIENTATION: int = 0
 TIME_PASSING_EQUATORIAL_COORDINATES: List[Tuple[int, int]] = []
@@ -719,12 +714,14 @@ WAREHOUSE_LEVEL: str = "warehouse_level"
 RESOURCE: str = "resource"
 RESOURCE_SCALE: str = "scale"
 RESOURCE_EFFICIENCY: str = "efficiency"
-SLUMS: str = "slums"
 SETTLEMENT: str = "settlement"
 
-CELL_ICON: str = "cell_icon"
-NAME_ICON: str = "name_icon"
+HOSTED_ICON: str = "hosted_icon"
 LOAN: str = "loan"
+LOCATION: str = "location"
+FULL_WORLD: str = "full_world"
+ABSTRACT_WORLD: str = "abstract_world"
+ORBITAL_WORLD: str = "orbital_world"
 BUTTON: str = "button"
 INTERFACE_ELEMENT: str = "interface_element"
 INTERFACE_COLLECTION: str = "interface_collection"
@@ -733,7 +730,7 @@ ORDERED_COLLECTION: str = "ordered_collection"
 INVENTORY_GRID: str = "inventory_grid"
 TABBED_COLLECTION: str = "tabbed_collection"
 END_TURN_BUTTON: str = "end_turn_button"
-CYCLE_SAME_TILE_BUTTON: str = "cycle_same_tile_button"
+CYCLE_SAME_LOCATION_BUTTON: str = "cycle_same_location_button"
 FIRE_UNIT_BUTTON: str = "fire_unit_button"
 SWITCH_GAME_MODE_BUTTON: str = "switch_game_mode_button"
 CYCLE_AVAILABLE_MINISTERS_BUTTON: str = "cycle_available_ministers_button"
@@ -825,7 +822,7 @@ DRAW_AUTOMATIC_ROUTE_BUTTON: str = "draw_automatic_route_button"
 CLEAR_AUTOMATIC_ROUTE_BUTTON: str = "clear_automatic_route_button"
 HELP_BUTTON: str = "help_button"
 
-SAME_TILE_ICON: str = "same_tile_icon"
+SAME_LOCATION_ICON: str = "same_location_icon"
 MINISTER_PORTRAIT_IMAGE: str = "minister_portrait_image"
 ITEM_ICON: str = "item_icon"
 DIE_ELEMENT: str = "die_element"
@@ -913,7 +910,7 @@ GHG_EFFECT_LABEL: str = "GHG_effect_label"
 WATER_VAPOR_EFFECT_LABEL: str = "water_vapor_effect_label"
 ALBEDO_EFFECT_LABEL: str = "albedo_effect_label"
 TOTAL_HEAT_LABEL: str = "total_heat_label"
-TILE_INVENTORY_CAPACITY_LABEL: str = "tile_inventory_capacity_label"
+LOCATION_INVENTORY_CAPACITY_LABEL: str = "location_inventory_capacity_label"
 MOB_INVENTORY_CAPACITY_LABEL: str = "mob_inventory_capacity_label"
 
 FREE_IMAGE: str = "free_image"
@@ -929,11 +926,16 @@ LOADING_IMAGE_TEMPLATE_IMAGE: str = "loading_image_template_image"
 MOUSE_FOLLOWER_IMAGE: str = "mouse_follower_image"
 DIRECTIONAL_INDICATOR_IMAGE: str = "directional_indicator_image"
 
+MINI_GRID: str = "mini_grid"
+ABSTRACT_GRID: str = "abstract_grid"
+
 NOTIFICATION: str = "notification"
 CHOICE_NOTIFICATION: str = "choice_notification"
 ACTION_NOTIFICATION: str = "action_notification"
 DICE_ROLLING_NOTIFICATION: str = "dice_rolling_notification"
-OFF_TILE_EXPLORATION_NOTIFICATION: str = "off_tile_exploration_notification"
+ADJACENT_LOCATION_EXPLORATION_NOTIFICATION: str = (
+    "adjacent_location_exploration_notification"
+)
 
 SPACESUITS_EQUIPMENT: str = "spacesuits"
 CONSUMER_GOODS_ITEM: str = "consumer_goods"
@@ -942,19 +944,6 @@ ENERGY_ITEM: str = "energy"
 FOOD_ITEM: str = "food"
 WATER_ITEM: str = "water"
 AIR_ITEM: str = "air"
-
-UPKEEP_MISSING_PENALTY_DEATH: str = 4  # Highest penalty takes precedent
-UPKEEP_MISSING_PENALTY_DEHYDRATION: str = 3
-UPKEEP_MISSING_PENALTY_STARVATION: str = 2
-UPKEEP_MISSING_PENALTY_MORALE: str = 1
-UPKEEP_MISSING_PENALTY_NONE: str = 0
-UPKEEP_MISSING_PENALTY_CODES: Dict[str, int] = {
-    4: "death",
-    3: "dehydration",
-    2: "starvation",
-    1: "morale",
-    0: "none",
-}
 
 PMOB_PERMISSION: str = "pmob"
 NPMOB_PERMISSION: str = "npmob"
@@ -1021,6 +1010,19 @@ CREW_PERMISSIONS: Dict[str, Any] = {
 
 ALLOW_DISORGANIZED: bool = False
 
+UPKEEP_MISSING_PENALTY_DEATH: str = 4  # Highest penalty takes precedent
+UPKEEP_MISSING_PENALTY_DEHYDRATION: str = 3
+UPKEEP_MISSING_PENALTY_STARVATION: str = 2
+UPKEEP_MISSING_PENALTY_MORALE: str = 1
+UPKEEP_MISSING_PENALTY_NONE: str = 0
+UPKEEP_MISSING_PENALTY_CODES: Dict[str, int] = {
+    4: "death",
+    3: DEHYDRATION_PERMISSION,
+    2: STARVATION_PERMISSION,
+    1: "morale",
+    0: "none",
+}
+
 INITIAL_MONEY: int = 1000
 INITIAL_PUBLIC_OPINION: int = 50
 
@@ -1039,13 +1041,26 @@ FRAME_PORTRAIT_SECTION: str = "frame"
 
 MOB_ACTOR_TYPE: str = "mob"
 MOB_INVENTORY_ACTOR_TYPE: str = "mob_inventory"
-TILE_ACTOR_TYPE: str = "tile"
-TILE_INVENTORY_ACTOR_TYPE: str = "tile_inventory"
-BUILDING_ACTOR_TYPE: str = "building"
-CELL_ICON_ACTOR_TYPE: str = "cell_icon"
+LOCATION_ACTOR_TYPE: str = "location"
+LOCATION_INVENTORY_ACTOR_TYPE: str = "location_inventory"
 MINISTER_ACTOR_TYPE: str = "minister"
 PROSECUTION_ACTOR_TYPE: str = "prosecution"
 DEFENSE_ACTOR_TYPE: str = "defense"
+
+MINIMAP_OVERLAY_TERRAIN_FEATURE: str = "minimap_overlay_terrain_feature"
+# Terrain feature that is only shown hovering over minimap locations, like a North Pole or Southern Tropic indicator
+
+APPENDED_IMAGE_TERRAIN_FEATURE: str = "appended_image_terrain_feature"
+# Terrain feature that is included with the location's image, like a physically visible feature
+
+IMAGE_ID_LIST_DEFAULT: str = "image_id_list_default"
+IMAGE_ID_LIST_INCLUDE_MOB: str = "image_id_list_include_mob"
+IMAGE_ID_LIST_INCLUDE_MINIMAP_OVERLAY: str = "image_id_list_include_minimap_overlay"
+IMAGE_ID_LIST_PORTRAIT: str = "image_id_list_portrait"
+IMAGE_ID_LIST_LEFT_PORTRAIT: str = "image_id_list_left_portrait"
+IMAGE_ID_LIST_RIGHT_PORTRAIT: str = "image_id_list_right_portrait"
+IMAGE_ID_LIST_VEHICLE_UNCREWED: str = "image_id_list_vehicle_uncrewed"
+IMAGE_ID_LIST_VEHICLE_MOVING: str = "image_id_list_vehicle_moving"
 
 HABITABILITY_PERFECT: int = 5
 HABITABILITY_TOLERABLE: int = 4

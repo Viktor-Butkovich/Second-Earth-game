@@ -1,13 +1,13 @@
 # Contains functionality for actor display images
 
 from modules.constructs.images import free_image
-from modules.util import action_utility
+from modules.util import utility, action_utility
 from modules.constants import constants, status, flags
 
 
 class actor_display_free_image(free_image):
     """
-    Free image that changes its appearance to match selected mobs or tiles
+    Free image that changes its appearance to match selected mobs or locations
     """
 
     def __init__(self, input_dict):
@@ -49,22 +49,7 @@ class actor_display_free_image(free_image):
                 image_id_list = action_utility.generate_background_image_id_list(
                     new_actor
                 )
-                default_image_key = "default"
-
-                if (
-                    new_actor.actor_type == constants.TILE_ACTOR_TYPE
-                    and not new_actor.cell.terrain_handler.visible
-                ):
-                    default_image_key = "hidden"
-                if new_actor.actor_type in [
-                    constants.MOB_ACTOR_TYPE,
-                    constants.TILE_ACTOR_TYPE,
-                ] and isinstance(
-                    new_actor.images[0].image_id, str
-                ):  # if id is string image path
-                    image_id_list.append(new_actor.image_dict[default_image_key])
-                else:  # if id is list of strings for image bundle
-                    image_id_list += new_actor.get_image_id_list()
+                image_id_list += new_actor.get_image_id_list()
                 if new_actor.actor_type == constants.MOB_ACTOR_TYPE:
                     if new_actor.get_permission(constants.DUMMY_PERMISSION):
                         image_id_list.append(
@@ -90,7 +75,7 @@ class actor_display_free_image(free_image):
                 else:
                     image_id_list.append(
                         {
-                            "image_id": "misc/tile_outline.png",
+                            "image_id": "misc/location_outline.png",
                             "detail_level": 1.0,
                         }
                     )
@@ -99,7 +84,7 @@ class actor_display_free_image(free_image):
             image_id_list = action_utility.generate_background_image_id_list()
             if self.default_image_id:
                 if type(self.default_image_id) == str:
-                    image_id_list.append(self.default_image_id)
+                    image_id_list.append({"image_id": self.default_image_id})
                 else:
                     image_id_list += self.default_image_id
                 image_id_list.append(

@@ -15,12 +15,7 @@ class sound_manager_template:
 
     def __init__(self):
         """
-        Description:
-            Initializes this object
-        Input:
-            None
-        Output:
-            None
+        Initializes this object
         """
         self.default_music_dict = {
             "earth": [
@@ -45,12 +40,7 @@ class sound_manager_template:
 
     def fadeout(self, ms=500):
         """
-        Description:
-            Fades out all active sound channels over the inputted number of milliseconds
-        Input:
-            None
-        Output:
-            None
+        Fades out all active sound channels over the inputted number of milliseconds
         """
         pygame.mixer.fadeout(ms)
 
@@ -312,12 +302,7 @@ class sound_manager_template:
 
     def song_done(self):
         """
-        Description:
-            Called when a song finishes, plays a new random song for the same state, with the new song being different if possible
-        Input:
-            None
-        Output:
-            None
+        Called when a song finishes, plays a new random song for the same state, with the new song being different if possible
         """
         self.play_random_music(self.previous_state, self.previous_song)
 

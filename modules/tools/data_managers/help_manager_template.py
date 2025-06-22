@@ -11,12 +11,7 @@ class help_manager_template:
 
     def __init__(self):
         """
-        Description:
-            Initializes this object
-        Input:
-            None
-        Output:
-            None
+        Initializes this object
         """
         self.subjects: Dict[str, List[str]] = {
             constants.HELP_GLOBAL_PARAMETERS: [
@@ -82,7 +77,7 @@ class help_manager_template:
                 current_line = ""
                 current_line += f"Atmospheric pressure is the total amount of gas in {planet_name_possessive} atmosphere, in atmospheres (atm). "
                 current_line += (
-                    f"1 atm represents 6 units (u) of gas per tile on a planet."
+                    f"1 atm represents 6 units (u) of gas per location on a planet."
                 )
                 message.append(current_line)
 
@@ -120,12 +115,12 @@ class help_manager_template:
                             current_line += f". "
                         if (
                             world_handler.average_temperature
-                            < status.earth_grid.world_handler.average_temperature
+                            < status.earth_world.average_temperature
                         ):
                             current_line += f"Alternatively, GHG can be added to raise temperature at the cost of air quality. "
                         elif (
                             world_handler.average_temperature
-                            > status.earth_grid.world_handler.average_temperature
+                            > status.earth_world.average_temperature
                         ):
                             current_line += f"Alternatively, toxic gases can be added to increase albedo, lowering temperature at the cost of air quality. "
                         current_line += f"Regardless of composition, increasing pressure slightly strengthens the GHG effect and raises temperature."
@@ -156,17 +151,11 @@ class help_manager_template:
                     )
 
             elif subject == constants.AVERAGE_WATER_LABEL:
-                value = (
-                    world_handler.average_water
-                    / status.earth_grid.world_handler.average_water
-                )
+                value = world_handler.average_water / status.earth_world.average_water
                 value_percent = round(value * 100, 2)
                 current_line = ""
 
-                if (
-                    world_handler.average_water
-                    < status.earth_grid.world_handler.average_water
-                ):
+                if world_handler.average_water < status.earth_world.average_water:
                     current_line += f"{planet_name_possessive} current water levels are {value_percent}% of Earth, which are less than ideal for an Earth-like environment. "
                     message.append(current_line)
 
@@ -181,10 +170,7 @@ class help_manager_template:
                         current_line = "To confirm the effects of adding water, add small amounts and observe the resulting temperature changes. "
                     message.append(current_line)
 
-                elif (
-                    world_handler.average_water
-                    > status.earth_grid.world_handler.average_water
-                ):
+                elif world_handler.average_water > status.earth_world.average_water:
                     current_line += f"{planet_name_possessive} current water levels are {value_percent}% of Earth, which are not Earth-like but still habitable. "
                     message.append(current_line)
 
@@ -221,7 +207,7 @@ class help_manager_template:
                 )
 
                 current_line = ""
-                if world_handler == status.earth_grid.world_handler:
+                if world_handler.is_earth:
                     current_line += f"The gravity on {planet_name_possessive} surface is {value} g. "
                 else:
                     current_line += f"The gravity on {planet_name_possessive} surface is {value} g, with 1.0 g being Earth's gravity. "
@@ -281,7 +267,7 @@ class help_manager_template:
             ]:
                 if subject == constants.TOTAL_HEAT_LABEL:
                     value = world_handler.get_total_heat()
-                    earth_value = status.earth_grid.world_handler.get_total_heat()
+                    earth_value = status.earth_world.get_total_heat()
                     keyword = "total heat received"
                     message.append(
                         "Total heat is the energy received by the planet, based on insolation multiplied by the GHG, water vapor, and albedo effects. "
@@ -289,7 +275,7 @@ class help_manager_template:
                 elif subject == constants.AVERAGE_TEMPERATURE_LABEL:
                     value = utility.fahrenheit(world_handler.average_temperature)
                     earth_value = utility.fahrenheit(
-                        status.earth_grid.world_handler.average_temperature
+                        status.earth_world.average_temperature
                     )
                     keyword = "average temperature"
                     message.append(
@@ -332,7 +318,7 @@ class help_manager_template:
 
             elif subject == constants.INSOLATION_LABEL:
                 value = world_handler.get_insolation()
-                earth_value = status.earth_grid.world_handler.get_insolation()
+                earth_value = status.earth_world.get_insolation()
                 message.append(
                     f"Insolation is the baseline amount of sunlight received by {world_handler.name}, based on star distance. "
                 )
@@ -340,7 +326,7 @@ class help_manager_template:
                     f"1 / ({world_handler.star_distance} AU from star) ^ 2 = {round(value, 2)}x Earth's insolation"
                 )
                 message.append(
-                    f"Heat caused by insolation: Stefan-Boltzmann law({round(value, 2)} insolation) = {round(world_handler.get_sun_effect(), 2)} °F ({round((world_handler.get_sun_effect() / status.earth_grid.world_handler.get_sun_effect()) * 100)}% Earth)"
+                    f"Heat caused by insolation: Stefan-Boltzmann law({round(value, 2)} insolation) = {round(world_handler.get_sun_effect(), 2)} °F ({round((world_handler.get_sun_effect() / status.earth_world.get_sun_effect()) * 100)}% Earth)"
                 )
                 if value > earth_value:
                     current_line = ""
@@ -414,7 +400,7 @@ class help_manager_template:
                 low_pressure_message = f"The GHG effect is currently negative because of the very low pressure. Once the pressure is increased, the GHG effect will increase, raising temperature."
                 if (
                     world_handler.get_total_heat()
-                    > status.earth_grid.world_handler.get_total_heat() + 5
+                    > status.earth_world.get_total_heat() + 5
                 ):
                     if value < 0:
                         message.append(low_pressure_message)
@@ -435,7 +421,7 @@ class help_manager_template:
                         )
                 elif (
                     world_handler.get_total_heat()
-                    < status.earth_grid.world_handler.get_total_heat() - 5
+                    < status.earth_world.get_total_heat() - 5
                 ):
                     if value < 0:
                         message.append(low_pressure_message)
@@ -647,22 +633,21 @@ class help_manager_template:
                     )
                 if (
                     world_handler.get_total_heat()
-                    > status.earth_grid.world_handler.get_total_heat() + 5
+                    > status.earth_world.get_total_heat() + 5
                 ):
                     message.append(
                         f"While detrimental to air quality, toxic gases can be added to increase albedo through clouds and haze, lowering temperature. "
                     )
                 elif (
                     world_handler.get_total_heat()
-                    < status.earth_grid.world_handler.get_total_heat() - 5
+                    < status.earth_world.get_total_heat() - 5
                     and world_handler.get_composition(constants.TOXIC_GASES) > 0
                 ):
                     message.append(
                         f"Toxic gases can be removed to improve air quality while also decreasing albedo, raising temperature. "
                     )
                 if (
-                    world_handler.get_insolation()
-                    > status.earth_grid.world_handler.get_insolation()
+                    world_handler.get_insolation() > status.earth_world.get_insolation()
                     and world_handler.get_composition(constants.TOXIC_GASES) > 0
                 ):
                     message.append(

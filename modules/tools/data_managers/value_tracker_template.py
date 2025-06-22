@@ -113,12 +113,7 @@ class money_tracker_template(value_tracker_template):
 
     def reset_transaction_history(self):
         """
-        Description:
-            Resets the stored transactions from the last turn, allowing new transactions to be recorded for the current turn's financial report
-        Input:
-            None
-        Output:
-            None
+        Resets the stored transactions from the last turn, allowing new transactions to be recorded for the current turn's financial report
         """
         self.transaction_history = {}
         for current_transaction_type in constants.transaction_types:

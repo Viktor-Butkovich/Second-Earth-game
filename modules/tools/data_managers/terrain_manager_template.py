@@ -13,12 +13,7 @@ class terrain_manager_template:
 
     def __init__(self):
         """
-        Description:
-            Initializes this object
-        Input:
-            None
-        Output:
-            None
+        Initializes this object
         """
         # Dictionary of terrain names to number of image variants possible
         self.terrain_variant_dict: Dict[str, int] = {}
@@ -129,11 +124,22 @@ class terrain_manager_template:
             elif upper_bound == 305:
                 self.temperature_bounds[idx - 6] = f"above {lower_bound} °F)"
             else:
-                self.temperature_bounds[
-                    idx - 6
-                ] = f"between {lower_bound} °F and {upper_bound} °F)"
+                self.temperature_bounds[idx - 6] = (
+                    f"between {lower_bound} °F and {upper_bound} °F)"
+                )
         self.load_terrains("configuration/terrain_definitions.json")
         self.load_tuning("configuration/terrain_generation_tuning.json")
+
+        if constants.effect_manager.effect_active("large_map"):
+            world_dimensions_options = self.get_tuning("large_map_sizes")
+        elif constants.effect_manager.effect_active("tiny_map"):
+            world_dimensions_options = self.get_tuning("tiny_map_sizes")
+        else:
+            world_dimensions_options = self.get_tuning("map_sizes")
+        constants.world_dimensions_options = world_dimensions_options
+        constants.earth_dimensions = world_dimensions_options[
+            self.get_tuning("earth_dimensions_index")
+        ]
 
     def load_tuning(self, file_name):
         """

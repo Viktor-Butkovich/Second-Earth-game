@@ -38,18 +38,13 @@ class action:
         Input:
             None
         Output:
-            None
+            string: Returns the action type by class name
         """
         return type(self).__name__
 
     def initial_setup(self, **kwargs):
         """
-        Description:
-            Completes any configuration required for this action during setup - automatically called during action_setup
-        Input:
-            None
-        Output:
-            None
+        Completes any configuration required for this action during setup - automatically called during action_setup
         """
         status.actions[self.action_type] = self
         self.current_unit = None
@@ -77,9 +72,9 @@ class action:
         """
         initial_input_dict["init_type"] = constants.ACTION_BUTTON
         initial_input_dict["corresponding_action"] = self
-        initial_input_dict[
-            "image_id"
-        ] = f"buttons/actions/{self.action_type}_button.png"
+        initial_input_dict["image_id"] = (
+            f"buttons/actions/{self.action_type}_button.png"
+        )
         return initial_input_dict
 
     def can_show(self):

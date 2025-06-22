@@ -11,8 +11,8 @@ from modules.util import (
     minister_utility,
     actor_utility,
     tutorial_utility,
+    world_utility,
 )
-from modules.interface_types import world_grids
 from modules.constructs import unit_types
 from modules.constants import constants, status, flags
 
@@ -24,12 +24,7 @@ class save_load_manager_template:
 
     def __init__(self):
         """
-        Description:
-            Initializes this object
-        Input:
-            None
-        Output:
-            None
+        Initializes this object
         """
         self.copied_constants = []
         self.copied_statuses = []
@@ -38,12 +33,7 @@ class save_load_manager_template:
 
     def set_copied_elements(self):
         """
-        Description:
-            Determines which variables should be saved and loaded
-        Input:
-            None
-        Output:
-            None
+        Determines which variables should be saved and loaded
         """
         self.copied_constants = []
         self.copied_constants.append("action_prices")
@@ -66,25 +56,22 @@ class save_load_manager_template:
 
     def new_game(self):
         """
-        Description:
-            Creates a new game and leaves the main menu
-        Input:
-            None
-        Output:
-            None
+        Creates a new game and leaves the main menu
         """
         game_transitions.start_loading()
         status.cached_images = {}
         flags.creating_new_game = True
         flags.victories_this_game = []
-        for grid_type in constants.grid_types_list:
-            world_grids.create_grid(from_save=False, grid_type=grid_type)
+
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
-        game_transitions.create_strategic_map(from_save=False)
-        status.minimap_grid.calibrate(
-            round(0.75 * status.strategic_map_grid.coordinate_width),
-            round(0.75 * status.strategic_map_grid.coordinate_height),
-        )
+
+        world_utility.new_worlds()
+
+        game_transitions.create_grids()
+
+        status.current_world.simulate_temperature_equilibrium(5)
+        # Since world's appearance can change albedo, we need to simulate temperature equilibrium after creating UI
+
         for current_item in status.item_types.values():
             if current_item.key == constants.CONSUMER_GOODS_ITEM:
                 market_utility.set_price(
@@ -139,12 +126,7 @@ class save_load_manager_template:
 
     def save_game(self, file_path):
         """
-        Description:
-            Saves the game in the file corresponding to the inputted file path
-        Input:
-            None
-        Output:
-            None
+        Saves the game in the file corresponding to the inputted file path
         """
         file_path = "save_games/" + file_path
 
@@ -167,10 +149,7 @@ class save_load_manager_template:
         for current_element in self.copied_flags:
             saved_flags[current_element] = getattr(flags, current_element)
 
-        saved_grid_dicts = []
-        for current_grid in status.grid_list:
-            if not current_grid.is_mini_grid:  # minimap grid doesn't need to be saved
-                saved_grid_dicts.append(current_grid.to_save_dict())
+        saved_worlds = world_utility.save_worlds()
 
         saved_unit_types = [
             unit_type.to_save_dict()
@@ -182,26 +161,9 @@ class save_load_manager_template:
             item_type.to_save_dict() for key, item_type in status.item_types.items()
         ]
 
-        saved_actor_dicts = []
-        for current_pmob in status.pmob_list:
-            if not current_pmob.any_permissions(
-                constants.IN_GROUP_PERMISSION,
-                constants.IN_VEHICLE_PERMISSION,
-                constants.IN_BUILDING_PERMISSION,
-            ):  # Containers save their contents and load them in, contents don't need to be saved/loaded separately
-                saved_actor_dicts.append(current_pmob.to_save_dict())
-
-        for current_npmob in status.npmob_list:
-            saved_actor_dicts.append(current_npmob.to_save_dict())
-
-        for current_building in status.building_list:
-            saved_actor_dicts.append(current_building.to_save_dict())
-
-        for current_settlement in status.settlement_list:
-            saved_actor_dicts.append(current_settlement.to_save_dict())
-
-        for current_loan in status.loan_list:
-            saved_actor_dicts.append(current_loan.to_save_dict())
+        saved_loan_dicts = [
+            current_loan.to_save_dict() for current_loan in status.loan_list
+        ]
 
         saved_minister_dicts = []
         for current_minister in status.minister_list:
@@ -215,9 +177,9 @@ class save_load_manager_template:
             pickle.dump(saved_constants, handle)
             pickle.dump(saved_statuses, handle)
             pickle.dump(saved_flags, handle)
-            pickle.dump(saved_grid_dicts, handle)
+            pickle.dump(saved_worlds, handle)
             pickle.dump(saved_unit_types, handle)
-            pickle.dump(saved_actor_dicts, handle)
+            pickle.dump(saved_loan_dicts, handle)
             pickle.dump(saved_minister_dicts, handle)
             pickle.dump(saved_item_types, handle)
             handle.close()
@@ -225,12 +187,7 @@ class save_load_manager_template:
 
     def load_game(self, file_path):
         """
-        Description:
-            Loads a saved game from the file corresponding to the inputted file path
-        Input:
-            None
-        Output:
-            None
+        Loads a saved game from the file corresponding to the inputted file path
         """
         flags.loading_save = True
 
@@ -247,14 +204,14 @@ class save_load_manager_template:
                 saved_constants = pickle.load(handle)
                 saved_statuses = pickle.load(handle)
                 saved_flags = pickle.load(handle)
-                saved_grid_dicts = pickle.load(handle)
+                saved_worlds = pickle.load(handle)
                 saved_worker_types = pickle.load(handle)
-                saved_actor_dicts = pickle.load(handle)
+                saved_loan_dicts = pickle.load(handle)
                 saved_minister_dicts = pickle.load(handle)
                 saved_item_types = pickle.load(handle)
                 handle.close()
         except:
-            text_utility.print_to_screen("There is no " + file_path + " save file yet.")
+            text_utility.print_to_screen(f"There is no {file_path} save file yet.")
             return ()
 
         # Load variables
@@ -274,20 +231,12 @@ class save_load_manager_template:
         text_utility.print_to_screen("")
         text_utility.print_to_screen("Turn " + str(constants.turn))
 
-        # Load grids
-        for current_grid_dict in saved_grid_dicts:
-            world_grids.create_grid(
-                from_save=True,
-                grid_type=current_grid_dict["grid_type"],
-                input_dict=current_grid_dict,
-            )
-        world_grids.create_grid(
-            from_save=False, grid_type=constants.SCROLLING_STRATEGIC_MAP_GRID_TYPE
-        )
-        world_grids.create_grid(from_save=False, grid_type=constants.MINIMAP_GRID_TYPE)
+        world_utility.load_worlds(saved_worlds)
+        # Note that loading in worlds loads locations, which loads settlements, mobs, and buildings
+
+        game_transitions.create_grids()
 
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
-        game_transitions.create_strategic_map(from_save=True)
 
         for current_worker_type in saved_worker_types:
             unit_types.worker_type(True, current_worker_type)
@@ -297,8 +246,8 @@ class save_load_manager_template:
             constants.actor_creation_manager.create_minister(
                 True, current_minister_dict
             )
-        for current_actor_dict in saved_actor_dicts:
-            constants.actor_creation_manager.create(True, current_actor_dict)
+        for current_loan_dict in saved_loan_dicts:
+            constants.actor_creation_manager.create(True, current_loan_dict)
 
         for current_item_type_dict in saved_item_types:
             status.item_types[current_item_type_dict["key"]].apply_save_dict(
@@ -309,20 +258,19 @@ class save_load_manager_template:
         minister_utility.update_available_minister_display()
         status.item_prices_label.update_label()
 
-        status.minimap_grid.calibrate(
-            round(0.75 * status.strategic_map_grid.coordinate_width),
-            round(0.75 * status.strategic_map_grid.coordinate_height),
+        actor_utility.calibrate_minimap_grids(
+            status.current_world,
+            round(0.75 * status.current_world.world_dimensions),
+            round(0.75 * status.current_world.world_dimensions),
         )
         actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
-        actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
-        (
-            status.displayed_defense,
-            status.displayed_minister,
-            status.displayed_mob,
-            status.displayed_tile_inventory,
-            status.displayed_tile,
-            status.displayed_mob_inventory,
-        ) = [None] * 6
+        actor_utility.calibrate_actor_info_display(status.location_info_display, None)
+        status.displayed_defense = None
+        status.displayed_minister = None
+        status.displayed_mob = None
+        status.displayed_mob_inventory = None
+        status.displayed_location_inventory = None
+        status.displayed_location = None
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
 
         tutorial_utility.show_tutorial_notifications()

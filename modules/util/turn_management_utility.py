@@ -25,7 +25,7 @@ def end_turn():
     Output:
         None
     """
-    actor_utility.calibrate_actor_info_display(status.tile_info_display, None)
+    actor_utility.calibrate_actor_info_display(status.location_info_display, None)
     actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
     flags.player_turn = False
     status.player_turn_queue = []
@@ -82,14 +82,10 @@ def start_player_turn(first_turn=False):
             manage_financial_report()
         actor_utility.reset_action_prices()
         game_end_check()
-        status.strategic_map_grid.world_handler.update_clouds()
-        for i in range(5):  # Change to equilibrium
-            status.strategic_map_grid.world_handler.update_target_average_temperature(
-                update_albedo=True
-            )
-            status.strategic_map_grid.world_handler.change_to_temperature_target()
-        status.strategic_map_grid.world_handler.update_sky_color(update_water=True)
-        status.strategic_map_grid.world_handler.update_clouds()
+        status.current_world.update_clouds()
+        status.current_world.simulate_temperature_equilibrium(5)
+        status.current_world.update_sky_color(update_water=True)
+        status.current_world.update_clouds()
         constants.notification_manager.set_lock(False)
 
     flags.player_turn = (
@@ -101,13 +97,13 @@ def start_player_turn(first_turn=False):
     if not first_turn:
         market_utility.adjust_prices()
 
-    status.minimap_grid.calibrate(
+    actor_utility.calibrate_minimap_grids(
+        status.current_world,
         status.minimap_grid.center_x,
         status.minimap_grid.center_y,
-        calibrate_center=False,
     )
     actor_utility.calibrate_actor_info_display(
-        status.tile_info_display, status.displayed_tile
+        status.location_info_display, status.displayed_location
     )
     actor_utility.calibrate_actor_info_display(
         status.mob_info_display, status.displayed_mob
@@ -118,7 +114,7 @@ def start_player_turn(first_turn=False):
 def prepare_planet_rotation():
     """
     Description:
-        Sets up constant values for planet rotation starting from currently selected tile
+        Prepares constant values for planet rotation, starting from currently selected location
     Input:
         None
     Output:
@@ -139,17 +135,14 @@ def prepare_planet_rotation():
     (
         center_index,
         latitude_lines,
-    ) = status.strategic_map_grid.world_handler.get_latitude_line(center_coordinates)
-    if latitude_lines == status.strategic_map_grid.world_handler.latitude_lines:
+    ) = status.current_world.get_latitude_line(center_coordinates)
+    if latitude_lines == status.current_world.latitude_lines:
         constants.TIME_PASSING_EQUATORIAL_COORDINATES = (
-            status.strategic_map_grid.world_handler.equatorial_coordinates
+            status.current_world.equatorial_coordinates
         )
-    elif (
-        latitude_lines
-        == status.strategic_map_grid.world_handler.alternate_latitude_lines
-    ):
+    elif latitude_lines == status.current_world.alternate_latitude_lines:
         constants.TIME_PASSING_EQUATORIAL_COORDINATES = (
-            status.strategic_map_grid.world_handler.alternate_equatorial_coordinates
+            status.current_world.alternate_equatorial_coordinates
         )
     constants.TIME_PASSING_EARTH_ROTATIONS = 0
     constants.TIME_PASSING_ROTATION = 0
@@ -161,7 +154,7 @@ def prepare_planet_rotation():
             )
             break
 
-    if status.strategic_map_grid.world_handler.rotation_speed > 2:
+    if status.current_world.rotation_speed > 2:
         frame_interval = (
             3  # Long interval causes more visible choppiness on slower rotations
         )
@@ -179,13 +172,13 @@ def prepare_planet_rotation():
     # Each full rotation requires # transitions equal to # frames
 
     constants.TIME_PASSING_EARTH_SCHEDULE = [False] * total_timesteps
-    num_earth_rotations = status.strategic_map_grid.get_tuning("earth_rotation_speed")
+    num_earth_rotations = constants.terrain_manager.get_tuning("earth_rotation_speed")
     earth_step_interval = total_timesteps / (earth_frames * num_earth_rotations)
     for i in range(round(earth_frames * num_earth_rotations)):
         constants.TIME_PASSING_EARTH_SCHEDULE[round(i * earth_step_interval)] = True
 
     constants.TIME_PASSING_PLANET_SCHEDULE = [False] * total_timesteps
-    num_planet_rotations = status.strategic_map_grid.world_handler.rotation_speed
+    num_planet_rotations = status.current_world.rotation_speed
     planet_step_interval = total_timesteps / (planet_frames * num_planet_rotations)
     for i in range(round(planet_frames * num_planet_rotations)):
         constants.TIME_PASSING_PLANET_SCHEDULE[round(i * planet_step_interval)] = True
@@ -249,9 +242,10 @@ def manage_attrition():
         if current_pmob.get_held_items():
             current_pmob.manage_inventory_attrition()
 
-    for current_tile in status.main_tile_list:
-        if current_tile.get_held_items():
-            current_tile.manage_inventory_attrition()
+    for current_world in status.world_list:
+        for current_location in current_world.get_flat_location_list():
+            if current_location.get_held_items():
+                current_location.manage_inventory_attrition()
 
 
 def manage_logistics_report() -> None:
@@ -266,31 +260,32 @@ def manage_logistics_report() -> None:
     transportation_minister = minister_utility.get_minister(
         constants.TRANSPORTATION_MINISTER
     )
-    attrition_binned_by_cell = {}
+    attrition_binned_by_location = {}
     for attrition_cause_dict in status.logistics_incident_list:
-        attrition_binned_by_cell[
-            str(attrition_cause_dict.get("cell"))
-        ] = attrition_binned_by_cell.get(str(attrition_cause_dict.get("cell")), []) + [
-            attrition_cause_dict
-        ]
-    for local_logistics_incident_list in attrition_binned_by_cell.values():
+        location_string = str(attrition_cause_dict["location"])
+        attrition_binned_by_location[location_string] = (
+            attrition_binned_by_location.get(location_string, [])
+            + [attrition_cause_dict]
+        )
+    for local_logistics_incident_list in attrition_binned_by_location.values():
         remaining_incidents = local_logistics_incident_list
         n = 5
         while remaining_incidents:
             first_n_incidents = remaining_incidents[:n]
             remaining_incidents = remaining_incidents[n:]
-            cell = local_logistics_incident_list[0].get("cell")
+            # Recall that any dead unit can no longer check their location
+            location = local_logistics_incident_list[0]["location"]
             if len(local_logistics_incident_list) == 1:
                 text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports a logistical incident "
             else:
                 text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports the following logistical incidents "
 
-            if cell.grid.is_abstract_grid:
-                text += f"in orbit of {cell.grid.name}: /n /n"
-            elif cell.tile.name != "default":
-                text += f"at {cell.tile.name}: /n /n"
+            if location.is_abstract_location:
+                text += f"in orbit of {location.true_world_handler.name}: /n /n"
+            elif location.name != None:
+                text += f"at {location.name}: /n /n"
             else:
-                text += f"at ({cell.x}, {cell.y}): /n /n"
+                text += f"at ({location.x}, {location.y}): /n /n"
 
             for local_logistics_incident in first_n_incidents:
                 text += f"{local_logistics_incident.get('explanation')} /n /n"
@@ -301,22 +296,23 @@ def manage_logistics_report() -> None:
                 else:
                     text += f"({len(remaining_incidents)} more incidents on following pages) /n /n"
             transportation_minister.display_message(
-                text, override_input_dict={"zoom_destination": cell.tile}
+                text, override_input_dict={"zoom_destination": location}
             )
 
 
 def remove_excess_inventory():
     """
     Description:
-        Removes any items that exceed their tile's storage capacities
+        Removes any items that exceed their location's storage capacities
     Input:
         None
     Output:
         None
     """
-    for current_tile in status.main_tile_list:
-        if current_tile.inventory:
-            current_tile.remove_excess_inventory()
+    for current_world in status.world_list:
+        for current_location in current_world.get_flat_location_list():
+            if current_location.inventory:
+                current_location.remove_excess_inventory()
 
 
 def manage_environmental_conditions():
@@ -352,7 +348,7 @@ def manage_production():
         expected_production[current_item.key] = 0
     for current_resource_building in status.resource_building_list:
         if not current_resource_building.damaged:
-            for current_work_crew in current_resource_building.contained_work_crews:
+            for current_work_crew in current_resource_building.subscribed_work_crews:
                 if current_work_crew.movement_points >= 1:
                     if current_work_crew.get_permission(constants.VETERAN_PERMISSION):
                         expected_production[
@@ -380,7 +376,7 @@ def manage_production():
 
 
 def manage_production_report(
-    expected_production: Dict[str, item_types.item_type]
+    expected_production: Dict[str, item_types.item_type],
 ) -> None:
     """
     Description:
@@ -428,26 +424,31 @@ def manage_upkeep_expenditure() -> None:
     Output:
         None
     """
-    for current_tile in [
-        current_tile
-        for current_tile in status.main_tile_list
-        if current_tile.cell.contained_mobs
-    ]:
-        item_upkeep = current_tile.get_item_upkeep(recurse=True)
-        item_request = current_tile.create_item_request(item_upkeep)
-        current_tile.fulfill_item_request(item_request.copy())
-        if constants.effect_manager.effect_active("track_item_requests"):
-            if current_tile.show_terrain:
-                name = f"({current_tile.x}, {current_tile.y})"
-            else:
-                name = current_tile.name.capitalize()
-            print(f"{name} total upkeep {item_upkeep}")
-            print(f"{name} requesting external {item_request}")
-        for current_mob in current_tile.cell.contained_mobs:
-            current_mob.check_item_availability()
-        for current_mob in current_tile.cell.contained_mobs:
-            current_mob.consume_item_upkeep()
-        current_tile.set_inventory(status.item_types[constants.ENERGY_ITEM], 0)
+    for current_world in status.world_list:
+        for current_location in current_world.get_flat_location_list():
+            if current_location.subscribed_mobs:
+                item_upkeep = current_location.get_item_upkeep(recurse=True)
+                item_request = current_location.create_item_request(item_upkeep)
+                unfulfilled_item_request = current_location.fulfill_item_request(
+                    item_request.copy()
+                )
+                if constants.effect_manager.effect_active("track_item_requests"):
+                    if current_world.is_abstract_world or current_location.name != None:
+                        name = current_location.name.capitalize()
+                    else:
+                        name = f"({current_location.x}, {current_location.y})"
+                    print(f"{name} total upkeep {item_upkeep}")
+                    print(f"{name} requesting external {item_request}")
+                    print(
+                        f"{name} unfulfilled external requests {unfulfilled_item_request}"
+                    )
+                for current_mob in current_location.subscribed_mobs:
+                    current_mob.check_item_availability()
+                for current_mob in current_location.subscribed_mobs:
+                    current_mob.consume_item_upkeep()
+                current_location.set_inventory(
+                    status.item_types[constants.ENERGY_ITEM], 0
+                )
 
     total_money_upkeep = market_utility.calculate_total_worker_upkeep()
     constants.money_tracker.change(round(-1 * total_money_upkeep, 2), "worker_upkeep")
@@ -457,7 +458,7 @@ def manage_missing_upkeep_penalties() -> None:
     """
     Description:
         Resolves any penalties for missed upkeep
-            Note that upkeep missing penalties are handled for all mobs, while upkeep expenditure is managed at a tile-level with recursive calculations for sub-mobs
+            Note that upkeep missing penalties are handled for all mobs, while upkeep expenditure is managed at a location grain with recursive calculations for sub-mobs
     Input:
         None
     Output:
@@ -620,21 +621,21 @@ def manage_ministers():
     for current_minister in status.minister_list.copy():
         if current_minister.just_removed and not current_minister.current_position:
             current_minister.respond("fired")
-            current_minister.remove_complete()
+            current_minister.remove()
     for current_minister in status.minister_list.copy():
         if constants.effect_manager.effect_active(
             "farm_upstate"
         ):  # Retire all ministers
             current_minister.respond("retirement")
             current_minister.appoint(None)
-            current_minister.remove_complete()
+            current_minister.remove()
         elif (
             current_minister.current_position == None
             and random.randrange(1, 7) == 1
             and random.randrange(1, 7) <= 2
         ):  # 1/18 chance of switching out available ministers
             current_minister.respond("retirement")
-            current_minister.remove_complete()
+            current_minister.remove()
         elif current_minister.current_position:
             if (
                 random.randrange(1, 7) == 1
@@ -647,7 +648,7 @@ def manage_ministers():
             ):
                 current_minister.respond("retirement")
                 current_minister.appoint(None)
-                current_minister.remove_complete()
+                current_minister.remove()
             else:  # If remaining in office
                 if (
                     random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1
@@ -841,49 +842,33 @@ def end_turn_warnings():
                 f"Warning: if you do not reappoint {current_minister.name} by the end of the turn, they will be considered fired, leaving the candidate pool and incurring a large public opinion penalty. /n /n"
             )
 
-    for (
-        current_cell
-    ) in (
-        status.strategic_map_grid.get_flat_cell_list()
-    ):  # Warn for insufficient warehouses
-        if (
-            current_cell.terrain_handler.visible
-            and current_cell.tile.get_inventory_used()
-            > current_cell.tile.inventory_capacity
-        ):
-            constants.notification_manager.display_notification(
-                {
-                    "message": f"Warning: the warehouses at {current_cell.x}, {current_cell.y} are not sufficient to hold the items stored there. /n /nAny items exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
-                    "zoom_destination": current_cell.tile,
-                }
-            )
-    for current_grid in status.grid_list:
-        if current_grid.is_abstract_grid:
-            current_cell = current_grid.cell_list[0][0]
-            if (
-                current_cell.tile.get_inventory_used()
-                > current_cell.tile.inventory_capacity
-                and not current_cell.tile.infinite_inventory_capacity
-            ):
-                constants.notification_manager.display_notification(
-                    {
-                        "message": f"Warning: the warehouses in {current_grid.cell_list[0][0].tile.name} are not sufficient to hold the items stored there. /n /nAny items exceeding the tile's storage capacity will be lost at the end of the turn. /n /n",
-                        "zoom_destination": current_cell.tile,
-                    }
-                )
+    for current_world in status.world_list:  # Warn for insufficient warehouses
+        for current_location in current_world.get_flat_location_list():
+            if current_location.insufficient_inventory_capacity:
+                if current_world.is_abstract_world:
+                    constants.notification_manager.display_notification(
+                        {
+                            "message": f"Warning: the warehouses in {current_location.name} are not sufficient to hold the items stored there. /n /nAny items exceeding the location's storage capacity will be lost at the end of the turn. /n /n",
+                            "zoom_destination": current_location,
+                        }
+                    )
+                else:
+                    constants.notification_manager.display_notification(
+                        {
+                            "message": f"Warning: the warehouses at {current_location.x}, {current_location.y} are not sufficient to hold the items stored there. /n /nAny items exceeding the location's storage capacity will be lost at the end of the turn. /n /n",
+                            "zoom_destination": current_location,
+                        }
+                    )
 
-    for (
-        grid_type
-    ) in (
-        constants.abstract_grid_type_list
-    ):  # Warn for leaving units behind in non-Earth grids
-        if grid_type != constants.EARTH_GRID_TYPE:
-            current_cell = getattr(status, grid_type).find_cell(0, 0)
-            num_leaving, num_reserve = (
-                00,
-                0,
-            )  # Vehicles leaving, and vehicles staying behind, respectively
-            for current_mob in current_cell.contained_mobs:
+    for current_world in status.world_list:
+        if (
+            current_world.is_abstract_world and not current_world.is_earth
+        ):  # Warn for leaving units behind in non-Earth grids
+            current_location = current_world.find_location(0, 0)
+            num_leaving = 0
+            num_reserve = 0
+            # Number of vehicles leaving and number of vehicles staying behind, respectively
+            for current_mob in current_location.subscribed_mobs:
                 if current_mob.end_turn_destination and current_mob.get_permission(
                     constants.VEHICLE_PERMISSION
                 ):
@@ -892,18 +877,15 @@ def end_turn_warnings():
                     constants.VEHICLE_PERMISSION, constants.ACTIVE_PERMISSION
                 ):
                     num_reserve += 1
-            num_stranded = len(current_cell.contained_mobs) - (
+            num_stranded = len(current_location.subscribed_mobs) - (
                 num_leaving + num_reserve
             )  # Number of non-vehicles left behind
-            grid_name = (
-                grid_type[:-5].replace("_", " ").capitalize()
-            )  # earth_grid -> Earth
             if (
                 num_leaving > 0 and num_stranded > 0 and num_reserve == 0
             ):  # If at least 1 vehicle leaving grid and at least 1 unit left behind, give warning
-                text += f"Warning: at least 1 unit is being left behind in {grid_name} and will not be able to leave without another spaceship. /n /n"
+                text += f"Warning: at least 1 unit is being left behind in {current_world.name} and will not be able to leave without another spaceship. /n /n"
                 constants.notification_manager.display_notification(
-                    {"message": text, "zoom_destination": current_cell.tile}
+                    {"message": text, "zoom_destination": current_location}
                 )
 
     for minister in status.minister_list:
@@ -936,35 +918,33 @@ def end_turn_warnings():
             )
             break
 
-    for current_tile in [
-        current_tile
-        for current_tile in status.main_tile_list
-        if current_tile.cell.contained_mobs
-    ]:
-        item_upkeep = current_tile.get_item_upkeep(recurse=True)
-        item_request = current_tile.create_item_request(item_upkeep)
-        if constants.ENERGY_ITEM in item_request:
-            missing_fuel = current_tile.create_item_request(
-                {constants.FUEL_ITEM: item_request[constants.ENERGY_ITEM]}
-            ).get(constants.FUEL_ITEM, 0)
-            if missing_fuel == 0:
-                del item_request[constants.ENERGY_ITEM]
-            else:
-                item_request[constants.ENERGY_ITEM] = missing_fuel
-        if (
-            item_request
-        ):  # For each tile that cannot meet its upkeep requirements, issue a warning
-            if current_tile.show_terrain and current_tile.name == "default":
-                name = f"({current_tile.x}, {current_tile.y})"
-            else:
-                name = current_tile.name.capitalize()
-            text = f"WARNING: {name} does not have enough items to meet its local upkeep requirements. /n /n"
-            text += f"Required items: {actor_utility.summarize_amount_dict(item_upkeep)} /n /n"
-            text += f"Missing items: {actor_utility.summarize_amount_dict(item_request)} /n /n"
-            text += f"Depending on item type, this deficit may result in unit death or morale penalties. /n /n"
-            constants.notification_manager.display_notification(
-                {
-                    "message": text,
-                    "zoom_destination": current_tile,
-                }
-            )
+    for current_world in status.world_list:
+        for current_location in current_world.get_flat_location_list():
+            if current_location.subscribed_mobs:
+                item_upkeep = current_location.get_item_upkeep(recurse=True)
+                item_request = current_location.create_item_request(item_upkeep)
+                if constants.ENERGY_ITEM in item_request:
+                    missing_fuel = current_location.create_item_request(
+                        {constants.FUEL_ITEM: item_request[constants.ENERGY_ITEM]}
+                    ).get(constants.FUEL_ITEM, 0)
+                    if missing_fuel == 0:
+                        del item_request[constants.ENERGY_ITEM]
+                    else:
+                        item_request[constants.ENERGY_ITEM] = missing_fuel
+                if (
+                    item_request
+                ):  # For each current_location that cannot meet its upkeep requirements, issue a warning
+                    if current_world.is_abstract_world or current_location.name != None:
+                        name = current_location.name.capitalize()
+                    else:
+                        name = f"({current_location.x}, {current_location.y})"
+                    text = f"WARNING: {name} does not have enough items to meet its local upkeep requirements. /n /n"
+                    text += f"Required items: {actor_utility.summarize_amount_dict(item_upkeep)} /n /n"
+                    text += f"Missing items: {actor_utility.summarize_amount_dict(item_request)} /n /n"
+                    text += f"Depending on item type, this deficit may result in unit death or morale penalties. /n /n"
+                    constants.notification_manager.display_notification(
+                        {
+                            "message": text,
+                            "zoom_destination": current_location,
+                        }
+                    )

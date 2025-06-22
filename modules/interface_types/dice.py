@@ -3,6 +3,7 @@
 import pygame
 import time
 import random
+from typing import List
 from modules.interface_types.buttons import button
 from modules.util import utility
 from modules.constants import constants, status, flags
@@ -71,13 +72,12 @@ class die(button):
         super().__init__(input_dict)
         status.dice_list.append(self)
         self.final_result = input_dict["final_result"]
-        # self.Rect = pygame.Rect(self.x, constants.display_height - (self.y + height), width, height) # Create pygame rect with width and height, set color depending on roll result, maybe make a default gray appearance
         self.highlight_Rect = pygame.Rect(
             self.x - 3,
             constants.display_height - (self.y + self.height + 3),
             self.width + 6,
             self.height + 6,
-        )  # could implement as outline rect instead, with larger outline width passed to superclass
+        )  # Could implement as outline rect instead, with larger outline width passed to superclass
         if self.normal_die:
             self.outline_color = self.outcome_color_dict["default"]
         else:
@@ -91,12 +91,7 @@ class die(button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. A die copies the on_click behavior of its attached notification, which should cause the die to start rolling
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. A die copies the on_click behavior of its attached notification, which should cause the die to start rolling
         """
         if self.rolls_completed == 0:
             self.find_sibling_notification().on_click()
@@ -113,15 +108,10 @@ class die(button):
             else:
                 return None
 
-    def update_tooltip(self):
+    @property
+    def tooltip_text(self) -> List[List[str]]:
         """
-        Description:
-            Sets this image's tooltip to what it should be, depending on its button_type. If a die is not rolling yet, a description of the results required for different outcomes will be displayed. If a die is currently rolling, its
-                current value will be displayed. If a die is finished rolling, its final value and a description that it has finished rolling and whether its result was selected will be displayed.
-        Input:
-            None
-        Output:
-            None
+        Provides the tooltip for this object
         """
         tooltip_list = []
         if self.rolls_completed == 0:
@@ -168,16 +158,11 @@ class die(button):
                     self.highlighted and len(status.dice_list) > 1
                 ):  # if other dice present and this die chosen
                     tooltip_list.append("This result was chosen")
-        self.set_tooltip(tooltip_list)
+        return tooltip_list
 
     def start_rolling(self):
         """
-        Description:
-            Causes this die to start rolling, after which it will switch to a different side every roll_interval seconds
-        Input:
-            None
-        Output:
-            None
+        Causes this die to start rolling, after which it will switch to a different side every roll_interval seconds
         """
         self.last_roll = time.time()
         self.rolling = True
@@ -192,12 +177,7 @@ class die(button):
 
     def roll(self):
         """
-        Description:
-            Rolls this die to a random face, or to the predetermined result if it is the last roll. When all dice finish rolling, dice rolling notifications will be removed
-        Input:
-            None
-        Output:
-            None
+        Rolls this die to a random face, or to the predetermined result if it is the last roll. When all dice finish rolling, dice rolling notifications will be removed
         """
         self.last_roll = time.time()
         if (
@@ -235,20 +215,13 @@ class die(button):
                         self.outline_color = self.outcome_color_dict["crit_fail"]
                     else:  # if normal fail
                         self.outline_color = self.outcome_color_dict["fail"]
-            self.image.set_image(
-                "misc/dice/" + str(self.roll_result) + ".png"
-            )  # self.set_label(str(self.roll_result))
+            self.image.set_image(f"misc/dice/{self.roll_result}.png")
             self.rolls_completed += 1
 
     def draw(self):
         """
-        Description:
-            If enough time has passed since the last roll and this die is still rolling, this will roll the die again. Additionally, this draws the die with a face corresponding to its current value. If the die is finished rolling and
-                its result was used, an outline with a color corresponding to the roll's result will be displayed.
-        Input:
-            None
-        Output:
-            None
+        If enough time has passed since the last roll and this die is still rolling, this will roll the die again. Additionally, this draws the die with a face corresponding to its current value. If the die is finished rolling and
+            its result was used, an outline with a color corresponding to the roll's result will be displayed.
         """
         if self.showing:
             if (
@@ -273,12 +246,7 @@ class die(button):
 
     def remove(self):
         """
-        Description:
-            Removes the object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes the object from relevant lists and prevents it from further appearing in or affecting the program
         """
         super().remove()
         status.dice_list = utility.remove_from_list(status.dice_list, self)

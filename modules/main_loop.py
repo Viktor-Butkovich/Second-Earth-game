@@ -2,12 +2,12 @@
 
 import time
 import pygame
-import os
 from modules.util import (
     main_loop_utility,
     text_utility,
     turn_management_utility,
     actor_utility,
+    world_utility,
 )
 from modules.constants import constants, status, flags
 
@@ -243,8 +243,6 @@ def main_loop():
             <= constants.current_time
         ):  # If enough time has passed based on delay from previous movement
             equatorial_coordinates = constants.TIME_PASSING_EQUATORIAL_COORDINATES
-            planet_size = len(equatorial_coordinates)
-            num_earth_images = len(os.listdir("graphics/locations/earth_rotations"))
             if constants.TIME_PASSING_ITERATIONS < len(
                 constants.TIME_PASSING_PLANET_SCHEDULE
             ):
@@ -256,9 +254,9 @@ def main_loop():
                             constants.TIME_PASSING_ROTATION
                             + constants.TIME_PASSING_INITIAL_ORIENTATION
                         )
-                        % planet_size
+                        % status.current_world.world_dimensions
                     ]
-                    status.strategic_map_grid.update_globe_projection(
+                    status.current_world.update_globe_projection(
                         center_coordinates=current_coordinates,
                         update_button=constants.effect_manager.effect_active(
                             "rotate_game_mode_buttons"
@@ -269,214 +267,68 @@ def main_loop():
                             status.globe_projection_surface.convert_alpha(),
                             f"save_games/globe_rotations/{constants.TIME_PASSING_EARTH_ROTATIONS}.png",
                         )
-                    if status.strategic_map_grid.world_handler.rotation_speed > 2:
+                    if status.current_world.rotation_speed > 2:
                         frame_interval = 3
                     else:
                         frame_interval = 2
                     constants.TIME_PASSING_ROTATION += (
-                        frame_interval
-                        * status.strategic_map_grid.world_handler.rotation_direction
+                        frame_interval * status.current_world.rotation_direction
                     )
 
                 if constants.TIME_PASSING_EARTH_SCHEDULE[
                     constants.TIME_PASSING_ITERATIONS
                 ]:  # If scheduled to rotate Earth at this iteration
-                    status.earth_grid.find_cell(0, 0).tile.set_image(
-                        [
-                            "misc/space.png",
-                            {
-                                "image_id": f"locations/earth_rotations/{(constants.TIME_PASSING_EARTH_ROTATIONS % num_earth_images)}.png",
-                                "size": 0.8,
-                                "detail_level": 1.0,
-                            },
-                        ]
+                    status.earth_world.set_image(
+                        world_utility.generate_abstract_world_image(
+                            planet=constants.EARTH_WORLD,
+                            rotation=constants.TIME_PASSING_EARTH_ROTATIONS,
+                        )
                     )
                     if constants.effect_manager.effect_active(
                         "rotate_game_mode_buttons"
                     ):
                         status.to_earth_button.image.set_image(
                             actor_utility.generate_frame(
-                                "misc/space.png",
+                                world_utility.generate_abstract_world_image(
+                                    planet=constants.EARTH_WORLD,
+                                    size=0.6,
+                                    rotation=constants.TIME_PASSING_EARTH_ROTATIONS,
+                                ),
                             )
-                            + [
-                                {
-                                    "image_id": f"locations/earth_rotations/{(constants.TIME_PASSING_EARTH_ROTATIONS % num_earth_images)}.png",
-                                    "size": 0.6,
-                                }
-                            ]
                         )
                     constants.TIME_PASSING_EARTH_ROTATIONS += 1
 
                 constants.TIME_PASSING_ITERATIONS += 1
             else:  # End time passing logic
                 equatorial_coordinates = constants.TIME_PASSING_EQUATORIAL_COORDINATES
-                planet_size = len(equatorial_coordinates)
                 constants.TIME_PASSING_ROTATION = 0
-                status.strategic_map_grid.update_globe_projection(
+                status.current_world.update_globe_projection(
                     center_coordinates=equatorial_coordinates[
                         (
                             constants.TIME_PASSING_ROTATION
                             + constants.TIME_PASSING_INITIAL_ORIENTATION
                         )
-                        % planet_size
+                        % status.current_world.world_dimensions
                     ]
                 )
 
-                status.earth_grid.find_cell(0, 0).tile.set_image(
-                    [
-                        "misc/space.png",
-                        {
-                            "image_id": f"locations/earth.png",
-                            "size": 0.8,
-                            "detail_level": 1.0,
-                        },
-                    ]
+                status.earth_world.set_image(
+                    world_utility.generate_abstract_world_image(
+                        planet=constants.EARTH_WORLD
+                    )
                 )
                 if constants.effect_manager.effect_active("rotate_game_mode_buttons"):
                     status.to_earth_button.image.set_image(
                         actor_utility.generate_frame(
-                            "misc/space.png",
+                            world_utility.generate_abstract_world_image(
+                                planet=constants.EARTH_WORLD, size=0.6
+                            ),
                         )
-                        + [
-                            {
-                                "image_id": f"locations/earth.png",
-                                "size": 0.6,
-                            }
-                        ]
                     )
                 main_loop_utility.update_display()
                 flags.enemy_combat_phase = True
                 turn_management_utility.manage_combat()
 
-            if False:  # Enemy movement logic
-                enemy_turn_done = True
-                for enemy in status.npmob_list:
-                    if not enemy.turn_done:
-                        enemy_turn_done = False
-                        break
-                if enemy_turn_done:
-                    flags.player_turn = True
-                    flags.enemy_combat_phase = True
-                    turn_management_utility.manage_combat()
-                else:
-                    current_enemy = status.enemy_turn_queue[0]
-                    removed = False
-                    spawning = False
-                    did_nothing = False
-                    moving = False
-                    if current_enemy.despawning:
-                        if (
-                            current_enemy == status.displayed_mob
-                            or not current_enemy.visible()
-                        ):
-                            current_enemy.remove_complete()
-                            removed = True
-
-                    elif (
-                        current_enemy.creation_turn == constants.turn
-                    ):  # if unit just created
-                        spawn_cell = current_enemy.grids[0].find_cell(
-                            current_enemy.x, current_enemy.y
-                        )
-                        if (
-                            status.minimap_grid.center_x,
-                            status.minimap_grid.center_y,
-                        ) == (
-                            current_enemy.x,
-                            current_enemy.y,
-                        ) and spawn_cell.terrain_handler.visible:  # if camera just moved to spawn location to show spawning
-                            spawning = True
-                            current_enemy.show_images()
-                            current_enemy.select()
-                            current_enemy.attack_on_spawn()
-                            current_enemy.turn_done = True
-                        else:  # if camera did not move to spawn location
-                            spawning = True
-                            if (
-                                spawn_cell.terrain_handler.visible
-                            ):  # if spawn location visible but camera hasn't moved there yet, move camera there
-                                status.minimap_grid.calibrate(
-                                    current_enemy.x, current_enemy.y
-                                )
-                            else:  # if spawn location not visible, end turn
-                                current_enemy.show_images()
-                                current_enemy.turn_done = True
-
-                    elif (
-                        not current_enemy.visible()
-                    ):  # if not just spawned and hidden, do action without displaying
-                        current_enemy.end_turn_move()
-                        moving = True
-
-                    elif (
-                        current_enemy == status.displayed_mob
-                    ):  # if enemy is selected and did not just spawn, move it while minimap follows
-                        if (
-                            not current_enemy.creation_turn == constants.turn
-                        ):  # don't do anything on first turn, but still move camera to spawn location if visible
-                            current_enemy.end_turn_move()  # do_turn()
-                            moving = True
-                            if current_enemy.visible():
-                                if current_enemy != status.displayed_mob:
-                                    current_enemy.select()
-                                else:
-                                    status.minimap_grid.calibrate(
-                                        current_enemy.x, current_enemy.y
-                                    )
-                        else:
-                            current_enemy.turn_done = True
-
-                    if (
-                        (not (removed or spawning))
-                        and (not current_enemy.creation_turn == constants.turn)
-                        and current_enemy.visible()
-                    ):  # if unit visible and not selected, start its turn
-                        if (
-                            not current_enemy.find_closest_target()
-                        ) and not current_enemy.despawning:
-                            # If enemies have no target, they stand still and no movement is shown
-                            did_nothing = True
-                            current_enemy.turn_done = True
-                        elif (
-                            current_enemy.visible()
-                        ):  # If unit will do an action, move the camera to it and select it
-                            current_enemy.select()
-
-                    elif (
-                        current_enemy.creation_turn == constants.turn and not spawning
-                    ):  # If enemy visible but just spawned, end turn
-                        did_nothing = True
-                        current_enemy.turn_done = True
-
-                    if removed:  # show unit despawning if visible
-                        current_enemy.turn_done = True
-                        if not current_enemy.visible():
-                            constants.end_turn_wait_time = 0
-                        else:
-                            constants.end_turn_wait_time = 1
-                        status.enemy_turn_queue.pop(0)
-
-                    else:  # If unit visible, have short delay depending on action taken to let user see it
-                        if (not spawning) and (
-                            did_nothing or not current_enemy.visible()
-                        ):  # do not wait if not visible or nothing to show, exception for spawning units, which may not be visible as user watches them spawn
-                            constants.end_turn_wait_time = 0
-                        elif (
-                            spawning
-                            and not current_enemy.grids[0]
-                            .find_cell(current_enemy.x, current_enemy.y)
-                            .terrain_handler.visible
-                        ):  # do not wait if spawning unit won't be visible even after it spawns
-                            constants.end_turn_wait_time = 0
-                        elif (
-                            moving and not enemy.turn_done
-                        ):  # if will move again after this
-                            constants.end_turn_wait_time = 0.25
-                        else:  # if done with turn
-                            constants.end_turn_wait_time = 0.5
-
-                        if current_enemy.turn_done:
-                            status.enemy_turn_queue.pop(0)
             if constants.effect_manager.effect_active("fast_turn"):
                 constants.end_turn_wait_time = 0
             constants.previous_turn_time = constants.current_time
