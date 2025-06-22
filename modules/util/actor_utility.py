@@ -68,7 +68,7 @@ def get_building_cost(builder, building_type, building_name="n/a"):
         )  # road, railroad, road_bridge, or railroad_bridge
     if building_type == constants.WAREHOUSES:
         if builder:
-            base_price = builder.get_location().get_warehouses_cost()
+            base_price = builder.location.get_warehouses_cost()
         else:
             base_price = 5
     else:
@@ -76,11 +76,11 @@ def get_building_cost(builder, building_type, building_name="n/a"):
 
     if building_type in [constants.TRAIN]:
         cost_multiplier = 1
-    elif (not builder) or builder.get_location().is_abstract_location:
+    elif (not builder) or builder.location.is_abstract_location:
         cost_multiplier = 1  # Abstract world has no terrain for multiplier
     else:
         cost_multiplier = constants.terrain_build_cost_multiplier_dict.get(
-            builder.get_location().terrain, 1
+            builder.location.terrain, 1
         )
     return base_price * cost_multiplier
 
@@ -96,7 +96,7 @@ def update_roads():
     """
     for current_building in status.building_list:
         if current_building.building_type == constants.INFRASTRUCTURE:
-            current_building.get_location().update_image_bundle()
+            current_building.location.update_image_bundle()
 
 
 def calibrate_actor_info_display(info_display, new_actor, override_exempt=False):
@@ -136,7 +136,7 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
         if changed_displayed_mob and new_actor:
             new_actor.start_ambient_sound()
         select_default_tab(status.mob_tabbed_collection, new_actor)
-        if new_actor and new_actor.get_location() == status.displayed_location:
+        if new_actor and new_actor.location == status.displayed_location:
             for current_same_location_icon in status.same_location_icon_list:
                 current_same_location_icon.reset()
 
@@ -678,7 +678,7 @@ def calibrate_minimap_grids(world_handler: any, x: int, y: int) -> None:
 
 
 def focus_minimap_grids(location: any) -> None:
-    calibrate_minimap_grids(location.get_world_handler(), location.x, location.y)
+    calibrate_minimap_grids(location.world_handler, location.x, location.y)
 
 
 def add_logistics_incident_to_report(subject, explanation: str) -> None:
@@ -694,7 +694,7 @@ def add_logistics_incident_to_report(subject, explanation: str) -> None:
         status.logistics_incident_list.append(
             {
                 "unit": subject,
-                "location": subject.get_location(),  # Note that if unit dies before report is created, location cannot be derived
+                "location": subject.location,  # Note that if unit dies before report is created, location cannot be derived
                 "explanation": explanation,
             }
         )

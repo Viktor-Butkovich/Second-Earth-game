@@ -169,7 +169,6 @@ class combat(action.action):
         if subject == "confirmation":
             text += f"Are you sure you want to spend {str(self.get_price())} money to attack the {self.opponent.name} to the {self.direction}? /n /nRegardless of the result, the rest of this unit's movement points will be consumed."
         elif subject == "initial":
-            current_location = self.current_unit.get_location()
             if self.defending:
                 text += f"{utility.capitalize(self.opponent.name)} {utility.conjugate('be', self.opponent.unit_type.number)} attacking your {self.current_unit.name} at ({str(self.current_location.x)}, {str(self.current_location.y)})."
             else:
@@ -189,7 +188,7 @@ class combat(action.action):
             if self.opponent.get_permission(constants.DISORGANIZED_PERMISSION):
                 text += f"The {self.opponent.name} {utility.conjugate('be', self.opponent.unit_type.number)} disorganized and will receive a -1 after their roll. /n"
 
-            if self.current_unit.get_location().has_intact_building(constants.FORT):
+            if self.current_unit.location.has_intact_building(constants.FORT):
                 text += f"The fort in this location grants your {self.current_unit.name} a +1 bonus after their roll. /n"
 
             if self.current_unit.get_permission(constants.VETERAN_PERMISSION):
@@ -299,8 +298,8 @@ class combat(action.action):
         if on_click_info_dict.get("attack_confirmed", False):
             return False
         else:
-            current_location = unit.get_location()
-            future_location = current_location.get_world_handler().find_location(
+            current_location = unit.location
+            future_location = current_location.world_handler.find_location(
                 current_location.x + self.x_change,
                 current_location.y + self.y_change,
             )
@@ -619,7 +618,7 @@ class combat(action.action):
         Output:
             None
         """
-        combat_location = self.current_unit.get_location()
+        combat_location = self.current_unit.location
         if self.total_roll_result <= -2:  # Defeat
             if self.defending:
                 self.current_unit.die()

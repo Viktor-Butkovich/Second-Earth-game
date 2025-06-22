@@ -24,7 +24,7 @@ class work_crew(group):
         """
         self.set_permission(constants.IN_BUILDING_PERMISSION, True)
         self.building = building
-        self.get_location().unsubscribe_mob(self)
+        self.location.unsubscribe_mob(self)
         self.remove_from_turn_queue()
         building.subscribed_work_crews.append(self)
         actor_utility.calibrate_actor_info_display(
@@ -45,7 +45,7 @@ class work_crew(group):
         building.subscribed_work_crews = utility.remove_from_list(
             building.subscribed_work_crews, self
         )
-        self.get_location().subscribe_mob(self)
+        self.location.subscribe_mob(self)
         self.add_to_turn_queue()
         actor_utility.calibrate_actor_info_display(
             status.mob_info_display, None, override_exempt=True
@@ -81,11 +81,11 @@ class work_crew(group):
 
                 if roll_result >= 4:  # 4+ required on D6 for production
                     if not self.controlling_minister.check_corruption():
-                        self.get_location().change_inventory(
+                        self.location.change_inventory(
                             current_building.resource_type, 1
                         )
                         current_building.resource_type.amount_produced_this_turn += 1
-                        current_location = self.get_location()
+                        current_location = self.location
                         if (
                             not self.get_permission(constants.VETERAN_PERMISSION)
                         ) and roll_result >= 6:
@@ -93,7 +93,7 @@ class work_crew(group):
                             constants.notification_manager.display_notification(
                                 {
                                     "message": f"The work crew working in the {current_building.name} at ({current_location.x}, {current_location.y}) has become a veteran and will be more successful in future production attempts. /n /n",
-                                    "zoom_destination": self.get_location(),
+                                    "zoom_destination": self.location,
                                 }
                             )
                     else:

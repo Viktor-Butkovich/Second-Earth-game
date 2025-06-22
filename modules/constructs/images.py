@@ -1622,7 +1622,7 @@ class cell_image(image):
         """
         Draws a number showing how many mobs are in this image's location, if it contains multiple mobs
         """
-        length = len(self.cell.location.subscribed_mobs)
+        length = len(self.cell.subscribed_location.subscribed_mobs)
         if length >= 2:
             message = str(length)
             font = constants.fonts["max_detail_white"]

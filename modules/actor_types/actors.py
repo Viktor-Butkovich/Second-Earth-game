@@ -73,7 +73,8 @@ class actor:
             self.set_name(input_dict.get("name", self.name))
             self.update_image_bundle()
 
-    def get_location(self) -> "actor":
+    @property
+    def location(self) -> "actor":
         """
         Description:
             Returns the location this mob is currently in
@@ -110,9 +111,7 @@ class actor:
         Output:
             bool: Returns whether the inputted item type is present anywhere in this unit's location
         """
-        for current_actor in [
-            self.get_location()
-        ] + self.get_location().subscribed_mobs:
+        for current_actor in [self.location] + self.location.subscribed_mobs:
             if current_actor.get_inventory(item_type) > 0:
                 return True
         return False
@@ -264,7 +263,7 @@ class actor:
                 if self.actor_type == constants.LOCATION_ACTOR_TYPE:
                     location = self
                 elif self.actor_type == constants.MOB_ACTOR_TYPE:
-                    location = self.get_location()
+                    location = self.location
                 if (
                     random.randrange(1, 7) <= 2
                     and transportation_minister.check_corruption()
@@ -349,9 +348,11 @@ class actor:
 
             if flags.player_turn:
                 intro_text = f"{transportation_minister.current_position.name} {transportation_minister.name} reports a logistical incident "
-                current_location = self.get_location()
+                current_location = self.location
                 if current_location.is_abstract_location:
-                    intro_text += f"in orbit of {current_location.get_true_world_handler().name}: /n /n"
+                    intro_text += (
+                        f"in orbit of {current_location.true_world_handler.name}: /n /n"
+                    )
                 elif current_location.name != None:
                     intro_text += f"at {current_location.name}: /n /n"
                 else:

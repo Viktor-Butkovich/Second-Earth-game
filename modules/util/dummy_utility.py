@@ -56,19 +56,19 @@ def generate_autofill_actors(
                     return_dict[target] = status.displayed_mob
                     if target == constants.WORKER_PERMISSION:
                         # If a worker selected, find an officer if present and make a dummy group
-                        return_dict[
-                            constants.OFFICER_PERMISSION
-                        ] = status.displayed_mob.get_location().get_unit_by_filter(
-                            [constants.OFFICER_PERMISSION],
-                            start_index=search_start_index,
+                        return_dict[constants.OFFICER_PERMISSION] = (
+                            status.displayed_mob.location.get_unit_by_filter(
+                                [constants.OFFICER_PERMISSION],
+                                start_index=search_start_index,
+                            )
                         )
                     elif target == constants.OFFICER_PERMISSION:
                         # If an officer selected, find a worker if present and make a dummy group
-                        return_dict[
-                            constants.WORKER_PERMISSION
-                        ] = status.displayed_mob.get_location().get_unit_by_filter(
-                            [constants.WORKER_PERMISSION],
-                            start_index=search_start_index,
+                        return_dict[constants.WORKER_PERMISSION] = (
+                            status.displayed_mob.location.get_unit_by_filter(
+                                [constants.WORKER_PERMISSION],
+                                start_index=search_start_index,
+                            )
                         )
                     if (
                         return_dict[constants.WORKER_PERMISSION]
@@ -110,19 +110,19 @@ def generate_autofill_actors(
                     return_dict[target] = status.displayed_mob
                     if target == constants.CREW_VEHICLE_PERMISSION:
                         # If a crew selected, find an uncrewed vehicle if present and make a dummy crewed vehicle
-                        return_dict[
-                            constants.INACTIVE_VEHICLE_PERMISSION
-                        ] = status.displayed_mob.get_location().get_unit_by_filter(
-                            [constants.INACTIVE_VEHICLE_PERMISSION],
-                            start_index=search_start_index,
+                        return_dict[constants.INACTIVE_VEHICLE_PERMISSION] = (
+                            status.displayed_mob.location.get_unit_by_filter(
+                                [constants.INACTIVE_VEHICLE_PERMISSION],
+                                start_index=search_start_index,
+                            )
                         )
                     elif target == constants.INACTIVE_VEHICLE_PERMISSION:
                         # If a vehicle selected, find a crew if present and make a dummy crewed vehicle
-                        return_dict[
-                            constants.CREW_VEHICLE_PERMISSION
-                        ] = status.displayed_mob.get_location().get_unit_by_filter(
-                            [constants.CREW_VEHICLE_PERMISSION],
-                            start_index=search_start_index,
+                        return_dict[constants.CREW_VEHICLE_PERMISSION] = (
+                            status.displayed_mob.location.get_unit_by_filter(
+                                [constants.CREW_VEHICLE_PERMISSION],
+                                start_index=search_start_index,
+                            )
                         )
                     if (
                         return_dict[constants.CREW_VEHICLE_PERMISSION]
@@ -316,7 +316,7 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
                 status.equipment_types[equipment_type].equip(dummy_group)
     dummy_group.set_permission(
         constants.SURVIVABLE_PERMISSION,
-        officer.get_location().get_unit_habitability(dummy_group),
+        officer.location.get_unit_habitability(dummy_group),
     )
     return dummy_group
 
@@ -387,11 +387,11 @@ def simulate_split(unit, required_dummy_attributes, dummy_input_dict):
                 status.equipment_types[equipment_type].unequip(dummy_worker)
     dummy_officer.set_permission(
         constants.SURVIVABLE_PERMISSION,
-        unit.get_location().get_unit_habitability(dummy_officer),
+        unit.location.get_unit_habitability(dummy_officer),
     )
     dummy_worker.set_permission(
         constants.SURVIVABLE_PERMISSION,
-        unit.get_location().get_unit_habitability(dummy_worker),
+        unit.location.get_unit_habitability(dummy_worker),
     )
     return (dummy_officer, dummy_worker)
 
@@ -418,7 +418,7 @@ def simulate_uncrew(unit, required_dummy_attributes, dummy_input_dict):
     )
     dummy_worker.set_permission(
         constants.SURVIVABLE_PERMISSION,
-        unit.get_location().get_unit_habitability(dummy_worker),
+        unit.location.get_unit_habitability(dummy_worker),
     )
     dummy_vehicle = create_dummy_copy(
         unit,

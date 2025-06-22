@@ -21,8 +21,8 @@ class settlement:
         Output:
             None
         """
-        self.location = input_dict["location"]
-        self.location.settlement = self
+        self.subscribed_location = input_dict["location"]
+        self.subscribed_location.settlement = self
         if not from_save:
             self.name = constants.flavor_text_manager.generate_flavor_text(
                 "settlement_names"
@@ -48,7 +48,7 @@ class settlement:
                 actor_utility.press_button(constants.RENAME_SETTLEMENT_BUTTON)
         else:
             self.name = input_dict["name"]
-        self.location.set_name(self.name)
+        self.subscribed_location.set_name(self.name)
 
     def rename(self, new_name: str):
         """

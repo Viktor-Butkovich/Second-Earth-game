@@ -52,9 +52,7 @@ class embark_all_passengers_button(button):
             can_embark = True
             if (
                 self.vehicle_type == constants.TRAIN_PERMISSION
-                and not vehicle.get_location().get_inact_building(
-                    constants.TRAIN_STATION
-                )
+                and not vehicle.location.get_inact_building(constants.TRAIN_STATION)
             ):
                 text_utility.print_to_screen(
                     "A train can only pick up passengers at a train station."
@@ -63,7 +61,7 @@ class embark_all_passengers_button(button):
             if can_embark:
                 if vehicle.sentry_mode:
                     vehicle.set_sentry_mode(False)
-                for subscribed_mob in vehicle.get_location().subscribed_mobs.copy():
+                for subscribed_mob in vehicle.location.subscribed_mobs.copy():
                     if subscribed_mob.get_permission(
                         constants.PMOB_PERMISSION
                     ) and not subscribed_mob.get_permission(
@@ -72,7 +70,7 @@ class embark_all_passengers_button(button):
                         subscribed_mob.embark_vehicle(
                             vehicle,
                             focus=subscribed_mob
-                            == vehicle.get_location().subscribed_mobs[-1],
+                            == vehicle.location.subscribed_mobs[-1],
                         )
         else:
             text_utility.print_to_screen(
@@ -142,7 +140,7 @@ class disembark_all_passengers_button(button):
             vehicle = status.displayed_mob
             can_disembark = True
             if vehicle.get_permission(constants.TRAIN_PERMISSION):
-                if not vehicle.get_location().has_building(constants.TRAIN_STATION):
+                if not vehicle.location.has_building(constants.TRAIN_STATION):
                     text_utility.print_to_screen(
                         "A train can only drop off passengers at a train station."
                     )
@@ -554,9 +552,7 @@ class remove_work_crew_button(button):
             self.attached_label.attached_list[
                 self.attached_label.list_index
             ].leave_building(
-                self.attached_label.actor.get_location().get_building(
-                    self.building_type
-                )
+                self.attached_label.actor.location.get_building(self.building_type)
             )
         else:
             text_utility.print_to_screen(
@@ -630,7 +626,7 @@ class disembark_vehicle_button(button):
             if len(self.attached_label.actor.subscribed_passengers) > 0:
                 can_disembark = True
                 if self.vehicle_type == constants.TRAIN_PERMISSION:
-                    if not self.attached_label.actor.get_location().has_intact_building(
+                    if not self.attached_label.actor.location.has_intact_building(
                         constants.TRAIN_STATION
                     ):
                         text_utility.print_to_screen(
@@ -700,7 +696,7 @@ class embark_vehicle_button(button):
                 displayed_mob
                 and displayed_mob.get_permission(constants.PMOB_PERMISSION)
                 and not displayed_mob.get_permission(constants.VEHICLE_PERMISSION)
-                and displayed_mob.get_location().has_unit_by_filter(
+                and displayed_mob.location.has_unit_by_filter(
                     [self.vehicle_type, constants.ACTIVE_VEHICLE_PERMISSION]
                 )
             )
@@ -712,20 +708,18 @@ class embark_vehicle_button(button):
         Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a selected mob to embark a vehicle of the correct type in the same location
         """
         if main_loop_utility.action_possible():
-            if status.displayed_mob.get_location().has_unit_by_filter(
+            if status.displayed_mob.location.has_unit_by_filter(
                 [self.vehicle_type, constants.ACTIVE_VEHICLE_PERMISSION]
             ):
                 rider = status.displayed_mob
-                vehicles = rider.get_location().get_unit_by_filter(
+                vehicles = rider.location.get_unit_by_filter(
                     [self.vehicle_type, constants.ACTIVE_VEHICLE_PERMISSION],
                     get_all=True,
                 )
                 can_embark = True
                 if vehicles[0].get_permission(constants.TRAIN_PERMISSION):
-                    if (
-                        not vehicles[0]
-                        .get_location()
-                        .has_intact_building(constants.TRAIN_STATION)
+                    if not vehicles[0].location.has_intact_building(
+                        constants.TRAIN_STATION
                     ):
                         text_utility.print_to_screen(
                             "A train can only pick up passengers at a train station."
@@ -991,9 +985,7 @@ class work_crew_to_building_button(button):
             constants.WORK_CREW_PERMISSION
         ):
             self.attached_building = (
-                self.attached_work_crew.get_location().get_intact_building(
-                    self.building_type
-                )
+                self.attached_work_crew.location.get_intact_building(self.building_type)
             )
         else:
             self.attached_building = None
@@ -1508,7 +1500,7 @@ class automatic_route_button(button):
         """
         attached_mob = status.displayed_mob
         if main_loop_utility.action_possible():
-            if not attached_mob.get_location().is_abstract_location:
+            if not attached_mob.location.is_abstract_location:
                 if self.button_type == constants.CLEAR_AUTOMATIC_ROUTE_BUTTON:
                     attached_mob.clear_automatic_route()
 
@@ -1516,7 +1508,7 @@ class automatic_route_button(button):
                     if (
                         attached_mob.get_permission(constants.VEHICLE_PERMISSION)
                         and attached_mob.vehicle_type == constants.TRAIN_PERMISSION
-                        and not attached_mob.get_location().has_intact_building(
+                        and not attached_mob.location.has_intact_building(
                             constants.TRAIN_STATION
                         )
                     ):
@@ -1525,7 +1517,7 @@ class automatic_route_button(button):
                         )
                         return ()
                     attached_mob.clear_automatic_route()
-                    attached_mob.add_to_automatic_route(attached_mob.get_location())
+                    attached_mob.add_to_automatic_route(attached_mob.location)
                     flags.drawing_automatic_route = True
 
                 elif self.button_type == constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON:
@@ -1692,24 +1684,24 @@ class change_parameter_button(button):
                 self.attached_label.actor_label_type.removesuffix("_label")
                 in constants.global_parameters
             ):
-                status.displayed_location.get_true_world_handler().change_parameter(
+                status.displayed_location.true_world_handler.change_parameter(
                     self.attached_label.actor_label_type.removesuffix("_label"),
                     self.change,
                 )
             elif self.attached_label.actor_label_type == constants.AVERAGE_WATER_LABEL:
                 if self.change > 0:
                     for i in range(abs(self.change)):
-                        status.displayed_location.get_true_world_handler().place_water(
+                        status.displayed_location.true_world_handler.place_water(
                             update_display=False,
                             repeat_on_fail=True,
                             radiation_effect=False,
                         )
                 else:
                     for i in range(abs(self.change)):
-                        status.displayed_location.get_true_world_handler().remove_water(
+                        status.displayed_location.true_world_handler.remove_water(
                             update_display=False
                         )
-                status.displayed_location.get_true_world_handler().update_location_image_bundles()
+                status.displayed_location.true_world_handler.update_location_image_bundles()
             else:
                 status.displayed_location.change_parameter(
                     self.attached_label.actor_label_type.removesuffix("_label"),
@@ -1765,7 +1757,7 @@ class help_button(button):
             in constants.help_manager.subjects[constants.HELP_GLOBAL_PARAMETERS]
         ):
             context[constants.HELP_WORLD_HANDLER_CONTEXT] = (
-                self.attached_label.actor.get_true_world_handler()
+                self.attached_label.actor.true_world_handler
             )
         return context
 

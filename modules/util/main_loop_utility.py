@@ -394,7 +394,7 @@ def manage_rmb_down(clicked_button):
                 for current_cell in current_grid.get_flat_cell_list():
                     if current_cell.touching_mouse():
                         stopping = True  # if doesn't reach this point, do same as lmb
-                        current_location = current_cell.get_location()
+                        current_location = current_cell.location
                         if len(current_location.subscribed_mobs) > 1:
                             moved_mob = current_location.subscribed_mobs[1]
                             while moved_mob != current_location.subscribed_mobs[0]:
@@ -414,9 +414,7 @@ def manage_rmb_down(clicked_button):
         flags.drawing_automatic_route = False
         if len(status.displayed_mob.base_automatic_route) > 1:
             destination_location = (
-                status.displayed_mob.get_location()
-                .get_world_handler()
-                .find_location(
+                status.displayed_mob.location.world_handler.find_location(
                     status.displayed_mob.base_automatic_route[-1][0],
                     status.displayed_mob.base_automatic_route[-1][1],
                 )
@@ -436,9 +434,9 @@ def manage_rmb_down(clicked_button):
             text_utility.print_to_screen(
                 "The created route must go between at least 2 locations"
             )
-        actor_utility.focus_minimap_grids(status.displayed_mob.get_location())
+        actor_utility.focus_minimap_grids(status.displayed_mob.location)
         actor_utility.calibrate_actor_info_display(
-            status.location_info_display, status.displayed_mob.get_location()
+            status.location_info_display, status.displayed_mob.location
         )
     if not stopping:
         manage_lmb_down(clicked_button)
@@ -481,20 +479,18 @@ def manage_lmb_down(clicked_button):
                         if current_cell.touching_mouse():
                             click_move_minimap(select_unit=False)
                             target_location = None
-                            if current_cell.get_location().is_abstract_location:
-                                target_location = current_cell.get_location()
+                            if current_cell.location.is_abstract_location:
+                                target_location = current_cell.location
                             else:
                                 target_location = (
-                                    current_cell.get_location()
-                                    .get_world_handler()
-                                    .find_location(
+                                    current_cell.location.world_handler.find_location(
                                         status.minimap_grid.center_x,
                                         status.minimap_grid.center_y,
                                     )
                                 )
                             if (
                                 current_grid.world_handler
-                                != status.displayed_mob.get_location().get_world_handler()
+                                != status.displayed_mob.location.world_handler
                             ):
                                 status.displayed_mob.end_turn_destination = (
                                     target_location
@@ -509,7 +505,7 @@ def manage_lmb_down(clicked_button):
                                 )  # Outlines should be shown immediately once destination is chosen
                                 status.displayed_mob.remove_from_turn_queue()
                                 status.displayed_mob.select()
-                                status.displayed_mob.get_location().select()
+                                status.displayed_mob.location.select()
                             else:  # Cannot move to same world
                                 actor_utility.calibrate_actor_info_display(
                                     status.mob_info_display, None
@@ -526,16 +522,16 @@ def manage_lmb_down(clicked_button):
             for current_grid in status.grid_list:  # destination_grids:
                 for current_cell in current_grid.get_flat_cell_list():
                     if current_cell.touching_mouse():
-                        if current_cell.get_location().is_abstract_location:
+                        if current_cell.location.is_abstract_location:
                             text_utility.print_to_screen(
                                 "Only locations adjacent to the most recently chosen destination can be added to the movement route."
                             )
                         else:
-                            target_location = current_cell.get_location()
+                            target_location = current_cell.location
                             previous_location = (
                                 status.displayed_mob.base_automatic_route[-1]
                             )
-                            current_world = target_location.get_world_handler()
+                            current_world = target_location.world_handler
                             if (
                                 current_world.manhattan_distance(
                                     target_location, previous_location
@@ -600,7 +596,9 @@ def manage_lmb_down(clicked_button):
                                     )
                                     return ()
 
-                                status.displayed_mob.add_to_automatic_route(target_location)
+                                status.displayed_mob.add_to_automatic_route(
+                                    target_location
+                                )
                                 click_move_minimap()
                                 flags.show_selection_outlines = True
                                 constants.last_selection_outline_switch = (
@@ -637,7 +635,7 @@ def click_move_minimap(select_unit: bool = True):
         if current_grid.showing:
             for current_cell in current_grid.get_flat_cell_list():
                 if current_cell.touching_mouse():
-                    current_location = current_cell.get_location()
+                    current_location = current_cell.location
                     if select_unit and current_location.subscribed_mobs:
                         current_location.subscribed_mobs[0].select()
                         status.displayed_mob.selection_sound()

@@ -107,7 +107,7 @@ def transfer(
                 displayed_mob
                 and displayed_location
                 and displayed_mob.get_permission(constants.PMOB_PERMISSION)
-                and displayed_mob.get_location() == displayed_location
+                and displayed_mob.location == displayed_location
             ):
                 if (
                     amount == None and transferred_item != None

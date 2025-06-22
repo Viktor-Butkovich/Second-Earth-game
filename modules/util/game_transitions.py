@@ -46,7 +46,7 @@ def cycle_player_turn(start_of_turn=False):
         cycled_mob = turn_queue[0]
         if (
             constants.current_game_mode == constants.EARTH_MODE
-            and not cycled_mob.get_location().is_earth_location
+            and not cycled_mob.location.is_earth_location
         ):
             set_game_mode(constants.STRATEGIC_MODE)
         elif constants.current_game_mode == constants.MINISTERS_MODE:

@@ -36,7 +36,7 @@ class npmob(mob):
         self.npmob_type = "npmob"
         self.aggro_distance = 0
         if (
-            self.get_location().y == 0
+            self.location.y == 0
         ):  # should fix any case of npmob trying to retreat off the map
             self.last_move_direction = (0, 1)
         else:
@@ -78,7 +78,7 @@ class npmob(mob):
         Output:
             boolean: Returns whether this unit is currently visible to the player
         """
-        return True  # return self.get_cell() and self.get_location().visible
+        return True  # return self.get_cell() and self.location.visible
 
     def find_closest_target(self):
         """
@@ -101,7 +101,7 @@ class npmob(mob):
         min_distance = -1
         closest_targets = [None]
         for possible_target in target_list:
-            target_location = possible_target.get_location()
+            target_location = possible_target.location
             if (
                 not target_location.y == 0
             ):  # Ignore units in the ocean if can't swim in ocean
@@ -110,8 +110,8 @@ class npmob(mob):
                     constants.IN_GROUP_PERMISSION,
                     constants.IN_BUILDING_PERMISSION,
                 ):
-                    current_location = self.get_location()
-                    distance = current_location.get_world_handler().manhattan_distance(
+                    current_location = self.location
+                    distance = current_location.world_handler.manhattan_distance(
                         current_location, target_location
                     )
                     if (
@@ -142,7 +142,7 @@ class npmob(mob):
         When this unit moves, it checks if combat is possible in the location it moved into. If combat is possible, it will attempt to start a combat at the end of the turn with any local pmobs. If, for example, another npmob killed
             the pmob found in this npmob's location, then this npmob will not start a combat
         """
-        current_location = self.get_location()
+        current_location = self.location
         actor_utility.focus_minimap_grids(current_location)
         for current_mob in current_location.subscribed_mobs:
             if current_mob.get_permission(constants.VEHICLE_PERMISSION):
@@ -169,7 +169,7 @@ class npmob(mob):
         """
         Kills all defenseless units, such as lone officers and vehicles, in this location after combat if no possible combatants, like workers or soldiers, remainne
         """
-        current_location = self.get_location()
+        current_location = self.location
         noncombatants = current_location.get_noncombatants("pmob")
         for current_noncombatant in noncombatants:
             constants.notification_manager.display_notification(
@@ -183,7 +183,7 @@ class npmob(mob):
         """
         Damages all undefended buildings in this location after combat if no possible combatants, like workers or soldiers, remain
         """
-        current_location = self.get_location()
+        current_location = self.location
         for current_building in current_location.get_intact_buildings():
             if current_building.building_type.can_damage:
                 constants.notification_manager.display_notification(
@@ -200,14 +200,14 @@ class npmob(mob):
             moved
         """
         closest_target = self.find_closest_target()
-        initial_location = self.get_location()
+        initial_location = self.location
         if random.randrange(1, 7) <= 3:  # Half chance of moving randomly instead
             closest_target = random.choice(initial_location.adjacent_list)
             while (
-                closest_target.get_location().y == 0
+                closest_target.location.y == 0
             ):  # npmobs avoid the ocean if can't swim in ocean
                 closest_target = random.choice(initial_location.adjacent_list)
-        target_location = closest_target.get_location() if closest_target else None
+        target_location = closest_target.location if closest_target else None
         if closest_target:
             if (
                 initial_location != target_location
@@ -278,11 +278,9 @@ class npmob(mob):
                 status.attacker_queue.append(self)
                 self.movement_points = 0
             else:
-                if self.get_location().has_unit_by_filter(
-                    [constants.PMOB_PERMISSION]
-                ) or (
+                if self.location.has_unit_by_filter([constants.PMOB_PERMISSION]) or (
                     self.can_damage_buildings
-                    and self.get_location().has_destructible_buildings()
+                    and self.location.has_destructible_buildings()
                 ):
                     self.kill_noncombatants()
                     if self.can_damage_buildings:

@@ -64,9 +64,9 @@ class battalion(group):
             direction = None
 
         if direction:
-            adjacent_location = self.get_location().adjacent_locations[direction]
+            adjacent_location = self.location.adjacent_locations[direction]
         else:
-            adjacent_location = self.get_location()
+            adjacent_location = self.location
 
         if adjacent_location:
             if (

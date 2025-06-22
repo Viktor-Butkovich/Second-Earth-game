@@ -70,7 +70,7 @@ class upgrade(action.action):
         message = []
         unit = status.displayed_mob
         if unit != None:
-            self.current_building = unit.get_location().get_intact_building(
+            self.current_building = unit.location.get_intact_building(
                 self.building_type.key
             )
             if self.upgrade_type == constants.WAREHOUSE_LEVEL:
@@ -140,7 +140,7 @@ class upgrade(action.action):
         """
         building = self.current_building
         if not building:
-            building = status.displayed_mob.get_location().get_intact_building(
+            building = status.displayed_mob.location.get_intact_building(
                 self.upgraded_building_type
             )
         return building.get_upgrade_cost()
@@ -154,7 +154,7 @@ class upgrade(action.action):
         Output:
             boolean: Returns whether a button linked to this action should be drawn
         """
-        building = status.displayed_mob.get_location().get_intact_building(
+        building = status.displayed_mob.location.get_intact_building(
             self.building_type.key
         )
         return (
@@ -188,7 +188,7 @@ class upgrade(action.action):
             None
         """
         super().pre_start(unit)
-        self.current_building = unit.get_location().get_intact_building(
+        self.current_building = unit.location.get_intact_building(
             self.upgraded_building_type
         )
 
@@ -232,7 +232,7 @@ class upgrade(action.action):
         if self.roll_result >= self.current_min_success:
             self.current_building.upgrade(self.building_type)
             actor_utility.calibrate_actor_info_display(
-                status.location_info_display, self.current_unit.get_location()
+                status.location_info_display, self.current_unit.location
             )  # update location display to show building upgrade
-            actor_utility.focus_minimap_grids(self.current_unit.get_location())
+            actor_utility.focus_minimap_grids(self.current_unit.location)
         super().complete()

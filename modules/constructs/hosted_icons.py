@@ -22,14 +22,15 @@ class hosted_icon:
             None
         """
         self.image_id: List[Dict[str, any]] = input_dict["image_id"]
-        self.location = input_dict["location"]
-        self.location.hosted_icons.append(self)
+        self.hosting_location = input_dict["location"]
+        self.hosting_location.hosted_icons.append(self)
 
-    def get_location(self) -> any:
+    @property
+    def location(self):
         """
         Gets this icon's hosting location
         """
-        return self.location
+        return self.hosting_location
 
     def get_image_id_list(self) -> List[Dict[str, any]]:
         """
@@ -41,4 +42,4 @@ class hosted_icon:
         """
         Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
-        self.location.hosted_icons.remove(self)
+        self.hosting_location.hosted_icons.remove(self)

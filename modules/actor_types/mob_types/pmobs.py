@@ -123,7 +123,7 @@ class pmob(mob):
             None
         """
         self.vehicle = vehicle
-        self.get_location().unsubscribe_mob(self)
+        self.location.unsubscribe_mob(self)
         self.set_permission(constants.IN_VEHICLE_PERMISSION, True)
         vehicle.set_crew(self)
         vehicle.move_to_front()
@@ -150,10 +150,10 @@ class pmob(mob):
         Output:
             None
         """
-        self.get_location().subscribe_mob(self)
+        self.location.subscribe_mob(self)
         self.vehicle = None
         self.set_permission(constants.IN_VEHICLE_PERMISSION, False)
-        if not self.get_location().get_intact_building(constants.SPACEPORT):
+        if not self.location.get_intact_building(constants.SPACEPORT):
             if constants.ALLOW_DISORGANIZED:
                 self.set_permission(constants.DISORGANIZED_PERMISSION, True)
         vehicle.set_crew(None)
@@ -190,12 +190,11 @@ class pmob(mob):
                 and self.get_permission(constants.IN_GROUP_PERMISSION)
             ):
                 return {}
-        if earth_exemption and self.get_location().is_earth_location:
+        if earth_exemption and self.location.is_earth_location:
             return {}
         elif (
             earth_exemption
-            and self.get_location().get_unit_habitability()
-            > constants.HABITABILITY_DEADLY
+            and self.location.get_unit_habitability() > constants.HABITABILITY_DEADLY
         ):
             item_upkeep = self.unit_type.item_upkeep.copy()
             item_upkeep.pop(
@@ -232,7 +231,7 @@ class pmob(mob):
         if self.in_deadly_environment():
             return  # Don't consume upkeep when in instant death conditions
 
-        missing_upkeep = self.get_location().consume_items(
+        missing_upkeep = self.location.consume_items(
             self.get_item_upkeep(recurse=False), consuming_actor=self
         )
         for (
@@ -393,7 +392,7 @@ class pmob(mob):
         Automatically called when unit arrives in a location for any reason
         """
         super().on_move()
-        current_location = self.get_location()
+        current_location = self.location
         if current_location and not current_location.is_abstract_location:
             for location in [current_location] + current_location.adjacent_list:
                 if (
@@ -442,7 +441,7 @@ class pmob(mob):
                 self.end_turn_destination.y,
             )
             save_dict["end_turn_destination_world_index"] = status.world_list.index(
-                self.end_turn_destination.get_world_handler()
+                self.end_turn_destination.world_handler
             )
         save_dict["default_name"] = self.default_name
         save_dict["sentry_mode"] = self.sentry_mode
@@ -502,7 +501,7 @@ class pmob(mob):
         Output
             boolean: Returns whether the next step of this unit's in-progress movement route could be completed at this moment
         """
-        current_location = self.get_location()
+        current_location = self.location
         next_step = self.in_progress_automatic_route[0]
         if next_step == "end":  # can drop off freely unless train without train station
             if not (
@@ -566,7 +565,7 @@ class pmob(mob):
                         self.all_permissions(
                             constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                         )
-                        and not self.get_location().has_intact_building(
+                        and not self.location.has_intact_building(
                             constants.TRAIN_STATION
                         )
                     ):
@@ -576,7 +575,7 @@ class pmob(mob):
                             self.pick_up_all_items(
                                 True
                             )  # Attempt to pick up items both before and after moving
-                    initial_location = self.get_location()
+                    initial_location = self.location
                     x_change = next_step.x - initial_location.x
                     y_change = next_step.y - initial_location.y
                     self.move(x_change, y_change)
@@ -584,7 +583,7 @@ class pmob(mob):
                         self.all_permissions(
                             constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                         )
-                        and not self.get_location().has_intact_building(
+                        and not self.location.has_intact_building(
                             constants.TRAIN_STATION
                         )
                     ):
@@ -625,21 +624,21 @@ class pmob(mob):
         while (
             self.get_inventory_remaining() > 0
             and len(
-                self.get_location().get_held_items(
+                self.location.get_held_items(
                     ignore_consumer_goods=ignore_consumer_goods
                 )
             )
             > 0
         ):
-            items_present = self.get_location().get_held_items(
+            items_present = self.location.get_held_items(
                 ignore_consumer_goods=ignore_consumer_goods
             )
             amount_transferred = min(
                 self.get_inventory_remaining(),
-                self.get_location().get_inventory(items_present[0]),
+                self.location.get_inventory(items_present[0]),
             )
             self.change_inventory(items_present[0], amount_transferred)
-            self.get_location().change_inventory(items_present[0], -amount_transferred)
+            self.location.change_inventory(items_present[0], -amount_transferred)
 
     def clear_automatic_route(self):
         """
@@ -759,7 +758,7 @@ class pmob(mob):
             return
 
         if (
-            self.get_location().local_attrition() and random.randrange(1, 7) <= 2
+            self.location.local_attrition() and random.randrange(1, 7) <= 2
         ):  # If local conditions may cause attrition, 1/3 chance of attrition check
             if (
                 minister_utility.get_minister(
@@ -832,7 +831,7 @@ class pmob(mob):
         Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also deselects this mob and drops any items it is carrying
         """
         for current_item_type in self.get_held_items():
-            self.get_location().change_inventory(
+            self.location.change_inventory(
                 current_item_type, self.get_inventory(current_item_type)
             )
         self.remove_from_turn_queue()
@@ -875,10 +874,10 @@ class pmob(mob):
             vehicle.change_inventory(current_item, amount_transferred)
 
             amount_dropped = amount_held - amount_transferred
-            self.get_location().change_inventory(current_item, amount_dropped)
+            self.location.change_inventory(current_item, amount_dropped)
 
         self.inventory = {}
-        self.get_location().unsubscribe_mob(self)
+        self.location.unsubscribe_mob(self)
         self.remove_from_turn_queue()
         vehicle.subscribed_passengers.append(self)
         vehicle.move_to_front()
@@ -906,7 +905,7 @@ class pmob(mob):
         vehicle.subscribed_passengers = utility.remove_from_list(
             vehicle.subscribed_passengers, self
         )
-        self.get_location().subscribe_mob(self)
+        self.location.subscribe_mob(self)
         self.vehicle = None
         self.set_permission(constants.IN_VEHICLE_PERMISSION, False)
         if (
@@ -952,7 +951,7 @@ class pmob(mob):
         Output:
             None
         """
-        self.get_location().subscribe_mob(self)
+        self.location.subscribe_mob(self)
         self.group = None
         self.set_permission(constants.IN_GROUP_PERMISSION, False)
         if self.get_permission(constants.WORKER_PERMISSION):
@@ -976,5 +975,5 @@ class pmob(mob):
         """
         self.group = group
         self.set_permission(constants.IN_GROUP_PERMISSION, True)
-        self.get_location().unsubscribe_mob(self)
+        self.location.unsubscribe_mob(self)
         self.remove_from_turn_queue()

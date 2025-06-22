@@ -113,11 +113,8 @@ class construction(action.action):
                 "Unlike buildings, the cost of vehicle assembly is not impacted by local terrain"
             )
 
-        if (
-            status.displayed_mob
-            and not status.displayed_mob.get_location().is_earth_location
-        ):
-            terrain = status.displayed_mob.get_location().terrain
+        if status.displayed_mob and not status.displayed_mob.location.is_earth_location:
+            terrain = status.displayed_mob.location.terrain
             if not self.building_type.key in [constants.TRAIN]:
                 message.append(
                     f"{utility.generate_capitalized_article(self.building_name)}{self.building_name} {utility.conjugate('cost', 1, self.building_name)} {base_cost} money by default, which is multiplied by {constants.terrain_build_cost_multiplier_dict.get(terrain, 1)} when built in {terrain.replace('_', ' ')} terrain"
@@ -183,9 +180,7 @@ class construction(action.action):
         can_show = super().can_show()
         if can_show and not self.building_type.key in [constants.TRAIN]:
             can_show = (self.building_type.key == constants.INFRASTRUCTURE) or (
-                not status.displayed_mob.get_location().has_building(
-                    self.building_type.key
-                )
+                not status.displayed_mob.location.has_building(self.building_type.key)
             )
         if can_show:
             self.update_info()
@@ -201,7 +196,7 @@ class construction(action.action):
             None
         """
         if self.building_type.key == constants.RESOURCE:
-            if status.displayed_mob.get_location().resource != self.attached_resource:
+            if status.displayed_mob.location.resource != self.attached_resource:
                 self.attached_resource = None
                 self.building_name = "resource production facility"
 
@@ -222,26 +217,24 @@ class construction(action.action):
                 )
 
         elif self.building_type.key == constants.INFRASTRUCTURE:
-            if not status.displayed_mob.get_location().has_building(
-                constants.INFRASTRUCTURE
-            ):
-                if status.displayed_mob.get_location().terrain == "water":
+            if not status.displayed_mob.location.has_building(constants.INFRASTRUCTURE):
+                if status.displayed_mob.location.terrain == "water":
                     new_name = "ferry"
                     new_image = "buildings/buttons/ferry.png"
                 else:
                     new_name = "road"
                     new_image = "buildings/buttons/road.png"
             else:
-                if status.displayed_mob.get_location().terrain == "water":
-                    if not status.displayed_mob.get_location().has_building(
+                if status.displayed_mob.location.terrain == "water":
+                    if not status.displayed_mob.location.has_building(
                         constants.INFRASTRUCTURE
                     ):
                         new_name = "ferry"
                         new_image = "buildings/buttons/ferry.png"
                     elif (
-                        status.displayed_mob.get_location()
-                        .get_building(constants.INFRASTRUCTURE)
-                        .infrastructure_type
+                        status.displayed_mob.location.get_building(
+                            constants.INFRASTRUCTURE
+                        ).infrastructure_type
                         == constants.FERRY
                     ):
                         new_name = "road bridge"
@@ -274,14 +267,14 @@ class construction(action.action):
                     "This building can only be built in locations with resources."
                 )
         elif self.building_type.key == constants.TRAIN_STATION:
-            if unit.get_location().has_intact_building(constants.RAILROAD):
+            if unit.location.has_intact_building(constants.RAILROAD):
                 return_value = True
             else:
                 text_utility.print_to_screen(
                     "This building can only be built on railroads."
                 )
         elif self.building_type.key == constants.TRAIN:
-            if unit.get_location().has_intact_building(constants.TRAIN_STATION):
+            if unit.location.has_intact_building(constants.TRAIN_STATION):
                 return_value = True
             else:
                 text_utility.print_to_screen(
@@ -301,7 +294,7 @@ class construction(action.action):
             None
         """
         if super().on_click(unit):
-            current_building = unit.get_location().get_building(self.building_type.key)
+            current_building = unit.location.get_building(self.building_type.key)
             if not (
                 current_building == None
                 or (
@@ -321,7 +314,7 @@ class construction(action.action):
                     text_utility.print_to_screen(
                         f"This location already contains a {self.building_name} building."
                     )
-            elif unit.get_location().is_earth_location:
+            elif unit.location.is_earth_location:
                 text_utility.print_to_screen(
                     "This building can only be built on the planet."
                 )
@@ -368,15 +361,15 @@ class construction(action.action):
         if self.roll_result >= self.current_min_success:
             input_dict = {
                 "init_type": self.building_type.key,
-                "location": self.current_unit.get_location(),
+                "location": self.current_unit.location,
                 "name": self.building_name,
             }
 
             if not self.building_type.key in [constants.TRAIN]:
-                if self.current_unit.get_location().has_building(
+                if self.current_unit.location.has_building(
                     self.building_type.key
                 ):  # if building of same type exists, remove it and replace with new one
-                    self.current_unit.get_location().get_building(
+                    self.current_unit.location.get_building(
                         self.building_type.key
                     ).remove()
             if self.building_type.key == constants.RESOURCE:
@@ -416,7 +409,7 @@ class construction(action.action):
             new_building = constants.actor_creation_manager.create(False, input_dict)
 
             if self.building_type.warehouse_level > 0:
-                warehouses = self.current_unit.get_location().get_building(
+                warehouses = self.current_unit.location.get_building(
                     constants.WAREHOUSES
                 )  # Create warehouses here
                 if warehouses:
@@ -430,7 +423,7 @@ class construction(action.action):
                     constants.actor_creation_manager.create(False, input_dict)
 
             actor_utility.calibrate_actor_info_display(
-                status.location_info_display, self.current_unit.get_location()
+                status.location_info_display, self.current_unit.location
             )  # Update location display to show new building
             if self.building_type.key in [constants.TRAIN]:
                 new_building.select()

@@ -355,7 +355,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
         return self.create(
             False,
             {
-                "location": worker.get_location(),
+                "location": worker.location,
                 "worker": worker,
                 "officer": officer,
                 "init_type": officer.unit_type.group_type.key,

@@ -167,13 +167,11 @@ class button(interface_elements.interface_element):
                 movement_cost = status.displayed_mob.get_movement_cost(
                     x_change, y_change
                 )
-                adjacent_location = (
-                    status.displayed_mob.get_location().adjacent_locations[
-                        non_cardinal_direction
-                    ]
-                )
+                adjacent_location = status.displayed_mob.location.adjacent_locations[
+                    non_cardinal_direction
+                ]
                 local_infrastructure = (
-                    status.displayed_mob.get_location().get_intact_building(
+                    status.displayed_mob.location.get_intact_building(
                         constants.INFRASTRUCTURE
                     )
                 )
@@ -793,8 +791,8 @@ class button(interface_elements.interface_element):
                                         ):  # If attacking, don't reembark
                                             for current_passenger in passengers:
                                                 if (
-                                                    current_passenger.get_location()
-                                                    == current_mob.get_location()
+                                                    current_passenger.location
+                                                    == current_mob.location
                                                 ):
                                                     current_passenger.embark_vehicle(
                                                         current_mob
@@ -1276,11 +1274,9 @@ class button(interface_elements.interface_element):
 
         elif self.button_type == constants.RENAME_PLANET_BUTTON:
             if override_action_possible or main_loop_utility.action_possible():
-                constants.message = (
-                    status.displayed_location.get_true_world_handler().name
-                )
+                constants.message = status.displayed_location.true_world_handler.name
                 constants.input_manager.start_receiving_input(
-                    status.displayed_location.get_true_world_handler().rename,
+                    status.displayed_location.true_world_handler.rename,
                     prompt="Type a new name for this planet: ",
                 )
             else:
@@ -1345,7 +1341,7 @@ class button(interface_elements.interface_element):
                             constants.PMOB_PERMISSION
                         )
                     )
-                    or status.displayed_mob.get_location().is_abstract_location
+                    or status.displayed_mob.location.is_abstract_location
                 ):
                     return False
             elif self.button_type in [
@@ -2736,36 +2732,28 @@ class cycle_autofill_button(button):
                         self.autofill_target_type
                     ].get_permission(constants.DUMMY_PERMISSION):
                         if self.autofill_target_type == constants.WORKER_PERMISSION:
-                            return (
-                                status.displayed_mob.get_location().has_unit_by_filter(
-                                    [constants.WORKER_PERMISSION], required_number=2
-                                )
+                            return status.displayed_mob.location.has_unit_by_filter(
+                                [constants.WORKER_PERMISSION], required_number=2
                             )
                         elif self.autofill_target_type == constants.OFFICER_PERMISSION:
-                            return (
-                                status.displayed_mob.get_location().has_unit_by_filter(
-                                    [constants.OFFICER_PERMISSION], required_number=2
-                                )
+                            return status.displayed_mob.location.has_unit_by_filter(
+                                [constants.OFFICER_PERMISSION], required_number=2
                             )
                         elif (
                             self.autofill_target_type
                             == constants.CREW_VEHICLE_PERMISSION
                         ):
-                            return (
-                                status.displayed_mob.get_location().has_unit_by_filter(
-                                    [constants.CREW_VEHICLE_PERMISSION],
-                                    required_number=2,
-                                )
+                            return status.displayed_mob.location.has_unit_by_filter(
+                                [constants.CREW_VEHICLE_PERMISSION],
+                                required_number=2,
                             )
                         elif (
                             self.autofill_target_type
                             == constants.INACTIVE_VEHICLE_PERMISSION
                         ):
-                            return (
-                                status.displayed_mob.get_location().has_unit_by_filter(
-                                    [constants.INACTIVE_VEHICLE_PERMISSION],
-                                    required_number=2,
-                                )
+                            return status.displayed_mob.location.has_unit_by_filter(
+                                [constants.INACTIVE_VEHICLE_PERMISSION],
+                                required_number=2,
                             )
                         # Allow cycling autofill if current autofill is a real, non-selected mob and there is at least 1 alternative
                         #   It makes no sense to cycle a dummy mob for a real one in the same location, and the selected mob is locked and can't be cycled
@@ -2777,7 +2765,7 @@ class cycle_autofill_button(button):
             cell to the next valid alternative - assumes that there is a valid alternative, as on_click is only possible if can_show is True
         """
         self.parent_collection.search_start_index = (
-            status.displayed_mob.get_location().subscribed_mobs.index(
+            status.displayed_mob.location.subscribed_mobs.index(
                 self.parent_collection.autofill_actors[self.autofill_target_type]
             )
             + 1

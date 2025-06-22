@@ -35,8 +35,8 @@ class expedition(group):
             direction = "south"
         else:
             direction = None
-        current_location = self.get_location()
-        future_location = current_location.get_world_handler().find_location(
+        current_location = self.location
+        future_location = current_location.world_handler.find_location(
             current_location.x + x_change, current_location.y + y_change
         )
         if (
@@ -73,13 +73,13 @@ class expedition(group):
         }
         promoted = self.get_permission(constants.VETERAN_PERMISSION)
         for current_direction in ["up", "down", "left", "right"]:
-            target_location = self.get_location().adjacent_locations[current_direction]
+            target_location = self.location.adjacent_locations[current_direction]
             if target_location and not target_location.visible:
                 if (
-                    self.get_location().terrain == "water"
+                    self.location.terrain == "water"
                     or target_location.terrain == "water"
                 ):  # if on water, discover all adjacent undiscovered locations. Also, discover all adjacent water locations, regardless of if currently on water
-                    if self.get_location().terrain == "water":
+                    if self.location.terrain == "water":
                         text = "From the water, the expedition has discovered a "
                     elif target_location.terrain == "water":
                         text = "The expedition has discovered a "

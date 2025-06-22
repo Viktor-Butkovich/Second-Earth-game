@@ -27,7 +27,9 @@ class location(actors.actor):
         Output:
             None
         """
-        self.world_handler: world_handlers.world_handler = input_dict["world_handler"]
+        self.parent_world_handler: world_handlers.world_handler = input_dict[
+            "world_handler"
+        ]
         self.name_icon = None
         self.hosted_icons = []
         super().__init__(from_save, input_dict, original_constructor == False)
@@ -73,7 +75,7 @@ class location(actors.actor):
         self.resource: item_types.item_type = status.item_types.get(
             input_dict.get("resource", None), None
         )
-        self.attached_cells: list = []
+        self.subscribed_cells: list = []
         self.expected_temperature_offset: float = 0.0
         self.subscribed_mobs: List[actors.actor] = (
             []
@@ -134,14 +136,14 @@ class location(actors.actor):
         """
         Returns whether this is the single location of an abstract world, or part of a full world
         """
-        return self.get_world_handler().is_abstract_world
+        return self.world_handler.is_abstract_world
 
     @property
     def is_earth_location(self) -> bool:
         """
         Returns whether this is the Earth abstract world location
         """
-        return self.get_true_world_handler().is_earth
+        return self.true_world_handler.is_earth
 
     @property
     def infinite_inventory_capacity(self) -> bool:
@@ -211,7 +213,7 @@ class location(actors.actor):
         """
         Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
-        for cell in self.attached_cells.copy():
+        for cell in self.subscribed_cells.copy():
             self.unsubscribe_cell(cell)
         for mob in self.subscribed_mobs.copy():
             mob.remove()
@@ -383,16 +385,14 @@ class location(actors.actor):
         """
         self.adjacent_list = []
         self.adjacent_locations = {}
-        world_dimensions = self.get_world_handler().world_dimensions
+        world_dimensions = self.world_handler.world_dimensions
         for x, y, direction in [
             ((self.x - 1) % world_dimensions, self.y, "left"),
             ((self.x + 1) % world_dimensions, self.y, "right"),
             (self.x, (self.y + 1) % world_dimensions, "up"),
             (self.x, (self.y - 1) % world_dimensions, "down"),
         ]:
-            self.adjacent_locations[direction] = self.get_world_handler().find_location(
-                x, y
-            )
+            self.adjacent_locations[direction] = self.world_handler.find_location(x, y)
             if self.adjacent_locations[direction]:
                 self.adjacent_list.append(self.adjacent_locations[direction])
 
@@ -406,9 +406,7 @@ class location(actors.actor):
             int: Returns the habitability effect of the inputted parameter, from 0 to 5 (5 is perfect, 0 is deadly)
         """
         if parameter_name in constants.global_parameters:
-            return self.get_true_world_handler().get_parameter_habitability(
-                parameter_name
-            )
+            return self.true_world_handler.get_parameter_habitability(parameter_name)
         elif parameter_name == constants.TEMPERATURE:
             return actor_utility.get_temperature_habitability(
                 self.get_parameter(parameter_name)
@@ -416,7 +414,7 @@ class location(actors.actor):
         elif parameter_name == constants.WATER:
             if self.get_parameter(constants.WATER) >= 4 and self.get_parameter(
                 constants.TEMPERATURE
-            ) > self.get_true_world_handler().get_tuning("water_freezing_point"):
+            ) > self.true_world_handler.get_tuning("water_freezing_point"):
                 return constants.HABITABILITY_DEADLY
             else:
                 return constants.HABITABILITY_PERFECT
@@ -482,7 +480,7 @@ class location(actors.actor):
         if self.is_abstract_location:  # If global habitability
             habitability_dict[constants.TEMPERATURE] = (
                 actor_utility.get_temperature_habitability(
-                    round(self.get_true_world_handler().average_temperature)
+                    round(self.true_world_handler.average_temperature)
                 )
             )
             overall_habitability = min(habitability_dict.values())
@@ -513,11 +511,11 @@ class location(actors.actor):
         Output:
             float: Expected temperature of this terrain
         """
-        if self.get_true_world_handler():
-            average_temperature = self.get_true_world_handler().average_temperature
+        if self.true_world_handler:
+            average_temperature = self.true_world_handler.average_temperature
             altitude_effect = (
                 -1 * self.get_parameter(constants.ALTITUDE)
-            ) + self.get_true_world_handler().average_altitude
+            ) + self.true_world_handler.average_altitude
             altitude_effect_weight = 0.5
             # Colder to the extent that location is higher than average altitude, and vice versa
             return (
@@ -618,9 +616,9 @@ class location(actors.actor):
         )
         new_value = self.terrain_parameters[parameter_name]
         if parameter_name == constants.WATER and not self.is_abstract_location:
-            self.get_true_world_handler().update_average_water()
+            self.true_world_handler.update_average_water()
         elif parameter_name == constants.ALTITUDE and not self.is_abstract_location:
-            self.get_true_world_handler().update_average_altitude()
+            self.true_world_handler.update_average_altitude()
         elif parameter_name == constants.TEMPERATURE and not self.is_abstract_location:
             # If changing temperature, re-distribute water around the planet
             # Causes melting glaciers and vice versa
@@ -634,7 +632,7 @@ class location(actors.actor):
                     update_display=False,
                 )
                 for i in range(water_displaced):
-                    self.get_true_world_handler().place_water(
+                    self.true_world_handler.place_water(
                         radiation_effect=False,
                         repeat_on_fail=True,
                         update_display=update_display,
@@ -724,7 +722,7 @@ class location(actors.actor):
         return_list += [
             {
                 "image_id": current_steam,
-                "green_screen": [self.get_world_handler().steam_color],
+                "green_screen": [self.world_handler.steam_color],
                 "detail_level": constants.CLOUDS_DETAIL_LEVEL,
                 "override_green_screen_colors": [(140, 183, 216)],
             }
@@ -823,10 +821,10 @@ class location(actors.actor):
         Output:
             None
         """
-        if cell.get_location():
-            cell.get_location().unsubscribe_cell(cell)
-        self.attached_cells.append(cell)
-        cell.location = self
+        if cell.location:
+            cell.location.unsubscribe_cell(cell)
+        self.subscribed_cells.append(cell)
+        cell.subscribed_location = self
         self.refresh_attached_images()
         # Update cell's rendered image
 
@@ -840,11 +838,11 @@ class location(actors.actor):
             None
         """
         if (
-            mob.location
+            mob.subscribed_location
         ):  # Note that this is distinct from get_location(), which recursively checks through containers
-            mob.location.unsubscribe_mob(mob)
+            mob.subscribed_location.unsubscribe_mob(mob)
         self.subscribed_mobs.append(mob)
-        mob.location = self
+        mob.subscribed_location = self
         self.update_image_bundle()
         if mob == status.displayed_mob:
             actor_utility.calibrate_actor_info_display(
@@ -860,8 +858,8 @@ class location(actors.actor):
         Output:
             None
         """
-        self.attached_cells.remove(cell)
-        cell.location = None
+        self.subscribed_cells.remove(cell)
+        cell.subscribed_location = None
 
     def unsubscribe_mob(self, mob) -> None:
         """
@@ -873,7 +871,7 @@ class location(actors.actor):
             None
         """
         self.subscribed_mobs.remove(mob)
-        mob.location = None
+        mob.subscribed_location = None
         self.update_image_bundle()
 
     def flow(self) -> None:
@@ -920,8 +918,8 @@ class location(actors.actor):
         Output:
             dictionary: Color filter for this location's world
         """
-        if self.get_true_world_handler():
-            color_filter = self.get_true_world_handler().color_filter.copy()
+        if self.true_world_handler:
+            color_filter = self.true_world_handler.color_filter.copy()
             for key in color_filter:
                 color_filter[key] = round(
                     color_filter[key]
@@ -937,7 +935,8 @@ class location(actors.actor):
                 constants.COLOR_BLUE: 1,
             }
 
-    def get_world_handler(self) -> world_handlers.world_handler:
+    @property
+    def world_handler(self) -> world_handlers.world_handler:
         """
         Description:
             Returns the world handler corresponding to this location
@@ -946,9 +945,10 @@ class location(actors.actor):
         Output:
             world_handler: World handler corresponding to this location, or None if none exists yet
         """
-        return self.world_handler
+        return self.parent_world_handler
 
-    def get_true_world_handler(self) -> world_handlers.world_handler:
+    @property
+    def true_world_handler(self) -> world_handlers.world_handler:
         """
         Description:
             Returns the actual world handler corresponding to this location, mapping to the actual world if this is an orbital world
@@ -957,7 +957,7 @@ class location(actors.actor):
         Output:
             world_handler: Actual world handler corresponding to this location, or None if none exists yet
         """
-        world_handler = self.get_world_handler()
+        world_handler = self.world_handler
         if world_handler.is_orbital_world:
             return world_handler.full_world
         else:
@@ -991,7 +991,7 @@ class location(actors.actor):
         Output:
             dictionary: Smart green screen dictionary for this location, or None for default location appearance
         """
-        world_green_screen = self.get_world_handler().get_green_screen(self.terrain)
+        world_green_screen = self.world_handler.get_green_screen(self.terrain)
 
         # Make any per-location modifications
 
@@ -1008,9 +1008,7 @@ class location(actors.actor):
             float: Returns the average RGB value of this location's terrain
         """
         if self.is_earth_location:
-            return 1.0 - self.get_true_world_handler().get_tuning(
-                "earth_albedo_multiplier"
-            )
+            return 1.0 - self.true_world_handler.get_tuning("earth_albedo_multiplier")
         elif not self.is_abstract_location:
             image_id = self.get_image_id_list(
                 terrain_only=True,
@@ -1054,7 +1052,7 @@ class location(actors.actor):
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
         if self.is_abstract_location:
-            image_id_list = self.get_world_handler().image_id_list
+            image_id_list = self.world_handler.image_id_list
         else:
             image_id_list = []
             if (
@@ -1232,11 +1230,11 @@ class location(actors.actor):
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, self
             )
-        if status.displayed_mob and status.displayed_mob.get_location() == self:
+        if status.displayed_mob and status.displayed_mob.location == self:
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, status.displayed_mob
             )
-        for current_cell in self.attached_cells:
+        for current_cell in self.subscribed_cells:
             if current_cell.grid == status.minimap_grid:
                 current_cell.set_image(
                     self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MINIMAP_OVERLAY]

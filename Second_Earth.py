@@ -472,49 +472,6 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-"""
-New workflow high-level design (HLD):
-A location conceptually exists, and contains conceptual mobs, buildings, and items
-Mobs, buildings, and items exist in locations, which in turn exist in worlds
-Several cells and the location info display subscribe to the location, and the mob info display subscribes to its first mob
-All subscribed cells show the same combined image, but it may be resized differently for each cell
-Location info display and mob info display show the image of the subscribed location or mob, respectively
-If a location updates its image ID, it needs to update its subscribed cells and the location info display
-If a mob updates its image ID, if it is the first mob in its location, it needs to update the mob info display and the subscribed cells
-All warehouse interactions are resolved at the location/mob level
-Sometimes, a mob will move between locations, in which case it subscribes to the new location and is shown as part of its info displays/cells
-Mobs and locations never have to track whether they are showing or not - they are rendered when cells or info displays are rendered
-    (world should track mode information)
-A cell should be able to fetch and render a tooltip based on if the mouse is hovering over it, using content from its location
-    The location can fetch tooltip content recursively from itself, its mobs, and its buildings
-All rendering is handled by grids, cells, and info displays, which subscribe to concepts like locations, mobs, and (indirectly) worlds
-    Grids, cells, and info displays avoid conducting any game logic or storing game state besides what they are subscribed to
-
-Old workflow high-level design (HLD):
-A location conceptually exists, and contains terrain information
-A cell can subscribe to a location, and is also part of a grid, which is part of a world
-A tile is always linked to a particular cell
-Mobs and buildings exist in cells, while inventory exists in locations
-The tile info display subscribes to a tile, and the mob info display subscribes to the first mob in a cell
-Tiles, mobs, and buildings directly handle their own rendering and tooltips
-Mobs and buildings have to track which cells and which grids they are visible in
-    This introduces complications due to subscribed_mobs, contained_buildings, and tile inventory existing in non-unique entities
-    Game logic is tightly coupled with the interface, resulting in unnecessary complexity and difficulty simulating
-    Generally much clunkier, and it based on incremental design decisions that were reasonable at the time
-
-Location rework backlog:
-Update docstrings
-Replace get_location() with a location property
-Replace get_world_handler() with a world_handler property
-
-Notes:
-In location-centric design, game logic is centralized and as independent as possible from interface elements
-Work to define what an actor is - maybe it is a concept that can have an inventory and be selected on the LHS info displays
-    Only locations have attached cells - mobs just attach to locations
-    Some shared functionality with ministers, who also have names and can be selected
-        Possibly differ between actors who have inventory, which is a subset of actors who can be selected
-    Buildings and cell icons do not qualify as an actor, and should instead be constructs within a location
-"""
 # Move buildings.py to constructs, move locations.py to actor_types, and move actor_types to be within constructs
 # Eventually add DOM-style dependency system for images and (less important) tooltips, so they are only updated when needed
 #     Find the dom_bus architecture above ^

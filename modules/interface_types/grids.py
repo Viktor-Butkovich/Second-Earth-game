@@ -100,22 +100,21 @@ class grid(interface_elements.interface_element):
 
         if (
             status.displayed_location
-            and self in status.displayed_location.get_world_handler().subscribed_grids
+            and self in status.displayed_location.world_handler.subscribed_grids
         ):
-            for attached_cell in status.displayed_location.attached_cells:
-                attached_cell.draw_outline(constants.COLOR_WHITE)
+            for cell in status.displayed_location.subscribed_cells:
+                cell.draw_outline(constants.COLOR_WHITE)
         if status.displayed_mob and (
-            self
-            in status.displayed_mob.get_location().get_world_handler().subscribed_grids
+            self in status.displayed_mob.location.world_handler.subscribed_grids
             or (
                 status.displayed_mob.end_turn_destination
                 and self
-                in status.displayed_mob.end_turn_destination.get_world_handler().subscribed_grids
+                in status.displayed_mob.end_turn_destination.world_handler.subscribed_grids
             )
         ):
             if flags.show_selection_outlines:
-                for subscribed_cell in status.displayed_location.attached_cells:
-                    subscribed_cell.draw_outline(constants.COLOR_BRIGHT_GREEN)
+                for cell in status.displayed_location.subscribed_cells:
+                    cell.draw_outline(constants.COLOR_BRIGHT_GREEN)
 
                     if len(status.displayed_mob.base_automatic_route) > 0:
                         start_coordinates = status.displayed_mob.base_automatic_route[0]
@@ -129,18 +128,16 @@ class grid(interface_elements.interface_element):
                                 color = constants.COLOR_YELLOW
                             else:
                                 color = constants.COLOR_BRIGHT_BLUE
-                            for automatic_route_cell in (
-                                status.displayed_location.get_world_handler()
-                                .find_location(
-                                    current_coordinates[0], current_coordinates[1]
-                                )
-                                .attached_cells
-                            ):
+                            for (
+                                automatic_route_cell
+                            ) in status.displayed_location.world_handler.find_location(
+                                current_coordinates[0], current_coordinates[1]
+                            ).subscribed_cells:
                                 automatic_route_cell.draw_outline(color)
                 if status.displayed_mob.end_turn_destination:
                     for (
                         destination_cell
-                    ) in status.displayed_mob.end_turn_destination.attached_cells:
+                    ) in status.displayed_mob.end_turn_destination.subscribed_cells:
                         if destination_cell.grid.showing:
                             destination_cell.draw_outline(constants.COLOR_YELLOW)
 
@@ -339,7 +336,7 @@ class grid(interface_elements.interface_element):
         allowed_terrains = requirements_dict["allowed_terrains"]
         possible_cells = []
         for current_cell in self.get_flat_cell_list():
-            if not current_cell.get_location().terrain in allowed_terrains:
+            if not current_cell.location.terrain in allowed_terrains:
                 continue
             possible_cells.append(current_cell)
         if len(possible_cells) == 0:

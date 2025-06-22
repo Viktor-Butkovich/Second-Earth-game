@@ -106,7 +106,7 @@ class loan_search(action.campaign):
             None
         """
         if super().on_click(unit):
-            if unit.get_location().is_earth_location:
+            if unit.location.is_earth_location:
                 self.start(unit)
             else:
                 text_utility.print_to_screen("Loan searches are only possible on Earth")

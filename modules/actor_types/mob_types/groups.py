@@ -77,7 +77,7 @@ class group(pmob):
                     ) and self.officer.equipment.get(
                         equipment, False
                     ):  # If both worker and officer had same equipment, drop extra
-                        self.get_location().change_inventory(equipment, 1)
+                        self.location.change_inventory(equipment, 1)
                     status.equipment_types[equipment].equip(self)
 
         if not from_save:
@@ -181,7 +181,7 @@ class group(pmob):
         new_worker = constants.actor_creation_manager.create(
             False,
             {
-                "location": self.get_location(),
+                "location": self.location,
                 **new_worker_type.generate_input_dict(),
             },
         )

@@ -89,7 +89,7 @@ class worker(pmob):
             recipient = attached_group
         else:
             recipient = self
-        recipient_location = recipient.get_location()
+        recipient_location = recipient.location
         self.worker_type.on_recruit()
         text_utility.print_to_screen(
             f"Replacement {self.worker_type.name} have been automatically hired for the {recipient.name} at ({recipient_location.x}, {recipient_location.y})."

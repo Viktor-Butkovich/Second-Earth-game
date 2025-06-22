@@ -92,8 +92,8 @@ class exploration(action.action):
         if subject == "confirmation":
             text += f"Are you sure you want to spend {self.get_price()} money to attempt an exploration to the {self.direction}?"
         elif subject == "initial":
-            current_location = self.current_unit.get_location()
-            self.target_location = current_location.get_world_handler().find_location(
+            current_location = self.current_unit.location
+            self.target_location = current_location.world_handler.find_location(
                 current_location.x + self.x_change,
                 current_location.y + self.y_change,
             )
@@ -160,8 +160,8 @@ class exploration(action.action):
             self.y_change = on_click_info_dict["y_change"]
             self.direction = on_click_info_dict["direction"]
             self.start(unit)
-            current_location = unit.get_location()
-            future_location = current_location.get_world_handler().find_location(
+            current_location = unit.location
+            future_location = current_location.world_handler.find_location(
                 current_location.x + self.x_change,
                 current_location.y + self.y_change,
             )
@@ -231,7 +231,7 @@ class exploration(action.action):
                 ):  # checks for npmobs in explored location
                     self.current_unit.move(self.x_change, self.y_change)
                 else:
-                    actor_utility.focus_minimap_grids(self.current_unit.get_location())
+                    actor_utility.focus_minimap_grids(self.current_unit.location)
                     # Changes minimap to show unexplored location without moving
             else:
                 constants.notification_manager.display_notification(
@@ -239,7 +239,7 @@ class exploration(action.action):
                         "message": f"This unit's {self.initial_movement_points} remaining movement points are not enough to move into the newly explored location. /n /n",
                     }
                 )
-                actor_utility.focus_minimap_grids(self.current_unit.get_location())
+                actor_utility.focus_minimap_grids(self.current_unit.location)
         self.current_unit.set_movement_points(0)
         # self.current_unit.clear_attached_cell_icons()
         super().complete()

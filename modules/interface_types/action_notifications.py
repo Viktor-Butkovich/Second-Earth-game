@@ -280,5 +280,5 @@ class adjacent_location_exploration_notification(action_notification):
         """
         Removes this object from relevant lists and prevents it from further appearing in or affecting the program. When a notification is removed, the next notification is shown, if there is one
         """
-        actor_utility.focus_minimap_grids(status.display_mob.get_location())
+        actor_utility.focus_minimap_grids(status.display_mob.location)
         super().remove()

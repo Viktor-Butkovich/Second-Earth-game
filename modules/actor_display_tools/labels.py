@@ -44,7 +44,6 @@ class actor_display_label(label):
             "actor_type"
         ]  # constants.MOB_ACTOR_TYPE or constants.LOCATION_ACTOR_TYPE, None if does not scale with shown labels, like tooltip labels
 
-        self.default_tooltip_text = input_dict.get("default_tooltip_text", [])
         self.dynamic_tooltip_factory: Callable[["actor_display_label"], List[str]] = (
             input_dict.get("dynamic_tooltip_factory", None)
         )  # Function that returns a list of strings to generate a tooltip
@@ -816,14 +815,6 @@ class actor_display_label(label):
             else:
                 return super().tooltip_text
 
-        # elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
-        #    if self.actor:
-        #        return self.actor.tooltip_text
-        #    elif self.dynamic_tooltip_factory:
-        #        return self.dynamic_tooltip_factory(self)
-        #    elif self.default_tooltip_text:
-        #        return self.default_tooltip_text
-
         elif self.actor_label_type in [
             constants.MOB_INVENTORY_CAPACITY_LABEL,
             constants.LOCATION_INVENTORY_CAPACITY_LABEL,
@@ -1058,10 +1049,10 @@ class actor_display_label(label):
                     )
                     if not self.actor.is_earth_location:
                         tooltip_text.append(
-                            f"Approximately {self.actor.get_true_world_handler().get_parameter(constants.GRAVITY) * 100}% Earth's gravity"
+                            f"Approximately {self.actor.true_world_handler.get_parameter(constants.GRAVITY) * 100}% Earth's gravity"
                         )
                         tooltip_text.append(
-                            f"Approximately {round(self.actor.get_true_world_handler().world_dimensions / constants.earth_dimensions, 2) * 100}% Earth's size"
+                            f"Approximately {round(self.actor.true_world_handler.world_dimensions / constants.earth_dimensions, 2) * 100}% Earth's size"
                         )
                 elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
                     tooltip_text.append(
@@ -1087,10 +1078,10 @@ class actor_display_label(label):
                     )
                     tooltip_text.append(f"    Insolation = 1 / (star distance)^2")
                     tooltip_text.append(
-                        f"    {self.actor.get_true_world_handler().get_insolation()} = 1 / ({self.actor.get_true_world_handler().star_distance})^2"
+                        f"    {self.actor.true_world_handler.get_insolation()} = 1 / ({self.actor.true_world_handler.star_distance})^2"
                     )
                     tooltip_text.append(
-                        f"By the Stefan-Boltzmann law, a planet with {self.actor.get_true_world_handler().get_insolation()}x Earth's insolation receives {round(self.actor.get_true_world_handler().get_sun_effect(), 2)} °F heat"
+                        f"By the Stefan-Boltzmann law, a planet with {self.actor.true_world_handler.get_insolation()}x Earth's insolation receives {round(self.actor.true_world_handler.get_sun_effect(), 2)} °F heat"
                     )
 
                 if self.actor_label_type in [
@@ -1158,9 +1149,7 @@ class actor_display_label(label):
                 else:
                     habitability_dict[constants.TEMPERATURE] = (
                         actor_utility.get_temperature_habitability(
-                            round(
-                                self.actor.get_true_world_handler().average_temperature
-                            )
+                            round(self.actor.true_world_handler.average_temperature)
                         )
                     )
                     if (
@@ -1533,24 +1522,20 @@ class actor_display_label(label):
                 in constants.global_parameters
             ):
                 parameter = self.actor_label_type.removesuffix("_label")
-                value = self.actor.get_true_world_handler().get_parameter(parameter)
+                value = self.actor.true_world_handler.get_parameter(parameter)
                 if parameter in [constants.PRESSURE] + constants.ATMOSPHERE_COMPONENTS:
                     if (
                         parameter == constants.PRESSURE
                     ):  # Pressure: 1200/2400 (50% Earth)
                         atm = round(
-                            self.actor.get_true_world_handler().get_pressure_ratio(
-                                parameter
-                            ),
+                            self.actor.true_world_handler.get_pressure_ratio(parameter),
                             2,
                         )
                         if atm < 0.01:
                             atm = "<0.01"
                         self.set_label(f"{self.message_start}{value:,} u ({atm} atm)")
                     elif (
-                        self.actor.get_true_world_handler().get_parameter(
-                            constants.PRESSURE
-                        )
+                        self.actor.true_world_handler.get_parameter(constants.PRESSURE)
                         == 0.0
                         or value == 0
                     ):
@@ -1559,15 +1544,13 @@ class actor_display_label(label):
                         )
                     else:  # 42% Oxygen: 1008 u (0.42 atm)
                         atm = round(
-                            self.actor.get_true_world_handler().get_pressure_ratio(
-                                parameter
-                            ),
+                            self.actor.true_world_handler.get_pressure_ratio(parameter),
                             2,
                         )
                         if atm < 0.01:
                             atm = "<0.01"
                         self.set_label(
-                            f"{round(100 * value / self.actor.get_true_world_handler().get_parameter(constants.PRESSURE), 1)}% {self.message_start}{value:,} u ({atm} atm)"
+                            f"{round(100 * value / self.actor.true_world_handler.get_parameter(constants.PRESSURE), 1)}% {self.message_start}{value:,} u ({atm} atm)"
                         )
                 elif parameter == constants.GRAVITY:
                     if self.actor.is_earth_location:
@@ -1594,7 +1577,7 @@ class actor_display_label(label):
                         )
             elif self.actor_label_type == constants.AVERAGE_WATER_LABEL:
                 original_value = (
-                    self.actor.get_true_world_handler().average_water
+                    self.actor.true_world_handler.average_water
                     / constants.terrain_manager.get_tuning("earth_average_water_target")
                 )
                 if original_value != 0 and round(original_value * 100) == 0:
@@ -1607,45 +1590,45 @@ class actor_display_label(label):
                     )
             elif self.actor_label_type == constants.AVERAGE_TEMPERATURE_LABEL:
                 self.set_label(
-                    f"{self.message_start}{round(utility.fahrenheit(self.actor.get_true_world_handler().average_temperature), 2)} °F"
+                    f"{self.message_start}{round(utility.fahrenheit(self.actor.true_world_handler.average_temperature), 2)} °F"
                 )
             elif self.actor_label_type == constants.GHG_EFFECT_LABEL:
-                if self.actor.get_true_world_handler().ghg_multiplier == 1.0:
+                if self.actor.true_world_handler.ghg_multiplier == 1.0:
                     self.set_label(f"{self.message_start}+0%")
                 else:
-                    if self.actor.get_true_world_handler().ghg_multiplier > 1.0:
+                    if self.actor.true_world_handler.ghg_multiplier > 1.0:
                         sign = "+"
                     else:
                         sign = ""
                     self.set_label(
-                        f"{self.message_start}{sign}{round((self.actor.get_true_world_handler().ghg_multiplier - 1.0) * 100, 2)}%"
+                        f"{self.message_start}{sign}{round((self.actor.true_world_handler.ghg_multiplier - 1.0) * 100, 2)}%"
                     )
             elif self.actor_label_type == constants.WATER_VAPOR_EFFECT_LABEL:
-                if self.actor.get_true_world_handler().water_vapor_multiplier == 1.0:
+                if self.actor.true_world_handler.water_vapor_multiplier == 1.0:
                     self.set_label(f"{self.message_start}+0%")
                 else:
                     self.set_label(
-                        f"{self.message_start}+{round((self.actor.get_true_world_handler().water_vapor_multiplier - 1.0) * 100, 2)}%"
+                        f"{self.message_start}+{round((self.actor.true_world_handler.water_vapor_multiplier - 1.0) * 100, 2)}%"
                     )
             elif (
                 self.actor_label_type == constants.ALBEDO_EFFECT_LABEL
             ):  # Continue troubleshooting
                 self.set_label(
-                    f"{self.message_start}-{round((1.0 - self.actor.get_true_world_handler().albedo_multiplier) * 100)}%"
+                    f"{self.message_start}-{round((1.0 - self.actor.true_world_handler.albedo_multiplier) * 100)}%"
                 )
             elif self.actor_label_type == constants.TOTAL_HEAT_LABEL:
-                total_heat = self.actor.get_true_world_handler().get_total_heat()
+                total_heat = self.actor.true_world_handler.get_total_heat()
                 earth_total_heat = status.earth_world.get_total_heat()
                 self.set_label(
                     f"{self.message_start}{total_heat} °F ({round((total_heat / earth_total_heat) * 100)}% Earth)"
                 )
             elif self.actor_label_type == constants.STAR_DISTANCE_LABEL:
                 self.set_label(
-                    f"{self.message_start}{self.actor.get_true_world_handler().star_distance} AU"
+                    f"{self.message_start}{self.actor.true_world_handler.star_distance} AU"
                 )
             elif self.actor_label_type == constants.INSOLATION_LABEL:
                 self.set_label(
-                    f"{self.message_start}{round(self.actor.get_true_world_handler().get_sun_effect(), 2)} °F ({round((self.actor.get_true_world_handler().get_sun_effect() / status.earth_world.get_sun_effect()) * 100)}% Earth)"
+                    f"{self.message_start}{round(self.actor.true_world_handler.get_sun_effect(), 2)} °F ({round((self.actor.true_world_handler.get_sun_effect() / status.earth_world.get_sun_effect()) * 100)}% Earth)"
                 )
             elif self.actor_label_type == constants.HABITABILITY_LABEL:
                 overall_habitability = self.actor.get_known_habitability()
@@ -1679,6 +1662,8 @@ class actor_display_label(label):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if not result:
             return False
+        # elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
+        #     return True
         elif (
             self.actor_label_type == constants.RESOURCE_LABEL
             and (  # Denotes terrain resource
@@ -1717,6 +1702,11 @@ class actor_display_label(label):
                     constants.IN_GROUP_PERMISSION,
                     constants.IN_BUILDING_PERMISSION,
                 )
+            )
+            and not (
+                self.actor.get_permission(
+                    constants.DUMMY_PERMISSION
+                )  # Dummy units can always show in reorganization interface
             )
         ):  # Do not show mobs that are attached to another unit/building
             return False
@@ -1921,12 +1911,7 @@ class actor_tooltip_label(actor_display_label):
 
     def on_click(self):
         """
-        Description:
-            Selects the calibrated unit when clicked - used to allow selecting units from reorganization interface
-        Input:
-            None
-        Output:
-            None
+        Selects the calibrated unit when clicked - used to allow selecting units from reorganization interface
         """
         if self.actor_type == constants.MINISTER_ACTOR_TYPE:
             return
@@ -1942,7 +1927,7 @@ class actor_tooltip_label(actor_display_label):
                 )
             else:
                 return
-        elif self.actor:
+        elif self.actor:  # Reorganization interface buttons
             if self.actor.get_permission(constants.DUMMY_PERMISSION):
                 if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
                     status.reorganize_vehicle_right_button.on_click(allow_sound=False)

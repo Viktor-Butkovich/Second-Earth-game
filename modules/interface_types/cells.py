@@ -35,7 +35,7 @@ class cell:
         self.Rect: pygame.Rect = pygame.Rect(
             self.pixel_x, self.pixel_y - self.height, self.width, self.height
         )  # (left, top, width, height)
-        self.location = None
+        self.subscribed_location = None
         self.image: images.cell_image = images.cell_image(self)
         self.grid.world_handler.find_location(self.x, self.y).subscribe_cell(self)
 
@@ -45,7 +45,7 @@ class cell:
         Gets a 2D list of strings to use as this object's tooltip
             Each string is displayed on a separate line, while each sublist is displayed in a separate box
         """
-        return self.get_location().batch_tooltip_list
+        return self.subscribed_location.batch_tooltip_list
 
     def set_image(self, *args, **kwargs):
         """
@@ -58,11 +58,12 @@ class cell:
         """
         self.image.set_image(*args, **kwargs)
 
-    def get_location(self):
+    @property
+    def location(self):
         """
         Gets the subscribed location of this cell
         """
-        return self.location
+        return self.subscribed_location
 
     def can_show_tooltip(self):
         """

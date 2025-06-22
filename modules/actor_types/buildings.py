@@ -29,7 +29,7 @@ class building:
         self.building_type: building_types.building_type = input_dict.get(
             "building_type", status.building_types[input_dict["init_type"]]
         )
-        self.location: locations.location = input_dict["location"]
+        self.subscribed_location: locations.location = input_dict["location"]
         self.damaged = False
         self.upgrade_fields: Dict[str, int] = {}
         for upgrade_field in self.building_type.upgrade_fields:
@@ -46,7 +46,7 @@ class building:
 
         if (not from_save) and self.building_type.can_damage:
             self.set_damaged(False, True)
-        self.get_location().add_building(self)
+        self.location.add_building(self)
 
         if (
             constants.effect_manager.effect_active("damaged_buildings")
@@ -57,17 +57,18 @@ class building:
         if (
             (not from_save)
             and self.building_type.attached_settlement
-            and not self.get_location().settlement
+            and not self.location.settlement
         ):
             constants.actor_creation_manager.create(
                 False,
                 {
                     "init_type": constants.SETTLEMENT,
-                    "location": self.get_location(),
+                    "location": self.location,
                 },
             )
 
-    def get_location(self) -> locations.location:
+    @property
+    def location(self) -> locations.location:
         """
         Description:
             Returns the location this location is currently in
@@ -76,7 +77,7 @@ class building:
         Output:
             location: Returns the location this location is currently in
         """
-        return self.location
+        return self.subscribed_location
 
     def to_save_dict(self):
         """
@@ -107,7 +108,7 @@ class building:
         """
         Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also removes this building from its location
         """
-        self.get_location().remove_building(self)
+        self.location.remove_building(self)
         status.building_list = utility.remove_from_list(status.building_list, self)
 
     @property
@@ -151,13 +152,11 @@ class building:
         self.damaged = new_value
         if self.building_type == constants.INFRASTRUCTURE:
             actor_utility.update_roads()
-        if self.building_type.warehouse_level > 0 and self.get_location().has_building(
+        if self.building_type.warehouse_level > 0 and self.location.has_building(
             constants.WAREHOUSES
         ):
-            self.get_location().get_building(constants.WAREHOUSES).set_damaged(
-                new_value
-            )
-        self.get_location().update_image_bundle()
+            self.location.get_building(constants.WAREHOUSES).set_damaged(new_value)
+        self.location.update_image_bundle()
 
     def get_build_cost(self):
         """
@@ -346,11 +345,11 @@ class infrastructure_building(building):
         """
         return
         image_id_list = super().get_image_id_list()
-        if self.get_location().terrain != "water":
+        if self.location.terrain != "water":
             connected_road, connected_railroad = (False, False)
             for direction in ["up", "down", "left", "right"]:
-                adjacent_location = self.get_location().adjacent_locations[direction]
-                own_infrastructure = self.get_location().get_intact_building(
+                adjacent_location = self.location.adjacent_locations[direction]
+                own_infrastructure = self.location.get_intact_building(
                     constants.INFRASTRUCTURE
                 )
                 adjacent_infrastructure = adjacent_location.get_intact_building(
@@ -407,7 +406,7 @@ class warehouses(building):
             None
         """
         super().__init__(from_save, input_dict)
-        self.get_location().set_inventory_capacity(
+        self.location.set_inventory_capacity(
             self.upgrade_fields[constants.WAREHOUSE_LEVEL] * 9
         )
         if constants.effect_manager.effect_active("damaged_buildings"):
@@ -419,11 +418,11 @@ class warehouses(building):
         Returns the cost of the next upgrade for this building. The first successful upgrade costs 5 money and each subsequent upgrade costs twice as much as the previous. Building a train station, resource production facility, or
             port gives a free upgrade that does not affect the costs of future upgrades
         """
-        return self.get_location().get_warehouses_cost()
+        return self.location.get_warehouses_cost()
 
     def upgrade(self, upgrade_type="warehouses_level"):
         super().upgrade(upgrade_type)
-        self.get_location().set_inventory_capacity(
+        self.location.set_inventory_capacity(
             self.upgrade_fields[constants.WAREHOUSE_LEVEL] * 9
         )
 

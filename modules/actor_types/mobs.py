@@ -79,7 +79,7 @@ class mob(actor):
         self.max_movement_points = 1
         self.movement_points = self.max_movement_points
         self.movement_cost = 1
-        self.location: locations.location = None
+        self.subscribed_location: locations.location = None
         if input_dict.get("location", None):
             input_dict["location"].subscribe_mob(self)
         self.permissions_setup()
@@ -173,7 +173,7 @@ class mob(actor):
         """
         Updates this unit's habitability based on its location
         """
-        self.habitability = self.get_location().get_unit_habitability(self)
+        self.habitability = self.location.get_unit_habitability(self)
         self.set_permission(
             constants.SURVIVABLE_PERMISSION,
             self.habitability != constants.HABITABILITY_DEADLY,
@@ -206,7 +206,8 @@ class mob(actor):
             ):
                 current_minister_type_image.calibrate(self.controlling_minister)
 
-    def get_location(self) -> locations.location:
+    @property
+    def location(self) -> locations.location:
         """
         Description:
             Returns the location this mob is currently in
@@ -217,15 +218,15 @@ class mob(actor):
         """
         if self.get_permission(constants.DUMMY_PERMISSION):
             if status.displayed_mob:
-                return status.displayed_mob.get_location()
+                return status.displayed_mob.location
             else:
                 return None
         elif self.get_permission(constants.IN_VEHICLE_PERMISSION):
-            return self.vehicle.get_location()
+            return self.vehicle.location
         elif self.get_permission(constants.IN_GROUP_PERMISSION):
-            return self.group.get_location()
+            return self.group.location
         else:
-            return self.location
+            return self.subscribed_location
 
     def on_move(self):
         """
@@ -645,9 +646,7 @@ class mob(actor):
                 modifier -= 1
                 if self.get_permission(constants.OFFICER_PERMISSION):
                     modifier -= 1
-            if include_location and self.get_location().has_intact_building(
-                constants.FORT
-            ):
+            if include_location and self.location.has_intact_building(constants.FORT):
                 modifier += 1
         if self.get_permission(constants.DISORGANIZED_PERMISSION):
             modifier -= 1
@@ -703,12 +702,12 @@ class mob(actor):
         """
         if self.get_permission(constants.NPMOB_PERMISSION):
             if self.hostile:
-                if self.get_location().has_unit_by_filter(
+                if self.location.has_unit_by_filter(
                     [constants.PMOB_PERMISSION]
                 ):  # If in same location as pmob
                     return True
         elif self.get_permission(constants.PMOB_PERMISSION):
-            if self.get_location().has_unit_by_filter([constants.NPMOB_PERMISSION]):
+            if self.location.has_unit_by_filter([constants.NPMOB_PERMISSION]):
                 return True
         return False
 
@@ -723,8 +722,8 @@ class mob(actor):
         """
         return (
             super().can_show(skip_parent_collection)
-            and self.get_location().subscribed_mobs
-            and self == self.get_location().subscribed_mobs[0]
+            and self.location.subscribed_mobs
+            and self == self.location.subscribed_mobs[0]
         )
 
     def get_movement_cost(self, x_change, y_change):
@@ -752,19 +751,19 @@ class mob(actor):
             direction = "down"
 
         if not direction:
-            adjacent_location = self.get_location()
+            adjacent_location = self.location
         else:
-            adjacent_location = self.get_location().adjacent_locations[direction]
+            adjacent_location = self.location.adjacent_locations[direction]
 
         if adjacent_location:
             cost *= constants.terrain_movement_cost_dict.get(
                 adjacent_location.terrain, 1
             )
             if self.get_permission(constants.PMOB_PERMISSION):
-                local_infrastructure = self.get_location().get_intact_building(
+                local_infrastructure = self.location.get_intact_building(
                     constants.INFRASTRUCTURE
                 )
-                adjacent_infrastructure = self.get_location().get_intact_building(
+                adjacent_infrastructure = self.location.get_intact_building(
                     constants.INFRASTRUCTURE
                 )
                 if local_infrastructure and adjacent_infrastructure:
@@ -791,7 +790,7 @@ class mob(actor):
         Output:
             boolean: Returns True if any of the locations directly adjacent to this mob's location has the water terrain. Otherwise, returns False
         """
-        for current_location in self.get_location().adjacent_list:
+        for current_location in self.location.adjacent_list:
             if current_location.terrain == "water" and current_location.visible:
                 return True
         return False
@@ -907,10 +906,10 @@ class mob(actor):
         flags.show_selection_outlines = True
         constants.last_selection_outline_switch = constants.current_time
         actor_utility.calibrate_actor_info_display(
-            status.location_info_display, self.get_location()
+            status.location_info_display, self.location
         )
         actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
-        actor_utility.focus_minimap_grids(self.get_location())
+        actor_utility.focus_minimap_grids(self.location)
 
     def cycle_select(self):
         """
@@ -918,9 +917,9 @@ class mob(actor):
         """
         if main_loop_utility.action_possible():
             if status.displayed_mob != self:
-                self.location.subscribed_mobs.remove(self)
-                self.location.subscribed_mobs.insert(0, self)
-                self.location.update_image_bundle()
+                self.subscribed_location.subscribed_mobs.remove(self)
+                self.subscribed_location.subscribed_mobs.insert(0, self)
+                self.subscribed_location.update_image_bundle()
                 self.select()
                 self.selection_sound()
         else:
@@ -932,7 +931,7 @@ class mob(actor):
         """
         Moves the image of this unit to the front of the location, making it visible and selected first when the location is clicked
         """
-        current_location = self.get_location()
+        current_location = self.location
         current_location.subscribed_mobs.remove(self)
         current_location.subscribed_mobs.insert(0, self)
         current_location.update_image_bundle()
@@ -941,7 +940,7 @@ class mob(actor):
         """
         Updates this actor's images with its current image id list
         """
-        self.get_location().update_image_bundle(update_mob_only=True)
+        self.location.update_image_bundle(update_mob_only=True)
 
     @property
     def tooltip_text(self) -> List[List[str]]:
@@ -1019,12 +1018,9 @@ class mob(actor):
             top_message = "Item upkeep per turn:"
             if not item_upkeep:
                 top_message += " None"
-            elif self.get_location().is_earth_location:
+            elif self.location.is_earth_location:
                 top_message += " (exempt while on Earth)"
-            elif (
-                self.get_location().get_unit_habitability()
-                > constants.HABITABILITY_DEADLY
-            ):
+            elif self.location.get_unit_habitability() > constants.HABITABILITY_DEADLY:
                 show_air_exemption = True
             tooltip_list.append(top_message)
 
@@ -1057,11 +1053,11 @@ class mob(actor):
         if self.end_turn_destination:
             if not self.end_turn_destination.is_abstract_location:
                 tooltip_list.append(
-                    f"This unit has been issued an order to travel to ({self.end_turn_destination.x}, {self.end_turn_destination.y}) on {self.end_turn_destination.get_true_world_handler().name} at the end of the turn"
+                    f"This unit has been issued an order to travel to ({self.end_turn_destination.x}, {self.end_turn_destination.y}) on {self.end_turn_destination.true_world_handler.name} at the end of the turn"
                 )
             else:
                 tooltip_list.append(
-                    f"This unit has been issued an order to travel to {self.end_turn_destination.get_true_world_handler().name} at the end of the turn"
+                    f"This unit has been issued an order to travel to {self.end_turn_destination.true_world_handler.name} at the end of the turn"
                 )
 
         if self.get_permission(constants.NPMOB_PERMISSION):
@@ -1080,7 +1076,7 @@ class mob(actor):
         Drops each item held in this actor's inventory into its current location
         """
         for current_item in self.get_held_items():
-            self.get_location().change_inventory(
+            self.location.change_inventory(
                 current_item, self.get_inventory(current_item)
             )
             self.set_inventory(current_item, 0)
@@ -1089,7 +1085,7 @@ class mob(actor):
         ):
             for current_equipment in self.equipment.copy():
                 if self.equipment[current_equipment]:
-                    self.get_location().change_inventory(
+                    self.location.change_inventory(
                         status.equipment_types[current_equipment], 1
                     )
                     status.equipment_types[current_equipment].unequip(self)
@@ -1103,8 +1099,8 @@ class mob(actor):
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, None, override_exempt=True
             )
-        if self.location:
-            self.location.unsubscribe_mob(self)
+        if self.subscribed_location:
+            self.subscribed_location.unsubscribe_mob(self)
         super().remove()
         status.mob_list = utility.remove_from_list(status.mob_list, self)
         for current_status_icon in self.status_icons:
@@ -1170,12 +1166,12 @@ class mob(actor):
         Output:
             boolean: Returns True if this mob can move to the proposed destination, otherwise returns False
         """
-        current_location = self.get_location()
-        current_world = current_location.get_world_handler()
+        current_location = self.location
+        current_world = current_location.world_handler
         future_x = (current_location.x + x_change) % current_world.world_dimensions
         future_y = (current_location.y + y_change) % current_world.coordinate_height
         if minister_utility.get_minister(constants.TRANSPORTATION_MINISTER):
-            if not self.get_location().is_abstract_location:
+            if not self.location.is_abstract_location:
                 future_location = current_world.find_location(future_x, future_y)
                 if (
                     future_location.get_unit_habitability(self)
@@ -1284,8 +1280,8 @@ class mob(actor):
                     constants.sound_manager.play_sound("effects/ocean_splashing")
                     possible_sounds.append("effects/ship_propeller")
             else:
-                if self.get_location().terrain == "water":
-                    local_infrastructure = self.get_location().get_intact_building(
+                if self.location.terrain == "water":
+                    local_infrastructure = self.location.get_intact_building(
                         constants.INFRASTRUCTURE
                     )
                     if (
@@ -1321,8 +1317,8 @@ class mob(actor):
         self.end_turn_destination = None  # Cancels planned movements
         status.displayed_mob.set_permission(constants.TRAVELING_PERMISSION, False)
         self.change_movement_points(-1 * self.get_movement_cost(x_change, y_change))
-        current_location = self.get_location()
-        new_location = current_location.get_world_handler().find_location(
+        current_location = self.location
+        new_location = current_location.world_handler.find_location(
             current_location.x + x_change, current_location.y + y_change
         )
         new_location.subscribe_mob(self)

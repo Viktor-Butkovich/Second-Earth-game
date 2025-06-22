@@ -1168,10 +1168,7 @@ class world_handler:
                 status.location_info_display, status.displayed_location
             )
         for mob in status.mob_list:
-            if (
-                mob.get_location()
-                and mob.get_location().get_true_world_handler() == self
-            ):
+            if mob.location and mob.location.true_world_handler == self:
                 mob.update_habitability()
 
     def update_pressure(self) -> None:
