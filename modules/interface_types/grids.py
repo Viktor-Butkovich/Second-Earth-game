@@ -146,7 +146,8 @@ class grid(interface_elements.interface_element):
                     for (
                         destination_cell
                     ) in status.displayed_mob.end_turn_destination.attached_cells:
-                        destination_cell.draw_outline(constants.COLOR_YELLOW)
+                        if destination_cell.grid.showing:
+                            destination_cell.draw_outline(constants.COLOR_YELLOW)
 
     def draw_grid_lines(self):
         """

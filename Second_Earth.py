@@ -503,16 +503,7 @@ Mobs and buildings have to track which cells and which grids they are visible in
     Generally much clunkier, and it based on incremental design decisions that were reasonable at the time
 
 Location rework backlog:
-Make reorganization tooltips reponsive to describe what type of selected units are required
 Update docstrings
-Move buildings.py to constructs, move locations.py to actor_types, and move actor_types to be within constructs
-Eventually add DOM-style dependency system for images and (less important) tooltips, so they are only updated when needed
-    Find the dom_bus architecture above ^
-    To make sure this is actually helpful, try caching get_image_id_list results and using these for minimap calibration
-Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
-    Probably no longer needed with DOM system
-Could refactor location-level total upkeep required with contained_mobs - avoids manual traversals, just get total upkeep for every contained mob
-
 
 Notes:
 In location-centric design, game logic is centralized and as independent as possible from interface elements
@@ -522,7 +513,13 @@ Work to define what an actor is - maybe it is a concept that can have an invento
         Possibly differ between actors who have inventory, which is a subset of actors who can be selected
     Buildings and cell icons do not qualify as an actor, and should instead be constructs within a location
 """
-
+# Move buildings.py to constructs, move locations.py to actor_types, and move actor_types to be within constructs
+# Eventually add DOM-style dependency system for images and (less important) tooltips, so they are only updated when needed
+#     Find the dom_bus architecture above ^
+#     To make sure this is actually helpful, try caching get_image_id_list results and using these for minimap calibration
+# Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
+#     Probably no longer needed with DOM system
+# Could refactor location-level total upkeep required with contained_mobs - avoids manual traversals, just get total upkeep for every contained mob
 # Investigate water disappearing during terraforming - definitely occurs on Venus and Mars maps
 # Colonist upkeep should be oxygen, outputs CO2 - nitrogen is required in the construction of life support/dome systems, but is not directly involved in the upkeep process
 # Next major step is to add basic economic mechanics, now that the baseline terraforming is functional

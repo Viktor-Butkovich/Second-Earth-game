@@ -1,7 +1,7 @@
 # Contains functionality for actor display labels
 
 import pygame
-from typing import List
+from typing import List, Callable
 from modules.actor_types import actors
 from modules.interface_types.labels import label
 from modules.util import utility, scaling, actor_utility
@@ -43,7 +43,13 @@ class actor_display_label(label):
         self.actor_type = input_dict[
             "actor_type"
         ]  # constants.MOB_ACTOR_TYPE or constants.LOCATION_ACTOR_TYPE, None if does not scale with shown labels, like tooltip labels
+
         self.default_tooltip_text = input_dict.get("default_tooltip_text", [])
+        self.dynamic_tooltip_factory: Callable[["actor_display_label"], List[str]] = (
+            input_dict.get("dynamic_tooltip_factory", None)
+        )  # Function that returns a list of strings to generate a tooltip
+        #   This allows greater tooltip customization for different instances of the same init type w/o extra class logic
+
         self.image_y_displacement = 0
         input_dict["message"] = ""
         super().__init__(input_dict)
@@ -778,7 +784,10 @@ class actor_display_label(label):
         """
         Provides the tooltip for this object
         """
-        if self.actor_label_type in [
+        if self.dynamic_tooltip_factory:
+            return self.dynamic_tooltip_factory(self)
+
+        elif self.actor_label_type in [
             constants.CURRENT_BUILDING_WORK_CREW_LABEL,
             constants.CURRENT_PASSENGER_LABEL,
         ]:
@@ -807,11 +816,13 @@ class actor_display_label(label):
             else:
                 return super().tooltip_text
 
-        elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
-            if self.actor:
-                return self.actor.tooltip_text
-            elif self.default_tooltip_text:
-                return self.default_tooltip_text
+        # elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
+        #    if self.actor:
+        #        return self.actor.tooltip_text
+        #    elif self.dynamic_tooltip_factory:
+        #        return self.dynamic_tooltip_factory(self)
+        #    elif self.default_tooltip_text:
+        #        return self.default_tooltip_text
 
         elif self.actor_label_type in [
             constants.MOB_INVENTORY_CAPACITY_LABEL,
@@ -1669,13 +1680,6 @@ class actor_display_label(label):
         if not result:
             return False
         elif (
-            self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL
-            and self.default_tooltip_text
-        ):
-            return True
-        elif not self.actor:
-            return False
-        elif (
             self.actor_label_type == constants.RESOURCE_LABEL
             and (  # Denotes terrain resource
                 self.actor.resource == None or self.actor.is_abstract_location
@@ -1704,11 +1708,15 @@ class actor_display_label(label):
             constants.OFFICER_LABEL,
         ] and not self.actor.get_permission(constants.GROUP_PERMISSION):
             return False
-        elif self.actor.actor_type == constants.MOB_ACTOR_TYPE and (
-            self.actor.any_permissions(
-                constants.IN_VEHICLE_PERMISSION,
-                constants.IN_GROUP_PERMISSION,
-                constants.IN_BUILDING_PERMISSION,
+        elif (
+            self.actor
+            and self.actor.actor_type == constants.MOB_ACTOR_TYPE
+            and (
+                self.actor.any_permissions(
+                    constants.IN_VEHICLE_PERMISSION,
+                    constants.IN_GROUP_PERMISSION,
+                    constants.IN_BUILDING_PERMISSION,
+                )
             )
         ):  # Do not show mobs that are attached to another unit/building
             return False

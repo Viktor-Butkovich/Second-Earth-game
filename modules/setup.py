@@ -3,7 +3,13 @@
 import pygame
 import logging
 from modules.constants import constants, status, flags
-from modules.util import scaling, world_utility, actor_utility, game_transitions
+from modules.util import (
+    scaling,
+    world_utility,
+    actor_utility,
+    callback_utility,
+    game_transitions,
+)
 from modules.constructs import (
     fonts,
     unit_types,
@@ -3604,10 +3610,7 @@ def unit_organization_interface():
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.group_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
-            "default_tooltip_text": [
-                "Select an officer to fill this slot",
-                "If a worker and an officer are selected, they can be merged into a group",
-            ],
+            "dynamic_tooltip_factory": callback_utility.officer_reorganization_tooltip_factory,
         }
     )
     status.group_reorganization_collection.autofill_targets[
@@ -3646,10 +3649,7 @@ def unit_organization_interface():
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.group_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
-            "default_tooltip_text": [
-                "Select a worker to fill this slot",
-                "If a worker and an officer are selected, they can be merged into a group",
-            ],
+            "dynamic_tooltip_factory": callback_utility.worker_reorganization_tooltip_factory,
         }
     )
     status.group_reorganization_collection.autofill_targets[
@@ -3703,9 +3703,7 @@ def unit_organization_interface():
                 "x_offset": scaling.scale_width(rhs_x_offset),
                 "y_offset": scaling.scale_height(-0.5 * (image_height)),
             },
-            "default_tooltip_text": [
-                "Select a worker and officer to fill this slot with their combined group",
-            ],
+            "dynamic_tooltip_factory": callback_utility.group_reorganization_tooltip_factory,
         }
     )
     status.group_reorganization_collection.autofill_targets[
@@ -3867,10 +3865,7 @@ def vehicle_organization_interface():
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.vehicle_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
-            "default_tooltip_text": [
-                "Select an uncrewed vehicle to fill this slot",
-                "If an uncrewed vehicle and a valid crew are selected, the vehicle can be crewed",
-            ],
+            "dynamic_tooltip_factory": callback_utility.uncrewed_vehicle_reorganization_tooltip_factory,
         }
     )
     status.vehicle_reorganization_collection.autofill_targets[
@@ -3909,10 +3904,7 @@ def vehicle_organization_interface():
             "init_type": constants.ACTOR_TOOLTIP_LABEL,
             "parent_collection": status.vehicle_reorganization_collection,
             "member_config": {"calibrate_exempt": True},
-            "default_tooltip_text": [
-                "Select a valid crew to fill this slot",
-                "If an uncrewed vehicle and a valid crew are selected, the vehicle can be crewed",
-            ],
+            "dynamic_tooltip_factory": callback_utility.crew_reorganization_tooltip_factory,
         }
     )
     status.vehicle_reorganization_collection.autofill_targets[
@@ -3969,9 +3961,7 @@ def vehicle_organization_interface():
                 "x_offset": scaling.scale_width(rhs_x_offset),
                 "y_offset": scaling.scale_height(-0.5 * (image_height)),
             },
-            "default_tooltip_text": [
-                "Select an uncrewed vehicle and a crew to fill this slot with a crewed vehicle",
-            ],
+            "dynamic_tooltip_factory": callback_utility.active_vehicle_reorganization_tooltip_factory,
         }
     )
     status.vehicle_reorganization_collection.autofill_targets[
