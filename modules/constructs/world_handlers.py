@@ -80,7 +80,7 @@ class world_handler:
         if from_save:
             self.location_list = [
                 [
-                    constants.actor_creation_manager.create(
+                    constants.ActorCreationManager.create(
                         from_save=True,
                         input_dict={**current_location, "world_handler": self},
                     )
@@ -91,7 +91,7 @@ class world_handler:
         else:
             self.location_list = [
                 [
-                    constants.actor_creation_manager.create(
+                    constants.ActorCreationManager.create(
                         from_save=False,
                         input_dict={
                             "init_type": constants.LOCATION,
@@ -208,7 +208,7 @@ class world_handler:
         """
         Randomly generates altitude
         """
-        if constants.effect_manager.effect_active("map_customization"):
+        if constants.EffectManager.effect_active("map_customization"):
             default_altitude = 2
         else:
             default_altitude = 0
@@ -217,10 +217,10 @@ class world_handler:
                 constants.ALTITUDE, default_altitude, update_display=False
             )
 
-        if constants.effect_manager.effect_active("map_customization"):
+        if constants.EffectManager.effect_active("map_customization"):
             return
 
-        for i in range(constants.terrain_manager.get_tuning("altitude_worms")):
+        for i in range(constants.TerrainManager.get_tuning("altitude_worms")):
             min_length = (
                 random.randrange(
                     self.get_tuning("min_altitude_worm_multiplier"),
@@ -355,7 +355,7 @@ class world_handler:
         """
         Randomly generates roughness
         """
-        if constants.effect_manager.effect_active("map_customization"):
+        if constants.EffectManager.effect_active("map_customization"):
             return
         preset = world_utility.get_preset()
         if preset:
@@ -396,7 +396,7 @@ class world_handler:
         """
         for _ in range(round(self.average_water_target * (self.world_dimensions**2))):
             self.place_water(radiation_effect=True, update_display=False)
-        if constants.effect_manager.effect_active("map_customization"):
+        if constants.EffectManager.effect_active("map_customization"):
             attempts = 0
             while attempts < 10000 and not self.find_average(constants.WATER) == 5.0:
                 self.place_water(radiation_effect=True, update_display=False)
@@ -560,9 +560,9 @@ class world_handler:
         """
         Randomly generates soil
         """
-        if constants.effect_manager.effect_active("map_customization"):
+        if constants.EffectManager.effect_active("map_customization"):
             return
-        if constants.effect_manager.effect_active("earth_preset"):
+        if constants.EffectManager.effect_active("earth_preset"):
             for location in self.get_flat_location_list():
                 location.set_parameter(
                     constants.SOIL, random.randrange(0, 6), update_display=False
@@ -611,9 +611,9 @@ class world_handler:
         """
         Randomly generates vegetation
         """
-        if constants.effect_manager.effect_active("map_customization"):
+        if constants.EffectManager.effect_active("map_customization"):
             return
-        if constants.effect_manager.effect_active("earth_preset"):
+        if constants.EffectManager.effect_active("earth_preset"):
             for current_location in self.get_flat_location_list():
                 if current_location.get_parameter(constants.TEMPERATURE) > 0:
                     if current_location.get_parameter(constants.WATER) < 4:
@@ -1315,10 +1315,10 @@ class world_handler:
         """
         Creates random clouds for each location, with frequency depending on water vapor
         """
-        num_cloud_variants = constants.terrain_manager.terrain_variant_dict.get(
+        num_cloud_variants = constants.TerrainManager.terrain_variant_dict.get(
             "clouds_base", 1
         )
-        num_solid_cloud_variants = constants.terrain_manager.terrain_variant_dict.get(
+        num_solid_cloud_variants = constants.TerrainManager.terrain_variant_dict.get(
             "clouds_solid", 1
         )
         self.cloud_frequency = max(
@@ -1359,10 +1359,10 @@ class world_handler:
         """
         Creates random clouds for each location, with frequency depending on water vapor
         """
-        num_cloud_variants = constants.terrain_manager.terrain_variant_dict.get(
+        num_cloud_variants = constants.TerrainManager.terrain_variant_dict.get(
             "clouds_base", 1
         )
-        num_solid_cloud_variants = constants.terrain_manager.terrain_variant_dict.get(
+        num_solid_cloud_variants = constants.TerrainManager.terrain_variant_dict.get(
             "clouds_solid", 1
         )
         self.update_cloud_frequencies(estimated_temperature=estimated_temperature)
@@ -1459,7 +1459,7 @@ class world_handler:
         Output:
             any: Tuning value for the inputted tuning type
         """
-        return constants.terrain_manager.get_tuning(tuning_type)
+        return constants.TerrainManager.get_tuning(tuning_type)
 
     def to_save_dict(self) -> Dict[str, any]:
         """

@@ -113,7 +113,7 @@ class public_relations_campaign(action.campaign):
             None
         """
         if super().start(unit):
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": action_utility.generate_risk_message(self, unit)
                     + self.generate_notification_text("confirmation"),
@@ -140,7 +140,7 @@ class public_relations_campaign(action.campaign):
             None
         """
         if self.roll_result >= self.current_min_success:
-            constants.public_opinion_tracker.change(self.public_relations_change)
+            constants.PublicOpinionTracker.change(self.public_relations_change)
         elif self.roll_result <= self.current_max_crit_fail:
             self.current_unit.die("quit")
         super().complete()

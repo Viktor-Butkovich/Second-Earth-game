@@ -1,41 +1,41 @@
 import pygame
 from typing import Dict, List, Tuple, Any
-from modules.tools.data_managers.sound_manager_template import sound_manager_template
-from modules.tools.data_managers.save_load_manager_template import (
-    save_load_manager_template,
+from modules.managers.sound_manager import sound_manager
+from modules.managers.save_load_manager import (
+    save_load_manager,
 )
-from modules.tools.data_managers.flavor_text_manager_template import (
-    flavor_text_manager_template,
+from modules.managers.flavor_text_manager import (
+    flavor_text_manager,
 )
-from modules.tools.data_managers.input_manager_template import input_manager_template
-from modules.tools.data_managers.actor_creation_manager_template import (
-    actor_creation_manager_template,
+from modules.managers.input_manager import input_manager
+from modules.managers.actor_creation_manager import (
+    actor_creation_manager,
 )
-from modules.tools.data_managers.event_manager_template import event_manager_template
-from modules.tools.data_managers.achievement_manager_template import (
-    achievement_manager_template,
+from modules.managers.event_manager import event_manager
+from modules.managers.achievement_manager import (
+    achievement_manager,
 )
-from modules.tools.data_managers.terrain_manager_template import (
-    terrain_manager_template,
+from modules.managers.terrain_manager import (
+    terrain_manager,
 )
-from modules.tools.data_managers.character_manager_template import (
-    character_manager_template,
+from modules.managers.character_manager import (
+    character_manager,
 )
-from modules.tools.data_managers.effect_manager_template import effect_manager_template
-from modules.tools.data_managers.notification_manager_template import (
-    notification_manager_template,
+from modules.managers.effect_manager import effect_manager
+from modules.managers.notification_manager import (
+    notification_manager,
 )
-from modules.tools.data_managers.value_tracker_template import (
-    value_tracker_template,
-    public_opinion_tracker_template,
-    money_tracker_template,
+from modules.managers.value_tracker import (
+    value_tracker,
+    public_opinion_tracker,
+    money_tracker,
 )
-from modules.tools.data_managers.help_manager_template import help_manager_template
-from modules.tools.mouse_followers import mouse_follower_template
-from modules.interface_types.labels import money_label_template
+from modules.managers.help_manager import help_manager
+from modules.managers.mouse_follower import mouse_follower
+from modules.interface_components.labels import money_label
 from modules.constructs.fonts import font
 
-effect_manager: effect_manager_template = effect_manager_template()
+EffectManager: effect_manager = effect_manager()
 pygame.init()
 pygame.mixer.init()
 pygame.display.set_icon(pygame.image.load("graphics/misc/SE.png"))
@@ -169,7 +169,7 @@ default_display_width: int = (
 )
 default_display_height: int = 972
 resolution_finder = pygame.display.Info()
-if effect_manager.effect_active("fullscreen"):
+if EffectManager.effect_active("fullscreen"):
     display_width: float = resolution_finder.current_w
     display_height: float = resolution_finder.current_h
     game_display: pygame.Surface = pygame.display.set_mode(
@@ -179,57 +179,55 @@ else:
     display_width: float = resolution_finder.current_w - round(
         default_display_width / 10
     )
-    if effect_manager.effect_active("skinny_screen"):
+    if EffectManager.effect_active("skinny_screen"):
         display_width /= 2
     display_height: float = resolution_finder.current_h - round(
         default_display_height / 10
     )
-    if effect_manager.effect_active("short_screen"):
+    if EffectManager.effect_active("short_screen"):
         display_height /= 2
     game_display: pygame.Surface = pygame.display.set_mode(
         (display_width, display_height), pygame.HWSURFACE | pygame.DOUBLEBUF
     )
 
-sound_manager: sound_manager_template = sound_manager_template()
-save_load_manager: save_load_manager_template = save_load_manager_template()
-flavor_text_manager: flavor_text_manager_template = flavor_text_manager_template()
-input_manager: input_manager_template = input_manager_template()
-actor_creation_manager: actor_creation_manager_template = (
+SoundManager: sound_manager = sound_manager()
+SaveLoadManager: save_load_manager = save_load_manager()
+FlavorTextManager: flavor_text_manager = flavor_text_manager()
+InputManager: input_manager = input_manager()
+ActorCreationManager: actor_creation_manager = (
     None  # requires additional setup before initialization
 )
-terrain_manager: terrain_manager_template = (
+TerrainManager: terrain_manager = (
     None  # requires additional setup before initialization
 )
-character_manager: character_manager_template = (
+CharacterManager: character_manager = (
     None  # requires additional setup before initialization
 )
-achievement_manager: achievement_manager_template = (
+AchievementManager: achievement_manager = (
     None  # requires additional setup before initialization
 )
-event_manager: event_manager_template = event_manager_template()
-notification_manager: notification_manager_template = (
+EventManager: event_manager = event_manager()
+NotificationManager: notification_manager = (
     None  # requires additional setup before initialization
 )
-help_manager: help_manager_template = (
-    None  # requires additional setup before initialization
-)
-mouse_follower: mouse_follower_template = None
+HelpManager: help_manager = None  # requires additional setup before initialization
+MouseFollower: mouse_follower = None
 
 turn: int = 0
-turn_tracker: value_tracker_template = None
+TurnTracker: value_tracker = None
 public_opinion: int = 0
-public_opinion_tracker: public_opinion_tracker_template = None
+PublicOpinionTracker: public_opinion_tracker = None
 money: float = 0
-money_tracker: money_tracker_template = None
-money_label: money_label_template = None
+MoneyTracker: money_tracker = None
+MoneyLabel: money_label = None
 evil: int = 0
-evil_tracker: value_tracker_template = None
+EvilTracker: value_tracker = None
 fear: int = 0
-fear_tracker: value_tracker_template = None
+FearTracker: value_tracker = None
 fps: int = 0
-fps_tracker: value_tracker_template = None
+FpsTracker: value_tracker = None
 mouse_position: Tuple[int, int] = None
-mouse_position_tracker: value_tracker_template = None
+MousePositionTracker: value_tracker = None
 frames_this_second: int = 0
 last_fps_update: float = 0.0
 
@@ -576,7 +574,7 @@ BUILDING_INDICATOR_LEVEL: int = 6
 ALTITUDE_BRIGHTNESS_MULTIPLIER: float = 0.5
 PIXELLATED_SIZE: int = 2
 LIGHT_PIXELLATED_SIZE: int = 70
-if effect_manager.effect_active("speed_loading"):
+if EffectManager.effect_active("speed_loading"):
     DETAIL_LEVEL: float = 1.0
     BUNDLE_IMAGE_DETAIL_LEVEL: float = 0.1
     BUTTON_DETAIL_LEVEL: float = 1.0
@@ -609,10 +607,10 @@ TIME_PASSING_PLANET_SCHEDULE: List[bool] = []
 def update_terrain_knowledge_requirements():
     global TERRAIN_KNOWLEDGE_REQUIREMENT, TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
     TERRAIN_KNOWLEDGE_REQUIREMENT = (
-        0 if effect_manager.effect_active("remove_fog_of_war") else 1
+        0 if EffectManager.effect_active("remove_fog_of_war") else 1
     )
     TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT = (
-        0 if effect_manager.effect_active("remove_fog_of_war") else 2
+        0 if EffectManager.effect_active("remove_fog_of_war") else 2
     )
 
 

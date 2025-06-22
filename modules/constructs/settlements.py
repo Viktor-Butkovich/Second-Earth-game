@@ -24,7 +24,7 @@ class settlement:
         self.subscribed_location = input_dict["location"]
         self.subscribed_location.settlement = self
         if not from_save:
-            self.name = constants.flavor_text_manager.generate_flavor_text(
+            self.name = constants.FlavorTextManager.generate_flavor_text(
                 "settlement_names"
             )
             if status.displayed_notification:
@@ -32,14 +32,14 @@ class settlement:
                     actor_utility.press_button,
                     [constants.RENAME_SETTLEMENT_BUTTON],
                 )
-                if constants.notification_manager.notification_queue:
-                    if not constants.notification_manager.notification_queue[-1].get(
+                if constants.NotificationManager.notification_queue:
+                    if not constants.NotificationManager.notification_queue[-1].get(
                         "on_remove", None
                     ):
-                        constants.notification_manager.notification_queue[-1][
+                        constants.NotificationManager.notification_queue[-1][
                             "on_remove"
                         ] = []
-                    constants.notification_manager.notification_queue[-1][
+                    constants.NotificationManager.notification_queue[-1][
                         "on_remove"
                     ].append(on_remove_call)
                 else:

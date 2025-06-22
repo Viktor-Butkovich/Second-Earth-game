@@ -56,7 +56,7 @@ def start_player_turn(first_turn=False):
     text_utility.print_to_screen("")
     text_utility.print_to_screen("Turn " + str(constants.turn + 1))
     if not first_turn:
-        constants.notification_manager.set_lock(
+        constants.NotificationManager.set_lock(
             True
         )  # Don't attempt to show notifications until all processing completed
         main_loop_utility.update_display()
@@ -72,7 +72,7 @@ def start_player_turn(first_turn=False):
         manage_logistics_report()
         manage_production()
         reset_mobs("pmobs")
-        if not constants.effect_manager.effect_active("skip_start_of_turn"):
+        if not constants.EffectManager.effect_active("skip_start_of_turn"):
             manage_public_opinion()
             manage_loans()
             manage_worker_price_changes()
@@ -86,13 +86,13 @@ def start_player_turn(first_turn=False):
         status.current_world.simulate_temperature_equilibrium(5)
         status.current_world.update_sky_color(update_water=True)
         status.current_world.update_clouds()
-        constants.notification_manager.set_lock(False)
+        constants.NotificationManager.set_lock(False)
 
     flags.player_turn = (
         True  # player_turn also set to True in main_loop when enemies done moving
     )
     flags.enemy_combat_phase = False
-    constants.turn_tracker.change(1)
+    constants.TurnTracker.change(1)
 
     if not first_turn:
         market_utility.adjust_prices()
@@ -108,7 +108,7 @@ def start_player_turn(first_turn=False):
     actor_utility.calibrate_actor_info_display(
         status.mob_info_display, status.displayed_mob
     )
-    constants.achievement_manager.check_achievements("start of turn")
+    constants.AchievementManager.check_achievements("start of turn")
 
 
 def prepare_planet_rotation():
@@ -120,7 +120,7 @@ def prepare_planet_rotation():
     Output:
         None
     """
-    if constants.effect_manager.effect_active("save_global_projection"):
+    if constants.EffectManager.effect_active("save_global_projection"):
         folder_path = "save_games/globe_rotations"
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
@@ -172,7 +172,7 @@ def prepare_planet_rotation():
     # Each full rotation requires # transitions equal to # frames
 
     constants.TIME_PASSING_EARTH_SCHEDULE = [False] * total_timesteps
-    num_earth_rotations = constants.terrain_manager.get_tuning("earth_rotation_speed")
+    num_earth_rotations = constants.TerrainManager.get_tuning("earth_rotation_speed")
     earth_step_interval = total_timesteps / (earth_frames * num_earth_rotations)
     for i in range(round(earth_frames * num_earth_rotations)):
         constants.TIME_PASSING_EARTH_SCHEDULE[round(i * earth_step_interval)] = True
@@ -432,7 +432,7 @@ def manage_upkeep_expenditure() -> None:
                 unfulfilled_item_request = current_location.fulfill_item_request(
                     item_request.copy()
                 )
-                if constants.effect_manager.effect_active("track_item_requests"):
+                if constants.EffectManager.effect_active("track_item_requests"):
                     if current_world.is_abstract_world or current_location.name != None:
                         name = current_location.name.capitalize()
                     else:
@@ -451,7 +451,7 @@ def manage_upkeep_expenditure() -> None:
                 )
 
     total_money_upkeep = market_utility.calculate_total_worker_upkeep()
-    constants.money_tracker.change(round(-1 * total_money_upkeep, 2), "worker_upkeep")
+    constants.MoneyTracker.change(round(-1 * total_money_upkeep, 2), "worker_upkeep")
 
 
 def manage_missing_upkeep_penalties() -> None:
@@ -492,19 +492,19 @@ def manage_public_opinion():
     """
     current_public_opinion = round(constants.public_opinion)
     if current_public_opinion < 50:
-        constants.public_opinion_tracker.change(1)
+        constants.PublicOpinionTracker.change(1)
         text_utility.print_to_screen(
             f"Trending toward a neutral attitude, public opinion toward your company increased from {current_public_opinion} to {current_public_opinion + 1}"
         )
     elif current_public_opinion > 50:
-        constants.public_opinion_tracker.change(-1)
+        constants.PublicOpinionTracker.change(-1)
         text_utility.print_to_screen(
             f"Trending toward a neutral attitude, public opinion toward your company decreased from {current_public_opinion} to {current_public_opinion - 1}"
         )
-    constants.evil_tracker.change(-2)
-    if constants.effect_manager.effect_active("show_evil"):
+    constants.EvilTracker.change(-2)
+    if constants.EffectManager.effect_active("show_evil"):
         print("Evil number: " + str(constants.evil))
-    if constants.effect_manager.effect_active("show_fear"):
+    if constants.EffectManager.effect_active("show_fear"):
         print("Fear number: " + str(constants.fear))
 
 
@@ -523,7 +523,7 @@ def manage_subsidies():
         + str(subsidies_received)
         + " money in subsidies from the government based on your public opinion and colonial efforts"
     )
-    constants.money_tracker.change(subsidies_received, "subsidies")
+    constants.MoneyTracker.change(subsidies_received, "subsidies")
 
 
 def manage_financial_report():
@@ -535,14 +535,14 @@ def manage_financial_report():
     Output:
         None
     """
-    financial_report_text = constants.money_tracker.prepare_financial_report()
-    constants.notification_manager.display_notification(
+    financial_report_text = constants.MoneyTracker.prepare_financial_report()
+    constants.NotificationManager.display_notification(
         {
             "message": financial_report_text,
         }
     )
     status.previous_financial_report = financial_report_text
-    constants.money_tracker.reset_transaction_history()
+    constants.MoneyTracker.reset_transaction_history()
 
 
 def manage_worker_price_changes():
@@ -623,7 +623,7 @@ def manage_ministers():
             current_minister.respond("fired")
             current_minister.remove()
     for current_minister in status.minister_list.copy():
-        if constants.effect_manager.effect_active(
+        if constants.EffectManager.effect_active(
             "farm_upstate"
         ):  # Retire all ministers
             current_minister.respond("retirement")
@@ -708,14 +708,14 @@ def manage_ministers():
         status.minister_list
     ) <= 10:  # Chance if at least 2 missing or guaranteed if not enough to fill cabinet
         while len(status.minister_list) < constants.minister_limit:
-            constants.actor_creation_manager.create_minister(False, {})
-        constants.notification_manager.display_notification(
+            constants.ActorCreationManager.create_minister(False, {})
+        constants.NotificationManager.display_notification(
             {
                 "message": "Several new minister candidates are available for appointment and can be found in the candidate pool. /n /n",
             }
         )
     if random.randrange(1, 7) == 1 and random.randrange(1, 7) <= 3:
-        constants.fear_tracker.change(-1)
+        constants.FearTracker.change(-1)
     manage_minister_rumors()
 
 
@@ -763,8 +763,8 @@ def game_end_check():
     if constants.money < 0:
         text = ""
         text += "Your company does not have enough money to pay its expenses and has gone bankrupt. /n /nGAME OVER"
-        constants.achievement_manager.achieve("I DECLARE BANKRUPTCY!")
-        constants.notification_manager.display_notification(
+        constants.AchievementManager.achieve("I DECLARE BANKRUPTCY!")
+        constants.NotificationManager.display_notification(
             {
                 "message": text,
                 "choices": [
@@ -818,7 +818,7 @@ def manage_item_sales():
             text += f"{item_type.amount_sold_this_turn} {item_type.name} sold for {actual_revenue} money (expected {expected_revenue}) /n /n"
             item_type.amount_sold_this_turn = 0
 
-    constants.money_tracker.change(reported_revenue, "sold_items")
+    constants.MoneyTracker.change(reported_revenue, "sold_items")
 
     if any_sold:
         trade_minister.display_message(text)
@@ -846,14 +846,14 @@ def end_turn_warnings():
         for current_location in current_world.get_flat_location_list():
             if current_location.insufficient_inventory_capacity:
                 if current_world.is_abstract_world:
-                    constants.notification_manager.display_notification(
+                    constants.NotificationManager.display_notification(
                         {
                             "message": f"Warning: the warehouses in {current_location.name} are not sufficient to hold the items stored there. /n /nAny items exceeding the location's storage capacity will be lost at the end of the turn. /n /n",
                             "zoom_destination": current_location,
                         }
                     )
                 else:
-                    constants.notification_manager.display_notification(
+                    constants.NotificationManager.display_notification(
                         {
                             "message": f"Warning: the warehouses at {current_location.x}, {current_location.y} are not sufficient to hold the items stored there. /n /nAny items exceeding the location's storage capacity will be lost at the end of the turn. /n /n",
                             "zoom_destination": current_location,
@@ -884,14 +884,14 @@ def end_turn_warnings():
                 num_leaving > 0 and num_stranded > 0 and num_reserve == 0
             ):  # If at least 1 vehicle leaving grid and at least 1 unit left behind, give warning
                 text += f"Warning: at least 1 unit is being left behind in {current_world.name} and will not be able to leave without another spaceship. /n /n"
-                constants.notification_manager.display_notification(
+                constants.NotificationManager.display_notification(
                     {"message": text, "zoom_destination": current_location}
                 )
 
     for minister in status.minister_list:
         if minister.fabricated_evidence > 0:
             text = f"WARNING: Your {minister.fabricated_evidence} piece{utility.generate_plural(minister.fabricated_evidence)} of fabricated evidence against {minister.current_position.name} {minister.name} will disappear at the end of the turn if left unused. /n /n"
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": text,
                 }
@@ -899,7 +899,7 @@ def end_turn_warnings():
 
     if flags.prosecution_bribed_judge:
         text = "WARNING: The effect of bribing the judge will disappear at the end of the turn if left unused. /n /n"
-        constants.notification_manager.display_notification(
+        constants.NotificationManager.display_notification(
             {
                 "message": text,
             }
@@ -910,7 +910,7 @@ def end_turn_warnings():
             not pmob.get_permission(constants.IN_GROUP_PERMISSION)
         ):
             text = "WARNING: At least 1 unit is in deadly environmental conditions and will die at the end of the turn. /n /n"
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": text,
                     "zoom_destination": pmob,
@@ -942,7 +942,7 @@ def end_turn_warnings():
                     text += f"Required items: {actor_utility.summarize_amount_dict(item_upkeep)} /n /n"
                     text += f"Missing items: {actor_utility.summarize_amount_dict(item_request)} /n /n"
                     text += f"Depending on item type, this deficit may result in unit death or morale penalties. /n /n"
-                    constants.notification_manager.display_notification(
+                    constants.NotificationManager.display_notification(
                         {
                             "message": text,
                             "zoom_destination": current_location,

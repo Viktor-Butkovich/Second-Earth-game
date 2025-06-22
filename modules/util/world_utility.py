@@ -50,7 +50,7 @@ def get_preset() -> str:
         str: The name of the current world preset, or None if no preset is active.
     """
     for preset in [constants.EARTH_WORLD, constants.VENUS_WORLD, constants.MARS_WORLD]:
-        if constants.effect_manager.effect_active(f"{preset}_preset"):
+        if constants.EffectManager.effect_active(f"{preset}_preset"):
             return preset
     return None
 
@@ -63,10 +63,10 @@ def save_worlds() -> Dict[str, Dict[str, Any]]:
 
 
 def load_worlds(save_dicts: Dict[str, Dict[str, Any]]) -> None:
-    status.current_world = constants.actor_creation_manager.create(
+    status.current_world = constants.ActorCreationManager.create(
         True, save_dicts["current_world"]
     )
-    status.earth_world = constants.actor_creation_manager.create(
+    status.earth_world = constants.ActorCreationManager.create(
         True, save_dicts["earth_world"]
     )
     for current_mob in status.mob_list:
@@ -75,11 +75,11 @@ def load_worlds(save_dicts: Dict[str, Dict[str, Any]]) -> None:
 
 
 def new_worlds() -> None:
-    status.current_world = constants.actor_creation_manager.create(
+    status.current_world = constants.ActorCreationManager.create(
         from_save=False,
         input_dict=generate_current_world_input_dict(),
     )
-    status.earth_world = constants.actor_creation_manager.create(
+    status.earth_world = constants.ActorCreationManager.create(
         from_save=False,
         input_dict=generate_earth_world_input_dict(),
     )
@@ -102,55 +102,53 @@ def generate_preset_world(preset: str) -> Dict[str, Any]:
     return_dict: Dict[str, Any] = {}
     return_dict["name"] = preset.capitalize()
     return_dict["world_dimensions"] = constants.world_dimensions_options[
-        constants.terrain_manager.get_tuning(f"{preset}_dimensions_index")
+        constants.TerrainManager.get_tuning(f"{preset}_dimensions_index")
     ]
     ideal_atmosphere_size = (return_dict["world_dimensions"] ** 2) * 6
-    return_dict["rotation_direction"] = constants.terrain_manager.get_tuning(
+    return_dict["rotation_direction"] = constants.TerrainManager.get_tuning(
         f"{preset}_rotation_direction"
     )
-    return_dict["rotation_speed"] = constants.terrain_manager.get_tuning(
+    return_dict["rotation_speed"] = constants.TerrainManager.get_tuning(
         f"{preset}_rotation_speed"
     )
     return_dict["global_parameters"] = {
-        constants.GRAVITY: constants.terrain_manager.get_tuning(f"{preset}_gravity"),
-        constants.RADIATION: constants.terrain_manager.get_tuning(
-            f"{preset}_radiation"
-        ),
-        constants.MAGNETIC_FIELD: constants.terrain_manager.get_tuning(
+        constants.GRAVITY: constants.TerrainManager.get_tuning(f"{preset}_gravity"),
+        constants.RADIATION: constants.TerrainManager.get_tuning(f"{preset}_radiation"),
+        constants.MAGNETIC_FIELD: constants.TerrainManager.get_tuning(
             f"{preset}_magnetic_field"
         ),
         constants.INERT_GASES: round(
-            constants.terrain_manager.get_tuning(f"{preset}_inert_gases")
-            * constants.terrain_manager.get_tuning(f"{preset}_pressure")
+            constants.TerrainManager.get_tuning(f"{preset}_inert_gases")
+            * constants.TerrainManager.get_tuning(f"{preset}_pressure")
             * ideal_atmosphere_size,
             1,
         ),
         constants.OXYGEN: round(
-            constants.terrain_manager.get_tuning(f"{preset}_oxygen")
-            * constants.terrain_manager.get_tuning(f"{preset}_pressure")
+            constants.TerrainManager.get_tuning(f"{preset}_oxygen")
+            * constants.TerrainManager.get_tuning(f"{preset}_pressure")
             * ideal_atmosphere_size,
             1,
         ),
         constants.GHG: round(
-            constants.terrain_manager.get_tuning(f"{preset}_GHG")
-            * constants.terrain_manager.get_tuning(f"{preset}_pressure")
+            constants.TerrainManager.get_tuning(f"{preset}_GHG")
+            * constants.TerrainManager.get_tuning(f"{preset}_pressure")
             * ideal_atmosphere_size,
             1,
         ),
         constants.TOXIC_GASES: round(
-            constants.terrain_manager.get_tuning(f"{preset}_toxic_gases")
-            * constants.terrain_manager.get_tuning(f"{preset}_pressure")
+            constants.TerrainManager.get_tuning(f"{preset}_toxic_gases")
+            * constants.TerrainManager.get_tuning(f"{preset}_pressure")
             * ideal_atmosphere_size,
             1,
         ),
     }
-    return_dict["average_water_target"] = constants.terrain_manager.get_tuning(
+    return_dict["average_water_target"] = constants.TerrainManager.get_tuning(
         f"{preset}_average_water_target"
     )
-    return_dict["sky_color"] = constants.terrain_manager.get_tuning(
+    return_dict["sky_color"] = constants.TerrainManager.get_tuning(
         f"{preset}_sky_color"
     )
-    return_dict["star_distance"] = constants.terrain_manager.get_tuning(
+    return_dict["star_distance"] = constants.TerrainManager.get_tuning(
         f"{preset}_star_distance"
     )
     return return_dict
@@ -158,7 +156,7 @@ def generate_preset_world(preset: str) -> Dict[str, Any]:
 
 def generate_random_world() -> Dict[str, Any]:
     return_dict: Dict[str, Any] = {}
-    return_dict["name"] = constants.flavor_text_manager.generate_flavor_text(
+    return_dict["name"] = constants.FlavorTextManager.generate_flavor_text(
         "planet_names"
     )
     return_dict["world_dimensions"] = random.choice(constants.world_dimensions_options)
@@ -235,55 +233,55 @@ def generate_earth_world_input_dict() -> Dict[str, Any]:
     return_dict["abstract_world_type"] = constants.EARTH_WORLD
     return_dict["name"] = "Earth"
     return_dict["world_dimensions"] = 1
-    return_dict["rotation_direction"] = constants.terrain_manager.get_tuning(
+    return_dict["rotation_direction"] = constants.TerrainManager.get_tuning(
         "earth_rotation_direction"
     )
-    return_dict["rotation_speed"] = constants.terrain_manager.get_tuning(
+    return_dict["rotation_speed"] = constants.TerrainManager.get_tuning(
         "earth_rotation_speed"
     )
     return_dict["global_parameters"] = {
-        constants.GRAVITY: constants.terrain_manager.get_tuning("earth_gravity"),
-        constants.RADIATION: constants.terrain_manager.get_tuning("earth_radiation"),
-        constants.MAGNETIC_FIELD: constants.terrain_manager.get_tuning(
+        constants.GRAVITY: constants.TerrainManager.get_tuning("earth_gravity"),
+        constants.RADIATION: constants.TerrainManager.get_tuning("earth_radiation"),
+        constants.MAGNETIC_FIELD: constants.TerrainManager.get_tuning(
             "earth_magnetic_field"
         ),
         constants.INERT_GASES: round(
-            constants.terrain_manager.get_tuning("earth_inert_gases")
+            constants.TerrainManager.get_tuning("earth_inert_gases")
             * constants.earth_dimensions**2
             * 6,
             1,
         ),
         constants.OXYGEN: round(
-            constants.terrain_manager.get_tuning("earth_oxygen")
+            constants.TerrainManager.get_tuning("earth_oxygen")
             * constants.earth_dimensions**2
             * 6,
             1,
         ),
         constants.GHG: round(
-            constants.terrain_manager.get_tuning("earth_GHG")
+            constants.TerrainManager.get_tuning("earth_GHG")
             * constants.earth_dimensions**2
             * 6,
             1,
         ),
         constants.TOXIC_GASES: round(
-            constants.terrain_manager.get_tuning("earth_toxic_gases")
+            constants.TerrainManager.get_tuning("earth_toxic_gases")
             * constants.earth_dimensions**2
             * 6,
             1,
         ),
     }
-    return_dict["average_water"] = constants.terrain_manager.get_tuning(
+    return_dict["average_water"] = constants.TerrainManager.get_tuning(
         "earth_average_water_target"
     )
     return_dict["size"] = constants.earth_dimensions**2
-    return_dict["sky_color"] = constants.terrain_manager.get_tuning("earth_sky_color")
-    return_dict["star_distance"] = constants.terrain_manager.get_tuning(
+    return_dict["sky_color"] = constants.TerrainManager.get_tuning("earth_sky_color")
+    return_dict["star_distance"] = constants.TerrainManager.get_tuning(
         "earth_star_distance"
     )
-    return_dict["albedo_multiplier"] = constants.terrain_manager.get_tuning(
+    return_dict["albedo_multiplier"] = constants.TerrainManager.get_tuning(
         "earth_albedo_multiplier"
     )
-    return_dict["cloud_frequency"] = constants.terrain_manager.get_tuning(
+    return_dict["cloud_frequency"] = constants.TerrainManager.get_tuning(
         "earth_cloud_frequency"
     )
     return_dict["image_id_list"] = generate_abstract_world_image(
@@ -496,10 +494,10 @@ def generate_world_green_screen() -> Dict[str, Dict[str, Any]]:
     """
     preset = get_preset()
     if preset:
-        water_color = constants.terrain_manager.get_tuning(f"{preset}_water_color")
-        ice_color = constants.terrain_manager.get_tuning(f"{preset}_ice_color")
-        sand_color = constants.terrain_manager.get_tuning(f"{preset}_sand_color")
-        rock_color = constants.terrain_manager.get_tuning(f"{preset}_rock_color")
+        water_color = constants.TerrainManager.get_tuning(f"{preset}_water_color")
+        ice_color = constants.TerrainManager.get_tuning(f"{preset}_ice_color")
+        sand_color = constants.TerrainManager.get_tuning(f"{preset}_sand_color")
+        rock_color = constants.TerrainManager.get_tuning(f"{preset}_rock_color")
     else:
         sand_type = random.randrange(1, 7)
         if sand_type >= 5:

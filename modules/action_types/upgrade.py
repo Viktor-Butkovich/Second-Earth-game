@@ -202,7 +202,7 @@ class upgrade(action.action):
             None
         """
         if super().start(unit):
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": action_utility.generate_risk_message(self, unit)
                     + self.generate_notification_text("confirmation"),

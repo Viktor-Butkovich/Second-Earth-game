@@ -98,7 +98,7 @@ class exploration(action.action):
                 current_location.y + self.y_change,
             )
             text += "The expedition heads towards the " + self.direction + ". /n /n"
-            text += f"{constants.flavor_text_manager.generate_flavor_text(self.action_type)} /n /n"
+            text += f"{constants.FlavorTextManager.generate_flavor_text(self.action_type)} /n /n"
         elif subject == "success":
             text += "/n"
             self.public_relations_change = random.randrange(0, 3)
@@ -165,7 +165,7 @@ class exploration(action.action):
                 current_location.x + self.x_change,
                 current_location.y + self.y_change,
             )
-            constants.actor_creation_manager.create_interface_element(
+            constants.ActorCreationManager.create_interface_element(
                 input_dict={
                     "init_type": constants.HOSTED_ICON,
                     "location": future_location,
@@ -187,7 +187,7 @@ class exploration(action.action):
             None
         """
         if super().start(unit):
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": f"{action_utility.generate_risk_message(self, unit)}{self.generate_notification_text('confirmation')}",
                     "choices": [
@@ -220,7 +220,7 @@ class exploration(action.action):
             None
         """
         if self.roll_result >= self.current_min_success:
-            constants.public_opinion_tracker.change(self.public_relations_change)
+            constants.PublicOpinionTracker.change(self.public_relations_change)
             # Modify location's knowledge level
             if self.initial_movement_points >= self.current_unit.get_movement_cost(
                 self.x_change, self.y_change
@@ -234,7 +234,7 @@ class exploration(action.action):
                     actor_utility.focus_minimap_grids(self.current_unit.location)
                     # Changes minimap to show unexplored location without moving
             else:
-                constants.notification_manager.display_notification(
+                constants.NotificationManager.display_notification(
                     {
                         "message": f"This unit's {self.initial_movement_points} remaining movement points are not enough to move into the newly explored location. /n /n",
                     }

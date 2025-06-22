@@ -331,7 +331,7 @@ class construction(action.action):
             None
         """
         if super().start(unit):
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": action_utility.generate_risk_message(self, unit)
                     + self.generate_notification_text("confirmation"),
@@ -406,7 +406,7 @@ class construction(action.action):
                 input_dict["crew"] = None
             else:
                 input_dict["image_id"] = f"buildings/{self.building_type.key}.png"
-            new_building = constants.actor_creation_manager.create(False, input_dict)
+            new_building = constants.ActorCreationManager.create(False, input_dict)
 
             if self.building_type.warehouse_level > 0:
                 warehouses = self.current_unit.location.get_building(
@@ -420,7 +420,7 @@ class construction(action.action):
                     input_dict["image_id"] = "misc/empty.png"
                     input_dict["name"] = "warehouses"
                     input_dict["init_type"] = constants.WAREHOUSES
-                    constants.actor_creation_manager.create(False, input_dict)
+                    constants.ActorCreationManager.create(False, input_dict)
 
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, self.current_unit.location

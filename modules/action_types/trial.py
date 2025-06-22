@@ -228,7 +228,7 @@ class trial(action.campaign):
             None
         """
         if super().start(unit):
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": self.generate_notification_text("confirmation"),
                     "transfer_interface_elements": True,
@@ -285,7 +285,7 @@ class trial(action.campaign):
             max_roll = 6
         text = self.generate_notification_text("initial")
 
-        constants.notification_manager.display_notification(
+        constants.NotificationManager.display_notification(
             {
                 "message": text,
                 "notification_type": constants.ACTION_NOTIFICATION,
@@ -309,7 +309,7 @@ class trial(action.campaign):
                 remaining_rolls_message = (
                     f"Evidence rolls remaining: {len(self.roll_lists)} /n /n"
                 )
-                constants.notification_manager.display_notification(
+                constants.NotificationManager.display_notification(
                     {
                         "message": f"{remaining_rolls_message}{text}{self.generate_notification_text('roll_message')}",
                         "notification_type": constants.ACTION_NOTIFICATION,
@@ -319,7 +319,7 @@ class trial(action.campaign):
                         "transfer_interface_elements": True,
                     }
                 )
-                constants.notification_manager.display_notification(
+                constants.NotificationManager.display_notification(
                     {
                         "message": remaining_rolls_message + text + "Rolling... ",
                         "notification_type": constants.DICE_ROLLING_NOTIFICATION,
@@ -328,7 +328,7 @@ class trial(action.campaign):
                     }
                 )
                 current_roll_list = self.roll_lists.pop(0)
-                constants.notification_manager.display_notification(
+                constants.NotificationManager.display_notification(
                     {
                         "message": f"{remaining_rolls_message}{text}{current_roll_list[1]}",
                         "notification_type": constants.ACTION_NOTIFICATION,
@@ -336,7 +336,7 @@ class trial(action.campaign):
                 )
                 if i == roll_result_index:
                     text += current_roll_list[1]
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": text + "Click to remove this notification. /n /n",
                     "notification_type": constants.ACTION_NOTIFICATION,
@@ -346,7 +346,7 @@ class trial(action.campaign):
                 }
             )
         else:
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": "As you have no evidence rolls remaining, you automatically lose the trial. /n /n",
                     "notification_type": constants.ACTION_NOTIFICATION,
@@ -383,10 +383,10 @@ class trial(action.campaign):
             if confiscated_money > 0:
                 text += f"While most of {defense.name}'s money was spent on the trial or unaccounted for, authorities managed to confiscate {str(confiscated_money)} money, which has been given to your company as compensation. /n /n"
                 text += " /n /n"
-                constants.money_tracker.change(confiscated_money, "trial_compensation")
+                constants.MoneyTracker.change(confiscated_money, "trial_compensation")
             else:
                 text += f"Authorities searched {defense.name}'s properties but were not able to find any stolen money with which to compensate your company. Perhaps it remains hidden, had already been spent, or had never been stolen. /n /n"
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": text,
                     "notification_type": constants.ACTION_NOTIFICATION,
@@ -397,16 +397,16 @@ class trial(action.campaign):
             minister_utility.calibrate_minister_info_display(None)
             defense.respond("prison")
             defense.remove()
-            constants.fear_tracker.change(1)
+            constants.FearTracker.change(1)
             text = "Whether or not the defendant was truly guilty, this vigilant show of force may make your ministers reconsider any attempts to steal money for the time being. /n /n"
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": text,
                     "notification_type": constants.ACTION_NOTIFICATION,
                     "on_remove": [(self.leave_trial_screen, [])],
                 }
             )
-            constants.achievement_manager.achieve("Guilty")
+            constants.AchievementManager.achieve("Guilty")
 
         else:
             text += f"You have lost the trial and {defense.name} goes unpunished, remaining your {defense.current_position.name}. /n /n"
@@ -438,7 +438,7 @@ class trial(action.campaign):
 
             defense.fabricated_evidence = 0
             defense.corruption_evidence = remaining_evidence
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": text,
                     "notification_type": constants.ACTION_NOTIFICATION,

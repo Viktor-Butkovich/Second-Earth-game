@@ -95,7 +95,7 @@ class advertising_campaign(action.campaign):
             (
                 advertising_message,
                 index,
-            ) = constants.flavor_text_manager.generate_substituted_indexed_flavor_text(
+            ) = constants.FlavorTextManager.generate_substituted_indexed_flavor_text(
                 "advertising_campaign", "_", self.target_item.name
             )
             self.success_audio = None  # [
@@ -265,7 +265,7 @@ class advertising_campaign(action.campaign):
         )
 
         if super().start(unit):
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": action_utility.generate_risk_message(self, unit)
                     + self.generate_notification_text("confirmation"),

@@ -49,7 +49,7 @@ class minister:
                 status.minister_types.get(input_dict["current_position_key"], None)
             )
             self.background: str = input_dict["background"]
-            self.status_number: int = constants.character_manager.get_status_number(
+            self.status_number: int = constants.CharacterManager.get_status_number(
                 self.background
             )
             self.status: str = constants.social_status_description_dict[
@@ -84,9 +84,9 @@ class minister:
                 status.available_minister_list.append(self)
         else:
             self.background: str = (
-                constants.character_manager.generate_weighted_background()
+                constants.CharacterManager.generate_weighted_background()
             )
-            self.status_number: int = constants.character_manager.get_status_number(
+            self.status_number: int = constants.CharacterManager.get_status_number(
                 self.background
             )
             self.status: str = constants.social_status_description_dict[
@@ -94,29 +94,27 @@ class minister:
             ]
             self.first_name: str
             self.last_name: str
-            self.ethnicity: str = constants.character_manager.generate_ethnicity()
+            self.ethnicity: str = constants.CharacterManager.generate_ethnicity()
             self.masculine: bool = random.choice([True, False])
-            self.prefix: str = constants.character_manager.generate_prefix(
+            self.prefix: str = constants.CharacterManager.generate_prefix(
                 self.background, self.masculine
             )
             (
                 self.first_name,
                 self.last_name,
-            ) = constants.character_manager.generate_name(
-                self.ethnicity, self.masculine
-            )
+            ) = constants.CharacterManager.generate_name(self.ethnicity, self.masculine)
 
-            while constants.effect_manager.effect_active(
+            while constants.EffectManager.effect_active(
                 "omit_default_names"
             ) and "default" in [
                 self.first_name,
                 self.last_name,
             ]:  # Prevent any default first or last names
-                self.ethnicity = constants.character_manager.generate_ethnicity()
+                self.ethnicity = constants.CharacterManager.generate_ethnicity()
                 (
                     self.first_name,
                     self.last_name,
-                ) = constants.character_manager.generate_name(
+                ) = constants.CharacterManager.generate_name(
                     self.ethnicity, self.masculine
                 )
 
@@ -131,7 +129,7 @@ class minister:
             self.interests_setup()
             self.corruption_setup()
             status.available_minister_list.append(self)
-            self.image_id_list = constants.character_manager.generate_appearance(
+            self.image_id_list = constants.CharacterManager.generate_appearance(
                 self, full_body=False
             )
             self.update_image_bundle()
@@ -300,7 +298,7 @@ class minister:
         }
         if input_dict.get("notification_type") == constants.ACTION_NOTIFICATION:
             input_dict["message"] += "Click to remove this notification. /n /n"
-        constants.notification_manager.display_notification(input_dict)
+        constants.NotificationManager.display_notification(input_dict)
 
     def can_pay(self, value):
         """
@@ -341,7 +339,7 @@ class minister:
         """
         prosecutor = minister_utility.get_minister(constants.SECURITY_MINISTER)
         if prosecutor:
-            if constants.effect_manager.effect_active("show_minister_stealing"):
+            if constants.EffectManager.effect_active("show_minister_stealing"):
                 print(
                     f"{self.current_position.name} {self.name} stole {value} money from {constants.transaction_descriptions[theft_type]}."
                 )
@@ -355,7 +353,7 @@ class minister:
                     required_bribe_amount
                 ):  # If prosecutor takes bribe, split money
                     self.pay(prosecutor, required_bribe_amount)
-                    if constants.effect_manager.effect_active("show_minister_stealing"):
+                    if constants.EffectManager.effect_active("show_minister_stealing"):
                         print(
                             "The theft was caught by the prosecutor, who accepted a bribe to not create evidence."
                         )
@@ -381,14 +379,14 @@ class minister:
                         },
                         transfer=False,
                     )  # Don't need to transfer since evidence is last step in action
-                    if constants.effect_manager.effect_active("show_minister_stealing"):
+                    if constants.EffectManager.effect_active("show_minister_stealing"):
                         print(
                             "The theft was caught by the prosecutor, who chose to create evidence."
                         )
                     return True
             else:
                 if (
-                    constants.effect_manager.effect_active("show_minister_stealing")
+                    constants.EffectManager.effect_active("show_minister_stealing")
                     and prosecutor != self
                 ):
                     print("The theft was not caught by the prosecutor.")
@@ -414,13 +412,13 @@ class minister:
         if not detected:
             self.undetected_corruption_events.append((value, theft_type))
 
-        if constants.effect_manager.effect_active("show_minister_stealing"):
+        if constants.EffectManager.effect_active("show_minister_stealing"):
             print(
                 f"{self.current_position.name} {self.name} has now stolen a total of {self.stolen_money} money."
             )
 
         if value > 0:
-            constants.evil_tracker.change(1)
+            constants.EvilTracker.change(1)
 
     def to_save_dict(self):
         """
@@ -715,7 +713,7 @@ class minister:
         self.specific_skills = {}
         self.apparent_skills = {}
         self.apparent_skill_descriptions = {}
-        background_skills = constants.character_manager.generate_skill_modifiers(
+        background_skills = constants.CharacterManager.generate_skill_modifiers(
             self.background
         )
         for key, current_minister_type in status.minister_types.items():
@@ -724,7 +722,7 @@ class minister:
                 + background_skills[current_minister_type.skill_type],
                 6 - self.general_skill,
             )
-            if constants.effect_manager.effect_active("transparent_ministers"):
+            if constants.EffectManager.effect_active("transparent_ministers"):
                 self.set_apparent_skill(
                     current_minister_type.skill_type,
                     self.specific_skills[current_minister_type.skill_type]
@@ -783,12 +781,12 @@ class minister:
         """
         self.corruption = random.randrange(
             1, 7
-        ) + constants.character_manager.generate_corruption_modifier(self.background)
+        ) + constants.CharacterManager.generate_corruption_modifier(self.background)
         self.corruption_threshold = (
             10 - self.corruption
         )  # minimum roll on D6 required for corruption to occur
 
-        if constants.effect_manager.effect_active("transparent_ministers"):
+        if constants.EffectManager.effect_active("transparent_ministers"):
             self.set_apparent_corruption(self.corruption, setup=True)
         else:
             self.set_apparent_corruption(0, setup=True)
@@ -922,15 +920,15 @@ class minister:
         Output:
             boolean: Returns True if this minister will be corrupt for the roll
         """
-        if constants.effect_manager.effect_active("band_of_thieves") or (
+        if constants.EffectManager.effect_active("band_of_thieves") or (
             (
-                constants.effect_manager.effect_active("lawbearer")
+                constants.EffectManager.effect_active("lawbearer")
                 and self != minister_utility.get_minister(constants.SECURITY_MINISTER)
             )
         ):
             return_value = True
-        elif constants.effect_manager.effect_active("ministry_of_magic") or (
-            constants.effect_manager.effect_active("lawbearer")
+        elif constants.EffectManager.effect_active("ministry_of_magic") or (
+            constants.EffectManager.effect_active("lawbearer")
             and self == minister_utility.get_minister(constants.SECURITY_MINISTER)
         ):
             return_value = False
@@ -940,7 +938,7 @@ class minister:
             ):  # higher fear reduces chance of exceeding threshold and stealing
                 return_value = True
             else:
-                if constants.effect_manager.effect_active("show_fear"):
+                if constants.EffectManager.effect_active("show_fear"):
                     print(self.name + " was too afraid to steal money")
                 return_value = False
         else:
@@ -1010,36 +1008,36 @@ class minister:
             int: Returns the modifier this minister will apply to a given roll. As skill has only a half chance of applying to a given roll, the returned value may vary
         """
         modifier = 0
-        if constants.effect_manager.effect_active("ministry_of_magic") or (
-            constants.effect_manager.effect_active("lawbearer")
+        if constants.EffectManager.effect_active("ministry_of_magic") or (
+            constants.EffectManager.effect_active("lawbearer")
             and self == minister_utility.get_minister(constants.SECURITY_MINISTER)
         ):
             return 5
-        elif constants.effect_manager.effect_active("nine_mortal_men"):
+        elif constants.EffectManager.effect_active("nine_mortal_men"):
             return -10
         if (
             random.randrange(1, 7) >= 4
         ):  # half chance to apply skill modifier, otherwise return 0
             modifier += self.get_skill_modifier()
-            if constants.effect_manager.effect_active("show_modifiers"):
+            if constants.EffectManager.effect_active("show_modifiers"):
                 if modifier >= 0:
                     print(f"Minister gave modifier of +{modifier} to {roll_type} roll.")
                 else:
                     print(f"Minister gave modifier of {modifier} to {roll_type} roll.")
         if roll_type:
-            if constants.effect_manager.effect_active(roll_type + "_plus_modifier"):
+            if constants.EffectManager.effect_active(roll_type + "_plus_modifier"):
                 if random.randrange(1, 7) >= 4:
                     modifier += 1
-                    if constants.effect_manager.effect_active("show_modifiers"):
+                    if constants.EffectManager.effect_active("show_modifiers"):
                         print("Generic modifier of +1 to " + roll_type + " roll.")
-                elif constants.effect_manager.effect_active("show_modifiers"):
+                elif constants.EffectManager.effect_active("show_modifiers"):
                     print(f"Attempted to give generic +1 modifier to {roll_type} roll.")
-            elif constants.effect_manager.effect_active(roll_type + "_minus_modifier"):
+            elif constants.EffectManager.effect_active(roll_type + "_minus_modifier"):
                 if random.randrange(1, 7) >= 4:
                     modifier -= 1
-                    if constants.effect_manager.effect_active("show_modifiers"):
+                    if constants.EffectManager.effect_active("show_modifiers"):
                         print("Gneric modifier of of -1 to " + roll_type + " roll.")
-                elif constants.effect_manager.effect_active("show_modifiers"):
+                elif constants.EffectManager.effect_active("show_modifiers"):
                     print(f"Attempted to give generic -1 modifier to {roll_type} roll.")
         return modifier
 
@@ -1147,7 +1145,7 @@ class minister:
             public_opinion_change = (
                 -10 * self.status_number * multiplier
             )  # 4-6 for lowborn, 32-48 for very high
-            constants.evil_tracker.change(1)
+            constants.EvilTracker.change(1)
             text += "From: " + self.name + " /n /n"
             intro_options = [
                 f"I can't help but feel that this is completely unjustified. ",
@@ -1278,7 +1276,7 @@ class minister:
                 text += f"{random.choice(intro_options)}{random.choice(middle_options)}{random.choice(conclusion_options)} /n /n /n"
                 text += f"{self.current_position.name} {self.name} has chosen to step down and retire. /n /n"
                 text += "Their position will need to be filled by a replacement as soon as possible for your colony to continue operations. /n /n"
-        constants.public_opinion_tracker.change(public_opinion_change)
+        constants.PublicOpinionTracker.change(public_opinion_change)
         if text != "":
             self.display_message(
                 text,
@@ -1321,6 +1319,6 @@ class minister:
             None
         """
         if len(self.voice_lines[type]) > 0:
-            constants.sound_manager.play_sound(
+            constants.SoundManager.play_sound(
                 utility.get_voice_line(self, type), radio_effect=self.get_radio_effect()
             )

@@ -126,7 +126,7 @@ class active_investigation(action.campaign):
             None
         """
         if super().start(unit):
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": self.generate_notification_text("confirmation"),
                     "transfer_interface_elements": True,
@@ -247,7 +247,7 @@ class active_investigation(action.campaign):
         else:
             message = "The investigation failed to make any significant discoveries. /n"
         message += " /n"
-        constants.notification_manager.display_notification(
+        constants.NotificationManager.display_notification(
             {
                 "message": message,
                 "notification_type": constants.ACTION_NOTIFICATION,

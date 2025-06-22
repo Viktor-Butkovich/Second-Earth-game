@@ -1,6 +1,6 @@
 import pygame
 from typing import Dict, List, Any
-from modules.actor_types.mobs import mob
+from modules.constructs.actor_types.mobs import mob
 from modules.constructs.ministers import minister
 from modules.constructs.building_types import building_type
 from modules.constructs.unit_types import unit_type, worker_type
@@ -9,44 +9,44 @@ from modules.constructs.item_types import item_type
 from modules.constructs.minister_types import minister_type
 from modules.constructs.terrain_feature_types import terrain_feature_type
 from modules.constructs.images import image, free_image, directional_indicator_image
-from modules.constructs.locations import location
+from modules.constructs.actor_types.locations import location
 from modules.constructs.world_handler_types import (
     abstract_world_handler,
     full_world_handler,
 )
-from modules.interface_types.interface_elements import (
+from modules.interface_components.interface_elements import (
     interface_collection,
     tabbed_collection,
     ordered_collection,
     autofill_collection,
 )
-from modules.interface_types.inventory_interface import inventory_grid
-from modules.interface_types.grids import grid, mini_grid, abstract_grid
-from modules.interface_types.panels import safe_click_panel
-from modules.interface_types.notifications import notification
-from modules.interface_types.buttons import (
+from modules.interface_components.inventory_interface import inventory_grid
+from modules.interface_components.grids import grid, mini_grid, abstract_grid
+from modules.interface_components.panels import safe_click_panel
+from modules.interface_components.notifications import notification
+from modules.interface_components.buttons import (
     button,
     same_location_icon,
     reorganize_unit_button,
     minister_portrait_image,
     switch_game_mode_button,
 )
-from modules.interface_types.inventory_interface import item_icon
-from modules.interface_types.instructions import instructions_page
-from modules.interface_types.dice import die
-from modules.interface_types.labels import (
+from modules.interface_components.inventory_interface import item_icon
+from modules.interface_components.instructions import instructions_page
+from modules.interface_components.dice import die
+from modules.interface_components.labels import (
     item_prices_label_template,
     multi_line_label,
     label,
 )
-from modules.actor_types.buildings import building, resource_building
-from modules.actor_types.mobs import mob
-from modules.actor_types.mob_types.pmobs import pmob
-from modules.actor_types.mob_types.npmobs import npmob
+from modules.constructs.buildings import building, resource_building
+from modules.constructs.actor_types.mobs import mob
+from modules.constructs.actor_types.mob_types.pmobs import pmob
+from modules.constructs.actor_types.mob_types.npmobs import npmob
 from modules.constructs.world_handlers import world_handler
 from modules.util.market_utility import loan
 from modules.action_types.action import action
-from modules.tools.effects import effect
+from modules.constructs.effects import effect
 
 scrolling_strategic_map_grid: mini_grid = None
 minimap_grid: mini_grid = None

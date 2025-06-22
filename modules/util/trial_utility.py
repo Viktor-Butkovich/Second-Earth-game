@@ -32,7 +32,7 @@ def manage_defense(corruption_evidence, prosecutor_corrupt):
             defense_cost = max_defense_fund / 2
             prosecutor.steal_money(defense_cost, "bribery")
             building_defense = False
-            if constants.effect_manager.effect_active("show_minister_stealing"):
+            if constants.EffectManager.effect_active("show_minister_stealing"):
                 print(
                     f"{defense.current_position} {defense.name} now has {defense.stolen_money - defense_cost} money remaining."
                 )

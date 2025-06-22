@@ -88,7 +88,7 @@ class unit_type:
         Output
             image_id list: List of image IDs for the recruitment button center image
         """
-        image_id = constants.character_manager.generate_unit_portrait(
+        image_id = constants.CharacterManager.generate_unit_portrait(
             dummy_recruited_unit,
             metadata={
                 "body_image": self.image_dict[constants.IMAGE_ID_LIST_DEFAULT][0][
@@ -115,7 +115,7 @@ class unit_type:
         Output
             image_id list: List of image IDs for the recruitment button image
         """
-        dummy_recruited_unit = constants.actor_creation_manager.create_dummy(
+        dummy_recruited_unit = constants.ActorCreationManager.create_dummy(
             {"unit_type": self}
         )
         for permission, value in self.permissions.items():
@@ -385,14 +385,14 @@ class worker_type(unit_type):
         )
         image_id = utility.combine(
             actor_utility.generate_unit_component_portrait(
-                constants.character_manager.generate_unit_portrait(
+                constants.CharacterManager.generate_unit_portrait(
                     dummy_recruited_unit,
                     metadata={"body_image": worker_images[0]},
                 ),
                 "left",
             ),
             actor_utility.generate_unit_component_portrait(
-                constants.character_manager.generate_unit_portrait(
+                constants.CharacterManager.generate_unit_portrait(
                     dummy_recruited_unit,
                     metadata={"body_image": worker_images[1]},
                 ),
@@ -468,7 +468,7 @@ class worker_type(unit_type):
         Called whenever an instance of this unit is removed, tracking how many instances remain
         """
         super().on_remove()
-        constants.money_label.check_for_updates()
+        constants.MoneyLabel.check_for_updates()
 
     def on_fire(self, wander=False):
         """
@@ -484,7 +484,7 @@ class worker_type(unit_type):
 
         if self.key in [constants.COLONISTS]:
             current_public_opinion = constants.public_opinion
-            constants.public_opinion_tracker.change(-1)
+            constants.PublicOpinionTracker.change(-1)
             resulting_public_opinion = constants.public_opinion
             if not current_public_opinion == resulting_public_opinion:
                 text_utility.print_to_screen(

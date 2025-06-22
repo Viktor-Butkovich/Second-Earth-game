@@ -324,7 +324,7 @@ class action:
         """
         self.pre_start(unit)
         if self.current_min_success > 6:
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": self.generate_notification_text("confirmation")
                     + self.generate_notification_text("impossible"),
@@ -344,7 +344,7 @@ class action:
             float: Returns the amount paid
         """
         price = self.get_price()
-        constants.money_tracker.change(price * -1, self.action_type)
+        constants.MoneyTracker.change(price * -1, self.action_type)
         return price
 
     def generate_roll_lists(self, results):
@@ -382,7 +382,7 @@ class action:
         Output:
             None
         """
-        constants.notification_manager.set_lock(True)
+        constants.NotificationManager.set_lock(True)
         self.roll_result = 0
         if self.actor_type == constants.MOB_ACTOR_TYPE:
             self.current_unit.set_movement_points(0)
@@ -430,7 +430,7 @@ class action:
         text = self.generate_notification_text("initial")
         roll_message = self.generate_notification_text("roll_message")
 
-        constants.notification_manager.display_notification(
+        constants.NotificationManager.display_notification(
             {
                 "message": text + roll_message,
                 "notification_type": constants.ACTION_NOTIFICATION,
@@ -443,7 +443,7 @@ class action:
             insert_index=0,
         )
 
-        constants.notification_manager.display_notification(
+        constants.NotificationManager.display_notification(
             {
                 "message": text + "Rolling... ",
                 "notification_type": constants.DICE_ROLLING_NOTIFICATION,
@@ -453,7 +453,7 @@ class action:
             insert_index=1,
         )
 
-        constants.notification_manager.set_lock(
+        constants.NotificationManager.set_lock(
             False
         )  # locks notifications so that corruption messages will occur after the roll notification
 
@@ -475,7 +475,7 @@ class action:
             text += f"The higher result, {self.roll_result}: {result_outcome_dict[self.roll_result]}, was used. /n /n"
         else:
             text += "/n"
-        constants.notification_manager.display_notification(
+        constants.NotificationManager.display_notification(
             {
                 "message": text + "Click to remove this notification. /n /n",
                 "notification_type": constants.ACTION_NOTIFICATION,
@@ -500,7 +500,7 @@ class action:
 
             text += self.generate_notification_text(result)
 
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": text + "Click to remove this notification. /n /n",
                     "notification_type": constants.ACTION_NOTIFICATION,
