@@ -36,12 +36,7 @@ class image:
 
     def complete_draw(self):
         """
-        Description:
-            Draws this image after the necessary pre-call checks are done
-        Input:
-            None
-        Output:
-            None
+        Draws this image after the necessary pre-call checks are done
         """
         if self.contains_bundle:
             self.image.complete_draw()
@@ -62,12 +57,7 @@ class image:
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         return
 
@@ -84,24 +74,14 @@ class image:
 
     def draw(self):
         """
-        Description:
-            Draws this image if it should currently be visible
-        Input:
-            None
-        Output:
-            None
+        Draws this image if it should currently be visible
         """
         if self.can_show():
             self.complete_draw()
 
     def update_image_bundle(self):
         """
-        Description:
-            Updates this actor's images with its current image id list
-        Input:
-            None
-        Output:
-            None
+        Updates this actor's images with its current image id list
         """
         self.set_image(self.get_image_id_list())
 
@@ -179,12 +159,7 @@ class image_bundle(image):
 
     def scale(self):
         """
-        Description:
-            Sets this bundle to be the size of its attached images and scales each of its member images relative to the bundle size
-        Input:
-            None
-        Output:
-            None
+        Sets this bundle to be the size of its attached images and scales each of its member images relative to the bundle size
         """
         self.width = self.parent_image.width
         self.height = self.parent_image.height
@@ -265,12 +240,7 @@ class image_bundle(image):
 
     def complete_draw(self):
         """
-        Description:
-            Draws each of this bundle's member images in the correct order with each one's respective size and offsets
-        Input:
-            None
-        Output:
-            None
+        Draws each of this bundle's member images in the correct order with each one's respective size and offsets
         """
         drawing_utility.display_image(
             self.combined_surface,
@@ -310,12 +280,7 @@ class image_bundle(image):
 
     def clear(self):
         """
-        Description:
-            Removes all of this bundle's member images
-        Input:
-            None
-        Output:
-            None
+        Removes all of this bundle's member images
         """
         self.members = []
         self.combined_surface = self.generate_combined_surface()
@@ -489,12 +454,7 @@ class bundle_image:
 
     def scale(self):
         """
-        Description:
-            Sets this image's size to one relative to its bundle's size based on its size multiplier
-        Input:
-            None
-        Output:
-            None
+        Sets this image's size to one relative to its bundle's size based on its size multiplier
         """
         if self.is_offset:
             if hasattr(self, "override_width"):
@@ -523,12 +483,7 @@ class bundle_image:
 
     def load(self):
         """
-        Description:
-            Loads in this image's image file on initialization
-        Input:
-            None
-        Output:
-            None
+        Loads in this image's image file on initialization
         """
         if type(self.image_id) == str and self.image_id.endswith(".png"):
             full_image_id = "graphics/" + self.image_id
@@ -604,12 +559,7 @@ class bundle_image:
 
     def apply_per_pixel_mutations(self):
         """
-        Description:
-            Applies green screen and color filter changes to this image
-        Input:
-            None
-        Output:
-            None
+        Applies green screen and color filter changes to this image
         """
         width, height = self.image.get_size()
         smart_green_screen = (
@@ -871,12 +821,7 @@ class free_image(image):
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         super().remove()
         status.independent_interface_elements = utility.remove_from_list(
@@ -886,12 +831,7 @@ class free_image(image):
 
     def remove_recursive(self):
         """
-        Description:
-            Recursively removes a collection and its members
-        Input:
-            None
-        Output:
-            None
+        Recursively removes a collection and its members
         """
         self.remove()
 
@@ -967,23 +907,13 @@ class free_image(image):
 
     def can_show_tooltip(self):
         """
-        Description:
-            Returns whether this image's tooltip can currently be shown. By default, free images do not have tooltips and this always returns False
-        Input:
-            None
-        Output:
-            Returns whether this image's tooltip can currently be shown
+        Returns whether this image's tooltip can currently be shown. By default, free images do not have tooltips and this always returns False
         """
         return False
 
     def get_actor_type(self) -> str:
         """
-        Description:
-            Recursively finds the type of actor this interface is attached to
-        Input:
-            None
-        Output:
-            str: Returns type of actor this interface is attached to
+        Recursively finds the type of actor this interface is attached to
         """
         if hasattr(self, "actor_type"):
             return self.actor_type
@@ -1083,6 +1013,10 @@ class tooltip_free_image(free_image):
 
     @property
     def batch_tooltip_list(self):
+        """
+        Gets a 2D list of strings to use as this object's tooltip
+            Each string is displayed on a separate line, while each sublist is displayed in a separate box
+        """
         return [self.tooltip_text]
 
     @property
@@ -1094,12 +1028,7 @@ class tooltip_free_image(free_image):
 
     def can_show_tooltip(self):
         """
-        Description:
-            Returns whether this image's tooltip can currently be shown. By default, its tooltip can be shown when it is visible and colliding with the mouse
-        Input:
-            None
-        Output:
-            Returns whether this image's tooltip can currently be shown
+        Returns whether this image's tooltip can currently be shown. By default, its tooltip can be shown when it is visible and colliding with the mouse
         """
         if self.touching_mouse() and self.can_show():
             return True
@@ -1109,7 +1038,7 @@ class tooltip_free_image(free_image):
 
 class directional_indicator_image(tooltip_free_image):
     """
-    Image that moves around minimap to indicate direction or location of a particular cell from status, automatically calibrating with minimap
+    Image that moves around minimap to indicate direction or exact placement of a particular location from status, automatically calibrating with minimap
     """
 
     def __init__(self, input_dict):
@@ -1124,7 +1053,7 @@ class directional_indicator_image(tooltip_free_image):
                 'height': int value - Pixel height of this image
                 'modes': string list value - Game modes during which this button can appear
                 'to_front' = False: boolean value - If True, allows this image to appear in front of most other objects instead of being behind them
-                'anchor_key': string value - String status key identifying cell to point to when minimap is calibrated, like "north_pole"
+                'anchor_key': string value - String status key identifying location to point to when minimap is calibrated, like "north_pole"
         Output:
             None
         """
@@ -1159,12 +1088,7 @@ class directional_indicator_image(tooltip_free_image):
 
     def calibrate(self):
         """
-        Description:
-            Places this image on the anchor cell, if visible on minimap, or otherwise points towards it along the side of the minimap grid
-        Input:
-            None
-        Output:
-            None
+        Places this image on the anchor location, if visible on minimap, or otherwise points towards it along the side of the minimap grid
         """
         self.anchor_location = getattr(status, self.anchor_key, None)
         if not self.anchor_location:
@@ -1384,13 +1308,8 @@ class dice_roll_minister_image(tooltip_free_image):
 
     def can_show_tooltip(self):
         """
-        Description:
-            Returns whether this image's tooltip can currently be shown.
-                Only shows for "portrait" images, so that accompanying "position" images don't have a double tooltip
-        Input:
-            None
-        Output:
-            bool:  Returns True if this image's tooltip can currently be shown, otherwise returns False
+        Returns whether this image's tooltip can currently be shown.
+            Only shows for "portrait" images, so that accompanying "position" images don't have a double tooltip
         """
         return self.minister_image_type == "portrait" and super().can_show_tooltip()
 
@@ -1655,12 +1574,7 @@ class button_image(image):  # Used to be attached to actor_image
 
     def draw(self):
         """
-        Description:
-            Draws this image if it should currently be visible at the coordinates of its button
-        Input:
-            None
-        Output:
-            None
+        Draws this image if it should currently be visible at the coordinates of its button
         """
         if self.button.showing:
             self.x = self.button.x
@@ -1670,16 +1584,20 @@ class button_image(image):  # Used to be attached to actor_image
             self.complete_draw()
 
 
-class collection_image(button_image):
-    def draw(self):
-        if self.button.showing:
-            self.x = self.button.x
-            self.y = constants.display_height + self.height - self.button.y
-            self.complete_draw()
-
-
 class cell_image(image):
+    """
+    Image for a grid cell
+    """
+
     def __init__(self, cell):
+        """
+        Description:
+            Initializes this object
+        Input:
+            cell cell: Cell that this image represents
+        Output:
+            None
+        """
         super().__init__(cell.width, cell.height)
         self.cell = cell
         self.x, self.y = self.cell.pixel_x, self.cell.pixel_y
@@ -1690,16 +1608,19 @@ class cell_image(image):
         self.contains_bundle = True
 
     def set_image(self, image_id_list):
+        """
+        Description:
+            Changes the image reflected by this object, used when cell needs to re-calibrate to the location's image
+        Input:
+            image ID list image_id_list: Image ID(s) for this image
+        Output:
+            None
+        """
         self.image = image_bundle(self, image_id_list)
 
     def show_num_mobs(self):
         """
-        Description:
-            Draws a number showing how many mobs are in this image's location, if it contains multiple mobs
-        Input:
-            None
-        Output:
-            None
+        Draws a number showing how many mobs are in this image's location, if it contains multiple mobs
         """
         length = len(self.cell.location.subscribed_mobs)
         if length >= 2:

@@ -13,12 +13,7 @@ class terrain_manager_template:
 
     def __init__(self):
         """
-        Description:
-            Initializes this object
-        Input:
-            None
-        Output:
-            None
+        Initializes this object
         """
         # Dictionary of terrain names to number of image variants possible
         self.terrain_variant_dict: Dict[str, int] = {}

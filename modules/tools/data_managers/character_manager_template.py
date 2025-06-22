@@ -15,12 +15,7 @@ class character_manager_template:
 
     def __init__(self) -> None:
         """
-        Description:
-            Initializes this object
-        Input:
-            None
-        Output:
-            None
+        Initializes this object
         """
         self.demographics_setup()
         self.backgrounds_setup()
@@ -28,12 +23,7 @@ class character_manager_template:
 
     def backgrounds_setup(self) -> None:
         """
-        Description:
-            Reads in possible character backgrounds
-        Input:
-            None
-        Output:
-            None
+        Reads in possible character backgrounds
         """
         with open("configuration/character_backgrounds.json") as active_file:
             self.backgrounds_dict: Dict[str, any] = json.load(active_file)
@@ -145,12 +135,7 @@ class character_manager_template:
 
     def appearances_setup(self) -> None:
         """
-        Description:
-            Reads in possible character appearances image files
-        Input:
-            None
-        Output:
-            None
+        Reads in possible character appearances image files
         """
         with open("configuration/character_appearances.json") as active_file:
             appearances_dict: Dict[str, any] = json.load(active_file)
@@ -744,12 +729,7 @@ class character_manager_template:
 
     def demographics_setup(self) -> None:
         """
-        Description:
-            Sets up character generation demographics
-        Input:
-            None
-        Output:
-            None
+        Sets up character generation demographics
         """
         with open("configuration/country_demographics.json") as active_file:
             country_dict = json.load(active_file)
@@ -845,12 +825,7 @@ class character_manager_template:
 
     def demographics_test(self) -> None:
         """
-        Description:
-            Prints 100 random names to the console
-        Input:
-            None
-        Output:
-            None
+        Prints 100 random names to the console
         """
         for i in range(100):
             country = self.generate_country()
@@ -862,12 +837,7 @@ class character_manager_template:
 
     def generate_country(self) -> None:
         """
-        Description:
-            Generates a country of origin for a character
-        Input:
-            None
-        Output:
-            None
+        Generates a country of origin for a character
         """
         country = random.choices(self.countries_of_origin, self.country_weights, k=1)[0]
         if country.startswith(

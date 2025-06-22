@@ -108,12 +108,7 @@ class pmob(mob):
 
     def permissions_setup(self) -> None:
         """
-        Description:
-            Sets up this mob's permissions
-        Input:
-            None
-        Output:
-            None
+        Sets up this mob's permissions
         """
         super().permissions_setup()
         self.set_permission(constants.PMOB_PERMISSION, True)
@@ -231,13 +226,8 @@ class pmob(mob):
 
     def consume_item_upkeep(self) -> None:
         """
-        Description:
-            Consumes all available items required for this unit's item upkeep, logging an upkeep missing penalty for the most important missing item type
-                Item upkeep of sub-mobs needs to be handled separately
-        Input:
-            None
-        Output:
-            None
+        Consumes all available items required for this unit's item upkeep, logging an upkeep missing penalty for the most important missing item type
+            Item upkeep of sub-mobs needs to be handled separately
         """
         if self.in_deadly_environment():
             return  # Don't consume upkeep when in instant death conditions
@@ -313,12 +303,7 @@ class pmob(mob):
 
     def check_item_availability(self) -> None:
         """
-        Description:
-            Checks whether any of the items required for this unit's item upkeep are present (regardless of amount)
-        Input:
-            None
-        Output:
-            None
+        Checks whether any of the items required for this unit's item upkeep are present (regardless of amount)
         """
         self.item_upkeep_present = {}
         for item_key in self.get_item_upkeep():
@@ -332,12 +317,7 @@ class pmob(mob):
 
     def record_upkeep_missing_penalty(self) -> None:
         """
-        Description:
-            Records this unit's most severe upkeep missing penalty as a message to display at the start of the turn
-        Input:
-            None
-        Output:
-            None
+        Records this unit's most severe upkeep missing penalty as a message to display at the start of the turn
         """
         if self.upkeep_missing_penalty != constants.UPKEEP_MISSING_PENALTY_NONE:
             self.record_logistics_incident(
@@ -347,12 +327,7 @@ class pmob(mob):
 
     def resolve_upkeep_missing_penalty(self) -> None:
         """
-        Description:
-            Apply an effect based on the most severe upkeep missing penalty type due to missing item upkeep from earlier in the turn (if any)
-        Input:
-            None
-        Output:
-            None
+        Apply an effect based on the most severe upkeep missing penalty type due to missing item upkeep from earlier in the turn (if any)
         """
         if self.upkeep_missing_penalty == constants.UPKEEP_MISSING_PENALTY_DEATH:
             self.die()
@@ -415,21 +390,18 @@ class pmob(mob):
 
     def on_move(self):
         """
-        Description:
-            Automatically called when unit arrives in a location for any reason
-        Input:
-            None
-        Output:
-            None
+        Automatically called when unit arrives in a location for any reason
         """
         super().on_move()
         current_location = self.get_location()
         if current_location and not current_location.is_abstract_location:
             for location in [current_location] + current_location.adjacent_list:
-                if location == current_location:  # Show knowledge 3 about current cell
+                if (
+                    location == current_location
+                ):  # Show knowledge 3 about current location
                     requirement = constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
                     category = constants.TERRAIN_PARAMETER_KNOWLEDGE
-                else:  # Show knowledge 2 about adjacent cells
+                else:  # Show knowledge 2 about adjacent locations
                     requirement = constants.TERRAIN_KNOWLEDGE_REQUIREMENT
                     category = constants.TERRAIN_KNOWLEDGE
                 if not location.knowledge_available(category):
@@ -498,12 +470,7 @@ class pmob(mob):
 
     def calculate_automatic_route(self):
         """
-        Description:
-            Creates an in-progress movement route based on the base movement route when the base movement route changes
-        Input:
-            None
-        Output:
-            None
+        Creates an in-progress movement route based on the base movement route when the base movement route changes
         """
         reversed_base_automatic_route = utility.copy_list(self.base_automatic_route)
         reversed_base_automatic_route.reverse()
@@ -583,13 +550,8 @@ class pmob(mob):
 
     def follow_automatic_route(self):
         """
-        Description:
-            Moves along this unit's in-progress movement route until it cannot complete the next step. A unit will wait for items to transport from the start, then pick them up and move along the path, picking up others along
-                the way. At the end of the path, it drops all items and moves back towards the start
-        Input:
-            None
-        Output:
-            None
+        Moves along this unit's in-progress movement route until it cannot complete the next step. A unit will wait for items to transport from the start, then pick them up and move along the path, picking up others along
+            the way. At the end of the path, it drops all items and moves back towards the start
         """
         progressed = False
         if len(self.in_progress_automatic_route) > 0:
@@ -681,12 +643,7 @@ class pmob(mob):
 
     def clear_automatic_route(self):
         """
-        Description:
-            Removes this unit's saved automatic movement route
-        Input:
-            None
-        Output:
-            None
+        Removes this unit's saved automatic movement route
         """
         self.base_automatic_route = []
         self.in_progress_automatic_route = []
@@ -754,12 +711,7 @@ class pmob(mob):
 
     def add_to_turn_queue(self):
         """
-        Description:
-            At the start of the turn or once removed from another actor/building, attempts to add this unit to the list of units to cycle through with tab. Units in sentry mode or without movement are not added
-        Input:
-            None
-        Output:
-            None
+        At the start of the turn or once removed from another actor/building, attempts to add this unit to the list of units to cycle through with tab. Units in sentry mode or without movement are not added
         """
         if (
             (not self.sentry_mode)
@@ -772,12 +724,7 @@ class pmob(mob):
 
     def remove_from_turn_queue(self):
         """
-        Description:
-            Removes this unit from the list of units to cycle through with tab
-        Input:
-            None
-        Output:
-            None
+        Removes this unit from the list of units to cycle through with tab
         """
         status.player_turn_queue = utility.remove_from_list(
             status.player_turn_queue, self
@@ -785,12 +732,7 @@ class pmob(mob):
 
     def replace(self):
         """
-        Description:
-            Replaces this unit for a new version of itself when it dies from attrition, removing all experience and name modifications
-        Input:
-            None
-        Output:
-            None
+        Replaces this unit for a new version of itself when it dies from attrition, removing all experience and name modifications
         """
         self.set_name(self.default_name)
         if self.get_permission(constants.VETERAN_PERMISSION):
@@ -798,12 +740,7 @@ class pmob(mob):
 
     def manage_health_attrition(self) -> None:
         """
-        Description:
-            Checks this mob for health attrition each turn
-        Input:
-            None
-        Output:
-            None
+        Checks this mob for health attrition each turn
         """
         if self.any_permissions(
             constants.VEHICLE_PERMISSION, constants.GROUP_PERMISSION
@@ -892,12 +829,7 @@ class pmob(mob):
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also deselects this mob and drops any items it is carrying
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also deselects this mob and drops any items it is carrying
         """
         for current_item_type in self.get_held_items():
             self.get_location().change_inventory(
@@ -909,12 +841,7 @@ class pmob(mob):
 
     def end_turn_move(self):
         """
-        Description:
-            If this mob has any pending movement orders at the end of the turn, this executes the movement. Currently used to move ships between Earth and the planet at the end of the turn
-        Input:
-            None
-        Output:
-            None
+        If this mob has any pending movement orders at the end of the turn, this executes the movement. Currently used to move ships between Earth and the planet at the end of the turn
         """
         if self.end_turn_destination and self.can_travel():
             self.end_turn_destination.subscribe_mob(self)
@@ -926,12 +853,7 @@ class pmob(mob):
 
     def fire(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Has different effects from die in certain subclasses
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Has different effects from die in certain subclasses
         """
         self.die("fired")
 

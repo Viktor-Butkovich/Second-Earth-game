@@ -48,12 +48,7 @@ class recruitment_button(button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. This type of button creates a new unit with a type depending on recruitment_type and places it on Earth
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. This type of button creates a new unit with a type depending on recruitment_type and places it on Earth
         """
         if main_loop_utility.action_possible():
             if constants.money_tracker.get() >= self.recruitment_type.recruitment_cost:
@@ -128,12 +123,7 @@ class buy_item_button(button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. This type of button buys a unit of the item
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. This type of button buys a unit of the item
         """
         if main_loop_utility.action_possible():
             if constants.money_tracker.get() >= self.item_type.price:

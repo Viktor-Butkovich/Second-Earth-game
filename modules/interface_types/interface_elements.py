@@ -65,23 +65,13 @@ class interface_element:
 
     def remove_recursive(self):
         """
-        Description:
-            Recursively removes a collection and its members
-        Input:
-            None
-        Output:
-            None
+        Recursively removes a collection and its members
         """
         self.remove()
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         if self.has_parent_collection:
             self.parent_collection.remove_member(self)
@@ -91,12 +81,7 @@ class interface_element:
 
     def draw(self):
         """
-        Description:
-            Draws this element's image - should only call if can_draw()
-        Input:
-            None
-        Output:
-            None
+        Draws this element's image - should only call if can_draw()
         """
         self.image.draw()
 
@@ -373,18 +358,6 @@ class interface_collection(interface_element):
                 initial_member_dict
             )
 
-    def create_image(self, image_id):
-        """
-        Description:
-            Creates an image associated with this interface element - overrides parent version to create a collection image instead of the default button images at the same
-                initialization step
-        Input:
-            string/list/dict image_id: Single or list of string image file paths and/or offset image dictionaries
-        Output:
-            None
-        """
-        self.image = images.collection_image(self, self.width, self.height, image_id)
-
     def calibrate(self, new_actor, override_exempt=False):
         """
         Description:
@@ -461,12 +434,7 @@ class interface_collection(interface_element):
 
     def remove_recursive(self):
         """
-        Description:
-            Recursively removes a collection and its members
-        Input:
-            None
-        Output:
-            None
+        Recursively removes a collection and its members
         """
         for current_member in self.members.copy():
             self.remove_member(current_member)
@@ -475,12 +443,7 @@ class interface_collection(interface_element):
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         self.remove_recursive()
 
@@ -549,12 +512,7 @@ class interface_collection(interface_element):
 
     def update_collection(self):
         """
-        Description:
-            Makes any necessary modifications to members on calibration, if applicable
-        Input:
-            None
-        Output:
-            None
+        Makes any necessary modifications to members on calibration, if applicable
         """
         return
 
@@ -881,14 +839,9 @@ class ordered_collection(interface_collection):
         return size
 
     def update_collection(self):
-        """
-        Description:
-            Changes locations of collection members to put all visible members in order while skipping hidden ones. Each overlapped element follows ordering logic but
-                causes no change in the current ordering location (causing next element to appear at its location), while each exempt element ignores ordering logic
-        Input:
-            None
-        Output:
-            None
+        """n:
+        Changes locations of collection members to put all visible members in order while skipping hidden ones. Each overlapped element follows ordering logic but
+            causes no change in the current ordering location (causing next element to appear at its location), while each exempt element ignores ordering logic
         """
         super().update_collection()
         for key in self.second_dimension_coordinates:

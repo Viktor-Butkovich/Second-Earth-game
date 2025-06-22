@@ -150,6 +150,9 @@ class minister:
 
     @property
     def actor_type(self) -> str:
+        """
+        Returns this object's actor type, differentiating it from locations and mobs
+        """
         return constants.MINISTER_ACTOR_TYPE
 
     def get_radio_effect(self) -> bool:
@@ -704,12 +707,7 @@ class minister:
 
     def skill_setup(self):
         """
-        Description:
-            Sets up the general and specific skills for this minister when it is created
-        Input:
-            None
-        Output:
-            None
+        Sets up the general and specific skills for this minister when it is created
         """
         self.general_skill = random.randrange(
             1, 4
@@ -756,12 +754,7 @@ class minister:
 
     def interests_setup(self):
         """
-        Description:
-            Chooses and sets 2 interest categories for this minister. One of a minister's interests is one of their best skills, while the other is randomly chosen
-        Input:
-            None
-        Output:
-            None
+        Chooses and sets 2 interest categories for this minister. One of a minister's interests is one of their best skills, while the other is randomly chosen
         """
         highest_skills = []
         highest_skill_number = 0
@@ -786,12 +779,7 @@ class minister:
 
     def corruption_setup(self):
         """
-        Description:
-            Sets up the corruption level for this minister when it is created
-        Input:
-            None
-        Output:
-            None
+        Sets up the corruption level for this minister when it is created
         """
         self.corruption = random.randrange(
             1, 7
@@ -961,12 +949,7 @@ class minister:
 
     def gain_experience(self):
         """
-        Description:
-            Gives this minister a chance of gaining skill in their current cabinet position if they have one
-        Input:
-            None
-        Output:
-            None
+        Gives this minister a chance of gaining skill in their current cabinet position if they have one
         """
         if (
             self.current_position
@@ -1062,12 +1045,7 @@ class minister:
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         if self.current_position:
             self.current_position.on_remove()

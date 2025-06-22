@@ -41,25 +41,38 @@ class cell:
 
     @property
     def batch_tooltip_list(self):
+        """
+        Gets a 2D list of strings to use as this object's tooltip
+            Each string is displayed on a separate line, while each sublist is displayed in a separate box
+        """
         return self.get_location().batch_tooltip_list
 
     def set_image(self, *args, **kwargs):
+        """
+        Description:
+            Changes the image reflected by this cell, used when re-calibrating to a subscribed location
+        Input:
+            image ID list image_id_list: Image ID(s) for this image
+        Output:
+            None
+        """
         self.image.set_image(*args, **kwargs)
 
     def get_location(self):
+        """
+        Gets the subscribed location of this cell
+        """
         return self.location
 
     def can_show_tooltip(self):
+        """
+        Returns whether this cell's tooltip can currently be shown
+        """
         return self.grid.can_show() and self.touching_mouse()
 
     def draw(self):
         """
-        Description:
-            Draws this cell as a rectangle with a certain color on its grid, depending on this cell's color value, along with actors this cell contains
-        Input:
-            None
-        Output:
-            None
+        Draws this cell as a rectangle with a certain color on its grid, depending on this cell's color value, along with actors this cell contains
         """
         pygame.draw.rect(
             constants.game_display,

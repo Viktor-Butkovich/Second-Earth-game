@@ -1,4 +1,4 @@
-# contains functionality for cell icons, which act as hybrid interface element-actors
+# contains functionality for hosted icons, which act as hybrid interface element-actors
 
 from typing import List, Dict
 
@@ -26,10 +26,19 @@ class hosted_icon:
         self.location.hosted_icons.append(self)
 
     def get_location(self) -> any:
+        """
+        Gets this icon's hosting location
+        """
         return self.location
 
     def get_image_id_list(self) -> List[Dict[str, any]]:
+        """
+        Gets this icon's image ID list, which is appended to that of the hosting location
+        """
         return self.image_id
 
     def remove(self) -> None:
+        """
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
+        """
         self.location.hosted_icons.remove(self)

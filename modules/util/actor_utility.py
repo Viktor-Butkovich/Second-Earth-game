@@ -673,7 +673,7 @@ def summarize_amount_dict(item_dict: Dict[str, float]):
 
 
 def calibrate_minimap_grids(world_handler: any, x: int, y: int) -> None:
-    for current_grid in world_handler.attached_grids:
+    for current_grid in world_handler.subscribed_grids:
         current_grid.calibrate(x, y)
 
 

@@ -159,12 +159,7 @@ class group(pmob):
 
     def permissions_setup(self) -> None:
         """
-        Description:
-            Sets up this mob's permissions
-        Input:
-            None
-        Output:
-            None
+        Sets up this mob's permissions
         """
         super().permissions_setup()
         self.set_permission(constants.GROUP_PERMISSION, True)
@@ -201,12 +196,7 @@ class group(pmob):
 
     def fire(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also fires this group's worker and officer
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also fires this group's worker and officer
         """
         self.drop_inventory()
         self.officer.fire()
@@ -237,13 +227,8 @@ class group(pmob):
 
     def promote(self):
         """
-        Description:
-            Promotes this group's officer to a veteran after performing various actions particularly well, improving the capabilities of groups the officer is attached to in the future. Creates a veteran star icon that follows this
-                group and its officer
-        Input:
-            None
-        Output:
-            None
+        Promotes this group's officer to a veteran after performing various actions particularly well, improving the capabilities of groups the officer is attached to in the future. Creates a veteran star icon that follows this
+            group and its officer
         """
         if self.get_permission(constants.PORTERS_PERMISSION):
             self.set_max_movement_points(6, initial_setup=False)
@@ -262,12 +247,7 @@ class group(pmob):
 
     def disband(self, focus=True):
         """
-        Description:
-            Separates this group into its officer and worker, destroying the group
-        Input:
-            None
-        Output:
-            None
+        Separates this group into its officer and worker, destroying the group
         """
         for equipment, equipped in list(self.equipment.items()):
             if equipped:

@@ -117,12 +117,7 @@ class vehicle(pmob):
 
     def permissions_setup(self) -> None:
         """
-        Description:
-            Sets up this mob's permissions
-        Input:
-            None
-        Output:
-            None
+        Sets up this mob's permissions
         """
         super().permissions_setup()
         self.set_permission(constants.VEHICLE_PERMISSION, True)
@@ -186,12 +181,7 @@ class vehicle(pmob):
 
     def eject_crew(self, focus=True):
         """
-        Description:
-            Removes this vehicle's crew
-        Input:
-            None
-        Output:
-            None
+        Removes this vehicle's crew
         """
         if self.crew:
             self.ejected_crew = self.crew
@@ -199,12 +189,7 @@ class vehicle(pmob):
 
     def eject_passengers(self, focus=True):
         """
-        Description:
-            Removes this vehicle's passengers
-        Input:
-            None
-        Output:
-            None
+        Removes this vehicle's passengers
         """
         while len(self.subscribed_passengers) > 0:
             current_mob = self.subscribed_passengers.pop(0)
@@ -216,12 +201,7 @@ class vehicle(pmob):
 
     def reembark(self):
         """
-        Description:
-            After combat is finished, reembarks any surviving crew or passengers onto this vehicle, if possible
-        Input:
-            None
-        Output:
-            None
+        After combat is finished, reembarks any surviving crew or passengers onto this vehicle, if possible
         """
         if self.ejected_crew:
             if self.ejected_crew in status.pmob_list:
@@ -247,12 +227,7 @@ class vehicle(pmob):
 
     def fire(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also fires this vehicle's crew and passengers
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program.
         """
         for current_sub_mob in self.get_sub_mobs():
             current_sub_mob.fire()
@@ -261,6 +236,9 @@ class vehicle(pmob):
         super().fire()
 
     def remove(self):
+        """
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
+        """
         for current_sub_mob in self.get_sub_mobs().copy():
             current_sub_mob.remove()
         super().remove()
@@ -302,8 +280,8 @@ class vehicle(pmob):
             Returns whether this mob can move to the location x_change to its and y_change upward. Movement can be prevented by not being able to move on water/land, the edge of the map, limited movement points, etc.
                 Vehicles are not able to move without a crew
         Input:
-            int x_change: How many cells would be moved to the right in the hypothetical movement
-            int y_change: How many cells would be moved upward in the hypothetical movement
+            int x_change: How many locations would be moved to the right in the hypothetical movement
+            int y_change: How many locations would be moved upward in the hypothetical movement
             boolean can_print = True: Whether to print messages to explain why a unit can't move in a certain direction
         Output:
             boolean: Returns True if this mob can move to the proposed destination, otherwise returns False

@@ -110,6 +110,9 @@ class mob(actor):
 
     @property
     def actor_type(self) -> str:
+        """
+        Returns this object's actor type, differentiating it from locations and ministers
+        """
         return constants.MOB_ACTOR_TYPE
 
     @property
@@ -118,13 +121,8 @@ class mob(actor):
 
     def load_end_turn_destination(self):
         """
-        Description:
-            Loads in this unit's end turn destination from the saved world and coordinates
-                Must be called after all worlds are loaded in
-        Input:
-            None
-        Output:
-            None
+        Loads in this unit's end turn destination from the saved world and coordinates
+            Must be called after all worlds are loaded in
         """
         if self.loading_end_turn_destination:
             world_index = self.loading_end_turn_destination["world_index"]
@@ -173,12 +171,7 @@ class mob(actor):
 
     def update_habitability(self):
         """
-        Description:
-            Updates this unit's habitability based on its location
-        Input:
-            None
-        Output:
-            None
+        Updates this unit's habitability based on its location
         """
         self.habitability = self.get_location().get_unit_habitability(self)
         self.set_permission(
@@ -193,7 +186,7 @@ class mob(actor):
         Input:
             None
         Output:
-            boolean: Returs True if this unit has travel permissions (based on unit type), is active (crewed), and is not disabled this turn
+            boolean: Returns True if this unit has travel permissions (based on unit type), is active (crewed), and is not disabled this turn
         """
         return self.all_permissions(
             constants.TRAVEL_PERMISSION, constants.ACTIVE_PERMISSION
@@ -201,12 +194,7 @@ class mob(actor):
 
     def update_controlling_minister(self):
         """
-        Description:
-            Sets the minister that controls this unit to the one occupying the office that has authority over this unit
-        Input:
-            None
-        Output:
-            None
+        Sets the minister that controls this unit to the one occupying the office that has authority over this unit
         """
         self.controlling_minister = minister_utility.get_minister(
             self.unit_type.controlling_minister_type.key
@@ -241,12 +229,7 @@ class mob(actor):
 
     def on_move(self):
         """
-        Description:
-            Automatically called when unit arrives at a location for any reason
-        Input:
-            None
-        Output:
-            None
+        Automatically called when unit arrives at a location for any reason
         """
         for current_mob in self.contained_mobs:
             current_mob.update_habitability()
@@ -255,12 +238,7 @@ class mob(actor):
 
     def permissions_setup(self) -> None:
         """
-        Description:
-            Sets up this mob's permissions
-        Input:
-            None
-        Output:
-            None
+        Sets up this mob's permissions
         """
         for permission, value in self.unit_type.permissions.items():
             self.set_permission(permission, value)
@@ -717,11 +695,11 @@ class mob(actor):
     def combat_possible(self):
         """
         Description:
-            Returns whether this unit can start any combats in its current cell. A pmob can start combats with npmobs in its cell, and a hostile npmob can start combats with pmobs in its cell
+            Returns whether this unit can start any combats in its current location. A pmob can start combats with npmobs in its location, and a hostile npmob can start combats with pmobs in its location
         Input:
             None
         Output:
-            boolean: Returns whether this unit can start any combats in its current cell
+            boolean: Returns whether this unit can start any combats in its current location
         """
         if self.get_permission(constants.NPMOB_PERMISSION):
             if self.hostile:
@@ -752,10 +730,10 @@ class mob(actor):
     def get_movement_cost(self, x_change, y_change):
         """
         Description:
-            Returns the cost in movement points of moving by the inputted amounts. Only works when one inputted amount is 0 and the other is 1 or -1, with 0 and -1 representing moving 1 cell downward
+            Returns the cost in movement points of moving by the inputted amounts. Only works when one inputted amount is 0 and the other is 1 or -1, with 0 and -1 representing moving 1 location downward
         Input:
-            int x_change: How many cells would be moved to the right in the hypothetical movement
-            int y_change: How many cells would be moved upward in the hypothetical movement
+            int x_change: How many locations would be moved to the right in the hypothetical movement
+            int y_change: How many locations would be moved upward in the hypothetical movement
         Output:
             double: How many movement points would be spent by moving by the inputted amount
         """
@@ -807,11 +785,11 @@ class mob(actor):
     def adjacent_to_water(self):
         """
         Description:
-            Returns whether any of the cells directly adjacent to this mob's cell has the water terrain. Otherwise, returns False
+            Returns whether any of the locations directly adjacent to this mob's location has the water terrain. Otherwise, returns False
         Input:
             None
         Output:
-            boolean: Returns True if any of the cells directly adjacent to this mob's cell has the water terrain. Otherwise, returns False
+            boolean: Returns True if any of the locations directly adjacent to this mob's location has the water terrain. Otherwise, returns False
         """
         for current_location in self.get_location().adjacent_list:
             if current_location.terrain == "water" and current_location.visible:
@@ -820,12 +798,7 @@ class mob(actor):
 
     def change_movement_points(self, change):
         """
-        Description:
-            Changes this mob's movement points by the inputted amount. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
-        Input:
-            None
-        Output:
-            None
+        Changes this mob's movement points by the inputted amount. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
         """
         if not self.get_permission(constants.INFINITE_MOVEMENT_PERMISSION):
             self.movement_points += change
@@ -847,12 +820,7 @@ class mob(actor):
 
     def set_movement_points(self, new_value):
         """
-        Description:
-            Sets this mob's movement points to the inputted amount. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
-        Input:
-            None
-        Output:
-            None
+        Sets this mob's movement points to the inputted amount. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
         """
         if new_value < 0:
             new_value = 0
@@ -868,12 +836,7 @@ class mob(actor):
 
     def reset_movement_points(self):
         """
-        Description:
-            Sets this mob's movement points to its maximum number of movement points at the end of the turn. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
-        Input:
-            None
-        Output:
-            None
+        Sets this mob's movement points to its maximum number of movement points at the end of the turn. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
         """
         if self.get_permission(constants.MOVEMENT_DISABLED_PERMISSION):
             self.set_permission(
@@ -926,12 +889,7 @@ class mob(actor):
 
     def reselect(self):
         """
-        Description:
-            Deselects and reselects this mob if it was already selected
-        Input:
-            None
-        Output:
-            None
+        Deselects and reselects this mob if it was already selected
         """
         if status.displayed_mob == self:
             self.locked_ambient_sound = True
@@ -943,12 +901,7 @@ class mob(actor):
 
     def select(self):
         """
-        Description:
-            Selects this mob, causing this mob to be shown in the mob display and causing a selection outline to appear around it
-        Input:
-            None
-        Output:
-            None
+        Selects this mob, causing this mob to be shown in the mob display and causing a selection outline to appear around it
         """
         self.move_to_front()
         flags.show_selection_outlines = True
@@ -961,12 +914,7 @@ class mob(actor):
 
     def cycle_select(self):
         """
-        Description:
-            Selects this mob while also moving it to the front of the location and playing its selection sound - should be used when unit is clicked on
-        Input:
-            None
-        Output:
-            None
+        Selects this mob while also moving it to the front of the location and playing its selection sound - should be used when unit is clicked on
         """
         if main_loop_utility.action_possible():
             if status.displayed_mob != self:
@@ -982,12 +930,7 @@ class mob(actor):
 
     def move_to_front(self):
         """
-        Description:
-            Moves the image of this unit to the front of the cell, making it visible and selected first when the cell is clicked
-        Input:
-            None
-        Output:
-            None
+        Moves the image of this unit to the front of the location, making it visible and selected first when the location is clicked
         """
         current_location = self.get_location()
         current_location.subscribed_mobs.remove(self)
@@ -996,12 +939,7 @@ class mob(actor):
 
     def update_image_bundle(self):
         """
-        Description:
-            Updates this actor's images with its current image id list
-        Input:
-            None
-        Output:
-            None
+        Updates this actor's images with its current image id list
         """
         self.get_location().update_image_bundle(update_mob_only=True)
 
@@ -1139,12 +1077,7 @@ class mob(actor):
 
     def drop_inventory(self):
         """
-        Description:
-            Drops each item held in this actor's inventory into its current location
-        Input:
-            None
-        Output:
-            None
+        Drops each item held in this actor's inventory into its current location
         """
         for current_item in self.get_held_items():
             self.get_location().change_inventory(
@@ -1164,12 +1097,7 @@ class mob(actor):
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also deselects this mob
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also deselects this mob
         """
         if status.displayed_mob == self:
             actor_utility.calibrate_actor_info_display(
@@ -1237,8 +1165,8 @@ class mob(actor):
         Description:
             Returns whether this mob can move to the location x_change to the right of it and y_change above it. Movement can be prevented by not being able to move on water/land, the edge of the map, limited movement points, etc.
         Input:
-            int x_change: How many cells would be moved to the right in the hypothetical movement
-            int y_change: How many cells would be moved upward in the hypothetical movement
+            int x_change: How many locations would be moved to the right in the hypothetical movement
+            int y_change: How many locations would be moved upward in the hypothetical movement
         Output:
             boolean: Returns True if this mob can move to the proposed destination, otherwise returns False
         """
@@ -1330,12 +1258,7 @@ class mob(actor):
 
     def travel_sound(self):
         """
-        Description:
-            Plays a sound when this unit starts traveling between grids, with a varying sound based on this unit's type
-        Input:
-            None
-        Output:
-            None
+        Plays a sound when this unit starts traveling between grids, with a varying sound based on this unit's type
         """
         if self.get_permission(constants.SPACESHIP_PERMISSION):
             channel = self.selection_sound()
@@ -1348,12 +1271,7 @@ class mob(actor):
 
     def movement_sound(self):
         """
-        Description:
-            Plays a sound when this unit moves or embarks/disembarks a vehicle, with a varying sound based on this unit's type
-        Input:
-            None
-        Output:
-            None
+        Plays a sound when this unit moves or embarks/disembarks a vehicle, with a varying sound based on this unit's type
         """
         possible_sounds = []
         if self.get_permission(constants.PMOB_PERMISSION) or self.visible():
@@ -1393,8 +1311,8 @@ class mob(actor):
         Description:
             Moves this mob x_change to the right and y_change upward
         Input:
-            int x_change: How many cells are moved to the right in the movement
-            int y_change: How many cells are moved upward in the movement
+            int x_change: How many locations are moved to the right in the movement
+            int y_change: How many locations are moved upward in the movement
         Output:
             None
         """
@@ -1420,31 +1338,12 @@ class mob(actor):
 
     def retreat(self):
         """
-        Description:
-            Causes a free movement to the last cell this unit moved from, following a failed attack
-        Input:
-            None
-        Output:
-            None
+        Causes a free movement to the last location this unit moved from, following a failed attack
         """
         original_movement_points = self.movement_points
         self.move(-1 * self.last_move_direction[0], -1 * self.last_move_direction[1])
 
         self.set_movement_points(original_movement_points)  # retreating is free
-
-    def touching_mouse(self):
-        """
-        Description:
-            Returns whether any of this mob's images is colliding with the mouse. Also ensures that no hidden images outside of the minimap are considered as colliding
-        Input:
-            None
-        Output:
-            boolean: True if any of this mob's images is colliding with the mouse, otherwise return False
-        """
-        return any(
-            current_cell.touching_mouse()
-            for current_cell in self.get_location().attached_cells
-        )
 
     def set_name(self, new_name):
         """
@@ -1461,12 +1360,7 @@ class mob(actor):
 
     def start_ambient_sound(self):
         """
-        Description:
-            Starts the ambient sound for this unit, continuing looping sound until invalid or the unit is deselected
-        Input:
-            None
-        Output:
-            None
+        Starts the ambient sound for this unit, continuing looping sound until invalid or the unit is deselected
         """
         if self == status.displayed_mob and not self.locked_ambient_sound:
             if self.all_permissions(
@@ -1490,12 +1384,7 @@ class mob(actor):
 
     def stop_ambient_sound(self):
         """
-        Description:
-            Stops any ambient sound for this unit when the sound is invalid or the unit is deselected
-        Input:
-            None
-        Output:
-            None
+        Stops any ambient sound for this unit when the sound is invalid or the unit is deselected
         """
         if self.ambient_sound_channel and not self.locked_ambient_sound:
             constants.sound_manager.stop_looping_sound(self.ambient_sound_channel)

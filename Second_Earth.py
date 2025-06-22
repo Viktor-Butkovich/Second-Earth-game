@@ -504,6 +504,8 @@ Mobs and buildings have to track which cells and which grids they are visible in
 
 Location rework backlog:
 Update docstrings
+Replace get_location() with a location property
+Replace get_world_handler() with a world_handler property
 
 Notes:
 In location-centric design, game logic is centralized and as independent as possible from interface elements

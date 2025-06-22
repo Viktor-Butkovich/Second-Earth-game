@@ -45,12 +45,7 @@ class embark_all_passengers_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a vehicle to take all other mobs in its location as passengers
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a vehicle to take all other mobs in its location as passengers
         """
         if main_loop_utility.action_possible():
             vehicle = status.displayed_mob
@@ -141,12 +136,7 @@ class disembark_all_passengers_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a vehicle to eject all of its passengers
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a vehicle to eject all of its passengers
         """
         if main_loop_utility.action_possible():
             vehicle = status.displayed_mob
@@ -225,12 +215,7 @@ class enable_sentry_mode_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button activates sentry mode for the selected unit
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button activates sentry mode for the selected unit
         """
         if main_loop_utility.action_possible():
             displayed_mob = status.displayed_mob
@@ -272,12 +257,7 @@ class disable_sentry_mode_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button deactivates sentry mode for the selected unit
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button deactivates sentry mode for the selected unit
         """
         if main_loop_utility.action_possible():
             displayed_mob = status.displayed_mob
@@ -358,12 +338,7 @@ class enable_automatic_replacement_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button enables automatic replacement for the selected unit
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button enables automatic replacement for the selected unit
         """
         if main_loop_utility.action_possible():
             displayed_mob = status.displayed_mob
@@ -450,12 +425,7 @@ class disable_automatic_replacement_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button disables automatic replacement for the selected unit
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button disables automatic replacement for the selected unit
         """
         if main_loop_utility.action_possible():
             displayed_mob = status.displayed_mob
@@ -519,12 +489,7 @@ class end_unit_turn_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes the selected unit from the current turn's turn cycle queue
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes the selected unit from the current turn's turn cycle queue
         """
         if main_loop_utility.action_possible():
             status.displayed_mob.remove_from_turn_queue()
@@ -583,12 +548,7 @@ class remove_work_crew_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes a work crew from a building
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes a work crew from a building
         """
         if main_loop_utility.action_possible():
             self.attached_label.attached_list[
@@ -664,12 +624,7 @@ class disembark_vehicle_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button disembarks a passenger from a vehicle
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button disembarks a passenger from a vehicle
         """
         if main_loop_utility.action_possible():
             if len(self.attached_label.actor.subscribed_passengers) > 0:
@@ -754,12 +709,7 @@ class embark_vehicle_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a selected mob to embark a vehicle of the correct type in the same location
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a selected mob to embark a vehicle of the correct type in the same location
         """
         if main_loop_utility.action_possible():
             if status.displayed_mob.get_location().has_unit_by_filter(
@@ -910,12 +860,7 @@ class cycle_passengers_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button cycles the order of passengers displayed in a vehicle
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button cycles the order of passengers displayed in a vehicle
         """
         if main_loop_utility.action_possible():
             displayed_mob = status.displayed_mob
@@ -990,12 +935,7 @@ class cycle_work_crews_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button cycles the order of work crews displayed in a building
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button cycles the order of work crews displayed in a building
         """
         if main_loop_utility.action_possible():
             displayed_location = status.displayed_location
@@ -1044,12 +984,7 @@ class work_crew_to_building_button(button):
 
     def update_info(self):
         """
-        Description:
-            Updates the building this button assigns workers to depending on the buildings present in this location
-        Input:
-            None
-        Output:
-            None
+        Updates the building this button assigns workers to depending on the buildings present in this location
         """
         self.attached_work_crew = status.displayed_mob
         if self.attached_work_crew and self.attached_work_crew.get_permission(
@@ -1100,12 +1035,7 @@ class work_crew_to_building_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a work crew to work in a certain type of building in its location
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button commands a work crew to work in a certain type of building in its location
         """
         if main_loop_utility.action_possible():
             if self.attached_building:
@@ -1141,13 +1071,8 @@ class switch_theatre_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button starts choosing a destination for a spaceship to travel between theatres, like between Earth and the planet. A
-                destination is chosen when the player clicks a location in another theatre.
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button starts choosing a destination for a spaceship to travel between theatres, like between Earth and the planet. A
+            destination is chosen when the player clicks a location in another theatre.
         """
         if main_loop_utility.action_possible():
             current_mob = status.displayed_mob
@@ -1230,12 +1155,7 @@ class appoint_minister_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button appoints the selected minister to the office corresponding to this button
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button appoints the selected minister to the office corresponding to this button
         """
         if main_loop_utility.action_possible():
             appointed_minister = status.displayed_minister
@@ -1269,13 +1189,8 @@ class reappoint_minister_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes the selected minister from their current office, returning them to the pool of available
-                ministers
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes the selected minister from their current office, returning them to the pool of available
+            ministers
         """
         if main_loop_utility.action_possible():
             status.displayed_minister.just_removed = True
@@ -1309,13 +1224,8 @@ class fire_minister_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes the selected minister from their current office, returning them to the pool of available
-                ministers
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button removes the selected minister from their current office, returning them to the pool of available
+            ministers
         """
         if main_loop_utility.action_possible():
             if len(status.minister_list) > len(
@@ -1393,13 +1303,8 @@ class to_trial_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button goes to the trial screen to remove the selected minister from the game and confiscate a portion of their
-                stolen money
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button goes to the trial screen to remove the selected minister from the game and confiscate a portion of their
+            stolen money
         """
         if main_loop_utility.action_possible():
             if constants.money >= constants.action_prices["trial"]:
@@ -1463,12 +1368,7 @@ class fabricate_evidence_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button spends money to fabricate a piece of evidence against the selected minister
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button spends money to fabricate a piece of evidence against the selected minister
         """
         if main_loop_utility.action_possible():
             if constants.money >= self.get_cost():
@@ -1544,12 +1444,7 @@ class bribe_judge_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button spends money to bribe the judge
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button spends money to bribe the judge
         """
         if main_loop_utility.action_possible():
             if constants.money >= self.get_cost():
@@ -1607,14 +1502,9 @@ class automatic_route_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. Clear automatic route buttons remove the selected unit's automatic route. Draw automatic route buttons enter the route
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. Clear automatic route buttons remove the selected unit's automatic route. Draw automatic route buttons enter the route
             drawing mode, in which the player can click on consecutive locations to add them to the route. Execute automatic route buttons command the selected unit to execute its in-progress automatic route, stopping when it cannot
             continue the route for any reason
-        Input:
-            None
-        Output:
-            None
         """
         attached_mob = status.displayed_mob
         if main_loop_utility.action_possible():
@@ -1712,12 +1602,7 @@ class toggle_button(button):
 
     def on_click(self):
         """
-        Description:
-            Toggles this button's variable on the attached actor
-        Input:
-            None
-        Output:
-            None
+        Toggles this button's variable on the attached actor
         """
         if self.attached_to_actor:
             setattr(
@@ -1800,12 +1685,7 @@ class change_parameter_button(button):
 
     def on_click(self) -> None:
         """
-        Description;
-            Changes this button's parameter of its label's location's location
-        Input:
-            None
-        Output:
-            None
+        Changes this button's parameter of its label's location
         """
         if main_loop_utility.action_possible():
             if (
@@ -1891,12 +1771,7 @@ class help_button(button):
 
     def on_click(self):
         """
-        Description:
-            Displays a help message for the attached label
-        Input:
-            None
-        Output:
-            None
+        Displays a help message for the attached label
         """
         if main_loop_utility.action_possible():
             message = constants.help_manager.generate_message(

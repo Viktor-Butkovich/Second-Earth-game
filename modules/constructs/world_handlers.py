@@ -9,6 +9,8 @@ from modules.constants import constants, status, flags
 class world_handler:
     """
     "Single source of truth" handler for planet-wide characteristics
+    Can be a full world with multiple locations, an orbital world representing a planet's orbit, or an abstract world for
+        a single-location world
     """
 
     def __init__(self, from_save: bool, input_dict: Dict[str, any]) -> None:
@@ -18,9 +20,11 @@ class world_handler:
         Input:
             bool from_save: True if loading world, False if creating new one
             dictionary input_dict: Dictionary of saved information necessary to recreate this location if loading grid, or None if creating new location
+        Output:
+            None
         """
         status.world_list.append(self)
-        self.attached_grids: List[Any] = []
+        self.subscribed_grids: List[Any] = []
         if not self.is_orbital_world:
             self.name: str = input_dict.get("name")
             self.world_dimensions: int = input_dict.get("world_dimensions")
@@ -107,30 +111,56 @@ class world_handler:
 
     @property
     def coordinate_width(self) -> int:
+        """
+        Returns this world's coordinate width
+        """
         return self.world_dimensions
 
     @property
     def coordinate_height(self) -> int:
+        """
+        Returns this world's coordinate height
+        """
         return self.world_dimensions
 
     @property
     def is_earth(self) -> bool:
+        """
+        Returns whether this is the Earth abstract world - False unless overridden by subclass
+        """
         return False
 
     @property
     def is_abstract_world(self) -> bool:
+        """
+        Returns whether this is an abstract world - False unless overridden by subclass
+        """
         return False
 
     @property
     def is_orbital_world(self) -> bool:
+        """
+        Returns whether this is an orbital world - False unless overridden by subclass
+        """
         return False
 
     def remove(self) -> None:
+        """
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
+        """
         status.world_list.remove(self)
         for current_location in self.get_flat_location_list():
             current_location.remove()
 
     def update_location_image_bundles(self, update_globe: bool = False) -> None:
+        """
+        Description:
+            Manually updates all of this world's location image bundles
+        Input:
+            bool update_globe: True if the globe projection should also be updated (only used by subclasses)
+        Output:
+            None
+        """
         for current_location in self.get_flat_location_list():
             current_location.update_image_bundle()
 
@@ -149,22 +179,34 @@ class world_handler:
             self.name = new_name
             self.orbital_world.rename(new_name)
 
-    def add_grid(self, grid: Any) -> None:
-        self.attached_grids.append(grid)
+    def subscribe_grid(self, grid: Any) -> None:
+        """
+        Description:
+            Subscribes the inputted grid to this world, removing it from any previous world
+                Grids instruct their cells to subscribe to the corresponding locations in this world
+        Input:
+            grid grid: Grid to subscribe to this world
+        Output:
+            None
+        """
+        self.subscribed_grids.append(grid)
         grid.world_handler = self
 
-    def remove_grid(self, grid: Any) -> None:
-        self.attached_grids.remove(grid)
+    def unsubscribe_grid(self, grid: Any) -> None:
+        """
+        Description:
+            Unsubscribes the inputted grid from this location - precondition that grid is subscribed to this location
+        Input:
+            grid grid: Grid to unsubscribe from this location
+        Output:
+            None
+        """
+        self.subscribed_grids.remove(grid)
         grid.world_handler = None
 
     def generate_altitude(self) -> None:
         """
-        Description:
-            Randomly generates altitude
-        Input:
-            None
-        Output:
-            None
+        Randomly generates altitude
         """
         if constants.effect_manager.effect_active("map_customization"):
             default_altitude = 2
@@ -208,12 +250,7 @@ class world_handler:
 
     def generate_temperature(self) -> None:
         """
-        Description:
-            Randomly generates temperature
-        Input:
-            None
-        Output:
-            Nones
+        Randomly generates temperature
         """
         self.update_target_average_temperature(
             estimate_water_vapor=True, update_albedo=True
@@ -316,12 +353,7 @@ class world_handler:
 
     def generate_roughness(self) -> None:
         """
-        Description:
-            Randomly generates roughness
-        Input:
-            None
-        Output:
-            None
+        Randomly generates roughness
         """
         if constants.effect_manager.effect_active("map_customization"):
             return
@@ -359,13 +391,8 @@ class world_handler:
 
     def generate_water(self) -> None:
         """
-        Description:
-            Randomly generates water, placing enough water to reach the generated target average
-                Total water may be less than target average if repeatedly attempting to place in saturated locations, or if radiation removes some of the placed water
-        Input:
-            None
-        Output:
-            None
+        Randomly generates water, placing enough water to reach the generated target average
+            Total water may be less than target average if repeatedly attempting to place in saturated locations, or if radiation removes some of the placed water
         """
         for _ in range(round(self.average_water_target * (self.world_dimensions**2))):
             self.place_water(radiation_effect=True, update_display=False)
@@ -512,12 +539,7 @@ class world_handler:
 
     def remove_water(self, update_display: bool = True) -> None:
         """
-        Description:
-            Removes 1 unit of water from the map, depending on altitude and temperature
-        Input:
-            None
-        Output:
-            None
+        Removes 1 unit of water from the map, depending on altitude and temperature
         """
         water_locations = [
             current_location
@@ -536,12 +558,7 @@ class world_handler:
 
     def generate_soil(self) -> None:
         """
-        Description:
-            Randomly generates soil
-        Input:
-            None
-        Output:
-            None
+        Randomly generates soil
         """
         if constants.effect_manager.effect_active("map_customization"):
             return
@@ -592,12 +609,7 @@ class world_handler:
 
     def generate_vegetation(self) -> None:
         """
-        Description:
-            Randomly generates vegetation
-        Input:
-            None
-        Output:
-            None
+        Randomly generates vegetation
         """
         if constants.effect_manager.effect_active("map_customization"):
             return
@@ -625,12 +637,7 @@ class world_handler:
 
     def generate_terrain_parameters(self):
         """
-        Description:
-            Randomly sets terrain parameters for each cell
-        Input:
-            None
-        Output:
-            None
+        Randomly sets terrain parameters for each cell
         """
         self.generate_altitude()
         self.generate_roughness()
@@ -714,25 +721,15 @@ class world_handler:
 
     def warm(self) -> None:
         """
-        Description:
-            Warms the grid, increasing temperature
-                Selects the cell with the furthest temperature below its expected temperature
-        Input:
-            None
-        Output:
-            None
+        Warms the grid, increasing temperature
+            Selects the cell with the furthest temperature below its expected temperature
         """
         self.place_temperature(change=1, bound=11, choice_function=min)
 
     def cool(self) -> None:
         """
-        Description:
-            Cools the grid, decreasing temperature
-                Selects the cell with the furthest temperature above its expected temperature
-        Input:
-            None
-        Output:
-            None
+        Cools the grid, decreasing temperature
+            Selects the cell with the furthest temperature above its expected temperature
         """
         self.place_temperature(change=-1, bound=-6, choice_function=max)
 
@@ -840,12 +837,7 @@ class world_handler:
 
     def generate_terrain_features(self):
         """
-        Description:
-            Randomly place features in each location, based on terrain
-        Input:
-            None
-        Output:
-            None
+        Randomly place features in each location, based on terrain
         """
         for terrain_feature_type in status.terrain_feature_types:
             for location in self.get_flat_location_list():
@@ -988,12 +980,7 @@ class world_handler:
 
     def generate_poles_and_equator(self):
         """
-        Description:
-            Generates the poles and equator for the world grid
-        Input:
-            None
-        Output:
-            None
+        Generates the poles and equator for the world grid
         """
         self.find_location(0, 0).add_terrain_feature(
             {
@@ -1189,12 +1176,7 @@ class world_handler:
 
     def update_pressure(self) -> None:
         """
-        Description:
-            Updates the planet's pressure to be a sum of its atmosphere components whenever any are changed
-        Input:
-            None
-        Output:
-            None
+        Updates the planet's pressure to be a sum of its atmosphere components whenever any are changed
         """
         self.global_parameters[constants.PRESSURE] = round(
             sum(
@@ -1334,12 +1316,7 @@ class world_handler:
 
     def update_cloud_frequencies(self, estimated_temperature: bool = None) -> float:
         """
-        Description:
-            Creates random clouds for each location, with frequency depending on water vapor
-        Input:
-            None
-        Output:
-            None
+        Creates random clouds for each location, with frequency depending on water vapor
         """
         num_cloud_variants = constants.terrain_manager.terrain_variant_dict.get(
             "clouds_base", 1
@@ -1383,12 +1360,7 @@ class world_handler:
 
     def update_clouds(self, estimated_temperature: float = None) -> None:
         """
-        Description:
-            Creates random clouds for each location, with frequency depending on water vapor
-        Input:
-            None
-        Output:
-            None
+        Creates random clouds for each location, with frequency depending on water vapor
         """
         num_cloud_variants = constants.terrain_manager.terrain_variant_dict.get(
             "clouds_base", 1
@@ -1752,12 +1724,7 @@ class world_handler:
 
     def get_average_local_temperature(self):
         """
-        Description:
-            Re-calculates the average temperature of this world
-        Input:
-            None
-        Output:
-            None
+        Re-calculates the average temperature of this world
         """
         return round(
             sum(
@@ -1772,12 +1739,7 @@ class world_handler:
 
     def update_average_water(self):
         """
-        Description:
-            Re-calculates the average water of this world
-        Input:
-            None
-        Output:
-            None
+        Re-calculates the average water of this world
         """
         self.average_water = round(
             sum(
@@ -1792,12 +1754,7 @@ class world_handler:
 
     def update_average_altitude(self):
         """
-        Description:
-            Re-calculates the average altitude of this world
-        Input:
-            None
-        Output:
-            None
+        Re-calculates the average altitude of this world
         """
         self.average_altitude = round(
             sum(
@@ -1904,12 +1861,7 @@ class world_handler:
 
     def get_albedo_effect_multiplier(self):
         """
-        Description:
-            Re-calculates and returns the albedo multiplier to heat received by this planet, based on clouds and location brightnesss
-        Input:
-            None
-        Output:
-            None
+        Re-calculates and returns the albedo multiplier to heat received by this planet, based on clouds and location brightnesss
         """
         self.update_location_image_bundles(update_globe=False)
         cloud_albedo = 0.75
@@ -1956,13 +1908,8 @@ class world_handler:
         self, estimate_water_vapor: bool = False, update_albedo: bool = False
     ):
         """
-        Description:
-            Re-calculates the average temperature of this world, based on sun distance -> solation and greenhouse effect
-                This average temperature is used as a target, changing local temperature until the average is reached
-        Input:
-            None
-        Output:
-            None
+        Re-calculates the average temperature of this world, based on sun distance -> solation and greenhouse effect
+            This average temperature is used as a target, changing local temperature until the average is reached
         """
         if self.is_orbital_world:
             return

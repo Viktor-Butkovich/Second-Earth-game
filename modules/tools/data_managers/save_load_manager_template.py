@@ -24,12 +24,7 @@ class save_load_manager_template:
 
     def __init__(self):
         """
-        Description:
-            Initializes this object
-        Input:
-            None
-        Output:
-            None
+        Initializes this object
         """
         self.copied_constants = []
         self.copied_statuses = []
@@ -38,12 +33,7 @@ class save_load_manager_template:
 
     def set_copied_elements(self):
         """
-        Description:
-            Determines which variables should be saved and loaded
-        Input:
-            None
-        Output:
-            None
+        Determines which variables should be saved and loaded
         """
         self.copied_constants = []
         self.copied_constants.append("action_prices")
@@ -66,12 +56,7 @@ class save_load_manager_template:
 
     def new_game(self):
         """
-        Description:
-            Creates a new game and leaves the main menu
-        Input:
-            None
-        Output:
-            None
+        Creates a new game and leaves the main menu
         """
         game_transitions.start_loading()
         status.cached_images = {}
@@ -141,12 +126,7 @@ class save_load_manager_template:
 
     def save_game(self, file_path):
         """
-        Description:
-            Saves the game in the file corresponding to the inputted file path
-        Input:
-            None
-        Output:
-            None
+        Saves the game in the file corresponding to the inputted file path
         """
         file_path = "save_games/" + file_path
 
@@ -207,12 +187,7 @@ class save_load_manager_template:
 
     def load_game(self, file_path):
         """
-        Description:
-            Loads a saved game from the file corresponding to the inputted file path
-        Input:
-            None
-        Output:
-            None
+        Loads a saved game from the file corresponding to the inputted file path
         """
         flags.loading_save = True
 

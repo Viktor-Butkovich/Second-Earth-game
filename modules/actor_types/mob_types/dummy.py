@@ -34,11 +34,6 @@ class dummy(pmobs.pmob):
 
     def update_image_bundle(self):
         """
-        Description:
-            Updates this actor's images with its current image id list
-        Input:
-            None
-        Output:
-            None
+        Updates this actor's images with its current image id list
         """
         return

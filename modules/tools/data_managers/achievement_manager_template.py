@@ -12,12 +12,7 @@ class achievement_manager_template:
 
     def __init__(self):
         """
-        Description:
-            Initializes this object
-        Input:
-            None
-        Output:
-            None
+        Initializes this object
         """
         self.victory_conditions: List[str] = []
         self.achievements: List[str] = []
@@ -60,12 +55,7 @@ class achievement_manager_template:
 
     def achieve(self, achievement_type: str, verbose: bool = True):
         """
-        Description:
-            Achieves an achievement, creating corresponding interface element and saving the achievement
-        Input:
-            None
-        Output:
-            None
+        Achieves an achievement, creating corresponding interface element and saving the achievement
         """
         if (not achievement_type in self.achievements) or (
             achievement_type in self.victory_conditions
@@ -147,12 +137,7 @@ class achievement_manager_template:
 
     def get_description(self, achievement_type: str) -> str:
         """
-        Description:
-            Returns the description of an achievement
-        Input:
-            None
-        Output:
-            None
+        Returns the description of an achievement
         """
         return {
             "Entrepreneur": "Start a turn with 10,000 money",

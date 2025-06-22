@@ -11,12 +11,7 @@ class help_manager_template:
 
     def __init__(self):
         """
-        Description:
-            Initializes this object
-        Input:
-            None
-        Output:
-            None
+        Initializes this object
         """
         self.subjects: Dict[str, List[str]] = {
             constants.HELP_GLOBAL_PARAMETERS: [

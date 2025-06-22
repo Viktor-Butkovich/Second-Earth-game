@@ -72,12 +72,7 @@ class officer(pmob):
 
     def replace(self, attached_group=None):
         """
-        Description:
-            Replaces this unit for a new version of itself when it dies from attrition, removing all experience and name modifications. Also charges the usual officer recruitment cost
-        Input:
-            None
-        Output:
-            None
+        Replaces this unit for a new version of itself when it dies from attrition, removing all experience and name modifications. Also charges the usual officer recruitment cost
         """
         super().replace()
         constants.money_tracker.change(
@@ -106,12 +101,7 @@ class officer(pmob):
 
     def promote(self):
         """
-        Description:
-            Promotes this officer to a veteran after performing various actions particularly well, improving the officer's future capabilities. Creates a veteran star icon that follows this officer
-        Input:
-            None
-        Output:
-            None
+        Promotes this officer to a veteran after performing various actions particularly well, improving the officer's future capabilities. Creates a veteran star icon that follows this officer
         """
         if not self.get_permission(constants.VETERAN_PERMISSION):
             self.set_name("veteran " + self.name)

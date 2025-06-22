@@ -45,23 +45,13 @@ class panel(button):
 
     def can_show_tooltip(self):
         """
-        Description:
-            Panels have no tooltips
-        Input:
-            None
-        Output:
-            None
+        Panels have no tooltips
         """
         return False
 
     def draw(self):
         """
-        Description:
-            Draws this panel, ignoring outlines from the panel being clicked
-        Input:
-            None
-        Output:
-            None
+        Draws this panel, ignoring outlines from the panel being clicked
         """
         if self.showing:
             super().draw(allow_show_outline=False)

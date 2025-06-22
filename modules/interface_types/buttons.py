@@ -654,6 +654,10 @@ class button(interface_elements.interface_element):
 
     @property
     def batch_tooltip_list(self):
+        """
+        Gets a 2D list of strings to use as this object's tooltip
+            Each string is displayed on a separate line, while each sublist is displayed in a separate box
+        """
         if self.has_keybind:
             return [self.tooltip_text]
         else:
@@ -675,12 +679,7 @@ class button(interface_elements.interface_element):
 
     def can_show_tooltip(self):
         """
-        Description:
-            Returns whether this button's tooltip can be shown. By default, its tooltip can be shown when it is visible and colliding with the mouse
-        Input:
-            None
-        Output:
-            None
+        Returns whether this button's tooltip can be shown. By default, its tooltip can be shown when it is visible and colliding with the mouse
         """
         if self.touching_mouse() and self.showing:
             return True
@@ -689,12 +688,7 @@ class button(interface_elements.interface_element):
 
     def draw(self, allow_show_outline=True):
         """
-        Description:
-            Draws this button with a description of its keybind if it has one, along with an outline if its keybind is being pressed
-        Input:
-            None
-        Output:
-            None
+        Draws this button with a description of its keybind if it has one, along with an outline if its keybind is being pressed
         """
         if self.showing:
             if self.showing_outline and allow_show_outline:
@@ -728,12 +722,7 @@ class button(interface_elements.interface_element):
 
     def on_rmb_click(self):
         """
-        Description:
-            Controls this button's behavior when right clicked. By default, the button's right click behavior is the same as its left click behavior.
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when right clicked. By default, the button's right click behavior is the same as its left click behavior.
         """
         self.on_click()
 
@@ -1301,23 +1290,13 @@ class button(interface_elements.interface_element):
 
     def on_rmb_release(self):
         """
-        Description:
-            Controls what this button does when right clicked and released. By default, buttons will stop showing their outlines when released.
-        Input:
-            None
-        Output:
-            None
+        Controls what this button does when right clicked and released. By default, buttons will stop showing their outlines when released.
         """
         self.on_release()
 
     def on_release(self):
         """
-        Description:
-            Controls what this button does when left clicked and released. By default, buttons will stop showing their outlines when released.
-        Input:
-            None
-        Output:
-            None
+        Controls what this button does when left clicked and released. By default, buttons will stop showing their outlines when released.
         """
         self.showing_outline = False
         self.has_released = True
@@ -1325,12 +1304,7 @@ class button(interface_elements.interface_element):
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         super().remove()
         status.button_list = utility.remove_from_list(status.button_list, self)
@@ -1552,12 +1526,7 @@ class cycle_same_location_button(button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. This type of button cycles the order of mobs displayed in a location, moving the first one shown to the bottom and moving others up
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. This type of button cycles the order of mobs displayed in a location, moving the first one shown to the bottom and moving others up
         """
         if main_loop_utility.action_possible():
             cycled_location = status.displayed_location
@@ -1625,23 +1594,13 @@ class same_location_icon(button):
 
     def reset(self):
         """
-        Description:
-            Resets this icon when a new location is selected, forcing it to re-calibrate with any new units
-        Input:
-            None
-        Output:
-            None
+        Resets this icon when a new location is selected, forcing it to re-calibrate with any new units
         """
         self.resetting = True
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. This type of button selects the mob that it is currently attached to when clicked
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. This type of button selects the mob that it is currently attached to when clicked
         """
         if (not self.is_last) and self.attached_mob:
             self.attached_mob.cycle_select()
@@ -1664,23 +1623,13 @@ class same_location_icon(button):
 
     def can_show_tooltip(self):
         """
-        Description:
-            Returns whether this button's tooltip can be shown. A same location icon has the the normal requirements for a tooltip to be shown, along with requiring that it is attached to a unit
-        Input:
-            None
-        Output:
-            None
+        Returns whether this button's tooltip can be shown. A same location icon has the the normal requirements for a tooltip to be shown, along with requiring that it is attached to a unit
         """
         return self.attached_mob and super().can_show_tooltip()
 
     def update(self):
         """
-        Description:
-            Updates this icon's appearance based on the corresponding unit in the displayed location, if any
-        Input:
-            None
-        Output:
-            None
+        Updates this icon's appearance based on the corresponding unit in the displayed location, if any
         """
         if super().can_show():
             displayed_location = status.displayed_location
@@ -1716,12 +1665,7 @@ class same_location_icon(button):
 
     def draw(self):
         """
-        Description:
-            Draws this button and draws a copy of the this button's attached mob's image on top of it
-        Input:
-            None
-        Output:
-            None
+        Draws this button and draws a copy of the this button's attached mob's image on top of it
         """
         if self.showing:
             if self.index == 0 and status.displayed_location:
@@ -1782,12 +1726,7 @@ class fire_unit_button(button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. This type of button fires the selected unit
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. This type of button fires the selected unit
         """
         if (
             main_loop_utility.action_possible()
@@ -1894,12 +1833,7 @@ class switch_game_mode_button(button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. This type of button transtions from the current game mode to either the previous game mode or one specified on button initialization
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. This type of button transtions from the current game mode to either the previous game mode or one specified on button initialization
         """
         if main_loop_utility.action_possible():
             if self.to_mode == constants.MAIN_MENU_MODE:
@@ -2014,12 +1948,7 @@ class minister_portrait_image(button):
 
     def draw(self):
         """
-        Description:
-            Draws this button's image along with a white background and, if its minister is currently selected, a flashing green outline
-        Input:
-            None
-        Output:
-            None
+        Draws this button's image along with a white background and, if its minister is currently selected, a flashing green outline
         """
         showing = False
         if (
@@ -2044,12 +1973,7 @@ class minister_portrait_image(button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. This type of button selects its attached minister when clicked
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. This type of button selects its attached minister when clicked
         """
         if main_loop_utility.action_possible():
             if (
@@ -2189,12 +2113,7 @@ class cycle_available_ministers_button(button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. This type of button changes the range of available ministers that are displayed depending on its direction
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. This type of button changes the range of available ministers that are displayed depending on its direction
         """
         if main_loop_utility.action_possible():
             if self.direction == "left":
@@ -2248,12 +2167,7 @@ class scroll_button(button):
 
     def on_click(self) -> None:
         """
-        Description:
-            When this button is clicked, increment/decrement the corresponding value of the parent collection and update its display
-        Input:
-            None
-        Output:
-            None
+        When this button is clicked, increment/decrement the corresponding value of the parent collection and update its display
         """
         if main_loop_utility.action_possible():
             setattr(
@@ -2325,12 +2239,7 @@ class sellable_item_button(button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. When the player is choosing a target for an advertising campaign, clicking on this button starts an advertising campaign for this button's item
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. When the player is choosing a target for an advertising campaign, clicking on this button starts an advertising campaign for this button's item
         """
         if flags.choosing_advertised_item:
             if self.item_type.key == constants.CONSUMER_GOODS_ITEM:
@@ -2354,12 +2263,7 @@ class sellable_item_button(button):
 
     def can_show_tooltip(self):
         """
-        Description:
-            Returns whether this button's tooltip can be shown. A sellable item button never shows a tooltip
-        Input:
-            None
-        Output:
-            None
+        Returns whether this button's tooltip can be shown. A sellable item button never shows a tooltip
         """
         return False
 
@@ -2386,12 +2290,7 @@ class show_previous_reports_button(button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. This type of button displays the previous turn's financial report again
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. This type of button displays the previous turn's financial report again
         """
         if main_loop_utility.action_possible():
             for report in [
@@ -2874,13 +2773,8 @@ class cycle_autofill_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button cycles the unit in an autofill input
-                cell to the next valid alternative - assumes that there is a valid alternative, as on_click is only possible if can_show is True
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button cycles the unit in an autofill input
+            cell to the next valid alternative - assumes that there is a valid alternative, as on_click is only possible if can_show is True
         """
         self.parent_collection.search_start_index = (
             status.displayed_mob.get_location().subscribed_mobs.index(
@@ -2947,12 +2841,7 @@ class action_button(button):
 
     def get_matching_unit(self):
         """
-        Description:
-            Returns the unit this button appears next to
-        Input:
-            None
-        Output:
-            None
+        Returns the unit this button appears next to
         """
         if self.corresponding_action.actor_type == constants.MOB_ACTOR_TYPE:
             return status.displayed_mob
@@ -2969,12 +2858,7 @@ class action_button(button):
 
     def on_click(self):
         """
-        Description:
-            Does a certain action when clicked or when corresponding key is pressed, depending on this button's mapped 'on_click' function
-        Input:
-            None
-        Output:
-            None
+        Does a certain action when clicked or when corresponding key is pressed, depending on this button's mapped 'on_click' function
         """
         self.corresponding_action.on_click(self.get_matching_unit())
 
@@ -3028,12 +2912,7 @@ class anonymous_button(button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. Choice buttons remove their notifications when clicked, along with the normal behaviors associated with their button_type
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. Choice buttons remove their notifications when clicked, along with the normal behaviors associated with their button_type
         """
         super().on_click()
         if self.on_click_info:
@@ -3046,12 +2925,7 @@ class anonymous_button(button):
 
     def draw(self):
         """
-        Description:
-            Draws this button below its choice notification and draws a description of what it does on top of it
-        Input:
-            None
-        Output:
-            None
+        Draws this button below its choice notification and draws a description of what it does on top of it
         """
         super().draw()
         if self.showing and self.in_notification:
@@ -3109,12 +2983,7 @@ class map_mode_button(button):
 
     def on_click(self):
         """
-        Description:
-            Sets the current map mode to this button's map mode
-        Input:
-            None
-        Output:
-            None
+        Sets the current map mode to this button's map mode
         """
         constants.current_map_mode = self.map_mode
         for current_world in status.world_list:

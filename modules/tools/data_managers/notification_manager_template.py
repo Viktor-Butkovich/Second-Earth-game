@@ -9,12 +9,7 @@ class notification_manager_template:
 
     def __init__(self):
         """
-        Description:
-            Initializes this object
-        Input:
-            None
-        Output:
-            None
+        Initializes this object
         """
         self.notification_queue = []
         self.lock = False
@@ -94,12 +89,7 @@ class notification_manager_template:
 
     def handle_next_notification(self, transferred_interface_elements=None):
         """
-        Description:
-            Creates the next queued notification, if any, whenever a notification is removed
-        Input:
-            None
-        Output:
-            None
+        Creates the next queued notification, if any, whenever a notification is removed
         """
         valid_transfer = False
         if status.displayed_notification == None or True == True:
@@ -281,11 +271,6 @@ class notification_manager_template:
 
     def clear_notification_queue(self):
         """
-        Description:
-            Clears the notification queue
-        Input:
-            None
-        Output:
-            None
+        Clears the notification queue
         """
         self.notification_queue = []

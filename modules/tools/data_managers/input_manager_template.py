@@ -9,12 +9,7 @@ class input_manager_template:
 
     def __init__(self):
         """
-        Description:
-            Initializes this object
-        Input:
-            None
-        Output:
-            None
+        Initializes this object
         """
         self.taking_input = False
         self.old_taking_input = self.taking_input
@@ -58,12 +53,7 @@ class input_manager_template:
 
     def update_input(self):
         """
-        Description:
-            Updates whether this object is currently taking input
-        Input:
-            None
-        Output:
-            None
+        Updates whether this object is currently taking input
         """
         self.old_taking_input = self.taking_input
 

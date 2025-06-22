@@ -42,13 +42,8 @@ class inventory_grid(ordered_collection):
         super().__init__(input_dict)
 
     def scroll_update(self) -> None:
-        """
-        Description:
-            Updates the display when this collection is scrolled
-        Input:
-            None
-        Output:
-            None
+        """:
+        Updates the display when this collection is scrolled
         """
         actor_type: str = self.get_actor_type()
         actor = getattr(status, f"displayed_{actor_type}")
@@ -251,12 +246,7 @@ class item_icon(button):
 
     def draw(self):
         """
-        Description:
-            Draws this button below its choice notification, along with an outline if it is selected
-        Input:
-            None
-        Output:
-            None
+        Draws this button below its choice notification, along with an outline if it is selected
         """
         if self.showing:
             if self == getattr(status, f"displayed_{self.actor_type}"):
@@ -294,12 +284,7 @@ class item_icon(button):
 
     def on_click(self):
         """
-        Description:
-            Calibrates mob_inventory_info_display or location_inventory_info_display to this icon, depending on this icon's actor type
-        Input:
-            None
-        Output:
-            None
+        Calibrates mob_inventory_info_display or location_inventory_info_display to this icon, depending on this icon's actor type
         """
         if not self.can_show(skip_parent_collection=True):
             self.current_item = None

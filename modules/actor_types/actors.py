@@ -41,7 +41,7 @@ class actor:
             constants.IMAGE_ID_LIST_DEFAULT: input_dict.get(
                 constants.IMAGE_ID_LIST_DEFAULT, []
             ),
-        }  # Stored versions of fully generated image ID list, passed to info displays and cells
+        }  # Stored versions of fully generated image ID list, passed to info displays and locations
         self.name: str = None
         self.finish_init(original_constructor, from_save, input_dict)
 
@@ -242,12 +242,7 @@ class actor:
 
     def manage_inventory_attrition(self):
         """
-        Description:
-            Checks this actor for inventory attrition each turn or when it moves while holding items
-        Input:
-            None
-        Output:
-            None
+        Checks this actor for inventory attrition each turn or when it moves while holding items
         """
         if (
             constants.effect_manager.effect_active("boost_attrition")
@@ -385,6 +380,10 @@ class actor:
 
     @property
     def batch_tooltip_list(self):
+        """
+        Gets a 2D list of strings to use as this object's tooltip
+            Each string is displayed on a separate line, while each sublist is displayed in a separate box
+        """
         return [self.tooltip_text]
 
     @property
@@ -396,12 +395,7 @@ class actor:
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         return
 
@@ -419,12 +413,7 @@ class actor:
 
     def update_image_bundle(self):
         """
-        Description:
-            Updates this actor's images with its current image id list
-        Input:
-            None
-        Output:
-            None
+        Updates this actor's images with its current image id list
         """
         return  # Handled by subclasses
 

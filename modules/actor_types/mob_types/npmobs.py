@@ -46,24 +46,14 @@ class npmob(mob):
 
     def permissions_setup(self) -> None:
         """
-        Description:
-            Sets up this mob's permissions
-        Input:
-            None
-        Output:
-            None
+        Sets up this mob's permissions
         """
         super().permissions_setup()
         self.set_permission(constants.NPMOB_PERMISSION, True)
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         super().remove()
         status.npmob_list = utility.remove_from_list(status.npmob_list, self)
@@ -100,7 +90,7 @@ class npmob(mob):
             string/actor: Returns one of the closest reachable pmobs or buildings, or returns None if none are reachable
         """
         target_list = []
-        #for current_building in status.building_list:
+        # for current_building in status.building_list:
         #    if (
         #        current_building.building_type.can_damage
         #        and not current_building.damaged
@@ -149,13 +139,8 @@ class npmob(mob):
 
     def attempt_local_combat(self):
         """
-        Description:
-            When this unit moves, it checks if combat is possible in the cell it moved into. If combat is possible, it will attempt to start a combat at the end of the turn with any local pmobs. If, for example, another npmob killed
-                the pmob found in this npmob's cell, then this npmob will not start a combat
-        Input:
-            None
-        Output:
-            None
+        When this unit moves, it checks if combat is possible in the location it moved into. If combat is possible, it will attempt to start a combat at the end of the turn with any local pmobs. If, for example, another npmob killed
+            the pmob found in this npmob's location, then this npmob will not start a combat
         """
         current_location = self.get_location()
         actor_utility.focus_minimap_grids(current_location)
@@ -182,12 +167,7 @@ class npmob(mob):
 
     def kill_noncombatants(self):
         """
-        Description:
-            Kills all defenseless units, such as lone officers and vehicles, in this cell after combat if no possible combatants, like workers or soldiers, remain
-        Input:
-            None
-        Output:
-            None
+        Kills all defenseless units, such as lone officers and vehicles, in this location after combat if no possible combatants, like workers or soldiers, remainne
         """
         current_location = self.get_location()
         noncombatants = current_location.get_noncombatants("pmob")
@@ -201,12 +181,7 @@ class npmob(mob):
 
     def damage_buildings(self):
         """
-        Description:
-            Damages all undefended buildings in this cell after combat if no possible combatants, like workers or soldiers, remain
-        Input:
-            None
-        Output:
-            None
+        Damages all undefended buildings in this location after combat if no possible combatants, like workers or soldiers, remain
         """
         current_location = self.get_location()
         for current_building in current_location.get_intact_buildings():
@@ -220,13 +195,9 @@ class npmob(mob):
 
     def end_turn_move(self):
         """
-        Description: Moves this npmob towards pmobs and buildings at the end of the turn and schedules this npmob to start combat if any pmobs are encountered. Movement is weighted based on the distance on each axis, so movement towards a pmob
+        Moves this npmob towards pmobs and buildings at the end of the turn and schedules this npmob to start combat if any pmobs are encountered. Movement is weighted based on the distance on each axis, so movement towards a pmob
             that is far to the north and slightly to the east will be more likely to move north than east. An npmob will use end_turn_move each time it moves during the enemy turn, which may happen multiple times depending on distance
             moved
-        Input:
-            None
-        Output:
-            None
         """
         closest_target = self.find_closest_target()
         initial_location = self.get_location()

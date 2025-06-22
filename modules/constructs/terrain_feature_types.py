@@ -46,12 +46,7 @@ class terrain_feature_type:
 
     def clear_tracking(self) -> None:
         """
-        Description:
-            Clears all status tracking of this feature type
-        Input:
-            None
-        Output:
-            None
+        Clears all status tracking of this feature type
         """
         if self.tracking_type == constants.UNIQUE_FEATURE_TRACKING:
             setattr(status, self.terrain_feature_type.replace(" ", "_"), None)

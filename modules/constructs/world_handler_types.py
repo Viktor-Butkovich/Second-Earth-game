@@ -7,7 +7,22 @@ from modules.constants import constants, status, flags
 
 
 class abstract_world_handler(world_handlers.world_handler):
+    """
+    World handler corresponding to a single location
+    Can either be an orbital world, presenting an interface between the orbital tile and the actual world, or an
+        abstract representation of a world like Earth or a possible outpost location
+    """
+
     def __init__(self, from_save: bool, input_dict: Dict[str, Any]) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            bool from_save: True if loading world, False if creating new one
+            dictionary input_dict: Dictionary of saved information necessary to recreate this location if loading grid, or None if creating new location
+        Output:
+            None
+        """
         self.abstract_world_type: str = input_dict["abstract_world_type"]
         self.image_id_list: List[any] = input_dict.get("image_id_list", [])
         super().__init__(from_save, input_dict)
@@ -18,10 +33,27 @@ class abstract_world_handler(world_handlers.world_handler):
         # Probably replace .name in location with get_name and set_name, which can access world name as needed
 
     def set_image(self, new_image: List[any]) -> None:
+        """
+        Description:
+            Sets the image for this abstract world's location
+            Unlike usual locations, abstract locations use the image of their world, which is externally generated
+        Input:
+            image ID list new_image: Image ID to use for this abstract world
+        Output:
+            None
+        """
         self.image_id_list = new_image
         self.find_location(0, 0).update_image_bundle()
 
     def to_save_dict(self) -> Dict[str, Any]:
+        """
+        Description:
+            Uses this object's values to create a dictionary that can be saved and used as input to recreate it on loading
+        Input:
+            None
+        Output:
+            dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
+        """
         return {
             **super().to_save_dict(),
             "init_type": constants.ABSTRACT_WORLD,
@@ -31,18 +63,30 @@ class abstract_world_handler(world_handlers.world_handler):
 
     @property
     def coordinate_width(self) -> int:
+        """
+        Returns this world's coordinate width (always 1 for abstract worlds)
+        """
         return 1
 
     @property
     def coordinate_height(self) -> int:
+        """
+        Returns this world's coordinate height (always 1 for abstract worlds)
+        """
         return 1
 
     @property
     def is_abstract_world(self) -> bool:
+        """
+        Returns whether this is an abstract world (always True for abstract worlds)
+        """
         return True
 
     @property
     def is_earth(self) -> bool:
+        """
+        Returns whether this is the Earth abstract world
+        """
         return self.abstract_world_type == constants.EARTH_WORLD
 
 
@@ -53,20 +97,47 @@ class orbital_world_handler(abstract_world_handler):
     """
 
     def __init__(self, from_save: bool, input_dict: Dict[str, Any]) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            bool from_save: True if loading world, False if creating new one
+            dictionary input_dict: Dictionary of saved information necessary to recreate this location if loading grid, or None if creating new location
+        Output:
+            None
+        """
         self.full_world: full_world_handler = input_dict["full_world"]
         input_dict["abstract_world_type"] = constants.ORBITAL_WORLD
         super().__init__(from_save, input_dict)
 
     def set_parameter(self, parameter_name: str, new_value: int) -> None:
+        """
+        Interface to set global parameters through the full world instead of this abstract world
+        """
         self.full_world.set_parameter(parameter_name, new_value)
 
     def change_parameter(self, parameter_name: str, change: int) -> None:
+        """
+        Interface to change global parameters through the full world instead of this abstract world
+        """
         self.full_world.change_parameter(parameter_name, change)
 
     def get_parameter(self, parameter_name: str) -> int:
+        """
+        Interface to get global parameters through the full world instead of this abstract world
+        """
         return self.full_world.get_parameter(parameter_name)
 
     def to_save_dict(self) -> Dict[str, Any]:
+        """
+        Description:
+            Uses this object's values to create a dictionary that can be saved and used as input to recreate it on loading
+                Orbital worlds are saved as part of their full world, rather than independently
+        Input:
+            None
+        Output:
+            dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
+        """
         return {
             "init_type": constants.ORBITAL_WORLD,
             "location_list": [  # All other information saved by the full world
@@ -77,59 +148,111 @@ class orbital_world_handler(abstract_world_handler):
 
     @property
     def is_orbital_world(self) -> bool:
+        """
+        Returns whether this is an orbital world (always True for orbital worlds)
+        """
         return True
 
     @property
     def name(self) -> str:
+        """
+        Interface to get name through the full world instead of this abstract world
+        """
         return self.full_world.name
 
     @property
     def world_dimensions(self) -> int:
+        """
+        Interface to get world dimensions through the full world instead of this abstract world
+        """
         return self.full_world.world_dimensions
 
     @property
     def rotation_direction(self) -> int:
+        """
+        Interface to get rotation direction through the full world instead of this abstract world
+        """
         return self.full_world.rotation_direction
 
     @property
     def rotation_speed(self) -> int:
+        """
+        Interface to get rotation speed through the full world instead of this abstract world
+        """
         return self.full_world.rotation_speed
 
     @property
     def star_distance(self) -> float:
+        """
+        Interface to get star distance through the full world instead of this abstract world
+        """
         return self.full_world.star_distance
 
     @property
     def sky_color(self) -> Tuple[int, int, int]:
+        """
+        Interface to get sky color through the full world instead of this abstract world
+        """
         return self.full_world.sky_color
 
     @property
     def default_sky_color(self) -> Tuple[int, int, int]:
+        """
+        Interface to get default sky color through the full world instead of this abstract world
+        """
         return self.full_world.default_sky_color
 
     @property
     def average_water(self) -> float:
+        """
+        Interface to get average water through the full world instead of this abstract world
+        """
         return self.full_world.average_water
 
     @property
     def average_temperature(self) -> float:
+        """
+        Interface to get average temperature through the full world instead of this abstract world
+        """
         return self.full_world.average_temperature
 
     @property
     def water_vapor_multiplier(self) -> float:
+        """
+        Interface to get water vapor multiplier through the full world instead of this abstract world
+        """
         return self.full_world.water_vapor_multiplier
 
     @property
     def ghg_multiplier(self) -> float:
+        """
+        Interface to get greenhouse gas multiplier through the full world instead of this abstract world
+        """
         return self.full_world.ghg_multiplier
 
     @property
     def albedo_multiplier(self) -> float:
+        """
+        Interface to get albedo multiplier through the full world instead of this abstract world
+        """
         return self.full_world.albedo_multiplier
 
 
 class full_world_handler(world_handlers.world_handler):
+    """
+    World handler corresponding to a world with a full playable map, with >1 locations
+    """
+
     def __init__(self, from_save: bool, input_dict: Dict[str, Any]) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            bool from_save: True if loading world, False if creating new one
+            dictionary input_dict: Dictionary of saved information necessary to recreate this location if loading grid, or None if creating new location
+        Output:
+            None
+        """
         super().__init__(from_save, input_dict)
 
         for current_location in self.get_flat_location_list():
@@ -158,6 +281,14 @@ class full_world_handler(world_handlers.world_handler):
         )
 
     def to_save_dict(self) -> Dict[str, Any]:
+        """
+        Description:
+            Uses this object's values to create a dictionary that can be saved and used as input to recreate it on loading
+        Input:
+            None
+        Output:
+            dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
+        """
         return {
             **super().to_save_dict(),
             "orbital_world": self.orbital_world.to_save_dict(),
@@ -165,6 +296,14 @@ class full_world_handler(world_handlers.world_handler):
         }
 
     def update_location_image_bundles(self, update_globe: bool = True) -> None:
+        """
+        Description:
+            Manually updates all of this world's location image bundles and the globe projection
+        Input:
+            bool update_globe: True if the globe projection should also be updated
+        Output:
+            None
+        """
         super().update_location_image_bundles(update_globe=update_globe)
         if update_globe:
             self.update_globe_projection(
@@ -190,19 +329,14 @@ class full_world_handler(world_handlers.world_handler):
 
     def latitude_lines_setup(self):
         """
-        Description:
-            15 x 15 grid has north pole 0, 0 and south pole 7, 7
-            If centered at (11, 11), latitude line should include (0, 0), (14, 14), (13, 13), (12, 12), (11, 11), (10, 10), (9, 9), (8, 8), (7, 7)
-                The above line should be used if centered at any of the above coordinates
-            If centered at (3, 11), latitude line should include (0, 0), (1, 14), (1, 13), (2, 12), (3, 11), (4, 10), (5, 9), (6, 8), (7, 7)
+        15 x 15 grid has north pole 0, 0 and south pole 7, 7
+        If centered at (11, 11), latitude line should include (0, 0), (14, 14), (13, 13), (12, 12), (11, 11), (10, 10), (9, 9), (8, 8), (7, 7)
+            The above line should be used if centered at any of the above coordinates
+        If centered at (3, 11), latitude line should include (0, 0), (1, 14), (1, 13), (2, 12), (3, 11), (4, 10), (5, 9), (6, 8), (7, 7)
 
-            Need to draw latitude lines using the above method, centered on (0, 7), (1, 6), (2, 5), (3, 4), (4, 3), (5, 2), (6, 1), (7, 0), (8, 14), (9, 13), (10, 12), (11, 11), (12, 10), (13, 9), (14, 8)
-                ^ Forms diagonal line
-            Also need to draw latitude lines on other cross: (0, 8), (1, 9), (2, 10), (3, 11), (4, 12), (5, 13), (6, 14), (7, 0), (8, 1), (9, 2), (10, 3), (11, 4), (12, 5), (13, 6), (14, 7)
-        Input:
-            None
-        Output:
-            None
+        Need to draw latitude lines using the above method, centered on (0, 7), (1, 6), (2, 5), (3, 4), (4, 3), (5, 2), (6, 1), (7, 0), (8, 14), (9, 13), (10, 12), (11, 11), (12, 10), (13, 9), (14, 8)
+            ^ Forms diagonal line
+        Also need to draw latitude lines on other cross: (0, 8), (1, 9), (2, 10), (3, 11), (4, 12), (5, 13), (6, 14), (7, 0), (8, 1), (9, 2), (10, 3), (11, 4), (12, 5), (13, 6), (14, 7)
         """
         if self.is_abstract_world:
             return

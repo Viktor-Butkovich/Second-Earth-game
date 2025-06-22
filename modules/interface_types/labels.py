@@ -68,23 +68,13 @@ class label(button):
 
     def on_click(self):
         """
-        Description:
-            Controls this label's behavior when clicked. By default, labels do nothing when clicked, though label subclasses like notifications may still need on_click functionality
-        Input:
-            None
-        Output:
-            None
+        Controls this label's behavior when clicked. By default, labels do nothing when clicked, though label subclasses like notifications may still need on_click functionality
         """
         return
 
     def draw(self):
         """
-        Description:
-            Draws this label and draws its text on top of it, ignoring outlines from the label being clicked
-        Input:
-            None
-        Output:
-            None
+        Draws this label and draws its text on top of it, ignoring outlines from the label being clicked
         """
         if self.showing:
             super().draw(allow_show_outline=False)
@@ -213,12 +203,7 @@ class money_label_template(value_label):
 
     def check_for_updates(self):
         """
-        Description:
-            Updates the projected income shown by this label when the income would change for any reason, such as when a worker is hired
-        Input:
-            None
-        Output:
-            None
+        Updates the projected income shown by this label when the income would change for any reason, such as when a worker is hired
         """
         self.update_label(getattr(constants, self.tracker.value_key))
 
@@ -335,12 +320,7 @@ class item_prices_label_template(label):
 
     def update_label(self):
         """
-        Description:
-            Updates the values shown by this label when item prices change
-        Input:
-            None
-        Output:
-            None
+        Updates the values shown by this label when item prices change
         """
         message = ["Prices: "]
         market_items: List[item_types.item_type] = [
@@ -386,12 +366,7 @@ class item_prices_label_template(label):
 
     def draw(self):
         """
-        Description:
-            Draws this label and draws its text on top of it
-        Input:
-            None
-        Output:
-            None
+        Draws this label and draws its text on top of it
         """
         if constants.current_game_mode in self.modes:
             self.image.draw()
@@ -448,12 +423,7 @@ class multi_line_label(label):
 
     def draw(self):
         """
-        Description:
-            Draws this label and draws each line of its text on top of it
-        Input:
-            None
-        Output:
-            None
+        Draws this label and draws each line of its text on top of it
         """
         if self.showing:
             self.image.draw()
@@ -486,12 +456,7 @@ class multi_line_label(label):
 
     def format_message(self):
         """
-        Description:
-            Converts this label's string message to a list of strings, with each string representing a line of text. Each line of text ends when its width exceeds the ideal_width or when a '/n' is encountered in the text
-        Input:
-            None
-        Output:
-            None
+        Converts this label's string message to a list of strings, with each string representing a line of text. Each line of text ends when its width exceeds the ideal_width or when a '/n' is encountered in the text
         """
         new_message = []
         next_line = ""

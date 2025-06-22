@@ -46,12 +46,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
 
     def __init__(self):
         """
-        Description:
-            Initializes this object
-        Input:
-            None
-        Output:
-            None
+        Initializes this object
         """
         self.actor_constructors = {
             constants.MOB: mobs.mob,
@@ -370,12 +365,7 @@ class actor_creation_manager_template:  # can get instance from anywhere and cre
 
     def create_initial_ministers(self):
         """
-        Description:
-            Creates a varying number of unappointed ministers at the start of the game
-        Input:
-            None
-        Output:
-            None
+        Creates a varying number of unappointed ministers at the start of the game
         """
         if constants.effect_manager.effect_active("speed_loading"):
             for i in range(8):

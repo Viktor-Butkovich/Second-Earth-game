@@ -14,12 +14,7 @@ class instructions_button(button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. This type of button displays the first page of game instructions when clicked
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. This type of button displays the first page of game instructions when clicked
         """
         if status.current_instructions_page == None:
             display_instructions_page(0)
@@ -58,12 +53,7 @@ class instructions_page(label):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. This type of button displays the next page of game instructions when clicked, or closes the instructions if there are no more pages
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. This type of button displays the next page of game instructions when clicked, or closes the instructions if there are no more pages
         """
         if (
             constants.current_instructions_page_index
@@ -100,12 +90,7 @@ class instructions_page(label):
 
     def draw(self):
         """
-        Description:
-            Draws this page and draws its text on top of it
-        Input:
-            None
-        Output:
-            None
+        Draws this page and draws its text on top of it
         """
         if self.showing:
             self.image.draw()
@@ -122,13 +107,8 @@ class instructions_page(label):
 
     def format_message(self):
         """
-        Description:
-            Converts this page's string message to a list of strings, with each string representing a line of text. Each line of text ends when its width exceeds the ideal_width. Also describes how to close the instructions or go to
-                the next page
-        Input:
-            None
-        Output:
-            None
+        Converts this page's string message to a list of strings, with each string representing a line of text. Each line of text ends when its width exceeds the ideal_width. Also describes how to close the instructions or go to
+            the next page
         """
         new_message = []
         next_line = ""

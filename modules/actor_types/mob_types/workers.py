@@ -82,12 +82,7 @@ class worker(pmob):
 
     def replace(self, attached_group=None):
         """
-        Description:
-            Replaces this unit for a new version of itself when it dies from attrition, removing all experience and name modifications
-        Input:
-            None
-        Output:
-            None
+        Replaces this unit for a new version of itself when it dies from attrition, removing all experience and name modifications
         """
         super().replace()
         if attached_group:
@@ -102,13 +97,8 @@ class worker(pmob):
 
     def fire(self, wander=True):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Additionally has a chance to decrease the upkeep of other workers of this worker's type by increasing the size of
-                the labor pool
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Additionally has a chance to decrease the upkeep of other workers of this worker's type by increasing the size of
+            the labor pool
         """
         super().fire()
         self.worker_type.on_fire(wander=wander)

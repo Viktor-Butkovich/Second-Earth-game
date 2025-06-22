@@ -1047,8 +1047,8 @@ MINISTER_ACTOR_TYPE: str = "minister"
 PROSECUTION_ACTOR_TYPE: str = "prosecution"
 DEFENSE_ACTOR_TYPE: str = "defense"
 
-MINIMAP_OVERLAY_TERRAIN_FEATURE: str = "miniap_overlay_terrain_feature"
-# Terrain feature that is only shown hovering over minimap cells, like a North Pole or Southern Tropic indicator
+MINIMAP_OVERLAY_TERRAIN_FEATURE: str = "minimap_overlay_terrain_feature"
+# Terrain feature that is only shown hovering over minimap locations, like a North Pole or Southern Tropic indicator
 
 APPENDED_IMAGE_TERRAIN_FEATURE: str = "appended_image_terrain_feature"
 # Terrain feature that is included with the location's image, like a physically visible feature

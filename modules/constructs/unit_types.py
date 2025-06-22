@@ -202,34 +202,19 @@ class unit_type:
 
     def on_recruit(self) -> None:
         """
-        Description:
-            Called when an instance of this unit is newly hired (not reconstructed from save)
-        Input:
-            None
-        Output:
-            None
+        Called when an instance of this unit is newly hired (not reconstructed from save)
         """
         return
 
     def on_remove(self) -> None:
         """
-        Description:
-            Called whenever an instance of this unit is removed, tracking how many instances remain
-        Input:
-            None
-        Output:
-            None
+        Called whenever an instance of this unit is removed, tracking how many instances remain
         """
         self.num_instances -= 1
 
     def reset(self) -> None:
         """
-        Description:
-            Resets this unit types value's when a new game is created, preventing any mutable values from carrying over
-        Input:
-            None
-        Output:
-            None
+        Resets this unit types value's when a new game is created, preventing any mutable values from carrying over
         """
         self.num_instances = 0
         if self.can_recruit:
@@ -441,12 +426,7 @@ class worker_type(unit_type):
 
     def reset(self) -> None:
         """
-        Description:
-            Resets this unit types value's when a new game is created, preventing any mutable values from carrying over
-        Input:
-            None
-        Output:
-            None
+        Resets this unit types value's when a new game is created, preventing any mutable values from carrying over
         """
         super().reset()
         self.upkeep = self.initial_upkeep
@@ -477,12 +457,7 @@ class worker_type(unit_type):
 
     def on_recruit(self) -> None:
         """
-        Description:
-            Makes any updates required when worker first recruited (not on load)
-        Input:
-            None
-        Output:
-            None
+        Makes any updates required when worker first recruited (not on load)
         """
         super().on_recruit()
         if self.upkeep > 0:
@@ -490,12 +465,7 @@ class worker_type(unit_type):
 
     def on_remove(self):
         """
-        Description:
-            Called whenever an instance of this unit is removed, tracking how many instances remain
-        Input:
-            None
-        Output:
-            None
+        Called whenever an instance of this unit is removed, tracking how many instances remain
         """
         super().on_remove()
         constants.money_label.check_for_updates()

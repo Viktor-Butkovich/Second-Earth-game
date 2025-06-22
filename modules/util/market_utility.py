@@ -239,12 +239,7 @@ class loan:
 
     def make_payment(self):
         """
-        Description:
-            Makes a payment on this loan, paying its interest cost and reducing its remaining duration
-        Input:
-            None
-        Output:
-            None
+        Makes a payment on this loan, paying its interest cost and reducing its remaining duration
         """
         constants.money_tracker.change(-1 * self.interest, "loan_interest")
         self.remaining_duration -= 1
@@ -254,12 +249,7 @@ class loan:
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         total_paid = self.interest * 10
         text_utility.print_to_screen(

@@ -9,12 +9,7 @@ class event_manager_template:
 
     def __init__(self):
         """
-        Description:
-            Initializes this object
-        Input:
-            None
-        Output:
-            None
+        Initializes this object
         """
         self.event_list = []
         self.event_time_list = []
@@ -77,12 +72,7 @@ class event_manager_template:
 
     def clear(self):
         """
-        Description:
-            Removes this object's events, removing them from storage and stopping them before activation
-        Input:
-            None
-        Output:
-            None
+        Removes this object's events, removing them from storage and stopping them before activation
         """
         existing_events = []
         for current_event in self.event_list:
@@ -92,12 +82,7 @@ class event_manager_template:
 
     def go(self):
         """
-        Description:
-            Calls the money tracker's change function with an input of -20 every second, repeating indefinitely because no num_repeats is provided - solely for event testing
-        Input:
-            None
-        Output:
-            None
+        Calls the money tracker's change function with an input of -20 every second, repeating indefinitely because no num_repeats is provided - solely for event testing
         """
         self.add_repeating_event(
             constants.money_tracker.change, [-20], activation_time=1

@@ -69,12 +69,7 @@ class notification(multi_line_label):
 
     def format_message(self):
         """
-        Description:
-            Converts this notification's string message to a list of strings, with each string representing a line of text. Each line of text ends when its width exceeds the ideal_width or when a '/n' is encountered in the text
-        Input:
-            None
-        Output:
-            None
+        Converts this notification's string message to a list of strings, with each string representing a line of text. Each line of text ends when its width exceeds the ideal_width or when a '/n' is encountered in the text
         """
         super().format_message()
         if self.can_remove:
@@ -92,12 +87,7 @@ class notification(multi_line_label):
 
     def on_click(self, override_can_remove=False):
         """
-        Description:
-            Controls this notification's behavior when clicked. By default, notifications are removed when clicked
-        Input:
-            None
-        Output:
-            None
+        Controls this notification's behavior when clicked. By default, notifications are removed when clicked
         """
         if self.can_remove or override_can_remove:
             if self.has_parent_collection:
@@ -108,13 +98,8 @@ class notification(multi_line_label):
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. By default, notifications are removed when clicked. When a notification is removed, the next notification is shown,
-                if there is one
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. By default, notifications are removed when clicked. When a notification is removed, the next notification is shown,
+            if there is one
         """
         for current_on_remove in self.on_remove:
             current_on_remove[0](*current_on_remove[1])

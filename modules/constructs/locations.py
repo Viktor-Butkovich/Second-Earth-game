@@ -9,7 +9,7 @@ from modules.constants import constants, status, flags
 
 class location(actors.actor):
     """
-    "Single source of truth" handler for the terrain/local characteristics of each version of a cell on different grids
+    "Single source of truth" handler for the terrain/local characteristics of part of a world
     """
 
     def __init__(
@@ -24,6 +24,8 @@ class location(actors.actor):
         Input:
             boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
             dictionary input_dict: Dictionary of saved information necessary to recreate this location if loading grid, or None if creating new location
+        Output:
+            None
         """
         self.world_handler: world_handlers.world_handler = input_dict["world_handler"]
         self.name_icon = None
@@ -109,6 +111,9 @@ class location(actors.actor):
 
     @property
     def actor_type(self) -> str:
+        """
+        Returns this object's actor type, differentiating it from mobs and ministers
+        """
         return constants.LOCATION_ACTOR_TYPE
 
     @property
@@ -126,18 +131,31 @@ class location(actors.actor):
 
     @property
     def is_abstract_location(self) -> bool:
+        """
+        Returns whether this is the single location of an abstract world, or part of a full world
+        """
         return self.get_world_handler().is_abstract_world
 
     @property
     def is_earth_location(self) -> bool:
+        """
+        Returns whether this is the Earth abstract world location
+        """
         return self.get_true_world_handler().is_earth
 
     @property
     def infinite_inventory_capacity(self) -> bool:
+        """
+        Returns whether this location has infinite inventory capacity
+            Earth has infinite inventory capacity
+        """
         return self.is_earth_location
 
     @property
     def insufficient_inventory_capacity(self) -> bool:
+        """
+        Returns whether this location's inventory exceeds its inventory capacity
+        """
         return (
             not self.infinite_inventory_capacity
         ) and self.get_inventory_used() > self.inventory_capacity
@@ -145,12 +163,12 @@ class location(actors.actor):
     def local_attrition(self, attrition_type="health"):
         """
         Description:
-            Returns the result of a roll that determines if a given unit or set of stored items should suffer attrition based on this cell's terrain and buildings. Bad terrain increases attrition frequency while infrastructure
+            Returns the result of a roll that determines if a given unit or set of stored items should suffer attrition based on this location's terrain and buildings. Bad terrain increases attrition frequency while infrastructure
                 decreases it
         Input:
             string attrition_type = 'health': 'health' or 'inventory', refers to type of attrition being tested for. Used because inventory attrition can occur on Earth but not health attrition
         Output:
-            boolean: Returns whether attrition should happen here based on this cell's terrain and buildings
+            boolean: Returns whether attrition should happen here based on this location's terrain and buildings
         """
         if (
             constants.effect_manager.effect_active("boost_attrition")
@@ -190,6 +208,9 @@ class location(actors.actor):
         return True
 
     def remove(self) -> None:
+        """
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
+        """
         for cell in self.attached_cells.copy():
             self.unsubscribe_cell(cell)
         for mob in self.subscribed_mobs.copy():
@@ -254,11 +275,11 @@ class location(actors.actor):
     def get_building(self, building_type: str):
         """
         Description:
-            Returns this cell's building of the inputted type, or None if that building is not present
+            Returns this location's building of the inputted type, or None if that building is not present
         Input:
             string building_type: Type of building to search for
         Output:
-            building/string: Returns whether this cell's building of the inputted type, or None if that building is not present
+            building/string: Returns whether this location's building of the inputted type, or None if that building is not present
         """
         if building_type in [constants.ROAD, constants.RAILROAD]:
             return self.get_building(constants.INFRASTRUCTURE)
@@ -268,11 +289,11 @@ class location(actors.actor):
     def get_intact_building(self, building_type: str):
         """
         Description:
-            Returns this cell's undamaged building of the inputted type, or None if that building is damaged or not present
+            Returns this location's undamaged building of the inputted type, or None if that building is damaged or not present
         Input:
             string building_type: Type of building to search for
         Output:
-            building/string: Returns this cell's undamaged building of the inputted type, or None if that building is damaged or not present
+            building/string: Returns this location's undamaged building of the inputted type, or None if that building is damaged or not present
         """
         if building_type in [constants.ROAD, constants.RAILROAD]:
             return self.get_intact_building(constants.INFRASTRUCTURE)
@@ -284,11 +305,11 @@ class location(actors.actor):
     def get_buildings(self) -> List[Any]:
         """
         Description:
-            Returns a list of the buildings contained in this cell
+            Returns a list of the buildings contained in this location
         Input:
             None
         Output:
-            building list: Buildings contained in this cell
+            building list: Buildings contained in this location
         """
         return [
             contained_building
@@ -299,11 +320,11 @@ class location(actors.actor):
     def get_intact_buildings(self) -> List[Any]:
         """
         Description:
-            Returns a list of the nondamaged buildings contained in this cell
+            Returns a list of the nondamaged buildings contained in this location
         Input:
             None
         Output:
-            building list contained_buildings_list: nondamaged buildings contained in this cell
+            building list contained_buildings_list: nondamaged buildings contained in this location
         """
         return [
             contained_building
@@ -314,11 +335,11 @@ class location(actors.actor):
     def has_destructible_buildings(self):
         """
         Description:
-            Finds and returns if this cell is adjacent has any buildings that can be damaged by enemies (not roads or railroads), used for enemy cell targeting
+            Finds and returns if this location is adjacent has any buildings that can be damaged by enemies (not roads or railroads), used for enemy location targeting
         Input:
             None
         Output:
-            boolean: Returns if this cell has any buildings that can be damaged by enemies
+            boolean: Returns if this location has any buildings that can be damaged by enemies
         """
         return any(
             [
@@ -358,12 +379,7 @@ class location(actors.actor):
 
     def find_adjacent_locations(self):
         """
-        Description:
-            Records a list of the cells directly adjacent to this cell. Also records these cells as values in a dictionary with string keys corresponding to their direction relative to this cell
-        Input:
-            None
-        Output:
-            None
+        Records a list of the locations directly adjacent to this one. Also records these locations as values in a dictionary with string keys corresponding to their direction relative to this location
         """
         self.adjacent_list = []
         self.adjacent_locations = {}
@@ -803,7 +819,7 @@ class location(actors.actor):
         Description:
             Subscribes the inputted cell to this location, removing it from any previous location and updating its parameters to match this location
         Input:
-            cell: Cell to add to this location
+            cell: Cell to subscribe to this location
         Output:
             None
         """
@@ -815,6 +831,14 @@ class location(actors.actor):
         # Update cell's rendered image
 
     def subscribe_mob(self, mob) -> None:
+        """
+        Description:
+            Subscribes the inputted mob to this location, removing it from any previous location
+        Input:
+            mob mob: Mob to subscribe to this location
+        Output:
+            None
+        """
         if (
             mob.location
         ):  # Note that this is distinct from get_location(), which recursively checks through containers
@@ -830,9 +854,9 @@ class location(actors.actor):
     def unsubscribe_cell(self, cell) -> None:
         """
         Description:
-            Removes the inputted cell from the terrain location - precondition that cell is in the terrain location
+            Unsubscribes the inputted cell from this location - precondition that cell is in this location
         Input:
-            cell cell: Cell to remove from the terrain location
+            cell cell: Cell to unsubscribe from this location
         Output:
             None
         """
@@ -840,19 +864,22 @@ class location(actors.actor):
         cell.location = None
 
     def unsubscribe_mob(self, mob) -> None:
+        """
+        Description:
+            Unsubscribes the inputted mob from this location - precondition that mob is in this location
+        Input:
+            mob mob: Mob to unsubscribe from this location
+        Output:
+            None
+        """
         self.subscribed_mobs.remove(mob)
         mob.location = None
         self.update_image_bundle()
 
     def flow(self) -> None:
         """
-        Description:
-            Recursively flows water from this cell to any adjacent cells, if possible. Water flows between cells based on altitude and temperature - water flows to
-                non-higher altitudes if there is much more water at the origin and if the origin water is liquid
-        Input:
-            None
-        Output:
-            None
+        Recursively flows water from this location to any adjacent locations, if possible. Water flows between locations based on altitude and temperature - water flows to
+            non-higher altitudes if there is much more water at the origin and if the origin water is liquid
         """
         flowed = False
         if (
@@ -1141,6 +1168,9 @@ class location(actors.actor):
         return image_id_list
 
     def get_mob_image_id_list(self):
+        """
+        Gets the image IDs added to this location if showing mobs
+        """
         if self.subscribed_mobs:
             return self.subscribed_mobs[0].get_image_id_list()
         else:
@@ -1148,12 +1178,7 @@ class location(actors.actor):
 
     def get_minimap_overlay_image_id_list(self):
         """
-        Description:
-            Gets a list of image IDs for each minimap overlay terrain feature in this location
-        Input:
-            None
-        Output:
-            image_id list: List of image IDs for each minimap overlay terrain feature in this location
+        Gets a list of image IDs for each minimap overlay terrain feature in this location
         """
         return utility.combine(
             *[
@@ -1199,6 +1224,10 @@ class location(actors.actor):
             self.refresh_attached_images()
 
     def refresh_attached_images(self):
+        """
+        Updates this location's images wherever they are shown (locations and info displays)
+            Should be invoked after any changes to the image bundle
+        """
         if self == status.displayed_location:
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, self
@@ -1216,24 +1245,16 @@ class location(actors.actor):
                 current_cell.set_image(
                     self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MOB]
                 )
-        # Add logic to update attached info displays and cells with the new image
-        # Consider how to handle this when mob image updates require updating the location's attached cells
-        # Load in new image and tell subscribed cells and info displays to update their images
-        # Ideally avoid any rendering logic directly in location
-        # Make sure cells use rendered image caching to re-use results
-        # Actors in general should follow this new pattern:
-        #     Actor is reponsible for maintaining a valid image ID list and notifying subscribed cells and info displays when it changes
-        #     Cells and info displays are responsible for rendering image ID lists when notified
 
     def has_unit_by_filter(self, permissions, required_number=1):
         """
         Description:
-            Returns whether this cell contains the requested amount of units with all the inputted permissions
+            Returns whether this location contains the requested amount of units with all the inputted permissions
         Input:
             string list permissions: List of permissions to search for
             int required_number=1: Number of units that must be found to return True
         Output:
-            boolean: Returns whether this cell contains the requested amount of units with all the inputted permissions
+            boolean: Returns whether this location contains the requested amount of units with all the inputted permissions
         """
         return (
             len(self.get_unit_by_filter(permissions, get_all=True)) >= required_number
@@ -1244,15 +1265,15 @@ class location(actors.actor):
     ):
         """
         Description:
-            Returns the first unit in this cell with all the inputted permissions, or None if none are present
+            Returns the first unit in this location with all the inputted permissions, or None if none are present
         Input:
             string list permissions: List of permissions to search for
             int start_index=0: Index of subscribed_mobs to start search from - if starting in middle, wraps around iteration to ensure all items are still checked
                 Allows finding different units with repeated calls by changing start_index
             boolean get_all=False: If True, returns all units with the inputted permissions, otherwise returns the first
         Output:
-            mob: Returns the first unit in this cell with all the inputted permissions, or None if none are present
-                If get_all, otherwise returns List[mob]: Returns all units in this cell with all the inputted permissions
+            mob: Returns the first unit in this location with all the inputted permissions, or None if none are present
+                If get_all, otherwise returns List[mob]: Returns all units in this location with all the inputted permissions
         """
         if not self.subscribed_mobs:
             return [] if get_all else None
@@ -1289,8 +1310,8 @@ class location(actors.actor):
                 Assumes all mobs have already detached from vehicles and buildings
         Input:
             None
-        Output;
-            mob: Returns the best combatant of the inputted type in this cell
+        Output:
+            mob: Returns the best combatant of the inputted type in this location
         """
         if not self.subscribed_mobs:
             return None
@@ -1316,11 +1337,11 @@ class location(actors.actor):
     def get_noncombatants(self):
         """
         Description:
-            Finds and returns all units of the inputted type in this cell that have 0 combat strength. Assumes that units in vehicles and buildings have already detached upon being attacked
+            Finds and returns all units of the inputted type in this location that have 0 combat strength. Assumes that units in vehicles and buildings have already detached upon being attacked
         Input:
             None
         Output:
-            mob list: Returns the noncombatants of the inputted type in this cell
+            mob list: Returns the noncombatants of the inputted type in this location
         """
         return [
             current_mob
@@ -1331,6 +1352,10 @@ class location(actors.actor):
 
     @property
     def batch_tooltip_list(self):
+        """
+        Gets a 2D list of strings to use as this object's tooltip
+            Each string is displayed on a separate line, while each sublist is displayed in a separate box
+        """
         return [self.tooltip_text] + [
             current_mob.tooltip_text for current_mob in self.subscribed_mobs
         ]
@@ -1426,12 +1451,7 @@ class location(actors.actor):
 
     def select(self, music_override: bool = False):
         """
-        Description:
-            Selects this location and switches music based on the type of location selected
-        Input:
-            None
-        Output:
-            None
+        Selects this location and switches music based on the type of location selected
         """
         if music_override or (
             flags.player_turn and main_loop_utility.action_possible()
@@ -1442,12 +1462,7 @@ class location(actors.actor):
 
     def get_all_local_inventory(self) -> Dict[str, float]:
         """
-        Description:
-            Returns a dictionary of all items held by this location and local mobs
-        Input:
-            None
-        Output:
-            None
+        Returns a dictionary of all items held by this location and local mobs
         """
         return utility.add_dicts(
             self.inventory, *[mob.inventory for mob in self.subscribed_mobs]
@@ -1544,12 +1559,7 @@ class location(actors.actor):
 
     def remove_excess_inventory(self):
         """
-        Description:
-            Removes random excess items from this location until the number of items fits in this location's inventory capacity
-        Input:
-            None
-        Output:
-            None
+        Removes random excess items from this location until the number of items fits in this location's inventory capacity
         """
         lost_items: Dict[str, float] = {}
         if not self.infinite_inventory_capacity:

@@ -74,12 +74,7 @@ class choice_notification(action_notifications.action_notification):
 
     def on_click(self, choice_button_override=False):
         """
-        Description:
-            Controls this notification's behavior when clicked. Choice notifications do nothing when clicked, instead acting when their choice buttons are clicked
-        Input:
-            None
-        Output:
-            None
+        Controls this notification's behavior when clicked. Choice notifications do nothing when clicked, instead acting when their choice buttons are clicked
         """
         if choice_button_override:
             super().on_click()
@@ -94,13 +89,8 @@ class choice_notification(action_notifications.action_notification):
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. When a notification is removed, the next notification is shown, if there is one. Choice notifications are removed
-                when one of their choice buttons is clicked
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. When a notification is removed, the next notification is shown, if there is one. Choice notifications are removed
+            when one of their choice buttons is clicked
         """
         super().remove()
         for current_choice_button in self.choice_buttons:
@@ -168,24 +158,14 @@ class choice_button(buttons.button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. Choice buttons remove their notifications when clicked, along with the normal behaviors associated with their button_type
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. Choice buttons remove their notifications when clicked, along with the normal behaviors associated with their button_type
         """
         super().on_click()
         self.notification.on_click(choice_button_override=True)
 
     def draw(self):
         """
-        Description:
-            Draws this button below its choice notification and draws a description of what it does on top of it
-        Input:
-            None
-        Output:
-            None
+        Draws this button below its choice notification and draws a description of what it does on top of it
         """
         super().draw()
         if self.showing:
@@ -235,12 +215,7 @@ class recruitment_choice_button(choice_button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. Recruitment choice buttons recruit a unit, pay for the unit's cost, and remove their attached notification when clicked
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. Recruitment choice buttons recruit a unit, pay for the unit's cost, and remove their attached notification when clicked
         """
         input_dict = {
             "select_on_creation": True,

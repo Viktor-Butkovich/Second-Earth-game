@@ -24,12 +24,7 @@ class event:
 
     def activate(self):
         """
-        Description:
-            Calls this event's function with its inputs
-        Input:
-            None
-        Output:
-            None
+        Calls this event's function with its inputs
         """
         self.function(
             *self.inputs
@@ -37,12 +32,7 @@ class event:
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         if self in self.event_manager.event_list:
             self.event_manager.event_list = utility.remove_from_list(
@@ -74,12 +64,7 @@ class repeating_event(event):
 
     def activate(self):
         """
-        Description:
-            Calls this event's function with its inputs and adds a new repeated version with 1 fewer repeats, or -1 if it repeats infinitely
-        Input:
-            None
-        Output:
-            None
+        Calls this event's function with its inputs and adds a new repeated version with 1 fewer repeats, or -1 if it repeats infinitely
         """
         super().activate()
         if not self.num_repeats == -1:

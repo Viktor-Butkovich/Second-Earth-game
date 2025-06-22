@@ -91,12 +91,7 @@ class die(button):
 
     def on_click(self):
         """
-        Description:
-            Controls this button's behavior when clicked. A die copies the on_click behavior of its attached notification, which should cause the die to start rolling
-        Input:
-            None
-        Output:
-            None
+        Controls this button's behavior when clicked. A die copies the on_click behavior of its attached notification, which should cause the die to start rolling
         """
         if self.rolls_completed == 0:
             self.find_sibling_notification().on_click()
@@ -167,12 +162,7 @@ class die(button):
 
     def start_rolling(self):
         """
-        Description:
-            Causes this die to start rolling, after which it will switch to a different side every roll_interval seconds
-        Input:
-            None
-        Output:
-            None
+        Causes this die to start rolling, after which it will switch to a different side every roll_interval seconds
         """
         self.last_roll = time.time()
         self.rolling = True
@@ -187,12 +177,7 @@ class die(button):
 
     def roll(self):
         """
-        Description:
-            Rolls this die to a random face, or to the predetermined result if it is the last roll. When all dice finish rolling, dice rolling notifications will be removed
-        Input:
-            None
-        Output:
-            None
+        Rolls this die to a random face, or to the predetermined result if it is the last roll. When all dice finish rolling, dice rolling notifications will be removed
         """
         self.last_roll = time.time()
         if (
@@ -235,13 +220,8 @@ class die(button):
 
     def draw(self):
         """
-        Description:
-            If enough time has passed since the last roll and this die is still rolling, this will roll the die again. Additionally, this draws the die with a face corresponding to its current value. If the die is finished rolling and
-                its result was used, an outline with a color corresponding to the roll's result will be displayed.
-        Input:
-            None
-        Output:
-            None
+        If enough time has passed since the last roll and this die is still rolling, this will roll the die again. Additionally, this draws the die with a face corresponding to its current value. If the die is finished rolling and
+            its result was used, an outline with a color corresponding to the roll's result will be displayed.
         """
         if self.showing:
             if (
@@ -266,12 +246,7 @@ class die(button):
 
     def remove(self):
         """
-        Description:
-            Removes the object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes the object from relevant lists and prevents it from further appearing in or affecting the program
         """
         super().remove()
         status.dice_list = utility.remove_from_list(status.dice_list, self)

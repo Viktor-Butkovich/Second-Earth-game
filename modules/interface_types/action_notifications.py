@@ -98,13 +98,8 @@ class action_notification(notification):
 
     def on_click(self):
         """
-        Description:
-            Controls this notification's behavior when clicked - action notifications recursively remove their automatically generated parent collections and
-                transfer sibling ordered collection's interface elements, if applicable
-        Input:
-            None
-        Output:
-            None
+        Controls this notification's behavior when clicked - action notifications recursively remove their automatically generated parent collections and
+            transfer sibling ordered collection's interface elements, if applicable
         """
         transferred_interface_elements = []
         if self.attached_interface_elements and self.transfer_interface_elements:
@@ -149,12 +144,10 @@ class action_notification(notification):
     def format_message(self):
         """
         Description:
-            Converts this notification's string message to a list of strings, with each string representing a line of text. Each line of text ends when its width exceeds the ideal_width or when a '/n' is encountered in the text. Unlike s
-                uperclass, this version removes the automatic prompt to close the notification, as action notifications often require more specific messages not add a prompt to close the notification.
-        Input:
-            None
-        Output:
-            None
+            Converts this notification's string message to a list of strings, with each string representing a line of text.
+                Each line of text ends when its width exceeds the ideal_width or when a '/n' is encountered in the text.
+                Unlike superclass, this version removes the automatic prompt to close the notification, as action
+                notifications often require more specific messages not add a prompt to close the notification.
         """
         super().format_message()
         self.message.pop(-1)
@@ -174,12 +167,7 @@ class dice_rolling_notification(action_notification):
 
     def on_click(self, die_override=False):
         """
-        Description:
-            Controls this notification's behavior when clicked. Unlike superclass, dice rolling notifications are not removed when clicked
-        Input:
-            None
-        Output:
-            None
+        Controls this notification's behavior when clicked. Unlike superclass, dice rolling notifications are not removed when clicked
         """
         if die_override:
             super().on_click()
@@ -188,13 +176,8 @@ class dice_rolling_notification(action_notification):
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. When a notification is removed, the next notification is shown, if there is one. Dice rolling notifications are
-                removed when all dice finish rolling rather than when clicked. Upon removal, dice rolling notifications highlight the chosen die with a color corresponding to the roll's outcome
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. When a notification is removed, the next notification is shown, if there is one. Dice rolling notifications are
+            removed when all dice finish rolling rather than when clicked. Upon removal, dice rolling notifications highlight the chosen die with a color corresponding to the roll's outcome
         """
         super().remove()
         num_dice = len(status.dice_list)
@@ -295,12 +278,7 @@ class adjacent_location_exploration_notification(action_notification):
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. When a notification is removed, the next notification is shown, if there is one
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. When a notification is removed, the next notification is shown, if there is one
         """
         actor_utility.focus_minimap_grids(status.display_mob.get_location())
         super().remove()

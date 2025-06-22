@@ -17,8 +17,8 @@ class expedition(group):
                 exploration process, which requires various dice rolls to succeed and can also result in the death of the expedition or the promotion of its explorer. A successful exploration uncovers the area and units to move into it
                 normally in the future. As expeditions move, they automatically discover adjacent water, and they also automatically discover all adjacent locations when looking from water
         Input:
-            int x_change: How many cells are moved to the right in the movement
-            int y_change: How many cells are moved upward in the movement
+            int x_change: How many locations are moved to the right in the movement
+            int y_change: How many locations are moved upward in the movement
         Output:
             None
         """
@@ -55,24 +55,14 @@ class expedition(group):
 
     def on_move(self):
         """
-        Description:
-            Automatically called when unit arrives in a location for any reason
-        Input:
-            None
-        Output:
-            None
+        Automatically called when unit arrives in a location for any reason
         """
         super().on_move()
         self.resolve_adjacent_location_exploration()
 
     def resolve_adjacent_location_exploration(self):
         """
-        Description:
-            Whenever an expedition arrives in a location for any reason, they automatically discover any adjacent water. Additionally, when standing on water, they automatically discover all adjacent locations
-        Input:
-            None
-        Output:
-            None
+        Whenever an expedition arrives in a location for any reason, they automatically discover any adjacent water. Additionally, when standing on water, they automatically discover all adjacent locations
         """
         self.current_action_type = "exploration"  # Used in action notification to tell whether off adjacent exploration notification should explore or not
         cardinal_directions = {

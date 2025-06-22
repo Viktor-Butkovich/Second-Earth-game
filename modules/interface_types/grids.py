@@ -38,7 +38,7 @@ class grid(interface_elements.interface_element):
         super().__init__(input_dict)
         status.grid_list.append(self)
         self.world_handler: world_handlers.world_handler = None
-        input_dict["world_handler"].add_grid(self)
+        input_dict["world_handler"].subscribe_grid(self)
         self.grid_line_width: int = input_dict.get("grid_line_width", 3)
         self.coordinate_width: int = input_dict.get(
             "coordinate_size", input_dict.get("coordinate_width")
@@ -92,12 +92,7 @@ class grid(interface_elements.interface_element):
 
     def draw(self):
         """
-        Description:
-            Draws each cell of this grid
-        Input:
-            None
-        Output:
-            None
+        Draws each cell of this grid
         """
         for cell in self.get_flat_cell_list():
             cell.draw()
@@ -105,17 +100,17 @@ class grid(interface_elements.interface_element):
 
         if (
             status.displayed_location
-            and self in status.displayed_location.get_world_handler().attached_grids
+            and self in status.displayed_location.get_world_handler().subscribed_grids
         ):
             for attached_cell in status.displayed_location.attached_cells:
                 attached_cell.draw_outline(constants.COLOR_WHITE)
         if status.displayed_mob and (
             self
-            in status.displayed_mob.get_location().get_world_handler().attached_grids
+            in status.displayed_mob.get_location().get_world_handler().subscribed_grids
             or (
                 status.displayed_mob.end_turn_destination
                 and self
-                in status.displayed_mob.end_turn_destination.get_world_handler().attached_grids
+                in status.displayed_mob.end_turn_destination.get_world_handler().subscribed_grids
             )
         ):
             if flags.show_selection_outlines:
@@ -151,12 +146,7 @@ class grid(interface_elements.interface_element):
 
     def draw_grid_lines(self):
         """
-        Description:
-            Draws lines between grid cells and on the outside of the grid. Also draws an outline of the area on this grid covered by this grid's minimap grid, if applicable
-        Input:
-            None
-        Output:
-            None
+        Draws lines between grid cells and on the outside of the grid. Also draws an outline of the area on this grid covered by this grid's minimap grid, if applicable
         """
         if flags.show_grid_lines:
             for x in range(0, self.coordinate_width + 1):
@@ -367,20 +357,6 @@ class grid(interface_elements.interface_element):
         """
         return itertools.chain.from_iterable(self.cell_list)
 
-    def touching_mouse(self):
-        """
-        Description:
-            Returns whether this grid is colliding with the mouse
-        Input:
-            None
-        Output:
-            boolean: Returns True if this grid is colliding with the mouse, otherwise returns False
-        """
-        if self.Rect.collidepoint(pygame.mouse.get_pos()):
-            return True
-        else:
-            return False
-
     def can_show(self, skip_parent_collection=False):
         """
         Description:
@@ -405,16 +381,11 @@ class grid(interface_elements.interface_element):
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         super().remove()
         status.grid_list = utility.remove_from_list(status.grid_list, self)
-        self.world_handler.remove_grid(self)
+        self.world_handler.unsubscribe_grid(self)
 
 
 class mini_grid(grid):
@@ -558,12 +529,7 @@ class mini_grid(grid):
 
     def draw_grid_lines(self):
         """
-        Description:
-            Draws lines between grid cells and on the outside of the grid
-        Input:
-            None
-        Output:
-            None
+        Draws lines between grid cells and on the outside of the grid
         """
         if (
             self == status.scrolling_strategic_map_grid

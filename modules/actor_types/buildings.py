@@ -105,12 +105,7 @@ class building:
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also removes this building from its location
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. Also removes this building from its location
         """
         self.get_location().remove_building(self)
         status.building_list = utility.remove_from_list(status.building_list, self)
@@ -421,13 +416,8 @@ class warehouses(building):
 
     def get_upgrade_cost(self):
         """
-        Description:
-            Returns the cost of the next upgrade for this building. The first successful upgrade costs 5 money and each subsequent upgrade costs twice as much as the previous. Building a train station, resource production facility, or
-                port gives a free upgrade that does not affect the costs of future upgrades
-        Input:
-            None
-        Output:
-            None
+        Returns the cost of the next upgrade for this building. The first successful upgrade costs 5 money and each subsequent upgrade costs twice as much as the previous. Building a train station, resource production facility, or
+            port gives a free upgrade that does not affect the costs of future upgrades
         """
         return self.get_location().get_warehouses_cost()
 
@@ -500,12 +490,7 @@ class resource_building(building):
 
     def eject_work_crews(self):
         """
-        Description:
-            Removes this building's work crews
-        Input:
-            None
-        Output:
-            None
+        Removes this building's work crews
         """
         for current_work_crew in self.subscribed_work_crews:
             if not current_work_crew in self.ejected_work_crews:
@@ -528,12 +513,7 @@ class resource_building(building):
 
     def reattach_work_crews(self):
         """
-        Description:
-            After combat is finished, returns any surviving work crews to this building, if possible
-        Input:
-            None
-        Output:
-            None
+        After combat is finished, returns any surviving work crews to this building, if possible
         """
         for current_work_crew in self.ejected_work_crews:
             if current_work_crew in status.pmob_list:  # if not dead
@@ -542,12 +522,7 @@ class resource_building(building):
 
     def remove(self):
         """
-        Description:
-            Removes this object from relevant lists, prevents it from further appearing in or affecting the program, and removes it from the location it occupies
-        Input:
-            None
-        Output:
-            None
+        Removes this object from relevant lists, prevents it from further appearing in or affecting the program, and removes it from the location it occupies
         """
         status.resource_building_list = utility.remove_from_list(
             status.resource_building_list, self
@@ -573,12 +548,7 @@ class resource_building(building):
 
     def get_upgrade_cost(self):
         """
-        Description:
-            Returns the cost of the next upgrade for this building. The first successful upgrade costs 20 money and each subsequent upgrade costs twice as much as the previous
-        Input:
-            None
-        Output:
-            None
+        Returns the cost of the next upgrade for this building. The first successful upgrade costs 20 money and each subsequent upgrade costs twice as much as the previous
         """
         if constants.effect_manager.effect_active("free_upgrades"):
             return 0
@@ -609,13 +579,8 @@ class resource_building(building):
 
     def produce(self):
         """
-        Description:
-            Orders each work crew attached to this building to attempt producing resources at the end of a turn. Based on work crew experience and minister skill/corruption, each work crew can produce a number of resources up to the
-                building's efficiency
-        Input:
-            None
-        Output:
-            None
+        Orders each work crew attached to this building to attempt producing resources at the end of a turn. Based on work crew experience and minister skill/corruption, each work crew can produce a number of resources up to the
+            building's efficiency
         """
         for current_work_crew in self.subscribed_work_crews:
             current_work_crew.attempt_production(self)

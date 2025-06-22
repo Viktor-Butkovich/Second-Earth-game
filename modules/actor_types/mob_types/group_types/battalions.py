@@ -40,11 +40,11 @@ class battalion(group):
     def get_movement_cost(self, x_change, y_change, post_attack=False):
         """
         Description:
-            Returns the cost in movement points of moving by the inputted amounts. Only works when one inputted amount is 0 and the other is 1 or -1, with 0 and -1 representing moving 1 cell downward
+            Returns the cost in movement points of moving by the inputted amounts. Only works when one inputted amount is 0 and the other is 1 or -1, with 0 and -1 representing moving 1 location downward
         Input:
-            int x_change: How many cells would be moved to the right in the hypothetical movement
-            int y_change: How many cells would be moved upward in the hypothetical movement
-            boolean post_attack = False: Whether this movement is occuring directly after an attack order or not. A battalion can move into a cell to attack it by using only 1 movement point but must return afterward if not
+            int x_change: How many locations would be moved to the right in the hypothetical movement
+            int y_change: How many locations would be moved upward in the hypothetical movement
+            boolean post_attack = False: Whether this movement is occuring directly after an attack order or not. A battalion can move into a location to attack it by using only 1 movement point but must return afterward if not
                 enough movement points to move there normally
         Output:
             double: How many movement points would be spent by moving by the inputted amount
@@ -82,12 +82,12 @@ class battalion(group):
     def move(self, x_change, y_change, attack_confirmed=False):
         """
         Description:
-            Moves this mob x_change to the right and y_change upward. If moving into a cell with an npmob, asks for a confirmation to attack instead of moving. If the attack
+            Moves this mob x_change to the right and y_change upward. If moving into a location with an npmob, asks for a confirmation to attack instead of moving. If the attack
                 is confirmed, move is called again to cause a combat to start
         Input:
-            int x_change: How many cells are moved to the right in the movement
-            int y_change: How many cells are moved upward in the movement
-            boolean attack_confirmed = False: Whether an attack has already been confirmed. If an attack has been confirmed, a move into the target cell will occur and a combat will start
+            int x_change: How many locations are moved to the right in the movement
+            int y_change: How many locations are moved upward in the movement
+            boolean attack_confirmed = False: Whether an attack has already been confirmed. If an attack has been confirmed, a move into the target location will occur and a combat will start
         Output:
             None
         """
