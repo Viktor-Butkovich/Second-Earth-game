@@ -189,7 +189,7 @@ def create_dummy_copy(
             else:
                 dummy_input_dict[attribute] = getattr(unit, attribute)
     dummy_input_dict["override_permissions"].update(override_permissions)
-    return constants.actor_creation_manager.create_dummy(dummy_input_dict)
+    return constants.ActorCreationManager.create_dummy(dummy_input_dict)
 
 
 def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict):
@@ -289,7 +289,7 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
                 ],
             }
         )
-        dummy_group = constants.actor_creation_manager.create_dummy(dummy_input_dict)
+        dummy_group = constants.ActorCreationManager.create_dummy(dummy_input_dict)
         for (
             equipment_type,
             equipped,

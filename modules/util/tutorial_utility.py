@@ -13,7 +13,7 @@ def show_tutorial_notifications():
         None
     """
     if not status.initial_tutorial_completed:
-        constants.notification_manager.display_notification(
+        constants.NotificationManager.display_notification(
             {"message": "Initial tutorial message /n /n"}
         )
         status.initial_tutorial_completed = True

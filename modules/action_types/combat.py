@@ -327,7 +327,7 @@ class combat(action.action):
                     self.opponent = opponent
                     self.defending = False
                     self.start(unit)
-                    constants.actor_creation_manager.create_interface_element(
+                    constants.ActorCreationManager.create_interface_element(
                         input_dict={
                             "init_type": constants.HOSTED_ICON,
                             "location": future_location,
@@ -367,7 +367,7 @@ class combat(action.action):
             None
         """
         if super().start(unit):
-            constants.notification_manager.display_notification(
+            constants.NotificationManager.display_notification(
                 {
                     "message": action_utility.generate_risk_message(self, unit)
                     + self.generate_notification_text("confirmation"),
@@ -430,7 +430,7 @@ class combat(action.action):
         Output:
             None
         """
-        constants.notification_manager.set_lock(True)
+        constants.NotificationManager.set_lock(True)
         self.defending = combat_info_dict.get("defending", False)
         self.opponent = combat_info_dict.get("opponent", self.opponent)
         self.current_unit = combat_info_dict.get("current_unit", self.current_unit)
@@ -458,7 +458,7 @@ class combat(action.action):
 
         price = self.process_payment()
 
-        insert_index = len(constants.notification_manager.notification_queue)
+        insert_index = len(constants.NotificationManager.notification_queue)
         # roll messages should be inserted between any previously queued notifications and any minister messages that appear as a result of the roll
 
         self.current_roll_modifier = self.generate_current_roll_modifier(opponent=False)
@@ -496,9 +496,9 @@ class combat(action.action):
                         min(current_result + self.random_unit_modifier(), 6), 1
                     )  # Adds unit-specific modifiers
 
-        if constants.effect_manager.effect_active("ministry_of_magic"):
+        if constants.EffectManager.effect_active("ministry_of_magic"):
             results = [1] + [6 for i in range(num_dice)]
-        elif constants.effect_manager.effect_active("nine_mortal_men"):
+        elif constants.EffectManager.effect_active("nine_mortal_men"):
             results = [6] + [1 for i in range(num_dice)]
 
         self.opponent_roll_result = results.pop(0)  # Enemy roll is index 0
@@ -521,7 +521,7 @@ class combat(action.action):
             - (self.opponent_roll_result + self.opponent_roll_modifier)
         )
 
-        constants.notification_manager.display_notification(
+        constants.NotificationManager.display_notification(
             {
                 "message": self.generate_notification_text("initial"),
                 "notification_type": constants.ACTION_NOTIFICATION,
@@ -535,7 +535,7 @@ class combat(action.action):
         text = self.generate_notification_text("modifier_breakdown")
         roll_message = self.generate_notification_text("roll_message")
 
-        constants.notification_manager.display_notification(
+        constants.NotificationManager.display_notification(
             {
                 "message": text + roll_message,
                 "notification_type": constants.ACTION_NOTIFICATION,
@@ -544,7 +544,7 @@ class combat(action.action):
             insert_index=insert_index + 1,
         )
 
-        constants.notification_manager.display_notification(
+        constants.NotificationManager.display_notification(
             {
                 "message": text + "Rolling... ",
                 "notification_type": constants.DICE_ROLLING_NOTIFICATION,
@@ -554,7 +554,7 @@ class combat(action.action):
             insert_index=insert_index + 2,
         )
 
-        constants.notification_manager.set_lock(
+        constants.NotificationManager.set_lock(
             False
         )  # locks notifications so that corruption messages will occur after the roll notification
 
@@ -576,7 +576,7 @@ class combat(action.action):
         text += "Overall result: /n"
         text += f"{self.roll_result + self.current_roll_modifier} - {self.opponent_roll_result + self.opponent_roll_modifier} = {self.total_roll_result}: {description} /n /n"
 
-        constants.notification_manager.display_notification(
+        constants.NotificationManager.display_notification(
             {
                 "message": text + "Click to remove this notification. /n /n",
                 "notification_type": constants.ACTION_NOTIFICATION,
@@ -599,7 +599,7 @@ class combat(action.action):
 
         text += self.generate_notification_text(result)
 
-        constants.notification_manager.display_notification(
+        constants.NotificationManager.display_notification(
             {
                 "message": text + "Click to remove this notification. /n /n",
                 "notification_type": constants.ACTION_NOTIFICATION,
@@ -627,7 +627,7 @@ class combat(action.action):
                     self.opponent.damage_buildings()
                 else:  # Return to original location if non-defenseless enemies still in other location, can't be in location with enemy units or have more than 1 offensive combat per turn
                     self.opponent.retreat()
-                constants.public_opinion_tracker.change(self.public_opinion_change)
+                constants.PublicOpinionTracker.change(self.public_opinion_change)
             else:
                 self.current_unit.retreat()
                 self.current_unit.set_permission(
@@ -656,14 +656,14 @@ class combat(action.action):
                     self.current_unit.movement_points
                     < self.current_unit.get_movement_cost(0, 0, True)
                 ):  # If can't afford movement points to stay in attacked location
-                    constants.notification_manager.display_notification(
+                    constants.NotificationManager.display_notification(
                         {
                             "message": f"While the attack was successful, this unit did not have the {self.current_unit.get_movement_cost(0, 0, True)} movement points required to fully move into the attacked location and was forced to withdraw. /n /n",
                         }
                     )
                     self.current_unit.retreat()
                 self.opponent.die()
-                constants.evil_tracker.change(4)
+                constants.EvilTracker.change(4)
 
         if not self.defending:
             self.current_unit.set_movement_points(0)

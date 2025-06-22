@@ -52,7 +52,7 @@ class equipment_type(item_types.item_type):
         elif action_type in self.effects.get("negative_modifiers", []):
             modifier = -1 * random.randrange(0, 2)
 
-        if modifier != 0 and constants.effect_manager.effect_active("show_modifiers"):
+        if modifier != 0 and constants.EffectManager.effect_active("show_modifiers"):
             if modifier > 0:
                 print(f"{self.key} gave modifier of +{modifier} to {action_type} roll")
             else:

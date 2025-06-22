@@ -270,7 +270,7 @@ class full_world_handler(world_handlers.world_handler):
             self.simulate_temperature_equilibrium(5)
 
         self.orbital_world: orbital_world_handler = (
-            constants.actor_creation_manager.create(
+            constants.ActorCreationManager.create(
                 from_save,
                 {
                     **input_dict.get("orbital_world", {}),
@@ -391,6 +391,7 @@ class full_world_handler(world_handlers.world_handler):
         Output:
             int tuple list: Returns a latitude line (list of coordinates from 1 pole to the other) that the inputted coordinates are on
         """
+        # Possible sporadic error here - coordinates passed in seem to be out of bounds
         latitude_line_type = self.latitude_lines_types[coordinates[0]][coordinates[1]]
         if latitude_line_type == None:
             for offset in [(1, 0), (-1, 0), (0, 1), (0, -1)]:

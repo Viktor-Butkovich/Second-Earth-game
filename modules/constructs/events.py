@@ -13,7 +13,7 @@ class event:
             function function: Function that will be called after the inputted time has elapsed
             list inputs: List of inputs the function will be called with, in order
             double activation_time: Amount of time that will pass before the function is called
-            event_manager_template effect_manager: Event manager object that controls when this event is activated
+            event_manager effect_manager: Event manager object that controls when this event is activated
         Output:
             None
         """
@@ -53,7 +53,7 @@ class repeating_event(event):
             function function: Function that will be called each time the inputted time elapses
             list inputs: List of inputs the function will be called with, in order
             double activation_time: Amount of time that will pass between each function call
-            event_manager_template effect_manager: Event manager object that controls when this event is activated
+            event_manager effect_manager: Event manager object that controls when this event is activated
             int num_repeats: Number of times to repeat this event, or -1 if it repeats infinitely
         Output:
             None

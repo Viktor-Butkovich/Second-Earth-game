@@ -10,16 +10,16 @@ if (Test-Path SE_exe) {
 mkdir SE_exe
 Copy-Item -Path $PWD\*  -Destination "SE_exe" -Recurse -Exclude @("*SE_exe", ".git", "__pycache__", ".gitignore", "__init__.py", "Instructions.docx", "README.txt", "scripts")
 cd SE_exe
-& py -m PyInstaller --onefile Second_Earth.py --noconsole --icon=graphics/misc/SE.ico
-Move-Item -Path dist/Second_Earth.exe
-rm Second_Earth.spec -force
+& py -m PyInstaller --onefile main.py --noconsole --icon=graphics/misc/SE.ico
+Move-Item -Path dist/main.exe
+rm main.spec -force
 rmdir build -force -Recurse
 rmdir sound_editing -force -Recurse
 rm dist -force -Recurse
 rm modules -force -Recurse
 rm misc -force -Recurse
 rm experiments -force -Recurse
-rm -force Second_Earth.py
+rm -force main.py
 rm -force configuration/dev_config.json
 rm -force configuration/release_config.json
 rm -force configuration/demographic_util.py

@@ -41,7 +41,7 @@ def change_price(changed_item: item_types.item_type, num_change):
     """
     changed_item.price = max(1, changed_item.price + num_change)
     status.item_prices_label.update_label()
-    constants.money_label.check_for_updates()
+    constants.MoneyLabel.check_for_updates()
 
 
 def set_price(changed_item: item_types.item_type, new_value):
@@ -72,7 +72,7 @@ def sell(seller, sold_item: item_types.item_type, num_sold):
     """
     sold_item.amount_sold_this_turn += num_sold
     seller.change_inventory(sold_item, -1 * num_sold)
-    constants.money_label.check_for_updates()
+    constants.MoneyLabel.check_for_updates()
 
 
 def calculate_total_sale_revenue():
@@ -117,7 +117,7 @@ def attempt_worker_upkeep_change(change_type, worker_type):
                 text_utility.print_to_screen(
                     f"Adding {utility.generate_article(worker_type.name)} {worker_type.name} to the labor pool decreased {worker_type.name} upkeep from {current_price} to {changed_price}."
                 )
-        constants.money_label.check_for_updates()
+        constants.MoneyLabel.check_for_updates()
 
 
 def calculate_subsidies(projected=False):
@@ -205,17 +205,11 @@ class loan:
         self.total_to_pay = self.interest * self.remaining_duration
         status.loan_list.append(self)
         if not from_save:
-            constants.money_tracker.change(self.principal, "loan")
+            constants.MoneyTracker.change(self.principal, "loan")
             text_utility.print_to_screen(
-                "You have accepted a "
-                + str(self.principal)
-                + " money loan with interest payments of "
-                + str(self.interest)
-                + "/turn for "
-                + str(self.remaining_duration)
-                + " turns."
+                f"You have accepted a {self.principal} money loan with interest payments of {self.interest}/turn for {self.remaining_duration} turns."
             )
-            constants.money_label.check_for_updates()
+            constants.MoneyLabel.check_for_updates()
 
     def to_save_dict(self):
         """
@@ -241,7 +235,7 @@ class loan:
         """
         Makes a payment on this loan, paying its interest cost and reducing its remaining duration
         """
-        constants.money_tracker.change(-1 * self.interest, "loan_interest")
+        constants.MoneyTracker.change(-1 * self.interest, "loan_interest")
         self.remaining_duration -= 1
         self.total_to_pay -= self.interest
         if self.total_to_pay <= 0:

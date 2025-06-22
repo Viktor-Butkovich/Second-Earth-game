@@ -169,7 +169,7 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
             ):
                 target_tab = status.location_tabbed_collection.current_tabbed_member
             elif (
-                constants.effect_manager.effect_active("link_inventory_tabs")
+                constants.EffectManager.effect_active("link_inventory_tabs")
                 and status.mob_tabbed_collection.current_tabbed_member
                 == status.mob_inventory_collection
             ):
@@ -190,7 +190,7 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
                 if status.displayed_mob.inventory:
                     target_tab = status.mob_inventory_collection
                 elif (
-                    constants.effect_manager.effect_active("link_inventory_tabs")
+                    constants.EffectManager.effect_active("link_inventory_tabs")
                     and status.location_tabbed_collection.current_tabbed_member
                     == status.location_inventory_collection
                 ):

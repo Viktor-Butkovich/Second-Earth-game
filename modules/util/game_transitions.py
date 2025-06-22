@@ -79,8 +79,8 @@ def set_game_mode(new_game_mode):
             constants.MAIN_MENU_MODE,
             constants.NEW_GAME_SETUP_MODE,
         ]:
-            constants.event_manager.clear()
-            constants.sound_manager.play_random_music("earth")
+            constants.EventManager.clear()
+            constants.SoundManager.play_random_music("earth")
         elif (
             not previous_game_mode
             in [constants.MAIN_MENU_MODE, constants.NEW_GAME_SETUP_MODE]
@@ -88,8 +88,8 @@ def set_game_mode(new_game_mode):
             constants.MAIN_MENU_MODE,
             constants.NEW_GAME_SETUP_MODE,
         ]:  # game starts in None mode so this would work on startup
-            constants.event_manager.clear()
-            constants.sound_manager.play_random_music("main menu")
+            constants.EventManager.clear()
+            constants.SoundManager.play_random_music("main menu")
 
         if (
             new_game_mode == constants.MAIN_MENU_MODE
@@ -111,7 +111,7 @@ def set_game_mode(new_game_mode):
                 "earth_preset",
                 "venus_preset",
             ]:  # Clear new game configurations when going to main menu
-                constants.effect_manager.set_effect(effect, False)
+                constants.EffectManager.set_effect(effect, False)
         elif not new_game_mode in [constants.TRIAL_MODE, constants.NEW_GAME_SETUP_MODE]:
             constants.default_text_box_height = constants.font_size * 5.5
             constants.text_box_height = constants.default_text_box_height
@@ -160,7 +160,7 @@ def set_game_mode(new_game_mode):
         constants.MAIN_MENU_MODE,
         constants.NEW_GAME_SETUP_MODE,
     ]:
-        constants.notification_manager.update_notification_layout()
+        constants.NotificationManager.update_notification_layout()
 
 
 def start_loading(previous_game_mode: str = None, new_game_mode: str = None):
@@ -179,7 +179,7 @@ def start_loading(previous_game_mode: str = None, new_game_mode: str = None):
         constants.MINISTERS_MODE,
     ]:  # If loading into game
         status.loading_screen_quote_banner.set_label(
-            constants.flavor_text_manager.generate_flavor_text("loading_screen_quotes")
+            constants.FlavorTextManager.generate_flavor_text("loading_screen_quotes")
         )
     else:
         status.loading_screen_quote_banner.set_label("")
@@ -235,7 +235,7 @@ def force_minister_appointment():
         None
     """
     set_game_mode(constants.MINISTERS_MODE)
-    constants.notification_manager.display_notification(
+    constants.NotificationManager.display_notification(
         {
             "message": "You cannot do that until all minister positions have been appointed. /n /n",
             "notification_type": constants.NOTIFICATION,
@@ -253,7 +253,7 @@ def create_grids() -> None:
         None
     """
     status.scrolling_strategic_map_grid = (
-        constants.actor_creation_manager.create_interface_element(
+        constants.ActorCreationManager.create_interface_element(
             input_dict={
                 "init_type": constants.MINI_GRID,
                 "world_handler": status.current_world,
@@ -272,7 +272,7 @@ def create_grids() -> None:
     )
 
     status.minimap_grid = constants.strategic_map_grid = (
-        constants.actor_creation_manager.create_interface_element(
+        constants.ActorCreationManager.create_interface_element(
             input_dict={
                 "init_type": constants.MINI_GRID,
                 "world_handler": status.current_world,
@@ -291,7 +291,7 @@ def create_grids() -> None:
         )
     )
 
-    globe_projection_grid = constants.actor_creation_manager.create_interface_element(
+    globe_projection_grid = constants.ActorCreationManager.create_interface_element(
         input_dict={
             "init_type": constants.ABSTRACT_GRID,
             "world_handler": status.current_world.orbital_world,
@@ -306,7 +306,7 @@ def create_grids() -> None:
         }
     )
 
-    earth_grid = constants.actor_creation_manager.create_interface_element(
+    earth_grid = constants.ActorCreationManager.create_interface_element(
         input_dict={
             "init_type": constants.ABSTRACT_GRID,
             "world_handler": status.earth_world,
