@@ -1,41 +1,27 @@
 import pygame
 from typing import Dict, List, Tuple, Any
-from modules.managers.sound_manager import sound_manager
-from modules.managers.save_load_manager import (
+from modules.managers import (
+    sound_manager,
     save_load_manager,
-)
-from modules.managers.flavor_text_manager import (
     flavor_text_manager,
-)
-from modules.managers.input_manager import input_manager
-from modules.managers.actor_creation_manager import (
+    input_manager,
     actor_creation_manager,
-)
-from modules.managers.job_scheduler import job_scheduler
-from modules.managers.achievement_manager import (
-    achievement_manager,
-)
-from modules.managers.terrain_manager import (
     terrain_manager,
-)
-from modules.managers.character_manager import (
     character_manager,
-)
-from modules.managers.effect_manager import effect_manager
-from modules.managers.notification_manager import (
+    achievement_manager,
+    job_scheduler,
     notification_manager,
-)
-from modules.managers.value_tracker import (
+    effect_manager,
     value_tracker,
-    public_opinion_tracker,
-    money_tracker,
+    help_manager,
+    mouse_follower,
+    event_bus,
+    uuid_manager,
 )
-from modules.managers.help_manager import help_manager
-from modules.managers.mouse_follower import mouse_follower
 from modules.interface_components.labels import money_label
 from modules.constructs.fonts import font
 
-EffectManager: effect_manager = effect_manager()
+EffectManager: effect_manager.effect_manager = effect_manager.effect_manager()
 pygame.init()
 pygame.mixer.init()
 pygame.display.set_icon(pygame.image.load("graphics/misc/SE.png"))
@@ -190,44 +176,52 @@ else:
         (display_width, display_height), pygame.HWSURFACE | pygame.DOUBLEBUF
     )
 
-SoundManager: sound_manager = sound_manager()
-SaveLoadManager: save_load_manager = save_load_manager()
-FlavorTextManager: flavor_text_manager = flavor_text_manager()
-InputManager: input_manager = input_manager()
-ActorCreationManager: actor_creation_manager = (
+SoundManager: sound_manager.sound_manager = sound_manager.sound_manager()
+SaveLoadManager: save_load_manager.save_load_manager = (
+    save_load_manager.save_load_manager()
+)
+FlavorTextManager: flavor_text_manager.flavor_text_manager = (
+    flavor_text_manager.flavor_text_manager()
+)
+InputManager: input_manager.input_manager = input_manager.input_manager()
+ActorCreationManager: actor_creation_manager.actor_creation_manager = (
     None  # requires additional setup before initialization
 )
-TerrainManager: terrain_manager = (
+TerrainManager: terrain_manager.terrain_manager = (
     None  # requires additional setup before initialization
 )
-CharacterManager: character_manager = (
+CharacterManager: character_manager.character_manager = (
     None  # requires additional setup before initialization
 )
-AchievementManager: achievement_manager = (
+AchievementManager: achievement_manager.achievement_manager = (
     None  # requires additional setup before initialization
 )
-JobScheduler: job_scheduler = job_scheduler()
-NotificationManager: notification_manager = (
+JobScheduler: job_scheduler.job_scheduler = job_scheduler.job_scheduler()
+EventBus: event_bus.event_bus = event_bus.event_bus()
+UuidManager: uuid_manager.uuid_manager = uuid_manager.uuid_manager()
+NotificationManager: notification_manager.notification_manager = (
     None  # requires additional setup before initialization
 )
-HelpManager: help_manager = None  # requires additional setup before initialization
-MouseFollower: mouse_follower = None
+HelpManager: help_manager.help_manager = (
+    None  # requires additional setup before initialization
+)
+MouseFollower: mouse_follower.mouse_follower = None
 
 turn: int = 0
-TurnTracker: value_tracker = None
+TurnTracker: value_tracker.value_tracker = None
 public_opinion: int = 0
-PublicOpinionTracker: public_opinion_tracker = None
+PublicOpinionTracker: value_tracker.public_opinion_tracker = None
 money: float = 0
-MoneyTracker: money_tracker = None
+MoneyTracker: value_tracker.money_tracker = None
 MoneyLabel: money_label = None
 evil: int = 0
-EvilTracker: value_tracker = None
+EvilTracker: value_tracker.value_tracker = None
 fear: int = 0
-FearTracker: value_tracker = None
+FearTracker: value_tracker.value_tracker = None
 fps: int = 0
-FpsTracker: value_tracker = None
+FpsTracker: value_tracker.value_tracker = None
 mouse_position: Tuple[int, int] = None
-MousePositionTracker: value_tracker = None
+MousePositionTracker: value_tracker.value_tracker = None
 frames_this_second: int = 0
 last_fps_update: float = 0.0
 
@@ -1099,3 +1093,11 @@ PERFECT_PARAMETER_BOUNDS: Dict[str, Tuple[float, float]] = {
     GRAVITY: (0.8, 1.2),
     RADIATION: (0, 0),
 }
+
+DISPLAYED_LOCATION_TOPIC: str = "displayed_location_topic"
+DISPLAYED_MOB_TOPIC: str = "displayed_mob_topic"
+DISPLAYED_MOB_INVENTORY_TOPIC: str = "displayed_mob_inventory_topic"
+DISPLAYED_LOCATION_INVENTORY_TOPIC: str = "displayed_location_inventory_topic"
+DISPLAYED_MINISTER_TOPIC: str = "displayed_minister_topic"
+DISPLAYED_PROSECUTION_TOPIC: str = "displayed_prosecution_topic"
+DISPLAYED_DEFENSE_TOPIC: str = "displayed_defense_topic"

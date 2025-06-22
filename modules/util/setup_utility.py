@@ -10,6 +10,7 @@ from modules.managers import (
     help_manager,
     terrain_manager,
     value_tracker,
+    notification_manager,
 )
 from modules.util import (
     scaling,
@@ -26,9 +27,6 @@ from modules.constructs import (
     equipment_types,
     terrain_feature_types,
     item_types,
-)
-from modules.managers import (
-    notification_manager,
 )
 from modules.action_types import (
     public_relations_campaign,

@@ -23,6 +23,7 @@ class world_handler:
         Output:
             None
         """
+        self.uuid: int = constants.UuidManager.assign_uuid()
         status.world_list.append(self)
         self.subscribed_grids: List[Any] = []
         if not self.is_orbital_world:

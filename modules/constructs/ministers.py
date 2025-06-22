@@ -37,11 +37,12 @@ class minister:
         Output:
             None
         """
+        self.uuid: int = constants.UuidManager.assign_uuid()
         status.minister_list.append(self)
         if from_save:
             self.first_name: str = input_dict["first_name"]
             self.last_name: str = input_dict["last_name"]
-            self.name: str = self.first_name + " " + self.last_name
+            self.name: str = f"{self.first_name} {self.last_name}"
             self.ethnicity: str = input_dict["ethnicity"]
             self.masculine: bool = input_dict["masculine"]
             self.prefix: str = input_dict["prefix"]

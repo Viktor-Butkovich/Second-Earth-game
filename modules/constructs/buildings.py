@@ -27,6 +27,7 @@ class building:
         Output:
             None
         """
+        self.uuid: int = constants.UuidManager.assign_uuid()
         self.building_type: building_types.building_type = input_dict.get(
             "building_type", status.building_types[input_dict["init_type"]]
         )
