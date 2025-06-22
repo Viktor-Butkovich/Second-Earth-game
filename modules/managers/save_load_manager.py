@@ -223,7 +223,7 @@ class save_load_manager:
             setattr(flags, current_element, saved_flags[current_element])
         constants.MoneyTracker.set(constants.money)
         constants.MoneyTracker.transaction_history = status.transaction_history
-        constants.MoneyTracker.set(constants.turn)
+        constants.TurnTracker.set(constants.turn)
         constants.PublicOpinionTracker.set(constants.public_opinion)
         constants.EvilTracker.set(constants.evil)
         constants.FearTracker.set(constants.fear)

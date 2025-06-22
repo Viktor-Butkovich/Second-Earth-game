@@ -443,7 +443,6 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Move buildings.py to constructs, move locations.py to actor_types, and move actor_types to be within constructs
 # Eventually add DOM-style dependency system for images and (less important) tooltips, so they are only updated when needed
 #     Find the dom_bus architecture above ^
 #     To make sure this is actually helpful, try caching get_image_id_list results and using these for minimap calibration
