@@ -34,7 +34,7 @@ class actor:
         Output:
             None
         """
-        self.uuid: int = constants.UuidManager.assign_uuid()
+        self.uuid: str = constants.UuidManager.assign_uuid()
         self.from_save = from_save
         self.inventory_capacity = 0
         self.inventory: Dict[str, int] = input_dict.get("inventory", {})

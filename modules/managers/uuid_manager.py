@@ -12,15 +12,15 @@ class uuid_manager:
         """
         self.next_available_uuid: int = 0
 
-    def assign_uuid(self) -> int:
+    def assign_uuid(self) -> str:
         """
         Description:
             Assigns a new UUID to an object
         Input:
             None
         Output:
-            int: The newly assigned UUID
+            string: The newly assigned UUID
         """
         current_uuid = self.next_available_uuid
         self.next_available_uuid += 1
-        return current_uuid
+        return str(current_uuid)

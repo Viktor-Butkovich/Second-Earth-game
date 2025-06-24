@@ -592,6 +592,32 @@ class location(actors.actor):
             update_display=update_display,
         )
 
+    def publish_events(self, *routes: str) -> None:
+        """
+        Description:
+            Publishes to all applicable endpoints with the inputted routes
+            If setting location's temperature: publish_events(LOCATION_SET_PARAMETER_ROUTE, TEMPERATURE)
+            Suppose this is the displayed location - publishes to the endpoints:
+                - uuid - any subscriptions that watch all changes to this location
+                - true_world_handler.uuid - any subscriptions that watch all changes to the world
+                - DISPLAYED_LOCATION_ENDPOINT - any subscriptions watching changes to the displayed location
+            With the following topics:
+                - endpoints/LOCATION_SET_PARAMETER_ROUTE - any subscriptions watching changes to parameters of the above
+                - endpoints/LOCATION_SET_PARAMETER_ROUTE/TEMPERATURE - any subscriptions watching changes to the temperature parameter of the above
+            uuid/LOCATION_SET_PARAMETER_ROUTE might invoke this location's update_image_bundle to update the image
+            true_world_handler.uuid/LOCATION_SET_PARAMETER_ROUTE/TEMPERATURE might update the world's average temperature
+            DISPLAYED_LOCATION_ENDPOINT/LOCATION_SET_PARAMETER_ROUTE/TEMPERATURE might update the content of the location temperature label
+        Input:
+            string list routes: Hierarchical of routes to publish to
+        Output:
+            None
+        """
+        endpoints = [f"{self.uuid}", f"{self.true_world_handler.uuid}"]
+        if self == status.displayed_location:
+            endpoints.append(constants.DISPLAYED_LOCATION_ENDPOINT)
+        for endpoint in endpoints:
+            constants.EventBus.publish(endpoint, *routes)
+
     def set_parameter(
         self, parameter_name: str, new_value: int, update_display: bool = True
     ) -> None:
@@ -615,9 +641,9 @@ class location(actors.actor):
             min(new_value, self.maxima.get(parameter_name, 5)),
         )
         new_value = self.terrain_parameters[parameter_name]
-        if parameter_name == constants.WATER and not self.is_abstract_location:
-            self.true_world_handler.update_average_water()
-        elif parameter_name == constants.ALTITUDE and not self.is_abstract_location:
+        # if parameter_name == constants.WATER and not self.is_abstract_location:
+        # self.true_world_handler.update_average_water()
+        if parameter_name == constants.ALTITUDE and not self.is_abstract_location:
             self.true_world_handler.update_average_altitude()
         elif parameter_name == constants.TEMPERATURE and not self.is_abstract_location:
             # If changing temperature, re-distribute water around the planet
@@ -661,6 +687,8 @@ class location(actors.actor):
 
         for current_mob in self.contained_mobs:
             current_mob.update_habitability()
+
+        self.publish_events(constants.LOCATION_SET_PARAMETER_ROUTE, parameter_name)
 
     def has_snow(self) -> bool:
         """

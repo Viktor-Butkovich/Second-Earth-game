@@ -15,30 +15,40 @@ class event_bus:
         """
         self.subscriptions: Dict[str, List[Callable]] = {}
 
-    def subscribe(self, topic: str, callback: Callable) -> None:
+    def subscribe(self, callback: Callable, endpoint: str, *routes: List[str]) -> None:
         """
         Description:
             Subscribes the inputted callback to be invoked whenever the inputted topic is published
         Input:
-            str topic: Topic to subscribe to
             Callable callback: Callback function to invoke when the topic is published
+            str endpoint: Base topic to subscribe to, like a location's uuid
+            string list routes: List of hierarchical sub-topics, like set_parameter, temperature
+                Subscribing to 'uuid', 'set_parameter', and 'temperature' assembles the topic 'uuid/set_parameter/temperature'
         Output:
             None
         """
+        topic = endpoint + "".join(f"/{route}" for route in routes)
         if topic not in self.subscriptions:
             self.subscriptions[topic] = []
         if callback not in self.subscriptions[topic]:
             self.subscriptions[topic].append(callback)
 
-    def publish(self, topic: str) -> None:
+    def publish(self, endpoint: str, *routes: List[str]) -> None:
         """
         Description:
             Publishes the inputted topic, invoking all subscribed callbacks
                 Modify this to accomodate *args, **kwargs if information needs to be passed
+                Calling with (uuid, set_parameter, temperature) invokes all callbacks to 'uuid', 'uuid/set_parameter', and 'uuid/set_parameter/temperature'
         Input:
-            str topic: Topic to publish
+            str endpoint: Base topic to publish, like a location's uuid
+            string list routes: List of hierarchical sub-topics, like set_parameter, temperature
         Output:
             None
         """
-        for callback in self.subscriptions.get(topic, []):
-            callback()
+        topics = [endpoint]
+        if routes:
+            for route in routes:
+                topics.append(f"{topics[-1]}/{route}")
+        for topic in topics:
+            for callback in self.subscriptions.get(topic, []):
+                callback()

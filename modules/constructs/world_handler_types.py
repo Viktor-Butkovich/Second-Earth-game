@@ -255,6 +255,14 @@ class full_world_handler(world_handlers.world_handler):
         """
         super().__init__(from_save, input_dict)
 
+        constants.EventBus.subscribe(
+            self.update_average_water,
+            self.uuid,
+            constants.LOCATION_SET_PARAMETER_ROUTE,
+            constants.WATER,
+        )
+        # Subscribes for update_average_water to be invoked whenever the water of any location in this world is set
+
         for current_location in self.get_flat_location_list():
             current_location.find_adjacent_locations()
 

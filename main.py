@@ -439,7 +439,7 @@ except Exception:  # Displays error message and records error message in crash l
 #   Could try making an EC system that trains a set of fuzzy rules - create a set of rules that match a list of i/o specifications
 #   Input would be input and output categories and rules, model just needs to tune the the rules until no specification cases fail
 #       Would likely just require a mutation operator and a genome of the required weights
-# Consider using hypothesis testing to determine if minister results are statistically significant (reject hypothesis of default behavior)
+# Consider t-test to determine if minister results are statistically significant (reject hypothesis of default behavior)
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:

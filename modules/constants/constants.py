@@ -1094,10 +1094,12 @@ PERFECT_PARAMETER_BOUNDS: Dict[str, Tuple[float, float]] = {
     RADIATION: (0, 0),
 }
 
-DISPLAYED_LOCATION_TOPIC: str = "displayed_location_topic"
-DISPLAYED_MOB_TOPIC: str = "displayed_mob_topic"
-DISPLAYED_MOB_INVENTORY_TOPIC: str = "displayed_mob_inventory_topic"
-DISPLAYED_LOCATION_INVENTORY_TOPIC: str = "displayed_location_inventory_topic"
-DISPLAYED_MINISTER_TOPIC: str = "displayed_minister_topic"
-DISPLAYED_PROSECUTION_TOPIC: str = "displayed_prosecution_topic"
-DISPLAYED_DEFENSE_TOPIC: str = "displayed_defense_topic"
+DISPLAYED_LOCATION_ENDPOINT: str = "displayed_location_endpoint"
+DISPLAYED_MOB_ENDPOINT: str = "displayed_mob_endpoint"
+DISPLAYED_MOB_INVENTORY_ENDPOINT: str = "displayed_mob_inventory_endpoint"
+DISPLAYED_LOCATION_INVENTORY_ENDPOINT: str = "displayed_location_inventory_endpoint"
+DISPLAYED_MINISTER_ENDPOINT: str = "displayed_minister_endpoint"
+DISPLAYED_PROSECUTION_ENDPOINT: str = "displayed_prosecution_endpoint"
+DISPLAYED_DEFENSE_ENDPOINT: str = "displayed_defense_endpoint"
+
+LOCATION_SET_PARAMETER_ROUTE: str = "location_set_parameter_route"
