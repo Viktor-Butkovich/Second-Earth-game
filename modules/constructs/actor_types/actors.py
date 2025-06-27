@@ -399,7 +399,9 @@ class actor:
         """
         Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
-        return
+        constants.EventBus.clear_endpoint(
+            self.uuid
+        )  # Clear all subscriptions to this actor's uuid
 
     def get_image_id_list(self, override_values={}):
         """

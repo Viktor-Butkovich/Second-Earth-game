@@ -1378,65 +1378,8 @@ class world_handler:
         # Atmosphere haze depends on total pressure, with toxic gases greatly over-represented
 
         for location in self.get_flat_location_list():
-            location.current_clouds = []
+            location.update_clouds(num_cloud_variants, num_solid_cloud_variants)
 
-            cloud_type = None
-            if random.random() < self.cloud_frequency:
-                cloud_type = "water vapor"
-            elif random.random() < self.toxic_cloud_frequency:
-                cloud_type = "toxic"
-            if cloud_type:
-                location.current_clouds.append(
-                    {
-                        "image_id": "misc/shader.png",
-                        "detail_level": constants.CLOUDS_DETAIL_LEVEL,
-                    }
-                )
-            if self.atmosphere_haze_alpha > 0:
-                location.current_clouds.append(
-                    {
-                        "image_id": f"terrains/clouds_solid_{random.randrange(0, num_solid_cloud_variants)}.png",
-                        "alpha": self.atmosphere_haze_alpha,
-                        "detail_level": constants.CLOUDS_DETAIL_LEVEL,
-                        "green_screen": {
-                            "clouds": {
-                                "base_colors": [(174, 37, 19)],
-                                "tolerance": 60,
-                                "replacement_color": self.sky_color,
-                            },
-                        },
-                    }
-                )
-            if cloud_type == "water vapor":
-                location.current_clouds.append(
-                    {
-                        "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
-                        "detail_level": constants.CLOUDS_DETAIL_LEVEL,
-                        "green_screen": {
-                            "clouds": {
-                                "base_colors": [(174, 37, 19)],
-                                "tolerance": 60,
-                                "replacement_color": self.steam_color,
-                            },
-                        },
-                    }
-                )
-            elif cloud_type == "toxic":
-                location.current_clouds.append(
-                    {
-                        "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
-                        "detail_level": constants.CLOUDS_DETAIL_LEVEL,
-                        "green_screen": {
-                            "clouds": {
-                                "base_colors": [(174, 37, 19)],
-                                "tolerance": 60,
-                                "replacement_color": [
-                                    round(color * 0.8) for color in self.sky_color
-                                ],
-                            },
-                        },
-                    }
-                )
         if not flags.loading:
             status.current_world.update_globe_projection(update_button=True)
 

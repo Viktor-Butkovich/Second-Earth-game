@@ -158,7 +158,7 @@ def generate_location_image_id_list(location):
     """
     return (
         generate_background_image_id_list()
-        + location.get_image_id_list()
+        + location.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
         + ["misc/location_outline.png"]
     )
 

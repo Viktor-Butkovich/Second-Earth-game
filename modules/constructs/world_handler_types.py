@@ -43,7 +43,9 @@ class abstract_world_handler(world_handlers.world_handler):
             None
         """
         self.image_id_list = new_image
-        self.find_location(0, 0).update_image_bundle()
+        constants.EventBus.publish(
+            self.uuid, constants.ABSTRACT_WORLD_UPDATE_IMAGE_ROUTE
+        )  # Update images subscribed to this world's image
 
     def to_save_dict(self) -> Dict[str, Any]:
         """
@@ -286,6 +288,18 @@ class full_world_handler(world_handlers.world_handler):
                     "full_world": self,
                 },
             )
+        )
+
+    def remove(self) -> None:
+        """
+        Removes this object from relevant lists, prevents it from further appearing in or affecting the program, and removes it from the location it occupies
+        """
+        super().remove()
+        constants.EventBus.unsubscribe(
+            self.update_average_water,
+            self.uuid,
+            constants.LOCATION_SET_PARAMETER_ROUTE,
+            constants.WATER,
         )
 
     def to_save_dict(self) -> Dict[str, Any]:
@@ -729,12 +743,13 @@ class full_world_handler(world_handlers.world_handler):
                 "y_size": location_height * size_multiplier,
                 "level": level,
             }
-            for image_id in self.find_location(*coordinates).get_image_id_list(
-                terrain_only=True, force_clouds=True
-            ):
+            for base_image_id in self.find_location(*coordinates).image_dict[
+                constants.IMAGE_ID_LIST_ORBITAL_VIEW
+            ]:
                 # Apply projection offsets to each image in the location's terrain
-                if type(image_id) == str:
-                    image_id = {"image_id": image_id}
+                if type(base_image_id) == str:
+                    base_image_id = {"image_id": base_image_id}
+                image_id = base_image_id.copy()
                 image_id.update(projection)
                 return_list.append(image_id)
 

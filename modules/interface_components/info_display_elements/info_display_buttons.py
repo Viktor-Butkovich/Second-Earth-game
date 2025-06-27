@@ -1608,8 +1608,7 @@ class toggle_button(button):
             )
             if self.toggle_variable in ["remove_fog_of_war", "show_clouds"]:
                 constants.update_terrain_knowledge_requirements()
-                for current_world in status.world_list:
-                    current_world.update_location_image_bundles()
+                constants.EventBus.publish(constants.UPDATE_MAP_MODE_ROUTE)
             elif self.toggle_variable in [
                 "earth_preset",
                 "mars_preset",

@@ -175,8 +175,8 @@ class button(interface_elements.interface_element):
                         constants.INFRASTRUCTURE
                     )
                 )
-                if adjacent_location.visible:
-                    tooltip_text.append("Press to move to the " + direction)
+                if True:  # adjacent_location.visible:
+                    tooltip_text.append(f"Press to move to the {direction}")
                     adjacent_infrastructure = adjacent_location.get_intact_building(
                         constants.INFRASTRUCTURE
                     )
@@ -657,9 +657,9 @@ class button(interface_elements.interface_element):
             Each string is displayed on a separate line, while each sublist is displayed in a separate box
         """
         if self.has_keybind:
-            return [self.tooltip_text]
-        else:
             return [self.tooltip_text + [f"Press {self.keybind_name} to use."]]
+        else:
+            return [self.tooltip_text]
 
     def touching_mouse(self):
         """
@@ -2974,16 +2974,8 @@ class map_mode_button(button):
         Sets the current map mode to this button's map mode
         """
         constants.current_map_mode = self.map_mode
-        for current_world in status.world_list:
-            for current_location in current_world.get_flat_location_list():
-                current_location.update_image_bundle()
+        constants.EventBus.publish(constants.UPDATE_MAP_MODE_ROUTE, self.map_mode)
         status.current_world.update_globe_projection()
-        actor_utility.calibrate_actor_info_display(
-            status.location_info_display, status.displayed_location
-        )
-        actor_utility.calibrate_actor_info_display(
-            status.mob_info_display, status.displayed_mob
-        )
 
     @property
     def tooltip_text(self) -> List[List[str]]:

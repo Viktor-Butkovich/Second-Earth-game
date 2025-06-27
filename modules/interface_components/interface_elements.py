@@ -908,7 +908,7 @@ class ordered_collection(interface_collection):
         super().calibrate(new_actor, override_exempt)
         if self == status.local_conditions_collection and new_actor:
             self.tab_button.image.set_image(
-                new_actor.get_image_id_list(terrain_only=True)
+                new_actor.image_dict[constants.IMAGE_ID_LIST_TERRAIN]
                 + [
                     {
                         "image_id": "buttons/default_button_frame.png",

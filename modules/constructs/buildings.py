@@ -158,7 +158,7 @@ class building:
             constants.WAREHOUSES
         ):
             self.location.get_building(constants.WAREHOUSES).set_damaged(new_value)
-        self.location.update_image_bundle()
+        constants.EventBus.publish(self.uuid, constants.BUILDING_SET_DAMAGED_ROUTE)
 
     def get_build_cost(self):
         """

@@ -109,6 +109,7 @@ class location(actors.actor):
                         "location": self,
                     },
                 )
+        self.configure_event_subscriptions()
         self.update_image_bundle()
 
     @property
@@ -162,6 +163,51 @@ class location(actors.actor):
             not self.infinite_inventory_capacity
         ) and self.get_inventory_used() > self.inventory_capacity
 
+    def configure_event_subscriptions(self) -> None:
+        """
+        Subscribes events related to this location, triggering updates to respond to dependency changes
+        """
+        constants.EventBus.subscribe(
+            self.update_image_bundle, self.uuid, constants.LOCATION_ADD_BUILDING_ROUTE
+        )  # Update image bundle when building is added to this location
+        constants.EventBus.subscribe(
+            self.update_image_bundle,
+            self.uuid,
+            constants.LOCATION_REMOVE_BUILDING_ROUTE,
+        )  # Update image bundle when building is removed from this location
+        constants.EventBus.subscribe(
+            self.update_image_bundle, self.uuid, constants.LOCATION_SET_PARAMETER_ROUTE
+        )  # Update image bundle when this location's terrain parameters change
+        constants.EventBus.subscribe(
+            self.update_image_bundle, self.uuid, constants.LOCATION_SUBSCRIBE_MOB_ROUTE
+        )  # Update image bundle when subscribing a mob
+        constants.EventBus.subscribe(
+            self.update_image_bundle,
+            self.uuid,
+            constants.LOCATION_UNSUBSCRIBE_MOB_ROUTE,
+        )  # Update image bundle when unsubscribing a mob
+        constants.EventBus.subscribe(
+            self.update_image_bundle, self.uuid, constants.LOCATION_SET_NAME_ROUTE
+        )  # Update image bundle when setting name
+        constants.EventBus.subscribe(
+            self.update_image_bundle, self.uuid, constants.LOCATION_UPDATE_CLOUDS_ROUTE
+        )  # Update image bundle when clouds change
+        constants.EventBus.subscribe(
+            self.update_image_bundle,
+            self.uuid,
+            constants.UPDATE_TERRAIN_FEATURE_ROUTE,
+        )  # Update image bundle when terrain features change
+        if self.is_abstract_location:
+            constants.EventBus.subscribe(
+                self.update_image_bundle,
+                self.world_handler.uuid,
+                constants.ABSTRACT_WORLD_UPDATE_IMAGE_ROUTE,
+            )  # If abstract location, update image bundle when abstract world does
+        else:
+            constants.EventBus.subscribe(
+                self.update_image_bundle, constants.UPDATE_MAP_MODE_ROUTE
+            )  # If not abstract location, update image bundle when map mode changes
+
     def local_attrition(self, attrition_type="health"):
         """
         Description:
@@ -213,6 +259,7 @@ class location(actors.actor):
         """
         Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
+        super().remove()
         for cell in self.subscribed_cells.copy():
             self.unsubscribe_cell(cell)
         for mob in self.subscribed_mobs.copy():
@@ -259,7 +306,15 @@ class location(actors.actor):
             None
         """
         self.contained_buildings[building.building_type.key] = building
-        self.update_image_bundle()
+
+        constants.EventBus.subscribe(
+            self.update_image_bundle,
+            building.uuid,
+            constants.BUILDING_SET_DAMAGED_ROUTE,
+        )
+        # Update image bundle when building's damaged status changes
+
+        self.publish_events(constants.LOCATION_ADD_BUILDING_ROUTE)
 
     def remove_building(self, building: Any) -> None:
         """
@@ -272,7 +327,7 @@ class location(actors.actor):
         """
         if self.get_building(building.building_type.key) == building:
             del self.contained_buildings[building.building_type.key]
-            self.update_image_bundle()
+            self.publish_events(constants.LOCATION_REMOVE_BUILDING_ROUTE)
 
     def get_building(self, building_type: str):
         """
@@ -550,6 +605,7 @@ class location(actors.actor):
         elif feature_type.tracking_type == constants.LIST_FEATURE_TRACKING:
             feature_key += "_list"
             getattr(status, feature_key).append(self)
+        self.publish_events(constants.UPDATE_TERRAIN_FEATURE_ROUTE)
 
     def knowledge_available(self, information_type: str) -> bool:
         """
@@ -837,8 +893,6 @@ class location(actors.actor):
 
         if new_terrain in constants.TerrainManager.terrain_list:
             self.default_image_id = f"terrains/{new_terrain}_{self.terrain_variant}.png"
-        if update_image_bundle:
-            self.update_image_bundle()
 
     def subscribe_cell(self, cell) -> None:
         """
@@ -871,8 +925,8 @@ class location(actors.actor):
             mob.subscribed_location.unsubscribe_mob(mob)
         self.subscribed_mobs.append(mob)
         mob.subscribed_location = self
-        self.update_image_bundle()
-        if mob == status.displayed_mob:
+        self.publish_events(constants.LOCATION_SUBSCRIBE_MOB_ROUTE)
+        if mob == status.displayed_mob and self != status.displayed_location:
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, self
             )
@@ -900,7 +954,7 @@ class location(actors.actor):
         """
         self.subscribed_mobs.remove(mob)
         mob.subscribed_location = None
-        self.update_image_bundle()
+        self.publish_events(constants.LOCATION_UNSUBSCRIBE_MOB_ROUTE)
 
     def flow(self) -> None:
         """
@@ -1038,13 +1092,9 @@ class location(actors.actor):
         if self.is_earth_location:
             return 1.0 - self.true_world_handler.get_tuning("earth_albedo_multiplier")
         elif not self.is_abstract_location:
-            image_id = self.get_image_id_list(
-                terrain_only=True,
-                force_pixellated=True,
-                allow_mapmodes=False,
-                allow_clouds=False,
+            status.albedo_free_image.set_image(
+                self.image_dict[constants.IMAGE_ID_LIST_ALBEDO]
             )
-            status.albedo_free_image.set_image(image_id)
             return (
                 sum(
                     [
@@ -1061,6 +1111,75 @@ class location(actors.actor):
             )
         else:  # Orbital world and other abstract worlds don't need brightness calculation
             return 1.0
+
+    def update_clouds(
+        self, num_cloud_variants: int, num_solid_cloud_variants: int
+    ) -> None:
+        """
+        Updates this location's cloud images with the inputted variant options
+            Cloud color, transparency, and frequency depend on global conditions
+        """
+        location.current_clouds = []
+
+        cloud_type = None
+        if random.random() < self.world_handler.cloud_frequency:
+            cloud_type = "water vapor"
+        elif random.random() < self.world_handler.toxic_cloud_frequency:
+            cloud_type = "toxic"
+        if cloud_type:
+            location.current_clouds.append(
+                {
+                    "image_id": "misc/shader.png",
+                    "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                }
+            )
+        if self.world_handler.atmosphere_haze_alpha > 0:
+            location.current_clouds.append(
+                {
+                    "image_id": f"terrains/clouds_solid_{random.randrange(0, num_solid_cloud_variants)}.png",
+                    "alpha": self.world_handler.atmosphere_haze_alpha,
+                    "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                    "green_screen": {
+                        "clouds": {
+                            "base_colors": [(174, 37, 19)],
+                            "tolerance": 60,
+                            "replacement_color": self.world_handler.sky_color,
+                        },
+                    },
+                }
+            )
+        if cloud_type == "water vapor":
+            location.current_clouds.append(
+                {
+                    "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
+                    "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                    "green_screen": {
+                        "clouds": {
+                            "base_colors": [(174, 37, 19)],
+                            "tolerance": 60,
+                            "replacement_color": self.world_handler.steam_color,
+                        },
+                    },
+                }
+            )
+        elif cloud_type == "toxic":
+            location.current_clouds.append(
+                {
+                    "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
+                    "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                    "green_screen": {
+                        "clouds": {
+                            "base_colors": [(174, 37, 19)],
+                            "tolerance": 60,
+                            "replacement_color": [
+                                round(color * 0.8)
+                                for color in self.world_handler.sky_color
+                            ],
+                        },
+                    },
+                }
+            )
+        self.publish_events(constants.LOCATION_UPDATE_CLOUDS_ROUTE)
 
     def get_image_id_list(
         self,
@@ -1231,10 +1350,27 @@ class location(actors.actor):
         if not update_mob_only:
             if override_image:
                 self.image_dict[constants.IMAGE_ID_LIST_DEFAULT] = override_image
+                self.image_dict[constants.IMAGE_ID_LIST_TERRAIN] = override_image
+                self.image_dict[constants.IMAGE_ID_LIST_ORBITAL_VIEW] = override_image
+                self.image_dict[constants.IMAGE_ID_LIST_ALBEDO] = override_image
             else:
                 self.image_dict[constants.IMAGE_ID_LIST_DEFAULT] = (
                     self.get_image_id_list()
-                )
+                )  # Includes buildings, terrain, clouds, etc. - whatever shows in strategic map (includes mapmodes and toggleable clouds)
+                self.image_dict[constants.IMAGE_ID_LIST_TERRAIN] = (
+                    self.get_image_id_list(terrain_only=True)
+                )  # Includes terrain, clouds, etc. - whatever shows in tactical map (includes mapmodes and toggleable clouds)
+                self.image_dict[constants.IMAGE_ID_LIST_ORBITAL_VIEW] = (
+                    self.get_image_id_list(terrain_only=True, force_clouds=True)
+                )  # Includes terrain, clouds, etc. - view from space (no mapmodes, clouds always show)
+                self.image_dict[constants.IMAGE_ID_LIST_ALBEDO] = (
+                    self.get_image_id_list(
+                        terrain_only=True,
+                        force_pixellated=True,
+                        allow_mapmodes=False,
+                        allow_clouds=False,
+                    )
+                )  # Pixellated pure terrain appearance with no clouds for terrain albedo calculation
 
         self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MOB] = (
             self.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
@@ -1382,9 +1518,9 @@ class location(actors.actor):
         Gets a 2D list of strings to use as this object's tooltip
             Each string is displayed on a separate line, while each sublist is displayed in a separate box
         """
-        return [self.tooltip_text] + [
-            current_mob.tooltip_text for current_mob in self.subscribed_mobs
-        ]
+        return [self.tooltip_text] + list(
+            reversed([current_mob.tooltip_text for current_mob in self.subscribed_mobs])
+        )
 
     @property
     def tooltip_text(self) -> List[List[str]]:
@@ -1671,8 +1807,4 @@ class location(actors.actor):
                     "location": self,
                 },
             )
-        self.update_image_bundle()
-        if self == status.displayed_location:
-            actor_utility.calibrate_actor_info_display(
-                status.location_info_display, self
-            )  # Update location info display with new name
+        self.publish_events(constants.LOCATION_SET_NAME_ROUTE)

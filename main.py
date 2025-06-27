@@ -443,18 +443,22 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Eventually add DOM-style dependency system for images and (less important) tooltips, so they are only updated when needed
-#     Find the dom_bus architecture above ^
-#     To make sure this is actually helpful, try caching get_image_id_list results and using these for minimap calibration
+# Use event bus for mob/interface image ID lists as well
+#   Try to replace all manual invocations get_image_id_list()
+# To maintain update_habitability with subscriptions, each location can subscribe to its own terrain parameter updates with a "update all mobs habitabilities" function
+#   Requires that a location can access all of its contained mobs iteratively - use the get_all_sub_mobs of each contained mob, and also make sure to check buildings
+#   Use the same function to calculate per-location item demand (making sure that contained mobs do NOT calculate upkeep recursively)
+#       Upkeep does need to be calculated recursively for unit tooltips, so this should use a boolean flag
+# Allow building basic buildings like mines, farms, etc. with work crew functionality
+# Gradually incorporate event bus subscriptions rather than manual data binding for info displays, mob images
 # Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
-#     Probably no longer needed with DOM system
+#     Maybe no longer needed with event bus DOM system
 # Could refactor location-level total upkeep required with contained_mobs - avoids manual traversals, just get total upkeep for every contained mob
 # Investigate water disappearing during terraforming - definitely occurs on Venus and Mars maps
 # Colonist upkeep should be oxygen, outputs CO2 - nitrogen is required in the construction of life support/dome systems, but is not directly involved in the upkeep process
 # Next major step is to add basic economic mechanics, now that the baseline terraforming is functional
 # Add new resource types, with colonist upkeep, buying on Earth, transporting
 # , and using to build when it is in the builder's location
-# Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant

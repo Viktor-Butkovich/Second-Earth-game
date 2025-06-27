@@ -501,15 +501,8 @@ def manage_tooltip_drawing(tooltip_drawer):
     mouse_x, mouse_y = pygame.mouse.get_pos()
     height = y_displacement
     width = 0
-    if (
-        hasattr(tooltip_drawer, "supports_batch_tooltip")
-        and tooltip_drawer.supports_batch_tooltip
-    ):
-        batch_tooltip_list = tooltip_drawer.batch_tooltip_list
-    else:
-        batch_tooltip_list = [tooltip_drawer.tooltip_text]
     formatted_tooltip_list = []
-    for tooltip in batch_tooltip_list:
+    for tooltip in tooltip_drawer.batch_tooltip_list:
         tooltip_width = 0
         for line in tooltip:
             tooltip_width = max(
@@ -552,7 +545,7 @@ def manage_tooltip_drawing(tooltip_drawer):
             width,
             y_displacement,
         )
-        y_displacement += font.size * (len(tooltip) + 1)
+        y_displacement += font.size * (len(formatted_tooltip["text"]) + 1)
 
 
 def draw_tooltip(tooltip, below_screen, beyond_screen, height, width, y_displacement):

@@ -49,7 +49,12 @@ class actor_display_free_image(free_image):
                 image_id_list = action_utility.generate_background_image_id_list(
                     new_actor
                 )
-                image_id_list += new_actor.get_image_id_list()
+                if new_actor.actor_type == constants.LOCATION_ACTOR_TYPE:
+                    image_id_list += new_actor.image_dict[
+                        constants.IMAGE_ID_LIST_DEFAULT
+                    ]
+                else:
+                    image_id_list += new_actor.get_image_id_list()
                 if new_actor.actor_type == constants.MOB_ACTOR_TYPE:
                     if new_actor.get_permission(constants.DUMMY_PERMISSION):
                         image_id_list.append(

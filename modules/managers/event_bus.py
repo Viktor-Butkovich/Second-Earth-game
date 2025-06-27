@@ -27,11 +27,39 @@ class event_bus:
         Output:
             None
         """
-        topic = endpoint + "".join(f"/{route}" for route in routes)
+        topic = self.build_topic(endpoint, routes)
         if topic not in self.subscriptions:
             self.subscriptions[topic] = []
         if callback not in self.subscriptions[topic]:
             self.subscriptions[topic].append(callback)
+
+    def unsubscribe(
+        self, callback: Callable, endpoint: str, *routes: List[str]
+    ) -> None:
+        """
+        Description:
+            Unsubscribes the inputted callback from the specified topic
+                Precondition that the callback is already subscribed to the topic
+        Input:
+            Callable callback: Callback function to remove from the topic
+            str endpoint: Base topic to unsubscribe from, like a location's uuid
+            string list routes: List of hierarchical sub-topics, like set_parameter, temperature
+        Output:
+            None
+        """
+        self.subscriptions[self.build_topic(endpoint, routes)].remove(callback)
+
+    def build_topic(self, endpoint: str, routes: List[str]) -> str:
+        """
+        Description:
+            Builds a topic string from the base endpoint and hierarchical sub-topics
+        Input:
+            str endpoint: Base topic to build, like a location's uuid
+            string list routes: List of hierarchical sub-topics, like set_parameter, temperature
+        Output:
+            str: The constructed topic string, like 'uuid/set_parameter/temperature'
+        """
+        return endpoint + "".join(f"/{route}" for route in routes)
 
     def publish(self, endpoint: str, *routes: List[str]) -> None:
         """
@@ -52,3 +80,16 @@ class event_bus:
         for topic in topics:
             for callback in self.subscriptions.get(topic, []):
                 callback()
+
+    def clear_endpoint(self, endpoint: str) -> None:
+        """
+        Description:
+            Clears all subscriptions for the inputted endpoint
+        Input:
+            str endpoint: Base topic to clear, like a location's uuid
+        Output:
+            None
+        """
+        for topic in list(self.subscriptions.keys()).copy():
+            if topic.startswith(f"{endpoint}/") or topic == endpoint:
+                del self.subscriptions[topic]
