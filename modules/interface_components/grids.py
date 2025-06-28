@@ -428,7 +428,10 @@ class mini_grid(grid):
         Output:
             None
         """
-        if constants.current_game_mode in self.modes:
+        if constants.current_game_mode in self.modes and (
+            self.center_x,
+            self.center_y,
+        ) != (center_x, center_y):
             self.center_x = center_x
             self.center_y = center_y
 
@@ -444,8 +447,8 @@ class mini_grid(grid):
                     directional_indicator_image
                 ) in status.directional_indicator_image_list:
                     directional_indicator_image.calibrate()
-        if self == status.scrolling_strategic_map_grid:
-            status.current_world.update_globe_projection()
+            if self == status.scrolling_strategic_map_grid:
+                status.current_world.update_globe_projection()
 
     def get_absolute_coordinates(self, mini_x, mini_y):
         """

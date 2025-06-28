@@ -127,8 +127,8 @@ class action:
             and not minister_utility.positions_filled()
         ):
             return False
-        if self.actor_type == constants.MOB_ACTOR_TYPE and unit.sentry_mode:
-            unit.set_sentry_mode(False)
+        if self.actor_type == constants.MOB_ACTOR_TYPE:
+            unit.set_permission(constants.SENTRY_MODE_PERMISSION, False)
         return True
 
     def get_default_price(self):

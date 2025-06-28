@@ -108,7 +108,7 @@ class equipment_type(item_types.item_type):
                     self.equip(unit.officer)
                 if self.check_requirement(unit.worker):
                     self.equip(unit.worker)
-            unit.update_image_bundle()
+            unit.publish_events(constants.MOB_SET_PERMISSION_ROUTE)
 
     def unequip(self, unit) -> None:
         """
@@ -132,7 +132,7 @@ class equipment_type(item_types.item_type):
             if unit.get_permission(constants.GROUP_PERMISSION):
                 self.unequip(unit.officer)
                 self.unequip(unit.worker)
-            unit.update_image_bundle()
+            unit.publish_events(constants.MOB_SET_PERMISSION_ROUTE)
 
     def check_requirement(self, unit) -> bool:
         """

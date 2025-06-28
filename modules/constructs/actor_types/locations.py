@@ -122,7 +122,7 @@ class location(actors.actor):
     @property
     def contained_mobs(self) -> List[Any]:
         """
-        All mobs contained within this actor, including itself
+        All mobs contained within this actor
             Can use instead of manually finding all mobs somewhere, even ones that are not directly subscribed to the location
         """
         contained_mobs = []
@@ -169,15 +169,15 @@ class location(actors.actor):
         """
         constants.EventBus.subscribe(
             self.update_image_bundle, self.uuid, constants.LOCATION_ADD_BUILDING_ROUTE
-        )  # Update image bundle when building is added to this location
+        )  # Update image bundle when building is added
         constants.EventBus.subscribe(
             self.update_image_bundle,
             self.uuid,
             constants.LOCATION_REMOVE_BUILDING_ROUTE,
-        )  # Update image bundle when building is removed from this location
+        )  # Update image bundle when building is removed from
         constants.EventBus.subscribe(
             self.update_image_bundle, self.uuid, constants.LOCATION_SET_PARAMETER_ROUTE
-        )  # Update image bundle when this location's terrain parameters change
+        )  # Update image bundle when terrain parameters change
         constants.EventBus.subscribe(
             self.update_image_bundle, self.uuid, constants.LOCATION_SUBSCRIBE_MOB_ROUTE
         )  # Update image bundle when subscribing a mob
@@ -207,6 +207,11 @@ class location(actors.actor):
             constants.EventBus.subscribe(
                 self.update_image_bundle, constants.UPDATE_MAP_MODE_ROUTE
             )  # If not abstract location, update image bundle when map mode changes
+        constants.EventBus.subscribe(
+            self.update_contained_mob_habitability,
+            self.uuid,
+            constants.LOCATION_SET_PARAMETER_ROUTE,
+        )  # Update contained mob habitability when terrain parameters change
 
     def local_attrition(self, attrition_type="health"):
         """
@@ -328,6 +333,11 @@ class location(actors.actor):
         if self.get_building(building.building_type.key) == building:
             del self.contained_buildings[building.building_type.key]
             self.publish_events(constants.LOCATION_REMOVE_BUILDING_ROUTE)
+            constants.EventBus.unsubscribe(
+                self.update_image_bundle,
+                building.uuid,
+                constants.BUILDING_SET_DAMAGED_ROUTE,
+            )
 
     def get_building(self, building_type: str):
         """
@@ -740,11 +750,14 @@ class location(actors.actor):
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, self
             )
+        self.publish_events(constants.LOCATION_SET_PARAMETER_ROUTE, parameter_name)
 
+    def update_contained_mob_habitability(self) -> None:
+        """
+        Updates the habitability of all contained mobs in this location
+        """
         for current_mob in self.contained_mobs:
             current_mob.update_habitability()
-
-        self.publish_events(constants.LOCATION_SET_PARAMETER_ROUTE, parameter_name)
 
     def has_snow(self) -> bool:
         """
@@ -907,7 +920,12 @@ class location(actors.actor):
             cell.location.unsubscribe_cell(cell)
         self.subscribed_cells.append(cell)
         cell.subscribed_location = self
-        self.refresh_attached_images()
+        if cell.grid == status.minimap_grid:
+            cell.set_image(
+                self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MINIMAP_OVERLAY]
+            )
+        else:
+            cell.set_image(self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MOB])
         # Update cell's rendered image
 
     def subscribe_mob(self, mob) -> None:
@@ -925,7 +943,12 @@ class location(actors.actor):
             mob.subscribed_location.unsubscribe_mob(mob)
         self.subscribed_mobs.append(mob)
         mob.subscribed_location = self
-        self.publish_events(constants.LOCATION_SUBSCRIBE_MOB_ROUTE)
+        self.publish_events(
+            constants.LOCATION_SUBSCRIBE_MOB_ROUTE
+        )  # Publish events of this location subscribing a mob
+        mob.publish_events(
+            constants.LOCATION_SUBSCRIBE_MOB_ROUTE
+        )  # Publish events of this mob subscribing a location
         if mob == status.displayed_mob and self != status.displayed_location:
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, self
@@ -1317,7 +1340,7 @@ class location(actors.actor):
         Gets the image IDs added to this location if showing mobs
         """
         if self.subscribed_mobs:
-            return self.subscribed_mobs[0].get_image_id_list()
+            return self.subscribed_mobs[0].image_dict[constants.IMAGE_ID_LIST_FULL_MOB]
         else:
             return []
 
@@ -1346,6 +1369,9 @@ class location(actors.actor):
             None
         """
         previous_image_dict = self.image_dict.copy()
+        previous_mob_image_id_list = self.image_dict[
+            constants.IMAGE_ID_LIST_INCLUDE_MOB
+        ]
 
         if not update_mob_only:
             if override_image:
@@ -1383,9 +1409,17 @@ class location(actors.actor):
         )
 
         if previous_image_dict != self.image_dict:
-            self.refresh_attached_images()
+            if (
+                previous_mob_image_id_list
+                == self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MOB]
+            ):
+                self.refresh_attached_images(
+                    include_mobs=False
+                )  # No need to update mob interface if only terrain images changed
+            else:
+                self.refresh_attached_images(include_mobs=True)
 
-    def refresh_attached_images(self):
+    def refresh_attached_images(self, include_mobs: bool = True):
         """
         Updates this location's images wherever they are shown (locations and info displays)
             Should be invoked after any changes to the image bundle
@@ -1394,7 +1428,11 @@ class location(actors.actor):
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, self
             )
-        if status.displayed_mob and status.displayed_mob.location == self:
+        if (
+            include_mobs
+            and status.displayed_mob
+            and status.displayed_mob.location == self
+        ):
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, status.displayed_mob
             )

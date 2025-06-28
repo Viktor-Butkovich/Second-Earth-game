@@ -98,12 +98,12 @@ class combat(action.action):
             )
             pmob_image_id_list = (
                 background_image_id_list
-                + self.current_unit.get_image_id_list()
+                + self.current_unit.image_dict[constants.IMAGE_ID_LIST_FULL_MOB]
                 + ["misc/actor_backgrounds/pmob_outline.png"]
             )
             npmob_image_id_list = (
                 background_image_id_list
-                + self.opponent.get_image_id_list()
+                + self.opponent.image_dict[constants.IMAGE_ID_LIST_FULL_MOB]
                 + ["misc/actor_backgrounds/npmob_outline.png"]
             )
 
@@ -440,8 +440,7 @@ class combat(action.action):
             self.pre_start(
                 self.current_unit
             )  # do action set up if defense skipped to middle stage
-            if self.current_unit.sentry_mode:
-                self.current_unit.set_sentry_mode(False)
+            self.current_unit.set_permission(constants.SENTRY_MODE_PERMISSION, False)
             self.current_unit.select()
 
         else:

@@ -145,6 +145,16 @@ class world_handler:
         """
         return False
 
+    def configure_event_subscriptions(self) -> None:
+        """
+        Subscribes events related to this location, triggering updates to respond to dependency changes
+        """
+        constants.EventBus.subscribe(
+            self.update_contained_mob_habitability,
+            self.uuid,
+            constants.WORLD_SET_PARAMETER_ROUTE,
+        )  # Update contained mob habitability when world parameters change
+
     def remove(self) -> None:
         """
         Removes this object from relevant lists and prevents it from further appearing in or affecting the program
@@ -1168,9 +1178,15 @@ class world_handler:
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, status.displayed_location
             )
-        for mob in status.mob_list:
-            if mob.location and mob.location.true_world_handler == self:
-                mob.update_habitability()
+        constants.EventBus.publish(self.uuid, constants.WORLD_SET_PARAMETER_ROUTE)
+
+    def update_contained_mob_habitability(self) -> None:
+        """
+        Updates the habitability of all contained mobs in this world
+        """
+        for current_mob in status.mob_list:
+            if current_mob.location.true_world_handler == self:
+                current_mob.update_habitability()
 
     def update_pressure(self) -> None:
         """

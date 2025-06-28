@@ -163,7 +163,7 @@ class vehicle(pmob):
                 constants.INACTIVE_VEHICLE_PERMISSION, True, override=True
             )
             self.set_inventory_capacity(0)
-        self.set_sentry_mode(False)
+        self.set_permission(constants.SENTRY_MODE_PERMISSION, False)
 
     def get_sub_mobs(self) -> List[pmob]:
         """

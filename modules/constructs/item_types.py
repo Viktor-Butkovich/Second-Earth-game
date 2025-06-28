@@ -144,8 +144,7 @@ def transfer(
                                 )
                             return
 
-                if displayed_mob.sentry_mode:
-                    displayed_mob.set_sentry_mode(False)
+                displayed_mob.set_permission(constants.SENTRY_MODE_PERMISSION, False)
 
                 if source_type == "location_inventory":
                     source = status.displayed_location

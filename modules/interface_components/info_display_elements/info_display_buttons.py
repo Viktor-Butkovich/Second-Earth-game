@@ -59,8 +59,7 @@ class embark_all_passengers_button(button):
                 )
                 can_embark = False
             if can_embark:
-                if vehicle.sentry_mode:
-                    vehicle.set_sentry_mode(False)
+                vehicle.set_permission(constants.SENTRY_MODE_PERMISSION, False)
                 for subscribed_mob in vehicle.location.subscribed_mobs.copy():
                     if subscribed_mob.get_permission(
                         constants.PMOB_PERMISSION
@@ -146,8 +145,7 @@ class disembark_all_passengers_button(button):
                     )
                     can_disembark = False
             if can_disembark:
-                if vehicle.sentry_mode:
-                    vehicle.set_sentry_mode(False)
+                vehicle.set_permission(constants.SENTRY_MODE_PERMISSION, False)
                 if len(vehicle.subscribed_passengers) > 0:
                     vehicle.subscribed_passengers[-1].selection_sound()
                 vehicle.eject_passengers()
@@ -203,7 +201,7 @@ class enable_sentry_mode_button(button):
             displayed_mob = status.displayed_mob
             if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
                 return False
-            elif displayed_mob.sentry_mode:
+            elif displayed_mob.get_permission(constants.SENTRY_MODE_PERMISSION):
                 return False
             elif displayed_mob.get_permission(
                 constants.VEHICLE_PERMISSION
@@ -216,16 +214,17 @@ class enable_sentry_mode_button(button):
         Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button activates sentry mode for the selected unit
         """
         if main_loop_utility.action_possible():
-            displayed_mob = status.displayed_mob
-            displayed_mob.set_sentry_mode(True)
+            status.displayed_mob.set_permission(constants.SENTRY_MODE_PERMISSION, True)
             if (
                 constants.EffectManager.effect_active("promote_on_sentry")
-                and displayed_mob.any_permissions(
+                and status.displayed_mob.any_permissions(
                     constants.GROUP_PERMISSION, constants.OFFICER_PERMISSION
                 )
-                and not displayed_mob.get_permission(constants.VETERAN_PERMISSION)
-            ):  # purely for promotion testing, not normal functionality
-                displayed_mob.promote()
+                and not status.displayed_mob.get_permission(
+                    constants.VETERAN_PERMISSION
+                )
+            ):  # Purely for promotion testing, not normal functionality
+                status.displayed_mob.promote()
         else:
             text_utility.print_to_screen("You are busy and cannot enable sentry mode.")
 
@@ -244,25 +243,18 @@ class disable_sentry_mode_button(button):
         Output:
             boolean: Returns True if the selected mob is a pmob and is in sentry mode, otherwise returns False
         """
-        result = super().can_show(skip_parent_collection=skip_parent_collection)
-        if result:
-            displayed_mob = status.displayed_mob
-            if not displayed_mob.get_permission(constants.PMOB_PERMISSION):
-                return False
-            elif not displayed_mob.sentry_mode:
-                return False
-        return result
+        return super().can_show(
+            skip_parent_collection=skip_parent_collection
+        ) and status.displayed_mob.all_permissions(
+            constants.PMOB_PERMISSION, constants.SENTRY_MODE_PERMISSION
+        )
 
     def on_click(self):
         """
         Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button deactivates sentry mode for the selected unit
         """
         if main_loop_utility.action_possible():
-            displayed_mob = status.displayed_mob
-            displayed_mob.set_sentry_mode(False)
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, displayed_mob
-            )
+            status.displayed_mob.set_permission(constants.SENTRY_MODE_PERMISSION, False)
         else:
             text_utility.print_to_screen("You are busy and cannot disable sentry mode.")
 
@@ -637,8 +629,7 @@ class disembark_vehicle_button(button):
                     passenger = self.attached_label.attached_list[
                         self.attached_label.list_index
                     ]
-                    if passenger.sentry_mode:
-                        passenger.set_sentry_mode(False)
+                    passenger.set_permission(constants.SENTRY_MODE_PERMISSION, False)
                     passenger.selection_sound()
                     self.attached_label.attached_list[
                         self.attached_label.list_index
@@ -726,7 +717,7 @@ class embark_vehicle_button(button):
                         )
                         can_embark = False
                 if can_embark:
-                    rider.set_sentry_mode(False)
+                    rider.set_permission(constants.SENTRY_MODE_PERMISSION, False)
                     if len(vehicles) > 1:
                         vehicles[0].select()
                         for vehicle in vehicles:
@@ -761,8 +752,7 @@ class embark_vehicle_button(button):
                             )
                     else:
                         vehicle = vehicles[0]
-                        if vehicle.sentry_mode:
-                            vehicle.set_sentry_mode(False)
+                        vehicle.set_permission(constants.SENTRY_MODE_PERMISSION, False)
                         rider.embark_vehicle(vehicle)
             else:
                 text_utility.print_to_screen(
@@ -782,7 +772,7 @@ class embark_vehicle_button(button):
             None
         """
         constants.NotificationManager.clear_notification_queue()  # Skip remaining embark notifications
-        vehicle.set_sentry_mode(False)
+        vehicle.set_permission(constants.SENTRY_MODE_PERMISSION, False)
         rider.embark_vehicle(vehicle)
 
     def skip_embark_vehicle(self, rider, vehicles, index):
@@ -1036,8 +1026,9 @@ class work_crew_to_building_button(button):
                 ] > len(
                     self.attached_building.subscribed_work_crews
                 ):  # if has extra space
-                    if self.attached_work_crew.sentry_mode:
-                        self.attached_work_crew.set_sentry_mode(False)
+                    self.attached_work_crew.set_permission(
+                        constants.SENTRY_MODE_PERMISSION, False
+                    )
                     self.attached_work_crew.work_building(self.attached_building)
                 else:
                     text_utility.print_to_screen(
@@ -1069,8 +1060,7 @@ class switch_theatre_button(button):
         if main_loop_utility.action_possible():
             current_mob = status.displayed_mob
             if current_mob.movement_points >= 1:
-                if current_mob.sentry_mode:
-                    current_mob.set_sentry_mode(False)
+                current_mob.set_permission(constants.SENTRY_MODE_PERMISSION, False)
                 if not constants.current_game_mode == constants.STRATEGIC_MODE:
                     game_transitions.set_game_mode(constants.STRATEGIC_MODE)
                 current_mob.clear_automatic_route()

@@ -360,7 +360,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.REMOVE_EQUIPMENT_BUTTON:
             if status.displayed_mob:
                 return [
-                    f"Click to unequip {self.equipment_type}"
+                    f"Click to unequip {self.equipment_type.name}"
                 ] + self.equipment_type.description
 
         elif self.button_type == constants.USE_EACH_EQUIPMENT_BUTTON:
@@ -763,8 +763,9 @@ class button(interface_elements.interface_element):
                                     constants.last_selection_outline_switch = (
                                         constants.current_time
                                     )
-                                    if current_mob.sentry_mode:
-                                        current_mob.set_sentry_mode(False)
+                                    current_mob.set_permission(
+                                        constants.SENTRY_MODE_PERMISSION, False
+                                    )
                                     current_mob.clear_automatic_route()
 
                                 elif current_mob.get_permission(
@@ -1156,8 +1157,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.WAKE_UP_ALL_BUTTON:
             if main_loop_utility.action_possible():
                 for current_pmob in status.pmob_list:
-                    if current_pmob.sentry_mode:
-                        current_pmob.set_sentry_mode(False)
+                    current_pmob.set_permission(constants.SENTRY_MODE_PERMISSION, False)
                 actor_utility.calibrate_actor_info_display(
                     status.mob_info_display, status.displayed_mob
                 )
@@ -1530,7 +1530,6 @@ class cycle_same_location_button(button):
                 cycled_location.subscribed_mobs.pop(0)
             )
             cycled_location.subscribed_mobs[0].cycle_select()
-            cycled_location.update_image_bundle()
         else:
             text_utility.print_to_screen("You are busy and cannot cycle units.")
 
@@ -1655,7 +1654,11 @@ class same_location_icon(button):
 
                     elif len(self.previous_subscribed_mobs) > self.index:
                         self.attached_mob = self.previous_subscribed_mobs[self.index]
-                        self.image.set_image(self.attached_mob.get_image_id_list())
+                        self.image.set_image(
+                            self.attached_mob.image_dict[
+                                constants.IMAGE_ID_LIST_FULL_MOB
+                            ]
+                        )
             else:
                 self.attached_mob = None
 

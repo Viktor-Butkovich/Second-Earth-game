@@ -443,12 +443,12 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Use event bus for mob/interface image ID lists as well
-#   Try to replace all manual invocations get_image_id_list()
-# To maintain update_habitability with subscriptions, each location can subscribe to its own terrain parameter updates with a "update all mobs habitabilities" function
-#   Requires that a location can access all of its contained mobs iteratively - use the get_all_sub_mobs of each contained mob, and also make sure to check buildings
-#   Use the same function to calculate per-location item demand (making sure that contained mobs do NOT calculate upkeep recursively)
-#       Upkeep does need to be calculated recursively for unit tooltips, so this should use a boolean flag
+# Bug where tab name changes when cycling between units
+# Look into whether buildings are saving correctly
+# Test that image updates in cases where temperature determines habitability - spacesuit should change based on current location
+# Use contained_mobs() to calculate per-location item demand (making sure that contained mobs do NOT calculate upkeep recursively)
+#     Upkeep does need to be calculated recursively for unit tooltips, so this should use a boolean flag
+# Add 5x5 building slot system
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Gradually incorporate event bus subscriptions rather than manual data binding for info displays, mob images
 # Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display

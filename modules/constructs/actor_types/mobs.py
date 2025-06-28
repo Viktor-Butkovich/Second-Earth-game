@@ -64,6 +64,7 @@ class mob(actor):
             constants.IMAGE_ID_LIST_RIGHT_PORTRAIT: input_dict.get(
                 constants.IMAGE_ID_LIST_RIGHT_PORTRAIT, []
             ),
+            constants.IMAGE_ID_LIST_FULL_MOB: [],  # Maintained by update_image_bundle
         }
         self.end_turn_destination = None
         self.loading_end_turn_destination = None
@@ -100,6 +101,10 @@ class mob(actor):
                 constants.STARVATION_PERMISSION,
                 input_dict.get(constants.STARVATION_PERMISSION, False),
             )
+            self.set_permission(
+                constants.SENTRY_MODE_PERMISSION,
+                input_dict.get(constants.SENTRY_MODE_PERMISSION, False),
+            )
         else:
             self.unit_type.on_recruit()
             self.reset_movement_points()
@@ -107,6 +112,7 @@ class mob(actor):
                 self.creation_turn = 0
             else:
                 self.creation_turn = constants.turn
+        self.configure_event_subscriptions()
         self.finish_init(original_constructor, from_save, input_dict)
 
     @property
@@ -119,6 +125,49 @@ class mob(actor):
     @property
     def contained_mobs(self) -> List[Any]:
         return [self]
+
+    @property
+    def contained_mobs_besides_self(self) -> List[Any]:
+        contained_mobs = self.contained_mobs
+        contained_mobs.remove(self)
+        return contained_mobs
+
+    def configure_event_subscriptions(self) -> None:
+        """
+        Subscribes events related to this mob, triggering updates to respond to dependency changes
+        """
+        constants.EventBus.subscribe(
+            self.update_image_bundle,
+            self.uuid,
+            constants.MOB_SET_PERMISSION_UPDATE_IMAGE_ROUTE,
+        )  # Update image bundle when permissions change
+
+        constants.EventBus.subscribe(
+            self.update_habitability,
+            self.uuid,
+            constants.MOB_SET_PERMISSION_ROUTE,
+            constants.SPACESUITS_PERMISSION,
+        )
+        constants.EventBus.subscribe(
+            self.update_habitability,
+            self.uuid,
+            constants.MOB_SET_PERMISSION_ROUTE,
+            constants.IN_VEHICLE_PERMISSION,
+        )
+        constants.EventBus.subscribe(
+            self.update_habitability,
+            self.uuid,
+            constants.MOB_SET_PERMISSION_ROUTE,
+            constants.VEHICLE_PERMISSION,
+        )
+        # Update habitability based on changes to spacesuits, vehicle boarding, or vehicle status
+        #   Note that habitability updates are published even when images aren't updated
+
+        constants.EventBus.subscribe(
+            self.update_habitability,
+            self.uuid,
+            constants.LOCATION_SUBSCRIBE_MOB_ROUTE,
+        )  # Update habitability upon subscribing to a new location
 
     def load_end_turn_destination(self):
         """
@@ -172,13 +221,15 @@ class mob(actor):
 
     def update_habitability(self):
         """
-        Updates this unit's habitability based on its location
+        Recursively updates this unit's habitability based on its location
         """
         self.habitability = self.location.get_unit_habitability(self)
         self.set_permission(
             constants.SURVIVABLE_PERMISSION,
             self.habitability != constants.HABITABILITY_DEADLY,
         )
+        for current_mob in self.contained_mobs_besides_self:
+            current_mob.update_habitability()
 
     def can_travel(self):
         """
@@ -229,14 +280,20 @@ class mob(actor):
         else:
             return self.subscribed_location
 
-    def on_move(self):
+    def publish_events(self, *routes: str) -> None:
         """
-        Automatically called when unit arrives at a location for any reason
+        Description:
+            Publishes to all applicable endpoints with the inputted routes
+        Input:
+            string list routes: Hierarchical of routes to publish to
+        Output:
+            None
         """
-        for current_mob in self.contained_mobs:
-            current_mob.update_habitability()
-            if current_mob.equipment:  # Update spacesuit image for local conditions
-                current_mob.update_image_bundle()
+        endpoints = [f"{self.uuid}"]
+        if self == status.displayed_mob:
+            endpoints.append(constants.DISPLAYED_MOB_ENDPOINT)
+        for endpoint in endpoints:
+            constants.EventBus.publish(endpoint, *routes)
 
     def permissions_setup(self) -> None:
         """
@@ -259,7 +316,7 @@ class mob(actor):
         Output:
             None
         """
-        previous_effect = self.get_permission(task)
+        previous_permission = self.get_permission(task)
         if override:
             modified_permissions = self.override_permissions
         else:
@@ -270,20 +327,7 @@ class mob(actor):
         else:
             modified_permissions[task] = value
 
-        if (
-            previous_effect != self.get_permission(task)
-            and self.get_permission(constants.INIT_COMPLETE_PERMISSION)
-            and not self.get_permission(constants.DUMMY_PERMISSION)
-            and update_image
-        ):
-            self.update_image_bundle()
-        if task == constants.IN_VEHICLE_PERMISSION or (
-            task in [constants.VEHICLE_PERMISSION, constants.SPACESUITS_PERMISSION]
-            and (not self.get_permission(constants.DUMMY_PERMISSION))
-        ):
-            for current_mob in self.contained_mobs:
-                current_mob.update_habitability()
-        elif task == constants.TRAVELING_PERMISSION and self.get_permission(
+        if task == constants.TRAVELING_PERMISSION and self.get_permission(
             constants.SPACESHIP_PERMISSION
         ):
             self.start_ambient_sound()
@@ -305,6 +349,38 @@ class mob(actor):
                 self.group.worker.get_permission(constants.DEHYDRATION_PERMISSION)
                 or self.group.officer.get_permission(constants.DEHYDRATION_PERMISSION),
             )
+
+        elif task == constants.SENTRY_MODE_PERMISSION:
+            if self.get_permission(constants.GROUP_PERMISSION):
+                self.officer.set_permission(
+                    constants.SENTRY_MODE_PERMISSION, value, update_image=False
+                )
+                self.worker.set_permission(
+                    constants.SENTRY_MODE_PERMISSION, value, update_image=False
+                )
+            if value == True:
+                self.remove_from_turn_queue()
+            else:
+                if (
+                    self.movement_points > 0
+                    and not (
+                        self.get_permission(constants.VEHICLE_PERMISSION)
+                        and self.crew == None
+                    )
+                    and not self.any_permissions(
+                        constants.IN_VEHICLE_PERMISSION,
+                        constants.IN_GROUP_PERMISSION,
+                        constants.IN_BUILDING_PERMISSION,
+                    )
+                ):
+                    self.add_to_turn_queue()
+
+        if previous_permission != self.get_permission(task):
+            self.publish_events(constants.MOB_SET_PERMISSION_ROUTE, task)
+            if self.get_permission(constants.INIT_COMPLETE_PERMISSION) and update_image:
+                self.publish_events(
+                    constants.MOB_SET_PERMISSION_UPDATE_IMAGE_ROUTE, task
+                )
 
     def all_permissions(self, *tasks: str) -> bool:
         """
@@ -474,6 +550,9 @@ class mob(actor):
         save_dict[constants.STARVATION_PERMISSION] = self.get_permission(
             constants.STARVATION_PERMISSION
         )
+        save_dict[constants.SENTRY_MODE_PERMISSION] = self.get_permission(
+            constants.SENTRY_MODE_PERMISSION
+        )
         if hasattr(self, "image_variant"):
             save_dict["image_id"] = self.image_variants[0]
             save_dict["image_variant"] = self.image_variant
@@ -597,6 +676,7 @@ class mob(actor):
                     "level": constants.OVERLAY_ICON_LEVEL,
                 }
             )
+
         if not override_permissions.get(
             constants.SURVIVABLE_PERMISSION,
             self.get_permission(constants.SURVIVABLE_PERMISSION),
@@ -618,7 +698,7 @@ class mob(actor):
                 }
             )
 
-        if self.sentry_mode:
+        if self.get_permission(constants.SENTRY_MODE_PERMISSION):
             image_id_list.append(
                 {
                     "image_id": "misc/sentry_icon.png",
@@ -782,7 +862,7 @@ class mob(actor):
                 #     cost = self.movement_cost
         return cost
 
-    def adjacent_to_water(self):
+    def adjacent_to_water(self) -> bool:
         """
         Description:
             Returns whether any of the locations directly adjacent to this mob's location has the water terrain. Otherwise, returns False
@@ -796,7 +876,7 @@ class mob(actor):
                 return True
         return False
 
-    def change_movement_points(self, change):
+    def change_movement_points(self, change) -> None:
         """
         Changes this mob's movement points by the inputted amount. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
         """
@@ -818,7 +898,7 @@ class mob(actor):
                     status.mob_info_display, self
                 )
 
-    def set_movement_points(self, new_value):
+    def set_movement_points(self, new_value: float) -> None:
         """
         Sets this mob's movement points to the inputted amount. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
         """
@@ -834,7 +914,7 @@ class mob(actor):
         if status.displayed_mob == self:
             actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
 
-    def reset_movement_points(self):
+    def reset_movement_points(self) -> None:
         """
         Sets this mob's movement points to its maximum number of movement points at the end of the turn. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
         """
@@ -865,7 +945,7 @@ class mob(actor):
 
     def set_max_movement_points(
         self, new_value, initial_setup=True, allow_increase=True
-    ):
+    ) -> None:
         """
         Description:
             Sets this mob's maximum number of movement points and changes its current movement points by the amount increased or to the maximum, based on the input boolean
@@ -887,7 +967,7 @@ class mob(actor):
         else:
             self.set_movement_points(self.movement_points + increase)
 
-    def reselect(self):
+    def reselect(self) -> None:
         """
         Deselects and reselects this mob if it was already selected
         """
@@ -899,7 +979,7 @@ class mob(actor):
             self.select()
             self.locked_ambient_sound = False
 
-    def select(self):
+    def select(self) -> None:
         """
         Selects this mob, causing this mob to be shown in the mob display and causing a selection outline to appear around it
         """
@@ -912,7 +992,7 @@ class mob(actor):
         actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
         actor_utility.focus_minimap_grids(self.location)
 
-    def cycle_select(self):
+    def cycle_select(self) -> None:
         """
         Selects this mob while also moving it to the front of the location and playing its selection sound - should be used when unit is clicked on
         """
@@ -920,7 +1000,7 @@ class mob(actor):
             if status.displayed_mob != self:
                 self.subscribed_location.subscribed_mobs.remove(self)
                 self.subscribed_location.subscribed_mobs.insert(0, self)
-                self.subscribed_location.update_image_bundle()
+                self.subscribed_location.update_image_bundle(update_mob_only=True)
                 self.select()
                 self.selection_sound()
         else:
@@ -928,20 +1008,34 @@ class mob(actor):
                 "You are busy and cannot select a different unit"
             )
 
-    def move_to_front(self):
+    def move_to_front(self) -> None:
         """
         Moves the image of this unit to the front of the location, making it visible and selected first when the location is clicked
         """
-        current_location = self.location
-        current_location.subscribed_mobs.remove(self)
-        current_location.subscribed_mobs.insert(0, self)
-        current_location.update_image_bundle()
+        if self.location.subscribed_mobs[0] != self:
+            current_location = self.location
+            current_location.subscribed_mobs.remove(self)
+            current_location.subscribed_mobs.insert(0, self)
 
-    def update_image_bundle(self):
+    def update_image_bundle(self) -> None:
         """
         Updates this actor's images with its current image id list
         """
-        self.location.update_image_bundle(update_mob_only=True)
+        previous_image = self.image_dict[constants.IMAGE_ID_LIST_FULL_MOB].copy()
+        self.image_dict[constants.IMAGE_ID_LIST_FULL_MOB] = self.get_image_id_list()
+        if previous_image != self.image_dict[constants.IMAGE_ID_LIST_FULL_MOB]:
+            self.refresh_attached_images()
+            if self.get_permission(constants.IN_GROUP_PERMISSION):
+                self.group.update_image_bundle()
+
+    def refresh_attached_images(self) -> None:
+        """
+        Updates this mob's images wherever they are shown (locations and info displays)
+            Should be invoked after any changes to the image bundle
+        Note that location's refresh_attached_images() already handles info display updates
+        """
+        if self.location.subscribed_mobs and self.location.subscribed_mobs[0] == self:
+            self.location.update_image_bundle(update_mob_only=True)
 
     @property
     def tooltip_text(self) -> List[List[str]]:
@@ -1067,7 +1161,9 @@ class mob(actor):
             else:
                 tooltip_list.append("Attitude: Neutral")
             tooltip_list.append("You do not control this unit")
-        elif self.get_permission(constants.PMOB_PERMISSION) and self.sentry_mode:
+        elif self.all_permissions(
+            constants.PMOB_PERMISSION, constants.SENTRY_MODE_PERMISSION
+        ):
             tooltip_list.append("This unit is in sentry mode")
 
         return tooltip_list
@@ -1313,10 +1409,9 @@ class mob(actor):
         Output:
             None
         """
-        if self.get_permission(constants.PMOB_PERMISSION) and self.sentry_mode:
-            self.set_sentry_mode(False)
         self.end_turn_destination = None  # Cancels planned movements
-        status.displayed_mob.set_permission(constants.TRAVELING_PERMISSION, False)
+        self.set_permission(constants.TRAVELING_PERMISSION, False)
+        self.set_permission(constants.SENTRY_MODE_PERMISSION, False)
         self.change_movement_points(-1 * self.get_movement_cost(x_change, y_change))
         current_location = self.location
         new_location = current_location.world_handler.find_location(
@@ -1331,7 +1426,6 @@ class mob(actor):
             self.manage_inventory_attrition()
 
         self.last_move_direction = (x_change, y_change)
-        self.on_move()
 
     def retreat(self):
         """

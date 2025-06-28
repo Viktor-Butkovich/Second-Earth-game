@@ -53,6 +53,10 @@ class actor_display_free_image(free_image):
                     image_id_list += new_actor.image_dict[
                         constants.IMAGE_ID_LIST_DEFAULT
                     ]
+                elif new_actor.actor_type == constants.MOB_ACTOR_TYPE:
+                    image_id_list += new_actor.image_dict[
+                        constants.IMAGE_ID_LIST_FULL_MOB
+                    ]
                 else:
                     image_id_list += new_actor.get_image_id_list()
                 if new_actor.actor_type == constants.MOB_ACTOR_TYPE:
