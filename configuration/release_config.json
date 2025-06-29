@@ -15,7 +15,7 @@
    ],
    "effects": [
       "debug_tab_selection",
-      "track_item_requests",
+      "debug_item_requests",
       "allow_toggle_god_mode",
       "omit_default_names",
       "hide_old_buttons",

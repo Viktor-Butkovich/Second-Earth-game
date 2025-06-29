@@ -1235,7 +1235,7 @@ class location(actors.actor):
                 image_id_list.append(
                     {
                         "image_id": self.default_image_id,
-                        "level": -9,
+                        "level": constants.TERRAIN_BACKDROP_LEVEL,
                         "color_filter": self.get_color_filter(),
                         "green_screen": self.get_green_screen(),
                         "pixellated": force_pixellated
@@ -1251,7 +1251,7 @@ class location(actors.actor):
                             }
                         terrain_overlay_image.update(
                             {
-                                "level": -8,
+                                "level": constants.TERRAIN_OVERLAY_LEVEL,
                                 "color_filter": self.get_color_filter(),
                                 "pixellated": force_pixellated
                                 or not self.knowledge_available(
@@ -1278,7 +1278,7 @@ class location(actors.actor):
                             image_id_list[-1][
                                 "detail_level"
                             ] = constants.TERRAIN_DETAIL_LEVEL
-                        image_id_list[-1]["level"] = -7
+                        image_id_list[-1]["level"] = constants.TERRAIN_CLOUDS_LEVEL
                         if not image_id_list[-1].get("green_screen", None):
                             image_id_list[-1]["green_screen"] = self.get_green_screen()
                 if not terrain_only:
@@ -1330,7 +1330,7 @@ class location(actors.actor):
                     {
                         "image_id": map_mode_image,
                         "detail_level": 1.0,
-                        "level": -1,
+                        "level": constants.MAP_MODE_LEVEL,
                     }
                 )
                 if constants.MAP_MODE_ALPHA:

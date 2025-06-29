@@ -432,7 +432,7 @@ def manage_upkeep_expenditure() -> None:
                 unfulfilled_item_request = current_location.fulfill_item_request(
                     item_request.copy()
                 )
-                if constants.EffectManager.effect_active("track_item_requests"):
+                if constants.EffectManager.effect_active("debug_item_requests"):
                     if current_world.is_abstract_world or current_location.name != None:
                         name = current_location.name.capitalize()
                     else:

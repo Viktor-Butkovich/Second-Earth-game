@@ -578,7 +578,7 @@ def callback(target, function, *args):
 
 def generate_frame(
     image_id: any,
-    frame: str = "buttons/default_button.png",
+    frame: str = "buttons/default_button_frame.png",
     size: float = 0.75,
     y_offset: float = -0.02,
     x_offset: float = 0.02,
@@ -594,7 +594,7 @@ def generate_frame(
     """
     frame = {
         "image_id": frame,
-        "level": constants.BACKGROUND_LEVEL,
+        "level": constants.FRONT_LEVEL,
         "detail_level": 1.0,
     }
 
@@ -607,7 +607,7 @@ def generate_frame(
                 "y_size": size,
                 "x_offset": x_offset,
                 "y_offset": y_offset,
-                "level": constants.BACKGROUND_LEVEL + 1,
+                "level": constants.FRONT_LEVEL - 1,
                 "detail_level": constants.BUTTON_DETAIL_LEVEL,
             },
         )

@@ -415,7 +415,15 @@ class full_world_handler(world_handlers.world_handler):
             int tuple list: Returns a latitude line (list of coordinates from 1 pole to the other) that the inputted coordinates are on
         """
         # Possible sporadic error here - coordinates passed in seem to be out of bounds
-        latitude_line_type = self.latitude_lines_types[coordinates[0]][coordinates[1]]
+        try:
+            latitude_line_type = self.latitude_lines_types[coordinates[0]][
+                coordinates[1]
+            ]
+        except:
+            constants.SaveLoadManager.save_game("save1.pickle")
+            raise IndexError(
+                f"Invalid indexes: {coordinates} for world dimensions {self.world_dimensions}. Saved crash report to 'save1.pickle'."
+            )
         if latitude_line_type == None:
             for offset in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
                 latitude_line_type = self.latitude_lines_types[

@@ -116,6 +116,15 @@ def generate_capitalized_article(word):
         return "A "
 
 
+def pretty_print_image_id_list(image_id_list: List[dict]):
+    """
+    Applies pretty_print_image_id to each image ID in the inputted list
+    """
+    for idx, image_id in enumerate(image_id_list):
+        print(f"Image ID {idx + 1}:")
+        pretty_print_image_id(image_id)
+
+
 def pretty_print_image_id(image_dict: dict):
     """
     Description:

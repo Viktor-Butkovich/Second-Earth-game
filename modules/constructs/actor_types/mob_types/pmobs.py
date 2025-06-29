@@ -281,7 +281,7 @@ class pmob(mob):
 
         # Get the most severe penalty of the resource types with any missed upkeep
 
-        if constants.EffectManager.effect_active("track_item_requests"):
+        if constants.EffectManager.effect_active("debug_item_requests"):
             if missing_upkeep:
                 print(
                     f"{self.name} attempted to consume {self.get_item_upkeep(recurse=False)}"
