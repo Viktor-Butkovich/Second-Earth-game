@@ -1055,33 +1055,11 @@ class button(interface_elements.interface_element):
                         if not status.displayed_mob.equipment.get(equipment.key, False):
                             radio_effect = status.displayed_mob.get_radio_effect()
                             equipment.equip(status.displayed_mob)
+                            status.displayed_location.change_inventory(equipment, -1)
                             if (
                                 radio_effect != status.displayed_mob.get_radio_effect()
                             ):  # If radio effect changed, play new voice line
                                 status.displayed_mob.selection_sound()
-                            status.displayed_location.change_inventory(equipment, -1)
-                            actor_utility.calibrate_actor_info_display(
-                                status.location_info_display, status.displayed_location
-                            )
-                            actor_utility.calibrate_actor_info_display(
-                                status.mob_info_display, status.displayed_mob
-                            )
-                            actor_utility.select_interface_tab(
-                                status.mob_tabbed_collection,
-                                status.mob_inventory_collection,
-                            )
-                            if (
-                                status.displayed_location_inventory
-                                and status.displayed_location_inventory.current_item
-                            ):
-                                actor_utility.calibrate_actor_info_display(
-                                    status.location_inventory_info_display,
-                                    status.displayed_location_inventory,
-                                )
-                            else:
-                                actor_utility.calibrate_actor_info_display(
-                                    status.location_inventory_info_display, None
-                                )
                         else:
                             text_utility.print_to_screen(
                                 f"This unit already has {equipment.key} equipped."
