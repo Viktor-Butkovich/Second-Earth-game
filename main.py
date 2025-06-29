@@ -443,9 +443,9 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Test that image updates in cases where temperature determines habitability - spacesuit should change based on current location
 # Use contained_mobs() to calculate per-location item demand (making sure that contained mobs do NOT calculate upkeep recursively)
 #     Upkeep does need to be calculated recursively for unit tooltips, so this should use a boolean flag
+# Significantly decrease retirement rate, especially in the early game
 # Add 5x5 building slot system
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Gradually incorporate event bus subscriptions rather than manual data binding for info displays, mob images

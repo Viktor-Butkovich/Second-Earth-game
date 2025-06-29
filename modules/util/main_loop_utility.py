@@ -735,6 +735,9 @@ def manage_rmb_down(clicked_button):
                             actor_utility.focus_minimap_grids(current_location)
                             moved_mob.select()
                             moved_mob.selection_sound()
+                        else:
+                            manage_lmb_down(clicked_button)
+                            return
     elif flags.drawing_automatic_route:
         stopping = True
         flags.drawing_automatic_route = False

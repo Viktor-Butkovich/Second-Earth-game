@@ -967,6 +967,7 @@ SENTRY_MODE_PERMISSION: str = "sentry_mode"
 DUMMY_PERMISSION: str = "dummy"
 SPACESUITS_PERMISSION: str = "spacesuits"
 SURVIVABLE_PERMISSION: str = "survivable"
+DEADLY_EXTERNAL_ENVIRONMENT_PERMISSION: str = "deadly_external_environment"
 
 EXPEDITION_PERMISSION: str = "expedition"
 CONSTRUCTION_PERMISSION: str = "construction"

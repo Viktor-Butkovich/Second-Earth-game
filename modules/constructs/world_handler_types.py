@@ -262,9 +262,10 @@ class full_world_handler(world_handlers.world_handler):
             self.uuid,
             constants.LOCATION_SET_PARAMETER_ROUTE,
             constants.WATER,
-        )
-        # Subscribes for update_average_water to be invoked whenever the water of any location in this world is set
-
+        )  # Subscribes for update_average_water to be invoked whenever the water of any location in this world is set
+        constants.EventBus.subscribe(
+            self.update_globe_projection, constants.UPDATE_MAP_MODE_ROUTE
+        )  # Subscribes for globe projection to be updated whenever the map mode is changed
         for current_location in self.get_flat_location_list():
             current_location.find_adjacent_locations()
 

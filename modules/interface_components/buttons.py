@@ -939,16 +939,12 @@ class button(interface_elements.interface_element):
             constants.DROP_EACH_ITEM_BUTTON,
         ]:
             if self.button_type == constants.PICK_UP_EACH_ITEM_BUTTON:
-                source_type = "location_inventory"
+                source_type = constants.LOCATION_INVENTORY_ACTOR_TYPE
             else:
-                source_type = "mob_inventory"
+                source_type = constants.MOB_INVENTORY_ACTOR_TYPE
             item_types.transfer(
                 source_type, transferred_item=None, amount=None
             )  # Transfer all of each type
-            if status.displayed_location_inventory:
-                status.displayed_location_inventory.on_click()
-            if status.displayed_mob_inventory:
-                status.displayed_mob_inventory.on_click()
 
         elif self.button_type in [
             constants.SELL_ITEM_BUTTON,
@@ -1027,10 +1023,6 @@ class button(interface_elements.interface_element):
                                     )
                                     actor_utility.calibrate_actor_info_display(
                                         status.mob_info_display, status.displayed_mob
-                                    )
-                                    actor_utility.select_interface_tab(
-                                        status.mob_tabbed_collection,
-                                        status.mob_inventory_collection,
                                     )
                                     if (
                                         status.displayed_location_inventory
@@ -2322,7 +2314,7 @@ class tab_button(button):
         self.tab_name = input_dict["tab_name"]
         super().__init__(input_dict)
 
-    def can_show(self, skip_parent_collection=False):
+    def can_show(self, skip_parent_collection=False) -> bool:
         """
         Description:
             Returns whether this button can be shown - uses usual can_show logic, but shows outline iff tab is active
@@ -2331,42 +2323,10 @@ class tab_button(button):
         Output:
             boolean: Returns True if this button can appear during the current game mode, otherwise returns False
         """
-        return_value = super().can_show(skip_parent_collection=skip_parent_collection)
-        if return_value:
-            if self.identifier == constants.SETTLEMENT_PANEL:
-                return_value = bool(
-                    status.displayed_location.settlement
-                    or status.displayed_location.has_building(constants.INFRASTRUCTURE)
-                )
-
-            elif self.identifier == constants.INVENTORY_PANEL:
-                if self.linked_element == status.location_inventory_collection:
-                    return_value = (
-                        status.displayed_location.inventory
-                        or status.displayed_location.inventory_capacity > 0
-                        or status.displayed_location.infinite_inventory_capacity
-                    )
-                else:
-                    return_value = status.displayed_mob.inventory_capacity > 0 or (
-                        flags.enable_equipment_panel
-                        and status.displayed_mob.get_permission(
-                            constants.PMOB_PERMISSION
-                        )
-                        and status.displayed_mob.equipment
-                    )
-
-            elif self.identifier == constants.REORGANIZATION_PANEL:
-                return_value = status.displayed_mob.get_permission(
-                    constants.PMOB_PERMISSION
-                )
-            elif self.identifier == constants.LOCAL_CONDITIONS_PANEL:
-                return_value = not status.displayed_location.is_abstract_location
-            elif self.identifier in [
-                constants.GLOBAL_CONDITIONS_PANEL,
-                constants.TEMPERATURE_BREAKDOWN_PANEL,
-            ]:
-                return_value = status.displayed_location.is_abstract_location
-
+        return_value = (
+            super().can_show(skip_parent_collection=skip_parent_collection)
+            and self.tab_enabled()
+        )
         if (
             self.linked_element
             == self.parent_collection.parent_collection.current_tabbed_member
@@ -2374,8 +2334,45 @@ class tab_button(button):
             self.showing_outline = True
         else:
             self.showing_outline = False
-
         return return_value
+
+    def tab_enabled(self) -> bool:
+        """
+        Description:
+            Returns whether this tab is enabled, based on the tab type and the selected actor's status
+        Input:
+            None
+        Output:
+            boolean: Returns whether this tab is enabled
+        """
+        if self.identifier == constants.SETTLEMENT_PANEL:
+            return bool(
+                status.displayed_location.settlement
+                or status.displayed_location.has_building(constants.INFRASTRUCTURE)
+            )
+        elif self.identifier == constants.INVENTORY_PANEL:
+            if self.linked_element == status.location_inventory_collection:
+                return (
+                    status.displayed_location.inventory
+                    or status.displayed_location.inventory_capacity > 0
+                    or status.displayed_location.infinite_inventory_capacity
+                )
+            else:
+                return status.displayed_mob.inventory_capacity > 0 or (
+                    flags.enable_equipment_panel
+                    and status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
+                    and status.displayed_mob.equipment
+                )
+        elif self.identifier == constants.REORGANIZATION_PANEL:
+            return status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
+        elif self.identifier == constants.LOCAL_CONDITIONS_PANEL:
+            return not status.displayed_location.is_abstract_location
+        elif self.identifier in [
+            constants.GLOBAL_CONDITIONS_PANEL,
+            constants.TEMPERATURE_BREAKDOWN_PANEL,
+        ]:
+            return status.displayed_location.is_abstract_location
+        return False
 
 
 class reorganize_unit_button(button):
@@ -2939,7 +2936,6 @@ class map_mode_button(button):
         """
         constants.current_map_mode = self.map_mode
         constants.EventBus.publish(constants.UPDATE_MAP_MODE_ROUTE, self.map_mode)
-        status.current_world.update_globe_projection()
 
     @property
     def tooltip_text(self) -> List[List[str]]:

@@ -228,6 +228,10 @@ class mob(actor):
             constants.SURVIVABLE_PERMISSION,
             self.habitability != constants.HABITABILITY_DEADLY,
         )
+        self.set_permission(
+            constants.DEADLY_EXTERNAL_ENVIRONMENT_PERMISSION,
+            self.location.get_unit_habitability(unit=None) == constants.HABITABILITY_DEADLY,
+        )
         for current_mob in self.contained_mobs_besides_self:
             current_mob.update_habitability()
 

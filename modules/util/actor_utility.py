@@ -119,12 +119,6 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
         status.displayed_location = new_actor
         if new_actor:
             new_actor.select()  # Plays correct music based on location selected - main menu/earth music
-        if (
-            not flags.choosing_destination
-        ):  # Don't change tabs while choosing destination
-            select_default_tab(
-                status.location_tabbed_collection, status.displayed_location
-            )
 
     elif info_display == status.mob_info_display:
         changed_displayed_mob = new_actor != status.displayed_mob
@@ -135,7 +129,6 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
         status.displayed_mob = new_actor
         if changed_displayed_mob and new_actor:
             new_actor.start_ambient_sound()
-        select_default_tab(status.mob_tabbed_collection, new_actor)
         if new_actor and new_actor.location == status.displayed_location:
             for current_same_location_icon in status.same_location_icon_list:
                 current_same_location_icon.reset()
@@ -144,6 +137,14 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
     if new_actor:
         target = new_actor
     info_display.calibrate(target, override_exempt)
+
+    if not flags.choosing_destination:  # Don't change tabs while choosing destination
+        if info_display == status.mob_info_display:
+            select_default_tab(status.mob_tabbed_collection, status.displayed_mob)
+        elif info_display == status.location_info_display:
+            select_default_tab(
+                status.location_tabbed_collection, status.displayed_location
+            )
 
 
 def select_default_tab(tabbed_collection, displayed_actor) -> None:
@@ -159,7 +160,7 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
     target_tab = None
     if displayed_actor:
         for current_tab in tabbed_collection.mru_tab_queue:
-            if current_tab.tab_button.can_show():
+            if current_tab.tab_button.tab_enabled():
                 target_tab = current_tab
                 break
             # Use the most recently used tab that is still showing
@@ -171,7 +172,7 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
                 if (
                     (
                         status.location_tabbed_collection.current_tabbed_member == None
-                        or status.location_tabbed_collection.current_tabbed_member.tab_button.can_show()
+                        or status.location_tabbed_collection.current_tabbed_member.tab_button.tab_enabled()
                     )
                     and status.location_tabbed_collection.current_tabbed_member
                     != status.local_conditions_collection
@@ -185,7 +186,7 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
                     target_tab = status.mob_inventory_collection
                 elif status.displayed_location.settlement:
                     target_tab = status.settlement_collection
-                elif status.local_conditions_collection.tab_button.can_show():
+                elif status.local_conditions_collection.tab_button.tab_enabled():
                     target_tab = status.local_conditions_collection
                 else:
                     target_tab = status.global_conditions_collection
@@ -211,9 +212,7 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
                 # Otherwise, select reorganization tab
             if constants.EffectManager.effect_active("debug_tab_selection"):
                 print("Defaulting to tab:", target_tab.tab_button.tab_name)
-    if target_tab and (
-        target_tab == status.location_inventory_collection or not target_tab.showing
-    ):
+    if target_tab and target_tab.tab_button.tab_enabled():
         select_interface_tab(tabbed_collection, target_tab)
 
 

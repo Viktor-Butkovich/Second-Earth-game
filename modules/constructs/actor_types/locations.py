@@ -1144,7 +1144,7 @@ class location(actors.actor):
         Updates this location's cloud images with the inputted variant options
             Cloud color, transparency, and frequency depend on global conditions
         """
-        location.current_clouds = []
+        self.current_clouds = []
 
         cloud_type = None
         if random.random() < self.world_handler.cloud_frequency:
@@ -1152,14 +1152,14 @@ class location(actors.actor):
         elif random.random() < self.world_handler.toxic_cloud_frequency:
             cloud_type = "toxic"
         if cloud_type:
-            location.current_clouds.append(
+            self.current_clouds.append(
                 {
                     "image_id": "misc/shader.png",
                     "detail_level": constants.CLOUDS_DETAIL_LEVEL,
                 }
             )
         if self.world_handler.atmosphere_haze_alpha > 0:
-            location.current_clouds.append(
+            self.current_clouds.append(
                 {
                     "image_id": f"terrains/clouds_solid_{random.randrange(0, num_solid_cloud_variants)}.png",
                     "alpha": self.world_handler.atmosphere_haze_alpha,
@@ -1174,7 +1174,7 @@ class location(actors.actor):
                 }
             )
         if cloud_type == "water vapor":
-            location.current_clouds.append(
+            self.current_clouds.append(
                 {
                     "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
                     "detail_level": constants.CLOUDS_DETAIL_LEVEL,
@@ -1188,7 +1188,7 @@ class location(actors.actor):
                 }
             )
         elif cloud_type == "toxic":
-            location.current_clouds.append(
+            self.current_clouds.append(
                 {
                     "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
                     "detail_level": constants.CLOUDS_DETAIL_LEVEL,
