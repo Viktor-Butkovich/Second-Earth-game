@@ -91,9 +91,7 @@ class location(actors.actor):
                         "location": self,
                     },
                 )
-            for current_building_dict in input_dict.get(
-                "contained_buildings", {}
-            ).values():
+            for current_building_dict in input_dict.get("contained_buildings", []):
                 constants.ActorCreationManager.create(
                     from_save=True,
                     input_dict={
@@ -861,6 +859,10 @@ class location(actors.actor):
                 for current_mob in reversed(self.subscribed_mobs)
             ],
             "settlement": self.settlement.to_save_dict() if self.settlement else None,
+            "contained_buildings": [
+                building.to_save_dict()
+                for building in self.contained_buildings.values()
+            ],
         }
 
     def get_parameter(self, parameter_name: str) -> int:
@@ -941,7 +943,7 @@ class location(actors.actor):
             mob.subscribed_location
         ):  # Note that this is distinct from get_location(), which recursively checks through containers
             mob.subscribed_location.unsubscribe_mob(mob)
-        self.subscribed_mobs.append(mob)
+        self.subscribed_mobs.insert(0, mob)
         mob.subscribed_location = self
         self.publish_events(
             constants.LOCATION_SUBSCRIBE_MOB_ROUTE

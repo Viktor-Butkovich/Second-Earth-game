@@ -96,7 +96,6 @@ class building:
                 'damaged': boolean value - whether this building is currently damaged
         """
         return {
-            **super().to_save_dict(),
             **self.upgrade_fields,
             "init_type": self.building_type.key,
             "subscribed_work_crews": [
