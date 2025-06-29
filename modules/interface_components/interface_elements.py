@@ -603,6 +603,9 @@ class tabbed_collection(interface_collection):
         """
         self.tabbed_members = []
         self.current_tabbed_member = None
+        self.mru_tab_queue = (
+            []
+        )  # Tracks most recently used tabs, allowing preference in default order
         super().__init__(input_dict)
         self.tabs_collection = constants.ActorCreationManager.create_interface_element(
             {
@@ -625,7 +628,7 @@ class tabbed_collection(interface_collection):
                 "init_type": constants.BANNER_LABEL,
                 "image_id": "misc/default_label.png",
                 "actor_type": self.parent_collection.actor_type,
-                "banner_type": "tab name",
+                "banner_type": constants.TAB_NAME_BANNER,
                 "banner_text": "",
                 "member_config": {
                     "order_x_offset": scaling.scale_width(45),
@@ -633,6 +636,32 @@ class tabbed_collection(interface_collection):
                 },
             }
         )
+
+    def record_mru_tab(self, tab) -> None:
+        """
+        Description:
+            Records most recently used tabs in order while ensuring uniqueness
+                Invoke when tab is used
+        Input:
+            interface_element tab: Tabbed collection member with tab button, records as most recently used
+        Output:
+            None
+        """
+        if tab in self.mru_tab_queue:
+            self.mru_tab_queue.remove(tab)
+        placement_index = 0
+        for existing_tab in self.mru_tab_queue:
+            if existing_tab.tab_button.can_show():
+                break
+            placement_index += 1
+            # Only override the importance of a tab that is showing - shouldn't necessarily take precedence over a tab that wasn't an option here
+            #   Suppose settlement is the current tab, then a location w/o a settlement is clicked and terrain info is selected
+            #   This does not mean that terrain info is more important than settlement info, since settlement wasn't even an option there
+        self.mru_tab_queue.insert(placement_index, tab)
+        if constants.EffectManager.effect_active("debug_tab_selection"):
+            print(
+                f"MRU tabs: {[tab.tab_button.tab_name for tab in self.mru_tab_queue]}"
+            )
 
     def allow_show(self, member):
         """

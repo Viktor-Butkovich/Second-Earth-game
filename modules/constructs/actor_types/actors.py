@@ -1,18 +1,15 @@
 # Contains functionality for actors
 
-import pygame
 import random
 import math
 from modules.util import (
-    text_utility,
     actor_utility,
-    scaling,
     market_utility,
     minister_utility,
 )
 from modules.constructs import item_types
 from modules.constants import constants, status, flags
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 
 class actor:
@@ -215,10 +212,18 @@ class actor:
                 actor_utility.calibrate_actor_info_display(
                     status.mob_info_display, self
                 )
+                actor_utility.select_interface_tab(
+                    status.mob_tabbed_collection,
+                    status.mob_inventory_collection,
+                )
         elif self.actor_type == constants.LOCATION_ACTOR_TYPE:
             if status.displayed_location == self:
                 actor_utility.calibrate_actor_info_display(
                     status.location_info_display, self
+                )
+                actor_utility.select_interface_tab(
+                    status.location_tabbed_collection,
+                    status.location_inventory_collection,
                 )
 
     def get_held_items(self, ignore_consumer_goods=False) -> List[item_types.item_type]:

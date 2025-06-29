@@ -569,7 +569,7 @@ class button(interface_elements.interface_element):
                 description = f"{self.linked_element.tab_button.tab_name} panel"
             else:
                 description = "attached panel"
-            return ["Displays the " + description]
+            return [f"Displays the {description}"]
 
         elif self.button_type == constants.CYCLE_AUTOFILL_BUTTON:
             if self.parent_collection.autofill_actors.get(
@@ -1225,6 +1225,9 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.TAB_BUTTON:
             tabbed_collection = self.parent_collection.parent_collection
             tabbed_collection.current_tabbed_member = self.linked_element
+            if constants.EffectManager.effect_active("debug_tab_selection"):
+                print(f"Selecting tab: {self.tab_name}")
+            tabbed_collection.record_mru_tab(self.linked_element)
             if (
                 self.identifier == constants.INVENTORY_PANEL
                 and constants.EffectManager.effect_active("link_inventory_tabs")
@@ -2389,27 +2392,7 @@ class tab_button(button):
         if (
             self.linked_element
             == self.parent_collection.parent_collection.current_tabbed_member
-        ):
-            if return_value:
-                self.showing_outline = True
-            else:
-                self.showing_outline = False
-                self.parent_collection.parent_collection.current_tabbed_member = None
-                for (
-                    tabbed_member
-                ) in self.parent_collection.parent_collection.tabbed_members:
-                    if (
-                        tabbed_member != self.linked_element
-                        and tabbed_member.linked_tab_button.can_show()
-                    ):
-                        self.parent_collection.parent_collection.current_tabbed_member = (
-                            tabbed_member
-                        )
-        elif (
-            return_value
-            and self.parent_collection.parent_collection.current_tabbed_member == None
-        ):
-            self.on_click()
+        ) and return_value:  # Show outline if showing and selected
             self.showing_outline = True
         else:
             self.showing_outline = False

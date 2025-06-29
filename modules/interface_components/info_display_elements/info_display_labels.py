@@ -1175,7 +1175,7 @@ class actor_display_label(label):
                     )
             return tooltip_text
         elif self.actor_label_type == constants.BANNER_LABEL:
-            if self.banner_type == "absolute zero":
+            if self.banner_type == constants.ABSOLUTE_ZERO_BANNER:
                 tooltip_text = [self.message]
                 tooltip_text.append(
                     "Absolute zero is the coldest possible temperature, and is the natural temperature when there is no heat"
@@ -1811,7 +1811,7 @@ class banner(actor_display_label):
         Output:
             boolean: Returns whether this label should be drawn
         """
-        if self.banner_type == "terrain details":
+        if self.banner_type == constants.TERRAIN_DETAILS_BANNER:
             return (
                 super().can_show(skip_parent_collection=skip_parent_collection)
                 and self.actor.knowledge_available(constants.TERRAIN_KNOWLEDGE)
@@ -1819,7 +1819,7 @@ class banner(actor_display_label):
                     constants.TERRAIN_PARAMETER_KNOWLEDGE
                 )
             )
-        elif self.banner_type == "deadly conditions":
+        elif self.banner_type == constants.DEADLY_CONDITIONS_BANNER:
             return super().can_show(
                 skip_parent_collection=skip_parent_collection
             ) and not self.actor.get_permission(constants.SURVIVABLE_PERMISSION)
@@ -1838,7 +1838,7 @@ class banner(actor_display_label):
         super().calibrate(new_actor)
         if (
             new_actor
-            and self.banner_type == "tab name"
+            and self.banner_type == constants.TAB_NAME_BANNER
             and self.parent_collection.parent_collection.current_tabbed_member
         ):
             self.set_label(

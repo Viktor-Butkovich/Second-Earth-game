@@ -158,48 +158,59 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
     """
     target_tab = None
     if displayed_actor:
-        if tabbed_collection == status.location_tabbed_collection:
-            if (
-                (
-                    status.location_tabbed_collection.current_tabbed_member == None
-                    or status.location_tabbed_collection.current_tabbed_member.tab_button.can_show()
-                )
-                and status.location_tabbed_collection.current_tabbed_member
-                != status.local_conditions_collection
-            ):
-                target_tab = status.location_tabbed_collection.current_tabbed_member
-            elif (
-                constants.EffectManager.effect_active("link_inventory_tabs")
-                and status.mob_tabbed_collection.current_tabbed_member
-                == status.mob_inventory_collection
-            ):
-                target_tab = status.mob_inventory_collection
-            elif status.displayed_location.settlement:
-                target_tab = status.settlement_collection
-            elif status.local_conditions_collection.tab_button.can_show():
-                target_tab = status.local_conditions_collection
-            else:
-                target_tab = status.global_conditions_collection
-            # Except for local conditions, try to keep the current tab selected
-            # If mob inventory tab, select inventory tab
-            # If can't keep current location selected, select settlement, if any
-            # Otherwise, default to local or global conditions, based on location type
-
-        elif tabbed_collection == status.mob_tabbed_collection:
-            if status.displayed_mob.get_permission(constants.PMOB_PERMISSION):
-                if status.displayed_mob.inventory:
-                    target_tab = status.mob_inventory_collection
+        for current_tab in tabbed_collection.mru_tab_queue:
+            if current_tab.tab_button.can_show():
+                target_tab = current_tab
+                break
+            # Use the most recently used tab that is still showing
+        if target_tab and constants.EffectManager.effect_active("debug_tab_selection"):
+            print("Fetching MRU tab:", target_tab.tab_button.tab_name)
+        if not target_tab:
+            # If no previously used tabs are showing, use game rules to determine initial tab
+            if tabbed_collection == status.location_tabbed_collection:
+                if (
+                    (
+                        status.location_tabbed_collection.current_tabbed_member == None
+                        or status.location_tabbed_collection.current_tabbed_member.tab_button.can_show()
+                    )
+                    and status.location_tabbed_collection.current_tabbed_member
+                    != status.local_conditions_collection
+                ):
+                    target_tab = status.location_tabbed_collection.current_tabbed_member
                 elif (
                     constants.EffectManager.effect_active("link_inventory_tabs")
-                    and status.location_tabbed_collection.current_tabbed_member
-                    == status.location_inventory_collection
+                    and status.mob_tabbed_collection.current_tabbed_member
+                    == status.mob_inventory_collection
                 ):
                     target_tab = status.mob_inventory_collection
+                elif status.displayed_location.settlement:
+                    target_tab = status.settlement_collection
+                elif status.local_conditions_collection.tab_button.can_show():
+                    target_tab = status.local_conditions_collection
                 else:
-                    target_tab = status.mob_reorganization_collection
-            # If unit has inventory and at least 1 item held, select inventory tab
-            # If location inventory tab is selected, select inventory tab
-            # Otherwise, select reorganization tab
+                    target_tab = status.global_conditions_collection
+                # Except for local conditions, try to keep the current tab selected
+                # If mob inventory tab, select inventory tab
+                # If can't keep current location selected, select settlement, if any
+                # Otherwise, default to local or global conditions, based on location type
+
+            elif tabbed_collection == status.mob_tabbed_collection:
+                if status.displayed_mob.get_permission(constants.PMOB_PERMISSION):
+                    if status.displayed_mob.inventory:
+                        target_tab = status.mob_inventory_collection
+                    elif (
+                        constants.EffectManager.effect_active("link_inventory_tabs")
+                        and status.location_tabbed_collection.current_tabbed_member
+                        == status.location_inventory_collection
+                    ):
+                        target_tab = status.mob_inventory_collection
+                    else:
+                        target_tab = status.mob_reorganization_collection
+                # If unit has inventory and at least 1 item held, select inventory tab
+                # If location inventory tab is selected, select inventory tab
+                # Otherwise, select reorganization tab
+            if constants.EffectManager.effect_active("debug_tab_selection"):
+                print("Defaulting to tab:", target_tab.tab_button.tab_name)
     if target_tab and (
         target_tab == status.location_inventory_collection or not target_tab.showing
     ):

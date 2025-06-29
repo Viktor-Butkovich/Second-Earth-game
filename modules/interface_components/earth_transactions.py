@@ -159,11 +159,10 @@ class buy_item_button(button):
                             f"The price of {self.item_type.name} has increased from {self.item_type.price} to {self.item_type.price + 1}."
                         )
                         market_utility.change_price(self.item_type, 1)
-                    for linked_tab in status.location_tabbed_collection.tabbed_members:
-                        linked_tab_button = linked_tab.linked_tab_button
-                        if linked_tab_button.identifier == constants.INVENTORY_PANEL:
-                            linked_tab_button.on_click()
-                            pass
+                    actor_utility.select_interface_tab(
+                        status.location_tabbed_collection,
+                        status.location_inventory_collection,
+                    )
             else:
                 text_utility.print_to_screen(
                     "You do not have enough money to purchase this item"

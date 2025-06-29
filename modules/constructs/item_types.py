@@ -170,27 +170,6 @@ def transfer(
                     destination.change_inventory(transferred_item, amount_transferred)
                     source.change_inventory(transferred_item, amount_transferred * -1)
 
-                if source_type == "location_inventory":  # Pick up item(s)
-                    actor_utility.select_interface_tab(
-                        status.mob_tabbed_collection, status.mob_inventory_collection
-                    )
-                    actor_utility.calibrate_actor_info_display(
-                        status.location_info_display, displayed_location
-                    )
-
-                elif source_type == "mob_inventory":  # Drop item(s)
-                    actor_utility.select_interface_tab(
-                        status.location_tabbed_collection,
-                        status.location_inventory_collection,
-                    )
-                    if not status.displayed_mob.inventory:
-                        actor_utility.select_default_tab(
-                            status.mob_tabbed_collection, status.displayed_mob
-                        )
-                    actor_utility.calibrate_actor_info_display(
-                        status.mob_info_display, displayed_mob
-                    )
-
             elif source_type == "mob_inventory":
                 text_utility.print_to_screen(
                     "There is no location to transfer this item to."

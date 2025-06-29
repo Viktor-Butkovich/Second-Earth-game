@@ -2,7 +2,6 @@
    "active_effects": [
       "fullscreen",
       "map_modes",
-      "link_inventory_tabs",
       "allow_presets",
       "allow_toggle_clouds",
       "allow_toggle_fog_of_war",
@@ -15,6 +14,7 @@
       "skip_intro"
    ],
    "effects": [
+      "debug_tab_selection",
       "track_item_requests",
       "allow_toggle_god_mode",
       "omit_default_names",

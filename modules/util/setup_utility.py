@@ -293,9 +293,7 @@ def misc():
         {"init_type": constants.MOUSE_FOLLOWER_IMAGE}
     )
 
-    constants.NotificationManager = (
-        notification_manager.notification_manager()
-    )
+    constants.NotificationManager = notification_manager.notification_manager()
 
     constants.AchievementManager = achievement_manager.achievement_manager()
 
@@ -2646,7 +2644,7 @@ def mob_sub_interface():
             "member_config": {"order_x_offset": x_displacement},
         }
         if current_actor_label_type == constants.BANNER_LABEL:
-            input_dict["banner_type"] = "deadly conditions"
+            input_dict["banner_type"] = constants.DEADLY_CONDITIONS_BANNER
             input_dict["banner_text"] = "Deadly conditions - will die at end of turn"
 
         if current_actor_label_type != constants.CURRENT_PASSENGER_LABEL:
@@ -3427,7 +3425,7 @@ def terrain_interface():
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
         if current_actor_label_type == constants.BANNER_LABEL:
-            input_dict["banner_type"] = "absolute zero"
+            input_dict["banner_type"] = constants.ABSOLUTE_ZERO_BANNER
             input_dict["banner_text"] = f"Absolute zero: {constants.ABSOLUTE_ZERO} °F"
         constants.ActorCreationManager.create_interface_element(input_dict)
 
@@ -3483,7 +3481,7 @@ def terrain_interface():
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
         if current_actor_label_type == constants.BANNER_LABEL:
-            input_dict["banner_type"] = "terrain details"
+            input_dict["banner_type"] = constants.TERRAIN_DETAILS_BANNER
             input_dict["banner_text"] = "Details unknown"
         constants.ActorCreationManager.create_interface_element(input_dict)
 
