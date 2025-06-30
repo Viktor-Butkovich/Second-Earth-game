@@ -1284,7 +1284,9 @@ class dice_roll_minister_image(tooltip_free_image):
             "minister_position_type", self.attached_minister.current_position
         )
         if self.minister_image_type == "portrait":
-            input_dict["image_id"] = self.attached_minister.image_id
+            input_dict["image_id"] = self.attached_minister.image_dict[
+                constants.IMAGE_ID_LIST_DEFAULT
+            ]
         elif self.minister_image_type == "position":
             if self.minister_position_type:
                 input_dict["image_id"] = (

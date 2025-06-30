@@ -3,12 +3,12 @@
 import pygame
 from typing import List, Callable
 from modules.constructs.actor_types import actors
-from modules.interface_components.labels import label
+from modules.interface_components import labels, buttons
 from modules.util import utility, scaling, actor_utility
 from modules.constants import constants, status, flags
 
 
-class actor_display_label(label):
+class actor_display_label(labels.label):
     """
     Label that changes its text to match the information of selected mobs or locations
     """
@@ -295,9 +295,6 @@ class actor_display_label(label):
             input_dict["init_type"] = constants.DISEMBARK_VEHICLE_BUTTON
             input_dict["image_id"] = "buttons/disembark_spaceship_button.png"
             self.add_attached_button(input_dict)
-
-        elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
-            self.message_start = ""
 
         elif self.actor_label_type in [
             constants.MOB_INVENTORY_CAPACITY_LABEL,
@@ -812,6 +809,18 @@ class actor_display_label(label):
         elif self.actor_label_type == constants.CREW_LABEL:
             if self.actor and self.actor.crew:
                 return self.actor.crew.tooltip_text
+            else:
+                return super().tooltip_text
+
+        elif self.actor_label_type == constants.OFFICER_LABEL:
+            if self.actor and self.actor.officer:
+                return self.actor.officer.tooltip_text
+            else:
+                return super().tooltip_text
+
+        elif self.actor_label_type == constants.WORKERS_LABEL:
+            if self.actor and self.actor.worker:
+                return self.actor.worker.tooltip_text
             else:
                 return super().tooltip_text
 
@@ -1643,8 +1652,6 @@ class actor_display_label(label):
                     self.set_label(
                         f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]}"
                     )
-        elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
-            return  # do not set text for tooltip label
         elif self.actor_label_type == constants.BANNER_LABEL:
             self.set_label(self.message_start)
         else:
@@ -1662,8 +1669,6 @@ class actor_display_label(label):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if not result:
             return False
-        # elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
-        #     return True
         elif (
             self.actor_label_type == constants.RESOURCE_LABEL
             and (  # Denotes terrain resource
@@ -1904,53 +1909,6 @@ class list_item_label(actor_display_label):
         return False
 
 
-class actor_tooltip_label(actor_display_label):
-    """
-    Label used for actor tooltips that can calibrate to actors and select them when clicked
-    """
-
-    def on_click(self):
-        """
-        Selects the calibrated unit when clicked - used to allow selecting units from reorganization interface
-        """
-        if self.actor_type == constants.MINISTER_ACTOR_TYPE:
-            return
-        if self.actor_type == constants.LOCATION_ACTOR_TYPE:
-            if (
-                self.actor.actor_type == constants.LOCATION_ACTOR_TYPE
-            ):  # If not location_inventory
-                actor_utility.calibrate_actor_info_display(
-                    status.location_info_display, self.actor
-                )
-                actor_utility.calibrate_actor_info_display(
-                    status.mob_info_display, None
-                )
-            else:
-                return
-        elif self.actor:  # Reorganization interface buttons
-            if self.actor.get_permission(constants.DUMMY_PERMISSION):
-                if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
-                    status.reorganize_vehicle_right_button.on_click(allow_sound=False)
-                elif status.displayed_mob.get_permission(
-                    constants.ACTIVE_VEHICLE_PERMISSION
-                ):
-                    status.reorganize_vehicle_left_button.on_click(allow_sound=False)
-                elif self.actor.any_permissions(
-                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
-                ):
-                    status.reorganize_group_left_button.on_click(allow_sound=False)
-                elif self.actor.get_permission(constants.GROUP_PERMISSION):
-                    status.reorganize_group_right_button.on_click(allow_sound=False)
-
-                if not self.actor.get_permission(
-                    constants.DUMMY_PERMISSION
-                ):  # Only select if dummy unit successfully became real
-                    self.actor.cycle_select()
-                    self.actor.selection_sound()
-            else:  # If already existing, simply select unit
-                self.actor.cycle_select()
-
-
 class building_work_crews_label(actor_display_label):
     """
     Label at the top of the list of work crews in a building that shows how many work crews are in it
@@ -2118,3 +2076,158 @@ class terrain_feature_label(actor_display_label):
         return super().can_show(
             skip_parent_collection=skip_parent_collection
         ) and self.actor.terrain_features.get(self.terrain_feature_type, False)
+
+
+class actor_icon(buttons.button):
+    """
+    Button that displays an actor's image and tooltip
+    """
+
+    def __init__(self, input_dict) -> None:
+        """
+        Same as superclass, but with additional input:
+            callable dynamic_tooltip_factory: Function that takes an actor_display_label and returns a list of strings to use as the tooltip for this button
+            image ID image_id: Default image to use if no actor is attached
+        """
+        super().__init__(input_dict)
+        self.dynamic_tooltip_factory: Callable[["actor_display_label"], List[str]] = (
+            input_dict.get("dynamic_tooltip_factory", None)
+        )
+        self.default_image_id = input_dict.get("image_id", "misc/empty.png")
+
+    @property
+    def batch_tooltip_list(self):
+        """
+        Gets a 2D list of strings to use as this object's tooltip
+            Each string is displayed on a separate line, while each sublist is displayed in a separate box
+        """
+        if self.actor:
+            if self.actor.actor_type == constants.LOCATION_ACTOR_TYPE:
+                return self.actor.batch_tooltip_list_omit_mobs
+            else:
+                return self.actor.batch_tooltip_list
+        elif self.dynamic_tooltip_factory:
+            return [self.dynamic_tooltip_factory(self)]
+        else:
+            return []
+
+    def on_click(self):
+        """
+        Handles on-click behavior for this button
+        """
+        if not self.actor:
+            return
+        if self.actor.actor_type == constants.MOB_ACTOR_TYPE:
+            if self.actor.get_permission(constants.DUMMY_PERMISSION):
+                if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
+                    status.reorganize_vehicle_right_button.on_click(allow_sound=False)
+                elif status.displayed_mob.get_permission(
+                    constants.ACTIVE_VEHICLE_PERMISSION
+                ):
+                    status.reorganize_vehicle_left_button.on_click(allow_sound=False)
+                elif self.actor.any_permissions(
+                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
+                ):
+                    status.reorganize_group_left_button.on_click(allow_sound=False)
+                elif self.actor.get_permission(constants.GROUP_PERMISSION):
+                    status.reorganize_group_right_button.on_click(allow_sound=False)
+
+                if not self.actor.get_permission(
+                    constants.DUMMY_PERMISSION
+                ):  # Only select if dummy unit successfully became real
+                    self.actor.cycle_select()
+                    self.actor.selection_sound()
+            else:  # If already existing, simply select unit
+                self.actor.cycle_select()
+        elif self.actor.actor_type == constants.LOCATION_ACTOR_TYPE:
+            actor_utility.calibrate_actor_info_display(
+                status.mob_info_display, None
+            )  # Focus on location info display when clicked
+
+    def calibrate(self, new_actor):
+        """
+        Description:
+            Attaches this label to the inputted actor and updates this label's information based on the inputted actor
+        Input:
+            string/actor new_actor: The displayed actor whose information is matched by this label. If this equals None, the label does not match any actors.
+        Output:
+            None
+        """
+        self.actor = new_actor
+        if new_actor:
+            if self.actor.actor_type == constants.LOCATION_ACTOR_TYPE:
+                image_id_list = self.actor.image_dict[
+                    constants.IMAGE_ID_LIST_TERRAIN
+                ] + [
+                    {
+                        "image_id": "misc/location_outline.png",
+                        "detail_level": 1.0,
+                        "level": constants.FRONT_LEVEL,
+                    }
+                ]
+            elif self.actor.actor_type == constants.MOB_ACTOR_TYPE:
+                base_image_id_list = self.actor.image_dict[
+                    constants.IMAGE_ID_LIST_FULL_MOB
+                ]
+                image_id_list = []
+                if self.actor.get_permission(constants.SPACESHIP_PERMISSION) or (
+                    self.actor.location.is_abstract_location
+                    and not self.actor.location.is_earth_location
+                ):
+                    image_id_list.append(
+                        {
+                            "image_id": "misc/actor_backgrounds/space_background.png",
+                            "level": constants.BACKGROUND_LEVEL,
+                        }
+                    )
+                else:
+                    image_id_list.append(
+                        {
+                            "image_id": "misc/actor_backgrounds/mob_background.png",
+                            "level": constants.BACKGROUND_LEVEL,
+                        }
+                    )
+                if self.actor.get_permission(constants.DUMMY_PERMISSION):
+                    image_id_list.append(
+                        {
+                            "image_id": "misc/dark_shader.png",
+                            "level": constants.FRONT_LEVEL - 1,  # Behind outline
+                        }
+                    )
+
+                if self.actor.get_permission(constants.PMOB_PERMISSION):
+                    image_id_list.append(
+                        {
+                            "image_id": "misc/actor_backgrounds/pmob_outline.png",
+                            "detail_level": 1.0,
+                            "level": constants.FRONT_LEVEL,
+                        }
+                    )
+                elif self.actor.get_permission(constants.NPMOB_PERMISSION):
+                    image_id_list.append(
+                        {
+                            "image_id": "misc/actor_backgrounds/npmob_outline.png",
+                            "detail_level": 1.0,
+                            "level": constants.FRONT_LEVEL,
+                        }
+                    )
+                image_id_list = base_image_id_list + image_id_list
+            elif self.actor.actor_type == constants.MINISTER_ACTOR_TYPE:
+                image_id_list = self.actor.image_dict[
+                    constants.IMAGE_ID_LIST_DEFAULT
+                ] + [
+                    {
+                        "image_id": "misc/actor_backgrounds/minister_background.png",
+                        "level": constants.BACKGROUND_LEVEL,
+                    }
+                ]
+            elif self.actor.actor_type in [
+                constants.MOB_INVENTORY_ACTOR_TYPE,
+                constants.LOCATION_INVENTORY_ACTOR_TYPE,
+            ]:
+                image_id_list = self.actor.image.image_id
+            else:
+                raise ValueError(f"Unexpected actor type: {self.actor.actor_type}")
+            self.image.set_image(image_id_list)
+        else:
+            self.image.set_image(self.default_image_id)

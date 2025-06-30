@@ -283,9 +283,10 @@ class group(pmob):
         Output:
             None
         """
-        super().die(death_type)
+        self.disband(focus=False)
         self.officer.die(None)
         self.worker.die(None)
+        super().die(death_type)
 
     def get_worker(self) -> "pmob":
         """

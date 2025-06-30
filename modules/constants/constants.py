@@ -249,6 +249,9 @@ current_instructions_page_index: int = 0
 current_instructions_page_text: str = ""
 message: str = ""
 
+actor_icon_dimensions: int = 130
+inventory_icon_dimensions: int = 100
+
 grids_collection_x: int = default_display_width - 740
 grids_collection_y: int = default_display_height - 325
 
@@ -557,8 +560,8 @@ GLASSES_LEVEL: int = 14
 HAIR_LEVEL: int = 15
 FACIAL_HAIR_LEVEL: int = 18
 PORTRAIT_LEVEL: int = 20
-OVERLAY_ICON_LEVEL: int = 21
-FRONT_LEVEL: int = 22
+OVERLAY_ICON_LEVEL: int = 22
+FRONT_LEVEL: int = 24
 BACKGROUND_LEVEL: int = -10
 DEFAULT_PORTRAIT_LEVEL: int = 12
 BACKPACK_LEVEL: int = 11
@@ -566,7 +569,7 @@ BUILDING_LEVEL: int = 5
 BUILDING_INDICATOR_LEVEL: int = 6
 TERRAIN_BACKDROP_LEVEL: int = -9
 TERRAIN_OVERLAY_LEVEL: int = -8
-TERRAIN_CLOUDS_LEVEL: int = -7
+TERRAIN_CLOUDS_LEVEL: int = 21  # -7
 MAP_MODE_LEVEL: int = -1
 
 ALTITUDE_BRIGHTNESS_MULTIPLIER: float = 0.5
@@ -830,7 +833,6 @@ MONEY_LABEL: str = "money_label"
 ITEM_PRICES_LABEL: str = "item_prices_label"
 MULTI_LINE_LABEL: str = "multi_line_label"
 ACTOR_DISPLAY_LABEL: str = "actor_display_label"
-ACTOR_TOOLTIP_LABEL: str = "actor_tooltip_label"
 LIST_ITEM_LABEL: str = "list_item_label"
 BUILDING_WORK_CREWS_LABEL: str = "building_work_crews_label"
 CURRENT_BUILDING_WORK_CREW_LABEL: str = "current_building_work_crew_label"
@@ -910,8 +912,7 @@ LOCATION_INVENTORY_CAPACITY_LABEL: str = "location_inventory_capacity_label"
 MOB_INVENTORY_CAPACITY_LABEL: str = "mob_inventory_capacity_label"
 
 FREE_IMAGE: str = "free_image"
-ACTOR_DISPLAY_FREE_IMAGE: str = "actor_display_free_image"
-LABEL_IMAGE: str = "label_image"
+ACTOR_ICON: str = "actor_display_actor_icon"
 BACKGROUND_IMAGE: str = "background_image"
 TOOLTIP_FREE_IMAGE: str = "tooltip_free_image"
 MINISTER_TYPE_IMAGE: str = "minister_type_image"

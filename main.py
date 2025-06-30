@@ -443,10 +443,14 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Info display image tooltips are empty
+# Replace dice_roll_minister_image and minister table images with actor icons, like the info display actor icons
+#   Add an image dict to ministers with the minister's current position as the background - either image can be used
+# Clicking a minister's actor icon in the trial screen should not select the minister
 # Use contained_mobs() to calculate per-location item demand (making sure that contained mobs do NOT calculate upkeep recursively)
 #     Upkeep does need to be calculated recursively for unit tooltips, so this should use a boolean flag
 # Significantly decrease retirement rate, especially in the early game
+# Add logistics info display tab with item upkeep information
+#   Mob version with just that mob, and a location version with total location demands
 # Add 5x5 building slot system
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Gradually incorporate event bus subscriptions rather than manual data binding for info displays, mob images

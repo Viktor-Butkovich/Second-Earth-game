@@ -70,8 +70,9 @@ class minister:
             self.interests: Tuple[str, str] = input_dict["interests"]
             self.corruption: int = input_dict["corruption"]
             self.corruption_threshold: int = 10 - self.corruption
-            self.image_id_list = input_dict["image_id_list"]
-            self.update_image_bundle()
+            self.image_dict: Dict[str, List[str]] = {
+                constants.IMAGE_ID_LIST_DEFAULT: input_dict["image_id_list"],
+            }
             self.stolen_money: float = input_dict["stolen_money"]
             self.undetected_corruption_events: List[Tuple[float, str]] = input_dict[
                 "undetected_corruption_events"
@@ -130,10 +131,11 @@ class minister:
             self.interests_setup()
             self.corruption_setup()
             status.available_minister_list.append(self)
-            self.image_id_list = constants.CharacterManager.generate_appearance(
-                self, full_body=False
-            )
-            self.update_image_bundle()
+            self.image_dict = {
+                constants.IMAGE_ID_LIST_DEFAULT: constants.CharacterManager.generate_appearance(
+                    self, full_body=False
+                )
+            }
             self.stolen_money: int = 0
             self.undetected_corruption_events: List[Tuple[float, str]] = []
             self.corruption_evidence: int = 0
@@ -178,6 +180,14 @@ class minister:
             return f"{self.prefix} {self.last_name}"
         else:
             return f"{self.first_name[0]}. {self.last_name}"
+
+    @property
+    def batch_tooltip_list(self):
+        """
+        Gets a 2D list of strings to use as this object's tooltip
+            Each string is displayed on a separate line, while each sublist is displayed in a separate box
+        """
+        return [self.tooltip_text]
 
     @property
     def tooltip_text(self) -> List[List[str]]:
@@ -476,26 +486,11 @@ class minister:
         save_dict["background"] = self.background
         save_dict["prefix"] = self.prefix
         save_dict["personal_savings"] = self.personal_savings
-        save_dict["image_id_list"] = self.image_id_list
+        save_dict["image_id_list"] = self.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
         save_dict["voice_set"] = self.voice_set
         save_dict["ethnicity"] = self.ethnicity
         save_dict["masculine"] = self.masculine
         return save_dict
-
-    def get_image_id_list(self, override_values={}):
-        """
-        Description:
-            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
-                orientation
-        Input:
-            None
-        Output:
-            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
-        """
-        return self.image_id_list
-
-    def update_image_bundle(self):
-        self.image_id = self.get_image_id_list()
 
     def roll(
         self,

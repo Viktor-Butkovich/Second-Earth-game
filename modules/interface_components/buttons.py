@@ -1999,13 +1999,15 @@ class minister_portrait_image(button):
             if constants.MINISTERS_MODE in self.modes:
                 self.image.set_image(
                     self.background_image_id
-                    + new_minister.image_id
+                    + new_minister.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
                     + actor_utility.generate_label_image_id(
                         new_minister.get_f_lname(use_prefix=True)
                     )
                 )
             else:
-                self.image.set_image(new_minister.image_id)
+                self.image.set_image(
+                    new_minister.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
+                )
         elif (
             constants.MINISTERS_MODE in self.modes
         ):  # Show empty minister if minister screen icon

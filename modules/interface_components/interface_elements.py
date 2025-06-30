@@ -651,7 +651,7 @@ class tabbed_collection(interface_collection):
             self.mru_tab_queue.remove(tab)
         placement_index = 0
         for existing_tab in self.mru_tab_queue:
-            if existing_tab.tab_button.can_show():
+            if existing_tab.tab_button.tab_enabled():
                 break
             placement_index += 1
             # Only override the importance of a tab that is showing - shouldn't necessarily take precedence over a tab that wasn't an option here

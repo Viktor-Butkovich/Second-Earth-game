@@ -24,7 +24,6 @@ class cell:
         """
         self.x: int = x
         self.y: int = y
-        self.supports_batch_tooltip: bool = True
         self.width: int = width
         self.height: int = height
         self.grid = grid

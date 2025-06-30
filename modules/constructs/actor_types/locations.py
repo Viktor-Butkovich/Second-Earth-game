@@ -820,6 +820,7 @@ class location(actors.actor):
                 "green_screen": [self.world_handler.steam_color],
                 "detail_level": constants.CLOUDS_DETAIL_LEVEL,
                 "override_green_screen_colors": [(140, 183, 216)],
+                "level": constants.TERRAIN_CLOUDS_LEVEL,
             }
             for current_steam in steam_list
         ]
@@ -1251,7 +1252,9 @@ class location(actors.actor):
                             }
                         terrain_overlay_image.update(
                             {
-                                "level": constants.TERRAIN_OVERLAY_LEVEL,
+                                "level": terrain_overlay_image.get(
+                                    "level", constants.TERRAIN_OVERLAY_LEVEL
+                                ),
                                 "color_filter": self.get_color_filter(),
                                 "pixellated": force_pixellated
                                 or not self.knowledge_available(
@@ -1299,11 +1302,11 @@ class location(actors.actor):
                     #        image_id_list.append(resource_icon)
                     #    else:
                     #        image_id_list += resource_icon
-                image_id_list += [
-                    image_id
-                    for current_building in self.get_buildings()
-                    for image_id in current_building.get_image_id_list()
-                ]  # Add each of each building's images to the image ID list
+                    image_id_list += [
+                        image_id
+                        for current_building in self.get_buildings()
+                        for image_id in current_building.get_image_id_list()
+                    ]  # Add each of each building's images to the image ID list
 
             if constants.current_map_mode != "terrain" and allow_mapmodes:
                 map_mode_image = "misc/map_modes/none.png"
@@ -1561,6 +1564,14 @@ class location(actors.actor):
         return [self.tooltip_text] + list(
             reversed([current_mob.tooltip_text for current_mob in self.subscribed_mobs])
         )
+
+    @property
+    def batch_tooltip_list_omit_mobs(self):
+        """
+        Gets a 2D list of strings to use as this object's tooltip, omitting mobs
+            Each string is displayed on a separate line, while each sublist is displayed in a separate box
+        """
+        return [self.tooltip_text]
 
     @property
     def tooltip_text(self) -> List[List[str]]:

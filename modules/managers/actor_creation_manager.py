@@ -31,7 +31,6 @@ from modules.interface_components import (
 from modules.interface_components.info_display_elements import (
     info_display_buttons,
     info_display_labels,
-    info_display_images,
 )
 from modules.constructs import (
     buildings,
@@ -253,15 +252,13 @@ class actor_creation_manager:
             constants.WAREHOUSES: info_display_labels.actor_display_label,
             constants.TERRAIN_FEATURE_LABEL: info_display_labels.terrain_feature_label,
             constants.CURRENT_PASSENGER_LABEL: info_display_labels.list_item_label,
-            constants.ACTOR_TOOLTIP_LABEL: info_display_labels.actor_tooltip_label,
             constants.LIST_ITEM_LABEL: info_display_labels.list_item_label,
             constants.BUILDING_WORK_CREWS_LABEL: info_display_labels.building_work_crews_label,
             constants.BUILDING_EFFICIENCY_LABEL: info_display_labels.building_efficiency_label,
             constants.TERRAIN_FEATURE_LABEL: info_display_labels.terrain_feature_label,
             constants.BANNER_LABEL: info_display_labels.banner,
             constants.FREE_IMAGE: images.free_image,
-            constants.ACTOR_DISPLAY_FREE_IMAGE: info_display_images.actor_display_free_image,
-            constants.LABEL_IMAGE: info_display_images.label_image,
+            constants.ACTOR_ICON: info_display_labels.actor_icon,
             constants.BACKGROUND_IMAGE: images.background_image,
             constants.TOOLTIP_FREE_IMAGE: images.tooltip_free_image,
             constants.MINISTER_TYPE_IMAGE: images.minister_type_image,
