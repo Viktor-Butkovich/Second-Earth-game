@@ -241,7 +241,7 @@ class minister:
             )
         return tooltip_text
 
-    def generate_icon_input_dicts(self, alignment="left"):
+    def generate_icon_input_dict(self, alignment="left"):
         """
         Description:
             Generates the input dicts for this minister's face and position background to be attached to a notification
@@ -250,35 +250,25 @@ class minister:
         Output:
             dictionary list: Returns list of input dicts for this minister's face and position background
         """
-        minister_position_icon_dict = {
-            "coordinates": (0, 0),
+        minister_icon = {
+            "coordinates": scaling.scale_coordinates(0, 0),
             "width": scaling.scale_width(100),
             "height": scaling.scale_height(100),
+            "actor_type": constants.MINISTER_ACTOR_TYPE,
             "modes": [
                 constants.STRATEGIC_MODE,
                 constants.MINISTERS_MODE,
                 constants.EARTH_MODE,
                 constants.TRIAL_MODE,
             ],
-            "attached_minister": self,
-            "minister_image_type": "position",
-            "minister_position_type": self.current_position,
-            "init_type": constants.DICE_ROLL_MINISTER_IMAGE,
-            "minister_message_image": True,
+            "init_type": constants.ACTOR_ICON,
+            "calibrate_to": self,
             "member_config": {
-                "order_overlap": True,
                 "second_dimension_alignment": alignment,
                 "centered": True,
             },
         }
-
-        minister_portrait_icon_dict = minister_position_icon_dict.copy()
-        minister_portrait_icon_dict["member_config"] = {
-            "second_dimension_alignment": "leftmost",
-            "centered": True,
-        }
-        minister_portrait_icon_dict["minister_image_type"] = "portrait"
-        return [minister_position_icon_dict, minister_portrait_icon_dict]
+        return [minister_icon]
 
     def display_message(
         self, text, override_input_dict=None, transfer=False, on_remove=None
@@ -300,7 +290,7 @@ class minister:
         input_dict = {
             "message": text,
             "notification_type": constants.ACTION_NOTIFICATION,
-            "attached_interface_elements": self.generate_icon_input_dicts(
+            "attached_interface_elements": self.generate_icon_input_dict(
                 alignment="left"
             ),
             "transfer_interface_elements": transfer,
@@ -688,11 +678,6 @@ class minister:
                 constants.available_minister_left_index = (
                     len(status.available_minister_list) - 3
                 )  # Move available minister display to newly fired minister
-        if new_position:
-            for current_minister_type_image in status.minister_image_list:
-                if not current_minister_type_image.get_actor_type():
-                    if current_minister_type_image.minister_type == new_position:
-                        current_minister_type_image.calibrate(self)
 
         if update_display:
             minister_utility.update_available_minister_display()

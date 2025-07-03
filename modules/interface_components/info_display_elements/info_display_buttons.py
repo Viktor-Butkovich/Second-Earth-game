@@ -1,8 +1,9 @@
 # Contains functionality for actor display buttons
 
-from typing import Dict, List, Any
-from modules.interface_components.buttons import button
-from modules.constructs import buildings
+import pygame
+from typing import Dict, List, Any, Callable
+from modules.interface_components import buttons
+from modules.constructs import buildings, minister_types
 from modules.util import (
     main_loop_utility,
     actor_utility,
@@ -11,12 +12,13 @@ from modules.util import (
     text_utility,
     game_transitions,
     utility,
+    scaling,
 )
 from modules.constructs import minister_types
 from modules.constants import constants, status, flags
 
 
-class embark_all_passengers_button(button):
+class embark_all_passengers_button(buttons.button):
     """
     Button that commands a vehicle to take all other mobs in its location as passengers
     """
@@ -104,7 +106,7 @@ class embark_all_passengers_button(button):
         return result
 
 
-class disembark_all_passengers_button(button):
+class disembark_all_passengers_button(buttons.button):
     """
     Button that commands a vehicle to eject all of its passengers
     """
@@ -182,7 +184,7 @@ class disembark_all_passengers_button(button):
         return result
 
 
-class enable_sentry_mode_button(button):
+class enable_sentry_mode_button(buttons.button):
     """
     Button that enables sentry mode for a unit, causing it to not be added to the turn cycle queue
     """
@@ -229,7 +231,7 @@ class enable_sentry_mode_button(button):
             text_utility.print_to_screen("You are busy and cannot enable sentry mode.")
 
 
-class disable_sentry_mode_button(button):
+class disable_sentry_mode_button(buttons.button):
     """
     Button that disables sentry mode for a unit, causing it to not be added to the turn cycle queue
     """
@@ -259,7 +261,7 @@ class disable_sentry_mode_button(button):
             text_utility.print_to_screen("You are busy and cannot disable sentry mode.")
 
 
-class enable_automatic_replacement_button(button):
+class enable_automatic_replacement_button(buttons.button):
     """
     Button that enables automatic attrition replacement for a unit or one of its components
     """
@@ -345,7 +347,7 @@ class enable_automatic_replacement_button(button):
             )
 
 
-class disable_automatic_replacement_button(button):
+class disable_automatic_replacement_button(buttons.button):
     """
     Button that disables automatic attrition replacement for a unit or one of its components
     """
@@ -432,7 +434,7 @@ class disable_automatic_replacement_button(button):
             )
 
 
-class end_unit_turn_button(button):
+class end_unit_turn_button(buttons.button):
     """
     Button that ends a unit's turn, removing it from the current turn's turn cycle queue
     """
@@ -490,7 +492,7 @@ class end_unit_turn_button(button):
             )
 
 
-class remove_work_crew_button(button):
+class remove_work_crew_button(buttons.button):
     """
     Button that removes a work crew from a building
     """
@@ -552,7 +554,7 @@ class remove_work_crew_button(button):
             )
 
 
-class disembark_vehicle_button(button):
+class disembark_vehicle_button(buttons.button):
     """
     Button that disembarks a passenger from a vehicle
     """
@@ -642,7 +644,7 @@ class disembark_vehicle_button(button):
             text_utility.print_to_screen(f"You are busy and cannot disembark.")
 
 
-class embark_vehicle_button(button):
+class embark_vehicle_button(buttons.button):
     """
     Button that commands a selected mob to embark a vehicle of the correct type in the same location
     """
@@ -791,7 +793,7 @@ class embark_vehicle_button(button):
             vehicles[index + 1].select()
 
 
-class cycle_passengers_button(button):
+class cycle_passengers_button(buttons.button):
     """
     Button that cycles the order of passengers displayed in a vehicle
     """
@@ -857,7 +859,7 @@ class cycle_passengers_button(button):
             text_utility.print_to_screen("You are busy and cannot cycle passengers.")
 
 
-class cycle_work_crews_button(button):
+class cycle_work_crews_button(buttons.button):
     """
     Button that cycles the order of work crews in a building
     """
@@ -936,7 +938,7 @@ class cycle_work_crews_button(button):
             text_utility.print_to_screen("You are busy and cannot cycle work crews.")
 
 
-class work_crew_to_building_button(button):
+class work_crew_to_building_button(buttons.button):
     """
     Button that commands a work crew to work in a certain type of building in its location
     """
@@ -1047,7 +1049,7 @@ class work_crew_to_building_button(button):
             )
 
 
-class switch_theatre_button(button):
+class switch_theatre_button(buttons.button):
     """
     Button starts choosing a destination for a spaceship to travel between theatres, like between Earth and the current world. A destination is chosen when the player clicks a location in another theatre.
     """
@@ -1093,7 +1095,7 @@ class switch_theatre_button(button):
         )
 
 
-class appoint_minister_button(button):
+class appoint_minister_button(buttons.button):
     """
     Button that appoints the selected minister to the office corresponding to this button
     """
@@ -1148,7 +1150,7 @@ class appoint_minister_button(button):
             text_utility.print_to_screen("You are busy and cannot appoint a minister.")
 
 
-class reappoint_minister_button(button):
+class reappoint_minister_button(buttons.button):
     """
     Button that removes the selected minister from their current office, allowing them to be reappointed
     """
@@ -1183,7 +1185,7 @@ class reappoint_minister_button(button):
             )
 
 
-class fire_minister_button(button):
+class fire_minister_button(buttons.button):
     """
     Button that fires the selected minister
     """
@@ -1241,7 +1243,7 @@ class fire_minister_button(button):
             text_utility.print_to_screen("You are busy and cannot remove a minister.")
 
 
-class to_trial_button(button):
+class to_trial_button(buttons.button):
     """
     Button that goes to the trial screen to remove the selected minister from their current office
     """
@@ -1312,7 +1314,7 @@ class to_trial_button(button):
             text_utility.print_to_screen("You are busy and cannot start a trial.")
 
 
-class fabricate_evidence_button(button):
+class fabricate_evidence_button(buttons.button):
     """
     Button in the trial screen that fabricates evidence to use against the defense in the current trial. Fabricated evidence disappears at the end of the trial or at the end of the turn
     """
@@ -1373,7 +1375,7 @@ class fabricate_evidence_button(button):
             text_utility.print_to_screen("You are busy and cannot fabricate evidence.")
 
 
-class bribe_judge_button(button):
+class bribe_judge_button(buttons.button):
     """
     Button in the trial screen that bribes the judge to get an advantage in the next trial this turn
     """
@@ -1449,7 +1451,7 @@ class bribe_judge_button(button):
             text_utility.print_to_screen("You are busy and cannot fabricate evidence.")
 
 
-class automatic_route_button(button):
+class automatic_route_button(buttons.button):
     """
     Button that modifies a unit's automatic movement route, with an effect depending on the button's type
     """
@@ -1534,7 +1536,7 @@ class automatic_route_button(button):
                 )
 
 
-class toggle_button(button):
+class toggle_button(buttons.button):
     """
     Button that monitors and toggles a boolean variable on the attached actor
     """
@@ -1647,7 +1649,7 @@ class toggle_button(button):
         ]
 
 
-class change_parameter_button(button):
+class change_parameter_button(buttons.button):
     """
     Button that, when god mode is enabled, allows changing the selected location's location's parameter values
     """
@@ -1725,7 +1727,7 @@ class change_parameter_button(button):
             return super().can_show(skip_parent_collection=skip_parent_collection)
 
 
-class help_button(button):
+class help_button(buttons.button):
     """
     Button that displays a help message for an attached label
     """
@@ -1803,3 +1805,337 @@ class help_button(button):
             boolean: Returns whether this button should be drawn
         """
         return True
+
+
+class actor_icon(buttons.button):
+    """
+    Button that displays an actor's image and tooltip
+    """
+
+    def __init__(self, input_dict) -> None:
+        """
+        Same as superclass, but with additional input:
+            callable dynamic_tooltip_factory: Function that takes an actor_display_label and returns a list of strings to use as the tooltip for this button
+            image ID list image_id: Default image ID list to use if no actor is attached
+            actor type actor_type: Type of actor to display the information of, like constants.MOB_ACTOR_TYPE
+            actor calibrate_to: Optional actor to automatically and permanently calibrate this icon to
+        """
+        input_dict["image_id"] = input_dict.get(
+            "image_id", [{"image_id": "misc/empty.png"}]
+        )
+        super().__init__(input_dict)
+        self.actor = None
+        self.dynamic_tooltip_factory: Callable[["actor_icon"], List[str]] = (
+            input_dict.get("dynamic_tooltip_factory", None)
+        )
+        self.default_image_id: List[Dict[str, Any]] = input_dict["image_id"]
+        if type(self.default_image_id) != list:
+            raise TypeError(
+                f"Expected image_id to be an image ID list, received {self.default_image_id}"
+            )
+        self.actor_type: str = input_dict["actor_type"]
+        self.calibrate_to = input_dict.get("calibrate_to", None)
+        if self.calibrate_to:
+            self.calibrate(self.calibrate_to)
+
+    @property
+    def batch_tooltip_list(self):
+        """
+        Gets a 2D list of strings to use as this object's tooltip
+            Each string is displayed on a separate line, while each sublist is displayed in a separate box
+        """
+        if self.actor:
+            if self.actor.actor_type == constants.LOCATION_ACTOR_TYPE:
+                return self.actor.batch_tooltip_list_omit_mobs
+            else:
+                return self.actor.batch_tooltip_list
+        elif self.dynamic_tooltip_factory:
+            return [self.dynamic_tooltip_factory(self)]
+        else:
+            return []
+
+    def on_click(self):
+        """
+        Handles on-click behavior for this button
+        """
+        if (
+            self.calibrate_to or not self.actor
+        ):  # If empty or if always bound to the same actor
+            return
+        if not main_loop_utility.action_possible():
+            conversion = {
+                constants.MOB_ACTOR_TYPE: "unit",
+                constants.LOCATION_ACTOR_TYPE: "location",
+                constants.MINISTER_ACTOR_TYPE: "minister",
+            }
+            text_utility.print_to_screen(
+                f"You are busy and cannot select this {conversion[self.actor.actor_type]}."
+            )
+        if self.actor.actor_type == constants.MOB_ACTOR_TYPE:
+            if self.actor.get_permission(constants.DUMMY_PERMISSION):
+                if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
+                    status.reorganize_vehicle_right_button.on_click(allow_sound=False)
+                elif status.displayed_mob.get_permission(
+                    constants.ACTIVE_VEHICLE_PERMISSION
+                ):
+                    status.reorganize_vehicle_left_button.on_click(allow_sound=False)
+                elif self.actor.any_permissions(
+                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
+                ):
+                    status.reorganize_group_left_button.on_click(allow_sound=False)
+                elif self.actor.get_permission(constants.GROUP_PERMISSION):
+                    status.reorganize_group_right_button.on_click(allow_sound=False)
+
+                if not self.actor.get_permission(
+                    constants.DUMMY_PERMISSION
+                ):  # Only select if dummy unit successfully became real
+                    self.actor.cycle_select()
+                    self.actor.selection_sound()
+            else:  # If already existing, simply select unit
+                self.actor.cycle_select()
+        elif self.actor.actor_type == constants.LOCATION_ACTOR_TYPE:
+            actor_utility.calibrate_actor_info_display(
+                status.mob_info_display, None
+            )  # Focus on location info display when clicked
+        elif self.actor_type == constants.MINISTER_ACTOR_TYPE:
+            if constants.current_game_mode != constants.TRIAL_MODE:
+                selected_minister = (
+                    self.actor
+                )  # Saved in case switching game modes re-calibrates the icon
+                if constants.current_game_mode != constants.MINISTERS_MODE:
+                    game_transitions.set_game_mode(constants.MINISTERS_MODE)
+                actor_utility.calibrate_actor_info_display(
+                    status.minister_info_display, selected_minister
+                )
+                selected_minister.play_voice_line("acknowledgement")
+
+    def calibrate(self, new_actor):
+        """
+        Description:
+            Attaches this label to the inputted actor and updates this label's information based on the inputted actor
+        Input:
+            string/actor new_actor: The displayed actor whose information is matched by this label. If this equals None, the label does not match any actors.
+        Output:
+            None
+        """
+        if (
+            self.actor_type == constants.MINISTER_ACTOR_TYPE
+            and new_actor
+            and new_actor.actor_type == constants.MOB_ACTOR_TYPE
+        ):
+            self.calibrate(new_actor.controlling_minister)
+            return  # If minister icon attempts to calibrate to mob, calibrate to its minister instead
+        self.actor = new_actor
+        self.image.set_image(self.image_id_list)
+
+    @property
+    def image_id_list(self) -> List[Dict[str, Any]]:
+        """
+        Provides this icon's image ID list based on its calibrated actor
+        """
+        image_id_list = []
+        if self.actor:
+            if self.actor.actor_type == constants.LOCATION_ACTOR_TYPE:
+                image_id_list += self.actor.image_dict[constants.IMAGE_ID_LIST_TERRAIN]
+                image_id_list.append(
+                    {
+                        "image_id": "misc/location_outline.png",
+                        "detail_level": 1.0,
+                        "level": constants.FRONT_LEVEL,
+                    }
+                )
+            elif self.actor.actor_type == constants.MOB_ACTOR_TYPE:
+                image_id_list += self.actor.image_dict[constants.IMAGE_ID_LIST_FULL_MOB]
+                if self.actor.get_permission(constants.SPACESHIP_PERMISSION) or (
+                    self.actor.location.is_abstract_location
+                    and not self.actor.location.is_earth_location
+                ):
+                    image_id_list.append(
+                        {
+                            "image_id": "misc/actor_backgrounds/space_background.png",
+                            "level": constants.BACKGROUND_LEVEL,
+                        }
+                    )
+                else:
+                    image_id_list.append(
+                        {
+                            "image_id": "misc/actor_backgrounds/mob_background.png",
+                            "level": constants.BACKGROUND_LEVEL,
+                        }
+                    )
+                if self.actor.get_permission(constants.DUMMY_PERMISSION):
+                    image_id_list.append(
+                        {
+                            "image_id": "misc/dark_shader.png",
+                            "level": constants.FRONT_LEVEL - 1,  # Behind outline
+                        }
+                    )
+
+                if self.actor.get_permission(constants.PMOB_PERMISSION):
+                    image_id_list.append(
+                        {
+                            "image_id": "misc/actor_backgrounds/pmob_outline.png",
+                            "detail_level": 1.0,
+                            "level": constants.FRONT_LEVEL,
+                        }
+                    )
+                elif self.actor.get_permission(constants.NPMOB_PERMISSION):
+                    image_id_list.append(
+                        {
+                            "image_id": "misc/actor_backgrounds/npmob_outline.png",
+                            "detail_level": 1.0,
+                            "level": constants.FRONT_LEVEL,
+                        }
+                    )
+            elif self.actor.actor_type == constants.MINISTER_ACTOR_TYPE:
+                image_id_list = self.actor.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
+                if self.actor.current_position:
+                    image_id_list.append(
+                        {
+                            "image_id": f"ministers/icons/{self.actor.current_position.skill_type}.png",
+                            "level": constants.BACKGROUND_LEVEL,
+                        }
+                    )
+                else:
+                    image_id_list.append(
+                        {
+                            "image_id": "misc/actor_backgrounds/minister_background.png",
+                            "level": constants.BACKGROUND_LEVEL,
+                        }
+                    )
+            elif self.actor.actor_type in [
+                constants.MOB_INVENTORY_ACTOR_TYPE,
+                constants.LOCATION_INVENTORY_ACTOR_TYPE,
+            ]:
+                image_id_list = self.actor.image.image_id
+            else:
+                raise ValueError(f"Unexpected actor type: {self.actor.actor_type}")
+        if not image_id_list:
+            image_id_list += self.default_image_id
+        return image_id_list
+
+
+class minister_icon(actor_icon):
+    """
+    Abstract class with shared minister table icon/available minister icon flashing outline and name label functionality
+    """
+
+    @property
+    def image_id_list(self) -> List[Dict[str, Any]]:
+        """
+        Provides this icon's image ID list based on its calibrated actor
+        """
+        if self.actor:
+            return super().image_id_list + actor_utility.generate_label_image_id(
+                self.actor.get_f_lname(use_prefix=True)
+            )
+        else:
+            return super().image_id_list
+
+    def draw(self) -> None:
+        """
+        Draws this button, along with an outline if its keybind is being pressed
+        """
+        if (
+            self.can_show()
+            and self.actor_type == constants.MINISTER_ACTOR_TYPE
+            and constants.current_game_mode == constants.MINISTERS_MODE
+        ):  # Draw flashing outline around icon if minister selected
+            if (
+                status.displayed_minister
+                and status.displayed_minister == self.actor
+                and flags.show_selection_outlines
+            ):
+                pygame.draw.rect(
+                    constants.game_display,
+                    constants.color_dict[constants.COLOR_BRIGHT_GREEN],
+                    self.outline,
+                )
+        super().draw()
+
+
+class minister_table_icon(minister_icon):
+    """
+    Actor icon that calibrates to the current minister in a particular position, rather than the currently selected one
+    """
+
+    def __init__(self, input_dict) -> None:
+        """
+        Same as superclass, but with additional input:
+            minister_type minister_type: Type of minister linked to this icon - always calibrates to the current minister
+                of that type
+        """
+        super().__init__(input_dict)
+        self.minister_type: minister_types.minister_type = input_dict["minister_type"]
+        status.minister_types[self.minister_type.key].minister_table_icon = self
+
+    @property
+    def batch_tooltip_list(self) -> List[List[str]]:
+        """
+        Gets a 2D list of strings to use as this object's tooltip
+            Each string is displayed on a separate line, while each sublist is displayed in a separate box
+        """
+        if self.actor or self.dynamic_tooltip_factory:
+            return super().batch_tooltip_list
+        else:
+            return [
+                [
+                    f"No {self.minister_type.name} is currently appointed.",
+                    f"Without a {self.minister_type.name}, {self.minister_type.skill_type.replace('_', ' ')}-oriented actions are not possible",
+                ]
+            ]
+
+
+class available_minister_icon(minister_icon):
+    """
+    Minister icon indicating an available minister candidate for hiring
+    """
+
+    def __init__(self, input_dict) -> None:
+        """
+        Same as superclass, but with additional configuration
+        """
+        super().__init__(input_dict)
+        status.available_minister_icon_list.append(self)
+        self.insert_collection_above()
+        self.warning_image = constants.ActorCreationManager.create_interface_element(
+            {
+                "attached_image": self,
+                "init_type": constants.WARNING_IMAGE,
+                "parent_collection": self.parent_collection,
+                "member_config": {"x_offset": scaling.scale_width(-100), "y_offset": 0},
+            }
+        )
+
+    def on_click(self):
+        """
+        Handles on-click behavior for this button
+        """
+        super().on_click()
+        if self.actor and main_loop_utility.action_possible():
+            new_center_index = status.available_minister_list.index(self.actor)
+            new_left_index = new_center_index - 2
+            constants.available_minister_left_index = new_left_index
+            minister_utility.update_available_minister_display()
+
+    def can_show_warning(self):
+        """
+        Description:
+            Returns whether this image should display its warning image - when attached minister will be fired at the end of the turn
+        Input:
+            None
+        Output:
+            Returns whether this image should display its warning image
+        """
+        return self.actor and self.actor.just_removed
+
+    @property
+    def batch_tooltip_list(self) -> List[List[str]]:
+        """
+        Gets a 2D list of strings to use as this object's tooltip
+            Each string is displayed on a separate line, while each sublist is displayed in a separate box
+        """
+        if self.actor or self.dynamic_tooltip_factory:
+            return super().batch_tooltip_list
+        else:
+            return [["There is no available candidate in this slot."]]

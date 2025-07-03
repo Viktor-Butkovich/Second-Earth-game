@@ -383,30 +383,6 @@ class pmob(mob):
         ):  # If group member passenger dies, reembark other group member
             reembarked_units[0].embark_vehicle(reembarked_units[1], focus=False)
 
-    def on_move(self):
-        """
-        Automatically called when unit arrives in a location for any reason
-        """
-        current_location = self.location
-        if current_location and not current_location.is_abstract_location:
-            for location in [current_location] + current_location.adjacent_list:
-                if (
-                    location == current_location
-                ):  # Show knowledge 3 about current location
-                    requirement = constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
-                    category = constants.TERRAIN_PARAMETER_KNOWLEDGE
-                else:  # Show knowledge 2 about adjacent locations
-                    requirement = constants.TERRAIN_KNOWLEDGE_REQUIREMENT
-                    category = constants.TERRAIN_KNOWLEDGE
-                if not location.knowledge_available(category):
-                    location.set_parameter(
-                        constants.KNOWLEDGE,
-                        max(
-                            requirement,
-                            location.get_parameter(constants.KNOWLEDGE),
-                        ),
-                    )
-
     def to_save_dict(self):
         """
         Description:

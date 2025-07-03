@@ -21,14 +21,13 @@ from modules.interface_components.interface_elements import (
     autofill_collection,
 )
 from modules.interface_components.inventory_interface import inventory_grid
-from modules.interface_components.grids import grid, mini_grid, abstract_grid
+from modules.interface_components.grids import grid, mini_grid
 from modules.interface_components.panels import safe_click_panel
 from modules.interface_components.notifications import notification
 from modules.interface_components.buttons import (
     button,
     same_location_icon,
     reorganize_unit_button,
-    minister_portrait_image,
     switch_game_mode_button,
 )
 from modules.interface_components.inventory_interface import item_icon
@@ -38,6 +37,9 @@ from modules.interface_components.labels import (
     item_prices_label_template,
     multi_line_label,
     label,
+)
+from modules.interface_components.info_display_elements.info_display_buttons import (
+    actor_icon,
 )
 from modules.constructs.buildings import building, resource_building
 from modules.constructs.actor_types.mobs import mob
@@ -87,7 +89,7 @@ world_list: List[world_handler] = []
 text_list: List[str] = []
 free_image_list: List[free_image] = []
 minister_image_list: List[Any] = []
-available_minister_portrait_list: List[button] = []
+available_minister_icon_list: List[actor_icon] = []
 
 mob_list: List[mob] = []
 pmob_list: List[pmob] = []
@@ -136,7 +138,7 @@ reorganize_group_left_button: reorganize_unit_button = None
 reorganize_group_right_button: reorganize_unit_button = None
 reorganize_vehicle_left_button: reorganize_unit_button = None
 reorganize_vehicle_right_button: reorganize_unit_button = None
-minister_loading_image: minister_portrait_image = None
+minister_loading_image: actor_icon = None
 albedo_free_image: free_image = None
 cursor_image: pygame.image = None
 next_boarded_vehicle: pmob = None

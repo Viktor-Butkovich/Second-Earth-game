@@ -230,7 +230,8 @@ class mob(actor):
         )
         self.set_permission(
             constants.DEADLY_EXTERNAL_ENVIRONMENT_PERMISSION,
-            self.location.get_unit_habitability(unit=None) == constants.HABITABILITY_DEADLY,
+            self.location.get_unit_habitability(unit=None)
+            == constants.HABITABILITY_DEADLY,
         )
         for current_mob in self.contained_mobs_besides_self:
             current_mob.update_habitability()
@@ -255,12 +256,6 @@ class mob(actor):
         self.controlling_minister = minister_utility.get_minister(
             self.unit_type.controlling_minister_type.key
         )
-        for current_minister_type_image in status.minister_image_list:
-            if (
-                current_minister_type_image.minister_type
-                == self.unit_type.controlling_minister_type
-            ):
-                current_minister_type_image.calibrate(self.controlling_minister)
 
     @property
     def location(self) -> locations.location:
@@ -1428,8 +1423,33 @@ class mob(actor):
             constants.PMOB_PERMISSION
         ):  # Do an inventory attrition check when moving, using the destination's terrain
             self.manage_inventory_attrition()
-
+        self.on_move()
         self.last_move_direction = (x_change, y_change)
+
+    def on_move(self):
+        """
+        Automatically called when unit arrives in a location for any reason
+        """
+        if self.get_permission(constants.PMOB_PERMISSION):
+            current_location = self.location
+            if current_location and not current_location.is_abstract_location:
+                for location in [current_location] + current_location.adjacent_list:
+                    if (
+                        location == current_location
+                    ):  # Show knowledge 3 about current location
+                        requirement = constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
+                        category = constants.TERRAIN_PARAMETER_KNOWLEDGE
+                    else:  # Show knowledge 2 about adjacent locations
+                        requirement = constants.TERRAIN_KNOWLEDGE_REQUIREMENT
+                        category = constants.TERRAIN_KNOWLEDGE
+                    if not location.knowledge_available(category):
+                        location.set_parameter(
+                            constants.KNOWLEDGE,
+                            max(
+                                requirement,
+                                location.get_parameter(constants.KNOWLEDGE),
+                            ),
+                        )
 
     def retreat(self):
         """

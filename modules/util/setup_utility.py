@@ -2084,8 +2084,7 @@ def ministers_screen():
         "width": scaling.scale_width(portrait_icon_width),
         "height": scaling.scale_height(portrait_icon_width),
         "modes": [constants.MINISTERS_MODE],
-        "color": constants.COLOR_GRAY,
-        "init_type": constants.MINISTER_PORTRAIT_IMAGE,
+        "init_type": constants.MINISTER_TABLE_ICON,
     }
     for current_index, minister_type_tuple in enumerate(status.minister_types.items()):
         # Creates an office icon and a portrait at a section of the table for each minister
@@ -2102,21 +2101,37 @@ def ministers_screen():
                     "width": scaling.scale_width(position_icon_width),
                     "height": scaling.scale_height(position_icon_width),
                     "modes": [constants.MINISTERS_MODE],
-                    "minister_type": minister_type,
-                    "attached_label": None,
-                    "init_type": constants.MINISTER_TYPE_IMAGE,
+                    "init_type": constants.TOOLTIP_FREE_IMAGE,
+                    "image_id": [
+                        {"image_id": f"ministers/icons/{minister_type.skill_type}.png"}
+                    ],
+                    "preset_tooltip_text": minister_type.get_description(),
                 }
             )
-
-            input_dict["coordinates"] = scaling.scale_coordinates(
-                (constants.default_display_width / 2)
-                - (table_width / 2)
-                - portrait_icon_width
-                - 10,
-                current_index * 180 + 95,
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    **input_dict,
+                    "coordinates": scaling.scale_coordinates(
+                        (constants.default_display_width / 2)
+                        - (table_width / 2)
+                        - portrait_icon_width
+                        - 10,
+                        current_index * 180 + 95,
+                    ),
+                    "minister_type": minister_type,
+                    "actor_type": constants.MINISTER_ACTOR_TYPE,
+                    "image_id": [
+                        {
+                            "image_id": "ministers/empty_portrait.png",
+                            "level": constants.BACKGROUND_LEVEL,
+                        },
+                        {
+                            "image_id": "misc/warning_icon.png",
+                            "level": constants.DEFAULT_PORTRAIT_LEVEL,
+                        },
+                    ],
+                }
             )
-            input_dict["minister_type"] = minister_type
-            constants.ActorCreationManager.create_interface_element(input_dict)
 
         else:
             constants.ActorCreationManager.create_interface_element(
@@ -2133,18 +2148,34 @@ def ministers_screen():
                     "width": scaling.scale_width(position_icon_width),
                     "height": scaling.scale_height(position_icon_width),
                     "modes": [constants.MINISTERS_MODE],
-                    "minister_type": minister_type,
-                    "attached_label": None,
-                    "init_type": constants.MINISTER_TYPE_IMAGE,
+                    "init_type": constants.TOOLTIP_FREE_IMAGE,
+                    "image_id": [
+                        {"image_id": f"ministers/icons/{minister_type.skill_type}.png"}
+                    ],
+                    "preset_tooltip_text": minister_type.get_description(),
                 }
             )
-
-            input_dict["coordinates"] = scaling.scale_coordinates(
-                (constants.default_display_width / 2) + (table_width / 2) + 10,
-                (current_index - 4) * 180 + 95,
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    **input_dict,
+                    "coordinates": scaling.scale_coordinates(
+                        (constants.default_display_width / 2) + (table_width / 2) + 10,
+                        (current_index - 4) * 180 + 95,
+                    ),
+                    "minister_type": minister_type,
+                    "actor_type": constants.MINISTER_ACTOR_TYPE,
+                    "image_id": [
+                        {
+                            "image_id": "ministers/empty_portrait.png",
+                            "level": constants.BACKGROUND_LEVEL,
+                        },
+                        {
+                            "image_id": "misc/warning_icon.png",
+                            "level": constants.DEFAULT_PORTRAIT_LEVEL,
+                        },
+                    ],
+                }
             )
-            input_dict["minister_type"] = minister_type
-            constants.ActorCreationManager.create_interface_element(input_dict)
 
     available_minister_display_x = constants.default_display_width - 205
     available_minister_display_y = 770
@@ -2176,37 +2207,41 @@ def ministers_screen():
                 "width": scaling.scale_width(portrait_icon_width),
                 "height": scaling.scale_height(portrait_icon_width),
                 "modes": [constants.MINISTERS_MODE],
-                "init_type": constants.MINISTER_PORTRAIT_IMAGE,
-                "color": constants.COLOR_GRAY,
-                "minister_type": None,
+                "init_type": constants.AVAILABLE_MINISTER_ICON,
+                "actor_type": constants.MINISTER_ACTOR_TYPE,
+                "image_id": [
+                    {
+                        "image_id": "ministers/empty_portrait.png",
+                        "level": constants.BACKGROUND_LEVEL,
+                    },
+                ],
             }
         )
 
     available_minister_display_y -= 60
-    cycle_input_dict["coordinates"] = (
-        cycle_input_dict["coordinates"][0],
-        scaling.scale_height(available_minister_display_y),
-    )
-    cycle_input_dict["keybind_id"] = pygame.K_s
-    cycle_input_dict["image_id"] = "buttons/cycle_ministers_down_button.png"
-    cycle_input_dict["direction"] = "right"
     cycle_right_button = constants.ActorCreationManager.create_interface_element(
-        cycle_input_dict
+        {
+            **cycle_input_dict,
+            "coordinates": (
+                cycle_input_dict["coordinates"][0],
+                scaling.scale_height(available_minister_display_y),
+            ),
+            "keybind_id": pygame.K_s,
+            "image_id": "buttons/cycle_ministers_down_button.png",
+            "direction": "right",
+        }
     )
 
-    status.minister_loading_image = (
-        constants.ActorCreationManager.create_interface_element(
-            {
-                "coordinates": scaling.scale_coordinates(0, 0),
-                "width": scaling.scale_width(portrait_icon_width),
-                "height": scaling.scale_height(portrait_icon_width),
-                "modes": [],
-                "init_type": constants.MINISTER_PORTRAIT_IMAGE,
-                "color": constants.COLOR_GRAY,
-                "minister_type": None,
-            }
-        )
-    )
+    status.minister_loading_image = constants.ActorCreationManager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "width": scaling.scale_width(portrait_icon_width),
+            "height": scaling.scale_height(portrait_icon_width),
+            "modes": [],
+            "actor_type": constants.MINISTER_ACTOR_TYPE,
+            "init_type": constants.ACTOR_ICON,
+        }
+    )  # Dummy image to calibrate all ministers to, ensuring portrait images are rendered and cached at creation time
 
 
 def trial_screen():
@@ -2229,7 +2264,6 @@ def trial_screen():
         + (distance_to_center - button_separation)
         + distance_to_notification
     )
-    defense_current_y = 0
     status.defense_info_display = (
         constants.ActorCreationManager.create_interface_element(
             {
@@ -2247,35 +2281,17 @@ def trial_screen():
         )
     )
 
-    defense_type_image = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(0, defense_current_y),
-            "width": scaling.scale_width(button_separation * 2 - 5),
-            "height": scaling.scale_height(button_separation * 2 - 5),
-            "modes": [constants.TRIAL_MODE],
-            "minister_type": None,
-            "attached_label": None,
-            "init_type": constants.MINISTER_TYPE_IMAGE,
-            "parent_collection": status.defense_info_display,
-        }
-    )
-
-    defense_current_y -= button_separation * 2
     defense_portrait_image = constants.ActorCreationManager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(0, defense_current_y),
             "width": scaling.scale_width(button_separation * 2 - 5),
             "height": scaling.scale_height(button_separation * 2 - 5),
-            "init_type": constants.MINISTER_PORTRAIT_IMAGE,
-            "minister_type": None,
-            "color": constants.COLOR_GRAY,
+            "init_type": constants.ACTOR_ICON,
+            "actor_type": constants.MINISTER_ACTOR_TYPE,
             "parent_collection": status.defense_info_display,
         }
     )
 
-    defense_current_y -= 35
     input_dict = {
-        "coordinates": scaling.scale_coordinates(0, defense_current_y),
         "minimum_width": scaling.scale_width(10),
         "height": scaling.scale_height(constants.default_notification_font_size + 5),
         "image_id": "misc/default_label.png",
@@ -2292,8 +2308,6 @@ def trial_screen():
         constants.MINISTER_OFFICE_LABEL,
         constants.EVIDENCE_LABEL,
     ]:
-        defense_current_y -= 35
-        input_dict["coordinates"] = scaling.scale_coordinates(0, defense_current_y)
         input_dict["init_type"] = current_actor_label_type
         constants.ActorCreationManager.create_interface_element(input_dict)
 
@@ -2303,8 +2317,6 @@ def trial_screen():
         - (distance_to_center + button_separation)
         - distance_to_notification
     )
-    prosecution_current_y = 0
-
     status.prosecution_info_display = (
         constants.ActorCreationManager.create_interface_element(
             {
@@ -2322,34 +2334,18 @@ def trial_screen():
         )
     )
 
-    prosecution_type_image = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(0, prosecution_current_y),
-            "width": scaling.scale_width(button_separation * 2 - 5),
-            "height": scaling.scale_height(button_separation * 2 - 5),
-            "modes": [constants.TRIAL_MODE],
-            "minister_type": None,
-            "attached_label": None,
-            "init_type": constants.MINISTER_TYPE_IMAGE,
-            "parent_collection": status.prosecution_info_display,
-        }
-    )
-
-    prosecution_current_y -= button_separation * 2
     prosecution_portrait_image = (
         constants.ActorCreationManager.create_interface_element(
             {
                 "width": scaling.scale_width(button_separation * 2 - 5),
                 "height": scaling.scale_height(button_separation * 2 - 5),
-                "init_type": constants.MINISTER_PORTRAIT_IMAGE,
-                "minister_type": None,
-                "color": constants.COLOR_GRAY,
+                "init_type": constants.ACTOR_ICON,
+                "actor_type": constants.MINISTER_ACTOR_TYPE,
                 "parent_collection": status.prosecution_info_display,
             }
         )
     )
 
-    prosecution_current_y -= 35
     input_dict = {
         "minimum_width": scaling.scale_width(10),
         "height": scaling.scale_height(constants.default_notification_font_size + 5),
@@ -2369,8 +2365,6 @@ def trial_screen():
         constants.MINISTER_NAME_LABEL,
         constants.MINISTER_OFFICE_LABEL,
     ]:
-        prosecution_current_y -= 35
-        input_dict["coordinates"] = scaling.scale_coordinates(0, prosecution_current_y)
         input_dict["init_type"] = current_actor_label_type
         constants.ActorCreationManager.create_interface_element(input_dict)
 
@@ -2515,7 +2509,6 @@ def mob_sub_interface():
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.mob_info_display,
-            "image_id": "misc/empty.png",
         }
     )
 
@@ -2623,7 +2616,7 @@ def mob_sub_interface():
             "height": scaling.scale_height(
                 constants.default_notification_font_size + 5
             ),
-            "image_id": "misc/default_label.png",
+            "image_id": [{"image_id": "misc/default_label.png"}],
             "init_type": current_actor_label_type,
             "actor_type": constants.MOB_ACTOR_TYPE,
             "parent_collection": status.mob_info_display,
@@ -2741,7 +2734,6 @@ def location_interface():
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.location_info_display,
-            "image_id": "misc/empty.png",
         }
     )
 
@@ -2951,7 +2943,6 @@ def inventory_interface():
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.mob_inventory_info_display,
-            "image_id": "misc/empty.png",
         }
     )
 
@@ -3152,7 +3143,6 @@ def inventory_interface():
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.location_inventory_info_display,
-            "image_id": "misc/empty.png",
         }
     )
 
@@ -3527,6 +3517,7 @@ def unit_organization_interface():
     lhs_top_mob_icon = constants.ActorCreationManager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, 0),
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
@@ -3564,6 +3555,7 @@ def unit_organization_interface():
     lhs_bottom_mob_icon = constants.ActorCreationManager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, -1 * (image_height - 5)),
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
@@ -3600,6 +3592,7 @@ def unit_organization_interface():
     rhs_mob_icon = constants.ActorCreationManager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, 0),
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
@@ -3747,6 +3740,7 @@ def vehicle_organization_interface():
     lhs_top_mob_icon = constants.ActorCreationManager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, 0),
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
@@ -3787,6 +3781,7 @@ def vehicle_organization_interface():
     lhs_bottom_mob_icon = constants.ActorCreationManager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, -1 * (image_height - 5)),
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
@@ -3817,6 +3812,7 @@ def vehicle_organization_interface():
     rhs_mob_icon = constants.ActorCreationManager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, 0),
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
@@ -3949,7 +3945,6 @@ def minister_interface():
             "modes": [constants.MINISTERS_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.minister_info_display,
-            "image_id": "misc/empty.png",
         }
     )
 

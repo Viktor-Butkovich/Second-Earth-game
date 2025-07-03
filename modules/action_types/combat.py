@@ -150,7 +150,7 @@ class combat(action.action):
             )
             if not self.defending:
                 return_list += (
-                    self.current_unit.controlling_minister.generate_icon_input_dicts(
+                    self.current_unit.controlling_minister.generate_icon_input_dict(
                         alignment="left"
                     )
                 )
