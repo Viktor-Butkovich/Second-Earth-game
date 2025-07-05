@@ -222,7 +222,6 @@ class pmob(mob):
     def consume_item_upkeep(self) -> None:
         """
         Consumes all available items required for this unit's item upkeep, logging an upkeep missing penalty for the most important missing item type
-            Item upkeep of sub-mobs needs to be handled separately
         """
         if self.in_deadly_environment():
             return  # Don't consume upkeep when in instant death conditions
@@ -293,8 +292,6 @@ class pmob(mob):
                 print(
                     f"{self.name} successfully consumed {self.get_item_upkeep(recurse=False)}"
                 )
-        for current_sub_mob in self.get_sub_mobs():
-            current_sub_mob.consume_item_upkeep()
 
     def check_item_availability(self) -> None:
         """

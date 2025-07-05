@@ -205,11 +205,33 @@ class location(actors.actor):
             constants.EventBus.subscribe(
                 self.update_image_bundle, constants.UPDATE_MAP_MODE_ROUTE
             )  # If not abstract location, update image bundle when map mode changes
+            constants.EventBus.subscribe(
+                self.update_expected_temperature_offset,
+                self.uuid,
+                constants.LOCATION_SET_PARAMETER_ROUTE,
+                constants.TEMPERATURE,
+            )  # Update offset from expected temperature when local temperature changes
+            constants.EventBus.subscribe(
+                self.update_expected_temperature_offset,
+                self.world_handler.uuid,
+                constants.WORLD_UPDATE_TARGET_AVERAGE_TEMPERATURE_ROUTE,
+            )  # Update offset from expected temperature when world's target average temperature changes
         constants.EventBus.subscribe(
             self.update_contained_mob_habitability,
             self.uuid,
             constants.LOCATION_SET_PARAMETER_ROUTE,
         )  # Update contained mob habitability when terrain parameters change
+
+    def update_expected_temperature_offset(self) -> None:
+        """
+        Updates this location's deviation from the expected temperature for the region and climate
+        When location temperatures change, those that most deviate from expected are selected first
+        Upon world creation, local temperature variations are preserved as "local weather", ensuring variety while
+            still detecting deviation from expected as conditions change
+        """
+        self.expected_temperature_offset = (
+            self.get_parameter(constants.TEMPERATURE) - self.get_expected_temperature()
+        )
 
     def local_attrition(self, attrition_type="health"):
         """
@@ -575,14 +597,13 @@ class location(actors.actor):
             float: Expected temperature of this terrain
         """
         if self.true_world_handler:
-            average_temperature = self.true_world_handler.average_temperature
             altitude_effect = (
                 -1 * self.get_parameter(constants.ALTITUDE)
             ) + self.true_world_handler.average_altitude
             altitude_effect_weight = 0.5
             # Colder to the extent that location is higher than average altitude, and vice versa
             return (
-                average_temperature
+                self.true_world_handler.average_temperature
                 - 3.5
                 + (5 * self.pole_distance_multiplier)
                 + (altitude_effect * altitude_effect_weight)
@@ -722,11 +743,7 @@ class location(actors.actor):
                     update_display=False,
                 )
                 for i in range(water_displaced):
-                    self.true_world_handler.place_water(
-                        radiation_effect=False,
-                        repeat_on_fail=True,
-                        update_display=update_display,
-                    )
+                    self.true_world_handler.place_water(update_display=update_display)
 
         new_terrain = constants.TerrainManager.classify(self.terrain_parameters)
 
@@ -1740,7 +1757,7 @@ class location(actors.actor):
         if constants.ENERGY_ITEM in requested_items:
             missing_energy = self.consume_items(
                 {constants.FUEL_ITEM: requested_items[constants.ENERGY_ITEM]}
-            ).get(constants.ENERGY_ITEM, 0)
+            ).get(constants.FUEL_ITEM, 0)
             # Attempt to consume fuel equal to energy request - returns amount of request that cannot be met
             self.change_inventory(
                 status.item_types[constants.ENERGY_ITEM],
@@ -1752,9 +1769,8 @@ class location(actors.actor):
         }  # Remove fulfilled requests
         return requested_items
 
-    def get_item_upkeep(
-        self, recurse: bool = False, earth_exemption: bool = True
-    ) -> Dict[str, float]:
+    @property
+    def location_item_upkeep_demand(self) -> Dict[str, float]:
         """
         Description:
             Returns the item upkeep requirements for all units in this location
@@ -1765,8 +1781,10 @@ class location(actors.actor):
         """
         return utility.add_dicts(
             *[
-                mob.get_item_upkeep(recurse=recurse, earth_exemption=earth_exemption)
-                for mob in self.subscribed_mobs
+                mob.get_item_upkeep(
+                    recurse=False, earth_exemption=self.is_earth_location
+                )
+                for mob in self.contained_mobs
             ]
         )
 

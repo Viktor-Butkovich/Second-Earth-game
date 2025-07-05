@@ -1683,9 +1683,7 @@ class change_parameter_button(buttons.button):
                 if self.change > 0:
                     for i in range(abs(self.change)):
                         status.displayed_location.true_world_handler.place_water(
-                            update_display=False,
-                            repeat_on_fail=True,
-                            radiation_effect=False,
+                            update_display=False
                         )
                 else:
                     for i in range(abs(self.change)):

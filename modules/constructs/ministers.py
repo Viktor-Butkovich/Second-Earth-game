@@ -1206,7 +1206,7 @@ class minister:
                         "I hold no ill will towards your cause, and I hope you continue to survive and thrive here. ",
                         "Maybe I will return one day, once this planet becomes a green paradise. ",
                         "I truly think humans were never meant to set foot here, and that we were meant to stay on Earth. It will always be our home!",
-                        "This is no home for us - it's a death trap. We've been lying to ourselves this whole time! ",
+                        "This is no home for us. it's a death trap! We've been lying to ourselves this whole time! ",
                         "We've been looking to the stars for as long as we can remember, but there is nothing for us out here. ",
                     ]
                     conclusion_options = [

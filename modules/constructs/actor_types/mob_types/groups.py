@@ -131,15 +131,13 @@ class group(pmob):
         """
         if recurse:
             return utility.add_dicts(
-                super().get_item_upkeep(
-                    recurse=recurse, earth_exemption=earth_exemption
-                ),
-                self.worker.get_item_upkeep(
-                    recurse=recurse, earth_exemption=earth_exemption
-                ),
-                self.officer.get_item_upkeep(
-                    recurse=recurse, earth_exemption=earth_exemption
-                ),
+                self.get_item_upkeep(recurse=False, earth_exemption=earth_exemption),
+                *[
+                    mob.get_item_upkeep(
+                        recurse=recurse, earth_exemption=earth_exemption
+                    )
+                    for mob in self.contained_mobs_besides_self
+                ]
             )
         else:
             return super().get_item_upkeep(

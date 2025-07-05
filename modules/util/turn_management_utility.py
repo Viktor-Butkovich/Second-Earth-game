@@ -82,10 +82,7 @@ def start_player_turn(first_turn=False):
             manage_financial_report()
         actor_utility.reset_action_prices()
         game_end_check()
-        status.current_world.update_clouds()
-        status.current_world.simulate_temperature_equilibrium(5)
-        status.current_world.update_sky_color(update_water=True)
-        status.current_world.update_clouds()
+        status.current_world.simulate_climate_equilibrium()
         constants.NotificationManager.set_lock(False)
 
     flags.player_turn = (
@@ -427,8 +424,8 @@ def manage_upkeep_expenditure() -> None:
     for current_world in status.world_list:
         for current_location in current_world.get_flat_location_list():
             if current_location.subscribed_mobs:
-                item_upkeep = current_location.get_item_upkeep(recurse=True)
-                item_request = current_location.create_item_request(item_upkeep)
+                item_demand = current_location.location_item_upkeep_demand
+                item_request = current_location.create_item_request(item_demand)
                 unfulfilled_item_request = current_location.fulfill_item_request(
                     item_request.copy()
                 )
@@ -437,14 +434,14 @@ def manage_upkeep_expenditure() -> None:
                         name = current_location.name.capitalize()
                     else:
                         name = f"({current_location.x}, {current_location.y})"
-                    print(f"{name} total upkeep {item_upkeep}")
+                    print(f"{name} total upkeep {item_demand}")
                     print(f"{name} requesting external {item_request}")
                     print(
                         f"{name} unfulfilled external requests {unfulfilled_item_request}"
                     )
-                for current_mob in current_location.subscribed_mobs:
+                for current_mob in current_location.contained_mobs:
                     current_mob.check_item_availability()
-                for current_mob in current_location.subscribed_mobs:
+                for current_mob in current_location.contained_mobs:
                     current_mob.consume_item_upkeep()
                 current_location.set_inventory(
                     status.item_types[constants.ENERGY_ITEM], 0
@@ -921,8 +918,10 @@ def end_turn_warnings():
     for current_world in status.world_list:
         for current_location in current_world.get_flat_location_list():
             if current_location.subscribed_mobs:
-                item_upkeep = current_location.get_item_upkeep(recurse=True)
-                item_request = current_location.create_item_request(item_upkeep)
+                item_demand = current_location.location_item_upkeep_demand
+                item_request = current_location.create_item_request(
+                    item_demand
+                )  # Request any items that aren't present
                 if constants.ENERGY_ITEM in item_request:
                     missing_fuel = current_location.create_item_request(
                         {constants.FUEL_ITEM: item_request[constants.ENERGY_ITEM]}
@@ -938,10 +937,10 @@ def end_turn_warnings():
                         name = current_location.name.capitalize()
                     else:
                         name = f"({current_location.x}, {current_location.y})"
-                    text = f"WARNING: {name} does not have enough items to meet its local upkeep requirements. /n /n"
-                    text += f"Required items: {actor_utility.summarize_amount_dict(item_upkeep)} /n /n"
-                    text += f"Missing items: {actor_utility.summarize_amount_dict(item_request)} /n /n"
-                    text += f"Depending on item type, this deficit may result in unit death or morale penalties. /n /n"
+                    text = f"WARNING: {name} has insufficient inventory to meet its upkeep demand. /n /n"
+                    text += f"Demand: /n{actor_utility.line_item_amount_dict(item_demand)} /n /n"
+                    text += f"Shortage: /n{actor_utility.line_item_amount_dict(item_request)} /n /n"
+                    text += f"Depending on item type, this shortage may result in unit death or morale penalties. /n /n"
                     constants.NotificationManager.display_notification(
                         {
                             "message": text,

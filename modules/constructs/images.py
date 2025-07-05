@@ -1458,6 +1458,7 @@ class cell_image(image):
         )  # (left, top, width, height), bottom left on coordinates
         self.outline_width = self.cell.grid.grid_line_width + 1
         self.contains_bundle = True
+        self.image: image_bundle = None
 
     def set_image(self, image_id_list):
         """

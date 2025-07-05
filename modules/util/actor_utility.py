@@ -693,6 +693,26 @@ def summarize_amount_dict(item_dict: Dict[str, float]):
     return text
 
 
+def line_item_amount_dict(item_dict: Dict[str, float]):
+    """
+    Description:
+        Convert a dictionary of item keys and amounts to a line item-formatted string summary
+    Input:
+        Dict[str, float] item_dict: Dictionary of item keys and amounts, in the format
+            {
+                constants.CONSUMER_GOODS_ITEM_TYPE: 2,
+                constants.FOOD_ITEM_TYPE: 1
+            }
+    Output:
+        str: String summary, in the format "/n    Consumer goods: 2 /n    Food: 1"
+    """
+    lines = []
+    for item_type_key, amount in item_dict.items():
+        item_name = status.item_types[item_type_key].name.capitalize()
+        lines.append(f"    {item_name}: {amount}")
+    return " /n".join(lines)
+
+
 def calibrate_minimap_grids(world_handler: any, x: int, y: int) -> None:
     for current_grid in world_handler.subscribed_grids:
         current_grid.calibrate(x, y)

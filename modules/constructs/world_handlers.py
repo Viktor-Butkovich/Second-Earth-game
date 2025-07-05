@@ -107,11 +107,6 @@ class world_handler:
                 for x in range(self.coordinate_width)
             ]
 
-        if not from_save:
-            self.update_target_average_temperature(
-                estimate_water_vapor=True, update_albedo=False
-            )
-
     @property
     def coordinate_width(self) -> int:
         """
@@ -724,9 +719,7 @@ class world_handler:
             2,
         )
 
-    def update_target_average_temperature(
-        self, estimate_water_vapor: bool = False, update_albedo: bool = False
-    ):
+    def update_target_average_temperature(self, estimate_water_vapor: bool = False):
         """
         Re-calculates the average temperature of this world, based on sun distance -> solation and greenhouse effect
             This average temperature is used as a target, changing local temperature until the average is reached
@@ -777,9 +770,6 @@ class world_handler:
                 weight=water_vapor_weight,
             )
 
-        if update_albedo:
-            self.update_cloud_frequencies(estimated_temperature=estimated_temperature)
-            self.update_albedo_effect_multiplier()
         fahrenheit = (
             ghg_multiplier
             * water_vapor_multiplier
@@ -787,9 +777,6 @@ class world_handler:
             * self.get_sun_effect()
         ) + constants.ABSOLUTE_ZERO
         self.average_temperature = utility.reverse_fahrenheit(fahrenheit)
-        for location in self.get_flat_location_list():
-            location.expected_temperature_offset = (
-                location.terrain_parameters[constants.TEMPERATURE]
-                - location.get_expected_temperature()
-            )
-        self.average_temperature = utility.reverse_fahrenheit(fahrenheit)
+        constants.EventBus.publish(
+            self.uuid, constants.WORLD_UPDATE_TARGET_AVERAGE_TEMPERATURE_ROUTE
+        )

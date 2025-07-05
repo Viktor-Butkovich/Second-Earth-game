@@ -443,8 +443,6 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Use contained_mobs() to calculate per-location item demand (making sure that contained mobs do NOT calculate upkeep recursively)
-#     Upkeep does need to be calculated recursively for unit tooltips, so this should use a boolean flag
 # Significantly decrease retirement rate, especially in the early game
 # Add logistics info display tab with item upkeep information
 #   Mob version with just that mob, and a location version with total location demands
@@ -479,3 +477,30 @@ except Exception:  # Displays error message and records error message in crash l
 # Add task-specific unit voicelines, with separate unit and minister voice sets
 # Add modern minister outfits
 # Add crater and flood basalt terrain variants
+"""
+Notes: Efficiently simulating climate until equilibrium is reached
+    Dependencies:
+        terrain parameters -> ground appearance
+        ground appearance -> albedo brightness
+        albedo brightness -> target average temperature
+        target average temperature -> terrain parameters
+        terrain parameters -> cloud frequency
+        cloud frequency -> albedo brightness
+        cloud frequency -> cloud images
+        atmosphere composition -> target average temperature
+        atmosphere composition -> sky color
+        sky color -> ground appearance
+
+    Ideal update order for simulation:
+    1. Update atmosphere composition
+    2. Update sky color
+    3. Re-calculate the ground appearance based on the new sky color, if any
+    4. Update cloud frequency based on current terrain parameters
+    5. Re-calculate albedo brightness based on new cloud frequency and ground appearances
+    6. Update target average temperature, changing local temperatures as needed to reach this
+        Update local ground appearance along with local temperature changes
+    7. Repeat steps 4-6 until no temperature changes occur, since cloud frequency and albedo brightness depend on the target average temperature
+
+    As long as we update ground appearance whenever local temperature changes, and we update all ground appearances when sky color changes (before simulation), we ensure that the simulation never has to re-calculate all global ground images
+    for each iteration of step 5 - just derive brightness from the previously updated image
+"""

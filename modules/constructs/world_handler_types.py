@@ -1,7 +1,7 @@
 import pygame
 import math
 import random
-import math
+import time
 from typing import List, Dict, Tuple, Any
 from modules.util import actor_utility, world_utility, utility
 from modules.constructs import world_handlers
@@ -274,13 +274,27 @@ class full_world_handler(world_handlers.world_handler):
         self.latitude_lines_setup()
 
         if not from_save:  # Initial full world generation
+            if constants.EffectManager.effect_active("benchmark_world_creation"):
+                start_time = time.time()
+                print(f"Starting world creation at time: {start_time}")
+            self.update_sky_color(set_initial_offset=True)
             self.generate_poles_and_equator()
-            self.update_clouds(estimated_temperature=True)
             self.generate_terrain_parameters()
             self.generate_terrain_features()
-            self.update_sky_color(set_initial_offset=True, update_water=True)
-            self.update_clouds()
-            self.simulate_temperature_equilibrium()
+            for location in self.get_flat_location_list():
+                location.local_weather_offset = (
+                    location.expected_temperature_offset + random.uniform(-0.4, 0.4)
+                )
+            self.apply_low_pressure()
+            self.apply_radiation()
+            self.simulate_climate_equilibrium()
+            if constants.EffectManager.effect_active("benchmark_world_creation"):
+                end_time = time.time()
+                elapsed = end_time - start_time
+                elapsed_per_location = elapsed / (self.world_dimensions**2)
+                print(
+                    f"Finished world creation at time: {end_time}, took {round(elapsed, 2)} seconds ({round(elapsed_per_location, 6)} seconds per location)"
+                )
 
         self.orbital_world: orbital_world_handler = (
             constants.ActorCreationManager.create(
@@ -352,9 +366,7 @@ class full_world_handler(world_handlers.world_handler):
         """
         Randomly generates temperature
         """
-        self.update_target_average_temperature(
-            estimate_water_vapor=True, update_albedo=True
-        )
+        self.update_target_average_temperature(estimate_water_vapor=True)
         default_temperature = round(self.average_temperature)
         for location in self.get_flat_location_list():
             location.set_parameter(
@@ -445,10 +457,9 @@ class full_world_handler(world_handlers.world_handler):
                     start_location=temperature_source,
                     weight_parameter="pole_distance_multiplier",
                 )
-        self.update_target_average_temperature(
-            estimate_water_vapor=True, update_albedo=True
+        self.simulate_climate_equilibrium(
+            estimate_water_vapor=True, update_cloud_images=False
         )
-        self.change_to_temperature_target(estimate_water_vapor=True)
 
     def generate_roughness(self) -> None:
         """
@@ -494,24 +505,73 @@ class full_world_handler(world_handlers.world_handler):
             Total water may be less than target average if repeatedly attempting to place in saturated locations, or if radiation removes some of the placed water
         """
         for _ in range(round(self.average_water_target * (self.world_dimensions**2))):
-            self.place_water(radiation_effect=True, update_display=False)
+            self.place_water(update_display=False, during_setup=True)
         if constants.EffectManager.effect_active("map_customization"):
             attempts = 0
             while attempts < 10000 and not self.find_average(constants.WATER) == 5.0:
-                self.place_water(radiation_effect=True, update_display=False)
+                self.place_water(update_display=False, during_setup=True)
                 attempts += 1
-        self.simulate_temperature_equilibrium()
-        for location in self.get_flat_location_list():
-            location.local_weather_offset = (
-                location.expected_temperature_offset + random.uniform(-0.4, 0.4)
-            )
+
+    def apply_radiation(self) -> None:
+        """
+        Applies radiation effects to water, particularly non-frozen water, based on unmitigated radiation
+        """
+        radiation_effect = max(
+            0,
+            self.get_parameter(constants.RADIATION)
+            - self.get_parameter(constants.MAGNETIC_FIELD),
+        )
+        if radiation_effect > 0:
+            for current_location in self.get_flat_location_list():
+                if current_location.get_parameter(
+                    constants.TEMPERATURE
+                ) <= self.get_tuning("water_freezing_point"):
+                    if current_location.get_parameter(
+                        constants.TEMPERATURE
+                    ) == self.get_tuning(
+                        "water_freezing_point"
+                    ):  # Lose most water if sometimes above freezing
+                        if radiation_effect >= 3:
+                            retention_chance = 1 / 3
+                        else:
+                            retention_chance = 2 / 3
+                    else:  # If far below freezing, retain water regardless of radiation
+                        retention_chance = 1
+                else:  # If consistently above freezing
+                    if (
+                        radiation_effect >= 3
+                    ):  # Lose almost all water if consistently above freezing
+                        retention_chance = 1 / 12
+                    elif (
+                        radiation_effect >= 1
+                    ):  # Lose most water if consistently above freezing
+                        retention_chance = 1 / 3
+                water_retained = sum(
+                    random.random() < retention_chance
+                    for _ in range(current_location.get_parameter(constants.WATER))
+                )
+                current_location.set_parameter(
+                    constants.WATER, water_retained, update_display=False
+                )
+                current_location.flow()
+
+    def apply_low_pressure(self) -> None:
+        """
+        If insufficient pressure, any evaporated water is lost
+        """
+        if self.get_pressure_ratio() < 0.05:
+            for current_location in self.get_flat_location_list():
+                if current_location.get_parameter(
+                    constants.TEMPERATURE
+                ) >= self.get_tuning("water_freezing_point"):
+                    current_location.set_parameter(
+                        constants.WATER, 0, update_display=False
+                    )
 
     def place_water(
         self,
-        frozen_bound=0,
-        radiation_effect: bool = False,
         update_display: bool = True,
-        repeat_on_fail: bool = False,
+        during_setup: bool = False,
     ) -> None:
         """
         Description:
@@ -531,10 +591,9 @@ class full_world_handler(world_handlers.world_handler):
                 / (20**2)
             )
         ):
-            if (
-                candidate.get_parameter(constants.WATER) < 5
-                and candidate.get_parameter(constants.TEMPERATURE) > frozen_bound - 1
-            ):
+            if candidate.get_parameter(constants.WATER) < 5 and candidate.get_parameter(
+                constants.TEMPERATURE
+            ) >= self.get_tuning("water_freezing_point"):
                 if candidate.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
                     "water_boiling_point"
                 ):
@@ -553,13 +612,15 @@ class full_world_handler(world_handlers.world_handler):
         ):
             if candidate.get_parameter(constants.WATER) < 5:
                 if (
-                    candidate.get_parameter(constants.TEMPERATURE) <= frozen_bound - 1
+                    candidate.get_parameter(constants.TEMPERATURE)
+                    <= self.get_tuning("water_freezing_point") - 1
                 ):  # Water can go to coldest freezing location
                     if best_frozen == None or candidate.get_parameter(
                         constants.TEMPERATURE
                     ) < best_frozen.get_parameter(constants.TEMPERATURE):
                         best_frozen = candidate
         if best_frozen == None and best_liquid == None and best_gas == None:
+            self.place_water(update_display=update_display)
             return
         choice = random.choices(
             [best_frozen, best_liquid, best_gas],
@@ -578,62 +639,11 @@ class full_world_handler(world_handlers.world_handler):
             ],
             k=1,
         )[0]
-        if radiation_effect:
-            radiation_effect = max(
-                0,
-                self.get_parameter(constants.RADIATION)
-                - self.get_parameter(constants.MAGNETIC_FIELD),
-            )
-        else:
-            radiation_effect = 0
-        change = 1
-        if not (
-            self.get_pressure_ratio() < 0.05
-            and choice.get_parameter(constants.TEMPERATURE)
-            >= self.get_tuning("water_freezing_point")
-        ):
-            # If insufficient pressure, any evaporated water disappears
-            if choice.get_parameter(constants.TEMPERATURE) <= frozen_bound - 1:
-                # If during setup
-                if choice.get_parameter(constants.TEMPERATURE) >= self.get_tuning(
-                    "water_freezing_point"
-                ):  # Lose most water if sometimes above freezing
-                    if radiation_effect >= 3:
-                        if random.randrange(1, 13) >= 2:
-                            # choice.change_parameter(constants.WATER, -1)
-                            change = 0
-                    elif radiation_effect >= 1:
-                        if random.randrange(1, 13) >= 4:
-                            # choice.change_parameter(constants.WATER, -1)
-                            change = 0
-                # If far below freezing, retain water regardless of radiation
-                if change != 0:
-                    choice.change_parameter(
-                        constants.WATER, change, update_display=update_display
-                    )
-            else:
-                # If during setup
-                if (
-                    radiation_effect >= 3
-                ):  # Lose almost all water if consistently above freezing
-                    if random.randrange(1, 13) >= 2:
-                        change = 0
-                elif (
-                    radiation_effect >= 1
-                ):  # Lose most water if consistently above freezing
-                    if random.randrange(1, 13) >= 4:
-                        change = 0
-                if change != 0:
-                    choice.change_parameter(
-                        constants.WATER, change, update_display=update_display
-                    )
-                    choice.flow()
-        if change == 0 and repeat_on_fail:
-            self.place_water(
-                radiation_effect=radiation_effect,
-                update_display=update_display,
-                repeat_on_fail=repeat_on_fail,
-            )
+        choice.change_parameter(constants.WATER, 1, update_display=update_display)
+        if during_setup and choice.get_parameter(
+            constants.TEMPERATURE
+        ) >= self.get_tuning("water_freezing_point"):
+            choice.flow()
 
     def remove_water(self, update_display: bool = True) -> None:
         """
@@ -1186,17 +1196,11 @@ class full_world_handler(world_handlers.world_handler):
                 and self.get_average_local_temperature() < 10.5
             ):
                 self.warm()
-                self.update_target_average_temperature(
-                    estimate_water_vapor=estimate_water_vapor, update_albedo=False
-                )
             while (
                 self.average_temperature < self.get_average_local_temperature()
                 and self.get_average_local_temperature() > -5.5
             ):
                 self.cool()
-                self.update_target_average_temperature(
-                    estimate_water_vapor=estimate_water_vapor, update_albedo=False
-                )
             self.bound(
                 constants.TEMPERATURE,
                 round(self.average_temperature)
@@ -1216,14 +1220,10 @@ class full_world_handler(world_handlers.world_handler):
             Optionally records the original atmosphere offset from Earth's atmosphere for initial setup
         Input:
             bool set_initial_offset: Whether to record the original atmosphere offset from Earth's atmosphere
-            update_water: Whether to update the water color
+            update_water: Whether to update the water color of local terrains
         Output:
             None
         """
-        if self.get_parameter(constants.PRESSURE) == 0:
-            if set_initial_offset:
-                self.initial_atmosphere_offset = 0
-                self.current_atmosphere_offset = self.initial_atmosphere_offset
         earth_sky_color = self.get_tuning("earth_sky_color")
         current_atmosphere_offset = 0
         for atmosphere_component in constants.ATMOSPHERE_COMPONENTS:
@@ -1233,25 +1233,33 @@ class full_world_handler(world_handlers.world_handler):
                 composition = self.get_composition(atmosphere_component)
             ideal = self.get_tuning(f"earth_{atmosphere_component}")
             if atmosphere_component == constants.TOXIC_GASES:
-                offset = max(0, (composition - 0.001) / 0.001)
-            if ideal != 0:
+                offset = max(0, (composition - 0.001) / 0.005)
+                # Increase offset by 1 for each 0.5% above ideal composition
+            elif atmosphere_component == constants.GHG:
+                offset = max(0, (composition - 0.025) / 0.2)
+                # Increase offset by 1 for each 20% above ideal composition
+            else:
                 offset = abs(composition - ideal) / ideal
+                # Increase offset by 1 for each set of ideal composition excess or missing
             current_atmosphere_offset += offset
         if set_initial_offset:
-            self.initial_atmosphere_offset = max(50.0, current_atmosphere_offset)
+            self.initial_atmosphere_offset = max(5.0, current_atmosphere_offset)
             self.current_atmosphere_offset = self.initial_atmosphere_offset
 
         delta_offset = abs(self.current_atmosphere_offset - current_atmosphere_offset)
-        if abs(self.current_atmosphere_offset - current_atmosphere_offset) < 1.0:
+        if (
+            abs(self.current_atmosphere_offset - current_atmosphere_offset) < 0.01
+            and not set_initial_offset
+        ):
             if constants.EffectManager.effect_active("debug_atmosphere_update"):
                 print(
-                    f"Skipping sky color update for atmosphere offset delta of {delta_offset}"
+                    f"Skipping sky color update from atmosphere offset {round(self.current_atmosphere_offset, 2)} to {round(current_atmosphere_offset, 2)} (delta: {round(delta_offset, 2)})"
                 )
             return
         else:
             if constants.EffectManager.effect_active("debug_atmosphere_update"):
                 print(
-                    f"Updating sky color for atmosphere offset delta of {delta_offset}"
+                    f"Updating sky color from atmosphere offset {round(self.current_atmosphere_offset, 2)} to {round(current_atmosphere_offset, 2)} (delta: {round(delta_offset, 2)})"
                 )
 
         # Record total offset in each call - only update colors if total offset changed
@@ -1298,6 +1306,7 @@ class full_world_handler(world_handlers.world_handler):
                     water_color[1] * 1.1,
                     water_color[2] * 1,
                 )
+            self.update_location_image_bundles(update_globe=False)
 
         if not flags.loading:
             status.current_world.update_globe_projection(update_button=True)
@@ -1353,12 +1362,6 @@ class full_world_handler(world_handlers.world_handler):
         """
         Creates random clouds for each location, with frequency depending on water vapor
         """
-        num_cloud_variants = constants.TerrainManager.terrain_variant_dict.get(
-            "clouds_base", 1
-        )
-        num_solid_cloud_variants = constants.TerrainManager.terrain_variant_dict.get(
-            "clouds_solid", 1
-        )
         self.cloud_frequency = max(
             0,
             min(
@@ -1392,18 +1395,6 @@ class full_world_handler(world_handlers.world_handler):
         self.toxic_cloud_frequency = (
             toxic_cloud_quantity_frequency * toxic_cloud_composition_frequency
         )
-
-    def update_clouds(self, estimated_temperature: float = None) -> None:
-        """
-        Creates random clouds for each location, with frequency depending on water vapor
-        """
-        num_cloud_variants = constants.TerrainManager.terrain_variant_dict.get(
-            "clouds_base", 1
-        )
-        num_solid_cloud_variants = constants.TerrainManager.terrain_variant_dict.get(
-            "clouds_solid", 1
-        )
-        self.update_cloud_frequencies(estimated_temperature=estimated_temperature)
         # Toxic cloud frequency depends on both toxic gas % and total pressure
 
         pressure_alpha = max(0, self.get_pressure_ratio() * 7 - 14)
@@ -1411,9 +1402,19 @@ class full_world_handler(world_handlers.world_handler):
             255, math.log(1 + (self.get_pressure_ratio(constants.TOXIC_GASES)), 2) * 255
         )
         self.atmosphere_haze_alpha = min(255, pressure_alpha + toxic_alpha)
-
         # Atmosphere haze depends on total pressure, with toxic gases greatly over-represented
 
+    def update_clouds(self) -> None:
+        """
+        Creates random cloud images for each location, with frequency depending on water vapor
+            Purely cosmetic
+        """
+        num_cloud_variants = constants.TerrainManager.terrain_variant_dict.get(
+            "clouds_base", 1
+        )
+        num_solid_cloud_variants = constants.TerrainManager.terrain_variant_dict.get(
+            "clouds_solid", 1
+        )
         for location in self.get_flat_location_list():
             location.update_clouds(num_cloud_variants, num_solid_cloud_variants)
 
@@ -1424,7 +1425,7 @@ class full_world_handler(world_handlers.world_handler):
         """
         Re-calculates the albedo multiplier to heat received by this planet, based on clouds and location brightnesss
         """
-        self.update_location_image_bundles(update_globe=False)
+        # self.update_location_image_bundles(update_globe=False)
         cloud_albedo = 0.75
         cloud_frequency = min(
             1,
@@ -1456,6 +1457,10 @@ class full_world_handler(world_handlers.world_handler):
             self.uuid,
             constants.LOCATION_SET_PARAMETER_ROUTE,
             constants.WATER,
+        )
+        constants.EventBus.unsubscribe(
+            self.update_globe_projection,
+            constants.UPDATE_MAP_MODE_ROUTE,
         )
 
     def to_save_dict(self) -> Dict[str, Any]:
@@ -1492,35 +1497,68 @@ class full_world_handler(world_handlers.world_handler):
                 update_button=True,
             )
 
-    def simulate_temperature_equilibrium(self, max_iterations: int = 10) -> None:
+    def simulate_climate_equilibrium(
+        self,
+        max_iterations: int = 10,
+        update_cloud_images: bool = True,
+        estimate_water_vapor: bool = False,
+    ) -> None:
         """
         Description:
             Simulates the temperature equilibrium of the world by updating the target average temperature and changing to that target
         Input:
             int iterations: Maximum number of iterations to simulate
+            bool update_cloud_images: True if the cloud images should be updated after the simulation
+            boolean estimate_water_vapor: Whether to estimate the water vapor contribution or to directly calculate
+                Setting up temperature before water requires estimating water vapor amount
         Output:
             None
         """
+        if constants.EffectManager.effect_active("benchmark_climate_simulation"):
+            start_time = time.time()
+            print(f"Starting climate simulation at time: {start_time}")
+
+        self.update_sky_color(update_water=True)
+        # Note that update_sky_color with update_water is a very expensive operation
+
         for i in range(max_iterations):
+            self.update_cloud_frequencies()  # Update haze and frequency of clouds for albedo calculations
+            # Cloud frequency depends on local parameters and could've been affected over the past turn and the last iteration
+
+            self.update_albedo_effect_multiplier()
+            # Albedo effect multiplier depends on local parameters and cloud frequency
+
             if constants.EffectManager.effect_active("debug_atmosphere_update"):
                 print(f"Simulating atmosphere equilibrium: iteration {i + 1}")
             initial_average_temperature = self.average_temperature
-            self.update_target_average_temperature(update_albedo=True)
+            self.update_target_average_temperature(
+                estimate_water_vapor=estimate_water_vapor
+            )
             if abs(initial_average_temperature - self.average_temperature) < 0.01:
                 if constants.EffectManager.effect_active("debug_atmosphere_update"):
                     print(
-                        f"Skipping temperature change for {utility.fahrenheit(initial_average_temperature)} °F to target {utility.fahrenheit(self.target_average_temperature)} °F - insufficiently significant"
+                        f"Skipping temperature change for {round(utility.fahrenheit(initial_average_temperature), 2)} °F to target {round(utility.fahrenheit(self.average_temperature), 2)} °F"
                     )
                     print(
-                        f"Atmosphere equilibrium reached at {utility.fahrenheit(self.average_temperature)} °F"
+                        f"Atmosphere equilibrium reached at {round(utility.fahrenheit(self.average_temperature), 2)} °F"
                     )
-                return
+                break
             else:
                 if constants.EffectManager.effect_active("debug_atmosphere_update"):
                     print(
-                        f"Changing temperature from {utility.fahrenheit(initial_average_temperature)} °F to target {utility.fahrenheit(self.target_average_temperature)} °F"
+                        f"Changing temperature from {round(utility.fahrenheit(initial_average_temperature), 2)} °F to target {round(utility.fahrenheit(self.average_temperature), 2)} °F"
                     )
-            self.change_to_temperature_target()
+            self.change_to_temperature_target(estimate_water_vapor=estimate_water_vapor)
+            # Note that the act of changing to the temperature target can shift the temperature target for future iterations
+        if update_cloud_images:
+            self.update_clouds()  # Update actual cloud images
+        if constants.EffectManager.effect_active("benchmark_climate_simulation"):
+            end_time = time.time()
+            elapsed = end_time - start_time
+            elapsed_per_location = elapsed / (self.world_dimensions**2)
+            print(
+                f"Finished climate simulation at time: {end_time}, took {round(elapsed, 2)} seconds ({round(elapsed_per_location, 6)} seconds per location)"
+            )
 
     def latitude_lines_setup(self):
         """

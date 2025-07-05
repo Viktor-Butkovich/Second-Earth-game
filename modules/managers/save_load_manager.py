@@ -69,9 +69,6 @@ class save_load_manager:
 
         game_transitions.create_grids()
 
-        status.current_world.simulate_temperature_equilibrium(5)
-        # Since world's appearance can change albedo, we need to simulate temperature equilibrium after creating UI
-
         for current_item in status.item_types.values():
             if current_item.key == constants.CONSUMER_GOODS_ITEM:
                 market_utility.set_price(

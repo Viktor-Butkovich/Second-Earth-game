@@ -14,8 +14,11 @@
       "skip_intro"
    ],
    "effects": [
+      "debug_atmosphere_update",
       "debug_tab_selection",
       "debug_item_requests",
+      "benchmark_climate_simulation",
+      "benchmark_world_creation",
       "allow_toggle_god_mode",
       "omit_default_names",
       "hide_old_buttons",

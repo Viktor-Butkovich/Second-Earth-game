@@ -1126,6 +1126,9 @@ UPDATE_TERRAIN_FEATURE_ROUTE: str = "update_terrain_feature_route"
 MOB_SET_PERMISSION_ROUTE: str = "mob_set_permission_route"
 MOB_SET_PERMISSION_UPDATE_IMAGE_ROUTE: str = "mob_set_permission_update_image_route"
 WORLD_SET_PARAMETER_ROUTE: str = "world_set_parameter_route"
+WORLD_UPDATE_TARGET_AVERAGE_TEMPERATURE_ROUTE: str = (
+    "world_update_target_average_temperature_route"
+)
 
 ABSOLUTE_ZERO_BANNER: str = "absolute_zero_banner"
 TERRAIN_DETAILS_BANNER: str = "terrain_details_banner"
