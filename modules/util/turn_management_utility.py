@@ -620,33 +620,13 @@ def manage_ministers():
             current_minister.respond("fired")
             current_minister.remove()
     for current_minister in status.minister_list.copy():
-        if constants.EffectManager.effect_active(
-            "farm_upstate"
-        ):  # Retire all ministers
+        retiring = current_minister.check_retirement()
+        if retiring:
             current_minister.respond("retirement")
             current_minister.appoint(None)
             current_minister.remove()
-        elif (
-            current_minister.current_position == None
-            and random.randrange(1, 7) == 1
-            and random.randrange(1, 7) <= 2
-        ):  # 1/18 chance of switching out available ministers
-            current_minister.respond("retirement")
-            current_minister.remove()
-        elif current_minister.current_position:
-            if (
-                random.randrange(1, 7) == 1
-                and random.randrange(1, 7) <= 2
-                and random.randrange(1, 7) <= 2
-                and (
-                    random.randrange(1, 7) <= 3
-                    or constants.evil > random.randrange(0, 100)
-                )
-            ):
-                current_minister.respond("retirement")
-                current_minister.appoint(None)
-                current_minister.remove()
-            else:  # If remaining in office
+        else:
+            if current_minister.current_position:  # If remaining in office
                 if (
                     random.randrange(1, 7) == 1 and random.randrange(1, 7) == 1
                 ):  # Chance to gain experience

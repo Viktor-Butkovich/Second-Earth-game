@@ -241,6 +241,37 @@ class minister:
             )
         return tooltip_text
 
+    def check_retirement(self) -> bool:
+        """
+        Description:
+            Returns whether this minister is retiring this turn
+        Input:
+            None
+        Output:
+            boolean: Returns whether this minister is retiring this turn
+        """
+        if constants.EffectManager.effect_active("farm_upstate"):
+            return True
+        elif (
+            self.current_position == None
+            and random.randrange(1, 7) == 1
+            and random.randrange(1, 7) <= 2
+        ):  # 1/18 chance of switching out available ministers
+            return True
+        elif self.current_position:
+            if (
+                random.randrange(1, 7) == 1
+                and random.randrange(1, 31)
+                <= constants.turn  # Chance increases with turn number
+                and random.randrange(1, 7) <= 2
+                and random.randrange(1, 7) <= 2
+                and (
+                    random.randrange(1, 7) <= 3
+                    or constants.evil > random.randrange(0, 100)
+                )
+            ):
+                return True
+
     def generate_icon_input_dict(self, alignment="left"):
         """
         Description:
@@ -652,7 +683,9 @@ class minister:
         Output:
             None
         """
-        old_position = self.current_position
+        if self.current_position == new_position:
+            return
+
         if self.current_position:
             self.current_position.on_remove()
         if new_position:

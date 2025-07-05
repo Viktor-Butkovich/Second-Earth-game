@@ -443,7 +443,6 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Significantly decrease retirement rate, especially in the early game
 # Add logistics info display tab with item upkeep information
 #   Mob version with just that mob, and a location version with total location demands
 # Add 5x5 building slot system
