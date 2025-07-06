@@ -10,6 +10,7 @@ from modules.managers import (
     help_manager,
     terrain_manager,
     value_tracker,
+    notification_manager,
 )
 from modules.util import (
     scaling,
@@ -17,6 +18,7 @@ from modules.util import (
     actor_utility,
     callback_utility,
     game_transitions,
+    action_utility,
 )
 from modules.constructs import (
     fonts,
@@ -26,9 +28,6 @@ from modules.constructs import (
     equipment_types,
     terrain_feature_types,
     item_types,
-)
-from modules.managers import (
-    notification_manager,
 )
 from modules.action_types import (
     public_relations_campaign,
@@ -295,9 +294,7 @@ def misc():
         {"init_type": constants.MOUSE_FOLLOWER_IMAGE}
     )
 
-    constants.NotificationManager = (
-        notification_manager.notification_manager()
-    )
+    constants.NotificationManager = notification_manager.notification_manager()
 
     constants.AchievementManager = achievement_manager.achievement_manager()
 
@@ -2087,8 +2084,7 @@ def ministers_screen():
         "width": scaling.scale_width(portrait_icon_width),
         "height": scaling.scale_height(portrait_icon_width),
         "modes": [constants.MINISTERS_MODE],
-        "color": constants.COLOR_GRAY,
-        "init_type": constants.MINISTER_PORTRAIT_IMAGE,
+        "init_type": constants.MINISTER_TABLE_ICON,
     }
     for current_index, minister_type_tuple in enumerate(status.minister_types.items()):
         # Creates an office icon and a portrait at a section of the table for each minister
@@ -2105,21 +2101,37 @@ def ministers_screen():
                     "width": scaling.scale_width(position_icon_width),
                     "height": scaling.scale_height(position_icon_width),
                     "modes": [constants.MINISTERS_MODE],
-                    "minister_type": minister_type,
-                    "attached_label": None,
-                    "init_type": constants.MINISTER_TYPE_IMAGE,
+                    "init_type": constants.TOOLTIP_FREE_IMAGE,
+                    "image_id": [
+                        {"image_id": f"ministers/icons/{minister_type.skill_type}.png"}
+                    ],
+                    "preset_tooltip_text": minister_type.get_description(),
                 }
             )
-
-            input_dict["coordinates"] = scaling.scale_coordinates(
-                (constants.default_display_width / 2)
-                - (table_width / 2)
-                - portrait_icon_width
-                - 10,
-                current_index * 180 + 95,
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    **input_dict,
+                    "coordinates": scaling.scale_coordinates(
+                        (constants.default_display_width / 2)
+                        - (table_width / 2)
+                        - portrait_icon_width
+                        - 10,
+                        current_index * 180 + 95,
+                    ),
+                    "minister_type": minister_type,
+                    "actor_type": constants.MINISTER_ACTOR_TYPE,
+                    "image_id": [
+                        {
+                            "image_id": "ministers/empty_portrait.png",
+                            "level": constants.BACKGROUND_LEVEL,
+                        },
+                        {
+                            "image_id": "misc/warning_icon.png",
+                            "level": constants.DEFAULT_PORTRAIT_LEVEL,
+                        },
+                    ],
+                }
             )
-            input_dict["minister_type"] = minister_type
-            constants.ActorCreationManager.create_interface_element(input_dict)
 
         else:
             constants.ActorCreationManager.create_interface_element(
@@ -2136,18 +2148,34 @@ def ministers_screen():
                     "width": scaling.scale_width(position_icon_width),
                     "height": scaling.scale_height(position_icon_width),
                     "modes": [constants.MINISTERS_MODE],
-                    "minister_type": minister_type,
-                    "attached_label": None,
-                    "init_type": constants.MINISTER_TYPE_IMAGE,
+                    "init_type": constants.TOOLTIP_FREE_IMAGE,
+                    "image_id": [
+                        {"image_id": f"ministers/icons/{minister_type.skill_type}.png"}
+                    ],
+                    "preset_tooltip_text": minister_type.get_description(),
                 }
             )
-
-            input_dict["coordinates"] = scaling.scale_coordinates(
-                (constants.default_display_width / 2) + (table_width / 2) + 10,
-                (current_index - 4) * 180 + 95,
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    **input_dict,
+                    "coordinates": scaling.scale_coordinates(
+                        (constants.default_display_width / 2) + (table_width / 2) + 10,
+                        (current_index - 4) * 180 + 95,
+                    ),
+                    "minister_type": minister_type,
+                    "actor_type": constants.MINISTER_ACTOR_TYPE,
+                    "image_id": [
+                        {
+                            "image_id": "ministers/empty_portrait.png",
+                            "level": constants.BACKGROUND_LEVEL,
+                        },
+                        {
+                            "image_id": "misc/warning_icon.png",
+                            "level": constants.DEFAULT_PORTRAIT_LEVEL,
+                        },
+                    ],
+                }
             )
-            input_dict["minister_type"] = minister_type
-            constants.ActorCreationManager.create_interface_element(input_dict)
 
     available_minister_display_x = constants.default_display_width - 205
     available_minister_display_y = 770
@@ -2179,37 +2207,41 @@ def ministers_screen():
                 "width": scaling.scale_width(portrait_icon_width),
                 "height": scaling.scale_height(portrait_icon_width),
                 "modes": [constants.MINISTERS_MODE],
-                "init_type": constants.MINISTER_PORTRAIT_IMAGE,
-                "color": constants.COLOR_GRAY,
-                "minister_type": None,
+                "init_type": constants.AVAILABLE_MINISTER_ICON,
+                "actor_type": constants.MINISTER_ACTOR_TYPE,
+                "image_id": [
+                    {
+                        "image_id": "ministers/empty_portrait.png",
+                        "level": constants.BACKGROUND_LEVEL,
+                    },
+                ],
             }
         )
 
     available_minister_display_y -= 60
-    cycle_input_dict["coordinates"] = (
-        cycle_input_dict["coordinates"][0],
-        scaling.scale_height(available_minister_display_y),
-    )
-    cycle_input_dict["keybind_id"] = pygame.K_s
-    cycle_input_dict["image_id"] = "buttons/cycle_ministers_down_button.png"
-    cycle_input_dict["direction"] = "right"
     cycle_right_button = constants.ActorCreationManager.create_interface_element(
-        cycle_input_dict
+        {
+            **cycle_input_dict,
+            "coordinates": (
+                cycle_input_dict["coordinates"][0],
+                scaling.scale_height(available_minister_display_y),
+            ),
+            "keybind_id": pygame.K_s,
+            "image_id": "buttons/cycle_ministers_down_button.png",
+            "direction": "right",
+        }
     )
 
-    status.minister_loading_image = (
-        constants.ActorCreationManager.create_interface_element(
-            {
-                "coordinates": scaling.scale_coordinates(0, 0),
-                "width": scaling.scale_width(portrait_icon_width),
-                "height": scaling.scale_height(portrait_icon_width),
-                "modes": [],
-                "init_type": constants.MINISTER_PORTRAIT_IMAGE,
-                "color": constants.COLOR_GRAY,
-                "minister_type": None,
-            }
-        )
-    )
+    status.minister_loading_image = constants.ActorCreationManager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "width": scaling.scale_width(portrait_icon_width),
+            "height": scaling.scale_height(portrait_icon_width),
+            "modes": [],
+            "actor_type": constants.MINISTER_ACTOR_TYPE,
+            "init_type": constants.ACTOR_ICON,
+        }
+    )  # Dummy image to calibrate all ministers to, ensuring portrait images are rendered and cached at creation time
 
 
 def trial_screen():
@@ -2232,7 +2264,6 @@ def trial_screen():
         + (distance_to_center - button_separation)
         + distance_to_notification
     )
-    defense_current_y = 0
     status.defense_info_display = (
         constants.ActorCreationManager.create_interface_element(
             {
@@ -2250,35 +2281,17 @@ def trial_screen():
         )
     )
 
-    defense_type_image = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(0, defense_current_y),
-            "width": scaling.scale_width(button_separation * 2 - 5),
-            "height": scaling.scale_height(button_separation * 2 - 5),
-            "modes": [constants.TRIAL_MODE],
-            "minister_type": None,
-            "attached_label": None,
-            "init_type": constants.MINISTER_TYPE_IMAGE,
-            "parent_collection": status.defense_info_display,
-        }
-    )
-
-    defense_current_y -= button_separation * 2
     defense_portrait_image = constants.ActorCreationManager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(0, defense_current_y),
             "width": scaling.scale_width(button_separation * 2 - 5),
             "height": scaling.scale_height(button_separation * 2 - 5),
-            "init_type": constants.MINISTER_PORTRAIT_IMAGE,
-            "minister_type": None,
-            "color": constants.COLOR_GRAY,
+            "init_type": constants.ACTOR_ICON,
+            "actor_type": constants.MINISTER_ACTOR_TYPE,
             "parent_collection": status.defense_info_display,
         }
     )
 
-    defense_current_y -= 35
     input_dict = {
-        "coordinates": scaling.scale_coordinates(0, defense_current_y),
         "minimum_width": scaling.scale_width(10),
         "height": scaling.scale_height(constants.default_notification_font_size + 5),
         "image_id": "misc/default_label.png",
@@ -2295,8 +2308,6 @@ def trial_screen():
         constants.MINISTER_OFFICE_LABEL,
         constants.EVIDENCE_LABEL,
     ]:
-        defense_current_y -= 35
-        input_dict["coordinates"] = scaling.scale_coordinates(0, defense_current_y)
         input_dict["init_type"] = current_actor_label_type
         constants.ActorCreationManager.create_interface_element(input_dict)
 
@@ -2306,8 +2317,6 @@ def trial_screen():
         - (distance_to_center + button_separation)
         - distance_to_notification
     )
-    prosecution_current_y = 0
-
     status.prosecution_info_display = (
         constants.ActorCreationManager.create_interface_element(
             {
@@ -2325,34 +2334,18 @@ def trial_screen():
         )
     )
 
-    prosecution_type_image = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(0, prosecution_current_y),
-            "width": scaling.scale_width(button_separation * 2 - 5),
-            "height": scaling.scale_height(button_separation * 2 - 5),
-            "modes": [constants.TRIAL_MODE],
-            "minister_type": None,
-            "attached_label": None,
-            "init_type": constants.MINISTER_TYPE_IMAGE,
-            "parent_collection": status.prosecution_info_display,
-        }
-    )
-
-    prosecution_current_y -= button_separation * 2
     prosecution_portrait_image = (
         constants.ActorCreationManager.create_interface_element(
             {
                 "width": scaling.scale_width(button_separation * 2 - 5),
                 "height": scaling.scale_height(button_separation * 2 - 5),
-                "init_type": constants.MINISTER_PORTRAIT_IMAGE,
-                "minister_type": None,
-                "color": constants.COLOR_GRAY,
+                "init_type": constants.ACTOR_ICON,
+                "actor_type": constants.MINISTER_ACTOR_TYPE,
                 "parent_collection": status.prosecution_info_display,
             }
         )
     )
 
-    prosecution_current_y -= 35
     input_dict = {
         "minimum_width": scaling.scale_width(10),
         "height": scaling.scale_height(constants.default_notification_font_size + 5),
@@ -2372,8 +2365,6 @@ def trial_screen():
         constants.MINISTER_NAME_LABEL,
         constants.MINISTER_OFFICE_LABEL,
     ]:
-        prosecution_current_y -= 35
-        input_dict["coordinates"] = scaling.scale_coordinates(0, prosecution_current_y)
         input_dict["init_type"] = current_actor_label_type
         constants.ActorCreationManager.create_interface_element(input_dict)
 
@@ -2509,48 +2500,32 @@ def mob_sub_interface():
     Output:
         None
     """
-    # mob background image's tooltip
-    mob_free_image_background_tooltip = (
-        constants.ActorCreationManager.create_interface_element(
-            {
-                "coordinates": scaling.scale_coordinates(0, 0),
-                "minimum_width": scaling.scale_width(115),
-                "height": scaling.scale_height(115),
-                "image_id": "misc/empty.png",
-                "actor_type": constants.MOB_ACTOR_TYPE,
-                "init_type": constants.ACTOR_TOOLTIP_LABEL,
-                "parent_collection": status.mob_info_display,
-                "member_config": {"order_overlap": True},
-            }
-        )
-    )
-
-    # mob image
-    mob_free_image = constants.ActorCreationManager.create_interface_element(
+    mob_icon = constants.ActorCreationManager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, 0),
-            "width": scaling.scale_width(115),
-            "height": scaling.scale_height(115),
+            "actor_type": constants.MOB_ACTOR_TYPE,
+            "width": scaling.scale_width(constants.actor_icon_dimensions),
+            "height": scaling.scale_height(constants.actor_icon_dimensions),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-            "actor_image_type": "default",
-            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+            "init_type": constants.ACTOR_ICON,
             "parent_collection": status.mob_info_display,
-            "member_config": {"order_overlap": False},
         }
     )
 
-    input_dict = {
-        "coordinates": scaling.scale_coordinates(125, -115),
-        "width": scaling.scale_width(35),
-        "height": scaling.scale_height(35),
-        "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-        "image_id": "buttons/fire_minister_button.png",
-        "init_type": constants.FIRE_UNIT_BUTTON,
-        "parent_collection": status.mob_info_display,
-        "member_config": {"order_exempt": True},
-    }
     fire_unit_button = constants.ActorCreationManager.create_interface_element(
-        input_dict
+        {
+            "coordinates": scaling.scale_coordinates(
+                constants.actor_icon_dimensions + 5,
+                -1 * constants.actor_icon_dimensions,
+            ),
+            "width": scaling.scale_width(35),
+            "height": scaling.scale_height(35),
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            "image_id": "buttons/fire_minister_button.png",
+            "init_type": constants.FIRE_UNIT_BUTTON,
+            "parent_collection": status.mob_info_display,
+            "member_config": {"order_exempt": True},
+        }
     )
 
     left_arrow_button = constants.ActorCreationManager.create_interface_element(
@@ -2641,14 +2616,14 @@ def mob_sub_interface():
             "height": scaling.scale_height(
                 constants.default_notification_font_size + 5
             ),
-            "image_id": "misc/default_label.png",
+            "image_id": [{"image_id": "misc/default_label.png"}],
             "init_type": current_actor_label_type,
             "actor_type": constants.MOB_ACTOR_TYPE,
             "parent_collection": status.mob_info_display,
             "member_config": {"order_x_offset": x_displacement},
         }
         if current_actor_label_type == constants.BANNER_LABEL:
-            input_dict["banner_type"] = "deadly conditions"
+            input_dict["banner_type"] = constants.DEADLY_CONDITIONS_BANNER
             input_dict["banner_text"] = "Deadly conditions - will die at end of turn"
 
         if current_actor_label_type != constants.CURRENT_PASSENGER_LABEL:
@@ -2670,28 +2645,29 @@ def location_interface():
     Output:
         None
     """
-    status.location_info_display = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(0, 0),  # (0, -400),
-            "width": scaling.scale_width(775),
-            "height": scaling.scale_height(10),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-            "init_type": constants.ORDERED_COLLECTION,
-            "is_info_display": True,
-            "actor_type": constants.LOCATION_ACTOR_TYPE,
-            "description": "location information panel",
-            "parent_collection": status.info_displays_collection,
-            # "member_config": {
-            #     "order_exempt": True,
-            # },
-        }
+    status.location_info_display = (
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),  # (0, -400),
+                "width": scaling.scale_width(775),
+                "height": scaling.scale_height(10),
+                "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+                "init_type": constants.ORDERED_COLLECTION,
+                "is_info_display": True,
+                "actor_type": constants.LOCATION_ACTOR_TYPE,
+                "description": "location information panel",
+                "parent_collection": status.info_displays_collection,
+            }
+        )
     )
 
     separation = scaling.scale_height(3)
     same_location_ordered_collection = (
         constants.ActorCreationManager.create_interface_element(
             {
-                "coordinates": scaling.scale_coordinates(120, 0),
+                "coordinates": scaling.scale_coordinates(
+                    constants.actor_icon_dimensions + 5, 0
+                ),
                 "width": 10,
                 "height": 10,
                 "init_type": constants.ORDERED_COLLECTION,
@@ -2749,32 +2725,15 @@ def location_interface():
         )
     )
 
-    # location background image's tooltip
-    location_free_image_background_tooltip = (
-        constants.ActorCreationManager.create_interface_element(
-            {
-                "coordinates": scaling.scale_coordinates(0, 0),
-                "minimum_width": scaling.scale_width(115),
-                "height": scaling.scale_height(115),
-                "image_id": "misc/empty.png",
-                "actor_type": constants.LOCATION_ACTOR_TYPE,
-                "init_type": constants.ACTOR_TOOLTIP_LABEL,
-                "parent_collection": status.location_info_display,
-                "member_config": {"order_overlap": True},
-            }
-        )
-    )
-
-    location_image = constants.ActorCreationManager.create_interface_element(
+    location_icon = constants.ActorCreationManager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(5, 5),
-            "width": scaling.scale_width(115),
-            "height": scaling.scale_height(115),
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "actor_type": constants.LOCATION_ACTOR_TYPE,
+            "width": scaling.scale_width(constants.actor_icon_dimensions),
+            "height": scaling.scale_height(constants.actor_icon_dimensions),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-            "actor_image_type": "default",
-            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+            "init_type": constants.ACTOR_ICON,
             "parent_collection": status.location_info_display,
-            "member_config": {"order_overlap": False},
         }
     )
 
@@ -2975,31 +2934,15 @@ def inventory_interface():
         )
     )
 
-    # mob inventory background image's tooltip
-    mob_inventory_free_image_background_tooltip = (
-        constants.ActorCreationManager.create_interface_element(
-            {
-                "minimum_width": scaling.scale_width(90),
-                "height": scaling.scale_height(90),
-                "image_id": "misc/empty.png",
-                "init_type": constants.ACTOR_TOOLTIP_LABEL,
-                "actor_type": constants.MOB_ACTOR_TYPE,
-                "parent_collection": status.mob_inventory_info_display,
-                "member_config": {"order_overlap": True},
-            }
-        )
-    )
-
-    mob_inventory_image = constants.ActorCreationManager.create_interface_element(
+    mob_inventory_icon = constants.ActorCreationManager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(5, 5),
-            "width": scaling.scale_width(90),
-            "height": scaling.scale_height(90),
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "actor_type": constants.MOB_INVENTORY_ACTOR_TYPE,
+            "width": scaling.scale_width(constants.inventory_icon_dimensions),
+            "height": scaling.scale_height(constants.inventory_icon_dimensions),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-            "actor_image_type": "inventory_default",
-            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+            "init_type": constants.ACTOR_ICON,
             "parent_collection": status.mob_inventory_info_display,
-            "member_config": {"order_overlap": False},
         }
     )
 
@@ -3092,16 +3035,19 @@ def inventory_interface():
         )
     )
 
-    input_dict = {
-        "minimum_width": scaling.scale_width(10),
-        "height": scaling.scale_height(constants.default_notification_font_size + 5),
-        "image_id": "misc/default_label.png",
-        "init_type": constants.LOCATION_INVENTORY_CAPACITY_LABEL,
-        "actor_type": constants.LOCATION_ACTOR_TYPE,
-        "parent_collection": status.location_inventory_collection,
-    }
     location_inventory_capacity_label = (
-        constants.ActorCreationManager.create_interface_element(input_dict)
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "minimum_width": scaling.scale_width(10),
+                "height": scaling.scale_height(
+                    constants.default_notification_font_size + 5
+                ),
+                "image_id": "misc/default_label.png",
+                "init_type": constants.LOCATION_INVENTORY_CAPACITY_LABEL,
+                "actor_type": constants.LOCATION_ACTOR_TYPE,
+                "parent_collection": status.location_inventory_collection,
+            }
+        )
     )
 
     status.location_inventory_grid = (
@@ -3188,31 +3134,15 @@ def inventory_interface():
         )
     )
 
-    # location inventory background image's tooltip
-    location_inventory_free_image_background_tooltip = (
-        constants.ActorCreationManager.create_interface_element(
-            {
-                "minimum_width": scaling.scale_width(90),
-                "height": scaling.scale_height(90),
-                "image_id": "misc/empty.png",
-                "actor_type": constants.LOCATION_ACTOR_TYPE,
-                "init_type": constants.ACTOR_TOOLTIP_LABEL,
-                "parent_collection": status.location_inventory_info_display,
-                "member_config": {"order_overlap": True},
-            }
-        )
-    )
-
-    location_inventory_image = constants.ActorCreationManager.create_interface_element(
+    location_inventory_icon = constants.ActorCreationManager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(5, 5),
-            "width": scaling.scale_width(90),
-            "height": scaling.scale_height(90),
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "actor_type": constants.LOCATION_INVENTORY_ACTOR_TYPE,
+            "width": scaling.scale_width(constants.inventory_icon_dimensions),
+            "height": scaling.scale_height(constants.inventory_icon_dimensions),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-            "actor_image_type": "inventory_default",
-            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+            "init_type": constants.ACTOR_ICON,
             "parent_collection": status.location_inventory_info_display,
-            "member_config": {"order_overlap": False},
         }
     )
 
@@ -3429,7 +3359,7 @@ def terrain_interface():
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
         if current_actor_label_type == constants.BANNER_LABEL:
-            input_dict["banner_type"] = "absolute zero"
+            input_dict["banner_type"] = constants.ABSOLUTE_ZERO_BANNER
             input_dict["banner_text"] = f"Absolute zero: {constants.ABSOLUTE_ZERO} °F"
         constants.ActorCreationManager.create_interface_element(input_dict)
 
@@ -3485,7 +3415,7 @@ def terrain_interface():
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
         if current_actor_label_type == constants.BANNER_LABEL:
-            input_dict["banner_type"] = "terrain details"
+            input_dict["banner_type"] = constants.TERRAIN_DETAILS_BANNER
             input_dict["banner_text"] = "Details unknown"
         constants.ActorCreationManager.create_interface_element(input_dict)
 
@@ -3571,103 +3501,104 @@ def unit_organization_interface():
         )
     )
 
-    # mob background image's tooltip
-    lhs_top_tooltip = constants.ActorCreationManager.create_interface_element(
+    lhs_top_mob_icon_default_image = (
+        action_utility.generate_background_image_id_list()
+        + [
+            {"image_id": "mobs/default/mock_officer.png"},
+            {"image_id": "misc/dark_shader.png", "level": constants.FRONT_LEVEL - 1},
+            {
+                "image_id": "misc/actor_backgrounds/pmob_outline.png",  # Behind outline
+                "detail_level": 1.0,
+                "level": constants.FRONT_LEVEL,
+            },
+        ]
+    )
+
+    lhs_top_mob_icon = constants.ActorCreationManager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, 0),
-            "minimum_width": scaling.scale_width(image_height - 10),
-            "height": scaling.scale_height(image_height - 10),
-            "image_id": "misc/empty.png",
             "actor_type": constants.MOB_ACTOR_TYPE,
-            "init_type": constants.ACTOR_TOOLTIP_LABEL,
+            "width": scaling.scale_width(image_height - 10),
+            "height": scaling.scale_height(image_height - 10),
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            "init_type": constants.ACTOR_ICON,
             "parent_collection": status.group_reorganization_collection,
-            "member_config": {"calibrate_exempt": True},
+            "image_id": lhs_top_mob_icon_default_image,
+            "member_config": {
+                "calibrate_exempt": True,
+            },
             "dynamic_tooltip_factory": callback_utility.officer_reorganization_tooltip_factory,
         }
     )
     status.group_reorganization_collection.autofill_targets[
         constants.OFFICER_PERMISSION
-    ].append(lhs_top_tooltip)
+    ].append(lhs_top_mob_icon)
 
-    # mob image
-    lhs_top_mob_free_image = constants.ActorCreationManager.create_interface_element(
+    lhs_bottom_mob_icon_default_image = (
+        action_utility.generate_background_image_id_list()
+        + [
+            actor_utility.generate_unit_component_image_id(
+                "mobs/default/mock_worker.png", "left", to_front=True
+            ),
+            actor_utility.generate_unit_component_image_id(
+                "mobs/default/mock_worker.png", "right", to_front=True
+            ),
+            {"image_id": "misc/dark_shader.png", "level": constants.FRONT_LEVEL - 1},
+            {
+                "image_id": "misc/actor_backgrounds/pmob_outline.png",  # Behind outline
+                "detail_level": 1.0,
+                "level": constants.FRONT_LEVEL,
+            },
+        ]
+    )
+
+    lhs_bottom_mob_icon = constants.ActorCreationManager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(0, 0),
+            "coordinates": scaling.scale_coordinates(0, -1 * (image_height - 5)),
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-            "actor_image_type": "default",
-            "default_image_id": "mobs/default/mock_officer.png",
-            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+            "init_type": constants.ACTOR_ICON,
             "parent_collection": status.group_reorganization_collection,
+            "image_id": lhs_bottom_mob_icon_default_image,
             "member_config": {
                 "calibrate_exempt": True,
-                "x_offset": scaling.scale_width(0),
             },
-        }
-    )
-    status.group_reorganization_collection.autofill_targets[
-        constants.OFFICER_PERMISSION
-    ].append(lhs_top_mob_free_image)
-
-    # mob background image's tooltip
-    lhs_bottom_tooltip = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(0, -1 * (image_height - 5)),
-            "minimum_width": scaling.scale_width(image_height - 10),
-            "height": scaling.scale_height(image_height - 10),
-            "image_id": "misc/empty.png",
-            "actor_type": constants.MOB_ACTOR_TYPE,
-            "init_type": constants.ACTOR_TOOLTIP_LABEL,
-            "parent_collection": status.group_reorganization_collection,
-            "member_config": {"calibrate_exempt": True},
             "dynamic_tooltip_factory": callback_utility.worker_reorganization_tooltip_factory,
         }
     )
     status.group_reorganization_collection.autofill_targets[
         constants.WORKER_PERMISSION
-    ].append(lhs_bottom_tooltip)
+    ].append(lhs_bottom_mob_icon)
 
-    # mob image
-    default_image_id = [
+    rhs_mob_icon_default_image = action_utility.generate_background_image_id_list() + [
         actor_utility.generate_unit_component_image_id(
-            "mobs/default/mock_worker.png", "left", to_front=True
+            "mobs/default/mock_worker.png", "group left", to_front=True
         ),
         actor_utility.generate_unit_component_image_id(
-            "mobs/default/mock_worker.png", "right", to_front=True
+            "mobs/default/mock_worker.png", "group right", to_front=True
         ),
+        actor_utility.generate_unit_component_image_id(
+            "mobs/default/mock_officer.png", "center", to_front=True
+        ),
+        {"image_id": "misc/dark_shader.png", "level": constants.FRONT_LEVEL - 1},
+        {
+            "image_id": "misc/actor_backgrounds/pmob_outline.png",  # Behind outline
+            "detail_level": 1.0,
+            "level": constants.FRONT_LEVEL,
+        },
     ]
-    lhs_bottom_mob_free_image = constants.ActorCreationManager.create_interface_element(
+    rhs_mob_icon = constants.ActorCreationManager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, 0),
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-            "actor_image_type": "default",
-            "default_image_id": default_image_id,
-            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+            "init_type": constants.ACTOR_ICON,
             "parent_collection": status.group_reorganization_collection,
-            "member_config": {
-                "calibrate_exempt": True,
-                "y_offset": scaling.scale_height(-1 * (image_height - 5)),
-            },
-        }
-    )
-    status.group_reorganization_collection.autofill_targets[
-        constants.WORKER_PERMISSION
-    ].append(lhs_bottom_mob_free_image)
-
-    # right side
-    # mob background image's tooltip
-    rhs_top_tooltip = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(0, 0),
-            "minimum_width": scaling.scale_width(image_height - 10),
-            "height": scaling.scale_height(image_height - 10),
-            "image_id": "misc/empty.png",
-            "actor_type": constants.MOB_ACTOR_TYPE,
-            "init_type": constants.ACTOR_TOOLTIP_LABEL,
-            "parent_collection": status.group_reorganization_collection,
+            "image_id": rhs_mob_icon_default_image,
             "member_config": {
                 "calibrate_exempt": True,
                 "x_offset": scaling.scale_width(rhs_x_offset),
@@ -3678,40 +3609,7 @@ def unit_organization_interface():
     )
     status.group_reorganization_collection.autofill_targets[
         constants.GROUP_PERMISSION
-    ].append(rhs_top_tooltip)
-
-    # mob image
-    default_image_id = [
-        actor_utility.generate_unit_component_image_id(
-            "mobs/default/mock_worker.png", "group left", to_front=True
-        ),
-        actor_utility.generate_unit_component_image_id(
-            "mobs/default/mock_worker.png", "group right", to_front=True
-        ),
-        actor_utility.generate_unit_component_image_id(
-            "mobs/default/mock_officer.png", "center", to_front=True
-        ),
-    ]
-    rhs_top_mob_free_image = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(0, 0),
-            "width": scaling.scale_width(image_height - 10),
-            "height": scaling.scale_height(image_height - 10),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-            "actor_image_type": "default",
-            "default_image_id": default_image_id,
-            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
-            "parent_collection": status.group_reorganization_collection,
-            "member_config": {
-                "calibrate_exempt": True,
-                "x_offset": scaling.scale_width(rhs_x_offset),
-                "y_offset": scaling.scale_height(-0.5 * (image_height)),
-            },
-        }
-    )
-    status.group_reorganization_collection.autofill_targets[
-        constants.GROUP_PERMISSION
-    ].append(rhs_top_mob_free_image)
+    ].append(rhs_mob_icon)
 
     # reorganize unit to right button
     status.reorganize_group_right_button = (
@@ -3824,106 +3722,103 @@ def vehicle_organization_interface():
         )
     )
 
-    # mob background image's tooltip
-    lhs_top_tooltip = constants.ActorCreationManager.create_interface_element(
+    lhs_top_mob_icon_default_image = (
+        action_utility.generate_background_image_id_list()
+        + [
+            {
+                "image_id": "mobs/default/mock_uncrewed_vehicle.png",
+            },
+            {"image_id": "misc/dark_shader.png", "level": constants.FRONT_LEVEL - 1},
+            {
+                "image_id": "misc/actor_backgrounds/pmob_outline.png",  # Behind outline
+                "detail_level": 1.0,
+                "level": constants.FRONT_LEVEL,
+            },
+        ]
+    )
+
+    lhs_top_mob_icon = constants.ActorCreationManager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, 0),
-            "minimum_width": scaling.scale_width(image_height - 10),
-            "height": scaling.scale_height(image_height - 10),
-            "image_id": "misc/empty.png",
             "actor_type": constants.MOB_ACTOR_TYPE,
-            "init_type": constants.ACTOR_TOOLTIP_LABEL,
+            "width": scaling.scale_width(image_height - 10),
+            "height": scaling.scale_height(image_height - 10),
+            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            "init_type": constants.ACTOR_ICON,
             "parent_collection": status.vehicle_reorganization_collection,
-            "member_config": {"calibrate_exempt": True},
+            "image_id": lhs_top_mob_icon_default_image,
+            "member_config": {
+                "calibrate_exempt": True,
+            },
             "dynamic_tooltip_factory": callback_utility.uncrewed_vehicle_reorganization_tooltip_factory,
         }
     )
     status.vehicle_reorganization_collection.autofill_targets[
         constants.INACTIVE_VEHICLE_PERMISSION
-    ].append(lhs_top_tooltip)
+    ].append(lhs_top_mob_icon)
 
-    # mob image
-    lhs_top_mob_free_image = constants.ActorCreationManager.create_interface_element(
+    lhs_bottom_mob_icon_default_image = (
+        action_utility.generate_background_image_id_list()
+        + [
+            actor_utility.generate_unit_component_image_id(
+                "mobs/default/mock_worker.png", "group left", to_front=True
+            ),
+            actor_utility.generate_unit_component_image_id(
+                "mobs/default/mock_worker.png", "group right", to_front=True
+            ),
+            actor_utility.generate_unit_component_image_id(
+                "mobs/default/mock_officer.png", "center", to_front=True
+            ),
+            {"image_id": "misc/dark_shader.png", "level": constants.FRONT_LEVEL - 1},
+            {
+                "image_id": "misc/actor_backgrounds/pmob_outline.png",  # Behind outline
+                "detail_level": 1.0,
+                "level": constants.FRONT_LEVEL,
+            },
+        ]
+    )
+
+    lhs_bottom_mob_icon = constants.ActorCreationManager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(0, 0),
+            "coordinates": scaling.scale_coordinates(0, -1 * (image_height - 5)),
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-            "actor_image_type": "default",
-            "default_image_id": "mobs/default/mock_uncrewed_vehicle.png",
-            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+            "init_type": constants.ACTOR_ICON,
             "parent_collection": status.vehicle_reorganization_collection,
+            "image_id": lhs_bottom_mob_icon_default_image,
             "member_config": {
                 "calibrate_exempt": True,
-                "x_offset": scaling.scale_width(0),
             },
-        }
-    )
-    status.vehicle_reorganization_collection.autofill_targets[
-        constants.INACTIVE_VEHICLE_PERMISSION
-    ].append(lhs_top_mob_free_image)
-
-    # mob background image's tooltip
-    lhs_bottom_tooltip = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(0, -1 * (image_height - 5)),
-            "minimum_width": scaling.scale_width(image_height - 10),
-            "height": scaling.scale_height(image_height - 10),
-            "image_id": "misc/empty.png",
-            "actor_type": constants.MOB_ACTOR_TYPE,
-            "init_type": constants.ACTOR_TOOLTIP_LABEL,
-            "parent_collection": status.vehicle_reorganization_collection,
-            "member_config": {"calibrate_exempt": True},
             "dynamic_tooltip_factory": callback_utility.crew_reorganization_tooltip_factory,
         }
     )
     status.vehicle_reorganization_collection.autofill_targets[
         constants.CREW_VEHICLE_PERMISSION
-    ].append(lhs_bottom_tooltip)
+    ].append(lhs_bottom_mob_icon)
 
-    # mob image
-    default_image_id = [
-        actor_utility.generate_unit_component_image_id(
-            "mobs/default/mock_worker.png", "group left", to_front=True
-        ),
-        actor_utility.generate_unit_component_image_id(
-            "mobs/default/mock_worker.png", "group right", to_front=True
-        ),
-        actor_utility.generate_unit_component_image_id(
-            "mobs/default/mock_officer.png", "center", to_front=True
-        ),
+    rhs_mob_icon_default_image = action_utility.generate_background_image_id_list() + [
+        {
+            "image_id": "mobs/default/mock_crewed_vehicle.png",
+        },
+        {"image_id": "misc/dark_shader.png", "level": constants.FRONT_LEVEL - 1},
+        {
+            "image_id": "misc/actor_backgrounds/pmob_outline.png",  # Behind outline
+            "detail_level": 1.0,
+            "level": constants.FRONT_LEVEL,
+        },
     ]
-    lhs_bottom_mob_free_image = constants.ActorCreationManager.create_interface_element(
+    rhs_mob_icon = constants.ActorCreationManager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, 0),
+            "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
             "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-            "actor_image_type": "default",
-            "default_image_id": default_image_id,
-            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+            "init_type": constants.ACTOR_ICON,
             "parent_collection": status.vehicle_reorganization_collection,
-            "member_config": {
-                "calibrate_exempt": True,
-                "y_offset": scaling.scale_height(-1 * (image_height - 5)),
-            },
-        }
-    )
-    status.vehicle_reorganization_collection.autofill_targets[
-        constants.CREW_VEHICLE_PERMISSION
-    ].append(lhs_bottom_mob_free_image)
-
-    # right side
-    # mob background image's tooltip
-    rhs_top_tooltip = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(0, 0),
-            "minimum_width": scaling.scale_width(image_height - 10),
-            "height": scaling.scale_height(image_height - 10),
-            "image_id": "misc/empty.png",
-            "actor_type": constants.MOB_ACTOR_TYPE,
-            "init_type": constants.ACTOR_TOOLTIP_LABEL,
-            "parent_collection": status.vehicle_reorganization_collection,
+            "image_id": rhs_mob_icon_default_image,
             "member_config": {
                 "calibrate_exempt": True,
                 "x_offset": scaling.scale_width(rhs_x_offset),
@@ -3934,29 +3829,7 @@ def vehicle_organization_interface():
     )
     status.vehicle_reorganization_collection.autofill_targets[
         constants.ACTIVE_VEHICLE_PERMISSION
-    ].append(rhs_top_tooltip)
-
-    # mob image
-    rhs_top_mob_free_image = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(0, 0),
-            "width": scaling.scale_width(image_height - 10),
-            "height": scaling.scale_height(image_height - 10),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
-            "actor_image_type": "default",
-            "default_image_id": "mobs/default/mock_crewed_vehicle.png",
-            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
-            "parent_collection": status.vehicle_reorganization_collection,
-            "member_config": {
-                "calibrate_exempt": True,
-                "x_offset": scaling.scale_width(rhs_x_offset),
-                "y_offset": scaling.scale_height(-0.5 * (image_height)),
-            },
-        }
-    )
-    status.vehicle_reorganization_collection.autofill_targets[
-        constants.ACTIVE_VEHICLE_PERMISSION
-    ].append(rhs_top_mob_free_image)
+    ].append(rhs_mob_icon)
 
     # reorganize unit to right button
     status.reorganize_vehicle_right_button = (
@@ -4043,7 +3916,6 @@ def minister_interface():
         int actor_display_current_y: Value that tracks the location of interface as it is created, used by other setup functions
     """
     # minister info images setup
-    minister_display_top_y = constants.mob_ordered_list_start_y
     minister_display_current_y = 0
 
     status.minister_info_display = (
@@ -4064,54 +3936,16 @@ def minister_interface():
         )
     )
 
-    # minister background image
-    # minister_free_image_background = (
-    #     constants.ActorCreationManager.create_interface_element(
-    #         {
-    #             "image_id": "misc/actor_backgrounds/minister_background.png",
-    #             "coordinates": scaling.scale_coordinates(0, 0),
-    #             "width": scaling.scale_width(125),
-    #             "height": scaling.scale_height(125),
-    #             "modes": [constants.MINISTERS_MODE],
-    #             "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
-    #             "parent_collection": status.minister_info_display,
-    #             "member_config": {"order_overlap": True},
-    #         }
-    #     )
-    # )
-
-    # minister image
-    minister_free_image = constants.ActorCreationManager.create_interface_element(
+    minister_icon = constants.ActorCreationManager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(0, 0),
-            "width": scaling.scale_width(115),
-            "height": scaling.scale_height(115),
+            "actor_type": constants.MINISTER_ACTOR_TYPE,
+            "width": scaling.scale_width(constants.actor_icon_dimensions),
+            "height": scaling.scale_height(constants.actor_icon_dimensions),
             "modes": [constants.MINISTERS_MODE],
-            "actor_image_type": "default",
-            "init_type": constants.ACTOR_DISPLAY_FREE_IMAGE,
+            "init_type": constants.ACTOR_ICON,
             "parent_collection": status.minister_info_display,
-            "member_config": {
-                "order_overlap": True,
-                "order_x_offset": 5,
-                "order_y_offset": -5,
-            },
         }
-    )
-
-    # minister background image's tooltip
-    minister_free_image_background_tooltip = (
-        constants.ActorCreationManager.create_interface_element(
-            {
-                "coordinates": scaling.scale_coordinates(0, minister_display_current_y),
-                "minimum_width": scaling.scale_width(125),
-                "height": scaling.scale_height(125),
-                "image_id": "misc/empty.png",
-                "actor_type": constants.MINISTER_ACTOR_TYPE,
-                "init_type": constants.ACTOR_TOOLTIP_LABEL,
-                "parent_collection": status.minister_info_display,
-                "member_config": {"order_overlap": False},
-            }
-        )
     )
 
     minister_display_current_y -= 35

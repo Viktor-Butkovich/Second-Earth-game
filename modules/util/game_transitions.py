@@ -37,12 +37,10 @@ def cycle_player_turn(start_of_turn=False):
             text_utility.print_to_screen(
                 "There are no other units left to move this turn."
             )
-        if turn_queue[0] != status.displayed_mob:
-            turn_queue[0].selection_sound()
-        else:
+        if turn_queue[0] == status.displayed_mob:
             turn_queue.append(
                 turn_queue.pop(0)
-            )  # if unit is already selected, move it to the end and shift to the next one
+            )  # If front unit is already selected, move it to the end and shift to the next one
         cycled_mob = turn_queue[0]
         if (
             constants.current_game_mode == constants.EARTH_MODE
@@ -51,10 +49,7 @@ def cycle_player_turn(start_of_turn=False):
             set_game_mode(constants.STRATEGIC_MODE)
         elif constants.current_game_mode == constants.MINISTERS_MODE:
             set_game_mode(constants.STRATEGIC_MODE)
-        actor_utility.calibrate_actor_info_display(
-            status.mob_info_display, None, override_exempt=True
-        )
-        cycled_mob.select()
+        cycled_mob.cycle_select()
         if not start_of_turn:
             turn_queue.append(turn_queue.pop(0))
 
@@ -79,7 +74,7 @@ def set_game_mode(new_game_mode):
             constants.MAIN_MENU_MODE,
             constants.NEW_GAME_SETUP_MODE,
         ]:
-            constants.EventManager.clear()
+            constants.JobScheduler.clear()
             constants.SoundManager.play_random_music("earth")
         elif (
             not previous_game_mode
@@ -88,7 +83,7 @@ def set_game_mode(new_game_mode):
             constants.MAIN_MENU_MODE,
             constants.NEW_GAME_SETUP_MODE,
         ]:  # game starts in None mode so this would work on startup
-            constants.EventManager.clear()
+            constants.JobScheduler.clear()
             constants.SoundManager.play_random_music("main menu")
 
         if (

@@ -31,6 +31,7 @@ class minister_type:
         self.controls_units: bool = input_dict.get("controls_units", True)
         self.description: List[str] = input_dict.get("description", "")
         status.minister_types[self.key] = self
+        self.minister_table_icon = None
         self.on_appoint(None)
 
     def get_description(self) -> List[str]:
@@ -59,13 +60,12 @@ class minister_type:
         Makes any updates required when worker first recruited (not on load)
         """
         minister_utility.set_minister(self.key, new_minister)
+        if self.minister_table_icon:
+            self.minister_table_icon.calibrate(new_minister)
 
     def on_remove(self):
         """
         Makes any updates required when a minister is removed from this office
         """
         minister_utility.set_minister(self.key, None)
-        for current_minister_type_image in status.minister_image_list:
-            if not current_minister_type_image.get_actor_type():
-                if current_minister_type_image.minister_type == self:
-                    current_minister_type_image.calibrate(None)
+        self.minister_table_icon.calibrate(None)

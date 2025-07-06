@@ -1,3 +1,5 @@
+# Contains notification queueing, state transition, and display management singleton
+
 from modules.util import scaling
 from modules.constants import constants, status, flags
 

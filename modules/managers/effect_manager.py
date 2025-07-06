@@ -1,3 +1,5 @@
+# Contains configuration effect management singleton
+
 import json
 from modules.constructs import effects
 import os

@@ -109,13 +109,17 @@ def transfer(
                 and displayed_mob.get_permission(constants.PMOB_PERMISSION)
                 and displayed_mob.location == displayed_location
             ):
-                if (
-                    amount == None and transferred_item != None
-                ):  # If transferring all of a specific item type
-                    if source_type == "location_inventory":
-                        amount = displayed_location.get_inventory(transferred_item)
-                    elif source_type == "mob_inventory":
-                        amount = displayed_mob.get_inventory(transferred_item)
+                if amount == None:
+                    if transferred_item == None:  # If transferring all items
+                        if source_type == "location_inventory":
+                            amount = displayed_location.get_inventory_used()
+                        elif source_type == "mob_inventory":
+                            amount = displayed_mob.get_inventory_used()
+                    else:  # If transferring all of a specific item type
+                        if source_type == "location_inventory":
+                            amount = displayed_location.get_inventory(transferred_item)
+                        elif source_type == "mob_inventory":
+                            amount = displayed_mob.get_inventory(transferred_item)
 
                 if displayed_mob.all_permissions(
                     constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
@@ -128,24 +132,28 @@ def transfer(
                     return
 
                 if source_type == "location_inventory":
-                    if (
-                        amount != None
-                        and displayed_mob.get_inventory_remaining(amount) < 0
-                    ):
-                        amount = displayed_mob.get_inventory_remaining()
-                        if amount == 0:
-                            if transferred_item == None:  # If transferring all types
-                                text_utility.print_to_screen(
-                                    "This unit can not pick up any items."
-                                )
-                            else:
-                                text_utility.print_to_screen(
-                                    f"This unit can not pick up {transferred_item.name}."
-                                )
-                            return
+                    if displayed_mob.get_inventory_remaining() == 0:
+                        if transferred_item == None:  # If transferring all types
+                            text_utility.print_to_screen(
+                                "This unit can not pick up any items."
+                            )
+                        else:
+                            text_utility.print_to_screen(
+                                f"This unit can not pick up {transferred_item.name}."
+                            )
+                        return
+                    elif amount > displayed_mob.get_inventory_remaining():
+                        if transferred_item == None:  # If transferring all types
+                            text_utility.print_to_screen(
+                                "This unit can not pick up all the items."
+                            )
+                        else:
+                            text_utility.print_to_screen(
+                                f"This unit can not pick up all the {transferred_item.name}."
+                            )
+                        return
 
-                if displayed_mob.sentry_mode:
-                    displayed_mob.set_sentry_mode(False)
+                displayed_mob.set_permission(constants.SENTRY_MODE_PERMISSION, False)
 
                 if source_type == "location_inventory":
                     source = status.displayed_location
@@ -170,27 +178,6 @@ def transfer(
                     # In some cases, a button to transfer x amount of an item may be clicked when less than x is available
                     destination.change_inventory(transferred_item, amount_transferred)
                     source.change_inventory(transferred_item, amount_transferred * -1)
-
-                if source_type == "location_inventory":  # Pick up item(s)
-                    actor_utility.select_interface_tab(
-                        status.mob_tabbed_collection, status.mob_inventory_collection
-                    )
-                    actor_utility.calibrate_actor_info_display(
-                        status.location_info_display, displayed_location
-                    )
-
-                elif source_type == "mob_inventory":  # Drop item(s)
-                    actor_utility.select_interface_tab(
-                        status.location_tabbed_collection,
-                        status.location_inventory_collection,
-                    )
-                    if not status.displayed_mob.inventory:
-                        actor_utility.select_default_tab(
-                            status.mob_tabbed_collection, status.displayed_mob
-                        )
-                    actor_utility.calibrate_actor_info_display(
-                        status.mob_info_display, displayed_mob
-                    )
 
             elif source_type == "mob_inventory":
                 text_utility.print_to_screen(

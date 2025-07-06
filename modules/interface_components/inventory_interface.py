@@ -39,21 +39,29 @@ class inventory_grid(ordered_collection):
         """
         self.inventory_page = 0
         self.actor = None
+        self.item_icons: List[item_icon] = []
         super().__init__(input_dict)
 
     def scroll_update(self) -> None:
         """:
         Updates the display when this collection is scrolled
         """
-        actor_type: str = self.get_actor_type()
-        actor = getattr(status, f"displayed_{actor_type}")
-        actor_utility.calibrate_actor_info_display(
-            getattr(status, f"{actor_type}_info_display"), actor
-        )
-        actor_utility.calibrate_actor_info_display(
-            getattr(status, f"{actor_type}_inventory_info_display"), None
-        )
-        return
+        if self.get_actor_type() == constants.MOB_ACTOR_TYPE:
+            actor_utility.calibrate_actor_info_display(
+                status.mob_info_display, status.displayed_mob
+            )
+            actor_utility.calibrate_actor_info_display(
+                status.mob_inventory_info_display, None
+            )
+        elif self.get_actor_type() == constants.LOCATION_ACTOR_TYPE:
+            actor_utility.calibrate_actor_info_display(
+                status.location_info_display, status.displayed_location
+            )
+            actor_utility.calibrate_actor_info_display(
+                status.location_inventory_info_display, None
+            )
+        else:
+            raise ValueError(f"Invalid actor type: {self.get_actor_type()}")
 
     def show_scroll_button(self, scroll_button) -> bool:
         """
@@ -64,14 +72,17 @@ class inventory_grid(ordered_collection):
         Output:
             bool: Returns whether the inputted scroll button should be shown
         """
-        actor_type: str = self.get_actor_type()
+
+        if self.get_actor_type() == constants.MOB_ACTOR_TYPE:
+            actor = status.displayed_mob
+        elif self.get_actor_type() == constants.LOCATION_ACTOR_TYPE:
+            actor = status.displayed_location
+        else:
+            raise ValueError(f"Invalid actor type: {self.get_actor_type()}")
         if scroll_button.increment > 0:  # If scroll down
-            actor = getattr(status, "displayed_" + actor_type)
-            functional_capacity: int = max(
-                actor.get_inventory_used(), actor.inventory_capacity
-            )
             return (
-                functional_capacity > (self.inventory_page + 1) * 27
+                actor.get_functional_inventory_capacity()
+                > (self.inventory_page + 1) * 27
             )  # Can scroll down if another page exists
         elif scroll_button.increment < 0:  # If scroll up
             return (
@@ -92,13 +103,43 @@ class inventory_grid(ordered_collection):
             and new_actor
             and not new_actor.infinite_inventory_capacity
         ):
-            functional_capacity = max(
-                new_actor.inventory_capacity, new_actor.get_inventory_used()
-            )
-            max_pages_required = functional_capacity // 27
+            max_pages_required = new_actor.get_functional_inventory_capacity() // 27
             if max_pages_required < self.inventory_page:
                 self.inventory_page = 0
         super().calibrate(new_actor, override_exempt)
+
+    def get_display_order(self, icon_index: int) -> int:
+        """
+        Description:
+            To determine whether cell is used in a particular configuration, convert
+                0  1  2  3  4  5  6  7  8
+                9  10 11 12 13 14 15 16 17
+                18 19 20 21 22 23 24 25 26
+            To
+                0  1  2 9  10 11 18 19 20
+                3  4  5 12 13 14 21 22 23
+                6  7  8 15 16 17 24 25 26
+            0-2: no change
+            3-5: add 6
+            6-8: add 12
+            9-11: subtract 6
+            12-14: no change
+            15-17: add 6
+            18-20: subtract 12
+            21-23: subtract 6
+            24-26: no change
+        Input:
+            int icon_index: Index of the item icon in the inventory grid
+        Output:
+            int: Returns the "line number" of this item icon - if this number is < the number of items to display, this icon is active
+        """
+        return (
+            (self.inventory_page * 27)
+            + icon_index
+            + {0: 0, 1: 6, 2: 12, 3: -6, 4: 0, 5: 6, 6: -12, 7: -6, 8: 0}[
+                icon_index // 3
+            ]
+        )
 
 
 class item_icon(button):
@@ -134,39 +175,9 @@ class item_icon(button):
         self.actor = None
         input_dict["button_type"] = "item_icon"
         super().__init__(input_dict)
-
-    def get_display_order(self):
-        """
-        Description:
-            To determine whether cell is used in a particular configuration, convert
-                0  1  2  3  4  5  6  7  8
-                9  10 11 12 13 14 15 16 17
-                18 19 20 21 22 23 24 25 26
-            To
-                0  1  2 9  10 11 18 19 20
-                3  4  5 12 13 14 21 22 23
-                6  7  8 15 16 17 24 25 26
-            0-2: no change
-            3-5: add 6
-            6-8: add 12
-            9-11: subtract 6
-            12-14: no change
-            15-17: add 6
-            18-20: subtract 12
-            21-23: subtract 6
-            24-26: no change
-        Input:
-            None
-        Output:
-            int: Returns the "line number" of this item icon - if this number is < the number of items to display, this icon is active
-        """
-        return (
-            (self.parent_collection.inventory_page * 27)
-            + self.icon_index
-            + {0: 0, 1: 6, 2: 12, 3: -6, 4: 0, 5: 6, 6: -12, 7: -6, 8: 0}[
-                self.icon_index // 3
-            ]
-        )
+        self.parent_collection.item_icons.append(
+            self
+        )  # Add to inventory grid's item icon list
 
     def calibrate(self, new_actor):
         """
@@ -184,7 +195,9 @@ class item_icon(button):
             functional_capacity: int = max(
                 new_actor.get_inventory_used(), new_actor.inventory_capacity
             )
-            display_index: int = self.get_display_order()
+            display_index: int = self.parent_collection.get_display_order(
+                self.icon_index
+            )
             self.in_inventory_capacity = (
                 functional_capacity >= display_index + 1
                 or new_actor.infinite_inventory_capacity
@@ -288,22 +301,20 @@ class item_icon(button):
         """
         if not self.can_show(skip_parent_collection=True):
             self.current_item = None
-        if self.current_item:
-            actor_utility.calibrate_actor_info_display(
-                getattr(status, f"{self.actor_type}_info_display"), self
-            )
-            if self.actor_type == "mob_inventory":
+        if self.actor_type == "mob_inventory":
+            if self.current_item:
                 actor_utility.calibrate_actor_info_display(
-                    getattr(status, "location_inventory_info_display"), None
+                    status.mob_inventory_info_display, self
                 )
-            elif self.actor_type == "location_inventory":
+            else:
+                status.mob_inventory_info_display.calibrate(None)
+        elif self.actor_type == "location_inventory":
+            if self.current_item:
                 actor_utility.calibrate_actor_info_display(
-                    getattr(status, "mob_inventory_info_display"), None
+                    status.location_inventory_info_display, self
                 )
-        else:
-            actor_utility.calibrate_actor_info_display(
-                getattr(status, f"{self.actor_type}_info_display"), None
-            )
+            else:
+                status.location_inventory_info_display.calibrate(None)
 
     def transfer(
         self, amount: int = None
@@ -321,4 +332,3 @@ class item_icon(button):
             amount=amount,
             source_type=self.actor_type,
         )
-        self.on_click()

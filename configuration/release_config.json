@@ -2,7 +2,6 @@
    "active_effects": [
       "fullscreen",
       "map_modes",
-      "link_inventory_tabs",
       "allow_presets",
       "allow_toggle_clouds",
       "allow_toggle_fog_of_war",
@@ -15,7 +14,11 @@
       "skip_intro"
    ],
    "effects": [
-      "track_item_requests",
+      "debug_atmosphere_update",
+      "debug_tab_selection",
+      "debug_item_requests",
+      "benchmark_climate_simulation",
+      "benchmark_world_creation",
       "allow_toggle_god_mode",
       "omit_default_names",
       "hide_old_buttons",
@@ -46,7 +49,6 @@
       "lawbearer",
       "farm_upstate",
       "show_modifiers",
-      "enable_oceans",
       "skip_intro",
       "promote_on_sentry",
       "debug_print",

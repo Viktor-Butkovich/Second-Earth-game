@@ -1,9 +1,7 @@
 # Contains functionality for grid cells
 
 import pygame
-from typing import Dict, List, Any
 from modules.constructs import images
-from modules.util import scaling
 from modules.constants import constants, status, flags
 
 
@@ -26,7 +24,6 @@ class cell:
         """
         self.x: int = x
         self.y: int = y
-        self.supports_batch_tooltip: bool = True
         self.width: int = width
         self.height: int = height
         self.grid = grid

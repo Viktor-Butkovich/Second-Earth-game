@@ -439,23 +439,23 @@ except Exception:  # Displays error message and records error message in crash l
 #   Could try making an EC system that trains a set of fuzzy rules - create a set of rules that match a list of i/o specifications
 #   Input would be input and output categories and rules, model just needs to tune the the rules until no specification cases fail
 #       Would likely just require a mutation operator and a genome of the required weights
-# Consider using hypothesis testing to determine if minister results are statistically significant (reject hypothesis of default behavior)
+# Consider t-test to determine if minister results are statistically significant (reject hypothesis of default behavior)
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Move buildings.py to constructs, move locations.py to actor_types, and move actor_types to be within constructs
-# Eventually add DOM-style dependency system for images and (less important) tooltips, so they are only updated when needed
-#     Find the dom_bus architecture above ^
-#     To make sure this is actually helpful, try caching get_image_id_list results and using these for minimap calibration
+# Add logistics info display tab with item upkeep information
+#   Mob version with just that mob, and a location version with total location demands
+# Add 5x5 building slot system
+# Allow building basic buildings like mines, farms, etc. with work crew functionality
+# Gradually incorporate event bus subscriptions rather than manual data binding for info displays, mob images
 # Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display
-#     Probably no longer needed with DOM system
+#     Maybe no longer needed with event bus DOM system
 # Could refactor location-level total upkeep required with contained_mobs - avoids manual traversals, just get total upkeep for every contained mob
 # Investigate water disappearing during terraforming - definitely occurs on Venus and Mars maps
 # Colonist upkeep should be oxygen, outputs CO2 - nitrogen is required in the construction of life support/dome systems, but is not directly involved in the upkeep process
 # Next major step is to add basic economic mechanics, now that the baseline terraforming is functional
 # Add new resource types, with colonist upkeep, buying on Earth, transporting
 # , and using to build when it is in the builder's location
-# Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Allow large items to be stored in inventory, with supporting interface
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
@@ -476,3 +476,30 @@ except Exception:  # Displays error message and records error message in crash l
 # Add task-specific unit voicelines, with separate unit and minister voice sets
 # Add modern minister outfits
 # Add crater and flood basalt terrain variants
+"""
+Notes: Efficiently simulating climate until equilibrium is reached
+    Dependencies:
+        terrain parameters -> ground appearance
+        ground appearance -> albedo brightness
+        albedo brightness -> target average temperature
+        target average temperature -> terrain parameters
+        terrain parameters -> cloud frequency
+        cloud frequency -> albedo brightness
+        cloud frequency -> cloud images
+        atmosphere composition -> target average temperature
+        atmosphere composition -> sky color
+        sky color -> ground appearance
+
+    Ideal update order for simulation:
+    1. Update atmosphere composition
+    2. Update sky color
+    3. Re-calculate the ground appearance based on the new sky color, if any
+    4. Update cloud frequency based on current terrain parameters
+    5. Re-calculate albedo brightness based on new cloud frequency and ground appearances
+    6. Update target average temperature, changing local temperatures as needed to reach this
+        Update local ground appearance along with local temperature changes
+    7. Repeat steps 4-6 until no temperature changes occur, since cloud frequency and albedo brightness depend on the target average temperature
+
+    As long as we update ground appearance whenever local temperature changes, and we update all ground appearances when sky color changes (before simulation), we ensure that the simulation never has to re-calculate all global ground images
+    for each iteration of step 5 - just derive brightness from the previously updated image
+"""

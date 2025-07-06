@@ -70,7 +70,6 @@ class equipment_type(item_types.item_type):
             bool: Returns whether the inputted unit can show the inputted section of this equipment in its portrait
         """
         if self.key == constants.SPACESUITS_EQUIPMENT:
-            habitability = unit.location.get_unit_habitability(unit=None)
             toggled_sections = [
                 constants.HAT_PORTRAIT_SECTION,
                 constants.HAIR_PORTRAIT_SECTION,
@@ -78,7 +77,9 @@ class equipment_type(item_types.item_type):
             ]
             return not (
                 key in toggled_sections
-                and habitability != constants.HABITABILITY_DEADLY
+                and not unit.get_permission(
+                    constants.DEADLY_EXTERNAL_ENVIRONMENT_PERMISSION
+                )
             )
             # Take off spacesuit helmet if in non-deadly conditions
         else:
@@ -108,7 +109,8 @@ class equipment_type(item_types.item_type):
                     self.equip(unit.officer)
                 if self.check_requirement(unit.worker):
                     self.equip(unit.worker)
-            unit.update_image_bundle()
+            unit.publish_events(constants.MOB_SET_PERMISSION_ROUTE)
+            unit.publish_events(constants.MOB_SET_PERMISSION_UPDATE_IMAGE_ROUTE)
 
     def unequip(self, unit) -> None:
         """
@@ -128,11 +130,14 @@ class equipment_type(item_types.item_type):
                     allow_increase=False,
                 )
             for permission in self.effects.get("permissions", []):
-                unit.set_permission(permission, False, override=True)
+                unit.set_permission(
+                    permission, False, override=True, update_image=False
+                )
             if unit.get_permission(constants.GROUP_PERMISSION):
                 self.unequip(unit.officer)
                 self.unequip(unit.worker)
-            unit.update_image_bundle()
+            unit.publish_events(constants.MOB_SET_PERMISSION_ROUTE)
+            unit.publish_events(constants.MOB_SET_PERMISSION_UPDATE_IMAGE_ROUTE)
 
     def check_requirement(self, unit) -> bool:
         """

@@ -1,4 +1,4 @@
-# Contains functionality for icons that follow the mouse pointer
+# Contains utilities for dynamic icon that follows the mouse pointer
 
 import pygame
 from modules.constructs.images import free_image

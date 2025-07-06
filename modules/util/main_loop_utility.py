@@ -1,4 +1,4 @@
-# Contains functions used in the game's main loop and event management
+# Contains functions used in the game's main loop and pygame input event management
 
 import pygame
 import time
@@ -238,95 +238,18 @@ def main_loop():
         if constants.current_time - constants.last_selection_outline_switch > 1:
             flags.show_selection_outlines = not flags.show_selection_outlines
             constants.last_selection_outline_switch = constants.current_time
-        constants.EventManager.update(constants.current_time)
+        constants.JobScheduler.update(constants.current_time)
         if (
             not flags.player_turn
             and constants.previous_turn_time + constants.end_turn_wait_time
             <= constants.current_time
         ):  # If enough time has passed based on delay from previous movement
-            equatorial_coordinates = constants.TIME_PASSING_EQUATORIAL_COORDINATES
             if constants.TIME_PASSING_ITERATIONS < len(
                 constants.TIME_PASSING_PLANET_SCHEDULE
             ):
-                if constants.TIME_PASSING_PLANET_SCHEDULE[
-                    constants.TIME_PASSING_ITERATIONS
-                ]:  # If scheduled to rotate planet at this iteration
-                    current_coordinates = equatorial_coordinates[
-                        (
-                            constants.TIME_PASSING_ROTATION
-                            + constants.TIME_PASSING_INITIAL_ORIENTATION
-                        )
-                        % status.current_world.world_dimensions
-                    ]
-                    status.current_world.update_globe_projection(
-                        center_coordinates=current_coordinates,
-                        update_button=constants.EffectManager.effect_active(
-                            "rotate_game_mode_buttons"
-                        ),
-                    )
-                    if constants.EffectManager.effect_active("save_global_projection"):
-                        pygame.image.save(
-                            status.globe_projection_surface.convert_alpha(),
-                            f"save_games/globe_rotations/{constants.TIME_PASSING_EARTH_ROTATIONS}.png",
-                        )
-                    if status.current_world.rotation_speed > 2:
-                        frame_interval = 3
-                    else:
-                        frame_interval = 2
-                    constants.TIME_PASSING_ROTATION += (
-                        frame_interval * status.current_world.rotation_direction
-                    )
-
-                if constants.TIME_PASSING_EARTH_SCHEDULE[
-                    constants.TIME_PASSING_ITERATIONS
-                ]:  # If scheduled to rotate Earth at this iteration
-                    status.earth_world.set_image(
-                        world_utility.generate_abstract_world_image(
-                            planet=constants.EARTH_WORLD,
-                            rotation=constants.TIME_PASSING_EARTH_ROTATIONS,
-                        )
-                    )
-                    if constants.EffectManager.effect_active(
-                        "rotate_game_mode_buttons"
-                    ):
-                        status.to_earth_button.image.set_image(
-                            actor_utility.generate_frame(
-                                world_utility.generate_abstract_world_image(
-                                    planet=constants.EARTH_WORLD,
-                                    size=0.6,
-                                    rotation=constants.TIME_PASSING_EARTH_ROTATIONS,
-                                ),
-                            )
-                        )
-                    constants.TIME_PASSING_EARTH_ROTATIONS += 1
-
-                constants.TIME_PASSING_ITERATIONS += 1
+                increment_globe_projection_rotation()
             else:  # End time passing logic
-                equatorial_coordinates = constants.TIME_PASSING_EQUATORIAL_COORDINATES
-                constants.TIME_PASSING_ROTATION = 0
-                status.current_world.update_globe_projection(
-                    center_coordinates=equatorial_coordinates[
-                        (
-                            constants.TIME_PASSING_ROTATION
-                            + constants.TIME_PASSING_INITIAL_ORIENTATION
-                        )
-                        % status.current_world.world_dimensions
-                    ]
-                )
-
-                status.earth_world.set_image(
-                    world_utility.generate_abstract_world_image(
-                        planet=constants.EARTH_WORLD
-                    )
-                )
-                if constants.EffectManager.effect_active("rotate_game_mode_buttons"):
-                    status.to_earth_button.image.set_image(
-                        actor_utility.generate_frame(
-                            world_utility.generate_abstract_world_image(
-                                planet=constants.EARTH_WORLD, size=0.6
-                            ),
-                        )
-                    )
+                complete_globe_projection_rotation()
                 update_display()
                 flags.enemy_combat_phase = True
                 turn_management_utility.manage_combat()
@@ -335,6 +258,92 @@ def main_loop():
                 constants.end_turn_wait_time = 0
             constants.previous_turn_time = constants.current_time
     pygame.quit()
+
+
+def complete_globe_projection_rotation():
+    """
+    Completes the world and Earth globe projection rotations, setting them to their static version for the new player turn
+    """
+    equatorial_coordinates = constants.TIME_PASSING_EQUATORIAL_COORDINATES
+    constants.TIME_PASSING_ROTATION = 0
+    status.current_world.update_globe_projection(
+        center_coordinates=equatorial_coordinates[
+            (
+                constants.TIME_PASSING_ROTATION
+                + constants.TIME_PASSING_INITIAL_ORIENTATION
+            )
+            % status.current_world.world_dimensions
+        ]
+    )
+
+    status.earth_world.set_image(
+        world_utility.generate_abstract_world_image(planet=constants.EARTH_WORLD)
+    )
+    if constants.EffectManager.effect_active("rotate_game_mode_buttons"):
+        status.to_earth_button.image.set_image(
+            actor_utility.generate_frame(
+                world_utility.generate_abstract_world_image(
+                    planet=constants.EARTH_WORLD, size=0.6
+                ),
+            )
+        )
+
+
+def increment_globe_projection_rotation():
+    """
+    Increment the globe projection rotation, rotating the world and Earth globe projections based on their rotation speeds.
+    """
+    equatorial_coordinates = constants.TIME_PASSING_EQUATORIAL_COORDINATES
+    if constants.TIME_PASSING_PLANET_SCHEDULE[
+        constants.TIME_PASSING_ITERATIONS
+    ]:  # If scheduled to rotate planet at this iteration
+        current_coordinates = equatorial_coordinates[
+            (
+                constants.TIME_PASSING_ROTATION
+                + constants.TIME_PASSING_INITIAL_ORIENTATION
+            )
+            % status.current_world.world_dimensions
+        ]
+        status.current_world.update_globe_projection(
+            center_coordinates=current_coordinates,
+            update_button=constants.EffectManager.effect_active(
+                "rotate_game_mode_buttons"
+            ),
+        )
+        if constants.EffectManager.effect_active("save_global_projection"):
+            pygame.image.save(
+                status.globe_projection_surface.convert_alpha(),
+                f"save_games/globe_rotations/{constants.TIME_PASSING_EARTH_ROTATIONS}.png",
+            )
+        if status.current_world.rotation_speed > 2:
+            frame_interval = 3
+        else:
+            frame_interval = 2
+        constants.TIME_PASSING_ROTATION += (
+            frame_interval * status.current_world.rotation_direction
+        )
+
+    if constants.TIME_PASSING_EARTH_SCHEDULE[
+        constants.TIME_PASSING_ITERATIONS
+    ]:  # If scheduled to rotate Earth at this iteration
+        status.earth_world.set_image(
+            world_utility.generate_abstract_world_image(
+                planet=constants.EARTH_WORLD,
+                rotation=constants.TIME_PASSING_EARTH_ROTATIONS,
+            )
+        )
+        if constants.EffectManager.effect_active("rotate_game_mode_buttons"):
+            status.to_earth_button.image.set_image(
+                actor_utility.generate_frame(
+                    world_utility.generate_abstract_world_image(
+                        planet=constants.EARTH_WORLD,
+                        size=0.6,
+                        rotation=constants.TIME_PASSING_EARTH_ROTATIONS,
+                    ),
+                )
+            )
+        constants.TIME_PASSING_EARTH_ROTATIONS += 1
+    constants.TIME_PASSING_ITERATIONS += 1
 
 
 def update_display():
@@ -501,15 +510,8 @@ def manage_tooltip_drawing(tooltip_drawer):
     mouse_x, mouse_y = pygame.mouse.get_pos()
     height = y_displacement
     width = 0
-    if (
-        hasattr(tooltip_drawer, "supports_batch_tooltip")
-        and tooltip_drawer.supports_batch_tooltip
-    ):
-        batch_tooltip_list = tooltip_drawer.batch_tooltip_list
-    else:
-        batch_tooltip_list = [tooltip_drawer.tooltip_text]
     formatted_tooltip_list = []
-    for tooltip in batch_tooltip_list:
+    for tooltip in tooltip_drawer.batch_tooltip_list:
         tooltip_width = 0
         for line in tooltip:
             tooltip_width = max(
@@ -552,7 +554,7 @@ def manage_tooltip_drawing(tooltip_drawer):
             width,
             y_displacement,
         )
-        y_displacement += font.size * (len(tooltip) + 1)
+        y_displacement += font.size * (len(formatted_tooltip["text"]) + 1)
 
 
 def draw_tooltip(tooltip, below_screen, beyond_screen, height, width, y_displacement):
@@ -725,7 +727,7 @@ def manage_rmb_down(clicked_button):
                                 current_location.subscribed_mobs.append(
                                     current_location.subscribed_mobs.pop(0)
                                 )
-                            current_location.update_image_bundle()
+                            current_location.update_image_bundle(update_mob_only=True)
                             flags.show_selection_outlines = True
                             constants.last_selection_outline_switch = (
                                 constants.current_time
@@ -733,6 +735,9 @@ def manage_rmb_down(clicked_button):
                             actor_utility.focus_minimap_grids(current_location)
                             moved_mob.select()
                             moved_mob.selection_sound()
+                        else:
+                            manage_lmb_down(clicked_button)
+                            return
     elif flags.drawing_automatic_route:
         stopping = True
         flags.drawing_automatic_route = False

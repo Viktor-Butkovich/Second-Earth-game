@@ -175,8 +175,8 @@ class button(interface_elements.interface_element):
                         constants.INFRASTRUCTURE
                     )
                 )
-                if adjacent_location.visible:
-                    tooltip_text.append("Press to move to the " + direction)
+                if True:  # adjacent_location.visible:
+                    tooltip_text.append(f"Press to move to the {direction}")
                     adjacent_infrastructure = adjacent_location.get_intact_building(
                         constants.INFRASTRUCTURE
                     )
@@ -360,7 +360,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.REMOVE_EQUIPMENT_BUTTON:
             if status.displayed_mob:
                 return [
-                    f"Click to unequip {self.equipment_type}"
+                    f"Click to unequip {self.equipment_type.name}"
                 ] + self.equipment_type.description
 
         elif self.button_type == constants.USE_EACH_EQUIPMENT_BUTTON:
@@ -569,7 +569,7 @@ class button(interface_elements.interface_element):
                 description = f"{self.linked_element.tab_button.tab_name} panel"
             else:
                 description = "attached panel"
-            return ["Displays the " + description]
+            return [f"Displays the {description}"]
 
         elif self.button_type == constants.CYCLE_AUTOFILL_BUTTON:
             if self.parent_collection.autofill_actors.get(
@@ -657,9 +657,9 @@ class button(interface_elements.interface_element):
             Each string is displayed on a separate line, while each sublist is displayed in a separate box
         """
         if self.has_keybind:
-            return [self.tooltip_text]
-        else:
             return [self.tooltip_text + [f"Press {self.keybind_name} to use."]]
+        else:
+            return [self.tooltip_text]
 
     def touching_mouse(self):
         """
@@ -763,8 +763,9 @@ class button(interface_elements.interface_element):
                                     constants.last_selection_outline_switch = (
                                         constants.current_time
                                     )
-                                    if current_mob.sentry_mode:
-                                        current_mob.set_sentry_mode(False)
+                                    current_mob.set_permission(
+                                        constants.SENTRY_MODE_PERMISSION, False
+                                    )
                                     current_mob.clear_automatic_route()
 
                                 elif current_mob.get_permission(
@@ -938,16 +939,12 @@ class button(interface_elements.interface_element):
             constants.DROP_EACH_ITEM_BUTTON,
         ]:
             if self.button_type == constants.PICK_UP_EACH_ITEM_BUTTON:
-                source_type = "location_inventory"
+                source_type = constants.LOCATION_INVENTORY_ACTOR_TYPE
             else:
-                source_type = "mob_inventory"
+                source_type = constants.MOB_INVENTORY_ACTOR_TYPE
             item_types.transfer(
                 source_type, transferred_item=None, amount=None
             )  # Transfer all of each type
-            if status.displayed_location_inventory:
-                status.displayed_location_inventory.on_click()
-            if status.displayed_mob_inventory:
-                status.displayed_mob_inventory.on_click()
 
         elif self.button_type in [
             constants.SELL_ITEM_BUTTON,
@@ -1027,10 +1024,6 @@ class button(interface_elements.interface_element):
                                     actor_utility.calibrate_actor_info_display(
                                         status.mob_info_display, status.displayed_mob
                                     )
-                                    actor_utility.select_interface_tab(
-                                        status.mob_tabbed_collection,
-                                        status.mob_inventory_collection,
-                                    )
                                     if (
                                         status.displayed_location_inventory
                                         and status.displayed_location_inventory.current_item
@@ -1054,33 +1047,11 @@ class button(interface_elements.interface_element):
                         if not status.displayed_mob.equipment.get(equipment.key, False):
                             radio_effect = status.displayed_mob.get_radio_effect()
                             equipment.equip(status.displayed_mob)
+                            status.displayed_location.change_inventory(equipment, -1)
                             if (
                                 radio_effect != status.displayed_mob.get_radio_effect()
                             ):  # If radio effect changed, play new voice line
                                 status.displayed_mob.selection_sound()
-                            status.displayed_location.change_inventory(equipment, -1)
-                            actor_utility.calibrate_actor_info_display(
-                                status.location_info_display, status.displayed_location
-                            )
-                            actor_utility.calibrate_actor_info_display(
-                                status.mob_info_display, status.displayed_mob
-                            )
-                            actor_utility.select_interface_tab(
-                                status.mob_tabbed_collection,
-                                status.mob_inventory_collection,
-                            )
-                            if (
-                                status.displayed_location_inventory
-                                and status.displayed_location_inventory.current_item
-                            ):
-                                actor_utility.calibrate_actor_info_display(
-                                    status.location_inventory_info_display,
-                                    status.displayed_location_inventory,
-                                )
-                            else:
-                                actor_utility.calibrate_actor_info_display(
-                                    status.location_inventory_info_display, None
-                                )
                         else:
                             text_utility.print_to_screen(
                                 f"This unit already has {equipment.key} equipped."
@@ -1156,8 +1127,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.WAKE_UP_ALL_BUTTON:
             if main_loop_utility.action_possible():
                 for current_pmob in status.pmob_list:
-                    if current_pmob.sentry_mode:
-                        current_pmob.set_sentry_mode(False)
+                    current_pmob.set_permission(constants.SENTRY_MODE_PERMISSION, False)
                 actor_utility.calibrate_actor_info_display(
                     status.mob_info_display, status.displayed_mob
                 )
@@ -1225,6 +1195,9 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.TAB_BUTTON:
             tabbed_collection = self.parent_collection.parent_collection
             tabbed_collection.current_tabbed_member = self.linked_element
+            if constants.EffectManager.effect_active("debug_tab_selection"):
+                print(f"Selecting tab: {self.tab_name}")
+            tabbed_collection.record_mru_tab(self.linked_element)
             if (
                 self.identifier == constants.INVENTORY_PANEL
                 and constants.EffectManager.effect_active("link_inventory_tabs")
@@ -1530,7 +1503,6 @@ class cycle_same_location_button(button):
                 cycled_location.subscribed_mobs.pop(0)
             )
             cycled_location.subscribed_mobs[0].cycle_select()
-            cycled_location.update_image_bundle()
         else:
             text_utility.print_to_screen("You are busy and cannot cycle units.")
 
@@ -1655,7 +1627,11 @@ class same_location_icon(button):
 
                     elif len(self.previous_subscribed_mobs) > self.index:
                         self.attached_mob = self.previous_subscribed_mobs[self.index]
-                        self.image.set_image(self.attached_mob.get_image_id_list())
+                        self.image.set_image(
+                            self.attached_mob.image_dict[
+                                constants.IMAGE_ID_LIST_FULL_MOB
+                            ]
+                        )
             else:
                 self.attached_mob = None
 
@@ -1865,195 +1841,6 @@ class switch_game_mode_button(button):
         return super().can_show(skip_parent_collection=skip_parent_collection)
 
 
-class minister_portrait_image(button):
-    """
-    Button that can be calibrated to a minister to show that minister's portrait and selects the minister when clicked
-    """
-
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'width': int value - pixel width of this element
-                'height': int value - pixel height of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'minister_type': string value - Minister office that this button is linked to, causing this button to always be connected to the minister in that office. If equals None,
-                    can be calibrated to an available minister candidate
-        Output:
-            None
-        """
-        self.background_image_id = []
-        self.empty_image_id = []
-        self.current_minister = None
-        input_dict["image_id"] = self.empty_image_id
-        super().__init__(input_dict)
-        self.insert_collection_above()
-        self.minister_type: minister_types.minister_type = input_dict[
-            "minister_type"
-        ]  # Position, like Minister of Space minister_type object
-        if self.minister_type:
-            self.background_image_id.append("misc/empty.png")
-            self.empty_image_id.append("ministers/empty_portrait.png")
-            warning_x_offset = 0
-        else:  # If available minister portrait
-            self.background_image_id.append("misc/empty.png")
-            self.empty_image_id.append("ministers/empty_portrait.png")
-            if constants.MINISTERS_MODE in self.modes:
-                status.available_minister_portrait_list.append(self)
-            warning_x_offset = scaling.scale_width(-100)
-        status.minister_image_list.append(self)
-
-        self.warning_image = constants.ActorCreationManager.create_interface_element(
-            {
-                "attached_image": self,
-                "init_type": constants.WARNING_IMAGE,
-                "parent_collection": self.parent_collection,
-                "member_config": {"x_offset": warning_x_offset, "y_offset": 0},
-            }
-        )
-        self.parent_collection.can_show_override = self  # Parent collection is considered showing when this label can show, allowing ordered collection to work correctly
-
-        self.calibrate(None)
-
-    def can_show_warning(self):
-        """
-        Description:
-            Returns whether this image should display its warning image. It should be shown when this image is visible and its attached minister is about to be fired at the end of the turn
-        Input:
-            None
-        Output:
-            Returns whether this image should display its warning image
-        """
-        if self.current_minister:
-            if (
-                self.current_minister.just_removed
-                and not self.current_minister.current_position
-            ):
-                return True
-        elif (
-            self.minister_type
-        ):  # If portrait in minister table and no minister assigned for office
-            return True
-        return False
-
-    def draw(self):
-        """
-        Draws this button's image along with a white background and, if its minister is currently selected, a flashing green outline
-        """
-        showing = False
-        if (
-            self.showing and constants.current_game_mode == constants.MINISTERS_MODE
-        ):  # Draw outline around portrait if minister selected
-            showing = True
-            if (
-                status.displayed_minister
-                and status.displayed_minister == self.current_minister
-                and flags.show_selection_outlines
-            ):
-                pygame.draw.rect(
-                    constants.game_display,
-                    constants.color_dict[constants.COLOR_BRIGHT_GREEN],
-                    self.outline,
-                )
-        super().draw(
-            allow_show_outline=(constants.current_game_mode == constants.MINISTERS_MODE)
-        )  # Show outline for selection icons on ministers mode but not the overlapping ones on strategic mode
-        if showing and self.warning_image.showing:
-            self.warning_image.draw()
-
-    def on_click(self):
-        """
-        Controls this button's behavior when clicked. This type of button selects its attached minister when clicked
-        """
-        if main_loop_utility.action_possible():
-            if (
-                constants.current_game_mode == constants.MINISTERS_MODE
-                and self.current_minister
-            ):
-                self.current_minister.play_voice_line("acknowledgement")
-                if (
-                    self in status.available_minister_portrait_list
-                ):  # if available minister portrait
-                    own_index = status.available_minister_list.index(
-                        self.current_minister
-                    )
-                    constants.available_minister_left_index = own_index - 2
-                    minister_utility.update_available_minister_display()
-                else:  # if cabinet portrait
-                    minister_utility.calibrate_minister_info_display(
-                        self.current_minister
-                    )
-            elif (
-                constants.current_game_mode != constants.MINISTERS_MODE
-            ):  # If clicked while not on ministers screen, go to ministers screen and select that minister
-                old_minister = self.current_minister
-                game_transitions.set_game_mode(constants.MINISTERS_MODE)
-                self.current_minister = old_minister
-                if self.current_minister:
-                    self.on_click()
-        else:
-            text_utility.print_to_screen(
-                "You are busy and cannot select other ministers."
-            )
-
-    def calibrate(self, new_minister):
-        """
-        Description:
-            Attaches this button to the inputted minister and updates this button's image to that of the minister
-        Input:
-            string/minister new_minister: The minister whose information is matched by this button. If this equals None, this button is detached from any ministers
-        Output:
-            None
-        """
-        if (
-            new_minister and new_minister.actor_type != constants.MINISTER_ACTOR_TYPE
-        ):  # If calibrated to non-minister, attempt to calibrate to that unit's controlling minister
-            if hasattr(new_minister, "controlling_minister"):
-                new_minister = new_minister.controlling_minister
-            else:
-                new_minister = None
-
-        if new_minister:
-            if constants.MINISTERS_MODE in self.modes:
-                self.image.set_image(
-                    self.background_image_id
-                    + new_minister.image_id
-                    + actor_utility.generate_label_image_id(
-                        new_minister.get_f_lname(use_prefix=True)
-                    )
-                )
-            else:
-                self.image.set_image(new_minister.image_id)
-        elif (
-            constants.MINISTERS_MODE in self.modes
-        ):  # Show empty minister if minister screen icon
-            self.image.set_image(self.empty_image_id)
-        else:  # If minister icon on strategic mode, no need to show empty minister
-            self.image.set_image("misc/empty.png")
-        self.current_minister = new_minister
-
-    @property
-    def tooltip_text(self) -> List[List[str]]:
-        """
-        Provides the tooltip for this object
-        """
-        if self.current_minister:
-            return self.current_minister.tooltip_text
-        elif self.minister_type:  # If available minister portrait
-            return [
-                f"No {self.minister_type.name} is currently appointed.",
-                f"Without a {self.minister_type.name}, {self.minister_type.skill_type.replace('_', ' ')}-oriented actions are not possible",
-            ]
-        else:  # If appointed minister portrait
-            return ["There is no available candidate in this slot."]
-
-
 class cycle_available_ministers_button(button):
     """
     Button that cycles through the ministers available to be appointed
@@ -2111,19 +1898,10 @@ class cycle_available_ministers_button(button):
         """
         Controls this button's behavior when clicked. This type of button changes the range of available ministers that are displayed depending on its direction
         """
-        if main_loop_utility.action_possible():
-            if self.direction == "left":
-                constants.available_minister_left_index -= 1
-            if self.direction == "right":
-                constants.available_minister_left_index += 1
-            minister_utility.update_available_minister_display()
-            status.available_minister_portrait_list[
-                2
-            ].on_click()  # select new middle portrait
-        else:
-            text_utility.print_to_screen(
-                "You are busy and cannot select other ministers."
-            )
+        if self.direction == "left":
+            status.available_minister_icon_list[1].on_click()
+        if self.direction == "right":
+            status.available_minister_icon_list[3].on_click()
 
 
 class scroll_button(button):
@@ -2338,7 +2116,7 @@ class tab_button(button):
         self.tab_name = input_dict["tab_name"]
         super().__init__(input_dict)
 
-    def can_show(self, skip_parent_collection=False):
+    def can_show(self, skip_parent_collection=False) -> bool:
         """
         Description:
             Returns whether this button can be shown - uses usual can_show logic, but shows outline iff tab is active
@@ -2347,71 +2125,56 @@ class tab_button(button):
         Output:
             boolean: Returns True if this button can appear during the current game mode, otherwise returns False
         """
-        return_value = super().can_show(skip_parent_collection=skip_parent_collection)
-        if return_value:
-            if self.identifier == constants.SETTLEMENT_PANEL:
-                return_value = bool(
-                    status.displayed_location.settlement
-                    or status.displayed_location.has_building(constants.INFRASTRUCTURE)
-                )
-
-            elif self.identifier == constants.INVENTORY_PANEL:
-                if self.linked_element == status.location_inventory_collection:
-                    return_value = (
-                        status.displayed_location.inventory
-                        or status.displayed_location.inventory_capacity > 0
-                        or status.displayed_location.infinite_inventory_capacity
-                    )
-                else:
-                    return_value = status.displayed_mob.inventory_capacity > 0 or (
-                        flags.enable_equipment_panel
-                        and status.displayed_mob.get_permission(
-                            constants.PMOB_PERMISSION
-                        )
-                        and status.displayed_mob.equipment
-                    )
-
-            elif self.identifier == constants.REORGANIZATION_PANEL:
-                return_value = status.displayed_mob.get_permission(
-                    constants.PMOB_PERMISSION
-                )
-            elif self.identifier == constants.LOCAL_CONDITIONS_PANEL:
-                return_value = not status.displayed_location.is_abstract_location
-            elif self.identifier in [
-                constants.GLOBAL_CONDITIONS_PANEL,
-                constants.TEMPERATURE_BREAKDOWN_PANEL,
-            ]:
-                return_value = status.displayed_location.is_abstract_location
-
+        return_value = (
+            super().can_show(skip_parent_collection=skip_parent_collection)
+            and self.tab_enabled()
+        )
         if (
             self.linked_element
             == self.parent_collection.parent_collection.current_tabbed_member
-        ):
-            if return_value:
-                self.showing_outline = True
-            else:
-                self.showing_outline = False
-                self.parent_collection.parent_collection.current_tabbed_member = None
-                for (
-                    tabbed_member
-                ) in self.parent_collection.parent_collection.tabbed_members:
-                    if (
-                        tabbed_member != self.linked_element
-                        and tabbed_member.linked_tab_button.can_show()
-                    ):
-                        self.parent_collection.parent_collection.current_tabbed_member = (
-                            tabbed_member
-                        )
-        elif (
-            return_value
-            and self.parent_collection.parent_collection.current_tabbed_member == None
-        ):
-            self.on_click()
+        ) and return_value:  # Show outline if showing and selected
             self.showing_outline = True
         else:
             self.showing_outline = False
-
         return return_value
+
+    def tab_enabled(self) -> bool:
+        """
+        Description:
+            Returns whether this tab is enabled, based on the tab type and the selected actor's status
+        Input:
+            None
+        Output:
+            boolean: Returns whether this tab is enabled
+        """
+        if self.identifier == constants.SETTLEMENT_PANEL:
+            return bool(
+                status.displayed_location.settlement
+                or status.displayed_location.has_building(constants.INFRASTRUCTURE)
+            )
+        elif self.identifier == constants.INVENTORY_PANEL:
+            if self.linked_element == status.location_inventory_collection:
+                return (
+                    status.displayed_location.inventory
+                    or status.displayed_location.inventory_capacity > 0
+                    or status.displayed_location.infinite_inventory_capacity
+                )
+            else:
+                return status.displayed_mob.inventory_capacity > 0 or (
+                    flags.enable_equipment_panel
+                    and status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
+                    and status.displayed_mob.equipment
+                )
+        elif self.identifier == constants.REORGANIZATION_PANEL:
+            return status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
+        elif self.identifier == constants.LOCAL_CONDITIONS_PANEL:
+            return not status.displayed_location.is_abstract_location
+        elif self.identifier in [
+            constants.GLOBAL_CONDITIONS_PANEL,
+            constants.TEMPERATURE_BREAKDOWN_PANEL,
+        ]:
+            return status.displayed_location.is_abstract_location
+        return False
 
 
 class reorganize_unit_button(button):
@@ -2974,16 +2737,7 @@ class map_mode_button(button):
         Sets the current map mode to this button's map mode
         """
         constants.current_map_mode = self.map_mode
-        for current_world in status.world_list:
-            for current_location in current_world.get_flat_location_list():
-                current_location.update_image_bundle()
-        status.current_world.update_globe_projection()
-        actor_utility.calibrate_actor_info_display(
-            status.location_info_display, status.displayed_location
-        )
-        actor_utility.calibrate_actor_info_display(
-            status.mob_info_display, status.displayed_mob
-        )
+        constants.EventBus.publish(constants.UPDATE_MAP_MODE_ROUTE, self.map_mode)
 
     @property
     def tooltip_text(self) -> List[List[str]]:

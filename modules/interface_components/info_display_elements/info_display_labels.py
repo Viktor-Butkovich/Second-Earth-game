@@ -3,12 +3,12 @@
 import pygame
 from typing import List, Callable
 from modules.constructs.actor_types import actors
-from modules.interface_components.labels import label
+from modules.interface_components import labels
 from modules.util import utility, scaling, actor_utility
 from modules.constants import constants, status, flags
 
 
-class actor_display_label(label):
+class actor_display_label(labels.label):
     """
     Label that changes its text to match the information of selected mobs or locations
     """
@@ -296,9 +296,6 @@ class actor_display_label(label):
             input_dict["image_id"] = "buttons/disembark_spaceship_button.png"
             self.add_attached_button(input_dict)
 
-        elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
-            self.message_start = ""
-
         elif self.actor_label_type in [
             constants.MOB_INVENTORY_CAPACITY_LABEL,
             constants.LOCATION_INVENTORY_CAPACITY_LABEL,
@@ -350,42 +347,24 @@ class actor_display_label(label):
             self.message_start = "Minister: "
             input_dict["width"], input_dict["height"] = (m_size, m_size)
 
-            attached_minister_position_image = (
-                constants.ActorCreationManager.create_interface_element(
-                    {
-                        "coordinates": (
-                            self.x - self.height - m_increment - scaling.scale_width(5),
-                            self.y,
-                        ),
-                        "width": scaling.scale_width(30) + m_increment,
-                        "height": scaling.scale_height(30) + m_increment,
-                        "modes": self.modes,
-                        "minister_type": None,
-                        "attached_label": self,
-                        "init_type": constants.MINISTER_TYPE_IMAGE,
-                        "parent_collection": self.insert_collection_above(),
-                        "member_config": {
-                            "x_offset": -1 * (self.height + m_increment),
-                            "y_offset": -0.5 * m_increment,
-                        },
-                    }
-                )
-            )
-            attached_minister_portrait_image = constants.ActorCreationManager.create_interface_element(
+            attached_minister_icon = constants.ActorCreationManager.create_interface_element(
                 {
-                    "width": self.height + m_increment,
-                    "height": self.height + m_increment,
-                    "init_type": constants.MINISTER_PORTRAIT_IMAGE,
-                    "minister_type": None,
-                    "attached_label": self,
-                    "parent_collection": attached_minister_position_image.parent_collection,
+                    "coordinates": (0, 0),
+                    "actor_type": constants.MINISTER_ACTOR_TYPE,
+                    "width": scaling.scale_width(30) + m_increment,
+                    "height": scaling.scale_height(30) + m_increment,
+                    "modes": self.modes,
+                    "init_type": constants.ACTOR_ICON,
+                    "parent_collection": self.insert_collection_above(),
                     "member_config": {
-                        "x_offset": -1 * (self.height + m_increment),
-                        "y_offset": -0.5 * m_increment,
+                        "x_offset": -1
+                        * (
+                            scaling.scale_width(33) + m_increment
+                        ),  # -1.5 * (m_increment),
+                        "y_offset": -0.5 * m_increment,  # -0.5 * m_increment,
                     },
                 }
             )
-
             self.parent_collection.can_show_override = self  # parent collection is considered showing when this label can show, allowing ordered collection to work correctly
             self.image_y_displacement = 5
 
@@ -815,6 +794,18 @@ class actor_display_label(label):
             else:
                 return super().tooltip_text
 
+        elif self.actor_label_type == constants.OFFICER_LABEL:
+            if self.actor and self.actor.officer:
+                return self.actor.officer.tooltip_text
+            else:
+                return super().tooltip_text
+
+        elif self.actor_label_type == constants.WORKERS_LABEL:
+            if self.actor and self.actor.worker:
+                return self.actor.worker.tooltip_text
+            else:
+                return super().tooltip_text
+
         elif self.actor_label_type in [
             constants.MOB_INVENTORY_CAPACITY_LABEL,
             constants.LOCATION_INVENTORY_CAPACITY_LABEL,
@@ -1175,7 +1166,7 @@ class actor_display_label(label):
                     )
             return tooltip_text
         elif self.actor_label_type == constants.BANNER_LABEL:
-            if self.banner_type == "absolute zero":
+            if self.banner_type == constants.ABSOLUTE_ZERO_BANNER:
                 tooltip_text = [self.message]
                 tooltip_text.append(
                     "Absolute zero is the coldest possible temperature, and is the natural temperature when there is no heat"
@@ -1643,8 +1634,6 @@ class actor_display_label(label):
                     self.set_label(
                         f"{self.message_start}{constants.HABITABILITY_DESCRIPTIONS[overall_habitability]}"
                     )
-        elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
-            return  # do not set text for tooltip label
         elif self.actor_label_type == constants.BANNER_LABEL:
             self.set_label(self.message_start)
         else:
@@ -1662,8 +1651,6 @@ class actor_display_label(label):
         result = super().can_show(skip_parent_collection=skip_parent_collection)
         if not result:
             return False
-        # elif self.actor_label_type == constants.ACTOR_TOOLTIP_LABEL:
-        #     return True
         elif (
             self.actor_label_type == constants.RESOURCE_LABEL
             and (  # Denotes terrain resource
@@ -1811,7 +1798,7 @@ class banner(actor_display_label):
         Output:
             boolean: Returns whether this label should be drawn
         """
-        if self.banner_type == "terrain details":
+        if self.banner_type == constants.TERRAIN_DETAILS_BANNER:
             return (
                 super().can_show(skip_parent_collection=skip_parent_collection)
                 and self.actor.knowledge_available(constants.TERRAIN_KNOWLEDGE)
@@ -1819,7 +1806,7 @@ class banner(actor_display_label):
                     constants.TERRAIN_PARAMETER_KNOWLEDGE
                 )
             )
-        elif self.banner_type == "deadly conditions":
+        elif self.banner_type == constants.DEADLY_CONDITIONS_BANNER:
             return super().can_show(
                 skip_parent_collection=skip_parent_collection
             ) and not self.actor.get_permission(constants.SURVIVABLE_PERMISSION)
@@ -1838,7 +1825,7 @@ class banner(actor_display_label):
         super().calibrate(new_actor)
         if (
             new_actor
-            and self.banner_type == "tab name"
+            and self.banner_type == constants.TAB_NAME_BANNER
             and self.parent_collection.parent_collection.current_tabbed_member
         ):
             self.set_label(
@@ -1902,53 +1889,6 @@ class list_item_label(actor_display_label):
         if len(self.attached_list) > self.list_index:
             return super().can_show(skip_parent_collection=skip_parent_collection)
         return False
-
-
-class actor_tooltip_label(actor_display_label):
-    """
-    Label used for actor tooltips that can calibrate to actors and select them when clicked
-    """
-
-    def on_click(self):
-        """
-        Selects the calibrated unit when clicked - used to allow selecting units from reorganization interface
-        """
-        if self.actor_type == constants.MINISTER_ACTOR_TYPE:
-            return
-        if self.actor_type == constants.LOCATION_ACTOR_TYPE:
-            if (
-                self.actor.actor_type == constants.LOCATION_ACTOR_TYPE
-            ):  # If not location_inventory
-                actor_utility.calibrate_actor_info_display(
-                    status.location_info_display, self.actor
-                )
-                actor_utility.calibrate_actor_info_display(
-                    status.mob_info_display, None
-                )
-            else:
-                return
-        elif self.actor:  # Reorganization interface buttons
-            if self.actor.get_permission(constants.DUMMY_PERMISSION):
-                if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
-                    status.reorganize_vehicle_right_button.on_click(allow_sound=False)
-                elif status.displayed_mob.get_permission(
-                    constants.ACTIVE_VEHICLE_PERMISSION
-                ):
-                    status.reorganize_vehicle_left_button.on_click(allow_sound=False)
-                elif self.actor.any_permissions(
-                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
-                ):
-                    status.reorganize_group_left_button.on_click(allow_sound=False)
-                elif self.actor.get_permission(constants.GROUP_PERMISSION):
-                    status.reorganize_group_right_button.on_click(allow_sound=False)
-
-                if not self.actor.get_permission(
-                    constants.DUMMY_PERMISSION
-                ):  # Only select if dummy unit successfully became real
-                    self.actor.cycle_select()
-                    self.actor.selection_sound()
-            else:  # If already existing, simply select unit
-                self.actor.cycle_select()
 
 
 class building_work_crews_label(actor_display_label):

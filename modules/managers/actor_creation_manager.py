@@ -1,4 +1,4 @@
-# Contains functionality for creating new instances of mobs, buildings, dice, and ministers
+# Contains actor/interface element creation factory singleton
 
 import random
 from modules.constructs.actor_types import locations, mobs
@@ -31,7 +31,6 @@ from modules.interface_components import (
 from modules.interface_components.info_display_elements import (
     info_display_buttons,
     info_display_labels,
-    info_display_images,
 )
 from modules.constructs import (
     buildings,
@@ -170,7 +169,6 @@ class actor_creation_manager:
             constants.CHANGE_PARAMETER_BUTTON: info_display_buttons.change_parameter_button,
             constants.HELP_BUTTON: info_display_buttons.help_button,
             constants.SAME_LOCATION_ICON: buttons.same_location_icon,
-            constants.MINISTER_PORTRAIT_IMAGE: buttons.minister_portrait_image,
             constants.ITEM_ICON: inventory_interface.item_icon,
             constants.DIE_ELEMENT: dice.die,
             constants.PANEL_ELEMENT: panels.panel,
@@ -253,19 +251,17 @@ class actor_creation_manager:
             constants.WAREHOUSES: info_display_labels.actor_display_label,
             constants.TERRAIN_FEATURE_LABEL: info_display_labels.terrain_feature_label,
             constants.CURRENT_PASSENGER_LABEL: info_display_labels.list_item_label,
-            constants.ACTOR_TOOLTIP_LABEL: info_display_labels.actor_tooltip_label,
             constants.LIST_ITEM_LABEL: info_display_labels.list_item_label,
             constants.BUILDING_WORK_CREWS_LABEL: info_display_labels.building_work_crews_label,
             constants.BUILDING_EFFICIENCY_LABEL: info_display_labels.building_efficiency_label,
             constants.TERRAIN_FEATURE_LABEL: info_display_labels.terrain_feature_label,
             constants.BANNER_LABEL: info_display_labels.banner,
             constants.FREE_IMAGE: images.free_image,
-            constants.ACTOR_DISPLAY_FREE_IMAGE: info_display_images.actor_display_free_image,
-            constants.LABEL_IMAGE: info_display_images.label_image,
+            constants.ACTOR_ICON: info_display_buttons.actor_icon,
+            constants.MINISTER_TABLE_ICON: info_display_buttons.minister_table_icon,
+            constants.AVAILABLE_MINISTER_ICON: info_display_buttons.available_minister_icon,
             constants.BACKGROUND_IMAGE: images.background_image,
             constants.TOOLTIP_FREE_IMAGE: images.tooltip_free_image,
-            constants.MINISTER_TYPE_IMAGE: images.minister_type_image,
-            constants.DICE_ROLL_MINISTER_IMAGE: images.dice_roll_minister_image,
             constants.INDICATOR_IMAGE: images.indicator_image,
             constants.WARNING_IMAGE: images.warning_image,
             constants.LOADING_IMAGE_TEMPLATE_IMAGE: images.loading_image_template,

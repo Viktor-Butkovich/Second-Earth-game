@@ -1,3 +1,5 @@
+# Contains typed user input ingestion and routing singleton
+
 from modules.util import text_utility
 from modules.constants import constants, status, flags
 

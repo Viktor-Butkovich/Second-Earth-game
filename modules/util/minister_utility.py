@@ -124,25 +124,14 @@ def update_available_minister_display():
     Output:
         None
     """
-    available_minister_portrait_list = status.available_minister_portrait_list
-    available_minister_left_index = constants.available_minister_left_index
-    available_minister_list = status.available_minister_list
-    for current_index in range(len(available_minister_portrait_list)):
-        minister_index = available_minister_left_index + current_index
-        if minister_index < len(available_minister_list) and minister_index >= 0:
-            available_minister_portrait_list[current_index].calibrate(
-                available_minister_list[minister_index]
-            )
+    for i, current_icon in enumerate(status.available_minister_icon_list):
+        current_icon_index = constants.available_minister_left_index + i
+        if current_icon_index >= 0 and current_icon_index < len(
+            status.available_minister_list
+        ):
+            current_icon.calibrate(status.available_minister_list[current_icon_index])
         else:
-            available_minister_portrait_list[current_index].calibrate(None)
-    if (
-        constants.current_game_mode == constants.MINISTERS_MODE
-        and len(available_minister_list) > 0
-        and not available_minister_left_index + 2 >= len(available_minister_list)
-    ):
-        calibrate_minister_info_display(
-            available_minister_list[available_minister_left_index + 2]
-        )
+            current_icon.calibrate(None)
 
 
 def positions_filled():

@@ -1,3 +1,5 @@
+# Contains sound effect and music management singleton
+
 import random
 import pygame
 import os
@@ -216,7 +218,7 @@ class sound_manager:
         ):  # only delay starting music for fade out if there is any current music to fade out
             for i in range(1, 5):
                 time_passed += time_interval  # with each interval, time_interval time passes and volume decreases by 0.25
-                constants.EventManager.add_event(
+                constants.JobScheduler.schedule_job(
                     pygame.mixer.music.set_volume,
                     [original_volume * (1 - (0.25 * i))],
                     time_passed,
@@ -224,20 +226,24 @@ class sound_manager:
 
         if file_name:
             time_passed += time_interval
-            constants.EventManager.add_event(
+            constants.JobScheduler.schedule_job(
                 self.play_music, [file_name, 0], time_passed
             )
             for i in range(1, 5):
-                constants.EventManager.add_event(
+                constants.JobScheduler.schedule_job(
                     pygame.mixer.music.set_volume,
                     [original_volume * (0.25 * i)],
                     time_passed,
                 )
                 time_passed += time_interval  # with each interval, time_interval time passes and volume increases by 0.25
         else:
-            constants.EventManager.add_event(pygame.mixer.music.stop, [], time_passed)
-            constants.EventManager.add_event(pygame.mixer.music.unload, [], time_passed)
-            constants.EventManager.add_event(
+            constants.JobScheduler.schedule_job(
+                pygame.mixer.music.stop, [], time_passed
+            )
+            constants.JobScheduler.schedule_job(
+                pygame.mixer.music.unload, [], time_passed
+            )
+            constants.JobScheduler.schedule_job(
                 pygame.mixer.music.set_volume, [original_volume], time_passed
             )
 
@@ -250,14 +256,14 @@ class sound_manager:
         Output:
             None
         """
-        constants.EventManager.clear()
+        constants.JobScheduler.clear()
         original_volume = constants.default_music_volume
         pygame.mixer.music.set_volume(0)
         time_passed = 0
         for i in range(-5, 6):
             time_passed += time_interval
             if i > 0:
-                constants.EventManager.add_event(
+                constants.JobScheduler.schedule_job(
                     pygame.mixer.music.set_volume,
                     [original_volume * i * 0.1],
                     time_passed,

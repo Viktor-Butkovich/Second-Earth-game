@@ -1,41 +1,27 @@
 import pygame
 from typing import Dict, List, Tuple, Any
-from modules.managers.sound_manager import sound_manager
-from modules.managers.save_load_manager import (
+from modules.managers import (
+    sound_manager,
     save_load_manager,
-)
-from modules.managers.flavor_text_manager import (
     flavor_text_manager,
-)
-from modules.managers.input_manager import input_manager
-from modules.managers.actor_creation_manager import (
+    input_manager,
     actor_creation_manager,
-)
-from modules.managers.event_manager import event_manager
-from modules.managers.achievement_manager import (
-    achievement_manager,
-)
-from modules.managers.terrain_manager import (
     terrain_manager,
-)
-from modules.managers.character_manager import (
     character_manager,
-)
-from modules.managers.effect_manager import effect_manager
-from modules.managers.notification_manager import (
+    achievement_manager,
+    job_scheduler,
     notification_manager,
-)
-from modules.managers.value_tracker import (
+    effect_manager,
     value_tracker,
-    public_opinion_tracker,
-    money_tracker,
+    help_manager,
+    mouse_follower,
+    event_bus,
+    uuid_manager,
 )
-from modules.managers.help_manager import help_manager
-from modules.managers.mouse_follower import mouse_follower
 from modules.interface_components.labels import money_label
 from modules.constructs.fonts import font
 
-EffectManager: effect_manager = effect_manager()
+EffectManager: effect_manager.effect_manager = effect_manager.effect_manager()
 pygame.init()
 pygame.mixer.init()
 pygame.display.set_icon(pygame.image.load("graphics/misc/SE.png"))
@@ -190,44 +176,52 @@ else:
         (display_width, display_height), pygame.HWSURFACE | pygame.DOUBLEBUF
     )
 
-SoundManager: sound_manager = sound_manager()
-SaveLoadManager: save_load_manager = save_load_manager()
-FlavorTextManager: flavor_text_manager = flavor_text_manager()
-InputManager: input_manager = input_manager()
-ActorCreationManager: actor_creation_manager = (
+SoundManager: sound_manager.sound_manager = sound_manager.sound_manager()
+SaveLoadManager: save_load_manager.save_load_manager = (
+    save_load_manager.save_load_manager()
+)
+FlavorTextManager: flavor_text_manager.flavor_text_manager = (
+    flavor_text_manager.flavor_text_manager()
+)
+InputManager: input_manager.input_manager = input_manager.input_manager()
+ActorCreationManager: actor_creation_manager.actor_creation_manager = (
     None  # requires additional setup before initialization
 )
-TerrainManager: terrain_manager = (
+TerrainManager: terrain_manager.terrain_manager = (
     None  # requires additional setup before initialization
 )
-CharacterManager: character_manager = (
+CharacterManager: character_manager.character_manager = (
     None  # requires additional setup before initialization
 )
-AchievementManager: achievement_manager = (
+AchievementManager: achievement_manager.achievement_manager = (
     None  # requires additional setup before initialization
 )
-EventManager: event_manager = event_manager()
-NotificationManager: notification_manager = (
+JobScheduler: job_scheduler.job_scheduler = job_scheduler.job_scheduler()
+EventBus: event_bus.event_bus = event_bus.event_bus()
+UuidManager: uuid_manager.uuid_manager = uuid_manager.uuid_manager()
+NotificationManager: notification_manager.notification_manager = (
     None  # requires additional setup before initialization
 )
-HelpManager: help_manager = None  # requires additional setup before initialization
-MouseFollower: mouse_follower = None
+HelpManager: help_manager.help_manager = (
+    None  # requires additional setup before initialization
+)
+MouseFollower: mouse_follower.mouse_follower = None
 
 turn: int = 0
-TurnTracker: value_tracker = None
+TurnTracker: value_tracker.value_tracker = None
 public_opinion: int = 0
-PublicOpinionTracker: public_opinion_tracker = None
+PublicOpinionTracker: value_tracker.public_opinion_tracker = None
 money: float = 0
-MoneyTracker: money_tracker = None
+MoneyTracker: value_tracker.money_tracker = None
 MoneyLabel: money_label = None
 evil: int = 0
-EvilTracker: value_tracker = None
+EvilTracker: value_tracker.value_tracker = None
 fear: int = 0
-FearTracker: value_tracker = None
+FearTracker: value_tracker.value_tracker = None
 fps: int = 0
-FpsTracker: value_tracker = None
+FpsTracker: value_tracker.value_tracker = None
 mouse_position: Tuple[int, int] = None
-MousePositionTracker: value_tracker = None
+MousePositionTracker: value_tracker.value_tracker = None
 frames_this_second: int = 0
 last_fps_update: float = 0.0
 
@@ -254,6 +248,9 @@ default_music_volume: float = 0.3
 current_instructions_page_index: int = 0
 current_instructions_page_text: str = ""
 message: str = ""
+
+actor_icon_dimensions: int = 130
+inventory_icon_dimensions: int = 100
 
 grids_collection_x: int = default_display_width - 740
 grids_collection_y: int = default_display_height - 325
@@ -563,13 +560,17 @@ GLASSES_LEVEL: int = 14
 HAIR_LEVEL: int = 15
 FACIAL_HAIR_LEVEL: int = 18
 PORTRAIT_LEVEL: int = 20
-OVERLAY_ICON_LEVEL: int = 21
-FRONT_LEVEL: int = 30
-BACKGROUND_LEVEL: int = -5
+OVERLAY_ICON_LEVEL: int = 22
+FRONT_LEVEL: int = 24
+BACKGROUND_LEVEL: int = -10
 DEFAULT_PORTRAIT_LEVEL: int = 12
 BACKPACK_LEVEL: int = 11
 BUILDING_LEVEL: int = 5
 BUILDING_INDICATOR_LEVEL: int = 6
+TERRAIN_BACKDROP_LEVEL: int = -9
+TERRAIN_OVERLAY_LEVEL: int = -8
+TERRAIN_CLOUDS_LEVEL: int = 21  # -7
+MAP_MODE_LEVEL: int = -1
 
 ALTITUDE_BRIGHTNESS_MULTIPLIER: float = 0.5
 PIXELLATED_SIZE: int = 2
@@ -821,7 +822,6 @@ CLEAR_AUTOMATIC_ROUTE_BUTTON: str = "clear_automatic_route_button"
 HELP_BUTTON: str = "help_button"
 
 SAME_LOCATION_ICON: str = "same_location_icon"
-MINISTER_PORTRAIT_IMAGE: str = "minister_portrait_image"
 ITEM_ICON: str = "item_icon"
 DIE_ELEMENT: str = "die_element"
 PANEL_ELEMENT: str = "panel_element"
@@ -832,7 +832,6 @@ MONEY_LABEL: str = "money_label"
 ITEM_PRICES_LABEL: str = "item_prices_label"
 MULTI_LINE_LABEL: str = "multi_line_label"
 ACTOR_DISPLAY_LABEL: str = "actor_display_label"
-ACTOR_TOOLTIP_LABEL: str = "actor_tooltip_label"
 LIST_ITEM_LABEL: str = "list_item_label"
 BUILDING_WORK_CREWS_LABEL: str = "building_work_crews_label"
 CURRENT_BUILDING_WORK_CREW_LABEL: str = "current_building_work_crew_label"
@@ -912,12 +911,11 @@ LOCATION_INVENTORY_CAPACITY_LABEL: str = "location_inventory_capacity_label"
 MOB_INVENTORY_CAPACITY_LABEL: str = "mob_inventory_capacity_label"
 
 FREE_IMAGE: str = "free_image"
-ACTOR_DISPLAY_FREE_IMAGE: str = "actor_display_free_image"
-LABEL_IMAGE: str = "label_image"
+ACTOR_ICON: str = "actor_display_actor_icon"
+MINISTER_TABLE_ICON: str = "minister_table_icon"
+AVAILABLE_MINISTER_ICON: str = "available_minister_icon"
 BACKGROUND_IMAGE: str = "background_image"
 TOOLTIP_FREE_IMAGE: str = "tooltip_free_image"
-MINISTER_TYPE_IMAGE: str = "minister_type_image"
-DICE_ROLL_MINISTER_IMAGE: str = "dice_roll_minister_image"
 INDICATOR_IMAGE: str = "indicator_image"
 WARNING_IMAGE: str = "warning_image"
 LOADING_IMAGE_TEMPLATE_IMAGE: str = "loading_image_template_image"
@@ -969,9 +967,11 @@ DISORGANIZED_PERMISSION: str = "disorganized"
 DEHYDRATION_PERMISSION: str = "dehydration"
 STARVATION_PERMISSION: str = "starvation"
 VETERAN_PERMISSION: str = "veteran"
+SENTRY_MODE_PERMISSION: str = "sentry_mode"
 DUMMY_PERMISSION: str = "dummy"
 SPACESUITS_PERMISSION: str = "spacesuits"
 SURVIVABLE_PERMISSION: str = "survivable"
+DEADLY_EXTERNAL_ENVIRONMENT_PERMISSION: str = "deadly_external_environment"
 
 EXPEDITION_PERMISSION: str = "expedition"
 CONSTRUCTION_PERMISSION: str = "construction"
@@ -1052,6 +1052,9 @@ APPENDED_IMAGE_TERRAIN_FEATURE: str = "appended_image_terrain_feature"
 # Terrain feature that is included with the location's image, like a physically visible feature
 
 IMAGE_ID_LIST_DEFAULT: str = "image_id_list_default"
+IMAGE_ID_LIST_TERRAIN: str = "image_id_list_terrain"
+IMAGE_ID_LIST_ORBITAL_VIEW: str = "image_id_list_natural"
+IMAGE_ID_LIST_ALBEDO: str = "image_id_list_albedo"
 IMAGE_ID_LIST_INCLUDE_MOB: str = "image_id_list_include_mob"
 IMAGE_ID_LIST_INCLUDE_MINIMAP_OVERLAY: str = "image_id_list_include_minimap_overlay"
 IMAGE_ID_LIST_PORTRAIT: str = "image_id_list_portrait"
@@ -1059,6 +1062,7 @@ IMAGE_ID_LIST_LEFT_PORTRAIT: str = "image_id_list_left_portrait"
 IMAGE_ID_LIST_RIGHT_PORTRAIT: str = "image_id_list_right_portrait"
 IMAGE_ID_LIST_VEHICLE_UNCREWED: str = "image_id_list_vehicle_uncrewed"
 IMAGE_ID_LIST_VEHICLE_MOVING: str = "image_id_list_vehicle_moving"
+IMAGE_ID_LIST_FULL_MOB: str = "image_id_list_full_mob"
 
 HABITABILITY_PERFECT: int = 5
 HABITABILITY_TOLERABLE: int = 4
@@ -1099,3 +1103,34 @@ PERFECT_PARAMETER_BOUNDS: Dict[str, Tuple[float, float]] = {
     GRAVITY: (0.8, 1.2),
     RADIATION: (0, 0),
 }
+
+DISPLAYED_LOCATION_ENDPOINT: str = "displayed_location_endpoint"
+DISPLAYED_MOB_ENDPOINT: str = "displayed_mob_endpoint"
+DISPLAYED_MOB_INVENTORY_ENDPOINT: str = "displayed_mob_inventory_endpoint"
+DISPLAYED_LOCATION_INVENTORY_ENDPOINT: str = "displayed_location_inventory_endpoint"
+DISPLAYED_MINISTER_ENDPOINT: str = "displayed_minister_endpoint"
+DISPLAYED_PROSECUTION_ENDPOINT: str = "displayed_prosecution_endpoint"
+DISPLAYED_DEFENSE_ENDPOINT: str = "displayed_defense_endpoint"
+
+LOCATION_SET_PARAMETER_ROUTE: str = "location_set_parameter_route"
+LOCATION_ADD_BUILDING_ROUTE: str = "location_add_building_route"
+LOCATION_REMOVE_BUILDING_ROUTE: str = "location_remove_building_route"
+LOCATION_SUBSCRIBE_MOB_ROUTE: str = "location_subscribe_mob_route"
+LOCATION_UNSUBSCRIBE_MOB_ROUTE: str = "location_unsubscribe_mob_route"
+LOCATION_SET_NAME_ROUTE: str = "location_set_name_route"
+BUILDING_SET_DAMAGED_ROUTE: str = "building_set_damaged_route"
+ABSTRACT_WORLD_UPDATE_IMAGE_ROUTE: str = "abstract_world_update_image_route"
+UPDATE_MAP_MODE_ROUTE: str = "update_map_mode_route"
+LOCATION_UPDATE_CLOUDS_ROUTE: str = "location_update_clouds_route"
+UPDATE_TERRAIN_FEATURE_ROUTE: str = "update_terrain_feature_route"
+MOB_SET_PERMISSION_ROUTE: str = "mob_set_permission_route"
+MOB_SET_PERMISSION_UPDATE_IMAGE_ROUTE: str = "mob_set_permission_update_image_route"
+WORLD_SET_PARAMETER_ROUTE: str = "world_set_parameter_route"
+WORLD_UPDATE_TARGET_AVERAGE_TEMPERATURE_ROUTE: str = (
+    "world_update_target_average_temperature_route"
+)
+
+ABSOLUTE_ZERO_BANNER: str = "absolute_zero_banner"
+TERRAIN_DETAILS_BANNER: str = "terrain_details_banner"
+DEADLY_CONDITIONS_BANNER: str = "deadly_conditions_banner"
+TAB_NAME_BANNER: str = "tab_name_banner"

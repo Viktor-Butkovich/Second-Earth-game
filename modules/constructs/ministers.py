@@ -37,11 +37,12 @@ class minister:
         Output:
             None
         """
+        self.uuid: str = constants.UuidManager.assign_uuid()
         status.minister_list.append(self)
         if from_save:
             self.first_name: str = input_dict["first_name"]
             self.last_name: str = input_dict["last_name"]
-            self.name: str = self.first_name + " " + self.last_name
+            self.name: str = f"{self.first_name} {self.last_name}"
             self.ethnicity: str = input_dict["ethnicity"]
             self.masculine: bool = input_dict["masculine"]
             self.prefix: str = input_dict["prefix"]
@@ -69,8 +70,9 @@ class minister:
             self.interests: Tuple[str, str] = input_dict["interests"]
             self.corruption: int = input_dict["corruption"]
             self.corruption_threshold: int = 10 - self.corruption
-            self.image_id_list = input_dict["image_id_list"]
-            self.update_image_bundle()
+            self.image_dict: Dict[str, List[str]] = {
+                constants.IMAGE_ID_LIST_DEFAULT: input_dict["image_id_list"],
+            }
             self.stolen_money: float = input_dict["stolen_money"]
             self.undetected_corruption_events: List[Tuple[float, str]] = input_dict[
                 "undetected_corruption_events"
@@ -129,10 +131,11 @@ class minister:
             self.interests_setup()
             self.corruption_setup()
             status.available_minister_list.append(self)
-            self.image_id_list = constants.CharacterManager.generate_appearance(
-                self, full_body=False
-            )
-            self.update_image_bundle()
+            self.image_dict = {
+                constants.IMAGE_ID_LIST_DEFAULT: constants.CharacterManager.generate_appearance(
+                    self, full_body=False
+                )
+            }
             self.stolen_money: int = 0
             self.undetected_corruption_events: List[Tuple[float, str]] = []
             self.corruption_evidence: int = 0
@@ -177,6 +180,14 @@ class minister:
             return f"{self.prefix} {self.last_name}"
         else:
             return f"{self.first_name[0]}. {self.last_name}"
+
+    @property
+    def batch_tooltip_list(self):
+        """
+        Gets a 2D list of strings to use as this object's tooltip
+            Each string is displayed on a separate line, while each sublist is displayed in a separate box
+        """
+        return [self.tooltip_text]
 
     @property
     def tooltip_text(self) -> List[List[str]]:
@@ -230,7 +241,38 @@ class minister:
             )
         return tooltip_text
 
-    def generate_icon_input_dicts(self, alignment="left"):
+    def check_retirement(self) -> bool:
+        """
+        Description:
+            Returns whether this minister is retiring this turn
+        Input:
+            None
+        Output:
+            boolean: Returns whether this minister is retiring this turn
+        """
+        if constants.EffectManager.effect_active("farm_upstate"):
+            return True
+        elif (
+            self.current_position == None
+            and random.randrange(1, 7) == 1
+            and random.randrange(1, 7) <= 2
+        ):  # 1/18 chance of switching out available ministers
+            return True
+        elif self.current_position:
+            if (
+                random.randrange(1, 7) == 1
+                and random.randrange(1, 31)
+                <= constants.turn  # Chance increases with turn number
+                and random.randrange(1, 7) <= 2
+                and random.randrange(1, 7) <= 2
+                and (
+                    random.randrange(1, 7) <= 3
+                    or constants.evil > random.randrange(0, 100)
+                )
+            ):
+                return True
+
+    def generate_icon_input_dict(self, alignment="left"):
         """
         Description:
             Generates the input dicts for this minister's face and position background to be attached to a notification
@@ -239,35 +281,25 @@ class minister:
         Output:
             dictionary list: Returns list of input dicts for this minister's face and position background
         """
-        minister_position_icon_dict = {
-            "coordinates": (0, 0),
+        minister_icon = {
+            "coordinates": scaling.scale_coordinates(0, 0),
             "width": scaling.scale_width(100),
             "height": scaling.scale_height(100),
+            "actor_type": constants.MINISTER_ACTOR_TYPE,
             "modes": [
                 constants.STRATEGIC_MODE,
                 constants.MINISTERS_MODE,
                 constants.EARTH_MODE,
                 constants.TRIAL_MODE,
             ],
-            "attached_minister": self,
-            "minister_image_type": "position",
-            "minister_position_type": self.current_position,
-            "init_type": constants.DICE_ROLL_MINISTER_IMAGE,
-            "minister_message_image": True,
+            "init_type": constants.ACTOR_ICON,
+            "calibrate_to": self,
             "member_config": {
-                "order_overlap": True,
                 "second_dimension_alignment": alignment,
                 "centered": True,
             },
         }
-
-        minister_portrait_icon_dict = minister_position_icon_dict.copy()
-        minister_portrait_icon_dict["member_config"] = {
-            "second_dimension_alignment": "leftmost",
-            "centered": True,
-        }
-        minister_portrait_icon_dict["minister_image_type"] = "portrait"
-        return [minister_position_icon_dict, minister_portrait_icon_dict]
+        return [minister_icon]
 
     def display_message(
         self, text, override_input_dict=None, transfer=False, on_remove=None
@@ -289,7 +321,7 @@ class minister:
         input_dict = {
             "message": text,
             "notification_type": constants.ACTION_NOTIFICATION,
-            "attached_interface_elements": self.generate_icon_input_dicts(
+            "attached_interface_elements": self.generate_icon_input_dict(
                 alignment="left"
             ),
             "transfer_interface_elements": transfer,
@@ -475,26 +507,11 @@ class minister:
         save_dict["background"] = self.background
         save_dict["prefix"] = self.prefix
         save_dict["personal_savings"] = self.personal_savings
-        save_dict["image_id_list"] = self.image_id_list
+        save_dict["image_id_list"] = self.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
         save_dict["voice_set"] = self.voice_set
         save_dict["ethnicity"] = self.ethnicity
         save_dict["masculine"] = self.masculine
         return save_dict
-
-    def get_image_id_list(self, override_values={}):
-        """
-        Description:
-            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
-                orientation
-        Input:
-            None
-        Output:
-            list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
-        """
-        return self.image_id_list
-
-    def update_image_bundle(self):
-        self.image_id = self.get_image_id_list()
 
     def roll(
         self,
@@ -666,7 +683,9 @@ class minister:
         Output:
             None
         """
-        old_position = self.current_position
+        if self.current_position == new_position:
+            return
+
         if self.current_position:
             self.current_position.on_remove()
         if new_position:
@@ -692,11 +711,6 @@ class minister:
                 constants.available_minister_left_index = (
                     len(status.available_minister_list) - 3
                 )  # Move available minister display to newly fired minister
-        if new_position:
-            for current_minister_type_image in status.minister_image_list:
-                if not current_minister_type_image.get_actor_type():
-                    if current_minister_type_image.minister_type == new_position:
-                        current_minister_type_image.calibrate(self)
 
         if update_display:
             minister_utility.update_available_minister_display()
@@ -1225,7 +1239,7 @@ class minister:
                         "I hold no ill will towards your cause, and I hope you continue to survive and thrive here. ",
                         "Maybe I will return one day, once this planet becomes a green paradise. ",
                         "I truly think humans were never meant to set foot here, and that we were meant to stay on Earth. It will always be our home!",
-                        "This is no home for us - it's a death trap. We've been lying to ourselves this whole time! ",
+                        "This is no home for us. it's a death trap! We've been lying to ourselves this whole time! ",
                         "We've been looking to the stars for as long as we can remember, but there is nothing for us out here. ",
                     ]
                     conclusion_options = [

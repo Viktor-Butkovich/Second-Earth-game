@@ -1,18 +1,15 @@
 # Contains functionality for actors
 
-import pygame
 import random
 import math
 from modules.util import (
-    text_utility,
     actor_utility,
-    scaling,
     market_utility,
     minister_utility,
 )
 from modules.constructs import item_types
 from modules.constants import constants, status, flags
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 
 class actor:
@@ -34,6 +31,7 @@ class actor:
         Output:
             None
         """
+        self.uuid: str = constants.UuidManager.assign_uuid()
         self.from_save = from_save
         self.inventory_capacity = 0
         self.inventory: Dict[str, int] = input_dict.get("inventory", {})
@@ -161,6 +159,17 @@ class actor:
         """
         return self.inventory.get(item.key, 0)
 
+    def get_functional_inventory_capacity(self) -> int:
+        """
+        Description:
+            Returns the functional inventory capacity of this actor, which is the maximum of the inventory capacity and the number of items currently held by this actor
+        Input:
+            None
+        Output:
+            int: Functional inventory capacity of this actor
+        """
+        return max(self.inventory_capacity, self.get_inventory_used())
+
     def check_inventory(self, index: int) -> item_types.item_type:
         """
         Description:
@@ -178,6 +187,22 @@ class actor:
             current_index += math.ceil(self.get_inventory(item_type))
             if current_index > index:
                 return item_type
+        return None
+
+    def get_last_inventory_index(self, item: item_types.item_type) -> int:
+        """
+        Description:
+            Returns the last index of this actor's inventory that holds the inputted item type, if any
+        Input:
+            item_type item: Type of item to check for
+        Output:
+            int: Last index of this actor's inventory that holds the inputted item type, or None if no such item type is held
+        """
+        current_index = 0
+        for item_type in self.get_held_items():
+            current_index += math.ceil(self.get_inventory(item_type))
+            if item_type == item:
+                return current_index - 1
         return None
 
     def change_inventory(self, item: item_types.item_type, change: int) -> None:
@@ -209,16 +234,52 @@ class actor:
             )  # If new value is an integer, set inventory to integer
         if round(new_value, 2) <= 0:
             del self.inventory[item.key]
+        self.select_last_item_icon(item)
+
+    def select_last_item_icon(self, item: item_types.item_type) -> None:
+        """
+        Description:
+            Selects the last item icon in the inventory grid that holds the inputted item type
+        Input:
+            item_type item: Type of item to select the last item icon of
+        Output:
+            None
+        """
         if self.actor_type == constants.MOB_ACTOR_TYPE:
-            if status.displayed_mob == self:
-                actor_utility.calibrate_actor_info_display(
-                    status.mob_info_display, self
-                )
+            displayed_actor = status.displayed_mob
+            info_display = status.mob_info_display
+            inventory_info_display = status.mob_inventory_info_display
+            tabbed_collection = status.mob_tabbed_collection
+            inventory_collection = status.mob_inventory_collection
+            inventory_grid = status.mob_inventory_grid
         elif self.actor_type == constants.LOCATION_ACTOR_TYPE:
-            if status.displayed_location == self:
-                actor_utility.calibrate_actor_info_display(
-                    status.location_info_display, self
-                )
+            displayed_actor = status.displayed_location
+            info_display = status.location_info_display
+            inventory_info_display = status.location_inventory_info_display
+            tabbed_collection = status.location_tabbed_collection
+            inventory_collection = status.location_inventory_collection
+            inventory_grid = status.location_inventory_grid
+        if displayed_actor != self:
+            return
+        actor_utility.calibrate_actor_info_display(info_display, self)
+        actor_utility.select_interface_tab(
+            tabbed_collection,
+            inventory_collection,
+        )
+        if self.get_inventory(item) > 0:
+            inventory_grid.inventory_page = self.get_last_inventory_index(item) // 27
+            inventory_grid.scroll_update()
+            actor_utility.calibrate_actor_info_display(
+                inventory_info_display,
+                inventory_grid.item_icons[
+                    inventory_grid.get_display_order(
+                        self.get_last_inventory_index(item) % 27
+                    )
+                    % 27
+                ],
+            )  # Select the item icon holding the last occurrence of the item
+        else:
+            actor_utility.calibrate_actor_info_display(inventory_info_display, None)
 
     def get_held_items(self, ignore_consumer_goods=False) -> List[item_types.item_type]:
         """
@@ -398,7 +459,9 @@ class actor:
         """
         Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
-        return
+        constants.EventBus.clear_endpoint(
+            self.uuid
+        )  # Clear all subscriptions to this actor's uuid
 
     def get_image_id_list(self, override_values={}):
         """

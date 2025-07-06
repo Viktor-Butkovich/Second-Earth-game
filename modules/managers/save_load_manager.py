@@ -1,4 +1,4 @@
-# Contains functionality for creating new games, saving, and loading
+# Contains .pickle game state saving/loading management singleton
 
 import random
 import pickle
@@ -68,9 +68,6 @@ class save_load_manager:
         world_utility.new_worlds()
 
         game_transitions.create_grids()
-
-        status.current_world.simulate_temperature_equilibrium(5)
-        # Since world's appearance can change albedo, we need to simulate temperature equilibrium after creating UI
 
         for current_item in status.item_types.values():
             if current_item.key == constants.CONSUMER_GOODS_ITEM:
@@ -223,7 +220,7 @@ class save_load_manager:
             setattr(flags, current_element, saved_flags[current_element])
         constants.MoneyTracker.set(constants.money)
         constants.MoneyTracker.transaction_history = status.transaction_history
-        constants.MoneyTracker.set(constants.turn)
+        constants.TurnTracker.set(constants.turn)
         constants.PublicOpinionTracker.set(constants.public_opinion)
         constants.EvilTracker.set(constants.evil)
         constants.FearTracker.set(constants.fear)

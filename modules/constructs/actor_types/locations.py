@@ -91,9 +91,7 @@ class location(actors.actor):
                         "location": self,
                     },
                 )
-            for current_building_dict in input_dict.get(
-                "contained_buildings", {}
-            ).values():
+            for current_building_dict in input_dict.get("contained_buildings", []):
                 constants.ActorCreationManager.create(
                     from_save=True,
                     input_dict={
@@ -109,6 +107,7 @@ class location(actors.actor):
                         "location": self,
                     },
                 )
+        self.configure_event_subscriptions()
         self.update_image_bundle()
 
     @property
@@ -121,7 +120,7 @@ class location(actors.actor):
     @property
     def contained_mobs(self) -> List[Any]:
         """
-        All mobs contained within this actor, including itself
+        All mobs contained within this actor
             Can use instead of manually finding all mobs somewhere, even ones that are not directly subscribed to the location
         """
         contained_mobs = []
@@ -161,6 +160,78 @@ class location(actors.actor):
         return (
             not self.infinite_inventory_capacity
         ) and self.get_inventory_used() > self.inventory_capacity
+
+    def configure_event_subscriptions(self) -> None:
+        """
+        Subscribes events related to this location, triggering updates to respond to dependency changes
+        """
+        constants.EventBus.subscribe(
+            self.update_image_bundle, self.uuid, constants.LOCATION_ADD_BUILDING_ROUTE
+        )  # Update image bundle when building is added
+        constants.EventBus.subscribe(
+            self.update_image_bundle,
+            self.uuid,
+            constants.LOCATION_REMOVE_BUILDING_ROUTE,
+        )  # Update image bundle when building is removed from
+        constants.EventBus.subscribe(
+            self.update_image_bundle, self.uuid, constants.LOCATION_SET_PARAMETER_ROUTE
+        )  # Update image bundle when terrain parameters change
+        constants.EventBus.subscribe(
+            self.update_image_bundle, self.uuid, constants.LOCATION_SUBSCRIBE_MOB_ROUTE
+        )  # Update image bundle when subscribing a mob
+        constants.EventBus.subscribe(
+            self.update_image_bundle,
+            self.uuid,
+            constants.LOCATION_UNSUBSCRIBE_MOB_ROUTE,
+        )  # Update image bundle when unsubscribing a mob
+        constants.EventBus.subscribe(
+            self.update_image_bundle, self.uuid, constants.LOCATION_SET_NAME_ROUTE
+        )  # Update image bundle when setting name
+        constants.EventBus.subscribe(
+            self.update_image_bundle, self.uuid, constants.LOCATION_UPDATE_CLOUDS_ROUTE
+        )  # Update image bundle when clouds change
+        constants.EventBus.subscribe(
+            self.update_image_bundle,
+            self.uuid,
+            constants.UPDATE_TERRAIN_FEATURE_ROUTE,
+        )  # Update image bundle when terrain features change
+        if self.is_abstract_location:
+            constants.EventBus.subscribe(
+                self.update_image_bundle,
+                self.world_handler.uuid,
+                constants.ABSTRACT_WORLD_UPDATE_IMAGE_ROUTE,
+            )  # If abstract location, update image bundle when abstract world does
+        else:
+            constants.EventBus.subscribe(
+                self.update_image_bundle, constants.UPDATE_MAP_MODE_ROUTE
+            )  # If not abstract location, update image bundle when map mode changes
+            constants.EventBus.subscribe(
+                self.update_expected_temperature_offset,
+                self.uuid,
+                constants.LOCATION_SET_PARAMETER_ROUTE,
+                constants.TEMPERATURE,
+            )  # Update offset from expected temperature when local temperature changes
+            constants.EventBus.subscribe(
+                self.update_expected_temperature_offset,
+                self.world_handler.uuid,
+                constants.WORLD_UPDATE_TARGET_AVERAGE_TEMPERATURE_ROUTE,
+            )  # Update offset from expected temperature when world's target average temperature changes
+        constants.EventBus.subscribe(
+            self.update_contained_mob_habitability,
+            self.uuid,
+            constants.LOCATION_SET_PARAMETER_ROUTE,
+        )  # Update contained mob habitability when terrain parameters change
+
+    def update_expected_temperature_offset(self) -> None:
+        """
+        Updates this location's deviation from the expected temperature for the region and climate
+        When location temperatures change, those that most deviate from expected are selected first
+        Upon world creation, local temperature variations are preserved as "local weather", ensuring variety while
+            still detecting deviation from expected as conditions change
+        """
+        self.expected_temperature_offset = (
+            self.get_parameter(constants.TEMPERATURE) - self.get_expected_temperature()
+        )
 
     def local_attrition(self, attrition_type="health"):
         """
@@ -213,6 +284,7 @@ class location(actors.actor):
         """
         Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
+        super().remove()
         for cell in self.subscribed_cells.copy():
             self.unsubscribe_cell(cell)
         for mob in self.subscribed_mobs.copy():
@@ -259,7 +331,15 @@ class location(actors.actor):
             None
         """
         self.contained_buildings[building.building_type.key] = building
-        self.update_image_bundle()
+
+        constants.EventBus.subscribe(
+            self.update_image_bundle,
+            building.uuid,
+            constants.BUILDING_SET_DAMAGED_ROUTE,
+        )
+        # Update image bundle when building's damaged status changes
+
+        self.publish_events(constants.LOCATION_ADD_BUILDING_ROUTE)
 
     def remove_building(self, building: Any) -> None:
         """
@@ -272,7 +352,12 @@ class location(actors.actor):
         """
         if self.get_building(building.building_type.key) == building:
             del self.contained_buildings[building.building_type.key]
-            self.update_image_bundle()
+            self.publish_events(constants.LOCATION_REMOVE_BUILDING_ROUTE)
+            constants.EventBus.unsubscribe(
+                self.update_image_bundle,
+                building.uuid,
+                constants.BUILDING_SET_DAMAGED_ROUTE,
+            )
 
     def get_building(self, building_type: str):
         """
@@ -512,14 +597,13 @@ class location(actors.actor):
             float: Expected temperature of this terrain
         """
         if self.true_world_handler:
-            average_temperature = self.true_world_handler.average_temperature
             altitude_effect = (
                 -1 * self.get_parameter(constants.ALTITUDE)
             ) + self.true_world_handler.average_altitude
             altitude_effect_weight = 0.5
             # Colder to the extent that location is higher than average altitude, and vice versa
             return (
-                average_temperature
+                self.true_world_handler.average_temperature
                 - 3.5
                 + (5 * self.pole_distance_multiplier)
                 + (altitude_effect * altitude_effect_weight)
@@ -550,6 +634,7 @@ class location(actors.actor):
         elif feature_type.tracking_type == constants.LIST_FEATURE_TRACKING:
             feature_key += "_list"
             getattr(status, feature_key).append(self)
+        self.publish_events(constants.UPDATE_TERRAIN_FEATURE_ROUTE)
 
     def knowledge_available(self, information_type: str) -> bool:
         """
@@ -592,6 +677,32 @@ class location(actors.actor):
             update_display=update_display,
         )
 
+    def publish_events(self, *routes: str) -> None:
+        """
+        Description:
+            Publishes to all applicable endpoints with the inputted routes
+            If setting location's temperature: publish_events(LOCATION_SET_PARAMETER_ROUTE, TEMPERATURE)
+            Suppose this is the displayed location - publishes to the endpoints:
+                - uuid - any subscriptions that watch all changes to this location
+                - true_world_handler.uuid - any subscriptions that watch all changes to the world
+                - DISPLAYED_LOCATION_ENDPOINT - any subscriptions watching changes to the displayed location
+            With the following topics:
+                - endpoints/LOCATION_SET_PARAMETER_ROUTE - any subscriptions watching changes to parameters of the above
+                - endpoints/LOCATION_SET_PARAMETER_ROUTE/TEMPERATURE - any subscriptions watching changes to the temperature parameter of the above
+            uuid/LOCATION_SET_PARAMETER_ROUTE might invoke this location's update_image_bundle to update the image
+            true_world_handler.uuid/LOCATION_SET_PARAMETER_ROUTE/TEMPERATURE might update the world's average temperature
+            DISPLAYED_LOCATION_ENDPOINT/LOCATION_SET_PARAMETER_ROUTE/TEMPERATURE might update the content of the location temperature label
+        Input:
+            string list routes: Hierarchical of routes to publish to
+        Output:
+            None
+        """
+        endpoints = [f"{self.uuid}", f"{self.true_world_handler.uuid}"]
+        if self == status.displayed_location:
+            endpoints.append(constants.DISPLAYED_LOCATION_ENDPOINT)
+        for endpoint in endpoints:
+            constants.EventBus.publish(endpoint, *routes)
+
     def set_parameter(
         self, parameter_name: str, new_value: int, update_display: bool = True
     ) -> None:
@@ -615,9 +726,9 @@ class location(actors.actor):
             min(new_value, self.maxima.get(parameter_name, 5)),
         )
         new_value = self.terrain_parameters[parameter_name]
-        if parameter_name == constants.WATER and not self.is_abstract_location:
-            self.true_world_handler.update_average_water()
-        elif parameter_name == constants.ALTITUDE and not self.is_abstract_location:
+        # if parameter_name == constants.WATER and not self.is_abstract_location:
+        # self.true_world_handler.update_average_water()
+        if parameter_name == constants.ALTITUDE and not self.is_abstract_location:
             self.true_world_handler.update_average_altitude()
         elif parameter_name == constants.TEMPERATURE and not self.is_abstract_location:
             # If changing temperature, re-distribute water around the planet
@@ -632,11 +743,7 @@ class location(actors.actor):
                     update_display=False,
                 )
                 for i in range(water_displaced):
-                    self.true_world_handler.place_water(
-                        radiation_effect=False,
-                        repeat_on_fail=True,
-                        update_display=update_display,
-                    )
+                    self.true_world_handler.place_water(update_display=update_display)
 
         new_terrain = constants.TerrainManager.classify(self.terrain_parameters)
 
@@ -658,7 +765,12 @@ class location(actors.actor):
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, self
             )
+        self.publish_events(constants.LOCATION_SET_PARAMETER_ROUTE, parameter_name)
 
+    def update_contained_mob_habitability(self) -> None:
+        """
+        Updates the habitability of all contained mobs in this location
+        """
         for current_mob in self.contained_mobs:
             current_mob.update_habitability()
 
@@ -725,6 +837,7 @@ class location(actors.actor):
                 "green_screen": [self.world_handler.steam_color],
                 "detail_level": constants.CLOUDS_DETAIL_LEVEL,
                 "override_green_screen_colors": [(140, 183, 216)],
+                "level": constants.TERRAIN_CLOUDS_LEVEL,
             }
             for current_steam in steam_list
         ]
@@ -764,6 +877,10 @@ class location(actors.actor):
                 for current_mob in reversed(self.subscribed_mobs)
             ],
             "settlement": self.settlement.to_save_dict() if self.settlement else None,
+            "contained_buildings": [
+                building.to_save_dict()
+                for building in self.contained_buildings.values()
+            ],
         }
 
     def get_parameter(self, parameter_name: str) -> int:
@@ -809,8 +926,6 @@ class location(actors.actor):
 
         if new_terrain in constants.TerrainManager.terrain_list:
             self.default_image_id = f"terrains/{new_terrain}_{self.terrain_variant}.png"
-        if update_image_bundle:
-            self.update_image_bundle()
 
     def subscribe_cell(self, cell) -> None:
         """
@@ -825,7 +940,12 @@ class location(actors.actor):
             cell.location.unsubscribe_cell(cell)
         self.subscribed_cells.append(cell)
         cell.subscribed_location = self
-        self.refresh_attached_images()
+        if cell.grid == status.minimap_grid:
+            cell.set_image(
+                self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MINIMAP_OVERLAY]
+            )
+        else:
+            cell.set_image(self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MOB])
         # Update cell's rendered image
 
     def subscribe_mob(self, mob) -> None:
@@ -841,10 +961,15 @@ class location(actors.actor):
             mob.subscribed_location
         ):  # Note that this is distinct from get_location(), which recursively checks through containers
             mob.subscribed_location.unsubscribe_mob(mob)
-        self.subscribed_mobs.append(mob)
+        self.subscribed_mobs.insert(0, mob)
         mob.subscribed_location = self
-        self.update_image_bundle()
-        if mob == status.displayed_mob:
+        self.publish_events(
+            constants.LOCATION_SUBSCRIBE_MOB_ROUTE
+        )  # Publish events of this location subscribing a mob
+        mob.publish_events(
+            constants.LOCATION_SUBSCRIBE_MOB_ROUTE
+        )  # Publish events of this mob subscribing a location
+        if mob == status.displayed_mob and self != status.displayed_location:
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, self
             )
@@ -872,7 +997,7 @@ class location(actors.actor):
         """
         self.subscribed_mobs.remove(mob)
         mob.subscribed_location = None
-        self.update_image_bundle()
+        self.publish_events(constants.LOCATION_UNSUBSCRIBE_MOB_ROUTE)
 
     def flow(self) -> None:
         """
@@ -1010,13 +1135,9 @@ class location(actors.actor):
         if self.is_earth_location:
             return 1.0 - self.true_world_handler.get_tuning("earth_albedo_multiplier")
         elif not self.is_abstract_location:
-            image_id = self.get_image_id_list(
-                terrain_only=True,
-                force_pixellated=True,
-                allow_mapmodes=False,
-                allow_clouds=False,
+            status.albedo_free_image.set_image(
+                self.image_dict[constants.IMAGE_ID_LIST_ALBEDO]
             )
-            status.albedo_free_image.set_image(image_id)
             return (
                 sum(
                     [
@@ -1033,6 +1154,75 @@ class location(actors.actor):
             )
         else:  # Orbital world and other abstract worlds don't need brightness calculation
             return 1.0
+
+    def update_clouds(
+        self, num_cloud_variants: int, num_solid_cloud_variants: int
+    ) -> None:
+        """
+        Updates this location's cloud images with the inputted variant options
+            Cloud color, transparency, and frequency depend on global conditions
+        """
+        self.current_clouds = []
+
+        cloud_type = None
+        if random.random() < self.world_handler.cloud_frequency:
+            cloud_type = "water vapor"
+        elif random.random() < self.world_handler.toxic_cloud_frequency:
+            cloud_type = "toxic"
+        if cloud_type:
+            self.current_clouds.append(
+                {
+                    "image_id": "misc/shader.png",
+                    "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                }
+            )
+        if self.world_handler.atmosphere_haze_alpha > 0:
+            self.current_clouds.append(
+                {
+                    "image_id": f"terrains/clouds_solid_{random.randrange(0, num_solid_cloud_variants)}.png",
+                    "alpha": self.world_handler.atmosphere_haze_alpha,
+                    "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                    "green_screen": {
+                        "clouds": {
+                            "base_colors": [(174, 37, 19)],
+                            "tolerance": 60,
+                            "replacement_color": self.world_handler.sky_color,
+                        },
+                    },
+                }
+            )
+        if cloud_type == "water vapor":
+            self.current_clouds.append(
+                {
+                    "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
+                    "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                    "green_screen": {
+                        "clouds": {
+                            "base_colors": [(174, 37, 19)],
+                            "tolerance": 60,
+                            "replacement_color": self.world_handler.steam_color,
+                        },
+                    },
+                }
+            )
+        elif cloud_type == "toxic":
+            self.current_clouds.append(
+                {
+                    "image_id": f"terrains/clouds_base_{random.randrange(0, num_cloud_variants)}.png",
+                    "detail_level": constants.CLOUDS_DETAIL_LEVEL,
+                    "green_screen": {
+                        "clouds": {
+                            "base_colors": [(174, 37, 19)],
+                            "tolerance": 60,
+                            "replacement_color": [
+                                round(color * 0.8)
+                                for color in self.world_handler.sky_color
+                            ],
+                        },
+                    },
+                }
+            )
+        self.publish_events(constants.LOCATION_UPDATE_CLOUDS_ROUTE)
 
     def get_image_id_list(
         self,
@@ -1063,7 +1253,7 @@ class location(actors.actor):
                 image_id_list.append(
                     {
                         "image_id": self.default_image_id,
-                        "level": -9,
+                        "level": constants.TERRAIN_BACKDROP_LEVEL,
                         "color_filter": self.get_color_filter(),
                         "green_screen": self.get_green_screen(),
                         "pixellated": force_pixellated
@@ -1079,7 +1269,9 @@ class location(actors.actor):
                             }
                         terrain_overlay_image.update(
                             {
-                                "level": -8,
+                                "level": terrain_overlay_image.get(
+                                    "level", constants.TERRAIN_OVERLAY_LEVEL
+                                ),
                                 "color_filter": self.get_color_filter(),
                                 "pixellated": force_pixellated
                                 or not self.knowledge_available(
@@ -1106,7 +1298,7 @@ class location(actors.actor):
                             image_id_list[-1][
                                 "detail_level"
                             ] = constants.TERRAIN_DETAIL_LEVEL
-                        image_id_list[-1]["level"] = -7
+                        image_id_list[-1]["level"] = constants.TERRAIN_CLOUDS_LEVEL
                         if not image_id_list[-1].get("green_screen", None):
                             image_id_list[-1]["green_screen"] = self.get_green_screen()
                 if not terrain_only:
@@ -1127,11 +1319,11 @@ class location(actors.actor):
                     #        image_id_list.append(resource_icon)
                     #    else:
                     #        image_id_list += resource_icon
-                image_id_list += [
-                    image_id
-                    for current_building in self.get_buildings()
-                    for image_id in current_building.get_image_id_list()
-                ]  # Add each of each building's images to the image ID list
+                    image_id_list += [
+                        image_id
+                        for current_building in self.get_buildings()
+                        for image_id in current_building.get_image_id_list()
+                    ]  # Add each of each building's images to the image ID list
 
             if constants.current_map_mode != "terrain" and allow_mapmodes:
                 map_mode_image = "misc/map_modes/none.png"
@@ -1158,7 +1350,7 @@ class location(actors.actor):
                     {
                         "image_id": map_mode_image,
                         "detail_level": 1.0,
-                        "level": -1,
+                        "level": constants.MAP_MODE_LEVEL,
                     }
                 )
                 if constants.MAP_MODE_ALPHA:
@@ -1170,7 +1362,7 @@ class location(actors.actor):
         Gets the image IDs added to this location if showing mobs
         """
         if self.subscribed_mobs:
-            return self.subscribed_mobs[0].get_image_id_list()
+            return self.subscribed_mobs[0].image_dict[constants.IMAGE_ID_LIST_FULL_MOB]
         else:
             return []
 
@@ -1199,14 +1391,34 @@ class location(actors.actor):
             None
         """
         previous_image_dict = self.image_dict.copy()
+        previous_mob_image_id_list = self.image_dict[
+            constants.IMAGE_ID_LIST_INCLUDE_MOB
+        ]
 
         if not update_mob_only:
             if override_image:
                 self.image_dict[constants.IMAGE_ID_LIST_DEFAULT] = override_image
+                self.image_dict[constants.IMAGE_ID_LIST_TERRAIN] = override_image
+                self.image_dict[constants.IMAGE_ID_LIST_ORBITAL_VIEW] = override_image
+                self.image_dict[constants.IMAGE_ID_LIST_ALBEDO] = override_image
             else:
                 self.image_dict[constants.IMAGE_ID_LIST_DEFAULT] = (
                     self.get_image_id_list()
-                )
+                )  # Includes buildings, terrain, clouds, etc. - whatever shows in strategic map (includes mapmodes and toggleable clouds)
+                self.image_dict[constants.IMAGE_ID_LIST_TERRAIN] = (
+                    self.get_image_id_list(terrain_only=True)
+                )  # Includes terrain, clouds, etc. - whatever shows in tactical map (includes mapmodes and toggleable clouds)
+                self.image_dict[constants.IMAGE_ID_LIST_ORBITAL_VIEW] = (
+                    self.get_image_id_list(terrain_only=True, force_clouds=True)
+                )  # Includes terrain, clouds, etc. - view from space (no mapmodes, clouds always show)
+                self.image_dict[constants.IMAGE_ID_LIST_ALBEDO] = (
+                    self.get_image_id_list(
+                        terrain_only=True,
+                        force_pixellated=True,
+                        allow_mapmodes=False,
+                        allow_clouds=False,
+                    )
+                )  # Pixellated pure terrain appearance with no clouds for terrain albedo calculation
 
         self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MOB] = (
             self.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
@@ -1219,9 +1431,17 @@ class location(actors.actor):
         )
 
         if previous_image_dict != self.image_dict:
-            self.refresh_attached_images()
+            if (
+                previous_mob_image_id_list
+                == self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MOB]
+            ):
+                self.refresh_attached_images(
+                    include_mobs=False
+                )  # No need to update mob interface if only terrain images changed
+            else:
+                self.refresh_attached_images(include_mobs=True)
 
-    def refresh_attached_images(self):
+    def refresh_attached_images(self, include_mobs: bool = True):
         """
         Updates this location's images wherever they are shown (locations and info displays)
             Should be invoked after any changes to the image bundle
@@ -1230,7 +1450,11 @@ class location(actors.actor):
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, self
             )
-        if status.displayed_mob and status.displayed_mob.location == self:
+        if (
+            include_mobs
+            and status.displayed_mob
+            and status.displayed_mob.location == self
+        ):
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, status.displayed_mob
             )
@@ -1354,9 +1578,17 @@ class location(actors.actor):
         Gets a 2D list of strings to use as this object's tooltip
             Each string is displayed on a separate line, while each sublist is displayed in a separate box
         """
-        return [self.tooltip_text] + [
-            current_mob.tooltip_text for current_mob in self.subscribed_mobs
-        ]
+        return [self.tooltip_text] + list(
+            reversed([current_mob.tooltip_text for current_mob in self.subscribed_mobs])
+        )
+
+    @property
+    def batch_tooltip_list_omit_mobs(self):
+        """
+        Gets a 2D list of strings to use as this object's tooltip, omitting mobs
+            Each string is displayed on a separate line, while each sublist is displayed in a separate box
+        """
+        return [self.tooltip_text]
 
     @property
     def tooltip_text(self) -> List[List[str]]:
@@ -1455,7 +1687,7 @@ class location(actors.actor):
             flags.player_turn and main_loop_utility.action_possible()
         ):
             if constants.SoundManager.previous_state != "earth":
-                constants.EventManager.clear()
+                constants.JobScheduler.clear()
                 constants.SoundManager.play_random_music("earth")
 
     def get_all_local_inventory(self) -> Dict[str, float]:
@@ -1525,7 +1757,7 @@ class location(actors.actor):
         if constants.ENERGY_ITEM in requested_items:
             missing_energy = self.consume_items(
                 {constants.FUEL_ITEM: requested_items[constants.ENERGY_ITEM]}
-            ).get(constants.ENERGY_ITEM, 0)
+            ).get(constants.FUEL_ITEM, 0)
             # Attempt to consume fuel equal to energy request - returns amount of request that cannot be met
             self.change_inventory(
                 status.item_types[constants.ENERGY_ITEM],
@@ -1537,9 +1769,8 @@ class location(actors.actor):
         }  # Remove fulfilled requests
         return requested_items
 
-    def get_item_upkeep(
-        self, recurse: bool = False, earth_exemption: bool = True
-    ) -> Dict[str, float]:
+    @property
+    def location_item_upkeep_demand(self) -> Dict[str, float]:
         """
         Description:
             Returns the item upkeep requirements for all units in this location
@@ -1550,8 +1781,10 @@ class location(actors.actor):
         """
         return utility.add_dicts(
             *[
-                mob.get_item_upkeep(recurse=recurse, earth_exemption=earth_exemption)
-                for mob in self.subscribed_mobs
+                mob.get_item_upkeep(
+                    recurse=False, earth_exemption=self.is_earth_location
+                )
+                for mob in self.contained_mobs
             ]
         )
 
@@ -1643,8 +1876,4 @@ class location(actors.actor):
                     "location": self,
                 },
             )
-        self.update_image_bundle()
-        if self == status.displayed_location:
-            actor_utility.calibrate_actor_info_display(
-                status.location_info_display, self
-            )  # Update location info display with new name
+        self.publish_events(constants.LOCATION_SET_NAME_ROUTE)

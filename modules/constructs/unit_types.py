@@ -115,23 +115,26 @@ class unit_type:
         Output
             image_id list: List of image IDs for the recruitment button image
         """
-        dummy_recruited_unit = constants.ActorCreationManager.create_dummy(
-            {"unit_type": self}
-        )
-        for permission, value in self.permissions.items():
-            dummy_recruited_unit.set_permission(permission, value)
-
         original_random_state = random.getstate()
-        random.seed(
-            self.key + "random #7"
-        )  # Consistently generate the same random portrait for the same interface elements - modify concatenated text to try different versions
+        random.seed(f"{self.key}random #7")
+        # Consistently generate the same random portrait for the same interface elements - modify concatenated text to try different versions
 
-        image_id = self.generate_center_recruitment_image(dummy_recruited_unit)
+        dummy_recruited_unit = constants.ActorCreationManager.create_dummy(
+            {
+                "unit_type": self,
+                "generate_button_portrait": True,
+                "default_permissions": self.permissions.copy(),
+            }
+        )
 
         random.setstate(original_random_state)
 
         return actor_utility.generate_frame(
-            image_id, frame="buttons/default_button_alt.png", size=0.9, y_offset=0.02
+            dummy_recruited_unit.image_dict[constants.IMAGE_ID_LIST_FULL_MOB],
+            background="buttons/default_button_alt.png",
+            frame="buttons/default_button_alt_frame.png",
+            size=0.9,
+            y_offset=0.02,
         )
 
     def get_list_description(self) -> List[str]:

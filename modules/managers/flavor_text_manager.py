@@ -1,3 +1,5 @@
+# Contains .csv flavor text management singleton
+
 import random
 from modules.util import csv_utility
 

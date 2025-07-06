@@ -1,4 +1,4 @@
-# Contains functionality for terrain management classes
+# Contains terrain classification and configuration management singleton
 
 import json
 import os

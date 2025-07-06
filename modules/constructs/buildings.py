@@ -27,6 +27,7 @@ class building:
         Output:
             None
         """
+        self.uuid: str = constants.UuidManager.assign_uuid()
         self.building_type: building_types.building_type = input_dict.get(
             "building_type", status.building_types[input_dict["init_type"]]
         )
@@ -95,7 +96,6 @@ class building:
                 'damaged': boolean value - whether this building is currently damaged
         """
         return {
-            **super().to_save_dict(),
             **self.upgrade_fields,
             "init_type": self.building_type.key,
             "subscribed_work_crews": [
@@ -157,7 +157,7 @@ class building:
             constants.WAREHOUSES
         ):
             self.location.get_building(constants.WAREHOUSES).set_damaged(new_value)
-        self.location.update_image_bundle()
+        constants.EventBus.publish(self.uuid, constants.BUILDING_SET_DAMAGED_ROUTE)
 
     def get_build_cost(self):
         """

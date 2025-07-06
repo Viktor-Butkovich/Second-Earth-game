@@ -1,4 +1,4 @@
-# Manages character generation, minister/officer/worker backgrounds, names, appearance, ethnicity, and other personal details
+# Contains human character appearance/background/name generation utility singleton
 
 import json
 import random

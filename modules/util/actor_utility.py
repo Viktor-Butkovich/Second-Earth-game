@@ -119,12 +119,6 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
         status.displayed_location = new_actor
         if new_actor:
             new_actor.select()  # Plays correct music based on location selected - main menu/earth music
-        if (
-            not flags.choosing_destination
-        ):  # Don't change tabs while choosing destination
-            select_default_tab(
-                status.location_tabbed_collection, status.displayed_location
-            )
 
     elif info_display == status.mob_info_display:
         changed_displayed_mob = new_actor != status.displayed_mob
@@ -135,7 +129,6 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
         status.displayed_mob = new_actor
         if changed_displayed_mob and new_actor:
             new_actor.start_ambient_sound()
-        select_default_tab(status.mob_tabbed_collection, new_actor)
         if new_actor and new_actor.location == status.displayed_location:
             for current_same_location_icon in status.same_location_icon_list:
                 current_same_location_icon.reset()
@@ -144,6 +137,14 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
     if new_actor:
         target = new_actor
     info_display.calibrate(target, override_exempt)
+
+    if not flags.choosing_destination:  # Don't change tabs while choosing destination
+        if info_display == status.mob_info_display:
+            select_default_tab(status.mob_tabbed_collection, status.displayed_mob)
+        elif info_display == status.location_info_display:
+            select_default_tab(
+                status.location_tabbed_collection, status.displayed_location
+            )
 
 
 def select_default_tab(tabbed_collection, displayed_actor) -> None:
@@ -158,51 +159,60 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
     """
     target_tab = None
     if displayed_actor:
-        if tabbed_collection == status.location_tabbed_collection:
-            if (
-                (
-                    status.location_tabbed_collection.current_tabbed_member == None
-                    or status.location_tabbed_collection.current_tabbed_member.tab_button.can_show()
-                )
-                and status.location_tabbed_collection.current_tabbed_member
-                != status.local_conditions_collection
-            ):
-                target_tab = status.location_tabbed_collection.current_tabbed_member
-            elif (
-                constants.EffectManager.effect_active("link_inventory_tabs")
-                and status.mob_tabbed_collection.current_tabbed_member
-                == status.mob_inventory_collection
-            ):
-                target_tab = status.mob_inventory_collection
-            elif status.displayed_location.settlement:
-                target_tab = status.settlement_collection
-            elif status.local_conditions_collection.tab_button.can_show():
-                target_tab = status.local_conditions_collection
-            else:
-                target_tab = status.global_conditions_collection
-            # Except for local conditions, try to keep the current tab selected
-            # If mob inventory tab, select inventory tab
-            # If can't keep current location selected, select settlement, if any
-            # Otherwise, default to local or global conditions, based on location type
-
-        elif tabbed_collection == status.mob_tabbed_collection:
-            if status.displayed_mob.get_permission(constants.PMOB_PERMISSION):
-                if status.displayed_mob.inventory:
-                    target_tab = status.mob_inventory_collection
+        for current_tab in tabbed_collection.mru_tab_queue:
+            if current_tab.tab_button.tab_enabled():
+                target_tab = current_tab
+                break
+            # Use the most recently used tab that is still showing
+        if target_tab and constants.EffectManager.effect_active("debug_tab_selection"):
+            print("Fetching MRU tab:", target_tab.tab_button.tab_name)
+        if not target_tab:
+            # If no previously used tabs are showing, use game rules to determine initial tab
+            if tabbed_collection == status.location_tabbed_collection:
+                if (
+                    (
+                        status.location_tabbed_collection.current_tabbed_member == None
+                        or status.location_tabbed_collection.current_tabbed_member.tab_button.tab_enabled()
+                    )
+                    and status.location_tabbed_collection.current_tabbed_member
+                    != status.local_conditions_collection
+                ):
+                    target_tab = status.location_tabbed_collection.current_tabbed_member
                 elif (
                     constants.EffectManager.effect_active("link_inventory_tabs")
-                    and status.location_tabbed_collection.current_tabbed_member
-                    == status.location_inventory_collection
+                    and status.mob_tabbed_collection.current_tabbed_member
+                    == status.mob_inventory_collection
                 ):
                     target_tab = status.mob_inventory_collection
+                elif status.displayed_location.settlement:
+                    target_tab = status.settlement_collection
+                elif status.local_conditions_collection.tab_button.tab_enabled():
+                    target_tab = status.local_conditions_collection
                 else:
-                    target_tab = status.mob_reorganization_collection
-            # If unit has inventory and at least 1 item held, select inventory tab
-            # If location inventory tab is selected, select inventory tab
-            # Otherwise, select reorganization tab
-    if target_tab and (
-        target_tab == status.location_inventory_collection or not target_tab.showing
-    ):
+                    target_tab = status.global_conditions_collection
+                # Except for local conditions, try to keep the current tab selected
+                # If mob inventory tab, select inventory tab
+                # If can't keep current location selected, select settlement, if any
+                # Otherwise, default to local or global conditions, based on location type
+
+            elif tabbed_collection == status.mob_tabbed_collection:
+                if status.displayed_mob.get_permission(constants.PMOB_PERMISSION):
+                    if status.displayed_mob.inventory:
+                        target_tab = status.mob_inventory_collection
+                    elif (
+                        constants.EffectManager.effect_active("link_inventory_tabs")
+                        and status.location_tabbed_collection.current_tabbed_member
+                        == status.location_inventory_collection
+                    ):
+                        target_tab = status.mob_inventory_collection
+                    else:
+                        target_tab = status.mob_reorganization_collection
+                # If unit has inventory and at least 1 item held, select inventory tab
+                # If location inventory tab is selected, select inventory tab
+                # Otherwise, select reorganization tab
+            if constants.EffectManager.effect_active("debug_tab_selection"):
+                print("Defaulting to tab:", target_tab.tab_button.tab_name)
+    if target_tab and target_tab.tab_button.tab_enabled():
         select_interface_tab(tabbed_collection, target_tab)
 
 
@@ -568,7 +578,8 @@ def callback(target, function, *args):
 
 def generate_frame(
     image_id: any,
-    frame: str = "buttons/default_button.png",
+    frame: str = "buttons/default_button_frame.png",
+    background: str = None,
     size: float = 0.75,
     y_offset: float = -0.02,
     x_offset: float = 0.02,
@@ -582,11 +593,21 @@ def generate_frame(
     Output:
         None
     """
-    frame = {
-        "image_id": frame,
-        "level": constants.BACKGROUND_LEVEL,
-        "detail_level": 1.0,
-    }
+    frame = [
+        {
+            "image_id": frame,
+            "level": constants.FRONT_LEVEL,
+            "detail_level": 1.0,
+        }
+    ]
+    if background:
+        frame.append(
+            {
+                "image_id": background,
+                "level": constants.BACKGROUND_LEVEL,
+                "detail_level": 1.0,
+            }
+        )
 
     if type(image_id) == str:
         return utility.combine(
@@ -597,7 +618,7 @@ def generate_frame(
                 "y_size": size,
                 "x_offset": x_offset,
                 "y_offset": y_offset,
-                "level": constants.BACKGROUND_LEVEL + 1,
+                "level": constants.FRONT_LEVEL - 1,
                 "detail_level": constants.BUTTON_DETAIL_LEVEL,
             },
         )
@@ -670,6 +691,26 @@ def summarize_amount_dict(item_dict: Dict[str, float]):
             line = f"and {line}"
         text += line
     return text
+
+
+def line_item_amount_dict(item_dict: Dict[str, float]):
+    """
+    Description:
+        Convert a dictionary of item keys and amounts to a line item-formatted string summary
+    Input:
+        Dict[str, float] item_dict: Dictionary of item keys and amounts, in the format
+            {
+                constants.CONSUMER_GOODS_ITEM_TYPE: 2,
+                constants.FOOD_ITEM_TYPE: 1
+            }
+    Output:
+        str: String summary, in the format "/n    Consumer goods: 2 /n    Food: 1"
+    """
+    lines = []
+    for item_type_key, amount in item_dict.items():
+        item_name = status.item_types[item_type_key].name.capitalize()
+        lines.append(f"    {item_name}: {amount}")
+    return " /n".join(lines)
 
 
 def calibrate_minimap_grids(world_handler: any, x: int, y: int) -> None:

@@ -42,7 +42,6 @@ class pmob(mob):
         Output:
             None
         """
-        self.sentry_mode = False
         super().__init__(from_save, input_dict, original_constructor=False)
         status.pmob_list.append(self)
         self.equipment = {}
@@ -103,7 +102,6 @@ class pmob(mob):
                 "select_on_creation"
             ]:
                 self.on_move()
-            self.set_sentry_mode(input_dict.get("sentry_mode", False))
             self.select()
 
     def permissions_setup(self) -> None:
@@ -166,8 +164,6 @@ class pmob(mob):
             self.select()
             constants.SoundManager.play_sound("effects/metal_footsteps", volume=1.0)
         self.add_to_turn_queue()
-        for current_mob in self.contained_mobs:
-            current_mob.update_habitability()
 
     def get_item_upkeep(
         self, recurse: bool = False, earth_exemption: bool = True
@@ -226,7 +222,6 @@ class pmob(mob):
     def consume_item_upkeep(self) -> None:
         """
         Consumes all available items required for this unit's item upkeep, logging an upkeep missing penalty for the most important missing item type
-            Item upkeep of sub-mobs needs to be handled separately
         """
         if self.in_deadly_environment():
             return  # Don't consume upkeep when in instant death conditions
@@ -285,7 +280,7 @@ class pmob(mob):
 
         # Get the most severe penalty of the resource types with any missed upkeep
 
-        if constants.EffectManager.effect_active("track_item_requests"):
+        if constants.EffectManager.effect_active("debug_item_requests"):
             if missing_upkeep:
                 print(
                     f"{self.name} attempted to consume {self.get_item_upkeep(recurse=False)}"
@@ -297,8 +292,6 @@ class pmob(mob):
                 print(
                     f"{self.name} successfully consumed {self.get_item_upkeep(recurse=False)}"
                 )
-        for current_sub_mob in self.get_sub_mobs():
-            current_sub_mob.consume_item_upkeep()
 
     def check_item_availability(self) -> None:
         """
@@ -387,31 +380,6 @@ class pmob(mob):
         ):  # If group member passenger dies, reembark other group member
             reembarked_units[0].embark_vehicle(reembarked_units[1], focus=False)
 
-    def on_move(self):
-        """
-        Automatically called when unit arrives in a location for any reason
-        """
-        super().on_move()
-        current_location = self.location
-        if current_location and not current_location.is_abstract_location:
-            for location in [current_location] + current_location.adjacent_list:
-                if (
-                    location == current_location
-                ):  # Show knowledge 3 about current location
-                    requirement = constants.TERRAIN_PARAMETER_KNOWLEDGE_REQUIREMENT
-                    category = constants.TERRAIN_PARAMETER_KNOWLEDGE
-                else:  # Show knowledge 2 about adjacent locations
-                    requirement = constants.TERRAIN_KNOWLEDGE_REQUIREMENT
-                    category = constants.TERRAIN_KNOWLEDGE
-                if not location.knowledge_available(category):
-                    location.set_parameter(
-                        constants.KNOWLEDGE,
-                        max(
-                            requirement,
-                            location.get_parameter(constants.KNOWLEDGE),
-                        ),
-                    )
-
     def to_save_dict(self):
         """
         Description:
@@ -444,7 +412,6 @@ class pmob(mob):
                 self.end_turn_destination.world_handler
             )
         save_dict["default_name"] = self.default_name
-        save_dict["sentry_mode"] = self.sentry_mode
         save_dict["in_turn_queue"] = self in status.player_turn_queue
         save_dict["base_automatic_route"] = self.base_automatic_route
         save_dict["in_progress_automatic_route"] = self.in_progress_automatic_route
@@ -671,49 +638,12 @@ class pmob(mob):
                 status.mob_info_display, displayed_mob
             )
 
-    def set_sentry_mode(self, new_value):
-        """
-        Description:
-            Sets a new sentry mode of this status, creating a sentry icon or removing the existing one as needed
-        Input:
-            boolean new_value: New sentry mode status for this unit
-        Output:
-            None
-        """
-        old_value = self.sentry_mode
-        if self.get_permission(constants.GROUP_PERMISSION):
-            self.officer.set_sentry_mode(new_value)
-            self.worker.set_sentry_mode(new_value)
-        if not old_value == new_value:
-            self.sentry_mode = new_value
-            self.update_image_bundle()
-            if new_value == True:
-                self.remove_from_turn_queue()
-            else:
-                if (
-                    self.movement_points > 0
-                    and not (
-                        self.get_permission(constants.VEHICLE_PERMISSION)
-                        and self.crew == None
-                    )
-                    and not self.any_permissions(
-                        constants.IN_VEHICLE_PERMISSION,
-                        constants.IN_GROUP_PERMISSION,
-                        constants.IN_BUILDING_PERMISSION,
-                    )
-                ):
-                    self.add_to_turn_queue()
-            if self == status.displayed_mob:
-                actor_utility.calibrate_actor_info_display(
-                    status.mob_info_display, self
-                )
-
     def add_to_turn_queue(self):
         """
         At the start of the turn or once removed from another actor/building, attempts to add this unit to the list of units to cycle through with tab. Units in sentry mode or without movement are not added
         """
         if (
-            (not self.sentry_mode)
+            (not self.get_permission(constants.SENTRY_MODE_PERMISSION))
             and self.movement_points > 0
             and self.end_turn_destination == None
             and not self in status.player_turn_queue
@@ -928,8 +858,6 @@ class pmob(mob):
         if focus:
             self.select()
             constants.SoundManager.play_sound("effects/metal_footsteps", volume=1.0)
-        for current_mob in self.contained_mobs:
-            current_mob.update_habitability()
 
     def get_worker(self) -> "pmob":
         """

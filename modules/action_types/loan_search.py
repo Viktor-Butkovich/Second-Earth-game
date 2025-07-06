@@ -90,7 +90,7 @@ class loan_search(action.campaign):
         """
         if subject == "dice":
             return_list = (
-                self.current_unit.controlling_minister.generate_icon_input_dicts(
+                self.current_unit.controlling_minister.generate_icon_input_dict(
                     alignment="left"
                 )
             )

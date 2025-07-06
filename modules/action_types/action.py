@@ -127,8 +127,8 @@ class action:
             and not minister_utility.positions_filled()
         ):
             return False
-        if self.actor_type == constants.MOB_ACTOR_TYPE and unit.sentry_mode:
-            unit.set_sentry_mode(False)
+        if self.actor_type == constants.MOB_ACTOR_TYPE:
+            unit.set_permission(constants.SENTRY_MODE_PERMISSION, False)
         return True
 
     def get_default_price(self):
@@ -216,19 +216,19 @@ class action:
                 )
             if self.actor_type == constants.MOB_ACTOR_TYPE:
                 return_list += (
-                    self.current_unit.controlling_minister.generate_icon_input_dicts(
+                    self.current_unit.controlling_minister.generate_icon_input_dict(
                         alignment="leftmost"
                     )
                 )
             elif self.actor_type == constants.MINISTER_ACTOR_TYPE:
-                return_list += self.current_unit.generate_icon_input_dicts(
+                return_list += self.current_unit.generate_icon_input_dict(
                     alignment="leftmost"
                 )
             elif self.actor_type == constants.PROSECUTION_ACTOR_TYPE:
-                return_list += status.displayed_minister.generate_icon_input_dicts(
+                return_list += status.displayed_minister.generate_icon_input_dict(
                     alignment="leftmost"
                 )
-                return_list += self.current_unit.generate_icon_input_dicts(
+                return_list += self.current_unit.generate_icon_input_dict(
                     alignment="left"
                 )
         return return_list
