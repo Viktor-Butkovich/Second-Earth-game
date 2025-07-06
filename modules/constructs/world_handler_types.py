@@ -277,7 +277,7 @@ class full_world_handler(world_handlers.world_handler):
             if constants.EffectManager.effect_active("benchmark_world_creation"):
                 start_time = time.time()
                 print(f"Starting world creation at time: {start_time}")
-            self.update_sky_color(set_initial_offset=True)
+            self.update_sky_color(set_initial_offset=True, update_water=True)
             self.generate_poles_and_equator()
             self.generate_terrain_parameters()
             self.generate_terrain_features()
