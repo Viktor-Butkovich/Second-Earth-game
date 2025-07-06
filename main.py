@@ -28,6 +28,7 @@ try:
         setup_utility.settlement_interface,
         setup_utility.inventory_interface,
         setup_utility.mob_sub_interface,
+        setup_utility.supply_chain_interface,
         setup_utility.minister_interface,
     )
     main_loop_utility.main_loop()
@@ -445,6 +446,37 @@ except Exception:  # Displays error message and records error message in crash l
 # Upcoming work queue:
 # Add logistics info display tab with item upkeep information
 #   Mob version with just that mob, and a location version with total location demands
+#   Continue working on supply chain dashboard, including revamped transportation minister icon
+# Supply chain dashboard features:
+#   Location:
+#       Insufficient location inventory indicator
+#       Inventory attrition risk indicator with justifications (not in settlement, not on road, crew experience, etc.)
+#       Total location item demand
+#       Planned item requests to other locations, including how many will be unfulfilled
+#           If any unfulfilled, briefly summarize the worst consequence, then tooltip lists all affected contained units
+#       Planned item deliveries to other locations
+#   Mob:
+#       Planned item deliveries to other locations and transportation capacity contribution (if vehicle)
+#       Inventory attrition risk indicator with justifications (not in settlement, not on road, crew experience, etc.)
+#       Mob item demand (including sub-mobs), including how many will be unfulfilled
+#           If any unfulfilled, briefly summarize the worst consequence, then tooltip lists all affected sub-units
+#   Since this might scale up to lots of different item types, basic scrolling should be implemented
+#   Ideally, the default case of the standard food/air/water/CG/fuel items can all be shown at once, since these occur frequently
+#   Item demand, planned items requested, projected unfulfilled item requests, and planned deliveries should all
+#       include totals as well as per-item line items
+#   Include some list of other locations delivered to and other locations requested from
+#       Have some standard, concise terminology for such locations - source/destination?
+#   This could be expanded in the future with filters, network visualization/highlighting, etc.
+#       Charts would likely go in a different tab - more general BI dashboard with different sub-tabs
+# This would be greate with a table layout - look at the screenshot image for reference
+#   The game is likely to encounter lots more tables over time
+#   In terms of interface, this could actually be well-suited to a variant of grid/cell
+#   In this case, the grid may subscribe to the table data structure, and cells may subscribe to particular data points
+#   This means image calibration, outlines, and even table scrolling would already be present, with some modification
+#   Notably, cells might not be square-shaped, and could even be different sizes from each other
+#   The images in these cells, when calibrated, might include labels with empty background and some text
+#       In this case, we might want the entire grid to have a background image, with each cell having text and a transparent background
+#   If this works well, we could possibly retroactively apply this to the inventory interface
 # Add 5x5 building slot system
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Gradually incorporate event bus subscriptions rather than manual data binding for info displays, mob images

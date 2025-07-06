@@ -626,9 +626,9 @@ SETTLEMENT_PANEL: str = "settlement_panel"
 LOCAL_CONDITIONS_PANEL: str = "local_conditions_panel"
 GLOBAL_CONDITIONS_PANEL: str = "global_conditions_panel"
 TEMPERATURE_BREAKDOWN_PANEL: str = "temperature_breakdown_panel"
-
 INVENTORY_PANEL: str = "inventory_panel"
 REORGANIZATION_PANEL: str = "reorganization_panel"
+SUPPLY_CHAIN_PANEL: str = "supply_chain_panel"
 
 SPACE_MINISTER: str = "space"
 ECOLOGY_MINISTER: str = "ecology"

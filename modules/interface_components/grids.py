@@ -31,14 +31,11 @@ class grid(interface_elements.interface_element):
                 'list modes': string list value - Game modes during which this grid can appear
                 'grid_line_width': int value - Pixel width of lines between cells. Lines on the outside of the grid are one pixel thicker
                 'cell_list': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each cell in this grid
-                'grid_type': str value - Type of grid, like 'strategic_map_grid' or 'earth_grid'
         Output:
             None
         """
         super().__init__(input_dict)
         status.grid_list.append(self)
-        self.world_handler: world_handlers.world_handler = None
-        input_dict["world_handler"].subscribe_grid(self)
         self.grid_line_width: int = input_dict.get("grid_line_width", 3)
         self.coordinate_width: int = input_dict.get(
             "coordinate_size", input_dict.get("coordinate_width")
@@ -67,17 +64,6 @@ class grid(interface_elements.interface_element):
             ]
             for x in range(self.coordinate_width)
         ]
-
-    def get_absolute_coordinates(self, mini_x, mini_y):
-        return mini_x, mini_y
-
-    @property
-    def is_mini_grid(self) -> bool:
-        return False
-
-    @property
-    def is_abstract_grid(self) -> bool:
-        return False
 
     def get_tuning(self, tuning_type: str) -> any:
         """
@@ -143,7 +129,7 @@ class grid(interface_elements.interface_element):
 
     def draw_grid_lines(self):
         """
-        Draws lines between grid cells and on the outside of the grid. Also draws an outline of the area on this grid covered by this grid's minimap grid, if applicable
+        Draws lines between grid cells and on the outside of the grid
         """
         if flags.show_grid_lines:
             for x in range(0, self.coordinate_width + 1):
@@ -183,64 +169,6 @@ class grid(interface_elements.interface_element):
                 self.convert_coordinates(destination),
                 self.grid_line_width + 1,
             )
-
-        if flags.show_minimap_outlines and self == status.scrolling_strategic_map_grid:
-            # Show an outline of the area that the minimap grid covers
-            left_x = (
-                self.coordinate_width // 2 - status.minimap_grid.coordinate_width // 2
-            )
-            right_x = (
-                self.coordinate_width // 2
-                + status.minimap_grid.coordinate_width // 2
-                + 1
-            )
-            down_y = (
-                self.coordinate_height // 2 - status.minimap_grid.coordinate_height // 2
-            )
-            up_y = (
-                self.coordinate_height // 2
-                + status.minimap_grid.coordinate_height // 2
-                + 1
-            )
-            for origin, destination in [
-                ((left_x, down_y), (left_x, up_y)),
-                ((left_x, up_y), (right_x, up_y)),
-                ((right_x, up_y), (right_x, down_y)),
-                ((right_x, down_y), (left_x, down_y)),
-            ]:
-                pygame.draw.line(
-                    constants.game_display,
-                    constants.color_dict[status.minimap_grid.external_line_color],
-                    self.convert_coordinates(origin),
-                    self.convert_coordinates(destination),
-                    self.grid_line_width + 1,
-                )
-
-    def find_cell_center(self, coordinates) -> Tuple[int, int]:
-        """
-        Description:
-            Returns the pixel coordinates of the center of this grid's cell that occupies the inputted grid coordinates
-        Input:
-            int tuple coordinates: Two values representing x and y grid coordinates of the cell whose center is found
-        Output:
-            int tuple: Two values representing x and y pixel coordinates of the center of the requested cell
-        """
-        x, y = coordinates
-        return (
-            (
-                int((self.width / (self.coordinate_width)) * x)
-                + self.x
-                + int(self.get_cell_width() / 2)
-            ),
-            (
-                constants.display_height
-                - (
-                    int((self.height / (self.coordinate_height)) * y)
-                    + self.y
-                    + int(self.get_cell_height() / 2)
-                )
-            ),
-        )
 
     def convert_coordinates(self, coordinates):
         """
@@ -324,25 +252,6 @@ class grid(interface_elements.interface_element):
         else:
             return None
 
-    def choose_cell(self, requirements_dict):
-        """
-        Description:
-            Uses a series of requirements to choose and a return a random cell in this grid that fits those requirements
-        Input:
-            dictionary choice_info_dict: String keys corresponding to various values such as 'allowed_terrains' to use as requirements for the chosen cell
-        Output:
-            cell: Returns a random cell in this grid that fits the inputted requirements
-        """
-        allowed_terrains = requirements_dict["allowed_terrains"]
-        possible_cells = []
-        for current_cell in self.get_flat_cell_list():
-            if not current_cell.location.terrain in allowed_terrains:
-                continue
-            possible_cells.append(current_cell)
-        if len(possible_cells) == 0:
-            possible_cells.append(None)
-        return random.choice(possible_cells)
-
     def get_flat_cell_list(self) -> itertools.chain[cells.cell]:
         """
         Description:
@@ -382,10 +291,89 @@ class grid(interface_elements.interface_element):
         """
         super().remove()
         status.grid_list = utility.remove_from_list(status.grid_list, self)
+
+
+class location_grid(grid):
+    """
+    Grid of cells that correspond to world locations, which can contain terrain, units, buildings, etc.
+    """
+
+    def __init__(self, input_dict: Dict[str, any]) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            dictionary input_dict: Keys corresponding to the values needed to initialize this object
+                Same as superclass, except:
+                'world_handler': world_handlers.world_handler value - World handler to which this grid is attached
+        Output:
+            None
+        """
+        status.location_grid_list.append(self)
+        self.world_handler: world_handlers.world_handler = None
+        input_dict["world_handler"].subscribe_grid(self)
+        super().__init__(input_dict)
+
+    def get_absolute_coordinates(self, mini_x, mini_y):
+        return mini_x, mini_y
+
+    @property
+    def is_mini_grid(self) -> bool:
+        return False
+
+    @property
+    def is_abstract_grid(self) -> bool:
+        return False
+
+    def remove(self):
+        """
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
+        """
+        super().remove()
         self.world_handler.unsubscribe_grid(self)
+        status.location_grid_list = utility.remove_from_list(
+            status.location_grid_list, self
+        )
+
+    def draw_grid_lines(self):
+        """
+        Draws lines between grid cells and on the outside of the grid. Also draws an outline of the area on this grid covered by this grid's minimap grid, if applicable
+        """
+        super().draw_grid_lines()
+        if flags.show_minimap_outlines and self == status.scrolling_strategic_map_grid:
+            # Show an outline of the area that the minimap grid covers
+            left_x = (
+                self.coordinate_width // 2 - status.minimap_grid.coordinate_width // 2
+            )
+            right_x = (
+                self.coordinate_width // 2
+                + status.minimap_grid.coordinate_width // 2
+                + 1
+            )
+            down_y = (
+                self.coordinate_height // 2 - status.minimap_grid.coordinate_height // 2
+            )
+            up_y = (
+                self.coordinate_height // 2
+                + status.minimap_grid.coordinate_height // 2
+                + 1
+            )
+            for origin, destination in [
+                ((left_x, down_y), (left_x, up_y)),
+                ((left_x, up_y), (right_x, up_y)),
+                ((right_x, up_y), (right_x, down_y)),
+                ((right_x, down_y), (left_x, down_y)),
+            ]:
+                pygame.draw.line(
+                    constants.game_display,
+                    constants.color_dict[status.minimap_grid.external_line_color],
+                    self.convert_coordinates(origin),
+                    self.convert_coordinates(destination),
+                    self.grid_line_width + 1,
+                )
 
 
-class mini_grid(grid):
+class mini_grid(location_grid):
     """
     Grid that zooms in on a small area of a larger attached grid, centered on a certain cell of the attached grid. Which cell is being centered on can be changed
     """
@@ -597,7 +585,7 @@ class mini_grid(grid):
         )
 
 
-class abstract_grid(grid):
+class abstract_grid(location_grid):
     """
     1-cell grid that is not directly connected to the primary strategic grid but can be moved to by mobs from the strategic grid and vice versa
     """

@@ -6,3 +6,4 @@ configuration/dev_config.json
 save_games/*
 *_exe
 misc/pip.txt
+artifacts/*

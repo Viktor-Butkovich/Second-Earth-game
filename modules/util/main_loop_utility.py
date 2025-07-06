@@ -715,7 +715,7 @@ def manage_rmb_down(clicked_button):
     """
     stopping = False
     if (not clicked_button) and action_possible():
-        for current_grid in status.grid_list:
+        for current_grid in status.location_grid_list:
             if current_grid.showing:
                 for current_cell in current_grid.get_flat_cell_list():
                     if current_cell.touching_mouse():
@@ -802,7 +802,7 @@ def manage_lmb_down(clicked_button):
         elif (
             not clicked_button
         ) and flags.choosing_destination:  # if clicking to move somewhere
-            for current_grid in status.grid_list:  # destination_grids:
+            for current_grid in status.location_grid_list:
                 if current_grid.can_show():
                     for current_cell in current_grid.get_flat_cell_list():
                         if current_cell.touching_mouse():
@@ -848,7 +848,7 @@ def manage_lmb_down(clicked_button):
             flags.choosing_advertised_item = False
 
         elif (not clicked_button) and flags.drawing_automatic_route:
-            for current_grid in status.grid_list:  # destination_grids:
+            for current_grid in status.location_grid_list:
                 for current_cell in current_grid.get_flat_cell_list():
                     if current_cell.touching_mouse():
                         if current_cell.location.is_abstract_location:
@@ -960,7 +960,7 @@ def click_move_minimap(select_unit: bool = True):
         )
     for (
         current_grid
-    ) in status.grid_list:  # If grid clicked, move minimap to location clicked
+    ) in status.location_grid_list:  # If grid clicked, move minimap to location clicked
         if current_grid.showing:
             for current_cell in current_grid.get_flat_cell_list():
                 if current_cell.touching_mouse():

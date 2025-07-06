@@ -288,7 +288,10 @@ class interface_collection(interface_element):
             self.actor_type = input_dict["actor_type"]
 
         self.calibrate_exempt_list = []
-
+        if not input_dict.get("width", None):
+            input_dict["width"] = 0
+        if not input_dict.get("height", None):
+            input_dict["height"] = 0
         super().__init__(input_dict)
         self.original_coordinates = (self.x, self.y)
         if self.has_parent_collection:

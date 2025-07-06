@@ -3906,6 +3906,33 @@ def vehicle_organization_interface():
     )
 
 
+def supply_chain_interface():
+    """
+    Description:
+        Initializes the mob and location supply chain tabs
+    Input:
+        None
+    Output:
+        None
+    """
+    status.supply_chain_collection = (
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "init_type": constants.ORDERED_COLLECTION,
+                "parent_collection": status.location_tabbed_collection,
+                "member_config": {
+                    "tabbed": True,
+                    "button_image_id": actor_utility.generate_frame(
+                        "buttons/supply_chain_button.png"
+                    ),
+                    "identifier": constants.SUPPLY_CHAIN_PANEL,
+                    "tab_name": "supply chain",
+                },
+            }
+        )
+    )
+
+
 def minister_interface():
     """
     Description:

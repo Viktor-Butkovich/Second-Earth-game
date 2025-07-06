@@ -21,7 +21,7 @@ from modules.interface_components.interface_elements import (
     autofill_collection,
 )
 from modules.interface_components.inventory_interface import inventory_grid
-from modules.interface_components.grids import grid, mini_grid
+from modules.interface_components.grids import grid, location_grid, mini_grid
 from modules.interface_components.panels import safe_click_panel
 from modules.interface_components.notifications import notification
 from modules.interface_components.buttons import (
@@ -85,6 +85,7 @@ minister_types: Dict[str, minister_type] = {}
 terrain_feature_types: Dict[str, terrain_feature_type] = {}
 flag_icon_list: List[button] = []
 grid_list: List[grid] = []
+location_grid_list: List[location_grid] = []
 world_list: List[world_handler] = []
 text_list: List[str] = []
 free_image_list: List[free_image] = []
@@ -133,6 +134,7 @@ settlement_collection: ordered_collection = None
 local_conditions_collection: ordered_collection = None
 global_conditions_collection: ordered_collection = None
 temperature_breakdown_collection: ordered_collection = None
+supply_chain_collection: ordered_collection = None
 item_prices_label: item_prices_label_template = None
 reorganize_group_left_button: reorganize_unit_button = None
 reorganize_group_right_button: reorganize_unit_button = None

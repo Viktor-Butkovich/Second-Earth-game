@@ -197,7 +197,7 @@ def to_main_menu(override=False):
     )
     actor_utility.calibrate_actor_info_display(status.location_info_display, None)
     minister_utility.calibrate_minister_info_display(None)
-    for current_grid in status.grid_list.copy():
+    for current_grid in status.location_grid_list.copy():
         current_grid.remove()
     for current_world in status.world_list.copy():
         current_world.remove()
