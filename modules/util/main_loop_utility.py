@@ -720,7 +720,7 @@ def manage_rmb_down(clicked_button):
                 for current_cell in current_grid.get_flat_cell_list():
                     if current_cell.touching_mouse():
                         stopping = True  # if doesn't reach this point, do same as lmb
-                        current_location = current_cell.location
+                        current_location = current_cell.source
                         if len(current_location.subscribed_mobs) > 1:
                             moved_mob = current_location.subscribed_mobs[1]
                             while moved_mob != current_location.subscribed_mobs[0]:
@@ -808,11 +808,11 @@ def manage_lmb_down(clicked_button):
                         if current_cell.touching_mouse():
                             click_move_minimap(select_unit=False)
                             target_location = None
-                            if current_cell.location.is_abstract_location:
-                                target_location = current_cell.location
+                            if current_cell.source.is_abstract_location:
+                                target_location = current_cell.source
                             else:
                                 target_location = (
-                                    current_cell.location.world_handler.find_location(
+                                    current_cell.source.world_handler.find_location(
                                         status.minimap_grid.center_x,
                                         status.minimap_grid.center_y,
                                     )
@@ -851,12 +851,12 @@ def manage_lmb_down(clicked_button):
             for current_grid in status.location_grid_list:
                 for current_cell in current_grid.get_flat_cell_list():
                     if current_cell.touching_mouse():
-                        if current_cell.location.is_abstract_location:
+                        if current_cell.source.is_abstract_location:
                             text_utility.print_to_screen(
                                 "Only locations adjacent to the most recently chosen destination can be added to the movement route."
                             )
                         else:
-                            target_location = current_cell.location
+                            target_location = current_cell.source
                             previous_location = (
                                 status.displayed_mob.base_automatic_route[-1]
                             )
@@ -964,7 +964,7 @@ def click_move_minimap(select_unit: bool = True):
         if current_grid.showing:
             for current_cell in current_grid.get_flat_cell_list():
                 if current_cell.touching_mouse():
-                    current_location = current_cell.location
+                    current_location = current_cell.source
                     if select_unit and current_location.subscribed_mobs:
                         current_location.subscribed_mobs[0].select()
                         status.displayed_mob.selection_sound()

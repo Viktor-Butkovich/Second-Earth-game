@@ -1,11 +1,10 @@
 # Contains functionality for grids
 
-import random
 import pygame
 import itertools
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 from modules.interface_components import cells, interface_elements
-from modules.util import utility, actor_utility
+from modules.util import utility
 from modules.constructs import world_handlers
 from modules.constants import constants, status, flags
 
@@ -34,6 +33,7 @@ class grid(interface_elements.interface_element):
         Output:
             None
         """
+        self.cell_list: List[cells.cell] = []
         super().__init__(input_dict)
         status.grid_list.append(self)
         self.grid_line_width: int = input_dict.get("grid_line_width", 3)
@@ -52,18 +52,37 @@ class grid(interface_elements.interface_element):
         cell_width, cell_height = self.get_cell_width(), self.get_cell_height()
         self.cell_list = [
             [
-                cells.cell(
-                    x,
-                    y,
-                    cell_width,
-                    cell_height,
-                    self,
-                    constants.color_dict[constants.COLOR_BRIGHT_GREEN],
+                constants.ActorCreationManager.create_interface_element(
+                    {
+                        "init_type": constants.CELL,
+                        "grid": self,
+                        "coordinates": self.convert_coordinates((x, y)),
+                        "grid_coordinates": (x, y),
+                        "width": cell_width,
+                        "height": cell_height,
+                        "override_no_parent_collection": True,
+                    }
                 )
                 for y in range(self.coordinate_height)
             ]
             for x in range(self.coordinate_width)
         ]
+
+    def set_origin(self, new_x, new_y):
+        """
+        Description:
+            Sets this interface element's location at the inputted coordinates
+        Input:
+            int new_x: New x coordinate for this element's origin
+            int new_y: New y coordinate for this element's origin
+        Output:
+            None
+        """
+        super().set_origin(new_x, new_y)
+        for current_cell in self.get_flat_cell_list():
+            current_cell.set_origin(
+                *self.convert_coordinates((current_cell.grid_x, current_cell.grid_y))
+            )
 
     def get_tuning(self, tuning_type: str) -> any:
         """
@@ -127,50 +146,65 @@ class grid(interface_elements.interface_element):
                         if destination_cell.grid.showing:
                             destination_cell.draw_outline(constants.COLOR_YELLOW)
 
+    @property
+    def show_internal_grid_lines(self) -> bool:
+        return flags.show_grid_lines
+
+    @property
+    def show_external_grid_lines(self) -> bool:
+        return True
+
     def draw_grid_lines(self):
         """
         Draws lines between grid cells and on the outside of the grid
         """
-        if flags.show_grid_lines:
-            for x in range(0, self.coordinate_width + 1):
+        if self.show_internal_grid_lines:
+            for x in range(1, self.coordinate_width):
                 pygame.draw.line(
                     constants.game_display,
                     constants.color_dict[self.internal_line_color],
-                    self.convert_coordinates((x, 0)),
-                    self.convert_coordinates((x, self.coordinate_height)),
+                    self.convert_coordinates((x, 0), reverse_y=True),
+                    self.convert_coordinates(
+                        (x, self.coordinate_height), reverse_y=True
+                    ),
                     self.grid_line_width,
                 )
 
-            for y in range(0, self.coordinate_height + 1):
+            for y in range(1, self.coordinate_height):
                 pygame.draw.line(
                     constants.game_display,
                     constants.color_dict[self.internal_line_color],
-                    self.convert_coordinates((0, y)),
-                    self.convert_coordinates((self.coordinate_width, y)),
+                    self.convert_coordinates((0, y), reverse_y=True),
+                    self.convert_coordinates(
+                        (self.coordinate_width, y), reverse_y=True
+                    ),
                     self.grid_line_width,
                 )
 
-        for origin, destination in [
-            ((0, 0), (0, self.coordinate_height)),
-            (
-                (self.coordinate_width, 0),
-                (self.coordinate_width, self.coordinate_height),
-            ),
-            ((0, 0), (self.coordinate_width, 0)),
-            (
-                (0, self.coordinate_height),
-                (self.coordinate_width, self.coordinate_height),
-            ),
-        ]:
-            pygame.draw.line(
-                constants.game_display,
-                constants.color_dict[self.external_line_color],
-                self.convert_coordinates(origin),
-                self.convert_coordinates(destination),
-                self.grid_line_width + 1,
-            )
+        if self.show_external_grid_lines:
+            for origin, destination in [
+                ((0, 0), (0, self.coordinate_height)),
+                (
+                    (self.coordinate_width, 0),
+                    (self.coordinate_width, self.coordinate_height),
+                ),
+                ((0, 0), (self.coordinate_width, 0)),
+                (
+                    (0, self.coordinate_height),
+                    (self.coordinate_width, self.coordinate_height),
+                ),
+            ]:
+                pygame.draw.line(
+                    constants.game_display,
+                    constants.color_dict[self.external_line_color],
+                    self.convert_coordinates(origin, reverse_y=True),
+                    self.convert_coordinates(destination, reverse_y=True),
+                    self.grid_line_width + 1,
+                )
 
-    def convert_coordinates(self, coordinates):
+    def convert_coordinates(
+        self, coordinates: Tuple[int, int], reverse_y: bool = False
+    ) -> Tuple[int, int]:
         """
         Description:
             Returns the pixel coordinates of the bottom left corner of this grid's cell that occupies the inputted grid coordinates
@@ -180,13 +214,17 @@ class grid(interface_elements.interface_element):
             int tuple: Two values representing x and y pixel coordinates of the bottom left corner of the requested cell
         """
         x, y = coordinates
-        return (
-            (int((self.width / (self.coordinate_width)) * x) + self.x),
-            (
+        if reverse_y:
+            return (
+                (int((self.width / (self.coordinate_width)) * x) + self.x),
                 constants.display_height
-                - (int((self.height / (self.coordinate_height)) * y) + self.y)
-            ),
-        )
+                - (int((self.height / (self.coordinate_height)) * y) + self.y),
+            )
+        else:
+            return (
+                (int((self.width / (self.coordinate_width)) * x) + self.x),
+                (int((self.height / (self.coordinate_height)) * y) + self.y),
+            )
 
     def get_height(self):
         """
@@ -293,6 +331,38 @@ class grid(interface_elements.interface_element):
         status.grid_list = utility.remove_from_list(status.grid_list, self)
 
 
+class table_grid(grid):
+    """
+    Grid of cells that display tabular data, such as lists and ledgers with accompanying icons and tooltips
+    """
+
+    def __init__(self, input_dict: Dict[str, any]) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            dictionary input_dict: Keys corresponding to the values needed to initialize this object
+                Same as superclass, except:
+        Output:
+            None
+        """
+        super().__init__(input_dict)
+
+    @property
+    def show_internal_grid_lines(self) -> bool:
+        return True
+
+    @property
+    def show_external_grid_lines(self) -> bool:
+        return False
+
+    def calibrate(self, new_actor):
+        super().calibrate(new_actor)
+        for col in self.cell_list:
+            # col[0].set_image([{"image_id": "sample text?"}])
+            col[0].set_image([{"image_id": "misc/SE.png"}])
+
+
 class location_grid(grid):
     """
     Grid of cells that correspond to world locations, which can contain terrain, units, buildings, etc.
@@ -313,6 +383,10 @@ class location_grid(grid):
         self.world_handler: world_handlers.world_handler = None
         input_dict["world_handler"].subscribe_grid(self)
         super().__init__(input_dict)
+        for current_cell in self.get_flat_cell_list():
+            self.world_handler.find_location(
+                current_cell.x, current_cell.y
+            ).subscribe_cell(current_cell)
 
     def get_absolute_coordinates(self, mini_x, mini_y):
         return mini_x, mini_y
@@ -367,8 +441,8 @@ class location_grid(grid):
                 pygame.draw.line(
                     constants.game_display,
                     constants.color_dict[status.minimap_grid.external_line_color],
-                    self.convert_coordinates(origin),
-                    self.convert_coordinates(destination),
+                    self.convert_coordinates(origin, reverse_y=True),
+                    self.convert_coordinates(destination, reverse_y=True),
                     self.grid_line_width + 1,
                 )
 
@@ -532,13 +606,15 @@ class mini_grid(location_grid):
 
         left_x, down_y = (0, 0)
         right_x, up_y = (self.coordinate_width, self.coordinate_height)
-        if flags.show_grid_lines:
+        if self.show_internal_grid_lines:
             for x in range(0, self.coordinate_width + 1):
                 pygame.draw.line(
                     constants.game_display,
                     constants.color_dict[self.internal_line_color],
-                    self.convert_coordinates((x, 0)),
-                    self.convert_coordinates((x, self.coordinate_height)),
+                    self.convert_coordinates((x, 0), reverse_y=True),
+                    self.convert_coordinates(
+                        (x, self.coordinate_height), reverse_y=True
+                    ),
                     self.grid_line_width,
                 )
 
@@ -546,8 +622,10 @@ class mini_grid(location_grid):
                 pygame.draw.line(
                     constants.game_display,
                     constants.color_dict[self.internal_line_color],
-                    self.convert_coordinates((0, y)),
-                    self.convert_coordinates((self.coordinate_width, y)),
+                    self.convert_coordinates((0, y), reverse_y=True),
+                    self.convert_coordinates(
+                        (self.coordinate_width, y), reverse_y=True
+                    ),
                     self.grid_line_width,
                 )
 
@@ -555,34 +633,35 @@ class mini_grid(location_grid):
             pygame.draw.line(
                 constants.game_display,
                 constants.color_dict[self.external_line_color],
-                self.convert_coordinates((left_x, down_y)),
-                self.convert_coordinates((left_x, up_y)),
+                self.convert_coordinates((left_x, down_y), reverse_y=True),
+                self.convert_coordinates((left_x, up_y), reverse_y=True),
                 self.grid_line_width + 1,
             )
 
-        pygame.draw.line(
-            constants.game_display,
-            constants.color_dict[self.external_line_color],
-            self.convert_coordinates((left_x, up_y)),
-            self.convert_coordinates((right_x, up_y)),
-            self.grid_line_width + 1,
-        )
+        if self.show_external_grid_lines:
+            pygame.draw.line(
+                constants.game_display,
+                constants.color_dict[self.external_line_color],
+                self.convert_coordinates((left_x, up_y), reverse_y=True),
+                self.convert_coordinates((right_x, up_y), reverse_y=True),
+                self.grid_line_width + 1,
+            )
 
-        pygame.draw.line(
-            constants.game_display,
-            constants.color_dict[self.external_line_color],
-            self.convert_coordinates((right_x, up_y)),
-            self.convert_coordinates((right_x, down_y)),
-            self.grid_line_width + 1,
-        )
+            pygame.draw.line(
+                constants.game_display,
+                constants.color_dict[self.external_line_color],
+                self.convert_coordinates((right_x, up_y), reverse_y=True),
+                self.convert_coordinates((right_x, down_y), reverse_y=True),
+                self.grid_line_width + 1,
+            )
 
-        pygame.draw.line(
-            constants.game_display,
-            constants.color_dict[self.external_line_color],
-            self.convert_coordinates((right_x, down_y)),
-            self.convert_coordinates((left_x, down_y)),
-            self.grid_line_width + 1,
-        )
+            pygame.draw.line(
+                constants.game_display,
+                constants.color_dict[self.external_line_color],
+                self.convert_coordinates((right_x, down_y), reverse_y=True),
+                self.convert_coordinates((left_x, down_y), reverse_y=True),
+                self.grid_line_width + 1,
+            )
 
 
 class abstract_grid(location_grid):

@@ -19,6 +19,7 @@ rm dist -force -Recurse
 rm modules -force -Recurse
 rm misc -force -Recurse
 rm experiments -force -Recurse
+rm artifacts -force -Recurse
 rm -force main.py
 rm -force configuration/dev_config.json
 rm -force configuration/demographic_util.py

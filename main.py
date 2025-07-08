@@ -414,6 +414,12 @@ except Exception:  # Displays error message and records error message in crash l
     Requires that all objects who want to be updated when a topic is published register a callback with some global topic or a topic
         derived from an artificial, sequential ID
     Could possibly remove all requirements for manual calibrate_info_display() and update_image_bundle() calls
+28. Pygame SDL2
+    Pygame supports SDL2 with "from pygame._sdl2 import Window, Texture, ..."
+    This allows GPU-accelerated operations that replace those of Surfaces
+    May be incrementally adoptable, worth further research
+    Replaces surfaces and blitting with textures and renderer copying
+        Possibly close to what we're already doing with cached rendered surfaces
 """
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
@@ -444,6 +450,13 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Add table grid cell selection interface
+#   Intuitively, we should be able to access rows and columns of the table by index without thinking about its internal structure
+#   Right now, (0, 0) is the bottom left, which makes sense for an image but not a matrix
+#   Probably since the image's x value isn't being updated with the image
+#   Try different grid offsets to see if they are responsive at all - likely not
+#   Try out fixed font-size text that WON'T adapt to cell size - we want the font to be consistent
+#       Should be a fixed pixel width/size image ID option
 # Add logistics info display tab with item upkeep information
 #   Mob version with just that mob, and a location version with total location demands
 #   Continue working on supply chain dashboard, including revamped transportation minister icon
@@ -477,6 +490,7 @@ except Exception:  # Displays error message and records error message in crash l
 #   The images in these cells, when calibrated, might include labels with empty background and some text
 #       In this case, we might want the entire grid to have a background image, with each cell having text and a transparent background
 #   If this works well, we could possibly retroactively apply this to the inventory interface
+# Strengthen albedo effect - fully ice covered planet should have a notable albedo difference from normal
 # Add 5x5 building slot system
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Gradually incorporate event bus subscriptions rather than manual data binding for info displays, mob images

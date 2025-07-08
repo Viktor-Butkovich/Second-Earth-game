@@ -38,7 +38,7 @@ class interface_element:
         self.showing = False
         self.parent_collection = input_dict.get("parent_collection", None)
         self.has_parent_collection = self.parent_collection != None
-        if not self.has_parent_collection:
+        if (not self.has_parent_collection) and (not input_dict.get("override_no_parent_collection", False)):
             status.independent_interface_elements.append(self)
 
         input_dict["coordinates"] = input_dict.get("coordinates", (0, 0))

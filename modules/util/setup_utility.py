@@ -1348,6 +1348,7 @@ def value_trackers():
                 constants.STRATEGIC_MODE,
                 constants.EARTH_MODE,
                 constants.MINISTERS_MODE,
+                constants.TRIAL_MODE,
             ],
             "image_id": "misc/default_label.png",
             "value_name": "turn",
@@ -1594,7 +1595,7 @@ def buttons():
                 ),
             ),
             "init_type": constants.FREE_IMAGE,
-            "modes": [constants.STRATEGIC_MODE],  # status.globe_projection_image.modes,
+            "modes": [constants.STRATEGIC_MODE],
             "width": scaling.scale_width(compass_overlay_size),
             "height": scaling.scale_width(compass_overlay_size),
             "image_id": "misc/north_indicator.png",
@@ -2506,7 +2507,6 @@ def mob_sub_interface():
             "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(constants.actor_icon_dimensions),
             "height": scaling.scale_height(constants.actor_icon_dimensions),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.mob_info_display,
         }
@@ -2520,7 +2520,6 @@ def mob_sub_interface():
             ),
             "width": scaling.scale_width(35),
             "height": scaling.scale_height(35),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "image_id": "buttons/fire_minister_button.png",
             "init_type": constants.FIRE_UNIT_BUTTON,
             "parent_collection": status.mob_info_display,
@@ -2533,7 +2532,6 @@ def mob_sub_interface():
             "coordinates": scaling.scale_coordinates(200, -105),
             "width": scaling.scale_width(40),
             "height": scaling.scale_height(40),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "keybind_id": pygame.K_a,
             "image_id": "buttons/left_button.png",
             "init_type": constants.MOVE_LEFT_BUTTON,
@@ -2546,7 +2544,6 @@ def mob_sub_interface():
             "coordinates": scaling.scale_coordinates(245, -105),
             "width": scaling.scale_width(40),
             "height": scaling.scale_height(40),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "keybind_id": pygame.K_s,
             "image_id": "buttons/down_button.png",
             "init_type": constants.MOVE_DOWN_BUTTON,
@@ -2560,7 +2557,6 @@ def mob_sub_interface():
             "coordinates": scaling.scale_coordinates(245, -60),
             "width": scaling.scale_width(40),
             "height": scaling.scale_height(40),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "keybind_id": pygame.K_w,
             "image_id": "buttons/up_button.png",
             "init_type": constants.MOVE_UP_BUTTON,
@@ -2574,7 +2570,6 @@ def mob_sub_interface():
             "coordinates": scaling.scale_coordinates(290, -105),
             "width": scaling.scale_width(40),
             "height": scaling.scale_height(40),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "keybind_id": pygame.K_d,
             "image_id": "buttons/right_button.png",
             "init_type": constants.MOVE_RIGHT_BUTTON,
@@ -2682,7 +2677,6 @@ def location_interface():
         "coordinates": (0, 0),
         "width": scaling.scale_width(25),
         "height": scaling.scale_height(25),
-        "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
         "init_type": constants.SAME_LOCATION_ICON,
         "image_id": "buttons/default_button.png",
         "is_last": False,
@@ -2701,7 +2695,6 @@ def location_interface():
             "coordinates": (0, 0),
             "width": scaling.scale_width(25),
             "height": scaling.scale_height(15),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.SAME_LOCATION_ICON,
             "image_id": "buttons/default_button.png",
             "index": 3,
@@ -2717,7 +2710,6 @@ def location_interface():
                 "coordinates": scaling.scale_coordinates(0, separation),
                 "width": scaling.scale_width(25),
                 "height": scaling.scale_height(15),
-                "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
                 "image_id": "buttons/cycle_passengers_down_button.png",
                 "init_type": constants.CYCLE_SAME_LOCATION_BUTTON,
                 "parent_collection": same_location_ordered_collection,
@@ -2731,7 +2723,6 @@ def location_interface():
             "actor_type": constants.LOCATION_ACTOR_TYPE,
             "width": scaling.scale_width(constants.actor_icon_dimensions),
             "height": scaling.scale_height(constants.actor_icon_dimensions),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.location_info_display,
         }
@@ -2940,7 +2931,6 @@ def inventory_interface():
             "actor_type": constants.MOB_INVENTORY_ACTOR_TYPE,
             "width": scaling.scale_width(constants.inventory_icon_dimensions),
             "height": scaling.scale_height(constants.inventory_icon_dimensions),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.mob_inventory_info_display,
         }
@@ -3140,7 +3130,6 @@ def inventory_interface():
             "actor_type": constants.LOCATION_INVENTORY_ACTOR_TYPE,
             "width": scaling.scale_width(constants.inventory_icon_dimensions),
             "height": scaling.scale_height(constants.inventory_icon_dimensions),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.location_inventory_info_display,
         }
@@ -3520,7 +3509,6 @@ def unit_organization_interface():
             "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.group_reorganization_collection,
             "image_id": lhs_top_mob_icon_default_image,
@@ -3558,7 +3546,6 @@ def unit_organization_interface():
             "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.group_reorganization_collection,
             "image_id": lhs_bottom_mob_icon_default_image,
@@ -3595,7 +3582,6 @@ def unit_organization_interface():
             "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.group_reorganization_collection,
             "image_id": rhs_mob_icon_default_image,
@@ -3743,7 +3729,6 @@ def vehicle_organization_interface():
             "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.vehicle_reorganization_collection,
             "image_id": lhs_top_mob_icon_default_image,
@@ -3784,7 +3769,6 @@ def vehicle_organization_interface():
             "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.vehicle_reorganization_collection,
             "image_id": lhs_bottom_mob_icon_default_image,
@@ -3815,7 +3799,6 @@ def vehicle_organization_interface():
             "actor_type": constants.MOB_ACTOR_TYPE,
             "width": scaling.scale_width(image_height - 10),
             "height": scaling.scale_height(image_height - 10),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.vehicle_reorganization_collection,
             "image_id": rhs_mob_icon_default_image,
@@ -3931,6 +3914,22 @@ def supply_chain_interface():
             }
         )
     )
+    supply_chain_table = constants.ActorCreationManager.create_interface_element(
+        input_dict={
+            "init_type": constants.TABLE_GRID,
+            "width": scaling.scale_width(540),
+            "height": scaling.scale_height(210),
+            "coordinate_width": 6,
+            "coordinate_height": 7,
+            "parent_collection": status.supply_chain_collection,
+            "internal_line_color": constants.COLOR_BLACK,
+            "external_line_color": constants.COLOR_BLACK,
+            "member_config": {
+                "order_x_offset": scaling.scale_width(-100),
+                "order_y_offset": scaling.scale_height(-250),
+            },
+        }
+    )
 
 
 def minister_interface():
@@ -3969,7 +3968,6 @@ def minister_interface():
             "actor_type": constants.MINISTER_ACTOR_TYPE,
             "width": scaling.scale_width(constants.actor_icon_dimensions),
             "height": scaling.scale_height(constants.actor_icon_dimensions),
-            "modes": [constants.MINISTERS_MODE],
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.minister_info_display,
         }

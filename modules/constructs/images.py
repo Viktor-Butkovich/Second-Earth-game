@@ -1452,10 +1452,13 @@ class cell_image(image):
         """
         super().__init__(cell.width, cell.height)
         self.cell = cell
-        self.x, self.y = self.cell.pixel_x, self.cell.pixel_y
-        self.Rect = pygame.Rect(
-            self.x, self.y - self.height, self.width, self.height
-        )  # (left, top, width, height), bottom left on coordinates
+        self.x, self.y = (
+            self.cell.x,
+            constants.display_height
+            - (self.cell.y + self.cell.height)
+            + self.cell.height,
+        )
+        self.Rect = self.cell.Rect
         self.outline_width = self.cell.grid.grid_line_width + 1
         self.contains_bundle = True
         self.image: image_bundle = None
@@ -1473,9 +1476,9 @@ class cell_image(image):
 
     def show_num_mobs(self):
         """
-        Draws a number showing how many mobs are in this image's location, if it contains multiple mobs
+        Draws a number showing how many mobs are in this image's source location, if it contains multiple mobs
         """
-        length = len(self.cell.subscribed_location.subscribed_mobs)
+        length = len(self.cell.source.subscribed_mobs)
         if length >= 2:
             message = str(length)
             font = constants.fonts["max_detail_white"]
@@ -1488,3 +1491,15 @@ class cell_image(image):
             text_x = self.x + self.width - (font_width * (len(message) + 0.3))
             text_y = self.y + (-0.8 * self.height) - (0.5 * font_height)
             constants.game_display.blit(textsurface, (text_x, text_y))
+
+    def update_state(self):
+        """
+        Updates this cell image to match it's cell's current position
+        """
+        self.Rect = self.cell.Rect
+        self.x, self.y = (
+            self.cell.x,
+            constants.display_height
+            - (self.cell.y + self.cell.height)
+            + self.cell.height,
+        )

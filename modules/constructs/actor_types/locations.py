@@ -936,10 +936,10 @@ class location(actors.actor):
         Output:
             None
         """
-        if cell.location:
-            cell.location.unsubscribe_cell(cell)
+        if cell.source:
+            cell.source.unsubscribe_cell(cell)
         self.subscribed_cells.append(cell)
-        cell.subscribed_location = self
+        cell.subscribed_source = self
         if cell.grid == status.minimap_grid:
             cell.set_image(
                 self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MINIMAP_OVERLAY]
@@ -984,7 +984,7 @@ class location(actors.actor):
             None
         """
         self.subscribed_cells.remove(cell)
-        cell.subscribed_location = None
+        cell.subscribed_source = None
 
     def unsubscribe_mob(self, mob) -> None:
         """
