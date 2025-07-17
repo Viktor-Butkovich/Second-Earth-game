@@ -31,7 +31,9 @@ class label(button):
         Output:
             None
         """
-        self.font = input_dict.get("font", constants.fonts["default_notification"])
+        self.font = input_dict.get(
+            "font", constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
+        )
         self.current_character = None
         self.message = input_dict["message"]
         self.minimum_width = input_dict["minimum_width"]
@@ -316,7 +318,7 @@ class item_prices_label_template(label):
         self.minimum_height = input_dict["height"]
         input_dict["message"] = "none"
         super().__init__(input_dict)
-        self.font = constants.fonts["large_notification"]
+        self.font = constants.fonts[constants.LARGE_NOTIFICATION_FONT]
         self.update_label()
 
     def update_label(self):

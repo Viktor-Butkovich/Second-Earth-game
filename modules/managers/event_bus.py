@@ -6,12 +6,12 @@ from modules.constants import constants, status, flags
 
 class event_bus:
     """
-    Placeholder
+    Object that forwards events to subscribed callbacks based on topic subscriptions
     """
 
     def __init__(self):
         """
-        Placeholder
+        Initializes this object
         """
         self.subscriptions: Dict[str, List[Callable]] = {}
 

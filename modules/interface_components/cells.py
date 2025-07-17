@@ -71,6 +71,17 @@ class cell(interface_elements.interface_element):
         """
         self.image.set_image(*args, **kwargs)
 
+    def set_text(self, *args, **kwargs):
+        """
+        Description:
+            Changes the image reflected by this cell - wrapper over set-image to set an inputted text argument
+        Input:
+            string text: Text to display in this cell
+        Output:
+            None
+        """
+        self.image.set_text(*args, **kwargs)
+
     @property
     def source(self):
         """

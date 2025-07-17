@@ -335,10 +335,13 @@ class table_grid(grid):
         Input:
             dictionary input_dict: Keys corresponding to the values needed to initialize this object
                 Same as superclass, except:
+                'subject': string value - Subject of this table grid, such as 'supply_chain'
+                    Used to identify the type of content to populate the grid with
         Output:
             None
         """
         super().__init__(input_dict)
+        self.subject: str = input_dict["subject"]
 
     @property
     def show_internal_grid_lines(self) -> bool:
@@ -353,11 +356,10 @@ class table_grid(grid):
         Placeholder to test matrix coordinate system
         """
         super().calibrate(new_actor)
-        for current_cell in self.get_col(1):
-            current_cell.set_image([{"image_id": "sample text"}])
-        for current_cell in self.get_row(1):
-            current_cell.set_image([{"image_id": "misc/SE.png"}])
-        self.get_cell(3, 2).set_image([{"image_id": "misc/SE.png"}])
+        if self.subject == constants.SUPPLY_CHAIN_TABLE_SUBJECT:
+            constants.ContentProvider.populate_table_location_content(self, new_actor)
+        else:
+            raise ValueError(f"Unexpected table grid subject: {self.subject}")
 
     def get_row(self, index: int) -> List[cells.cell]:
         """

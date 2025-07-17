@@ -2657,7 +2657,7 @@ class anonymous_button(button):
         self.message = button_info_dict.get("message")
 
         super().__init__(input_dict)
-        self.font = constants.fonts["default_notification"]
+        self.font = constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
         if self.notification:
             self.in_notification = True
         else:

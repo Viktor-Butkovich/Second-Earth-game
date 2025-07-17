@@ -153,7 +153,7 @@ class choice_button(buttons.button):
             case _:
                 self.message = input_dict["button_type"].capitalize()
         super().__init__(input_dict)
-        self.font = constants.fonts["default_notification"]
+        self.font = constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
         self.in_notification = True
 
     def on_click(self):

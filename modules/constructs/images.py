@@ -8,7 +8,6 @@ from modules.util import (
     drawing_utility,
     text_utility,
     scaling,
-    minister_utility,
 )
 from modules.constants import constants, status, flags
 
@@ -33,6 +32,17 @@ class image:
         self.width = width
         self.height = height
         self.Rect = None
+
+    def set_text(self, text: str) -> None:
+        """
+        Description:
+            Sets this image to be a text image with the inputted text
+        Input:
+            str text: Text to display in this image
+        Output:
+            None
+        """
+        self.set_image([{"image_id": text}])
 
     def complete_draw(self):
         """
@@ -1463,6 +1473,27 @@ class cell_image(image):
         self.contains_bundle = True
         self.image: image_bundle = None
 
+    def set_text(self, text: str) -> None:
+        """
+        Description:
+            Sets this image to be a text image with the inputted text
+        Input:
+            str text: Text to display in this image
+        Output:
+            None
+        """
+        font = constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
+        width, height = font.pygame_font.size(text)
+        self.set_image(
+            [
+                {
+                    "image_id": text_utility.text(text, font),
+                    "override_width": min(width, self.width - scaling.scale_width(5)),
+                    "override_height": height,
+                }
+            ]
+        )
+
     def set_image(self, image_id_list):
         """
         Description:
@@ -1481,7 +1512,7 @@ class cell_image(image):
         length = len(self.cell.source.subscribed_mobs)
         if length >= 2:
             message = str(length)
-            font = constants.fonts["max_detail_white"]
+            font = constants.fonts[constants.MAX_DETAIL_WHITE_FONT]
             font_width = self.width * 0.13 * 1.3
             font_height = self.width * 0.3 * 1.3
             textsurface = font.pygame_font.render(message, False, font.color)

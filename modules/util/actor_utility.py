@@ -549,7 +549,7 @@ def generate_label_image_id(text: str, y_offset=0):
         },
         text_utility.prepare_render(
             text,
-            font=constants.fonts["max_detail_black"],
+            font=constants.fonts[constants.MAX_DETAIL_BLACK_FONT],
             override_input_dict={
                 "x_offset": x_offset,
                 "y_offset": y_offset,

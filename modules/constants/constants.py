@@ -16,6 +16,7 @@ from modules.managers import (
     help_manager,
     mouse_follower,
     event_bus,
+    content_provider,
     uuid_manager,
 )
 from modules.interface_components.labels import money_label
@@ -199,6 +200,7 @@ AchievementManager: achievement_manager.achievement_manager = (
 JobScheduler: job_scheduler.job_scheduler = job_scheduler.job_scheduler()
 EventBus: event_bus.event_bus = event_bus.event_bus()
 UuidManager: uuid_manager.uuid_manager = uuid_manager.uuid_manager()
+ContentProvider: content_provider.content_provider = content_provider.content_provider()
 NotificationManager: notification_manager.notification_manager = (
     None  # requires additional setup before initialization
 )
@@ -242,6 +244,15 @@ default_notification_font_size: int = 22
 notification_font_size: float = None
 myfont: font = None
 fonts: Dict[str, font] = {}
+
+WHITE_FONT: str = "white_font"
+DEFAULT_FONT: str = "default_font"
+DEFAULT_NOTIFICATION_FONT: str = "default_notification_font"
+WHITE_NOTIFICATION_FONT: str = "white_notification_font"
+LARGE_NOTIFICATION_FONT: str = "large_notification_font"
+LARGE_WHITE_NOTIFICATION_FONT: str = "large_white_notification_font"
+MAX_DETAIL_WHITE_FONT: str = "max_detail_white_font"
+MAX_DETAIL_BLACK_FONT: str = "max_detail_black_font"
 
 default_music_volume: float = 0.3
 
@@ -1136,3 +1147,5 @@ ABSOLUTE_ZERO_BANNER: str = "absolute_zero_banner"
 TERRAIN_DETAILS_BANNER: str = "terrain_details_banner"
 DEADLY_CONDITIONS_BANNER: str = "deadly_conditions_banner"
 TAB_NAME_BANNER: str = "tab_name_banner"
+
+SUPPLY_CHAIN_TABLE_SUBJECT: str = "supply_chain_table_subject"

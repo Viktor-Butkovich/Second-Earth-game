@@ -504,7 +504,7 @@ def manage_tooltip_drawing(tooltip_drawer):
     Output:
         None
     """
-    font = constants.fonts["default"]
+    font = constants.fonts[constants.DEFAULT_FONT]
     y_displacement = scaling.scale_width(30)  # estimated mouse size
 
     mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -600,7 +600,8 @@ def draw_tooltip(tooltip, below_screen, beyond_screen, height, width, y_displace
             text_utility.text(text_line, constants.myfont),
             (
                 tooltip["box"].x + scaling.scale_width(10),
-                tooltip["box"].y + (text_line_index * constants.fonts["default"].size),
+                tooltip["box"].y
+                + (text_line_index * constants.fonts[constants.DEFAULT_FONT].size),
             ),
         )
 
@@ -623,7 +624,7 @@ def draw_text_box():
     else:
         constants.text_box_height = constants.default_text_box_height
 
-    font = constants.fonts["default"]
+    font = constants.fonts[constants.DEFAULT_FONT]
     max_screen_lines = (constants.default_display_height // font.size) - 1
     max_text_box_lines = (constants.text_box_height // font.size) - 1
     for text_index in range(len(status.text_list)):

@@ -108,7 +108,7 @@ def misc():
 
     constants.myfont = fonts.font(
         {
-            "descriptor": "default",
+            "descriptor": constants.DEFAULT_FONT,
             "name": constants.small_font_name,
             "size": constants.font_size,
             "color": constants.COLOR_BLACK,
@@ -116,7 +116,7 @@ def misc():
     )
     fonts.font(
         {
-            "descriptor": "white",
+            "descriptor": constants.WHITE_FONT,
             "name": constants.small_font_name,
             "size": constants.font_size,
             "color": constants.COLOR_WHITE,
@@ -124,7 +124,7 @@ def misc():
     )
     fonts.font(
         {
-            "descriptor": "default_notification",
+            "descriptor": constants.DEFAULT_NOTIFICATION_FONT,
             "name": constants.font_name,
             "size": constants.notification_font_size,
             "color": constants.COLOR_BLACK,
@@ -132,7 +132,7 @@ def misc():
     )
     fonts.font(
         {
-            "descriptor": "white_notification",
+            "descriptor": constants.WHITE_NOTIFICATION_FONT,
             "name": constants.font_name,
             "size": constants.notification_font_size,
             "color": constants.COLOR_WHITE,
@@ -140,7 +140,7 @@ def misc():
     )
     fonts.font(
         {
-            "descriptor": "large_notification",
+            "descriptor": constants.LARGE_NOTIFICATION_FONT,
             "name": constants.font_name,
             "size": scaling.scale_height(30),
             "color": constants.COLOR_BLACK,
@@ -148,7 +148,7 @@ def misc():
     )
     fonts.font(
         {
-            "descriptor": "large_white_notification",
+            "descriptor": constants.LARGE_WHITE_NOTIFICATION_FONT,
             "name": constants.font_name,
             "size": scaling.scale_height(30),
             "color": constants.COLOR_WHITE,
@@ -156,7 +156,7 @@ def misc():
     )
     fonts.font(
         {
-            "descriptor": "max_detail_white",
+            "descriptor": constants.MAX_DETAIL_WHITE_FONT,
             "name": "helvetica",
             "size": scaling.scale_height(100),
             "color": constants.COLOR_WHITE,
@@ -164,7 +164,7 @@ def misc():
     )
     fonts.font(
         {
-            "descriptor": "max_detail_black",
+            "descriptor": constants.MAX_DETAIL_BLACK_FONT,
             "name": "helvetica",
             "size": scaling.scale_height(100),
             "color": constants.COLOR_BLACK,
@@ -201,7 +201,7 @@ def misc():
                 "image_id": "misc/empty.png",
                 "init_type": constants.MULTI_LINE_LABEL,
                 "message": "Loading screen quote",
-                "font": constants.fonts["large_white_notification"],
+                "font": constants.fonts[constants.LARGE_WHITE_NOTIFICATION_FONT],
                 "modes": [],
                 "center_lines": True,
             }
@@ -209,7 +209,7 @@ def misc():
     )
     loading_screen_continue_message = "Press ENTER to continue"
     loading_screen_continue_message_width = constants.fonts[
-        "large_white_notification"
+        constants.LARGE_WHITE_NOTIFICATION_FONT
     ].pygame_font.size(loading_screen_continue_message)[0]
     status.loading_screen_continue_banner = (
         constants.ActorCreationManager.create_interface_element(
@@ -224,7 +224,7 @@ def misc():
                 "image_id": "misc/empty.png",
                 "init_type": constants.LABEL,
                 "message": loading_screen_continue_message,
-                "font": constants.fonts["large_white_notification"],
+                "font": constants.fonts[constants.LARGE_WHITE_NOTIFICATION_FONT],
                 "modes": [],
             }
         )
@@ -3917,6 +3917,7 @@ def supply_chain_interface():
     supply_chain_table = constants.ActorCreationManager.create_interface_element(
         input_dict={
             "init_type": constants.TABLE_GRID,
+            "subject": constants.SUPPLY_CHAIN_TABLE_SUBJECT,
             "width": scaling.scale_width(540),
             "height": scaling.scale_height(210),
             "coordinate_width": 6,

@@ -26,7 +26,7 @@ class notification_manager:
             constants.MAIN_MENU_MODE,
             constants.NEW_GAME_SETUP_MODE,
         ]
-        self.font = constants.fonts["default_notification"]
+        self.font = constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
 
     def update_notification_layout(self, notification_height=0):
         """
@@ -168,7 +168,7 @@ class notification_manager:
 
         height = (
             len(self.format_message(message))
-            * constants.fonts["default_notification"].size
+            * constants.fonts[constants.DEFAULT_NOTIFICATION_FONT].size
         )
         self.update_notification_layout(height)
 
