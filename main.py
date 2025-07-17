@@ -420,6 +420,11 @@ except Exception:  # Displays error message and records error message in crash l
     May be incrementally adoptable, worth further research
     Replaces surfaces and blitting with textures and renderer copying
         Possibly close to what we're already doing with cached rendered surfaces
+29. Worker skill level
+    Consider different worker types as having different skill levels based on education, experience, etc.
+    Individual officers can easily be replaced or uplifted from the general population, so workers of different skill
+        levels would be the main limited resource
+    Potentially "stun" units for a variable amount of turns as an officer replacement is found
 """
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.

@@ -270,7 +270,7 @@ class grid(interface_elements.interface_element):
         """
         return int(self.height / self.coordinate_height) + 1
 
-    def find_cell(self, x, y) -> cells.cell:
+    def get_cell(self, x, y) -> cells.cell:
         """
         Description:
             Returns this grid's cell that occupies the inputted coordinates
@@ -278,17 +278,9 @@ class grid(interface_elements.interface_element):
             int x: x coordinate for the grid location of the requested cell
             int y: y coordinate for the grid location of the requested cell
         Output:
-            None/cell: Returns this grid's cell that occupies the inputted coordinates, or None if there are no cells at the inputted coordinates
+            cell: Returns this grid's cell that occupies the inputted coordinates
         """
-        if (
-            x >= 0
-            and x < self.coordinate_width
-            and y >= 0
-            and y < self.coordinate_height
-        ):
-            return self.cell_list[x][y]
-        else:
-            return None
+        return self.cell_list[x][y]
 
     def get_flat_cell_list(self) -> itertools.chain[cells.cell]:
         """
@@ -357,10 +349,50 @@ class table_grid(grid):
         return False
 
     def calibrate(self, new_actor):
+        """
+        Placeholder to test matrix coordinate system
+        """
         super().calibrate(new_actor)
-        for col in self.cell_list:
-            # col[0].set_image([{"image_id": "sample text?"}])
-            col[0].set_image([{"image_id": "misc/SE.png"}])
+        for current_cell in self.get_col(1):
+            current_cell.set_image([{"image_id": "sample text"}])
+        for current_cell in self.get_row(1):
+            current_cell.set_image([{"image_id": "misc/SE.png"}])
+        self.get_cell(3, 2).set_image([{"image_id": "misc/SE.png"}])
+
+    def get_row(self, index: int) -> List[cells.cell]:
+        """
+        Description:
+            Returns the row of cells at the inputted index, using standard matrix notation (top left is row 1, col 1)
+        Input:
+            int index: Index of the row to return
+        Output:
+            list: Returns the row of cells at the inputted index
+        """
+        return [col[len(col) - index] for col in self.cell_list]
+
+    def get_col(self, index: int) -> List[cells.cell]:
+        """
+        Description:
+            Returns the column of cells at the inputted index, using standard matrix notation (top left is row 1, col 1)
+        Input:
+            int index: Index of the column to return
+        Output:
+            list: Returns the column of cells at the inputted index
+        """
+        return self.cell_list[index - 1]
+
+    def get_cell(self, row, column) -> cells.cell:
+        """
+        Description:
+            Returns this grid's cell that occupies the inputted row and column, using standard matrix notation
+                (top left is row 1, col 1)
+        Input:
+            int row: Row index for the grid location of the requested cell
+            int column: Column index for the grid location of the requested cell
+        Output:
+            cell: Returns this grid's cell that occupies the inputted row and column
+        """
+        return self.cell_list[column - 1][len(self.cell_list[0]) - row]
 
 
 class location_grid(grid):
@@ -502,7 +534,7 @@ class mini_grid(location_grid):
                     self.world_handler.find_location(
                         *self.get_absolute_coordinates(x, y)
                     ).subscribe_cell(
-                        self.find_cell(x, y)
+                        self.get_cell(x, y)
                     )  # Calibrate each cell to its the new location
             if self == status.minimap_grid:
                 for (

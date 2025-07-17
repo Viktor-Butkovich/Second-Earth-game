@@ -1098,7 +1098,7 @@ class directional_indicator_image(tooltip_free_image):
         if not status.minimap_grid.is_on_mini_grid(
             self.anchor_location.x, self.anchor_location.y
         ):
-            anchor_scrolling_cell = status.scrolling_strategic_map_grid.find_cell(
+            anchor_scrolling_cell = status.scrolling_strategic_map_grid.get_cell(
                 *status.scrolling_strategic_map_grid.get_mini_grid_coordinates(
                     self.anchor_location.x, self.anchor_location.y
                 )
