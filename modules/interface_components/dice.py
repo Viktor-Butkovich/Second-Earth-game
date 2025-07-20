@@ -1,5 +1,6 @@
 # Contains functionality for dice icons
 
+from __future__ import annotations
 import pygame
 import time
 import random

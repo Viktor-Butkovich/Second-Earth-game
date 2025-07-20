@@ -1,5 +1,6 @@
 # Contains functions that control the display of new notifications
 
+from __future__ import annotations
 from modules.constants import constants, status, flags
 
 

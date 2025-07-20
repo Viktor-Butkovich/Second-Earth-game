@@ -1,5 +1,6 @@
 # Contains all functionality for public relations campaigns
 
+from __future__ import annotations
 import pygame
 import random
 from typing import List

@@ -1,5 +1,6 @@
 # Contains all functionality for loan searches
 
+from __future__ import annotations
 import pygame
 from typing import List
 from modules.action_types import action

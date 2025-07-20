@@ -1,5 +1,6 @@
 # Contains functionality for minister type templates, such as Minister of Security or Minister of Energy
 
+from __future__ import annotations
 from typing import Dict, List
 from modules.util import minister_utility
 from modules.constants import constants, status, flags

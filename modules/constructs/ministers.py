@@ -1,7 +1,7 @@
 # Contains functionality for ministers
 
+from __future__ import annotations
 import random
-import os
 from typing import List, Tuple, Dict
 from modules.util import utility, minister_utility, scaling
 from modules.constructs import minister_types

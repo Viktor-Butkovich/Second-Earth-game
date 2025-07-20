@@ -1,5 +1,6 @@
 # Runs setup and main loop on program start
 
+from __future__ import annotations
 from modules.util import main_loop_utility, setup_utility
 
 try:
@@ -455,13 +456,7 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Add table grid cell selection interface
-#   Intuitively, we should be able to access rows and columns of the table by index without thinking about its internal structure
-#   Right now, (0, 0) is the bottom left, which makes sense for an image but not a matrix
-#   Probably since the image's x value isn't being updated with the image
-#   Try different grid offsets to see if they are responsive at all - likely not
-#   Try out fixed font-size text that WON'T adapt to cell size - we want the font to be consistent
-#       Should be a fixed pixel width/size image ID option
+# Implement supply chain plans using command pattern
 # Add logistics info display tab with item upkeep information
 #   Mob version with just that mob, and a location version with total location demands
 #   Continue working on supply chain dashboard, including revamped transportation minister icon

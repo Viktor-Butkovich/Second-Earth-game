@@ -1,5 +1,6 @@
 # Contains functionality for terrain feature types - points of interest at a location
 
+from __future__ import annotations
 import random
 from typing import Dict, List, Tuple
 from modules.constants import constants, status, flags
@@ -68,8 +69,8 @@ class terrain_feature_type:
                 random.randrange(1, self.frequency[1] + 1) <= self.frequency[0]
             ):  # For (1, 10), appear if random.randrange(1, 11) <= 1
                 for requirement in self.requirements:
-                    if requirement == "terrain":
-                        if self.requirements[requirement] != location.terrain:
+                    if requirement == "terrain_type":
+                        if self.requirements[requirement] != location.terrain_type:
                             return False
                     elif requirement == "min_y":
                         if location.y < self.requirements[requirement]:

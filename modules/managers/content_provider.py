@@ -1,5 +1,6 @@
 # Contains singleton to extract relevant content from actors to populate interface components
 
+from __future__ import annotations
 from modules.interface_components import grids
 from modules.constructs.actor_types import locations
 from modules.constants import constants, status, flags
@@ -20,6 +21,8 @@ class content_provider:
         self, table: grids.table_grid, location: locations.location
     ) -> None:
         if table.subject == constants.SUPPLY_CHAIN_TABLE_SUBJECT:
+            # supply_chain_items = location.get_supply_chain_items()
+            # All item types with at least 1 present or demanded
             for col, col_name in enumerate(
                 [
                     "Item Type",

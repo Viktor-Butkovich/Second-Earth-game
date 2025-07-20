@@ -1,5 +1,6 @@
 # Contains functionality for labels
 
+from __future__ import annotations
 import pygame
 from typing import List
 from modules.interface_components.buttons import button

@@ -1,8 +1,9 @@
 # Contains terrain classification and configuration management singleton
 
+from __future__ import annotations
 import json
-import os
 from typing import List, Dict, Any
+from modules.constructs import terrain_types
 from modules.constants import constants, status, flags
 
 
@@ -15,16 +16,12 @@ class terrain_manager:
         """
         Initializes this object
         """
-        # Dictionary of terrain names to number of image variants possible
-        self.terrain_variant_dict: Dict[str, int] = {}
+        # Dictionary of parameter value combinations to terrain types
+        self.parameter_to_terrain_type: Dict[str, terrain_types.terrain_type] = {}
 
-        # Dictionary of parameter value combinations to terrain names
-        self.parameter_to_terrain: Dict[str, str] = {}
+        self.terrain_type_dict: Dict[str, terrain_types.terrain_type] = {}
+        # Key lookup of all terrain types
 
-        # Dictionary of terrain names to terrain definitions - better for giving parameter ranges but worse for classification
-        self.terrain_range_dict: Dict[str, Dict[str, Any]] = {}
-
-        self.terrain_list: List[str] = []  # List of all terrain names
         self.terrain_parameter_keywords = {
             constants.KNOWLEDGE: {
                 0: "orbital view",
@@ -174,64 +171,51 @@ class terrain_manager:
             None
         """
         with open(file_name) as active_file:
-            self.terrain_range_dict = json.load(
+            for key, range_dict in json.load(
                 active_file
-            )  # dictionary of terrain name keys and terrain dict values for each terrain
-        for terrain_name in self.terrain_range_dict:
-            self.terrain_list.append(terrain_name)
-            terrain = self.terrain_range_dict[terrain_name]
-            for temperature in range(
-                terrain["min_temperature"], terrain["max_temperature"] + 1
-            ):
-                for roughness in range(
-                    terrain["min_roughness"], terrain["max_roughness"] + 1
+            ).items():  # JSON of terrain name keys and terrain dict values for each terrain
+                terrain = terrain_types.terrain_type(key, range_dict)
+                self.terrain_type_dict[key] = terrain
+                for temperature in range(
+                    range_dict["min_temperature"], range_dict["max_temperature"] + 1
                 ):
-                    for vegetation in range(
-                        terrain["min_vegetation"], terrain["max_vegetation"] + 1
+                    for roughness in range(
+                        range_dict["min_roughness"], range_dict["max_roughness"] + 1
                     ):
-                        for soil in range(terrain["min_soil"], terrain["max_soil"] + 1):
-                            for water in range(
-                                terrain["min_water"], terrain["max_water"] + 1
+                        for vegetation in range(
+                            range_dict["min_vegetation"],
+                            range_dict["max_vegetation"] + 1,
+                        ):
+                            for soil in range(
+                                range_dict["min_soil"], range_dict["max_soil"] + 1
                             ):
-                                self.parameter_to_terrain[
-                                    f"{temperature}{roughness}{vegetation}{soil}{water}"
-                                ] = terrain_name
+                                for water in range(
+                                    range_dict["min_water"], range_dict["max_water"] + 1
+                                ):
+                                    self.parameter_to_terrain_type[
+                                        f"{temperature}{roughness}{vegetation}{soil}{water}"
+                                    ] = terrain
+            self.terrain_type_dict["clouds_base"] = terrain_types.terrain_type(
+                "clouds_base", {}
+            )
+            self.terrain_type_dict["clouds_solid"] = terrain_types.terrain_type(
+                "clouds_solid", {}
+            )
+            # Load in terrains that need variants but don't occur in the terrain definitions
 
-            current_variant = 0
-            while os.path.exists(
-                f"graphics/terrains/{terrain_name}_{current_variant}.png"
-            ):
-                current_variant += 1
-            current_variant -= 1  # back up from index that didn't work
-            self.terrain_variant_dict[terrain_name] = (
-                current_variant + 1
-            )  # number of variants, variants in format 'mountains_0', 'mountains_1', etc.
-
-            for special_terrain in [
-                "clouds_base",
-                "clouds_solid",
-            ]:  # Load in terrains that need variants but don't occur in the terrain definitions
-                current_variant = 0
-                while os.path.exists(
-                    f"graphics/terrains/{special_terrain}_{current_variant}.png"
-                ):
-                    current_variant += 1
-                current_variant -= 1  # back up from index that didn't work
-                self.terrain_variant_dict[special_terrain] = current_variant + 1
-
-    def classify(self, terrain_parameters):
+    def classify(self, terrain_parameters) -> terrain_types.terrain_type:
         """
         Description:
             Classifies the inputted terrain parameters into a terrain type
         Input:
             dictionary terrain_parameters: Dictionary of terrain parameters to classify
         Output:
-            string: Returns the terrain type that the inputted parameters classify as
+            terrain_type: Returns the terrain type that the inputted parameters classify as
         """
         unbounded_temperature = f"{terrain_parameters['temperature'] + 1}{terrain_parameters['roughness'] + 1}{terrain_parameters['vegetation'] + 1}{terrain_parameters['soil'] + 1}{terrain_parameters['water'] + 1}"
         default = f"{max(min(terrain_parameters['temperature'] + 1, 6), 1)}{terrain_parameters['roughness'] + 1}{terrain_parameters['vegetation'] + 1}{terrain_parameters['soil'] + 1}{terrain_parameters['water'] + 1}"
         # Check -5 to 12 for temperature but use 1-6 if not defined
         # Terrain hypercube is fully defined within 1-6, but temperature terrains can exist outside of this range
-        return self.parameter_to_terrain.get(
-            unbounded_temperature, self.parameter_to_terrain[default]
+        return self.parameter_to_terrain_type.get(
+            unbounded_temperature, self.parameter_to_terrain_type[default]
         )

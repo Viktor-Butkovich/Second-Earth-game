@@ -1,3 +1,4 @@
+from __future__ import annotations
 import random
 import os
 from typing import Dict, List, Any

@@ -1,5 +1,6 @@
 # Contains utilities for dynamic icon that follows the mouse pointer
 
+from __future__ import annotations
 import pygame
 from modules.constructs.images import free_image
 from modules.constants import constants, status, flags

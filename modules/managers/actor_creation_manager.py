@@ -1,5 +1,6 @@
 # Contains actor/interface element creation factory singleton
 
+from __future__ import annotations
 import random
 from modules.constructs.actor_types import locations, mobs
 from modules.constructs.actor_types.mob_types import (

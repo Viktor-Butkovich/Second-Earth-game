@@ -98,9 +98,6 @@ class group(pmob):
         if self.officer.get_permission(constants.VETERAN_PERMISSION):
             self.promote()
         if not from_save:
-            self.status_icons = self.officer.status_icons
-            for current_status_icon in self.status_icons:
-                current_status_icon.actor = self
             self.set_movement_points(
                 actor_utility.generate_group_movement_points(self.worker, self.officer)
             )
@@ -262,9 +259,6 @@ class group(pmob):
         self.worker.set_movement_points(
             math.floor(movement_ratio_remaining * self.worker.max_movement_points)
         )
-        self.officer.status_icons = self.status_icons
-        for current_status_icon in self.status_icons:
-            current_status_icon.actor = self.officer
         self.officer.leave_group(self, focus=focus)
         self.officer.set_movement_points(
             math.floor(movement_ratio_remaining * self.officer.max_movement_points)

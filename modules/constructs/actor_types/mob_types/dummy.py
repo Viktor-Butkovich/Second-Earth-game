@@ -1,5 +1,6 @@
 # Contains functionality for dummies, which replicate other objects or act as models of hypothetical objects with fake attribute values and tooltips
 
+from __future__ import annotations
 from typing import Dict, Any
 from modules.constructs.actor_types.mob_types import pmobs
 from modules.constants import constants, status, flags

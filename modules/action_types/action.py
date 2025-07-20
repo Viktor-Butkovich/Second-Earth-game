@@ -1,5 +1,6 @@
 # Contains functionality for generic actions
 
+from __future__ import annotations
 from modules.util import (
     main_loop_utility,
     text_utility,

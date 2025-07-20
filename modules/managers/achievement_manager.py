@@ -1,5 +1,6 @@
 # Contains player profile achievement management singleton
 
+from __future__ import annotations
 import pickle
 import os
 from typing import List

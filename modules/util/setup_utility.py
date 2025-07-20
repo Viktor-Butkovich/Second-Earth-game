@@ -1,5 +1,6 @@
 # Manages initial game setup in a semi-modular order
 
+from __future__ import annotations
 import pygame
 import logging
 from modules.constants import constants, status, flags

@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pygame
 import math
 import random
@@ -1409,12 +1410,8 @@ class full_world_handler(world_handlers.world_handler):
         Creates random cloud images for each location, with frequency depending on water vapor
             Purely cosmetic
         """
-        num_cloud_variants = constants.TerrainManager.terrain_variant_dict.get(
-            "clouds_base", 1
-        )
-        num_solid_cloud_variants = constants.TerrainManager.terrain_variant_dict.get(
-            "clouds_solid", 1
-        )
+        num_cloud_variants = constants.TerrainManager.terrain_type_dict["clouds_solid"].num_variants
+        num_solid_cloud_variants = constants.TerrainManager.terrain_type_dict["clouds_solid"].num_variants
         for location in self.get_flat_location_list():
             location.update_clouds(num_cloud_variants, num_solid_cloud_variants)
 

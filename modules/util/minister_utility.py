@@ -1,5 +1,6 @@
 # Contains miscellaneous functions relating to minister functionality
 
+from __future__ import annotations
 from modules.util import game_transitions
 from modules.constants import constants, status, flags
 

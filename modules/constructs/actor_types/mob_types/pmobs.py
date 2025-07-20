@@ -1,6 +1,6 @@
 # Contains functionality for player-controlled mobs
 
-import pygame
+from __future__ import annotations
 import random
 from typing import Dict, List
 from modules.constructs.actor_types.mobs import mob

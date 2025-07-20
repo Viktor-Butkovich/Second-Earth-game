@@ -1,5 +1,6 @@
 # Contains sound effect and music management singleton
 
+from __future__ import annotations
 import random
 import pygame
 import os

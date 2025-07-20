@@ -1,5 +1,6 @@
 # Contains functionality for officer units
 
+from __future__ import annotations
 import random
 from modules.util import utility
 from modules.constructs.actor_types.mob_types.pmobs import pmob

@@ -1,5 +1,6 @@
 # Contains all functionality for construction
 
+from __future__ import annotations
 from typing import List
 from modules.action_types import action
 from modules.util import action_utility, utility, actor_utility, text_utility
@@ -114,10 +115,10 @@ class construction(action.action):
             )
 
         if status.displayed_mob and not status.displayed_mob.location.is_earth_location:
-            terrain = status.displayed_mob.location.terrain
+            terrain_type = status.displayed_mob.location.terrain_type
             if not self.building_type.key in [constants.TRAIN]:
                 message.append(
-                    f"{utility.generate_capitalized_article(self.building_name)}{self.building_name} {utility.conjugate('cost', 1, self.building_name)} {base_cost} money by default, which is multiplied by {constants.terrain_build_cost_multiplier_dict.get(terrain, 1)} when built in {terrain.replace('_', ' ')} terrain"
+                    f"{utility.generate_capitalized_article(self.building_name)}{self.building_name} {utility.conjugate('cost', 1, self.building_name)} {base_cost} money by default, which is multiplied by {terrain_type.build_cost_multiplier} when built in {terrain_type.name} terrain"
                 )
         return message
 
@@ -218,33 +219,11 @@ class construction(action.action):
 
         elif self.building_type.key == constants.INFRASTRUCTURE:
             if not status.displayed_mob.location.has_building(constants.INFRASTRUCTURE):
-                if status.displayed_mob.location.terrain == "water":
-                    new_name = "ferry"
-                    new_image = "buildings/buttons/ferry.png"
-                else:
-                    new_name = "road"
-                    new_image = "buildings/buttons/road.png"
+                new_name = "road"
+                new_image = "buildings/buttons/road.png"
             else:
-                if status.displayed_mob.location.terrain == "water":
-                    if not status.displayed_mob.location.has_building(
-                        constants.INFRASTRUCTURE
-                    ):
-                        new_name = "ferry"
-                        new_image = "buildings/buttons/ferry.png"
-                    elif (
-                        status.displayed_mob.location.get_building(
-                            constants.INFRASTRUCTURE
-                        ).infrastructure_type
-                        == constants.FERRY
-                    ):
-                        new_name = "road bridge"
-                        new_image = "buildings/buttons/road_bridge.png"
-                    else:
-                        new_name = "railroad bridge"
-                        new_image = "buildings/buttons/railroad_bridge.png"
-                else:
-                    new_name = "railroad"
-                    new_image = "buildings/buttons/railroad.png"
+                new_name = "railroad"
+                new_image = "buildings/buttons/railroad.png"
             if new_name != self.building_name:
                 self.building_name = new_name
                 self.button.image.set_image(new_image)

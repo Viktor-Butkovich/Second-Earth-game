@@ -1,5 +1,6 @@
 # Contains functionality for actor display labels
 
+from __future__ import annotations
 import pygame
 from typing import List, Callable
 from modules.constructs.actor_types import actors
@@ -347,23 +348,25 @@ class actor_display_label(labels.label):
             self.message_start = "Minister: "
             input_dict["width"], input_dict["height"] = (m_size, m_size)
 
-            attached_minister_icon = constants.ActorCreationManager.create_interface_element(
-                {
-                    "coordinates": (0, 0),
-                    "actor_type": constants.MINISTER_ACTOR_TYPE,
-                    "width": scaling.scale_width(30) + m_increment,
-                    "height": scaling.scale_height(30) + m_increment,
-                    "modes": self.modes,
-                    "init_type": constants.ACTOR_ICON,
-                    "parent_collection": self.insert_collection_above(),
-                    "member_config": {
-                        "x_offset": -1
-                        * (
-                            scaling.scale_width(33) + m_increment
-                        ),  # -1.5 * (m_increment),
-                        "y_offset": -0.5 * m_increment,  # -0.5 * m_increment,
-                    },
-                }
+            attached_minister_icon = (
+                constants.ActorCreationManager.create_interface_element(
+                    {
+                        "coordinates": (0, 0),
+                        "actor_type": constants.MINISTER_ACTOR_TYPE,
+                        "width": scaling.scale_width(30) + m_increment,
+                        "height": scaling.scale_height(30) + m_increment,
+                        "modes": self.modes,
+                        "init_type": constants.ACTOR_ICON,
+                        "parent_collection": self.insert_collection_above(),
+                        "member_config": {
+                            "x_offset": -1
+                            * (
+                                scaling.scale_width(33) + m_increment
+                            ),  # -1.5 * (m_increment),
+                            "y_offset": -0.5 * m_increment,  # -0.5 * m_increment,
+                        },
+                    }
+                )
             )
             self.parent_collection.can_show_override = self  # parent collection is considered showing when this label can show, allowing ordered collection to work correctly
             self.image_y_displacement = 5
@@ -1211,10 +1214,10 @@ class actor_display_label(labels.label):
                 if not new_actor.is_abstract_location:
                     if self.actor.knowledge_available(constants.TERRAIN_KNOWLEDGE):
                         self.set_label(
-                            f"{self.message_start}{new_actor.terrain.replace('_', ' ')}"
+                            f"{self.message_start}{new_actor.terrain_type.name}"
                         )
                     else:
-                        self.set_label(self.message_start + "unknown")
+                        self.set_label(f"{self.message_start}unknown")
 
             elif self.actor_label_type == constants.PLANET_NAME_LABEL:
                 if new_actor.is_abstract_location:
@@ -1813,7 +1816,7 @@ class banner(actor_display_label):
         else:
             return super().can_show(skip_parent_collection=skip_parent_collection)
 
-    def calibrate(self, new_actor):
+    def calibrate(self, new_actor: actors.actor) -> None:
         """
         Description:
             Attaches this label to the inputted actor and updates this label's information based on the inputted actor
@@ -1865,7 +1868,7 @@ class list_item_label(actor_display_label):
         self.attached_list = []
         super().__init__(input_dict)
 
-    def calibrate(self, new_actor):
+    def calibrate(self, new_actor: actors.actor) -> None:
         """
         Description:
             Attaches this label to the inputted actor and updates this label's information based on one of the inputted actor's lists
@@ -1921,7 +1924,7 @@ class building_work_crews_label(actor_display_label):
         super().__init__(input_dict)
         self.building_type = input_dict["building_type"]
 
-    def calibrate(self, new_actor):
+    def calibrate(self, new_actor: actors.actor) -> None:
         """
         Description:
             Attaches this label to the inputted actor and updates this label's information based on the inputted actor
@@ -1985,7 +1988,7 @@ class building_efficiency_label(actor_display_label):
         self.building_type = input_dict["building_type"]
         self.attached_building = None
 
-    def calibrate(self, new_actor):
+    def calibrate(self, new_actor: actors.actor) -> None:
         """
         Description:
             Attaches this label to the inputted actor and updates this label's information based on the inputted actor

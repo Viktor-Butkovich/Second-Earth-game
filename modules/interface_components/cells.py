@@ -1,7 +1,9 @@
 # Contains functionality for grid cells
 
+from __future__ import annotations
 import pygame
-from modules.interface_components import interface_elements
+from typing import Any, List
+from modules.interface_components import interface_elements, grids
 from modules.constructs import images
 from modules.constants import constants, status, flags
 
@@ -26,7 +28,7 @@ class cell(interface_elements.interface_element):
             None
         """
         super().__init__(input_dict)
-        self.grid = input_dict["grid"]
+        self.grid: grids.grid = input_dict["grid"]
         self.grid_x, self.grid_y = input_dict["grid_coordinates"]
         self.subscribed_source = None
         # A cell can calibrate to a source, an object that must support batch tooltips
@@ -35,7 +37,7 @@ class cell(interface_elements.interface_element):
         self.image: images.cell_image = images.cell_image(self)
         self.set_image([{"image_id": "misc/empty.png"}])
 
-    def set_origin(self, new_x, new_y):
+    def set_origin(self, new_x: int, new_y: int) -> None:
         """
         Description:
             Sets this interface element's location at the inputted coordinates
@@ -50,7 +52,7 @@ class cell(interface_elements.interface_element):
             self.image.update_state()
 
     @property
-    def batch_tooltip_list(self):
+    def batch_tooltip_list(self) -> List[List[str]]:
         """
         Gets a 2D list of strings to use as this object's tooltip
             Each string is displayed on a separate line, while each sublist is displayed in a separate box
@@ -60,7 +62,7 @@ class cell(interface_elements.interface_element):
         else:
             return []
 
-    def set_image(self, *args, **kwargs):
+    def set_image(self, *args, **kwargs) -> None:
         """
         Description:
             Changes the image reflected by this cell, used when re-calibrating to a subscribed location
@@ -71,7 +73,7 @@ class cell(interface_elements.interface_element):
         """
         self.image.set_image(*args, **kwargs)
 
-    def set_text(self, *args, **kwargs):
+    def set_text(self, *args, **kwargs) -> None:
         """
         Description:
             Changes the image reflected by this cell - wrapper over set-image to set an inputted text argument
@@ -83,19 +85,19 @@ class cell(interface_elements.interface_element):
         self.image.set_text(*args, **kwargs)
 
     @property
-    def source(self):
+    def source(self) -> Any:
         """
         Gets the subscribed source of this cell
         """
         return self.subscribed_source
 
-    def can_show_tooltip(self):
+    def can_show_tooltip(self) -> bool:
         """
         Returns whether this cell's tooltip can currently be shown
         """
         return self.grid.can_show() and self.touching_mouse()
 
-    def draw(self):
+    def draw(self) -> None:
         """
         Draws this cell as a rectangle with a certain color on its grid, depending on this cell's color value, along with actors this cell contains
         """
@@ -111,7 +113,7 @@ class cell(interface_elements.interface_element):
             self.image.outline_width,
         )
 
-    def touching_mouse(self):
+    def touching_mouse(self) -> bool:
         """
         Description:
             Returns True if this cell is colliding with the mouse, otherwise returns False

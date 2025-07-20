@@ -1,16 +1,17 @@
 # Contains inventory-specific interface classes
 
+from __future__ import annotations
 import pygame
 import math
 from typing import List
-from modules.interface_components.interface_elements import ordered_collection
-from modules.interface_components.buttons import button
+from modules.interface_components import buttons, interface_elements
 from modules.util import actor_utility
 from modules.constructs import item_types
+from modules.constructs.actor_types import actors
 from modules.constants import constants, status, flags
 
 
-class inventory_grid(ordered_collection):
+class inventory_grid(interface_elements.ordered_collection):
     """
     Ordered collection to display actor inventory
     """
@@ -63,7 +64,7 @@ class inventory_grid(ordered_collection):
         else:
             raise ValueError(f"Invalid actor type: {self.get_actor_type()}")
 
-    def show_scroll_button(self, scroll_button) -> bool:
+    def show_scroll_button(self, scroll_button: buttons.scroll_button) -> bool:
         """
         Description:
             Returns whether a particular scroll button should be shown
@@ -89,7 +90,7 @@ class inventory_grid(ordered_collection):
                 self.inventory_page > 0
             )  # Can scroll up if there are any previous pages
 
-    def calibrate(self, new_actor, override_exempt=False):
+    def calibrate(self, new_actor: actors.actor, override_exempt: bool = False) -> None:
         """
         Description:
             Atttaches this collection and its members to inputted actor and updates their information based on the inputted actor
@@ -142,7 +143,7 @@ class inventory_grid(ordered_collection):
         )
 
 
-class item_icon(button):
+class item_icon(buttons.button):
     """
     Button that can calibrate to an item
     """
@@ -179,7 +180,7 @@ class item_icon(button):
             self
         )  # Add to inventory grid's item icon list
 
-    def calibrate(self, new_actor):
+    def calibrate(self, new_actor: actors.actor) -> None:
         """
         Description:
             Attaches this button to the inputted actor and updates this button's image to that of the actor. May also display a shader over this button, if its particular
@@ -257,7 +258,7 @@ class item_icon(button):
                         self.parent_collection.scroll_update()
         super().calibrate(new_actor)
 
-    def draw(self):
+    def draw(self) -> None:
         """
         Draws this button below its choice notification, along with an outline if it is selected
         """
@@ -271,7 +272,7 @@ class item_icon(button):
                 )
         super().draw()
 
-    def can_show(self, skip_parent_collection=False):
+    def can_show(self, skip_parent_collection: bool = False) -> bool:
         """
         Description:
             Returns whether this button can be shown - an item icon is shown if the corresponding actor has sufficient inventory capacity to fill this slot
@@ -295,7 +296,7 @@ class item_icon(button):
         else:
             return ["Empty"]
 
-    def on_click(self):
+    def on_click(self) -> None:
         """
         Calibrates mob_inventory_info_display or location_inventory_info_display to this icon, depending on this icon's actor type
         """

@@ -1,5 +1,6 @@
 # Contains functionality for non-player-controlled mobs
 
+from __future__ import annotations
 import random
 from modules.constructs.actor_types.mobs import mob
 from modules.util import utility, turn_management_utility, actor_utility

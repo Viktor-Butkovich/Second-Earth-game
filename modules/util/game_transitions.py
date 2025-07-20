@@ -1,5 +1,6 @@
 # Contains functions used when switching between parts of the game, like loading screen display
 
+from __future__ import annotations
 from modules.util import (
     main_loop_utility,
     text_utility,

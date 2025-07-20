@@ -1,5 +1,6 @@
 # Contains functionality for panels
 
+from __future__ import annotations
 from modules.interface_components.buttons import button
 from modules.constants import constants, status, flags
 

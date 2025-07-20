@@ -1,5 +1,6 @@
 # Contains trial-related helper functions
 
+from __future__ import annotations
 from modules.constants import constants, status, flags
 
 

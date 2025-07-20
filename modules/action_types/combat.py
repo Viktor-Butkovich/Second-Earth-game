@@ -1,5 +1,6 @@
 # Contains all functionality for combat
 
+from __future__ import annotations
 import random
 from typing import List
 from modules.action_types import action
@@ -666,13 +667,6 @@ class combat(action.action):
 
         if not self.defending:
             self.current_unit.set_movement_points(0)
-            if (
-                combat_location.terrain == "water"
-                and not self.current_unit.get_permission(constants.SWIM_PERMISSION)
-            ):  # if attacked water and can't swim, become disorganized after combat
-                self.current_unit.set_permission(
-                    constants.DISORGANIZED_PERMISSION, True
-                )
 
         super().complete()
 

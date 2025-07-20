@@ -1,5 +1,6 @@
 # Contains topic subscription/publication-based event bus management singleton
 
+from __future__ import annotations
 from typing import List, Dict, Callable
 from modules.constants import constants, status, flags
 

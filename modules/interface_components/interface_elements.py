@@ -1,8 +1,10 @@
 # Contains functionality for interface elements and collections
 
+from __future__ import annotations
 import pygame
 from modules.constructs import images
 from modules.util import scaling, utility, dummy_utility, actor_utility, world_utility
+from modules.constructs.actor_types import actors
 from modules.constants import constants, status, flags
 
 
@@ -38,7 +40,9 @@ class interface_element:
         self.showing = False
         self.parent_collection = input_dict.get("parent_collection", None)
         self.has_parent_collection = self.parent_collection != None
-        if (not self.has_parent_collection) and (not input_dict.get("override_no_parent_collection", False)):
+        if (not self.has_parent_collection) and (
+            not input_dict.get("override_no_parent_collection", False)
+        ):
             status.independent_interface_elements.append(self)
 
         input_dict["coordinates"] = input_dict.get("coordinates", (0, 0))
@@ -161,7 +165,7 @@ class interface_element:
         """
         self.modes = new_modes
 
-    def calibrate(self, new_actor, override_exempt=False):
+    def calibrate(self, new_actor: actors.actor, override_exempt: bool = False) -> None:
         """
         Description:
             Allows subclasses to attach to the inputted actor and updates information based on the inputted actor
@@ -359,7 +363,7 @@ class interface_collection(interface_element):
             initial_member_dict["parent_collection"] = self
             constants.ActorCreationManager.create_interface_element(initial_member_dict)
 
-    def calibrate(self, new_actor, override_exempt=False):
+    def calibrate(self, new_actor: actors.actor, override_exempt: bool = False) -> None:
         """
         Description:
             Atttaches this collection and its members to inputted actor and updates their information based on the inputted actor
@@ -546,7 +550,7 @@ class autofill_collection(interface_collection):
         self.search_start_index = 0
         super().__init__(input_dict)
 
-    def can_show(self, skip_parent_collection=False):
+    def can_show(self, skip_parent_collection: bool = False) -> bool:
         """
         Description:
             Returns whether this collection can be shown
@@ -559,7 +563,7 @@ class autofill_collection(interface_collection):
             skip_parent_collection=skip_parent_collection
         ) and self.autofill_actors != {constants.AUTOFILL_PROCEDURE: None}
 
-    def calibrate(self, new_actor, override_exempt=False):
+    def calibrate(self, new_actor: actors.actor, override_exempt: bool = False) -> None:
         """
         Description:
             Atttaches this collection and its members to inputted actor and updates their information based on the inputted actor
@@ -928,7 +932,7 @@ class ordered_collection(interface_collection):
                                 self.separation + member.width * self.reverse_multiplier
                             )
 
-    def calibrate(self, new_actor, override_exempt=False):
+    def calibrate(self, new_actor: actors.actor, override_exempt: bool = False) -> None:
         """
         Description:
             Atttaches this collection and its members to inputted actor and updates their information based on the inputted actor

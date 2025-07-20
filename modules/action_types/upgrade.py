@@ -1,5 +1,6 @@
 # Contains all functionality for building upgrades
 
+from __future__ import annotations
 from typing import List
 from modules.action_types import action
 from modules.util import actor_utility, action_utility

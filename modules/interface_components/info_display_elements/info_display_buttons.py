@@ -1,5 +1,6 @@
 # Contains functionality for actor display buttons
 
+from __future__ import annotations
 import pygame
 from typing import Dict, List, Any, Callable
 from modules.interface_components import buttons
@@ -15,6 +16,7 @@ from modules.util import (
     scaling,
 )
 from modules.constructs import minister_types
+from modules.constructs.actor_types import actors
 from modules.constants import constants, status, flags
 
 
@@ -1907,7 +1909,7 @@ class actor_icon(buttons.button):
                 )
                 selected_minister.play_voice_line("acknowledgement")
 
-    def calibrate(self, new_actor):
+    def calibrate(self, new_actor: actors.actor) -> None:
         """
         Description:
             Attaches this label to the inputted actor and updates this label's information based on the inputted actor

@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pygame
 from typing import Dict, List, Any
 from modules.constructs.actor_types.mobs import mob

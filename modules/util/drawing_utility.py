@@ -1,5 +1,6 @@
 # Contains functions that control the display of images
 
+from __future__ import annotations
 import pygame
 from modules.constants import constants, status, flags
 

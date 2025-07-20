@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pygame
 from typing import Dict, List, Tuple, Any
 from modules.managers import (
@@ -398,25 +399,6 @@ green_screen_colors: List[tuple[int, int, int]] = [
     color_dict[COLOR_GREEN_SCREEN_2],
     color_dict[COLOR_GREEN_SCREEN_3],
 ]
-
-terrain_movement_cost_dict: Dict[str, int] = {
-    "savannah": 1,
-    "hills": 2,
-    "jungle": 3,
-    "water": 1,
-    "mountains": 3,
-    "swamp": 3,
-    "desert": 2,
-}
-terrain_build_cost_multiplier_dict: Dict[str, int] = {
-    "savannah": 1,
-    "hills": 2,
-    "jungle": 3,
-    "water": 1,
-    "mountains": 3,
-    "swamp": 3,
-    "desert": 2,
-}
 
 resource_building_dict: Dict[str, str] = {
     "coffee": "plantation",

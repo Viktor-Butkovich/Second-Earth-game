@@ -1,7 +1,9 @@
+from __future__ import annotations
 import itertools
 from math import log
 from typing import List, Dict, Any
 from modules.util import utility, actor_utility
+from modules.constructs import terrain_types
 from modules.constants import constants, status, flags
 
 
@@ -22,9 +24,11 @@ class world_handler:
         Output:
             None
         """
+        from modules.interface_components import grids
+
         self.uuid: str = constants.UuidManager.assign_uuid()
         status.world_list.append(self)
-        self.subscribed_grids: List[Any] = []
+        self.subscribed_grids: List[grids.grid] = []
         if not self.is_orbital_world:
             self.name: str = input_dict.get("name")
             self.world_dimensions: int = input_dict.get("world_dimensions")
@@ -343,7 +347,9 @@ class world_handler:
             "atmosphere_haze_alpha": self.atmosphere_haze_alpha,
         }
 
-    def get_green_screen(self, terrain: str = None) -> Dict[str, Dict[str, any]]:
+    def get_green_screen(
+        self, terrain_type: terrain_types.terrain_type = None
+    ) -> Dict[str, Dict[str, any]]:
         """
         Description:
             Returns the green screen for the inputted terrain type on this world

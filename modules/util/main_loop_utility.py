@@ -1,5 +1,6 @@
 # Contains functions used in the game's main loop and pygame input event management
 
+from __future__ import annotations
 import pygame
 import time
 from modules.util import (
@@ -893,33 +894,10 @@ def manage_lmb_down(clicked_button):
                                         "Trains can only create movement routes along railroads."
                                     )
                                     return ()
-                                elif (
-                                    target_location.terrain == "water"
-                                    and not status.displayed_mob.get_permission(
-                                        constants.SWIM_PERMISSION
-                                    )
-                                ) and (
-                                    status.displayed_mob.get_permission(
-                                        constants.VEHICLE_PERMISSION
-                                    )
-                                    and destination_infrastructure == None
-                                ):
-                                    # Non-train units can still move slowly through water, even w/o canoes or a bridge
-                                    # Railroad bridge allows anything to move through
-                                    text_utility.print_to_screen(
-                                        "This unit cannot create movement routes through water."
-                                    )
-                                    return ()
-                                elif (
-                                    (not target_location.terrain == "water")
-                                    and (
-                                        not status.displayed_mob.get_permission(
-                                            constants.WALK_PERMISSION
-                                        )
-                                    )
-                                    and not target_location.has_intact_building(
-                                        constants.SPACEPORT
-                                    )
+                                elif not status.displayed_mob.get_permission(
+                                    constants.WALK_PERMISSION
+                                ) and not target_location.has_intact_building(
+                                    constants.SPACEPORT
                                 ):
                                     text_utility.print_to_screen(
                                         "This unit cannot create movement routes on land, except through ports."

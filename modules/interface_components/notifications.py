@@ -1,5 +1,6 @@
 # Contains functionality for notifications
 
+from __future__ import annotations
 from typing import List
 from modules.interface_components.labels import multi_line_label
 from modules.util import actor_utility

@@ -1,5 +1,6 @@
 # Contains functions that scale coordinates and lengths/widths to different resolutions
 
+from __future__ import annotations
 from modules.constants import constants, status, flags
 
 

@@ -1,5 +1,6 @@
 # Contains functionality for global effects
 
+from __future__ import annotations
 from modules.util import utility
 
 

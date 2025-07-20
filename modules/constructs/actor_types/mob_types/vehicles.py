@@ -1,5 +1,6 @@
 # Contains functionality for vehicle units
 
+from __future__ import annotations
 from typing import List, Dict
 from modules.constructs.actor_types.mob_types.pmobs import pmob
 from modules.util import text_utility, utility

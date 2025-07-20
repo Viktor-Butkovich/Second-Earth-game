@@ -1,5 +1,6 @@
 # Contains functionality for buttons
 
+from __future__ import annotations
 import pygame
 from typing import List
 from modules.util import (
@@ -13,7 +14,8 @@ from modules.util import (
     game_transitions,
     minister_utility,
 )
-from modules.constructs import item_types, minister_types, equipment_types
+from modules.constructs import item_types, equipment_types
+from modules.constructs.actor_types import actors
 from modules.interface_components import interface_elements
 from modules.constants import constants, status, flags
 
@@ -76,7 +78,7 @@ class button(interface_elements.interface_element):
             False  # used to prioritize notification buttons in drawing and tooltips
         )
 
-    def calibrate(self, new_actor, override_exempt=False):
+    def calibrate(self, new_actor: actors.actor, override_exempt: bool = False) -> None:
         """
         Description:
             Attaches this button to the inputted actor and updates this button's image to that of the actor. May also display a shader over this button, if its particular
@@ -175,75 +177,60 @@ class button(interface_elements.interface_element):
                         constants.INFRASTRUCTURE
                     )
                 )
-                if True:  # adjacent_location.visible:
-                    tooltip_text.append(f"Press to move to the {direction}")
-                    adjacent_infrastructure = adjacent_location.get_intact_building(
-                        constants.INFRASTRUCTURE
+                tooltip_text.append(f"Press to move to the {direction}")
+                adjacent_infrastructure = adjacent_location.get_intact_building(
+                    constants.INFRASTRUCTURE
+                )
+                connecting_roads = False
+                if (
+                    status.displayed_mob.get_permission(
+                        constants.BATTALION_PERMISSION
                     )
-                    connecting_roads = False
-                    if (
-                        status.displayed_mob.get_permission(
-                            constants.BATTALION_PERMISSION
-                        )
-                        and adjacent_location.get_best_combatant("npmob") != None
-                    ):
-                        tooltip_text += status.actions["combat"].tooltip_text
-                        # (
-                        #    tooltip_info_dict={
-                        #        "adjacent_infrastructure": adjacent_infrastructure,
-                        #        "local_infrastructure": local_infrastructure,
-                        #        "x_change": x_change,
-                        #        "y_change": y_change,
-                        #        "adjacent_location": adjacent_location,
-                        #    }
-                        # )
-                    else:
-                        message = ""
-                        if status.displayed_mob.all_permissions(
-                            constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
-                        ):
-                            if (
-                                adjacent_infrastructure
-                                and adjacent_infrastructure.is_railroad
-                                and local_infrastructure
-                                and local_infrastructure.is_railroad
-                            ):
-                                message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent location has connecting railroads"
-                            else:
-                                message = "Not possible because the adjacent location does not have connecting railroads"
-                            tooltip_text.append(message)
-                            tooltip_text.append("A train can only move along railroads")
-                        else:
-                            message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent location has {adjacent_location.terrain.replace('_', ' ')} terrain"
-                            if (
-                                local_infrastructure and adjacent_infrastructure
-                            ):  # if both have infrastructure
-                                connecting_roads = True
-                                message += " and connecting roads"
-                            elif (
-                                local_infrastructure == None and adjacent_infrastructure
-                            ):  # if local has no infrastructure but adjacent does
-                                message += " and no connecting roads"
-                            elif (
-                                local_infrastructure
-                            ):  # if local has infrastructure but not adjacent
-                                message += " and no connecting roads"  # + local_infrastructure.infrastructure_type
-                            else:
-                                message += " and no connecting roads"
-
-                            tooltip_text.append(message)
-                            tooltip_text.append(
-                                f"Moving into a {adjacent_location.terrain.replace('_', ' ')} location costs {constants.terrain_movement_cost_dict.get(adjacent_location.terrain, 1)} movement points"
-                            )
-                    if connecting_roads:
-                        tooltip_text.append(
-                            "Moving between 2 locations with roads or railroads costs half as many movement points."
-                        )
+                    and adjacent_location.get_best_combatant("npmob") != None
+                ):
+                    tooltip_text += status.actions["combat"].tooltip_text
                 else:
-                    tooltip_text += status.actions["exploration"].tooltip_text
-                    # (
-                    #    tooltip_info_dict={"direction": direction}
-                    # )
+                    message = ""
+                    if status.displayed_mob.all_permissions(
+                        constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
+                    ):
+                        if (
+                            adjacent_infrastructure
+                            and adjacent_infrastructure.is_railroad
+                            and local_infrastructure
+                            and local_infrastructure.is_railroad
+                        ):
+                            message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent location has connecting railroads"
+                        else:
+                            message = "Not possible because the adjacent location does not have connecting railroads"
+                        tooltip_text.append(message)
+                        tooltip_text.append("A train can only move along railroads")
+                    else:
+                        message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent location has {adjacent_location.terrain_type.name} terrain"
+                        if (
+                            local_infrastructure and adjacent_infrastructure
+                        ):  # if both have infrastructure
+                            connecting_roads = True
+                            message += " and connecting roads"
+                        elif (
+                            local_infrastructure == None and adjacent_infrastructure
+                        ):  # if local has no infrastructure but adjacent does
+                            message += " and no connecting roads"
+                        elif (
+                            local_infrastructure
+                        ):  # if local has infrastructure but not adjacent
+                            message += " and no connecting roads"  # + local_infrastructure.infrastructure_type
+                        else:
+                            message += " and no connecting roads"
+
+                        tooltip_text.append(message)
+                        tooltip_text.append(
+                            f"Moving into a {adjacent_location.terrain_type.name} location costs {adjacent_location.terrain_type.movement_cost} movement points"
+                        )
+                if connecting_roads:
+                    tooltip_text.append(
+                        "Moving between 2 locations with roads or railroads costs half as many movement points."
+                    )
 
             return tooltip_text
 
@@ -684,7 +671,7 @@ class button(interface_elements.interface_element):
         else:
             return False
 
-    def draw(self, allow_show_outline=True):
+    def draw(self, allow_show_outline: bool = True) -> None:
         """
         Draws this button with a description of its keybind if it has one, along with an outline if its keybind is being pressed
         """

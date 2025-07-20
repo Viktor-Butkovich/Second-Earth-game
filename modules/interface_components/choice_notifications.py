@@ -1,5 +1,6 @@
 # Contains functionality for choice notifications
 
+from __future__ import annotations
 from typing import List
 from modules.interface_components import buttons, action_notifications
 from modules.util import utility, text_utility, scaling

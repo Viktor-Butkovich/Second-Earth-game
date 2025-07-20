@@ -1,14 +1,17 @@
 # Contains functionality for images
 
+from __future__ import annotations
 import pygame
 import math
-from typing import List
+from typing import List, Dict, Tuple, Any
 from modules.util import (
     utility,
     drawing_utility,
     text_utility,
     scaling,
 )
+from modules.interface_components import cells, buttons
+from modules.constructs.actor_types import actors
 from modules.constants import constants, status, flags
 
 
@@ -17,7 +20,7 @@ class image:
     Abstract base image class
     """
 
-    def __init__(self, width, height):
+    def __init__(self, width: int, height: int) -> None:
         """
         Description:
             Initializes this object
@@ -44,7 +47,7 @@ class image:
         """
         self.set_image([{"image_id": text}])
 
-    def complete_draw(self):
+    def complete_draw(self) -> None:
         """
         Draws this image after the necessary pre-call checks are done
         """
@@ -53,7 +56,7 @@ class image:
         elif self.image_id != "misc/empty.png":
             drawing_utility.display_image(self.image, self.x, self.y - self.height)
 
-    def touching_mouse(self):
+    def touching_mouse(self) -> bool:
         """
         Description:
             Returns whether this image is colliding with the mouse
@@ -65,13 +68,13 @@ class image:
         return self.Rect and self.Rect.collidepoint(pygame.mouse.get_pos())
         # If mouse is in button
 
-    def remove(self):
+    def remove(self) -> None:
         """
         Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         return
 
-    def can_show(self, skip_parent_collection=False):
+    def can_show(self, skip_parent_collection: bool = False) -> bool:
         """
         Description:
             Returns whether this image can be shown
@@ -82,20 +85,22 @@ class image:
         """
         return True
 
-    def draw(self):
+    def draw(self) -> None:
         """
         Draws this image if it should currently be visible
         """
         if self.can_show():
             self.complete_draw()
 
-    def update_image_bundle(self):
+    def update_image_bundle(self) -> None:
         """
         Updates this actor's images with its current image id list
         """
         self.set_image(self.get_image_id_list())
 
-    def get_image_id_list(self, override_values={}):
+    def get_image_id_list(
+        self, override_values: List[str, bool] = {}
+    ) -> List[Dict[str, Any]]:
         """
         Description:
             Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
@@ -426,7 +431,7 @@ class bundle_image:
             self.load()
         self.image = pygame.transform.scale(self.image, (self.width, self.height))
 
-    def get_blit_x_offset(self):
+    def get_blit_x_offset(self) -> float:
         """
         Description:
             Calculates and returns the final x offset of this member image when blitted to bundle's combined surface
@@ -444,7 +449,7 @@ class bundle_image:
                 + (self.bundle.width / 2)
             )
 
-    def get_blit_y_offset(self):
+    def get_blit_y_offset(self) -> float:
         """
         Description:
             Calculates and returns the final y offset of this member image when blitted to bundle's combined surface
@@ -462,7 +467,7 @@ class bundle_image:
                 + (self.bundle.height / 2)
             )
 
-    def scale(self):
+    def scale(self) -> None:
         """
         Sets this image's size to one relative to its bundle's size based on its size multiplier
         """
@@ -479,7 +484,9 @@ class bundle_image:
             self.width = self.bundle.width
             self.height = self.bundle.height
 
-    def get_color_difference(self, color1, color2):
+    def get_color_difference(
+        self, color1: Tuple[int, int, int], color2: Tuple[int, int, int]
+    ) -> Tuple[int, int, int]:
         """
         Description:
             Calculates and returns the difference between two colors
@@ -567,7 +574,7 @@ class bundle_image:
                 self.image.set_alpha(self.alpha)
             status.cached_images[key] = self.image
 
-    def apply_per_pixel_mutations(self):
+    def apply_per_pixel_mutations(self) -> None:
         """
         Applies green screen and color filter changes to this image
         """
@@ -769,10 +776,10 @@ class free_image(image):
         self.to_front = input_dict.get("to_front", False)
         status.free_image_list.append(self)
 
-    def calibrate(self, new_actor):
+    def calibrate(self, new_actor: actors.actor) -> None:
         return
 
-    def set_origin(self, new_x, new_y):
+    def set_origin(self, new_x: int, new_y: int) -> None:
         """
         Description:
             Sets this interface element's location at the inputted coordinates. Along with set_modes, allows a free image to behave as an interface element and join interface collections
@@ -791,7 +798,7 @@ class free_image(image):
             self.x_offset = new_x - self.parent_collection.x
             self.y_offset = new_y - self.parent_collection.y
 
-    def set_modes(self, new_modes):
+    def set_modes(self, new_modes: List[str]) -> None:
         """
         Description:
             Sets this interface element's active modes to the inputted list. Along with set_origin, allows a free image to behave as an interface element and join interface collections
@@ -802,7 +809,7 @@ class free_image(image):
         """
         self.modes = new_modes
 
-    def can_draw(self):
+    def can_draw(self) -> bool:
         """
         Description:
             Calculates and returns whether it would be valid to call this object's draw()
@@ -813,7 +820,7 @@ class free_image(image):
         """
         return self.showing
 
-    def can_show(self, skip_parent_collection=False):
+    def can_show(self, skip_parent_collection: bool = False) -> bool:
         """
         Description:
             Returns whether this image can be shown. By default, it can be shown during game modes in which this image can appear
@@ -829,7 +836,7 @@ class free_image(image):
                 return True
         return False
 
-    def remove(self):
+    def remove(self) -> None:
         """
         Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
@@ -915,7 +922,7 @@ class free_image(image):
                 (self.width, self.height),
             )
 
-    def can_show_tooltip(self):
+    def can_show_tooltip(self) -> bool:
         """
         Returns whether this image's tooltip can currently be shown. By default, free images do not have tooltips and this always returns False
         """
@@ -961,7 +968,7 @@ class background_image(free_image):
         super().__init__(input_dict)
         self.previous_safe_click_area_showing = False
 
-    def can_show(self):
+    def can_show(self) -> bool:
         """
         Description:
             Returns whether this image can be shown, while also re-setting its image based on current circumstances
@@ -1022,7 +1029,7 @@ class tooltip_free_image(free_image):
         self.preset_tooltip_text = input_dict.get("preset_tooltip_text", [])
 
     @property
-    def batch_tooltip_list(self):
+    def batch_tooltip_list(self) -> List[List[str]]:
         """
         Gets a 2D list of strings to use as this object's tooltip
             Each string is displayed on a separate line, while each sublist is displayed in a separate box
@@ -1036,7 +1043,7 @@ class tooltip_free_image(free_image):
         """
         return self.preset_tooltip_text
 
-    def can_show_tooltip(self):
+    def can_show_tooltip(self) -> bool:
         """
         Returns whether this image's tooltip can currently be shown. By default, its tooltip can be shown when it is visible and colliding with the mouse
         """
@@ -1079,7 +1086,7 @@ class directional_indicator_image(tooltip_free_image):
         """
         return [f"Points towards the {self.anchor_key.replace('_', ' ')}"]
 
-    def can_show(self, skip_parent_collection=False):
+    def can_show(self, skip_parent_collection: bool = False) -> bool:
         """
         Description:
             Returns whether this image can be shown - shows when its location is not visible on the minimap
@@ -1096,7 +1103,7 @@ class directional_indicator_image(tooltip_free_image):
             )
         )
 
-    def calibrate(self):
+    def calibrate(self) -> None:
         """
         Places this image on the anchor location, if visible on minimap, or otherwise points towards it along the side of the minimap grid
         """
@@ -1220,7 +1227,7 @@ class indicator_image(tooltip_free_image):
         self.indicator_type = input_dict["indicator_type"]
         super().__init__(input_dict)
 
-    def can_show(self, skip_parent_collection=False):
+    def can_show(self, skip_parent_collection: bool = False) -> bool:
         """
         Description:
             Returns whether this image can be shown. Indicator images are shown when their attached variables are at certain values
@@ -1286,7 +1293,7 @@ class warning_image(free_image):
         input_dict["modes"] = self.attached_image.modes
         super().__init__(input_dict)
 
-    def can_show(self, skip_parent_collection=False):
+    def can_show(self, skip_parent_collection: bool = False) -> bool:
         """
         Description:
             Returns whether this image can be shown. A warning image is shown when the image it is attached to says to show a warning
@@ -1325,7 +1332,7 @@ class loading_image_template(free_image):
             status.independent_interface_elements, self
         )
 
-    def can_show(self, skip_parent_collection=False):
+    def can_show(self, skip_parent_collection: bool = False) -> bool:
         """
         Description:
             Returns whether this image can be shown. Unlike other images, a loading screen image is always "showing" but only draws when draw() is  directly
@@ -1343,7 +1350,7 @@ class button_image(image):  # Used to be attached to actor_image
     image attached to a button, causing it to be located at a pixel coordinate location
     """
 
-    def __init__(self, button, width, height, image_id):
+    def __init__(self, button: buttons.button, width: int, height: int, image_id: str):
         """
         Description:
             Initializes this object
@@ -1373,7 +1380,9 @@ class button_image(image):  # Used to be attached to actor_image
             self.height + (self.outline_width * 2),
         )
 
-    def update_state(self, new_x, new_y, new_width, new_height):
+    def update_state(
+        self, new_x: int, new_y: int, new_width: int, new_height: int
+    ) -> None:
         """
         Description:
             Changes this image's size and location to match its button when its button's size or location changes
@@ -1451,7 +1460,7 @@ class cell_image(image):
     Image for a grid cell
     """
 
-    def __init__(self, cell):
+    def __init__(self, cell: cells.cell):
         """
         Description:
             Initializes this object
@@ -1461,16 +1470,16 @@ class cell_image(image):
             None
         """
         super().__init__(cell.width, cell.height)
-        self.cell = cell
+        self.cell: cells.cell = cell
         self.x, self.y = (
             self.cell.x,
             constants.display_height
             - (self.cell.y + self.cell.height)
             + self.cell.height,
         )
-        self.Rect = self.cell.Rect
-        self.outline_width = self.cell.grid.grid_line_width + 1
-        self.contains_bundle = True
+        self.Rect: pygame.Rect = self.cell.Rect
+        self.outline_width: int = self.cell.grid.grid_line_width + 1
+        self.contains_bundle: bool = True
         self.image: image_bundle = None
 
     def set_text(self, text: str) -> None:
@@ -1494,7 +1503,7 @@ class cell_image(image):
             ]
         )
 
-    def set_image(self, image_id_list):
+    def set_image(self, image_id_list: List[Dict[str, Any]]) -> None:
         """
         Description:
             Changes the image reflected by this object, used when cell needs to re-calibrate to the location's image
@@ -1505,7 +1514,7 @@ class cell_image(image):
         """
         self.image = image_bundle(self, image_id_list)
 
-    def show_num_mobs(self):
+    def show_num_mobs(self) -> None:
         """
         Draws a number showing how many mobs are in this image's source location, if it contains multiple mobs
         """
@@ -1523,7 +1532,7 @@ class cell_image(image):
             text_y = self.y + (-0.8 * self.height) - (0.5 * font_height)
             constants.game_display.blit(textsurface, (text_x, text_y))
 
-    def update_state(self):
+    def update_state(self) -> None:
         """
         Updates this cell image to match it's cell's current position
         """

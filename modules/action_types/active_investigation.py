@@ -1,5 +1,6 @@
 # Contains all functionality for minister investigations
 
+from __future__ import annotations
 import random
 from typing import Tuple, Dict, List
 from modules.util import text_utility, minister_utility, utility

@@ -1,5 +1,6 @@
 # Contains functions that manage the text box and other miscellaneous text display utility
 
+from __future__ import annotations
 import pygame
 from modules.constants import constants, status, flags
 

@@ -1,5 +1,6 @@
 # contains functionality for hosted icons, which act as hybrid interface element-actors
 
+from __future__ import annotations
 from typing import List, Dict
 
 

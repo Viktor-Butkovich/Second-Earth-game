@@ -1,5 +1,6 @@
 # Contains wrapper for pygame font
 
+from __future__ import annotations
 import pygame
 from modules.constants import constants, status, flags
 

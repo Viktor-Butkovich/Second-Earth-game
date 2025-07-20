@@ -1,5 +1,6 @@
 # Contains functionality for unit type templates, such as workers, engineers, spaceships, etc.
 
+from __future__ import annotations
 import random
 from typing import Dict, List
 from modules.util import market_utility, text_utility, utility, actor_utility

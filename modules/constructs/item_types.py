@@ -1,6 +1,6 @@
+from __future__ import annotations
 from typing import Dict, List, Any
 from modules.util import (
-    actor_utility,
     text_utility,
     main_loop_utility,
     minister_utility,

@@ -1,11 +1,13 @@
 # Contains functionality for grids
 
+from __future__ import annotations
 import pygame
 import itertools
 from typing import Dict, List, Tuple
 from modules.interface_components import cells, interface_elements
 from modules.util import utility
 from modules.constructs import world_handlers
+from modules.constructs.actor_types import actors
 from modules.constants import constants, status, flags
 
 
@@ -43,14 +45,14 @@ class grid(interface_elements.interface_element):
         self.coordinate_height: int = input_dict.get(
             "coordinate_size", input_dict.get("coordinate_height")
         )
-        self.internal_line_color = input_dict.get(
+        self.internal_line_color: str = input_dict.get(
             "internal_line_color", constants.COLOR_BLACK
         )
-        self.external_line_color = input_dict.get(
+        self.external_line_color: str = input_dict.get(
             "external_line_color", constants.COLOR_DARK_GRAY
         )
         cell_width, cell_height = self.get_cell_width(), self.get_cell_height()
-        self.cell_list = [
+        self.cell_list: List[cells.cell] = [
             [
                 constants.ActorCreationManager.create_interface_element(
                     {
@@ -68,7 +70,7 @@ class grid(interface_elements.interface_element):
             for x in range(self.coordinate_width)
         ]
 
-    def set_origin(self, new_x, new_y):
+    def set_origin(self, new_x: int, new_y: int) -> None:
         """
         Description:
             Sets this interface element's location at the inputted coordinates
@@ -226,7 +228,7 @@ class grid(interface_elements.interface_element):
                 (int((self.height / (self.coordinate_height)) * y) + self.y),
             )
 
-    def get_height(self):
+    def get_height(self) -> int:
         """
         Description:
             Returns how many rows this grid has
@@ -237,7 +239,7 @@ class grid(interface_elements.interface_element):
         """
         return self.coordinate_height
 
-    def get_width(self):
+    def get_width(self) -> int:
         """
         Description:
             Returns how many columns this grid has
@@ -248,7 +250,7 @@ class grid(interface_elements.interface_element):
         """
         return self.coordinate_width
 
-    def get_cell_width(self):
+    def get_cell_width(self) -> int:
         """
         Description:
             Returns the pixel width of one of this grid's cells
@@ -270,7 +272,7 @@ class grid(interface_elements.interface_element):
         """
         return int(self.height / self.coordinate_height) + 1
 
-    def get_cell(self, x, y) -> cells.cell:
+    def get_cell(self, x: int, y: int) -> cells.cell:
         """
         Description:
             Returns this grid's cell that occupies the inputted coordinates
@@ -304,7 +306,7 @@ class grid(interface_elements.interface_element):
         """
         return constants.current_game_mode in self.modes
 
-    def can_draw(self):
+    def can_draw(self) -> bool:
         """
         Description:
             Calculates and returns whether it would be valid to call this object's draw()
@@ -315,7 +317,7 @@ class grid(interface_elements.interface_element):
         """
         return self.showing
 
-    def remove(self):
+    def remove(self) -> None:
         """
         Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
@@ -351,7 +353,7 @@ class table_grid(grid):
     def show_external_grid_lines(self) -> bool:
         return False
 
-    def calibrate(self, new_actor):
+    def calibrate(self, new_actor: actors.actor) -> None:
         """
         Placeholder to test matrix coordinate system
         """
@@ -514,7 +516,7 @@ class mini_grid(location_grid):
     def is_mini_grid(self) -> bool:
         return True
 
-    def calibrate(self, center_x, center_y):
+    def calibrate(self, center_x: int, center_y: int) -> None:
         """
         Description:
             Centers this mini grid on the cell at the inputted coordinates of the attached world, moving any displayed actors, terrain, and resources on this grid to their new locations as needed

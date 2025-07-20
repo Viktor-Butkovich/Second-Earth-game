@@ -1,5 +1,6 @@
 # Contains functions that manage what happens at the end of each turn, like worker upkeep and price changes
 
+from __future__ import annotations
 import random
 import os
 from typing import Dict

@@ -1,5 +1,6 @@
 # Contains all functionality for trial actions
 
+from __future__ import annotations
 import random
 from typing import List
 from modules.action_types import action

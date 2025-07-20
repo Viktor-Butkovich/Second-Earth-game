@@ -1,5 +1,6 @@
 # Contains functionality for actors
 
+from __future__ import annotations
 import random
 import math
 from modules.util import (

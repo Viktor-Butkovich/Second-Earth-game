@@ -1,5 +1,6 @@
 # Contains functions to manage interface collection traversal, doing particular actions for each element with simple decision-making
 
+from __future__ import annotations
 from modules.constants import constants, status, flags
 
 
