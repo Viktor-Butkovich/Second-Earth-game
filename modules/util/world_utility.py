@@ -84,6 +84,7 @@ def new_worlds() -> None:
         from_save=False,
         input_dict=generate_earth_world_input_dict(),
     )
+    status.earth_world.update_target_average_temperature()
 
 
 def generate_current_world_input_dict() -> Dict[str, Any]:
