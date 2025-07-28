@@ -1482,7 +1482,7 @@ class cell_image(image):
         self.contains_bundle: bool = True
         self.image: image_bundle = None
 
-    def set_text(self, text: str) -> None:
+    def set_text(self, text: str, scale_width: bool = False) -> None:
         """
         Description:
             Sets this image to be a text image with the inputted text
@@ -1491,13 +1491,22 @@ class cell_image(image):
         Output:
             None
         """
+        if not text:
+            self.set_image([{"image_id": "misc/empty.png"}])
+            return
         font = constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
         width, height = font.pygame_font.size(text)
+        if scale_width:
+            width = min(width, self.width - scaling.scale_width(5))
+            # Forces smaller text to fit within cell's width - use for non-flex width cells
+        print(
+            f"Setting cell image text to {text} with width {width} and height {height}"
+        )
         self.set_image(
             [
                 {
                     "image_id": text_utility.text(text, font),
-                    "override_width": min(width, self.width - scaling.scale_width(5)),
+                    "override_width": width,
                     "override_height": height,
                 }
             ]
@@ -1543,3 +1552,5 @@ class cell_image(image):
             - (self.cell.y + self.cell.height)
             + self.cell.height,
         )
+        self.width = self.Rect.width
+        self.height = self.Rect.height

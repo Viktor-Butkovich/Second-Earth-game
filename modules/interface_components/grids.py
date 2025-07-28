@@ -7,7 +7,6 @@ from typing import Dict, List, Tuple
 from modules.interface_components import cells, interface_elements
 from modules.util import utility
 from modules.constructs import world_handlers
-from modules.constructs.actor_types import actors
 from modules.constants import constants, status, flags
 
 
@@ -323,80 +322,6 @@ class grid(interface_elements.interface_element):
         """
         super().remove()
         status.grid_list = utility.remove_from_list(status.grid_list, self)
-
-
-class table_grid(grid):
-    """
-    Grid of cells that display tabular data, such as lists and ledgers with accompanying icons and tooltips
-    """
-
-    def __init__(self, input_dict: Dict[str, any]) -> None:
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                Same as superclass, except:
-                'subject': string value - Subject of this table grid, such as 'supply_chain'
-                    Used to identify the type of content to populate the grid with
-        Output:
-            None
-        """
-        super().__init__(input_dict)
-        self.subject: str = input_dict["subject"]
-
-    @property
-    def show_internal_grid_lines(self) -> bool:
-        return True
-
-    @property
-    def show_external_grid_lines(self) -> bool:
-        return False
-
-    def calibrate(self, new_actor: actors.actor) -> None:
-        """
-        Placeholder to test matrix coordinate system
-        """
-        super().calibrate(new_actor)
-        if self.subject == constants.SUPPLY_CHAIN_TABLE_SUBJECT:
-            constants.ContentProvider.populate_table_location_content(self, new_actor)
-        else:
-            raise ValueError(f"Unexpected table grid subject: {self.subject}")
-
-    def get_row(self, index: int) -> List[cells.cell]:
-        """
-        Description:
-            Returns the row of cells at the inputted index, using standard matrix notation (top left is row 1, col 1)
-        Input:
-            int index: Index of the row to return
-        Output:
-            list: Returns the row of cells at the inputted index
-        """
-        return [col[len(col) - index] for col in self.cell_list]
-
-    def get_col(self, index: int) -> List[cells.cell]:
-        """
-        Description:
-            Returns the column of cells at the inputted index, using standard matrix notation (top left is row 1, col 1)
-        Input:
-            int index: Index of the column to return
-        Output:
-            list: Returns the column of cells at the inputted index
-        """
-        return self.cell_list[index - 1]
-
-    def get_cell(self, row, column) -> cells.cell:
-        """
-        Description:
-            Returns this grid's cell that occupies the inputted row and column, using standard matrix notation
-                (top left is row 1, col 1)
-        Input:
-            int row: Row index for the grid location of the requested cell
-            int column: Column index for the grid location of the requested cell
-        Output:
-            cell: Returns this grid's cell that occupies the inputted row and column
-        """
-        return self.cell_list[column - 1][len(self.cell_list[0]) - row]
 
 
 class location_grid(grid):

@@ -51,6 +51,28 @@ class cell(interface_elements.interface_element):
         if self.image:
             self.image.update_state()
 
+    def set_state(
+        self, new_x: int, new_y: int, new_width: int, new_height: int
+    ) -> None:
+        """
+        Description:
+            Updates this cell and it's image to the inputted coordinates/dimensions state
+        Input:
+            int new_x: New x coordinate for this cell's origin
+            int new_y: New y coordinate for this cell's origin
+            int new_width: New width for this cell
+            int new_height: New height for this cell
+        Output:
+            None
+        """
+        self.set_origin(new_x, new_y)
+        self.width = new_width
+        self.height = new_height
+        self.Rect.update(
+            self.Rect.x, self.Rect.y, new_width, new_height
+        )  # Update cell Rect with new width
+        self.image.update_state()
+
     @property
     def batch_tooltip_list(self) -> List[List[str]]:
         """

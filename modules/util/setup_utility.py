@@ -3919,16 +3919,15 @@ def supply_chain_interface():
         input_dict={
             "init_type": constants.TABLE_GRID,
             "subject": constants.SUPPLY_CHAIN_TABLE_SUBJECT,
-            "width": scaling.scale_width(540),
+            "width": scaling.scale_width(560),
             "height": scaling.scale_height(210),
-            "coordinate_width": 6,
+            "coordinate_width": 5,
             "coordinate_height": 7,
             "parent_collection": status.supply_chain_collection,
             "internal_line_color": constants.COLOR_BLACK,
             "external_line_color": constants.COLOR_BLACK,
             "member_config": {
-                "order_x_offset": scaling.scale_width(-100),
-                "order_y_offset": scaling.scale_height(-250),
+                "order_x_offset": scaling.scale_width(-80),
             },
         }
     )

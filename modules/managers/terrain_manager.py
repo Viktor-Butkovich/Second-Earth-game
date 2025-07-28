@@ -174,7 +174,7 @@ class terrain_manager:
             for key, range_dict in json.load(
                 active_file
             ).items():  # JSON of terrain name keys and terrain dict values for each terrain
-                terrain = terrain_types.terrain_type(key, range_dict)
+                terrain = terrain_types.terrain_type(key)
                 self.terrain_type_dict[key] = terrain
                 for temperature in range(
                     range_dict["min_temperature"], range_dict["max_temperature"] + 1
@@ -196,10 +196,10 @@ class terrain_manager:
                                         f"{temperature}{roughness}{vegetation}{soil}{water}"
                                     ] = terrain
             self.terrain_type_dict["clouds_base"] = terrain_types.terrain_type(
-                "clouds_base", {}
+                "clouds_base"
             )
             self.terrain_type_dict["clouds_solid"] = terrain_types.terrain_type(
-                "clouds_solid", {}
+                "clouds_solid"
             )
             # Load in terrains that need variants but don't occur in the terrain definitions
 

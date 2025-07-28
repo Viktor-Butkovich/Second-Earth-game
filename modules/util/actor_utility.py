@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 import pygame
 import math
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Iterable, Any
 from modules.util import utility, text_utility
 from modules.constants import constants, status, flags
 from modules.constructs.actor_types import actors, locations, mobs
@@ -749,3 +749,17 @@ def add_logistics_incident_to_report(subject: str, explanation: str) -> None:
                 "explanation": explanation,
             }
         )
+
+
+def all_locations() -> Iterable[locations.location]:
+    """
+    Description:
+        Yields a generator of all locations
+    Input:
+        None
+    Output:
+        Iterable[locations.location]: Yields each location in the world list
+    """
+    for current_world in status.world_list:
+        for current_location in current_world.get_flat_location_list():
+            yield current_location

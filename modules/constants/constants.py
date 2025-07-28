@@ -19,6 +19,7 @@ from modules.managers import (
     event_bus,
     content_provider,
     uuid_manager,
+    supply_chain_request_engine,
 )
 from modules.interface_components.labels import money_label
 from modules.constructs.fonts import font
@@ -202,6 +203,9 @@ JobScheduler: job_scheduler.job_scheduler = job_scheduler.job_scheduler()
 EventBus: event_bus.event_bus = event_bus.event_bus()
 UuidManager: uuid_manager.uuid_manager = uuid_manager.uuid_manager()
 ContentProvider: content_provider.content_provider = content_provider.content_provider()
+SupplyChainRequestEngine: supply_chain_request_engine.supply_chain_request_engine = (
+    supply_chain_request_engine.supply_chain_request_engine()
+)
 NotificationManager: notification_manager.notification_manager = (
     None  # requires additional setup before initialization
 )

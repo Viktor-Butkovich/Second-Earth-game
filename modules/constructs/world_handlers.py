@@ -4,6 +4,7 @@ from math import log
 from typing import List, Dict, Any
 from modules.util import utility, actor_utility
 from modules.constructs import terrain_types
+from modules.constructs.actor_types import locations
 from modules.constants import constants, status, flags
 
 
@@ -83,7 +84,7 @@ class world_handler:
                 )
             self.average_temperature: float = input_dict.get("average_temperature", 0.0)
 
-        self.location_list: list = []
+        self.location_list: List[locations.location] = []
         if from_save:
             self.location_list = [
                 [

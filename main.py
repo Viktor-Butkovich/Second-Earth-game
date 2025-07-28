@@ -456,6 +456,22 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Allow flex tables to 1) scale # rows to # content rows, 2) have N/A row for empty content, 3) pagination
+# Make sure to update supply chain when needed (for now, just when local inventory or local demand changes)
+# Make sure local demand is included in the supply chain plan
+# Consider combined warehouse/supply chain interface or not
+# Keep making supply chain plans
+#   Ideally a location maintains a supply chain plan, which can be planned out/executed/reversed/etc.
+#   Then, we have a source of truth that is easy to display in a datatable
+#   supply_chain_plan represents a plan with a supply chain location's intended transactions for a turn
+#   This includes its initial demand for resources, the amount it already has stored, and the amount it needs to request from
+#       other locations
+#   These requests from other locations should count as a planned request in both this location's plan and that of the locations requested from
+#   A request should include item type, amount, origin, destination, and an optional priority level
+#   Once a request is made, it can be executed, with possible success or failure
+#   These connections should be made in a manner that a prescriptive request engine can create these plans in an optimal manner
+# Modify tabs to only calibrate upon the tab being entered or when calibrating while tab is open
+#   Calibration should not occur for inactive tabs - hinders performance without benefit
 # Implement supply chain plans using command pattern
 # Add logistics info display tab with item upkeep information
 #   Mob version with just that mob, and a location version with total location demands

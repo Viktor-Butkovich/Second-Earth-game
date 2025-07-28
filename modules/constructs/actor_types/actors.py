@@ -35,7 +35,7 @@ class actor:
         self.uuid: str = constants.UuidManager.assign_uuid()
         self.from_save = from_save
         self.inventory_capacity = 0
-        self.inventory: Dict[str, int] = input_dict.get("inventory", {})
+        self.inventory: Dict[str, float] = input_dict.get("inventory", {})
         self.image_dict: Dict[str, List[str]] = {
             constants.IMAGE_ID_LIST_DEFAULT: input_dict.get(
                 constants.IMAGE_ID_LIST_DEFAULT, []

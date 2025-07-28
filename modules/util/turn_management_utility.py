@@ -240,10 +240,9 @@ def manage_attrition():
         if current_pmob.get_held_items():
             current_pmob.manage_inventory_attrition()
 
-    for current_world in status.world_list:
-        for current_location in current_world.get_flat_location_list():
-            if current_location.get_held_items():
-                current_location.manage_inventory_attrition()
+    for current_location in actor_utility.all_locations():
+        if current_location.get_held_items():
+            current_location.manage_inventory_attrition()
 
 
 def manage_logistics_report() -> None:
@@ -307,10 +306,9 @@ def remove_excess_inventory():
     Output:
         None
     """
-    for current_world in status.world_list:
-        for current_location in current_world.get_flat_location_list():
-            if current_location.inventory:
-                current_location.remove_excess_inventory()
+    for current_location in actor_utility.all_locations():
+        if current_location.inventory:
+            current_location.remove_excess_inventory()
 
 
 def manage_environmental_conditions():
@@ -422,31 +420,31 @@ def manage_upkeep_expenditure() -> None:
     Output:
         None
     """
-    for current_world in status.world_list:
-        for current_location in current_world.get_flat_location_list():
-            if current_location.subscribed_mobs:
-                item_demand = current_location.location_item_upkeep_demand
-                item_request = current_location.create_item_request(item_demand)
-                unfulfilled_item_request = current_location.fulfill_item_request(
-                    item_request.copy()
+    for current_location in actor_utility.all_locations():
+        if current_location.subscribed_mobs:
+            item_demand = current_location.location_item_upkeep_demand
+            item_request = current_location.create_item_request(item_demand)
+            unfulfilled_item_request = current_location.fulfill_item_request(
+                item_request.copy()
+            )
+            if constants.EffectManager.effect_active("debug_item_requests"):
+                if (
+                    current_location.is_abstract_location
+                    or current_location.name != None
+                ):
+                    name = current_location.name.capitalize()
+                else:
+                    name = f"({current_location.x}, {current_location.y})"
+                print(f"{name} total upkeep {item_demand}")
+                print(f"{name} requesting external {item_request}")
+                print(
+                    f"{name} unfulfilled external requests {unfulfilled_item_request}"
                 )
-                if constants.EffectManager.effect_active("debug_item_requests"):
-                    if current_world.is_abstract_world or current_location.name != None:
-                        name = current_location.name.capitalize()
-                    else:
-                        name = f"({current_location.x}, {current_location.y})"
-                    print(f"{name} total upkeep {item_demand}")
-                    print(f"{name} requesting external {item_request}")
-                    print(
-                        f"{name} unfulfilled external requests {unfulfilled_item_request}"
-                    )
-                for current_mob in current_location.contained_mobs:
-                    current_mob.check_item_availability()
-                for current_mob in current_location.contained_mobs:
-                    current_mob.consume_item_upkeep()
-                current_location.set_inventory(
-                    status.item_types[constants.ENERGY_ITEM], 0
-                )
+            for current_mob in current_location.contained_mobs:
+                current_mob.check_item_availability()
+            for current_mob in current_location.contained_mobs:
+                current_mob.consume_item_upkeep()
+            current_location.set_inventory(status.item_types[constants.ENERGY_ITEM], 0)
 
     total_money_upkeep = market_utility.calculate_total_worker_upkeep()
     constants.MoneyTracker.change(round(-1 * total_money_upkeep, 2), "worker_upkeep")
@@ -820,23 +818,24 @@ def end_turn_warnings():
                 f"Warning: if you do not reappoint {current_minister.name} by the end of the turn, they will be considered fired, leaving the candidate pool and incurring a large public opinion penalty. /n /n"
             )
 
-    for current_world in status.world_list:  # Warn for insufficient warehouses
-        for current_location in current_world.get_flat_location_list():
-            if current_location.insufficient_inventory_capacity:
-                if current_world.is_abstract_world:
-                    constants.NotificationManager.display_notification(
-                        {
-                            "message": f"Warning: the warehouses in {current_location.name} are not sufficient to hold the items stored there. /n /nAny items exceeding the location's storage capacity will be lost at the end of the turn. /n /n",
-                            "zoom_destination": current_location,
-                        }
-                    )
-                else:
-                    constants.NotificationManager.display_notification(
-                        {
-                            "message": f"Warning: the warehouses at {current_location.x}, {current_location.y} are not sufficient to hold the items stored there. /n /nAny items exceeding the location's storage capacity will be lost at the end of the turn. /n /n",
-                            "zoom_destination": current_location,
-                        }
-                    )
+    for (
+        current_location
+    ) in actor_utility.all_locations():  # Warn for insufficient warehouses
+        if current_location.insufficient_inventory_capacity:
+            if current_world.is_abstract_world:
+                constants.NotificationManager.display_notification(
+                    {
+                        "message": f"Warning: the warehouses in {current_location.name} are not sufficient to hold the items stored there. /n /nAny items exceeding the location's storage capacity will be lost at the end of the turn. /n /n",
+                        "zoom_destination": current_location,
+                    }
+                )
+            else:
+                constants.NotificationManager.display_notification(
+                    {
+                        "message": f"Warning: the warehouses at {current_location.x}, {current_location.y} are not sufficient to hold the items stored there. /n /nAny items exceeding the location's storage capacity will be lost at the end of the turn. /n /n",
+                        "zoom_destination": current_location,
+                    }
+                )
 
     for current_world in status.world_list:
         if (
@@ -896,35 +895,34 @@ def end_turn_warnings():
             )
             break
 
-    for current_world in status.world_list:
-        for current_location in current_world.get_flat_location_list():
-            if current_location.subscribed_mobs:
-                item_demand = current_location.location_item_upkeep_demand
-                item_request = current_location.create_item_request(
-                    item_demand
-                )  # Request any items that aren't present
-                if constants.ENERGY_ITEM in item_request:
-                    missing_fuel = current_location.create_item_request(
-                        {constants.FUEL_ITEM: item_request[constants.ENERGY_ITEM]}
-                    ).get(constants.FUEL_ITEM, 0)
-                    if missing_fuel == 0:
-                        del item_request[constants.ENERGY_ITEM]
-                    else:
-                        item_request[constants.ENERGY_ITEM] = missing_fuel
-                if (
-                    item_request
-                ):  # For each current_location that cannot meet its upkeep requirements, issue a warning
-                    if current_world.is_abstract_world or current_location.name != None:
-                        name = current_location.name.capitalize()
-                    else:
-                        name = f"({current_location.x}, {current_location.y})"
-                    text = f"WARNING: {name} has insufficient inventory to meet its upkeep demand. /n /n"
-                    text += f"Demand: /n{actor_utility.line_item_amount_dict(item_demand)} /n /n"
-                    text += f"Shortage: /n{actor_utility.line_item_amount_dict(item_request)} /n /n"
-                    text += f"Depending on item type, this shortage may result in unit death or morale penalties. /n /n"
-                    constants.NotificationManager.display_notification(
-                        {
-                            "message": text,
-                            "zoom_destination": current_location,
-                        }
-                    )
+    for current_location in actor_utility.all_locations():
+        if current_location.subscribed_mobs:
+            item_demand = current_location.location_item_upkeep_demand
+            item_request = current_location.create_item_request(
+                item_demand
+            )  # Request any items that aren't present
+            if constants.ENERGY_ITEM in item_request:
+                missing_fuel = current_location.create_item_request(
+                    {constants.FUEL_ITEM: item_request[constants.ENERGY_ITEM]}
+                ).get(constants.FUEL_ITEM, 0)
+                if missing_fuel == 0:
+                    del item_request[constants.ENERGY_ITEM]
+                else:
+                    item_request[constants.ENERGY_ITEM] = missing_fuel
+            if (
+                item_request
+            ):  # For each current_location that cannot meet its upkeep requirements, issue a warning
+                if current_world.is_abstract_world or current_location.name != None:
+                    name = current_location.name.capitalize()
+                else:
+                    name = f"({current_location.x}, {current_location.y})"
+                text = f"WARNING: {name} has insufficient inventory to meet its upkeep demand. /n /n"
+                text += f"Demand: /n{actor_utility.line_item_amount_dict(item_demand)} /n /n"
+                text += f"Shortage: /n{actor_utility.line_item_amount_dict(item_request)} /n /n"
+                text += f"Depending on item type, this shortage may result in unit death or morale penalties. /n /n"
+                constants.NotificationManager.display_notification(
+                    {
+                        "message": text,
+                        "zoom_destination": current_location,
+                    }
+                )

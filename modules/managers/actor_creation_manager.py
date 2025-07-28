@@ -28,6 +28,7 @@ from modules.interface_components import (
     earth_transactions,
     inventory_interface,
     grids,
+    tables,
     cells,
 )
 from modules.interface_components.info_display_elements import (
@@ -275,7 +276,7 @@ class actor_creation_manager:
             constants.DICE_ROLLING_NOTIFICATION: action_notifications.dice_rolling_notification,
             constants.ADJACENT_LOCATION_EXPLORATION_NOTIFICATION: action_notifications.adjacent_location_exploration_notification,
             constants.CELL: cells.cell,
-            constants.TABLE_GRID: grids.table_grid,
+            constants.TABLE_GRID: tables.table_grid,
             constants.MINI_GRID: grids.mini_grid,
             constants.ABSTRACT_GRID: grids.abstract_grid,
             constants.HOSTED_ICON: hosted_icons.hosted_icon,
