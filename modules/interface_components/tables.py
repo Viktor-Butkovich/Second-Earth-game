@@ -31,6 +31,17 @@ class table_grid(grids.grid):
         if self.flex_width:
             self.column_widths: List[int] = [10] * input_dict["coordinate_width"]
         super().__init__(input_dict)
+        self.flex_num_rows: bool = True
+        # Whether this table grid should adjust # rows based on content
+        if self.flex_num_rows:
+            self.current_num_rows: int = self.coordinate_height
+
+    @property
+    def visible_coordinate_height(self) -> int:
+        if self.flex_num_rows:
+            return self.current_num_rows
+        else:
+            return super().visible_coordinate_height
 
     @property
     def show_internal_grid_lines(self) -> bool:
@@ -42,9 +53,15 @@ class table_grid(grids.grid):
 
     def update_flex_widths(self, content: List[List[str]]) -> None:
         """
-        Updates the column widths based on the content provided
+        Description:
+            Updates column widths to accommodate the provided content
+        Input:
+            2D string list content: 2D list of strings for each table cell's content
+        Output:
+            None
         """
         margin = scaling.scale_width(5)
+        self.column_widths = [10] * self.coordinate_width
         for row in content:
             for col_index, cell_data in enumerate(row):
                 font = constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
@@ -62,6 +79,24 @@ class table_grid(grids.grid):
                     self.column_widths[col - 1],
                     cell.height,
                 )
+
+    def update_flex_num_rows(self, content: List[List[str]]) -> None:
+        """
+        Description:
+            Updates the number of rows in this table grid to accommodate the provided content
+        Input:
+            2D string list content: 2D list of strings for each table cell's content
+        Output:
+            None
+        """
+        if not self.flex_num_rows:
+            return
+
+        self.current_num_rows = min(self.coordinate_height, max(2, len(content)))
+
+        for row_index in range(1, self.coordinate_height + 1):
+            for current_cell in self.get_row(row_index):
+                current_cell.set_visible(row_index <= self.current_num_rows)
 
     def convert_coordinates(
         self, coordinates: Tuple[int, int], reverse_y: bool = False
@@ -103,9 +138,14 @@ class table_grid(grids.grid):
             content = constants.ContentProvider.table_location_content(self, new_actor)
         else:
             raise ValueError(f"Unexpected table grid subject: {self.subject}")
-
+        if len(content) == 1:
+            # If there's only a header row, add an N/A row
+            content.append(["N/A"] * self.coordinate_width)
         if self.flex_width:
             self.update_flex_widths(content)
+
+        if self.flex_num_rows:
+            self.update_flex_num_rows(content)
 
         # Populate the table cells with the content
         for row_index, row_data in enumerate(content[: self.coordinate_height]):

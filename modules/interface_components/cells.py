@@ -36,6 +36,19 @@ class cell(interface_elements.interface_element):
         #   Source calibration is handled externally
         self.image: images.cell_image = images.cell_image(self)
         self.set_image([{"image_id": "misc/empty.png"}])
+        self.visible: bool = True
+
+    def set_visible(self, visible: bool) -> None:
+        """
+        Description:
+            Enables or disables this cell
+        Input:
+            boolean visible: Whether this cell should be visible
+        Output:
+            None
+        """
+        if visible != self.visible:
+            self.visible = visible
 
     def set_origin(self, new_x: int, new_y: int) -> None:
         """
@@ -79,7 +92,7 @@ class cell(interface_elements.interface_element):
         Gets a 2D list of strings to use as this object's tooltip
             Each string is displayed on a separate line, while each sublist is displayed in a separate box
         """
-        if self.subscribed_source:
+        if self.subscribed_source and self.visible:
             return self.subscribed_source.batch_tooltip_list
         else:
             return []
@@ -123,17 +136,19 @@ class cell(interface_elements.interface_element):
         """
         Draws this cell as a rectangle with a certain color on its grid, depending on this cell's color value, along with actors this cell contains
         """
-        self.image.draw()
-        if self.source and self.source.actor_type == constants.LOCATION_ACTOR_TYPE:
-            self.image.show_num_mobs()
+        if self.visible:
+            self.image.draw()
+            if self.source and self.source.actor_type == constants.LOCATION_ACTOR_TYPE:
+                self.image.show_num_mobs()
 
     def draw_outline(self, color: str) -> None:
-        pygame.draw.rect(
-            constants.game_display,
-            constants.color_dict[color],
-            self.Rect,
-            self.image.outline_width,
-        )
+        if self.visible:
+            pygame.draw.rect(
+                constants.game_display,
+                constants.color_dict[color],
+                self.Rect,
+                self.image.outline_width,
+            )
 
     def touching_mouse(self) -> bool:
         """
@@ -144,7 +159,7 @@ class cell(interface_elements.interface_element):
         Output:
             boolean: Returns True if this cell is colliding with the mouse, otherwise returns False
         """
-        if self.Rect.collidepoint(pygame.mouse.get_pos()):
+        if self.Rect.collidepoint(pygame.mouse.get_pos()) and self.visible:
             return True
         else:
             return False

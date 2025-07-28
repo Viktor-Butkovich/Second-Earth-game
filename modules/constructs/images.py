@@ -1499,9 +1499,6 @@ class cell_image(image):
         if scale_width:
             width = min(width, self.width - scaling.scale_width(5))
             # Forces smaller text to fit within cell's width - use for non-flex width cells
-        print(
-            f"Setting cell image text to {text} with width {width} and height {height}"
-        )
         self.set_image(
             [
                 {

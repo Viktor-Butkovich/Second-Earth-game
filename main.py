@@ -456,7 +456,11 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Allow flex tables to 1) scale # rows to # content rows, 2) have N/A row for empty content, 3) pagination
+# Allow flex tables to support pagination
+#   Attached interface element(s) for page navigation, causing offset in content rows to calibrate to
+# Add item type icons to supply chain table
+#   Most scalable to add as new content field, where table content can have text, extra image ID's, and tooltip fields
+#       rather than just string text
 # Make sure to update supply chain when needed (for now, just when local inventory or local demand changes)
 # Make sure local demand is included in the supply chain plan
 # Consider combined warehouse/supply chain interface or not

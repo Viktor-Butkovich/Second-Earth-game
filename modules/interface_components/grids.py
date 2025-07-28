@@ -155,44 +155,62 @@ class grid(interface_elements.interface_element):
     def show_external_grid_lines(self) -> bool:
         return True
 
+    @property
+    def visible_coordinate_width(self) -> int:
+        return self.coordinate_width
+
+    @property
+    def visible_coordinate_height(self) -> int:
+        return self.coordinate_height
+
     def draw_grid_lines(self):
         """
         Draws lines between grid cells and on the outside of the grid
         """
         if self.show_internal_grid_lines:
-            for x in range(1, self.coordinate_width):
+            for x in range(1, self.visible_coordinate_width):
                 pygame.draw.line(
                     constants.game_display,
                     constants.color_dict[self.internal_line_color],
-                    self.convert_coordinates((x, 0), reverse_y=True),
+                    self.convert_coordinates(
+                        (
+                            x,
+                            self.coordinate_height - self.visible_coordinate_height,
+                        ),
+                        reverse_y=True,
+                    ),
                     self.convert_coordinates(
                         (x, self.coordinate_height), reverse_y=True
                     ),
                     self.grid_line_width,
                 )
 
-            for y in range(1, self.coordinate_height):
+            for y in range(
+                self.coordinate_height - 1,
+                self.coordinate_height - self.visible_coordinate_height,
+                -1,
+            ):
                 pygame.draw.line(
                     constants.game_display,
                     constants.color_dict[self.internal_line_color],
                     self.convert_coordinates((0, y), reverse_y=True),
                     self.convert_coordinates(
-                        (self.coordinate_width, y), reverse_y=True
+                        (self.visible_coordinate_width, y), reverse_y=True
                     ),
                     self.grid_line_width,
                 )
 
         if self.show_external_grid_lines:
             for origin, destination in [
-                ((0, 0), (0, self.coordinate_height)),
+                ((0, 0), (0, self.visible_coordinate_height)),
                 (
-                    (self.coordinate_width, 0),
-                    (self.coordinate_width, self.coordinate_height),
+                    (self.visible_coordinate_width, 0),
+                    (self.visible_coordinate_width, self.visible_coordinate_height),
                 ),
-                ((0, 0), (self.coordinate_width, 0)),
+                ((0, 0), (self.visible_coordinate_width, 0)),
                 (
-                    (0, self.coordinate_height),
-                    (self.coordinate_width, self.coordinate_height),
+                    (0, self.visible_coordinate_height),
+                    (self.visible_coordinate_width, self.visible_coordinate_height),
                 ),
             ]:
                 pygame.draw.line(

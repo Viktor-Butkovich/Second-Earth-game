@@ -39,20 +39,7 @@ class content_provider:
         else:
             raise ValueError(f"Unexpected table grid subject: {table.subject}")
 
-        # Initialize with first row as headers
-        table_content: List[List[str]] = [
-            [col_name.replace("_", " ").title() for col_name in headers]
+        # Provide first row as headers and subsequent rows as JSON body content
+        return [[col_name.replace("_", " ").title() for col_name in headers]] + [
+            [str(data[col_name]) for col_name in headers] for data in body
         ]
-
-        # Populate rows after the first with JSON body content
-        for data in body:
-            row = [str(data[col_name]) for col_name in headers]
-            table_content.append(row)
-
-        # Add empty rows for unused table space (if needed)
-        total_rows = table.coordinate_height
-        for _ in range(len(table_content), total_rows):
-            empty_row = [""] * table.coordinate_width
-            table_content.append(empty_row)
-
-        return table_content
