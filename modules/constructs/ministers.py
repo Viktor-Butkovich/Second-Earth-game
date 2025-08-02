@@ -38,6 +38,7 @@ class minister:
             None
         """
         self.uuid: str = constants.UuidManager.assign_uuid()
+        self.current_position: minister_types.minister_type = None
         status.minister_list.append(self)
         if from_save:
             self.first_name: str = input_dict["first_name"]
@@ -46,9 +47,6 @@ class minister:
             self.ethnicity: str = input_dict["ethnicity"]
             self.masculine: bool = input_dict["masculine"]
             self.prefix: str = input_dict["prefix"]
-            self.current_position: minister_types.minister_type = (
-                status.minister_types.get(input_dict["current_position_key"], None)
-            )
             self.background: str = input_dict["background"]
             self.status_number: int = constants.CharacterManager.get_status_number(
                 self.background
@@ -80,8 +78,11 @@ class minister:
             self.corruption_evidence: int = input_dict["corruption_evidence"]
             self.fabricated_evidence: int = input_dict["fabricated_evidence"]
             self.just_removed: bool = input_dict["just_removed"]
-            if self.current_position:
-                self.appoint(self.current_position)
+            saved_position = status.minister_types.get(
+                input_dict["current_position_key"], None
+            )
+            if saved_position:
+                self.appoint(saved_position)
             else:
                 status.available_minister_list.append(self)
         else:
@@ -126,7 +127,6 @@ class minister:
             ) + random.randrange(
                 0, 6
             )  # 1-6 for lowborn, 5-10 for middle, 25-30 for high, 125-130 for very high
-            self.current_position: minister_types.minister_type = None
             self.skill_setup()
             self.interests_setup()
             self.corruption_setup()
