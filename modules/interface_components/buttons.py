@@ -183,9 +183,7 @@ class button(interface_elements.interface_element):
                 )
                 connecting_roads = False
                 if (
-                    status.displayed_mob.get_permission(
-                        constants.BATTALION_PERMISSION
-                    )
+                    status.displayed_mob.get_permission(constants.BATTALION_PERMISSION)
                     and adjacent_location.get_best_combatant("npmob") != None
                 ):
                     tooltip_text += status.actions["combat"].tooltip_text
@@ -2628,7 +2626,8 @@ class anonymous_button(button):
                     based on which passenger label the button is attached to
                 'button_type': dictionary value - A button with a dictionary button_type value is created as an anonymous button, with basic functionality
                     entirely defined by the dictionary's contents:
-                        'on_click': tuple value - Tuple containing function object followed by the parameters to be passed to it when this button is clicked
+                        'on_click': tuple list value - List of callable/arg list tuples - on click, callable is called with the inputted arguments
+                        'can_show': tuple list value - List of callable/arg list tuples - button shows if all callables returns True when called with the inputted arguments
                         'tooltip': string list value - Tuple containing tooltip list to display for this button
                         'message': string value - Optional text to display over this button, intended for notification choice buttons
                 'notification': notification value - Notification the button is attached to, if applicable
@@ -2637,9 +2636,8 @@ class anonymous_button(button):
         """
         self.notification = input_dict.get("notification", None)
         button_info_dict = input_dict["button_type"]
-        self.on_click_info = button_info_dict.get("on_click", None)
-        if self.on_click_info and type(self.on_click_info[0]) != list:
-            self.on_click_info = ([self.on_click_info[0]], [self.on_click_info[1]])
+        self.on_click_info = button_info_dict.get("on_click", [])
+        self.can_show_info = button_info_dict.get("can_show", [])
         self.tooltip = button_info_dict["tooltip"]
         self.message = button_info_dict.get("message")
 
@@ -2650,16 +2648,21 @@ class anonymous_button(button):
         else:
             self.in_notification = False
 
+    def can_show(self, skip_parent_collection=False):
+        """
+        Returns True if all callables in can_show_info return True with their respective arguments and the button can otherwise be shown
+        """
+        return all(
+            func(*args) for func, args in self.can_show_info
+        ) and super().can_show(skip_parent_collection=skip_parent_collection)
+
     def on_click(self):
         """
         Controls this button's behavior when clicked. Choice buttons remove their notifications when clicked, along with the normal behaviors associated with their button_type
         """
         super().on_click()
-        if self.on_click_info:
-            for index in range(len(self.on_click_info[0])):
-                self.on_click_info[0][index](
-                    *self.on_click_info[1][index]
-                )  # calls each item function with corresponding parameters
+        for func, args in self.on_click_info:
+            func(*args)
         if self.in_notification:
             self.notification.on_click(choice_button_override=True)
 

@@ -374,7 +374,7 @@ class combat(action.action):
                     + self.generate_notification_text("confirmation"),
                     "choices": [
                         {
-                            "on_click": (self.middle, [{"defending": False}]),
+                            "on_click": [(self.middle, [{"defending": False}])],
                             "tooltip": ["Starts attack"],
                             "message": "Attack",
                         },

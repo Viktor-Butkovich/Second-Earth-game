@@ -73,10 +73,10 @@ class supply_chain_plan:
             datatable.append(
                 {
                     "item_type": subplan.item_type.name.title(),
-                    "present": subplan.stored,
-                    "demand": subplan.demand,
-                    "delivering": subplan.delta,
-                    "total": subplan.total,
+                    "present": subplan.stored if subplan.stored != 0 else "",
+                    "demand": subplan.demand if subplan.demand != 0 else "",
+                    "delivering": subplan.delta if subplan.delta != 0 else "",
+                    "total": subplan.total if subplan.total != 0 else "",
                 }
             )
         return datatable

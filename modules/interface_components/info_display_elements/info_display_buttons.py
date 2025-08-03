@@ -730,22 +730,22 @@ class embark_vehicle_button(buttons.button):
                                     "message": f"There are {len(vehicles)} possible vehicles to embark - click next until you find the vehicle you would like to embark. /n /n",
                                     "choices": [
                                         {
-                                            "on_click": (
+                                            "on_click": [(
                                                 self.finish_embark_vehicle,
                                                 [rider, vehicle],
-                                            ),
+                                            )],
                                             "tooltip": ["Embarks this vehicle"],
                                             "message": "Embark",
                                         },
                                         {
-                                            "on_click": (
+                                            "on_click": [(
                                                 self.skip_embark_vehicle,
                                                 [
                                                     rider,
                                                     vehicles,
                                                     vehicles.index(vehicle),
                                                 ],
-                                            ),
+                                            )],
                                             "tooltip": [
                                                 "Cycles to the next possible vehicle"
                                             ],

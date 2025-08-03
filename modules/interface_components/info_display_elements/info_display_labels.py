@@ -174,10 +174,12 @@ class actor_display_label(labels.label):
                     },
                 ]
                 input_dict["button_type"] = {
-                    "on_click": (
-                        status.mob_inventory_collection.tab_button.on_click,
-                        (),
-                    ),
+                    "on_click": [
+                        (
+                            status.mob_inventory_collection.tab_button.on_click,
+                            [],
+                        )
+                    ],
                     "tooltip": ["Displays the unit inventory panel"],
                 }
                 self.add_attached_button(input_dict)
@@ -433,14 +435,16 @@ class actor_display_label(labels.label):
                 # constants.DROP_ITEM_BUTTON - helps to find anonymous button without constant type
                 input_dict["image_id"] = "buttons/item_pick_up_button.png"
                 input_dict["button_type"] = {
-                    "on_click": (
-                        actor_utility.callback,
-                        [
-                            "displayed_mob_inventory",
-                            "transfer",
-                            1,
-                        ],  # item_icon.transfer(
-                    ),
+                    "on_click": [
+                        (
+                            actor_utility.callback,
+                            [
+                                "displayed_mob_inventory",
+                                "transfer",
+                                1,
+                            ],  # item_icon.transfer(
+                        )
+                    ],
                     "tooltip": ["Orders the selected unit to drop this item"],
                 }
                 self.add_attached_button(input_dict)
@@ -448,14 +452,16 @@ class actor_display_label(labels.label):
                 # constants.DROP_ALL_ITEM_BUTTON
                 input_dict["image_id"] = "buttons/item_pick_up_all_button.png"
                 input_dict["button_type"] = {
-                    "on_click": (
-                        actor_utility.callback,
-                        [
-                            "displayed_mob_inventory",
-                            "transfer",
-                            None,
-                        ],  # item_icon.transfer(
-                    ),
+                    "on_click": [
+                        (
+                            actor_utility.callback,
+                            [
+                                "displayed_mob_inventory",
+                                "transfer",
+                                None,
+                            ],  # item_icon.transfer(
+                        )
+                    ],
                     "tooltip": ["Orders the selected unit to drop all of this item"],
                 }
                 self.add_attached_button(input_dict)
@@ -466,14 +472,16 @@ class actor_display_label(labels.label):
                 # constants.PICK_UP_ITEM_BUTTON
                 input_dict["image_id"] = "buttons/item_drop_button.png"
                 input_dict["button_type"] = {
-                    "on_click": (
-                        actor_utility.callback,
-                        [
-                            "displayed_location_inventory",
-                            "transfer",
-                            1,
-                        ],  # item_icon.transfer(
-                    ),
+                    "on_click": [
+                        (
+                            actor_utility.callback,
+                            [
+                                "displayed_location_inventory",
+                                "transfer",
+                                1,
+                            ],  # item_icon.transfer(
+                        )
+                    ],
                     "tooltip": ["Orders the selected unit to pick up this item"],
                 }
                 self.add_attached_button(input_dict)

@@ -3915,14 +3915,15 @@ def supply_chain_interface():
             }
         )
     )
+    supply_chain_table_coordinate_height = 5
     supply_chain_table = constants.ActorCreationManager.create_interface_element(
         input_dict={
             "init_type": constants.TABLE_GRID,
             "subject": constants.SUPPLY_CHAIN_TABLE_SUBJECT,
             "width": scaling.scale_width(560),
-            "height": scaling.scale_height(210),
+            "height": scaling.scale_height(supply_chain_table_coordinate_height * 30),
             "coordinate_width": 5,
-            "coordinate_height": 7,
+            "coordinate_height": supply_chain_table_coordinate_height,
             "parent_collection": status.supply_chain_collection,
             "internal_line_color": constants.COLOR_BLACK,
             "external_line_color": constants.COLOR_BLACK,

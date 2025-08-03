@@ -120,13 +120,13 @@ class public_relations_campaign(action.campaign):
                     + self.generate_notification_text("confirmation"),
                     "choices": [
                         {
-                            "on_click": (self.middle, []),
+                            "on_click": [(self.middle, [])],
                             "tooltip": [
                                 f"Starts a {self.name}, possibly improving your company's public opinion"
                             ],
                             "message": "Start campaign",
                         },
-                        {"tooltip": ["Stop " + self.name], "message": "Stop campaign"},
+                        {"tooltip": [f"Stop {self.name}"], "message": "Stop campaign"},
                     ],
                 }
             )

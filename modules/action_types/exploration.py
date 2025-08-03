@@ -193,7 +193,7 @@ class exploration(action.action):
                     "message": f"{action_utility.generate_risk_message(self, unit)}{self.generate_notification_text('confirmation')}",
                     "choices": [
                         {
-                            "on_click": (self.middle, []),
+                            "on_click": [(self.middle, [])],
                             "tooltip": [
                                 f"Attempt an exploration for {self.get_price()} money"
                             ],

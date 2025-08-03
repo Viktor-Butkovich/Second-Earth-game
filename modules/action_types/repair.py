@@ -198,7 +198,7 @@ class repair(action.action):
                     + self.generate_notification_text("confirmation"),
                     "choices": [
                         {
-                            "on_click": (self.middle, []),
+                            "on_click": [(self.middle, [])],
                             "tooltip": ["Start " + self.name],
                             "message": "Start " + self.name,
                         },

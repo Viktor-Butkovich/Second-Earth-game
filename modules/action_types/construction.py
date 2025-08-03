@@ -316,7 +316,7 @@ class construction(action.action):
                     + self.generate_notification_text("confirmation"),
                     "choices": [
                         {
-                            "on_click": (self.middle, []),
+                            "on_click": [(self.middle, [])],
                             "tooltip": [f"Start {self.name}"],
                             "message": f"Start {self.name}",
                         },

@@ -133,7 +133,7 @@ class active_investigation(action.campaign):
                     "transfer_interface_elements": True,
                     "choices": [
                         {
-                            "on_click": (self.middle, []),
+                            "on_click": [(self.middle, [])],
                             "tooltip": ["Starts an active investigation"],
                             "message": "Start investigation",
                         },

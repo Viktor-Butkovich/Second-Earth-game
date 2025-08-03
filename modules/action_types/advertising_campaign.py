@@ -272,7 +272,7 @@ class advertising_campaign(action.campaign):
                     + self.generate_notification_text("confirmation"),
                     "choices": [
                         {
-                            "on_click": (self.middle, []),
+                            "on_click": [(self.middle, [])],
                             "tooltip": [
                                 f"Starts an {self.name} for {self.target_item.name}"
                             ],
