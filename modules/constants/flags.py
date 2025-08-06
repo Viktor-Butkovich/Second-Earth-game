@@ -31,4 +31,3 @@ ctrl: bool = False
 show_planet_mask: bool = False
 show_grid_lines: bool = False
 expand_text_box: bool = False
-enable_equipment_panel: bool = False

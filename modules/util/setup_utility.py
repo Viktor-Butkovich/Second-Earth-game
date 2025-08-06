@@ -44,7 +44,7 @@ from modules.action_types import (
 )
 
 
-def setup(*args):
+def setup(*args) -> None:
     """
     Description:
         Runs the inputted setup functions in order
@@ -60,14 +60,9 @@ def setup(*args):
     flags.creating_new_game = False
 
 
-def info_displays():
+def info_displays() -> None:
     """
-    Description:
-        Initializes info displays collection (must be run after new game setup is created for correct layering)
-    Input:
-        None
-    Output:
-        None
+    Initializes info displays collection (must be run after new game setup is created for correct layering)
     """
     status.info_displays_collection = (
         constants.ActorCreationManager.create_interface_element(
@@ -90,14 +85,9 @@ def info_displays():
     )
 
 
-def misc():
+def misc() -> None:
     """
-    Description:
-        Initializes object lists, current object variables, current status booleans, and other misc. values
-    Input:
-        None
-    Output:
-        None
+    Initializes object lists, current object variables, current status booleans, and other misc. values
     """
     constants.ActorCreationManager = actor_creation_manager.actor_creation_manager()
     constants.TerrainManager = terrain_manager.terrain_manager()
@@ -353,14 +343,9 @@ def misc():
     # ) # rect at original location prevents collection from moving unintentionally when resizing
 
 
-def item_types_config():
+def item_types_config() -> None:
     """
-    Description:
-        Defines item type templates
-    Input:
-        None
-    Output:
-        None
+    Defines item type templates
     """
     item_types.item_type(
         {
@@ -471,14 +456,9 @@ def item_types_config():
     )
 
 
-def terrain_feature_types_config():
+def terrain_feature_types_config() -> None:
     """
-    Description:
-        Defines terrain feature type templates
-    Input:
-        None
-    Output:
-        None
+    Defines terrain feature type templates
     """
     terrain_feature_types.terrain_feature_type(
         {
@@ -549,14 +529,9 @@ def terrain_feature_types_config():
     )
 
 
-def actions():
+def actions() -> None:
     """
-    Description:
-        Configures any actions in the action_types folder, preparing them to be automatically implemented
-    Input:
-        None
-    Output:
-        None
+    Configures any actions in the action_types folder, preparing them to be automatically implemented
     """
     for building_type in status.building_types.values():
         if building_type.can_construct:
@@ -585,14 +560,9 @@ def actions():
     # action imports hardcoded here, alternative to needing to keep module files in .exe version
 
 
-def minister_types_config():
+def minister_types_config() -> None:
     """
-    Description:
-        Defines minister positions, backgrounds, and associated units
-    Input:
-        None
-    Output:
-        None
+    Defines minister positions, backgrounds, and associated units
     """
     minister_types.minister_type(
         {
@@ -680,14 +650,9 @@ def minister_types_config():
     )
 
 
-def building_types_config():
+def building_types_config() -> None:
     """
-    Description:
-        Defines building type templates
-    Input:
-        None
-    Output:
-        None
+    Defines building type templates
     """
     building_types.building_type(
         {
@@ -838,14 +803,9 @@ def building_types_config():
     # add upgrade types
 
 
-def unit_types_config():
+def unit_types_config() -> None:
     """
-    Description:
-        Defines unit type templates
-    Input:
-        None
-    Output:
-        None
+    Defines unit type templates
     """
     standard_officer_upkeep = (
         {  # 0 upkeep denotes requiring the presence of an item, without spending it
@@ -1294,26 +1254,16 @@ def unit_types_config():
     )
 
 
-def transactions():
+def transactions() -> None:
     """
-    Description:
-        Defines recruitment, upkeep, building, and action costs, along with action and financial transaction types
-    Input:
-        None
-    Output:
-        None
+    Defines recruitment, upkeep, building, and action costs, along with action and financial transaction types
     """
     actor_utility.reset_action_prices()
 
 
-def value_trackers():
+def value_trackers() -> None:
     """
-    Description:
-        Defines important global values and initializes associated tracker labels
-    Input:
-        None
-    Output:
-        None
+    Defines important global values and initializes associated tracker labels
     """
     value_trackers_ordered_collection = (
         constants.ActorCreationManager.create_interface_element(
@@ -1482,14 +1432,9 @@ def value_trackers():
     constants.FearTracker = value_tracker.value_tracker("fear", 1, 1, 6)
 
 
-def buttons():
+def buttons() -> None:
     """
-    Description:
-        Initializes static buttons
-    Input:
-        None
-    Output:
-        None
+    Initializes static buttons
     """
     status.planet_view_mask = constants.ActorCreationManager.create_interface_element(
         {
@@ -2000,14 +1945,9 @@ def buttons():
         constants.ActorCreationManager.create_interface_element(input_dict)
 
 
-def earth_screen():
+def earth_screen() -> None:
     """
-    Description:
-        Initializes static interface of Earth screen - purchase buttons for units and items, 8 per column
-    Input:
-        None
-    Output:
-        None
+    Initializes static interface of Earth screen - purchase buttons for units and items, 8 per column
     """
     earth_purchase_buttons = constants.ActorCreationManager.create_interface_element(
         {
@@ -2055,14 +1995,9 @@ def earth_screen():
             )
 
 
-def ministers_screen():
+def ministers_screen() -> None:
     """
-    Description:
-        Initializes static interface of ministers screen
-    Input:
-        None
-    Output:
-        None
+    Initializes static interface of ministers screen
     """
     # Minister table setup
     table_width = 400
@@ -2246,14 +2181,9 @@ def ministers_screen():
     )  # Dummy image to calibrate all ministers to, ensuring portrait images are rendered and cached at creation time
 
 
-def trial_screen():
+def trial_screen() -> None:
     """
-    Description:
-        Initializes static interface of trial screen
-    Input:
-        None
-    Output:
-        None
+    Initializes static interface of trial screen
     """
     trial_display_default_y = 700
     button_separation = 100
@@ -2405,14 +2335,9 @@ def trial_screen():
     )
 
 
-def new_game_setup_screen():
+def new_game_setup_screen() -> None:
     """
-    Description:
-        Initializes new game setup screen interface
-    Input:
-        None
-    Output:
-        None
+    Initializes new game setup screen interface
     """
     current_index = 0
     image_width = 300
@@ -2444,14 +2369,9 @@ def new_game_setup_screen():
     """
 
 
-def mob_interface():
+def mob_interface() -> None:
     """
-    Description:
-        Initializes mob selection interface
-    Input:
-        None
-    Output:
-        None
+    Initializes mob selection interface
     """
     actor_display_top_y = constants.default_display_height - 205 + 125 + 10
     actor_display_current_y = actor_display_top_y
@@ -2493,14 +2413,9 @@ def mob_interface():
     )
 
 
-def mob_sub_interface():
+def mob_sub_interface() -> None:
     """
-    Description:
-        Initializes elements of mob interface, some of which are dependent on initalization of tabbed panels
-    Input:
-        None
-    Output:
-        None
+    Initializes elements of mob interface, some of which are dependent on initalization of tabbed panels
     """
     mob_icon = constants.ActorCreationManager.create_interface_element(
         {
@@ -2632,14 +2547,9 @@ def mob_sub_interface():
                 constants.ActorCreationManager.create_interface_element(input_dict)
 
 
-def location_interface():
+def location_interface() -> None:
     """
-    Description:
-        Initializes location selection interface
-    Input:
-        None
-    Output:
-        None
+    Initializes location selection interface
     """
     status.location_info_display = (
         constants.ActorCreationManager.create_interface_element(
@@ -2778,14 +2688,9 @@ def location_interface():
     )
 
 
-def inventory_interface():
+def inventory_interface() -> None:
     """
-    Description:
-        Initializes the item prices display and both mob/location tabbed collections and inventory interfaces
-    Input:
-        None
-    Output:
-        None
+    Initializes the item prices display and both mob/location tabbed collections and inventory interfaces
     """
     item_prices_x, item_prices_y = (1000, 100)
     item_prices_height = 35 + (
@@ -2840,6 +2745,7 @@ def inventory_interface():
     status.mob_inventory_collection = (
         constants.ActorCreationManager.create_interface_element(
             {
+                "coordinates": scaling.scale_coordinates(-40, -5),
                 "width": scaling.scale_width(0),
                 "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
@@ -2881,17 +2787,18 @@ def inventory_interface():
         constants.ActorCreationManager.create_interface_element(input_dict)
     )
 
-    inventory_cell_height = scaling.scale_height(34)
-    inventory_cell_width = scaling.scale_width(34)
+    inventory_cell_height = scaling.scale_height(29)
+    inventory_cell_width = scaling.scale_width(29)
 
     status.mob_inventory_grid = constants.ActorCreationManager.create_interface_element(
         {
-            "width": scaling.scale_width(10),
-            "height": (inventory_cell_height + scaling.scale_height(5)) * 3,
+            "width": (inventory_cell_width + scaling.scale_width(2)) * 9,
+            "height": (inventory_cell_height + scaling.scale_height(2)) * 3,
+            "separation": scaling.scale_height(2),
             "init_type": constants.INVENTORY_GRID,
             "parent_collection": status.mob_inventory_collection,
             "second_dimension_increment": inventory_cell_width
-            + scaling.scale_height(5),
+            + scaling.scale_height(2),
         }
     )
     for current_index in range(27):
@@ -2911,92 +2818,44 @@ def inventory_interface():
             }
         )
 
-    status.mob_inventory_info_display = (
-        constants.ActorCreationManager.create_interface_element(
-            {
-                "width": scaling.scale_width(0),
-                "height": scaling.scale_height(0),
-                "init_type": constants.ORDERED_COLLECTION,
-                "is_info_display": True,
-                "actor_type": constants.MOB_INVENTORY_ACTOR_TYPE,
-                "description": "mob inventory panel",
-                "parent_collection": status.mob_inventory_collection,
-                "member_config": {"calibrate_exempt": True},
-            }
-        )
-    )
-
-    mob_inventory_icon = constants.ActorCreationManager.create_interface_element(
+    mob_scroll_up_button = constants.ActorCreationManager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(0, 0),
-            "actor_type": constants.MOB_INVENTORY_ACTOR_TYPE,
-            "width": scaling.scale_width(constants.inventory_icon_dimensions),
-            "height": scaling.scale_height(constants.inventory_icon_dimensions),
-            "init_type": constants.ACTOR_ICON,
-            "parent_collection": status.mob_inventory_info_display,
-        }
-    )
-
-    location_scroll_up_button = constants.ActorCreationManager.create_interface_element(
-        {
-            "width": inventory_cell_width,
-            "height": inventory_cell_height,
+            "width": scaling.scale_width(35),
+            "height": scaling.scale_width(35),
             "parent_collection": status.mob_inventory_grid,
             "image_id": "buttons/cycle_ministers_up_button.png",
             "value_name": "inventory_page",
             "increment": -1,
             "member_config": {
                 "order_exempt": True,
-                "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
-                "y_offset": status.mob_inventory_grid.height
-                - ((inventory_cell_height + scaling.scale_height(5)) * 3)
-                + scaling.scale_height(5),
+                "x_offset": scaling.scale_width(-40),
+                "y_offset": 0,
             },
             "init_type": constants.SCROLL_BUTTON,
         }
     )
 
-    location_scroll_down_button = (
-        constants.ActorCreationManager.create_interface_element(
-            {
-                "width": inventory_cell_width,
-                "height": inventory_cell_height,
-                "parent_collection": status.mob_inventory_grid,
-                "image_id": "buttons/cycle_ministers_down_button.png",
-                "value_name": "inventory_page",
-                "increment": 1,
-                "member_config": {
-                    "order_exempt": True,
-                    "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
-                    "y_offset": status.mob_inventory_grid.height
-                    - (inventory_cell_height),
-                },
-                "init_type": constants.SCROLL_BUTTON,
-            }
-        )
-    )
-
-    for current_actor_label_type in [
-        constants.INVENTORY_NAME_LABEL,
-        constants.INVENTORY_QUANTITY_LABEL,
-    ]:
-        x_displacement = 0
-        input_dict = {
-            "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(
-                constants.default_notification_font_size + 5
-            ),
-            "image_id": "misc/default_label.png",
-            "init_type": current_actor_label_type,
-            "actor_type": constants.MOB_ACTOR_TYPE,
-            "parent_collection": status.mob_inventory_info_display,
-            "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
+    mob_scroll_down_button = constants.ActorCreationManager.create_interface_element(
+        {
+            "width": scaling.scale_width(35),
+            "height": scaling.scale_width(35),
+            "parent_collection": status.mob_inventory_grid,
+            "image_id": "buttons/cycle_ministers_down_button.png",
+            "value_name": "inventory_page",
+            "increment": 1,
+            "member_config": {
+                "order_exempt": True,
+                "x_offset": scaling.scale_width(-40),
+                "y_offset": status.mob_inventory_grid.height - scaling.scale_height(35),
+            },
+            "init_type": constants.SCROLL_BUTTON,
         }
-        constants.ActorCreationManager.create_interface_element(input_dict)
+    )
 
     status.location_inventory_collection = (
         constants.ActorCreationManager.create_interface_element(
             {
+                "coordinates": scaling.scale_coordinates(-40, -5),
                 "width": scaling.scale_width(0),
                 "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
@@ -3044,30 +2903,30 @@ def inventory_interface():
     status.location_inventory_grid = (
         constants.ActorCreationManager.create_interface_element(
             {
-                "width": scaling.scale_width(10),
-                "height": (inventory_cell_height + scaling.scale_height(5)) * 3,
+                "width": (inventory_cell_width + scaling.scale_width(2)) * 9,
+                "height": (inventory_cell_height + scaling.scale_height(2)) * 3,
+                "separation": scaling.scale_height(2),
                 "init_type": constants.INVENTORY_GRID,
                 "parent_collection": status.location_inventory_collection,
                 "second_dimension_increment": inventory_cell_width
-                + scaling.scale_height(5),
+                + scaling.scale_height(2),
             }
         )
     )
 
     location_scroll_up_button = constants.ActorCreationManager.create_interface_element(
         {
-            "width": inventory_cell_width,
-            "height": inventory_cell_height,
+            "width": scaling.scale_width(35),
+            "height": scaling.scale_height(35),
             "parent_collection": status.location_inventory_grid,
             "image_id": "buttons/cycle_ministers_up_button.png",
             "value_name": "inventory_page",
             "increment": -1,
             "member_config": {
                 "order_exempt": True,
-                "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
+                "x_offset": scaling.scale_width(-40),
                 "y_offset": status.location_inventory_grid.height
-                - ((inventory_cell_height + scaling.scale_height(5)) * 3)
-                + scaling.scale_height(5),
+                - scaling.scale_height(35),
             },
             "init_type": constants.SCROLL_BUTTON,
         }
@@ -3076,17 +2935,16 @@ def inventory_interface():
     location_scroll_down_button = (
         constants.ActorCreationManager.create_interface_element(
             {
-                "width": inventory_cell_width,
-                "height": inventory_cell_height,
+                "width": scaling.scale_width(35),
+                "height": scaling.scale_height(35),
                 "parent_collection": status.location_inventory_grid,
                 "image_id": "buttons/cycle_ministers_down_button.png",
                 "value_name": "inventory_page",
                 "increment": 1,
                 "member_config": {
                     "order_exempt": True,
-                    "x_offset": scaling.scale_width(-1.3 * inventory_cell_width),
-                    "y_offset": status.location_inventory_grid.height
-                    - (inventory_cell_height),
+                    "x_offset": scaling.scale_width(-40),
+                    "y_offset": 0,
                 },
                 "init_type": constants.SCROLL_BUTTON,
             }
@@ -3110,59 +2968,286 @@ def inventory_interface():
             }
         )
 
-    status.location_inventory_info_display = (
-        constants.ActorCreationManager.create_interface_element(
+    inventory_info_display_interface()
+
+    supply_chain_table_coordinate_height = 5
+    supply_chain_table = constants.ActorCreationManager.create_interface_element(
+        input_dict={
+            "init_type": constants.TABLE_GRID,
+            "subject": constants.SUPPLY_CHAIN_TABLE_SUBJECT,
+            "width": scaling.scale_width(560),
+            "height": scaling.scale_height(supply_chain_table_coordinate_height * 30),
+            "coordinate_width": 5,
+            "coordinate_height": supply_chain_table_coordinate_height,
+            "parent_collection": status.location_inventory_collection,
+            "internal_line_color": constants.COLOR_BLACK,
+            "external_line_color": constants.COLOR_BLACK,
+            "member_config": {
+                "order_x_offset": scaling.scale_width(-60),
+                "order_y_offset": scaling.scale_height(-5),
+            },
+        }
+    )
+
+
+def inventory_info_display_interface() -> None:
+    """
+    Displays the item sub-display interface for item-specific information
+    """
+    for inventory_collection in [
+        status.location_inventory_collection,
+        status.mob_inventory_collection,
+    ]:
+        item_agnostic_buttons = constants.ActorCreationManager.create_interface_element(
             {
+                "coordinates": (
+                    (
+                        status.location_inventory_grid.width + scaling.scale_width(5)
+                        if status.location_inventory_grid
+                        else status.mob_inventory_grid.width + scaling.scale_width(5)
+                    ),
+                    (
+                        -1
+                        * (
+                            status.location_inventory_grid.height
+                            + scaling.scale_height(30)
+                        )
+                        if status.location_inventory_grid
+                        else -1
+                        * (status.mob_inventory_grid.height + scaling.scale_height(30))
+                    ),
+                ),
                 "width": scaling.scale_width(0),
                 "height": scaling.scale_height(0),
                 "init_type": constants.ORDERED_COLLECTION,
-                "is_info_display": True,
+                "parent_collection": inventory_collection,
+                "direction": "vertical",
+                "reversed": True,
+                "separation": scaling.scale_height(5),
+                "member_config": {
+                    "order_exempt": True,
+                },
+            }
+        )  # Collection of buttons that shows regardless of item selection
+        if inventory_collection == status.location_inventory_collection:
+            button_definitions = [
+                (
+                    constants.USE_EACH_EQUIPMENT_BUTTON,
+                    "buttons/use_equipment_button.png",
+                ),
+                (
+                    constants.PICK_UP_EACH_ITEM_BUTTON,
+                    "buttons/item_drop_each_button.png",
+                ),
+                (constants.SELL_EACH_ITEM_BUTTON, "buttons/item_sell_each_button.png"),
+            ]
+        elif inventory_collection == status.mob_inventory_collection:
+            button_definitions = [
+                (
+                    constants.DROP_EACH_ITEM_BUTTON,
+                    "buttons/item_pick_up_each_button.png",
+                ),
+            ]
+        for init_type, image_id in button_definitions:
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    "init_type": init_type,
+                    "image_id": image_id,
+                    "parent_collection": item_agnostic_buttons,
+                    "width": scaling.scale_width(35),
+                    "height": scaling.scale_height(35),
+                }
+            )
+
+    base_inventory_info_display_input_dict = {
+        "coordinates": scaling.scale_coordinates(320, 5),
+        "width": scaling.scale_width(0),
+        "height": scaling.scale_height(constants.default_notification_font_size + 10)
+        * 2,
+        "init_type": constants.ORDERED_COLLECTION,
+        "is_info_display": True,
+        "member_config": {
+            "calibrate_exempt": True,
+            "order_exempt": True,
+        },
+    }
+    status.mob_inventory_info_display = (
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "actor_type": constants.MOB_INVENTORY_ACTOR_TYPE,
+                "description": "mob inventory panel",
+                "parent_collection": status.mob_inventory_collection,
+                **base_inventory_info_display_input_dict,
+            }
+        )
+    )
+    status.location_inventory_info_display = (
+        constants.ActorCreationManager.create_interface_element(
+            {
                 "actor_type": constants.LOCATION_INVENTORY_ACTOR_TYPE,
                 "description": "location inventory panel",
                 "parent_collection": status.location_inventory_collection,
-                "member_config": {"calibrate_exempt": True},
+                **base_inventory_info_display_input_dict,
             }
         )
     )
 
-    location_inventory_icon = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(0, 0),
-            "actor_type": constants.LOCATION_INVENTORY_ACTOR_TYPE,
-            "width": scaling.scale_width(constants.inventory_icon_dimensions),
-            "height": scaling.scale_height(constants.inventory_icon_dimensions),
-            "init_type": constants.ACTOR_ICON,
-            "parent_collection": status.location_inventory_info_display,
-        }
-    )
-
-    for current_actor_label_type in [
-        constants.INVENTORY_NAME_LABEL,
-        constants.INVENTORY_QUANTITY_LABEL,
+    for inventory_info_display in [
+        status.location_inventory_info_display,
+        status.mob_inventory_info_display,
     ]:
-        x_displacement = 0
-        input_dict = {
-            "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(
-                constants.default_notification_font_size + 5
-            ),
-            "image_id": "misc/default_label.png",
-            "init_type": current_actor_label_type,
-            "actor_type": constants.LOCATION_ACTOR_TYPE,
-            "parent_collection": status.location_inventory_info_display,
-            "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
-        }
-        constants.ActorCreationManager.create_interface_element(input_dict)
+        inventory_icon = constants.ActorCreationManager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(0, 0),
+                "actor_type": inventory_info_display.actor_type,
+                "width": scaling.scale_width(constants.inventory_icon_dimensions),
+                "height": scaling.scale_height(constants.inventory_icon_dimensions),
+                "init_type": constants.ACTOR_ICON,
+                "parent_collection": inventory_info_display,
+            }
+        )
+
+        for current_actor_label_type in [
+            constants.INVENTORY_NAME_LABEL,
+            constants.INVENTORY_QUANTITY_LABEL,
+        ]:
+            x_displacement = 0
+            input_dict = {
+                "minimum_width": scaling.scale_width(10),
+                "height": scaling.scale_height(
+                    constants.default_notification_font_size + 5
+                ),
+                "image_id": "misc/default_label.png",
+                "init_type": current_actor_label_type,
+                "actor_type": inventory_info_display.actor_type,
+                "parent_collection": inventory_info_display,
+                "member_config": {
+                    "order_x_offset": scaling.scale_width(x_displacement)
+                },
+            }
+            constants.ActorCreationManager.create_interface_element(input_dict)
+
+        button_grid = constants.ActorCreationManager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(75, 0),
+                "width": scaling.scale_width(0),
+                "height": scaling.scale_height(0),
+                "init_type": constants.ORDERED_COLLECTION,
+                "parent_collection": inventory_info_display,
+                "direction": "vertical",
+                "separation": scaling.scale_height(5),
+                "second_dimension_increment": scaling.scale_width(
+                    40
+                ),  # Space between columns
+                "member_config": {
+                    "order_exempt": True,
+                },
+            }
+        )
+        index = 0
+        if inventory_info_display.actor_type == constants.LOCATION_INVENTORY_ACTOR_TYPE:
+            button_definitions = [
+                (
+                    constants.ANONYMOUS_BUTTON,
+                    {
+                        "on_click": [
+                            (
+                                actor_utility.callback,
+                                ["displayed_location_inventory", "transfer", 1],
+                            ),  # item_icon.transfer(
+                        ],
+                        "tooltip": ["Orders the selected unit to pick up this item"],
+                    },
+                    "buttons/item_drop_button.png",
+                ),
+                (
+                    constants.ANONYMOUS_BUTTON,
+                    {
+                        "on_click": [
+                            (
+                                actor_utility.callback,
+                                ["displayed_location_inventory", "transfer", None],
+                            ),  # item_icon.transfer(
+                        ],
+                        "tooltip": [
+                            "Orders the selected unit to pick up all of this item"
+                        ],
+                    },
+                    "buttons/item_drop_all_button.png",
+                ),
+                (
+                    constants.SELL_ITEM_BUTTON,
+                    constants.SELL_ITEM_BUTTON,
+                    "buttons/item_sell_button.png",
+                ),
+                (
+                    constants.SELL_ALL_ITEM_BUTTON,
+                    constants.SELL_ALL_ITEM_BUTTON,
+                    "buttons/item_sell_all_button.png",
+                ),
+                (
+                    constants.USE_EQUIPMENT_BUTTON,
+                    constants.USE_EQUIPMENT_BUTTON,
+                    "buttons/use_equipment_button.png",
+                ),
+            ]
+        elif inventory_info_display.actor_type == constants.MOB_INVENTORY_ACTOR_TYPE:
+            button_definitions = [
+                (
+                    constants.ANONYMOUS_BUTTON,
+                    {
+                        "on_click": [
+                            (
+                                actor_utility.callback,
+                                ["displayed_mob_inventory", "transfer", 1],
+                            ),  # item_icon.transfer(
+                        ],
+                        "tooltip": ["Orders the selected unit to drop this item"],
+                    },
+                    "buttons/item_pick_up_button.png",
+                ),
+                (
+                    constants.ANONYMOUS_BUTTON,
+                    {
+                        "on_click": [
+                            (
+                                actor_utility.callback,
+                                ["displayed_mob_inventory", "transfer", None],
+                            ),  # item_icon.transfer(
+                        ],
+                        "tooltip": [
+                            "Orders the selected unit to drop up all of this item"
+                        ],
+                    },
+                    "buttons/item_pick_up_all_button.png",
+                ),
+                (
+                    constants.USE_EQUIPMENT_BUTTON,
+                    constants.USE_EQUIPMENT_BUTTON,
+                    "buttons/use_equipment_button.png",
+                ),
+            ]
+
+        for init_type, button_type, image_id in button_definitions:
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    "init_type": init_type,
+                    "image_id": image_id,
+                    "button_type": button_type,
+                    "parent_collection": button_grid,
+                    "width": scaling.scale_width(35),
+                    "height": scaling.scale_height(35),
+                    "member_config": {
+                        "second_dimension_coordinate": index % 2,  # 2 columns
+                    },
+                }
+            )
+            index += 1
 
 
-def settlement_interface():
+def settlement_interface() -> None:
     """
-    Description:
-        Initializes the settlement interface as part of the location tabbed collection
-    Input:
-        None
-    Output:
-        None
+    Initializes the settlement interface as part of the location tabbed collection
     """
     status.settlement_collection = (
         constants.ActorCreationManager.create_interface_element(
@@ -3236,14 +3321,9 @@ def settlement_interface():
             constants.ActorCreationManager.create_interface_element(input_dict)
 
 
-def terrain_interface():
+def terrain_interface() -> None:
     """
-    Description:
-        Initializes the terrain interface as part of the location tabbed collection
-    Input:
-        None
-    Output:
-        None
+    Initializes the terrain interface as part of the location tabbed collection
     """
     status.global_conditions_collection = (
         constants.ActorCreationManager.create_interface_element(
@@ -3423,14 +3503,9 @@ def terrain_interface():
         )
 
 
-def organization_interface():
+def organization_interface() -> None:
     """
-    Description:
-        Initializes the unit organization interface as part of the mob tabbed collection
-    Input:
-        None
-    Output:
-        None
+    Initializes the unit organization interface as part of the mob tabbed collection
     """
     image_height = 75
     status.mob_reorganization_collection = (
@@ -3454,14 +3529,9 @@ def organization_interface():
     )
 
 
-def unit_organization_interface():
+def unit_organization_interface() -> None:
     """
-    Description:
-        Initializes the group organization interface as a subsection of the mob reorganization collection
-    Input:
-        None
-    Output:
-        None
+    Initializes the group organization interface as a subsection of the mob reorganization collection
     """
     image_height = 75
     lhs_x_offset = 95
@@ -3673,14 +3743,9 @@ def unit_organization_interface():
     )
 
 
-def vehicle_organization_interface():
+def vehicle_organization_interface() -> None:
     """
-    Description:
-        Initializes the vehicle organization interface as a subsection of the mob reorganization collection
-    Input:
-        None
-    Output:
-        None
+    Initializes the vehicle organization interface as a subsection of the mob reorganization collection
     """
     image_height = 75
     lhs_x_offset = 95
@@ -3890,58 +3955,9 @@ def vehicle_organization_interface():
     )
 
 
-def supply_chain_interface():
+def minister_interface() -> None:
     """
-    Description:
-        Initializes the mob and location supply chain tabs
-    Input:
-        None
-    Output:
-        None
-    """
-    status.supply_chain_collection = (
-        constants.ActorCreationManager.create_interface_element(
-            {
-                "init_type": constants.ORDERED_COLLECTION,
-                "parent_collection": status.location_tabbed_collection,
-                "member_config": {
-                    "tabbed": True,
-                    "button_image_id": actor_utility.generate_frame(
-                        "buttons/supply_chain_button.png"
-                    ),
-                    "identifier": constants.SUPPLY_CHAIN_PANEL,
-                    "tab_name": "supply chain",
-                },
-            }
-        )
-    )
-    supply_chain_table_coordinate_height = 5
-    supply_chain_table = constants.ActorCreationManager.create_interface_element(
-        input_dict={
-            "init_type": constants.TABLE_GRID,
-            "subject": constants.SUPPLY_CHAIN_TABLE_SUBJECT,
-            "width": scaling.scale_width(560),
-            "height": scaling.scale_height(supply_chain_table_coordinate_height * 30),
-            "coordinate_width": 5,
-            "coordinate_height": supply_chain_table_coordinate_height,
-            "parent_collection": status.supply_chain_collection,
-            "internal_line_color": constants.COLOR_BLACK,
-            "external_line_color": constants.COLOR_BLACK,
-            "member_config": {
-                "order_x_offset": scaling.scale_width(-80),
-            },
-        }
-    )
-
-
-def minister_interface():
-    """
-    Description:
-        Initializes minister selection interface
-    Input:
-        None
-    Output:
-        int actor_display_current_y: Value that tracks the location of interface as it is created, used by other setup functions
+    Initializes minister selection interface
     """
     # minister info images setup
     minister_display_current_y = 0
@@ -4031,7 +4047,7 @@ def minister_interface():
     # minister info labels setup
 
 
-def manage_crash(exception):
+def manage_crash(exception: Exception) -> None:
     """
     Description:
         Uses an exception to write a crash log and exit the game

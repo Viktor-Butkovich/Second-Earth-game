@@ -1,6 +1,7 @@
 # Contains functionality for panels
 
 from __future__ import annotations
+from modules.util import actor_utility
 from modules.interface_components.buttons import button
 from modules.constants import constants, status, flags
 
@@ -81,3 +82,11 @@ class safe_click_panel(panel):
                 if getattr(status, parameter):
                     return True
         return False
+
+    def on_click(self):
+        actor_utility.calibrate_actor_info_display(
+            status.mob_inventory_info_display, None
+        )
+        actor_utility.calibrate_actor_info_display(
+            status.location_inventory_info_display, None
+        )

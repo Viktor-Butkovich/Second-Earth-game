@@ -29,7 +29,6 @@ try:
         setup_utility.settlement_interface,
         setup_utility.inventory_interface,
         setup_utility.mob_sub_interface,
-        setup_utility.supply_chain_interface,
         setup_utility.minister_interface,
     )
     main_loop_utility.main_loop()
@@ -456,8 +455,12 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Allow flex tables to support pagination
-#   Attached interface element(s) for page navigation, causing offset in content rows to calibrate to
+# Also display warehouse tab if there is an active supply chain plan in the tile, even if nothing is stored
+#   Rename warehouse tab to something like supply chain
+# Make sure supply chain table rows appear in the same order as the location inventory grid
+# Add an extra image icon behind the currently selected row if an item icon is selected
+#   Also jump to the table page containing the item
+#   Would use the same system described below for non-string table cell content
 # Add item type icons to supply chain table
 #   Most scalable to add as new content field, where table content can have text, extra image ID's, and tooltip fields
 #       rather than just string text

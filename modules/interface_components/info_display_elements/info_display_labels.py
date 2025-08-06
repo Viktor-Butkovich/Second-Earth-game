@@ -155,47 +155,18 @@ class actor_display_label(labels.label):
 
         elif self.actor_label_type == constants.EQUIPMENT_LABEL:
             self.message_start = "Equipment: "
-            if flags.enable_equipment_panel:
-                input_dict["init_type"] = constants.ANONYMOUS_BUTTON
+            input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
+            for equipment_key, equipment_type in status.equipment_types.items():
+                input_dict["equipment_type"] = equipment_type
                 input_dict["image_id"] = [
-                    "buttons/default_button_alt2.png",
+                    "buttons/default_button.png",
                     {
                         "image_id": "misc/circle.png",
-                        "green_screen": status.item_types[
-                            constants.CONSUMER_GOODS_ITEM
-                        ].background_color,
-                        "size": 0.75,
+                        "green_screen": equipment_type.background_color,
                     },
-                    {
-                        "image_id": status.item_types[
-                            constants.CONSUMER_GOODS_ITEM
-                        ].item_image,
-                        "size": 0.75,
-                    },
+                    equipment_type.item_image,
                 ]
-                input_dict["button_type"] = {
-                    "on_click": [
-                        (
-                            status.mob_inventory_collection.tab_button.on_click,
-                            [],
-                        )
-                    ],
-                    "tooltip": ["Displays the unit inventory panel"],
-                }
                 self.add_attached_button(input_dict)
-            else:
-                input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
-                for equipment_key, equipment_type in status.equipment_types.items():
-                    input_dict["equipment_type"] = equipment_type
-                    input_dict["image_id"] = [
-                        "buttons/default_button.png",
-                        {
-                            "image_id": "misc/circle.png",
-                            "green_screen": equipment_type.background_color,
-                        },
-                        equipment_type.item_image,
-                    ]
-                    self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.MOVEMENT_LABEL:
             self.message_start = "Movement points: "
@@ -304,38 +275,6 @@ class actor_display_label(labels.label):
             constants.LOCATION_INVENTORY_CAPACITY_LABEL,
         ]:
             self.message_start = "Capacity: "
-            input_dict["width"], input_dict["height"] = (m_size, m_size)
-            if self.actor_label_type == constants.LOCATION_INVENTORY_CAPACITY_LABEL:
-                input_dict["init_type"] = constants.USE_EACH_EQUIPMENT_BUTTON
-                input_dict["image_id"] = "buttons/use_equipment_button.png"
-                self.add_attached_button(input_dict)
-
-                input_dict["init_type"] = constants.PICK_UP_EACH_ITEM_BUTTON
-                input_dict["image_id"] = "buttons/item_drop_each_button.png"
-                self.add_attached_button(input_dict)
-
-                input_dict["init_type"] = constants.SELL_EACH_ITEM_BUTTON
-                input_dict["image_id"] = "buttons/item_sell_each_button.png"
-                self.add_attached_button(input_dict)
-
-            elif self.actor_label_type == constants.MOB_INVENTORY_CAPACITY_LABEL:
-                input_dict["init_type"] = constants.DROP_EACH_ITEM_BUTTON
-                input_dict["image_id"] = "buttons/item_pick_up_each_button.png"
-                self.add_attached_button(input_dict)
-
-                if flags.enable_equipment_panel:
-                    input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
-                    for equipment_key, equipment_type in status.equipment_types.items():
-                        input_dict["equipment_type"] = equipment_type
-                        input_dict["image_id"] = [
-                            "buttons/default_button.png",
-                            {
-                                "image_id": "misc/circle.png",
-                                "green_screen": equipment_type.background_color,
-                            },
-                            equipment_type.item_image,
-                        ]
-                        self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.TERRAIN_LABEL:
             self.message_start = "Terrain: "
@@ -464,56 +403,6 @@ class actor_display_label(labels.label):
                     ],
                     "tooltip": ["Orders the selected unit to drop all of this item"],
                 }
-                self.add_attached_button(input_dict)
-
-            elif self.actor_type == constants.LOCATION_ACTOR_TYPE:
-                original_input_dict = input_dict.copy()
-                input_dict["init_type"] = constants.ANONYMOUS_BUTTON
-                # constants.PICK_UP_ITEM_BUTTON
-                input_dict["image_id"] = "buttons/item_drop_button.png"
-                input_dict["button_type"] = {
-                    "on_click": [
-                        (
-                            actor_utility.callback,
-                            [
-                                "displayed_location_inventory",
-                                "transfer",
-                                1,
-                            ],  # item_icon.transfer(
-                        )
-                    ],
-                    "tooltip": ["Orders the selected unit to pick up this item"],
-                }
-                self.add_attached_button(input_dict)
-
-                # constants.PICK_UP_ALL_ITEM_BUTTON
-                input_dict["image_id"] = "buttons/item_drop_all_button.png"
-                input_dict["button_type"] = {
-                    "on_click": (
-                        actor_utility.callback,
-                        [
-                            "displayed_location_inventory",
-                            "transfer",
-                            None,
-                        ],  # item_icon.transfer(
-                    ),
-                    "tooltip": ["Orders the selected unit to pick up all of this item"],
-                }
-                self.add_attached_button(input_dict)
-
-                # Add pick up each button to inventory capacity label - if has at least 1 inventory capacity, show button that drops/picks up each type of item at once
-
-                input_dict = original_input_dict
-                input_dict["init_type"] = constants.SELL_ITEM_BUTTON
-                input_dict["image_id"] = "buttons/item_sell_button.png"
-                self.add_attached_button(input_dict)
-
-                input_dict["init_type"] = constants.SELL_ALL_ITEM_BUTTON
-                input_dict["image_id"] = "buttons/item_sell_all_button.png"
-                self.add_attached_button(input_dict)
-
-                input_dict["init_type"] = constants.USE_EQUIPMENT_BUTTON
-                input_dict["image_id"] = "buttons/use_equipment_button.png"
                 self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.SETTLEMENT:

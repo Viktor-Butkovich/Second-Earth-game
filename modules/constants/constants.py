@@ -266,7 +266,7 @@ current_instructions_page_text: str = ""
 message: str = ""
 
 actor_icon_dimensions: int = 130
-inventory_icon_dimensions: int = 100
+inventory_icon_dimensions: int = 70
 
 grids_collection_x: int = default_display_width - 740
 grids_collection_y: int = default_display_height - 325

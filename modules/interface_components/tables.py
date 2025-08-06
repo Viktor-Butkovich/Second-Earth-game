@@ -136,9 +136,9 @@ class table_grid(grids.grid):
                     ],
                     "tooltip": [
                         (
-                            "Click to navigate to the next page"
+                            "Click to navigate to the next page of the table"
                             if change > 0
-                            else "Click to navigate to the previous page"
+                            else "Click to navigate to the previous page of the table"
                         )
                     ],
                 },

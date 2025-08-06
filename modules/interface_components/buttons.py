@@ -90,6 +90,7 @@ class button(interface_elements.interface_element):
             None
         """
         super().calibrate(new_actor, override_exempt)
+        self.actor = new_actor
         if self.enable_shader:
             shader_image_id = "misc/shader.png"
             if self.enable_shader_condition():
@@ -308,18 +309,18 @@ class button(interface_elements.interface_element):
             if status.displayed_location:
                 if self.button_type == constants.SELL_ITEM_BUTTON:
                     return [
-                        f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell 1 unit of {self.attached_label.actor.current_item.name} for about {self.attached_label.actor.current_item.price} money at the end of the turn",
+                        f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell 1 unit of {self.actor.current_item.name} for about {self.actor.current_item.price} money at the end of the turn",
                         "The amount each item was sold for is reported at the beginning of your next turn",
-                        f"Each unit of {self.attached_label.actor.current_item.name} sold has a chance of reducing its sale price",
+                        f"Each unit of {self.actor.current_item.name} sold has a chance of reducing its sale price",
                     ]
                 elif self.button_type == constants.SELL_ALL_ITEM_BUTTON:
                     num_present = status.displayed_location.get_inventory(
-                        self.attached_label.actor.current_item
+                        self.actor.current_item
                     )
                     return [
-                        f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell your entire stockpile of {self.attached_label.actor.current_item.name} for about {self.attached_label.actor.current_item.price} money each at the end of the turn, for a total of about {self.attached_label.actor.current_item.price * num_present} money",
+                        f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell your entire stockpile of {self.actor.current_item.name} for about {self.actor.current_item.price} money each at the end of the turn, for a total of about {self.actor.current_item.price * num_present} money",
                         "The amount each item was sold for is reported at the beginning of your next turn",
-                        f"Each unit of {self.attached_label.actor.current_item.name} sold has a chance of reducing its sale price",
+                        f"Each unit of {self.actor.current_item.name} sold has a chance of reducing its sale price",
                     ]
                 else:
                     return [
@@ -339,7 +340,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.USE_EQUIPMENT_BUTTON:
             if status.displayed_location:
                 return [
-                    f"Orders the selected unit to equip {self.attached_label.actor.current_item.name}"
+                    f"Orders the selected unit to equip {self.actor.current_item.name}"
                 ]
 
         elif self.button_type == constants.REMOVE_EQUIPMENT_BUTTON:
@@ -946,7 +947,7 @@ class button(interface_elements.interface_element):
                 constants.SELL_ITEM_BUTTON,
                 constants.SELL_ALL_ITEM_BUTTON,
             ]:
-                sold_item_types = [self.attached_label.actor.current_item]
+                sold_item_types = [self.actor.current_item]
             if minister_utility.positions_filled():
                 for current_item_type in sold_item_types:
                     num_present: int = status.displayed_location.get_inventory(
@@ -1027,7 +1028,7 @@ class button(interface_elements.interface_element):
                 if status.displayed_mob and status.displayed_mob.get_permission(
                     constants.PMOB_PERMISSION
                 ):
-                    equipment = self.attached_label.actor.current_item
+                    equipment = self.actor.current_item
                     if equipment.check_requirement(status.displayed_mob):
                         if not status.displayed_mob.equipment.get(equipment.key, False):
                             radio_effect = status.displayed_mob.get_radio_effect()
@@ -1309,7 +1310,7 @@ class button(interface_elements.interface_element):
                 return (
                     status.displayed_location
                     and status.displayed_location.is_earth_location
-                    and self.attached_label.actor.current_item.can_sell
+                    and self.actor.current_item.can_sell
                 )
             elif self.button_type == constants.SELL_EACH_ITEM_BUTTON:
                 if (
@@ -1324,11 +1325,9 @@ class button(interface_elements.interface_element):
                 constants.PICK_UP_EACH_ITEM_BUTTON,
                 constants.DROP_EACH_ITEM_BUTTON,
             ]:
-                return self.attached_label.actor.get_inventory_used() > 0
+                return self.actor.get_inventory_used() > 0
             elif self.button_type == constants.USE_EQUIPMENT_BUTTON:
-                return (
-                    self.attached_label.actor.current_item.key in status.equipment_types
-                )
+                return self.actor.current_item.key in status.equipment_types
             elif self.button_type == constants.USE_EACH_EQUIPMENT_BUTTON:
                 if status.displayed_mob:
                     held_items = status.displayed_location.get_held_items()
@@ -1954,12 +1953,8 @@ class scroll_button(button):
         """
         Provides the tooltip for this object
         """
-        if self.increment > 0:
-            descriptor = "down"
-        elif self.increment < 0:
-            descriptor = "up"
         return [
-            f"Click to scroll {descriptor} {abs(self.increment)} {self.value_name.replace('_', ' ')}"
+            f"Click to navigate to the {"next" if self.increment > 0 else "previous"} page of the grid",
         ]
 
 
@@ -2145,11 +2140,7 @@ class tab_button(button):
                     or status.displayed_location.infinite_inventory_capacity
                 )
             else:
-                return status.displayed_mob.inventory_capacity > 0 or (
-                    flags.enable_equipment_panel
-                    and status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
-                    and status.displayed_mob.equipment
-                )
+                return status.displayed_mob.inventory_capacity > 0
         elif self.identifier == constants.REORGANIZATION_PANEL:
             return status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
         elif self.identifier == constants.LOCAL_CONDITIONS_PANEL:
