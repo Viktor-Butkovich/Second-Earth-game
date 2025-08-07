@@ -85,14 +85,18 @@ class supply_chain_plan:
         """
         Description:
             Gets the union of all stored item types and demanded item types at this plan's location
+                Unfortunately, this is used for applications that expect preserving original order, so is not
+                compatible with built-in set operations
         Input:
             None
         Output:
             item_type list: List of item types relevant to this plan
         """
-        return [
+        held_items = self.location.get_held_items()
+        return held_items + [
             status.item_types[key]
-            for key in set(self.location.inventory.keys()) | set(self.demand.keys())
+            for key in self.demand.keys()
+            if status.item_types[key] not in held_items
         ]
 
     def calculate_demand(self) -> Dict[str, float]:

@@ -457,7 +457,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Upcoming work queue:
 # Also display warehouse tab if there is an active supply chain plan in the tile, even if nothing is stored
 #   Rename warehouse tab to something like supply chain
-# Make sure supply chain table rows appear in the same order as the location inventory grid
 # Add an extra image icon behind the currently selected row if an item icon is selected
 #   Also jump to the table page containing the item
 #   Would use the same system described below for non-string table cell content

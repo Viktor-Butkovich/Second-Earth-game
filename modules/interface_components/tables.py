@@ -87,7 +87,7 @@ class table_grid(grids.grid):
         """
         if self.pagination:
             if self.has_header_row:
-                return (len(self.unpaginated_content) - 1) // (
+                return (len(self.unpaginated_content) - 2) // (
                     self.rows_per_page - 1
                 ) + 1
             else:
