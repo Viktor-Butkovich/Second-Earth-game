@@ -32,8 +32,8 @@ class content_provider:
             headers = [
                 "item_type",
                 "present",
-                "demand",
                 "delivering",
+                "consuming",
                 "total",
             ]
         else:

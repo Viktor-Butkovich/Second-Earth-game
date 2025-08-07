@@ -696,6 +696,7 @@ class location(actors.actor):
                 - uuid - any subscriptions that watch all changes to this location
                 - true_world_handler.uuid - any subscriptions that watch all changes to the world
                 - DISPLAYED_LOCATION_ENDPOINT - any subscriptions watching changes to the displayed location
+                - Null endpoint - any subscriptions watching changes to any location's parameters
             With the following topics:
                 - endpoints/LOCATION_SET_PARAMETER_ROUTE - any subscriptions watching changes to parameters of the above
                 - endpoints/LOCATION_SET_PARAMETER_ROUTE/TEMPERATURE - any subscriptions watching changes to the temperature parameter of the above
@@ -712,6 +713,7 @@ class location(actors.actor):
             endpoints.append(constants.DISPLAYED_LOCATION_ENDPOINT)
         for endpoint in endpoints:
             constants.EventBus.publish(endpoint, *routes)
+        constants.EventBus.publish(*routes)
 
     def set_parameter(
         self, parameter_name: str, new_value: int, update_display: bool = True
@@ -1787,7 +1789,11 @@ class location(actors.actor):
         return utility.add_dicts(
             *[
                 mob.get_item_upkeep(
-                    recurse=False, earth_exemption=self.is_earth_location
+                    recurse=False,
+                    earth_exemption=self.is_earth_location
+                    and not constants.EffectManager.effect_active(
+                        "enable_earth_upkeep"
+                    ),
                 )
                 for mob in self.contained_mobs
             ]

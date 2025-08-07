@@ -204,7 +204,7 @@ EventBus: event_bus.event_bus = event_bus.event_bus()
 UuidManager: uuid_manager.uuid_manager = uuid_manager.uuid_manager()
 ContentProvider: content_provider.content_provider = content_provider.content_provider()
 SupplyChainRequestEngine: supply_chain_request_engine.supply_chain_request_engine = (
-    supply_chain_request_engine.supply_chain_request_engine()
+    None  # requires additional setup before initialization
 )
 NotificationManager: notification_manager.notification_manager = (
     None  # requires additional setup before initialization
@@ -1117,6 +1117,7 @@ LOCATION_REMOVE_BUILDING_ROUTE: str = "location_remove_building_route"
 LOCATION_SUBSCRIBE_MOB_ROUTE: str = "location_subscribe_mob_route"
 LOCATION_UNSUBSCRIBE_MOB_ROUTE: str = "location_unsubscribe_mob_route"
 LOCATION_SET_NAME_ROUTE: str = "location_set_name_route"
+ACTOR_SET_INVENTORY_ROUTE: str = "actor_set_inventory_route"
 BUILDING_SET_DAMAGED_ROUTE: str = "building_set_damaged_route"
 ABSTRACT_WORLD_UPDATE_IMAGE_ROUTE: str = "abstract_world_update_image_route"
 UPDATE_MAP_MODE_ROUTE: str = "update_map_mode_route"
@@ -1128,6 +1129,7 @@ WORLD_SET_PARAMETER_ROUTE: str = "world_set_parameter_route"
 WORLD_UPDATE_TARGET_AVERAGE_TEMPERATURE_ROUTE: str = (
     "world_update_target_average_temperature_route"
 )
+VEHICLE_SUBMOB_ADDED_ROUTE: str = "vehicle_submob_added_route"
 
 ABSOLUTE_ZERO_BANNER: str = "absolute_zero_banner"
 TERRAIN_DETAILS_BANNER: str = "terrain_details_banner"

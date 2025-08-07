@@ -514,6 +514,13 @@ def select_interface_tab(
         None
     """
     if (
+        tabbed_collection == status.mob_tabbed_collection and not status.displayed_mob
+    ) or (
+        tabbed_collection == status.location_tabbed_collection
+        and not status.displayed_location
+    ):
+        return
+    if (
         tabbed_collection
         in [status.location_inventory_collection, status.mob_inventory_collection]
         or not target_tab.showing

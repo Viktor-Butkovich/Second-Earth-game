@@ -270,11 +270,11 @@ class actor_display_label(labels.label):
             input_dict["image_id"] = "buttons/disembark_spaceship_button.png"
             self.add_attached_button(input_dict)
 
-        elif self.actor_label_type in [
-            constants.MOB_INVENTORY_CAPACITY_LABEL,
-            constants.LOCATION_INVENTORY_CAPACITY_LABEL,
-        ]:
+        elif self.actor_label_type == constants.MOB_INVENTORY_CAPACITY_LABEL:
             self.message_start = "Capacity: "
+
+        elif self.actor_label_type == constants.LOCATION_INVENTORY_CAPACITY_LABEL:
+            self.message_start = "Warehouses: "
 
         elif self.actor_label_type == constants.TERRAIN_LABEL:
             self.message_start = "Terrain: "
@@ -723,14 +723,14 @@ class actor_display_label(labels.label):
                 if self.actor:
                     if self.actor.infinite_inventory_capacity:
                         tooltip_text.append(
-                            "this location can hold an unlimited number of items"
+                            "This location can hold an unlimited number of items"
                         )
                     else:
                         tooltip_text.append(
-                            f"this location currently contains an inventory of {self.actor.get_inventory_used()} items"
+                            f"This location currently contains an inventory of {self.actor.get_inventory_used()} items"
                         )
                         tooltip_text.append(
-                            f"this location can retain a maximum inventory of {self.actor.inventory_capacity} items"
+                            f"This location can retain a maximum inventory of {self.actor.inventory_capacity} items"
                         )
                         tooltip_text.append(
                             "If this location's inventory exceeds its capacity before resource production at the end of the turn, extra items will be lost"

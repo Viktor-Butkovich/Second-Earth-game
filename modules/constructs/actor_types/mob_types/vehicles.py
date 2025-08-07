@@ -165,6 +165,7 @@ class vehicle(pmob):
             )
             self.set_inventory_capacity(0)
         self.set_permission(constants.SENTRY_MODE_PERMISSION, False)
+        constants.EventBus.publish(constants.VEHICLE_SUBMOB_ADDED_ROUTE)
 
     def get_sub_mobs(self) -> List[pmob]:
         """

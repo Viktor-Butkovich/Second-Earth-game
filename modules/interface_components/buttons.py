@@ -2138,6 +2138,7 @@ class tab_button(button):
                     status.displayed_location.inventory
                     or status.displayed_location.inventory_capacity > 0
                     or status.displayed_location.infinite_inventory_capacity
+                    or not status.displayed_location.supply_chain_plan.trivial
                 )
             else:
                 return status.displayed_mob.inventory_capacity > 0

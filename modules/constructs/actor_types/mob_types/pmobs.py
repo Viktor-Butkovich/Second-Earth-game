@@ -176,16 +176,6 @@ class pmob(mob):
         Output:
             dictionary: Returns the item upkeep requirements for this unit type
         """
-        if not self.get_permission(
-            constants.SURVIVABLE_PERMISSION
-        ):  # Don't pay upkeep if in deadly conditions - unit dies before upkeep is paid
-            if not (
-                self.any_permissions(
-                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
-                )
-                and self.get_permission(constants.IN_GROUP_PERMISSION)
-            ):
-                return {}
         if earth_exemption and self.location.is_earth_location:
             return {}
         elif (
@@ -810,6 +800,7 @@ class pmob(mob):
         self.location.unsubscribe_mob(self)
         self.remove_from_turn_queue()
         vehicle.subscribed_passengers.append(self)
+        constants.EventBus.publish(constants.VEHICLE_SUBMOB_ADDED_ROUTE)
         vehicle.move_to_front()
         self.set_permission(constants.IN_VEHICLE_PERMISSION, True)
         if (

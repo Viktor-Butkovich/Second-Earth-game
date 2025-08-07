@@ -208,7 +208,9 @@ class unit_type:
         """
         Called when an instance of this unit is newly hired (not reconstructed from save)
         """
-        return
+        actor_utility.select_interface_tab(
+            status.location_tabbed_collection, status.location_inventory_collection
+        )
 
     def on_remove(self) -> None:
         """

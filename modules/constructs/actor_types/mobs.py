@@ -50,7 +50,6 @@ class mob(actor):
         self.habitability = constants.HABITABILITY_PERFECT
         self.ambient_sound_channel: pygame.mixer.Channel = None
         self.locked_ambient_sound: bool = False
-        super().__init__(from_save, input_dict, original_constructor=False)
         self.image_dict: Dict[str, Any] = {
             **self.image_dict,
             constants.IMAGE_ID_LIST_DEFAULT: input_dict.get(

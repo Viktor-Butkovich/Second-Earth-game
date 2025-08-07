@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import List
 from modules.util import actor_utility
 from modules.constructs import plans
+from modules.constants import constants, status, flags
 
 
 class supply_chain_request_engine:
@@ -26,6 +27,18 @@ class supply_chain_request_engine:
         """
         self.location_plans: List[plans.supply_chain_plan] = []
         self.reset_location_plans()
+        constants.EventBus.subscribe(
+            self.reset_location_plans, constants.ACTOR_SET_INVENTORY_ROUTE
+        )
+        constants.EventBus.subscribe(
+            self.reset_location_plans, constants.LOCATION_SUBSCRIBE_MOB_ROUTE
+        )
+        constants.EventBus.subscribe(
+            self.reset_location_plans, constants.LOCATION_UNSUBSCRIBE_MOB_ROUTE
+        )
+        constants.EventBus.subscribe(
+            self.reset_location_plans, constants.VEHICLE_SUBMOB_ADDED_ROUTE
+        )
 
     def reset_location_plans(self) -> None:
         for current_location in actor_utility.all_locations():
@@ -34,5 +47,8 @@ class supply_chain_request_engine:
             )
             if not current_location.supply_chain_plan.trivial:
                 self.location_plans.append(current_location.supply_chain_plan)
+        actor_utility.calibrate_actor_info_display(
+            status.location_info_display, status.displayed_location
+        )
 
     # Prescribing requests WIP

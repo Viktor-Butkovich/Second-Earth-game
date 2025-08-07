@@ -12,6 +12,7 @@ from modules.managers import (
     terrain_manager,
     value_tracker,
     notification_manager,
+    supply_chain_request_engine,
 )
 from modules.util import (
     scaling,
@@ -283,6 +284,10 @@ def misc() -> None:
 
     constants.mouse_follower = constants.ActorCreationManager.create_interface_element(
         {"init_type": constants.MOUSE_FOLLOWER_IMAGE}
+    )
+
+    constants.SupplyChainRequestEngine = (
+        supply_chain_request_engine.supply_chain_request_engine()
     )
 
     constants.NotificationManager = notification_manager.notification_manager()
@@ -2879,7 +2884,7 @@ def inventory_interface() -> None:
                         },
                     ],
                     "identifier": constants.INVENTORY_PANEL,
-                    "tab_name": "warehouses",
+                    "tab_name": "supply chain",
                 },
             }
         )
@@ -2970,7 +2975,7 @@ def inventory_interface() -> None:
 
     inventory_info_display_interface()
 
-    supply_chain_table_coordinate_height = 5
+    supply_chain_table_coordinate_height = 6
     supply_chain_table = constants.ActorCreationManager.create_interface_element(
         input_dict={
             "init_type": constants.TABLE_GRID,

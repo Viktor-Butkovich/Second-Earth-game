@@ -455,17 +455,17 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Also display warehouse tab if there is an active supply chain plan in the tile, even if nothing is stored
-#   Rename warehouse tab to something like supply chain
+# Include items held by local units in the "present" field of the supply chain table
+# Add mob-specific supply chain table displaying its own upkeep only?
+# Handle item demand of officers (demand = 0 but not missing - requires at least some present)
+#   Demand tab should probably show as >0, with warnings if expected final is 0 and demand is >0
 # Add an extra image icon behind the currently selected row if an item icon is selected
 #   Also jump to the table page containing the item
 #   Would use the same system described below for non-string table cell content
 # Add item type icons to supply chain table
 #   Most scalable to add as new content field, where table content can have text, extra image ID's, and tooltip fields
 #       rather than just string text
-# Make sure to update supply chain when needed (for now, just when local inventory or local demand changes)
-# Make sure local demand is included in the supply chain plan
-# Consider combined warehouse/supply chain interface or not
+# Consider how to handle upkeep for units in deadly conditions who will die before upkeep is logically consumed
 # Keep making supply chain plans
 #   Ideally a location maintains a supply chain plan, which can be planned out/executed/reversed/etc.
 #   Then, we have a source of truth that is easy to display in a datatable
@@ -476,6 +476,7 @@ except Exception:  # Displays error message and records error message in crash l
 #   A request should include item type, amount, origin, destination, and an optional priority level
 #   Once a request is made, it can be executed, with possible success or failure
 #   These connections should be made in a manner that a prescriptive request engine can create these plans in an optimal manner
+# Use pre-calculated supply chain plans to actually execute the upkeep, rather than calculating during immediate upkeep
 # Modify tabs to only calibrate upon the tab being entered or when calibrating while tab is open
 #   Calibration should not occur for inactive tabs - hinders performance without benefit
 # Implement supply chain plans using command pattern

@@ -66,7 +66,7 @@ class supply_chain_plan:
         """
         Description:
             Generates datatable representation of the location's supply chain plan
-                Includes item type, present, demand, delivering, and net amount fields
+                Includes item type, present, demand, delivered, and net amount fields
         """
         datatable = []
         for subplan in self.subplans.values():
@@ -74,8 +74,10 @@ class supply_chain_plan:
                 {
                     "item_type": subplan.item_type.name.title(),
                     "present": subplan.stored if subplan.stored != 0 else "",
-                    "demand": subplan.demand if subplan.demand != 0 else "",
                     "delivering": subplan.delta if subplan.delta != 0 else "",
+                    "consuming": (
+                        subplan.demand * -1 if subplan.demand != 0 else ""
+                    ),  # Display demand as negative due to expected decrease in amount, while still using positives for calculations
                     "total": subplan.total if subplan.total != 0 else "",
                 }
             )
@@ -109,6 +111,8 @@ class supply_chain_plan:
         Output:
             dict: Dictionary with item type keys and total demand values
         """
-        total_demand = self.location.location_item_upkeep_demand
+        total_demand = self.location.location_item_upkeep_demand.copy()
+        if constants.ENERGY_ITEM in total_demand:
+            del total_demand[constants.ENERGY_ITEM]
         # Add logic to include requests from other locations
         return total_demand

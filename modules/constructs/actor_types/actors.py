@@ -235,6 +235,7 @@ class actor:
             )  # If new value is an integer, set inventory to integer
         if round(new_value, 2) <= 0:
             del self.inventory[item.key]
+        constants.EventBus.publish(constants.ACTOR_SET_INVENTORY_ROUTE)
         self.select_last_item_icon(item)
 
     def select_last_item_icon(self, item: item_types.item_type) -> None:

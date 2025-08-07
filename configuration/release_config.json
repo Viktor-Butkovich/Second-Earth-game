@@ -14,6 +14,8 @@
       "skip_intro"
    ],
    "effects": [
+      "debug_event_bus",
+      "enable_earth_upkeep",
       "debug_atmosphere_update",
       "debug_tab_selection",
       "debug_item_requests",

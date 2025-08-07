@@ -62,6 +62,7 @@ class table_grid(grids.grid):
                     ),
                 )
             )
+        self.show_while_empty: bool = False
         self.has_header_row: bool = True
         self.actor: actors.actor = None
 
@@ -94,6 +95,20 @@ class table_grid(grids.grid):
                 return len(self.unpaginated_content) // self.rows_per_page + 1
         else:
             return 1
+
+    def can_show(self, skip_parent_collection: bool = False) -> bool:
+        """
+        Description:
+            Returns whether this grid can be shown. Some table grids are hidden if they have no non-header content
+        Input:
+            None
+        Output:
+            boolean: Returns True if this grid can appear during the current game mode, otherwise returns False
+        """
+        return (
+            super().can_show(skip_parent_collection=skip_parent_collection)
+            and self.content
+        )
 
     def create_pagination_button(
         self,
@@ -278,6 +293,10 @@ class table_grid(grids.grid):
             )
         else:
             raise ValueError(f"Unexpected table grid subject: {self.subject}")
+        if not self.show_while_empty:
+            if (self.has_header_row and len(self.content) <= 1) or not self.content:
+                self.content = []
+                return
         if len(self.content) == 1:
             # If there's only a header row, add an N/A row
             self.content.append(["N/A"] * self.coordinate_width)

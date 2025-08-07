@@ -81,6 +81,11 @@ class event_bus:
         for topic in topics:
             for callback in self.subscriptions.get(topic, []):
                 callback()
+            if constants.EffectManager.effect_active("debug_event_bus"):
+                if self.subscriptions.get(topic, []):
+                    print(
+                        f"Invoked {len(self.subscriptions[topic])} subscribers for published topic: {topic}"
+                    )
 
     def clear_endpoint(self, endpoint: str) -> None:
         """
