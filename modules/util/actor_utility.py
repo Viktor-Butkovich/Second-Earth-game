@@ -112,9 +112,11 @@ def calibrate_actor_info_display(
     if flags.loading:
         return
     if info_display == status.location_info_display:
+        changed_displayed_location = new_actor != status.displayed_location
+        if changed_displayed_location:
+            calibrate_actor_info_display(status.location_inventory_info_display, None)
         for current_same_location_icon in status.same_location_icon_list:
             current_same_location_icon.reset()
-        calibrate_actor_info_display(status.location_inventory_info_display, None)
         status.displayed_location = new_actor
         if new_actor:
             new_actor.select()  # Plays correct music based on location selected - main menu/earth music
@@ -124,7 +126,7 @@ def calibrate_actor_info_display(
         if changed_displayed_mob:
             if status.displayed_mob:
                 status.displayed_mob.stop_ambient_sound()
-        calibrate_actor_info_display(status.mob_inventory_info_display, None)
+            calibrate_actor_info_display(status.mob_inventory_info_display, None)
         status.displayed_mob = new_actor
         if changed_displayed_mob and new_actor:
             new_actor.start_ambient_sound()

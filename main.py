@@ -455,7 +455,6 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Include items held by local units in the "present" field of the supply chain table
 # Add mob-specific supply chain table displaying its own upkeep only?
 # Handle item demand of officers (demand = 0 but not missing - requires at least some present)
 #   Demand tab should probably show as >0, with warnings if expected final is 0 and demand is >0

@@ -822,7 +822,7 @@ def end_turn_warnings():
         current_location
     ) in actor_utility.all_locations():  # Warn for insufficient warehouses
         if current_location.insufficient_inventory_capacity:
-            if current_world.is_abstract_world:
+            if current_location.name:
                 constants.NotificationManager.display_notification(
                     {
                         "message": f"Warning: the warehouses in {current_location.name} are not sufficient to hold the items stored there. /n /nAny items exceeding the location's storage capacity will be lost at the end of the turn. /n /n",
