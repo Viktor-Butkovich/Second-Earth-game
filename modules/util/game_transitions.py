@@ -198,6 +198,17 @@ def to_main_menu(override=False):
     )
     actor_utility.calibrate_actor_info_display(status.location_info_display, None)
     minister_utility.calibrate_minister_info_display(None)
+    if constants.EffectManager.effect_active("debug_dangling_interface"):
+        interface_to_remove = (
+            status.location_grid_list
+            + status.world_list
+            + status.minister_list
+            + status.dice_list
+            + status.loan_list
+        )
+        print(
+            f"Tracking {len(interface_to_remove)} interface elements before exiting to main menu."
+        )
     for current_grid in status.location_grid_list.copy():
         current_grid.remove()
     for current_world in status.world_list.copy():
@@ -217,6 +228,21 @@ def to_main_menu(override=False):
         status.current_instructions_page = None
     for key, terrain_feature_type in status.terrain_feature_types.items():
         terrain_feature_type.clear_tracking()
+    if constants.EffectManager.effect_active("debug_dangling_interface"):
+        remaining_interface = (
+            status.location_grid_list
+            + status.world_list
+            + status.minister_list
+            + status.dice_list
+            + status.loan_list
+        )
+        print(
+            f"Found {len(remaining_interface)} dangling interface elements after exiting to main menu."
+        )
+        if remaining_interface:
+            raise Exception(
+                f"Dangling interface elements after exiting to main menu: {remaining_interface}"
+            )
     set_game_mode(constants.MAIN_MENU_MODE)
 
 

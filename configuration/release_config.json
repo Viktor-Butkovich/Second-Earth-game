@@ -11,9 +11,11 @@
       "hide_old_buttons",
       "allow_toggle_god_mode",
       "rotate_game_mode_buttons",
+      "debug_dangling_interface",
       "skip_intro"
    ],
    "effects": [
+      "debug_dangling_interface",
       "debug_event_bus",
       "enable_earth_upkeep",
       "debug_atmosphere_update",

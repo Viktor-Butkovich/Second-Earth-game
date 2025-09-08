@@ -332,6 +332,12 @@ class grid(interface_elements.interface_element):
         Output:
             boolean: Returns whether it would be valid to call this object's draw()
         """
+        if (
+            constants.EffectManager.effect_active("track_dangling_interface")
+            and (not self in status.grid_list)
+            and self.showing
+        ):
+            raise Exception(f"Dangling interface element detected: {self}")
         return self.showing
 
     def remove(self) -> None:

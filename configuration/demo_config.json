@@ -13,6 +13,7 @@
         "skip_intro"
     ],
     "effects": [
+        "debug_dangling_interface",
         "debug_event_bus",
         "enable_earth_upkeep",
         "debug_atmosphere_update",
