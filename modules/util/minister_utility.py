@@ -63,6 +63,13 @@ def calibrate_minister_info_display(new_minister):
     Output:
         None
     """
+    if (
+        status.current_just_appointed_minister
+        and new_minister != status.displayed_minister
+        and new_minister != status.current_just_appointed_minister
+    ):  # Remove current just appointed minister if deselected or another minister selected
+        status.current_just_appointed_minister = None
+        update_available_minister_display()
     status.displayed_minister = new_minister
     target = None
     if status.displayed_minister:
@@ -125,12 +132,33 @@ def update_available_minister_display():
     Output:
         None
     """
+    constants.available_minister_left_index = max(
+        -2,
+        min(
+            constants.available_minister_left_index,
+            len(status.available_minister_list)
+            - 3
+            + (1 if status.current_just_appointed_minister else 0),
+        ),
+    )  # Bound center to be on an available minister, if any (treating just-appointed minister as part of the list)
+    if status.current_just_appointed_minister:
+        available_minister_list = status.available_minister_list.copy()
+        insert_index = constants.available_minister_left_index + 2
+        if insert_index < len(available_minister_list):
+            available_minister_list.insert(
+                insert_index, status.current_just_appointed_minister
+            )
+        else:
+            available_minister_list.append(status.current_just_appointed_minister)
+    else:
+        available_minister_list = status.available_minister_list
+
     for i, current_icon in enumerate(status.available_minister_icon_list):
         current_icon_index = constants.available_minister_left_index + i
         if current_icon_index >= 0 and current_icon_index < len(
-            status.available_minister_list
+            available_minister_list
         ):
-            current_icon.calibrate(status.available_minister_list[current_icon_index])
+            current_icon.calibrate(available_minister_list[current_icon_index])
         else:
             current_icon.calibrate(None)
 

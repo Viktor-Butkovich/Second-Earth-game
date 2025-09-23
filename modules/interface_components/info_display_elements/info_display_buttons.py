@@ -730,22 +730,26 @@ class embark_vehicle_button(buttons.button):
                                     "message": f"There are {len(vehicles)} possible vehicles to embark - click next until you find the vehicle you would like to embark. /n /n",
                                     "choices": [
                                         {
-                                            "on_click": [(
-                                                self.finish_embark_vehicle,
-                                                [rider, vehicle],
-                                            )],
+                                            "on_click": [
+                                                (
+                                                    self.finish_embark_vehicle,
+                                                    [rider, vehicle],
+                                                )
+                                            ],
                                             "tooltip": ["Embarks this vehicle"],
                                             "message": "Embark",
                                         },
                                         {
-                                            "on_click": [(
-                                                self.skip_embark_vehicle,
-                                                [
-                                                    rider,
-                                                    vehicles,
-                                                    vehicles.index(vehicle),
-                                                ],
-                                            )],
+                                            "on_click": [
+                                                (
+                                                    self.skip_embark_vehicle,
+                                                    [
+                                                        rider,
+                                                        vehicles,
+                                                        vehicles.index(vehicle),
+                                                    ],
+                                                )
+                                            ],
                                             "tooltip": [
                                                 "Cycles to the next possible vehicle"
                                             ],
@@ -1871,6 +1875,7 @@ class actor_icon(buttons.button):
             text_utility.print_to_screen(
                 f"You are busy and cannot select this {conversion[self.actor.actor_type]}."
             )
+            return
         if self.actor.actor_type == constants.MOB_ACTOR_TYPE:
             if self.actor.get_permission(constants.DUMMY_PERMISSION):
                 if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
@@ -1925,7 +1930,7 @@ class actor_icon(buttons.button):
         ):
             self.calibrate(new_actor.controlling_minister)
             return  # If minister icon attempts to calibrate to mob, calibrate to its minister instead
-        self.actor = new_actor
+        super().calibrate(new_actor)
         self.image.set_image(self.image_id_list)
 
     @property
@@ -1988,7 +1993,7 @@ class actor_icon(buttons.button):
                         }
                     )
             elif self.actor.actor_type == constants.MINISTER_ACTOR_TYPE:
-                image_id_list = self.actor.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
+                image_id_list += self.actor.image_dict[constants.IMAGE_ID_LIST_DEFAULT]
                 if self.actor.current_position:
                     image_id_list.append(
                         {
@@ -2012,6 +2017,13 @@ class actor_icon(buttons.button):
                 raise ValueError(f"Unexpected actor type: {self.actor.actor_type}")
         if not image_id_list:
             image_id_list += self.default_image_id
+        if self.enable_shader and self.enable_shader_condition():
+            image_id_list += [
+                {
+                    "image_id": "misc/shader.png",
+                    "level": constants.FRONT_LEVEL,
+                }
+            ]
         return image_id_list
 
 
@@ -2111,6 +2123,10 @@ class available_minister_icon(minister_icon):
         """
         Handles on-click behavior for this button
         """
+        if self.actor and self.actor == status.current_just_appointed_minister:
+            return
+        else:
+            status.current_just_appointed_minister = None
         super().on_click()
         if self.actor and main_loop_utility.action_possible():
             new_center_index = status.available_minister_list.index(self.actor)
@@ -2139,3 +2155,18 @@ class available_minister_icon(minister_icon):
             return super().batch_tooltip_list
         else:
             return [["There is no available candidate in this slot."]]
+
+    def enable_shader_condition(self) -> bool:
+        """
+        Description:
+            Calculates and returns whether this button should display its shader, given that it has shader enabled - current minister was just appointed
+        Input:
+            None
+        Output:
+            boolean: Returns whether this button should display its shader, given that it has shader enabled
+        """
+        return (
+            super().enable_shader_condition()
+            and self.actor
+            and self.actor == status.current_just_appointed_minister
+        )

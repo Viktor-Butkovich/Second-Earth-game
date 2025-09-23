@@ -54,6 +54,7 @@ from modules.constructs.effects import effect
 scrolling_strategic_map_grid: mini_grid = None
 minimap_grid: mini_grid = None
 planet_view_mask: free_image = None
+current_just_appointed_minister: minister = None
 
 actions: Dict[str, action] = {}
 

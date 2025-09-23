@@ -89,26 +89,10 @@ class button(interface_elements.interface_element):
         Output:
             None
         """
-        super().calibrate(new_actor, override_exempt)
         self.actor = new_actor
-        if self.enable_shader:
-            shader_image_id = "misc/shader.png"
-            if self.enable_shader_condition():
-                if type(self.image.image_id) == str:
-                    self.image.set_image([self.image.image_id, shader_image_id])
-                elif not shader_image_id in self.image.image_id:
-                    self.image.set_image(self.image.image_id + shader_image_id)
-            else:
-                if not type(self.image.image_id) == str:
-                    if shader_image_id in self.image.image_id:
-                        image_id = utility.remove_from_list(
-                            self.image.image_id, shader_image_id
-                        )
-                        if len(image_id) == 1:
-                            image_id = image_id[0]
-                        self.image.set_image(image_id)
+        super().calibrate(new_actor, override_exempt)
 
-    def enable_shader_condition(self):
+    def enable_shader_condition(self) -> bool:
         """
         Description:
             Calculates and returns whether this button should display its shader, given that it has shader enabled - open to be redefined by subclasses w/ specific criteria
@@ -1873,7 +1857,7 @@ class cycle_available_ministers_button(button):
         ):  # left index = 0, left index + 4 = 4 which is greater than the length of a 3-minister list, so can't move right farther
             if not constants.available_minister_left_index + 4 > len(
                 status.available_minister_list
-            ):
+            ) + (1 if status.current_just_appointed_minister else 0):
                 return super().can_show(skip_parent_collection=skip_parent_collection)
             else:
                 return False
@@ -2205,7 +2189,7 @@ class reorganize_unit_button(button):
             return True
         return False
 
-    def enable_shader_condition(self):
+    def enable_shader_condition(self) -> bool:
         """
         Description:
             Calculates and returns whether this button should display its shader, given that it has shader enabled - reorganize button displays shader when current

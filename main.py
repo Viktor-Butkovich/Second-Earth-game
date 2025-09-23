@@ -455,7 +455,17 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Look into designing attrition/upkeep replacement/death like SFA runaway slaves
+#   Handling recursively from the worker level instead of iteratiely from the top level is much easier
+# Crash when firing astronauts group
+# End of turn crash sending colony ship back to Earth (end turn warning)
+# Don't switch between location supply chain and local conditions modes on movement (due to new tab activating)
+# Fix north/south pole indicators on the current save game - they always point up right no matter what
 # Add mob-specific supply chain table displaying its own upkeep only?
+#   Helps remove inter-dependence between location and mob inventory tabs
+#   If a colony ship is selected with extensive inventory, crew, passengers, etc., upkeep can be managed and viewed
+#       from its own inventory page, rather than that of the location
+#   Otherwise, a colony ship's supplies could only be tracked by looking at both inventory tabs
 # Handle item demand of officers (demand = 0 but not missing - requires at least some present)
 #   Demand tab should probably show as >0, with warnings if expected final is 0 and demand is >0
 # Add an extra image icon behind the currently selected row if an item icon is selected
@@ -512,6 +522,7 @@ except Exception:  # Displays error message and records error message in crash l
 #   The images in these cells, when calibrated, might include labels with empty background and some text
 #       In this case, we might want the entire grid to have a background image, with each cell having text and a transparent background
 #   If this works well, we could possibly retroactively apply this to the inventory interface
+# Prevent minister retirement for the first several turns and gradually increase chance
 # Strengthen albedo effect - fully ice covered planet should have a notable albedo difference from normal
 # Add 5x5 building slot system
 # Allow building basic buildings like mines, farms, etc. with work crew functionality

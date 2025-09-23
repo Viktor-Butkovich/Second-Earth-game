@@ -2157,6 +2157,9 @@ def ministers_screen() -> None:
                         "level": constants.BACKGROUND_LEVEL,
                     },
                 ],
+                                "minister_type": "none",
+                "enable_shader": i
+                == 2,  # Only enable shader for middle portrait (when minister just appointed)
             }
         )
 
