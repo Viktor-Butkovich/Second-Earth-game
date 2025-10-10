@@ -82,7 +82,7 @@ class work_crew(group):
                 if roll_result >= 4:  # 4+ required on D6 for production
                     if not self.controlling_minister.check_corruption():
                         self.location.change_inventory(
-                            current_building.resource_type, 1
+                            current_building.resource_type, 1, update_sorted=False
                         )
                         current_building.resource_type.amount_produced_this_turn += 1
                         current_location = self.location
@@ -104,3 +104,4 @@ class work_crew(group):
                 )  # Minister steals value of resources produced
                 if random.randrange(1, 7) <= 1:  # 1/6 chance
                     market_utility.change_price(current_building.resource_type, -1)
+        self.location.update_sorted_inventory()

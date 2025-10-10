@@ -5,7 +5,6 @@ import random
 from typing import Dict, List
 from modules.constructs.actor_types.mobs import mob
 from modules.util import text_utility, utility, actor_utility, minister_utility
-from modules.constructs import item_types
 from modules.constants import constants, status, flags
 
 
@@ -594,8 +593,14 @@ class pmob(mob):
                 self.get_inventory_remaining(),
                 self.location.get_inventory(items_present[0]),
             )
-            self.change_inventory(items_present[0], amount_transferred)
-            self.location.change_inventory(items_present[0], -amount_transferred)
+            self.change_inventory(
+                items_present[0], amount_transferred, update_sorted=False
+            )
+            self.location.change_inventory(
+                items_present[0], -amount_transferred, update_sorted=False
+            )
+        self.update_sorted_inventory()
+        self.location.update_sorted_inventory()
 
     def clear_automatic_route(self):
         """
@@ -752,8 +757,11 @@ class pmob(mob):
         """
         for current_item_type in self.get_held_items():
             self.location.change_inventory(
-                current_item_type, self.get_inventory(current_item_type)
+                current_item_type,
+                self.get_inventory(current_item_type),
+                update_sorted=False,
             )
+        self.update_sorted_inventory()
         self.remove_from_turn_queue()
         super().remove()
         status.pmob_list = utility.remove_from_list(status.pmob_list, self)
@@ -791,12 +799,19 @@ class pmob(mob):
             amount_held = self.get_inventory(current_item)
 
             amount_transferred = min(vehicle.get_inventory_remaining(), amount_held)
-            vehicle.change_inventory(current_item, amount_transferred)
+            vehicle.change_inventory(
+                current_item, amount_transferred, update_sorted=False
+            )
 
             amount_dropped = amount_held - amount_transferred
-            self.location.change_inventory(current_item, amount_dropped)
+            self.location.change_inventory(
+                current_item, amount_dropped, update_sorted=False
+            )
 
         self.inventory = {}
+        self.update_sorted_inventory()
+        vehicle.update_sorted_inventory()
+        self.location.update_sorted_inventory()
         self.location.unsubscribe_mob(self)
         self.remove_from_turn_queue()
         vehicle.subscribed_passengers.append(self)

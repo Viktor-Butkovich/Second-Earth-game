@@ -63,10 +63,12 @@ class group(pmob):
         ]:  # Merges individual inventory to group inventory and clears individual inventory
             for current_item_type in current_mob.get_held_items():
                 self.change_inventory(
-                    current_item_type, current_mob.get_inventory(current_item_type)
+                    current_item_type,
+                    current_mob.get_inventory(current_item_type),
+                    update_sorted=False,
                 )
-                current_mob.set_inventory(current_item_type, 0)
-
+                current_mob.set_inventory(current_item_type, 0, update_sorted=False)
+            current_mob.update_sorted_inventory()
         if not from_save:
             for equipment in set(self.worker.equipment.keys()).union(
                 self.officer.equipment.keys()
@@ -77,9 +79,11 @@ class group(pmob):
                     ) and self.officer.equipment.get(
                         equipment, False
                     ):  # If both worker and officer had same equipment, drop extra
-                        self.location.change_inventory(equipment, 1)
+                        self.location.change_inventory(
+                            equipment, 1, update_sorted=False
+                        )
                     status.equipment_types[equipment].equip(self)
-
+            self.location.update_sorted_inventory()
         if not from_save:
             self.set_permission(
                 constants.DISORGANIZED_PERMISSION,
