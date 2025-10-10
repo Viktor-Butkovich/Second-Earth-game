@@ -209,27 +209,24 @@ class minister:
         if self.apparent_corruption_description != "unknown":
             tooltip_text.append(f"Loyalty: {self.apparent_corruption_description}")
 
+        skill_message = ""
         if self.current_position:
             displayed_skill = self.current_position.skill_type
         else:
             displayed_skill = self.get_max_apparent_skill()
 
-        if displayed_skill != "unknown":
-            if self.apparent_skill_descriptions[displayed_skill] != "unknown":
-                if self.current_position:
-                    message = f"{displayed_skill.capitalize()} ability: {self.apparent_skill_descriptions[displayed_skill]}"
-                else:
-                    message = f"Highest ability: {self.apparent_skill_descriptions[displayed_skill]} ({displayed_skill})"
-                tooltip_text.append(message)
+        if self.current_position:
+            skill_message += f"{displayed_skill.capitalize().replace('_', ' ')} ability: {self.apparent_skill_descriptions[displayed_skill]}"
+        elif displayed_skill != "unknown":
+            skill_message += f"Highest ability: {self.apparent_skill_descriptions[displayed_skill]} ({displayed_skill.replace('_',' ')})"
 
-        rank = 0
-        for skill_value in range(6, 0, -1):  # iterates backwards from 6 to 1
-            for skill_type in self.apparent_skills:
-                if self.apparent_skills[skill_type] == skill_value:
-                    rank += 1
-                    tooltip_text.append(
-                        f"    {rank}. {skill_type.capitalize()}: {self.apparent_skill_descriptions[skill_type]}"
-                    )
+        if skill_message:
+            tooltip_text.append(skill_message)
+
+        for rank, skill in enumerate(self.sorted_apparent_skills):
+            tooltip_text.append(
+                f"    {rank+1}. {skill.capitalize().replace('_', ' ')}: {self.apparent_skill_descriptions[skill]}"
+            )
 
         tooltip_text.append("Evidence: " + str(self.corruption_evidence))
         if self.just_removed and not self.current_position:
@@ -240,6 +237,26 @@ class minister:
                 "If not reappointed by the end of the turn, they will be permanently fired, incurring a large public opinion penalty."
             )
         return tooltip_text
+
+    @property
+    def sorted_apparent_skills(self) -> List[str]:
+        """
+        Provides a list of skill types sorted from highest to lowest apparent value
+        """
+        return [
+            skill
+            for skill, value in sorted(
+                self.apparent_skills.items(),
+                key=lambda item: (
+                    item[1],  # Primarily sort by skill value in descending order
+                    self.apparent_skill_descriptions[
+                        item[0]
+                    ],  # Secondarily sort by lexicographic order of description
+                ),
+                reverse=True,  # Sort by value in descending order
+            )
+            if self.apparent_skill_descriptions[skill] != "unknown"
+        ]
 
     def check_retirement(self) -> bool:
         """

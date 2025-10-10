@@ -2157,7 +2157,7 @@ def ministers_screen() -> None:
                         "level": constants.BACKGROUND_LEVEL,
                     },
                 ],
-                                "minister_type": "none",
+                "minister_type": "none",
                 "enable_shader": i
                 == 2,  # Only enable shader for middle portrait (when minister just appointed)
             }
@@ -2545,14 +2545,14 @@ def mob_sub_interface() -> None:
             input_dict["banner_type"] = constants.DEADLY_CONDITIONS_BANNER
             input_dict["banner_text"] = "Deadly conditions - will die at end of turn"
 
-        if current_actor_label_type != constants.CURRENT_PASSENGER_LABEL:
-            constants.ActorCreationManager.create_interface_element(input_dict)
-        else:
+        if current_actor_label_type == constants.CURRENT_PASSENGER_LABEL:
             input_dict["list_type"] = constants.SPACESHIP_PERMISSION
             for i in range(0, 3):  # 0, 1, 2
                 # label for each passenger
                 input_dict["list_index"] = i
                 constants.ActorCreationManager.create_interface_element(input_dict)
+        else:
+            constants.ActorCreationManager.create_interface_element(input_dict)
 
 
 def location_interface() -> None:
@@ -4022,28 +4022,13 @@ def minister_interface() -> None:
         constants.MINISTER_INTERESTS_LABEL,
         constants.MINISTER_LOYALTY_LABEL,
         constants.MINISTER_ABILITY_LABEL,
-        constants.SPACE_SKILL_LABEL,
-        constants.ECOLOGY_SKILL_LABEL,
-        constants.TERRAN_AFFAIRS_SKILL_LABEL,
-        constants.SCIENCE_SKILL_LABEL,
-        constants.INDUSTRY_SKILL_LABEL,
-        constants.ENERGY_SKILL_LABEL,
-        constants.TRANSPORTATION_SKILL_LABEL,
-        constants.SECURITY_SKILL_LABEL,
+        constants.CURRENT_SKILL_LABEL,
         constants.EVIDENCE_LABEL,
     ]:
         if current_actor_label_type in [
-            constants.SPACE_SKILL_LABEL,
-            constants.ECOLOGY_SKILL_LABEL,
-            constants.TERRAN_AFFAIRS_SKILL_LABEL,
-            constants.SCIENCE_SKILL_LABEL,
-            constants.ENERGY_SKILL_LABEL,
-            constants.INDUSTRY_SKILL_LABEL,
-            constants.TRANSPORTATION_SKILL_LABEL,
-            constants.SECURITY_SKILL_LABEL,
+            constants.CURRENT_SKILL_LABEL,
             constants.MINISTER_SOCIAL_STATUS_LABEL,
         ]:
-            # try displacing everything except office?
             x_displacement = 50
         elif current_actor_label_type != constants.MINISTER_OFFICE_LABEL:
             x_displacement = 25
@@ -4051,7 +4036,14 @@ def minister_interface() -> None:
             x_displacement = 0
         input_dict["member_config"] = {"order_x_offset": x_displacement}
         input_dict["init_type"] = current_actor_label_type
-        constants.ActorCreationManager.create_interface_element(input_dict)
+
+        if current_actor_label_type == constants.CURRENT_SKILL_LABEL:
+            input_dict["list_type"] = "skill types"
+            for i in range(len(status.minister_types)):
+                input_dict["list_index"] = i
+                constants.ActorCreationManager.create_interface_element(input_dict)
+        else:
+            constants.ActorCreationManager.create_interface_element(input_dict)
     # minister info labels setup
 
 

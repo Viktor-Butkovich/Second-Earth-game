@@ -814,15 +814,11 @@ class actor_display_label(labels.label):
 
         elif self.actor_label_type == constants.MINISTER_ABILITY_LABEL:
             tooltip_text = [self.message]
-            rank = 0
-            if self.actor:
-                for skill_value in range(6, 0, -1):  # iterates backwards from 6 to 1
-                    for skill_type in self.actor.apparent_skills:
-                        if self.actor.apparent_skills[skill_type] == skill_value:
-                            rank += 1
-                            tooltip_text.append(
-                                f"    {rank}. {skill_type.capitalize()}: {self.actor.apparent_skill_descriptions[skill_type]}"
-                            )
+            if self.actor != "none":
+                for rank, skill in enumerate(self.actor.sorted_apparent_skills):
+                    tooltip_text.append(
+                        f"    {rank+1}. {skill.capitalize().replace('_', ' ')}: {self.actor.apparent_skill_descriptions[skill]}"
+                    )
             return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_LOYALTY_LABEL:
@@ -1258,6 +1254,14 @@ class actor_display_label(labels.label):
                                 )
                             )
 
+            elif self.actor_label_type == constants.CURRENT_SKILL_LABEL:
+                self.attached_list = new_actor.sorted_apparent_skills
+                if len(self.attached_list) > self.list_index:
+                    skill = self.attached_list[self.list_index]
+                    self.set_label(
+                        f"{self.list_index + 1}. {skill.capitalize().replace('_', ' ')}: {self.actor.apparent_skill_descriptions[skill]}"
+                    )
+
             elif self.actor_label_type in [
                 constants.WORKERS_LABEL,
                 constants.OFFICER_LABEL,
@@ -1330,15 +1334,18 @@ class actor_display_label(labels.label):
             elif self.actor_label_type == constants.MINISTER_ABILITY_LABEL:
                 message = ""
                 if not new_actor.current_position:
-                    displayed_skill = new_actor.get_max_apparent_skill()
-                    message += "Highest ability: "
+                    skill = new_actor.get_max_apparent_skill()
                 else:
-                    displayed_skill = new_actor.current_position.skill_type
-                    message += "Current ability: "
-                if displayed_skill != "unknown":
-                    message += f"{new_actor.apparent_skill_descriptions[displayed_skill]} ({displayed_skill})"
+                    skill = new_actor.current_position.skill_type
+
+                if not new_actor.current_position:
+                    if skill != "unknown":
+                        message += f"Highest ability: {new_actor.apparent_skill_descriptions[skill]} ({skill.replace('_',' ')})"
+                        # e.g. Highest ability: Genius (industry) if still a candidate
+                    # No message needed for candidate with no known skills
                 else:
-                    message += displayed_skill
+                    message += f"{skill.capitalize().replace('_', ' ')} ability: {new_actor.apparent_skill_descriptions[skill]}"
+                    # e.g. Industry ability: Genius (industry) if industry minister
                 self.set_label(message)
 
             elif self.actor_label_type == constants.MINISTER_LOYALTY_LABEL:
@@ -1622,14 +1629,10 @@ class actor_display_label(labels.label):
         ):
             return False
         elif self.actor_label_type == constants.MINISTER_ABILITY_LABEL:
-            empty = True
-            for skill_type in self.actor.apparent_skills:
-                if self.actor.apparent_skill_descriptions[skill_type] != "unknown":
-                    empty = False
-            if empty:
-                return False
-            else:
-                return result
+            return result and (
+                self.actor.current_position
+                or self.actor.get_max_apparent_skill() != "unknown"
+            )
         elif (
             self.actor_label_type.removesuffix("_skill_label") in constants.skill_types
         ):
