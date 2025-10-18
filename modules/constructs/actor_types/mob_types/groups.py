@@ -197,7 +197,6 @@ class group(pmob):
         self.drop_inventory()
         self.officer.fire()
         self.worker.fire()
-        super().fire()
 
     def remove(self):
         self.officer.remove()

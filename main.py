@@ -458,7 +458,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Address keybind collision for astronauts reorganization - attempted "n" uncrew vehicle button blocks split group "n" button from being reached
 # Look into designing attrition/upkeep replacement/death like SFA runaway slaves
 #   Handling recursively from the worker level instead of iteratiely from the top level is much easier
-# Crash when firing astronauts group
 # End of turn crash sending colony ship back to Earth (end turn warning)
 # Don't switch between location supply chain and local conditions modes on movement (due to new tab activating)
 # Fix north/south pole indicators on the current save game - they always point up right no matter what
