@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from typing import Dict, List, Tuple
-from modules.util import scaling, actor_utility
+from modules.util import scaling
 from modules.interface_components import cells, grids, buttons
 from modules.constructs.actor_types import actors
 from modules.constants import constants, status, flags

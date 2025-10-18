@@ -82,7 +82,7 @@ class work_crew(group):
                 if roll_result >= 4:  # 4+ required on D6 for production
                     if not self.controlling_minister.check_corruption():
                         self.location.change_inventory(
-                            current_building.resource_type, 1, update_sorted=False
+                            current_building.resource_type, 1
                         )
                         current_building.resource_type.amount_produced_this_turn += 1
                         current_location = self.location

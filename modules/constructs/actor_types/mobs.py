@@ -1132,16 +1132,17 @@ class mob(actor):
         """
         for current_item in self.get_held_items():
             self.location.change_inventory(
-                current_item, self.get_inventory(current_item), update_sorted=False
+                current_item, self.get_inventory(current_item)
             )
-            self.set_inventory(current_item, 0, update_sorted=False)
+            self.set_inventory(current_item, 0)
         if self.actor_type == constants.MOB_ACTOR_TYPE and self.get_permission(
             constants.PMOB_PERMISSION
         ):
             for current_equipment in self.equipment.copy():
                 if self.equipment[current_equipment]:
                     self.location.change_inventory(
-                        status.equipment_types[current_equipment], 1, update_sorted=False
+                        status.equipment_types[current_equipment],
+                        1,
                     )
                     status.equipment_types[current_equipment].unequip(self)
             self.equipment = {}

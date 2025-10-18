@@ -230,18 +230,10 @@ class button(interface_elements.interface_element):
             ]
 
         elif self.button_type == constants.MERGE_PROCEDURE:
-            if status.displayed_mob and status.displayed_mob.all_permissions(
-                constants.OFFICER_PERMISSION, constants.EVANGELIST_PERMISSION
-            ):
-                return [
-                    "Merges this evangelist with church volunteers in the same location to form a group of missionaries",
-                    "Requires that an evangelist is selected in the same location as church volunteers",
-                ]
-            else:
-                return [
-                    "Merges this officer with a worker in the same location to form a group with a type based on that of the officer",
-                    "Requires that an officer is selected in the same location as a worker",
-                ]
+            return [
+                "Merges this officer with a worker in the same location to form a group with a type based on that of the officer",
+                "Requires that an officer is selected in the same location as a worker",
+            ]
 
         elif self.button_type == constants.SPLIT_PROCEDURE:
             return ["Splits a group into its worker and officer"]
@@ -2186,7 +2178,9 @@ class reorganize_unit_button(button):
             actor_utility.select_interface_tab(
                 status.mob_tabbed_collection, status.mob_reorganization_collection
             )
-            return True
+            procedure_actors = self.parent_collection.autofill_actors
+            attempted_procedure_type = procedure_actors[constants.AUTOFILL_PROCEDURE]
+            return attempted_procedure_type in self.allowed_procedures
         return False
 
     def enable_shader_condition(self) -> bool:

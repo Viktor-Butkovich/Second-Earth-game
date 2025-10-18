@@ -7,3 +7,4 @@ save_games/*
 *_exe
 misc/pip.txt
 artifacts/*
+.vscode/*

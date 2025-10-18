@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Generator
 from modules.constructs.actor_types import locations
 from modules.constructs import item_types
 from modules.util import utility
@@ -81,6 +81,17 @@ class supply_chain_plan:
     def trivial(self) -> bool:
         return not self.subplans
 
+    def iterate_sorted_subplans(self) -> Generator[supply_chain_subplan, None, None]:
+        """
+        Yields a generator of subplans sorted by amount of item already present, in descending order
+        """
+        sorted_subplans = [self.subplans[key] for key in self.location.sorted_inventory]
+        sorted_subplans += [
+            subplan for subplan in self.subplans.values() if subplan.stored == 0
+        ]
+        for subplan in reversed(sorted_subplans):
+            yield subplan
+
     def generate_datatable(self) -> List[Dict[str, Any]]:
         """
         Description:
@@ -88,7 +99,8 @@ class supply_chain_plan:
                 Includes item type, present, demand, delivered, and net amount fields
         """
         datatable = []
-        for subplan in self.subplans.values():
+        # Sort item type subplans by amount present, in descending order
+        for subplan in self.iterate_sorted_subplans():
             datatable.append(
                 {
                     "item_type": subplan.item_type.name.title(),

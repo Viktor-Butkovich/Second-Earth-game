@@ -455,6 +455,7 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Address keybind collision for astronauts reorganization - attempted "n" uncrew vehicle button blocks split group "n" button from being reached
 # Look into designing attrition/upkeep replacement/death like SFA runaway slaves
 #   Handling recursively from the worker level instead of iteratiely from the top level is much easier
 # Crash when firing astronauts group
@@ -485,7 +486,10 @@ except Exception:  # Displays error message and records error message in crash l
 #   A request should include item type, amount, origin, destination, and an optional priority level
 #   Once a request is made, it can be executed, with possible success or failure
 #   These connections should be made in a manner that a prescriptive request engine can create these plans in an optimal manner
-# Use pre-calculated supply chain plans to actually execute the upkeep, rather than calculating during immediate upkeep
+# Use pre-calculated supply chain plans to actually execute the upkeep, rather than calculating during immediate upkee
+# Have the concept of a transportation or power "grid" object that can be selected
+#   Ideally, you can jump to a tile's transportation or power grid, which will highlight all members and provide summaries
+#   Selecting the grid should be a common administrative or diagnostic operation
 # Modify tabs to only calibrate upon the tab being entered or when calibrating while tab is open
 #   Calibration should not occur for inactive tabs - hinders performance without benefit
 # Implement supply chain plans using command pattern

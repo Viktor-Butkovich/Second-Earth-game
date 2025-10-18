@@ -169,19 +169,15 @@ def transfer(
                             and destination == status.displayed_mob
                         ):
                             amount = destination.get_inventory_remaining()
-                        destination.change_inventory(item, amount, update_sorted=False)
-                        source.change_inventory(item, amount * -1, update_sorted=False)
+                        destination.change_inventory(item, amount)
+                        source.change_inventory(item, amount * -1)
                 else:
                     amount_transferred = min(
                         source.get_inventory(transferred_item), amount
                     )
                     # In some cases, a button to transfer x amount of an item may be clicked when less than x is available
-                    destination.change_inventory(
-                        transferred_item, amount_transferred, update_sorted=False
-                    )
-                    source.change_inventory(
-                        transferred_item, amount_transferred * -1, update_sorted=False
-                    )
+                    destination.change_inventory(transferred_item, amount_transferred)
+                    source.change_inventory(transferred_item, amount_transferred * -1)
                 source.update_sorted_inventory()
                 destination.update_sorted_inventory()
 

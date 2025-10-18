@@ -1726,9 +1726,7 @@ class location(actors.actor):
                         break
                     availability = current_actor.get_inventory(item_type)
                     consumption = min(consumption_remaining, availability)
-                    current_actor.change_inventory(
-                        item_type, -consumption, update_sorted=False
-                    )
+                    current_actor.change_inventory(item_type, -consumption)
                     consumption_remaining -= consumption
                     consumption_remaining = round(consumption_remaining, 2)
             if consumption_remaining > 0:
@@ -1823,7 +1821,7 @@ class location(actors.actor):
                         lost_items[current_item_type.key] = (
                             lost_items.get(current_item_type.key, 0) + decimal_amount
                         )
-                        self.change_inventory(current_item_type, -decimal_amount, update_sorted=False)
+                        self.change_inventory(current_item_type, -decimal_amount)
                         amount_to_remove -= 1
                     if amount_to_remove <= 0:
                         break
@@ -1842,7 +1840,8 @@ class location(actors.actor):
                     lost_items[current_item_type.key] = (
                         lost_items.get(current_item_type.key, 0) + 1
                     )
-                    self.change_inventory(current_item_type, -1, update_sorted=False)
+                    self.change_inventory(current_item_type, -1)
+        self.update_sorted_inventory()
         if sum(lost_items.values()) > 0:
             if sum(lost_items.values()) == 1:
                 was_word = "was"
