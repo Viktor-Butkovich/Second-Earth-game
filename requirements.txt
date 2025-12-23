@@ -1,0 +1,11 @@
+altgraph==0.17.5
+numpy==2.4.0
+packaging==25.0
+pedalboard==0.9.19
+pefile==2024.8.26
+pydub==0.25.1
+pygame==2.6.1
+pyinstaller==6.17.0
+pyinstaller-hooks-contrib==2025.11
+pywin32-ctypes==0.2.3
+setuptools==80.9.0

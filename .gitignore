@@ -8,3 +8,4 @@ save_games/*
 misc/pip.txt
 artifacts/*
 .vscode/*
+venv/
