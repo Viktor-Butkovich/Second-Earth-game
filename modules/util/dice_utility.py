@@ -1,5 +1,6 @@
 # Contains functions that control the results and messages of dice rolls
 
+from __future__ import annotations
 import random
 from modules.util import text_utility
 from modules.constants import constants, status, flags

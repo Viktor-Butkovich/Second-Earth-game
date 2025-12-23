@@ -1,5 +1,6 @@
 # Contains UUID management singleton
 
+from __future__ import annotations
 
 class uuid_manager:
     """

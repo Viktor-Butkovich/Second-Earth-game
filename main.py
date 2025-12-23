@@ -1,5 +1,6 @@
 # Runs setup and main loop on program start
 
+from __future__ import annotations
 from modules.util import main_loop_utility, setup_utility
 
 try:
@@ -413,6 +414,17 @@ except Exception:  # Displays error message and records error message in crash l
     Requires that all objects who want to be updated when a topic is published register a callback with some global topic or a topic
         derived from an artificial, sequential ID
     Could possibly remove all requirements for manual calibrate_info_display() and update_image_bundle() calls
+28. Pygame SDL2
+    Pygame supports SDL2 with "from pygame._sdl2 import Window, Texture, ..."
+    This allows GPU-accelerated operations that replace those of Surfaces
+    May be incrementally adoptable, worth further research
+    Replaces surfaces and blitting with textures and renderer copying
+        Possibly close to what we're already doing with cached rendered surfaces
+29. Worker skill level
+    Consider different worker types as having different skill levels based on education, experience, etc.
+    Individual officers can easily be replaced or uplifted from the general population, so workers of different skill
+        levels would be the main limited resource
+    Potentially "stun" units for a variable amount of turns as an officer replacement is found
 """
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
@@ -443,8 +455,77 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Make a framework for ad-hoc simulations that isn't just one-off scripts - consistent location, access to constants namespace, accessible to other modules
+# Address keybind collision for astronauts reorganization - attempted "n" uncrew vehicle button blocks split group "n" button from being reached
+# Look into designing attrition/upkeep replacement/death like SFA runaway slaves
+#   Handling recursively from the worker level instead of iteratiely from the top level is much easier
+# Don't switch between location supply chain and local conditions modes on movement (due to new tab activating)
+# Add mob-specific supply chain table displaying its own upkeep only?
+#   Helps remove inter-dependence between location and mob inventory tabs
+#   If a colony ship is selected with extensive inventory, crew, passengers, etc., upkeep can be managed and viewed
+#       from its own inventory page, rather than that of the location
+#   Otherwise, a colony ship's supplies could only be tracked by looking at both inventory tabs
+# Handle item demand of officers (demand = 0 but not missing - requires at least some present)
+#   Demand tab should probably show as >0, with warnings if expected final is 0 and demand is >0
+# Add an extra image icon behind the currently selected row if an item icon is selected
+#   Also jump to the table page containing the item
+#   Would use the same system described below for non-string table cell content
+# Add item type icons to supply chain table
+#   Most scalable to add as new content field, where table content can have text, extra image ID's, and tooltip fields
+#       rather than just string text
+# Consider how to handle upkeep for units in deadly conditions who will die before upkeep is logically consumed
+# Keep making supply chain plans
+#   Ideally a location maintains a supply chain plan, which can be planned out/executed/reversed/etc.
+#   Then, we have a source of truth that is easy to display in a datatable
+#   supply_chain_plan represents a plan with a supply chain location's intended transactions for a turn
+#   This includes its initial demand for resources, the amount it already has stored, and the amount it needs to request from
+#       other locations
+#   These requests from other locations should count as a planned request in both this location's plan and that of the locations requested from
+#   A request should include item type, amount, origin, destination, and an optional priority level
+#   Once a request is made, it can be executed, with possible success or failure
+#   These connections should be made in a manner that a prescriptive request engine can create these plans in an optimal manner
+# Use pre-calculated supply chain plans to actually execute the upkeep, rather than calculating during immediate upkee
+# Have the concept of a transportation or power "grid" object that can be selected
+#   Ideally, you can jump to a tile's transportation or power grid, which will highlight all members and provide summaries
+#   Selecting the grid should be a common administrative or diagnostic operation
+# Modify tabs to only calibrate upon the tab being entered or when calibrating while tab is open
+#   Calibration should not occur for inactive tabs - hinders performance without benefit
+# Implement supply chain plans using command pattern
 # Add logistics info display tab with item upkeep information
 #   Mob version with just that mob, and a location version with total location demands
+#   Continue working on supply chain dashboard, including revamped transportation minister icon
+# Supply chain dashboard features:
+#   Location:
+#       Insufficient location inventory indicator
+#       Inventory attrition risk indicator with justifications (not in settlement, not on road, crew experience, etc.)
+#       Total location item demand
+#       Planned item requests to other locations, including how many will be unfulfilled
+#           If any unfulfilled, briefly summarize the worst consequence, then tooltip lists all affected contained units
+#       Planned item deliveries to other locations
+#   Mob:
+#       Planned item deliveries to other locations and transportation capacity contribution (if vehicle)
+#       Inventory attrition risk indicator with justifications (not in settlement, not on road, crew experience, etc.)
+#       Mob item demand (including sub-mobs), including how many will be unfulfilled
+#           If any unfulfilled, briefly summarize the worst consequence, then tooltip lists all affected sub-units
+#   Since this might scale up to lots of different item types, basic scrolling should be implemented
+#   Ideally, the default case of the standard food/air/water/CG/fuel items can all be shown at once, since these occur frequently
+#   Item demand, planned items requested, projected unfulfilled item requests, and planned deliveries should all
+#       include totals as well as per-item line items
+#   Include some list of other locations delivered to and other locations requested from
+#       Have some standard, concise terminology for such locations - source/destination?
+#   This could be expanded in the future with filters, network visualization/highlighting, etc.
+#       Charts would likely go in a different tab - more general BI dashboard with different sub-tabs
+# This would be greate with a table layout - look at the screenshot image for reference
+#   The game is likely to encounter lots more tables over time
+#   In terms of interface, this could actually be well-suited to a variant of grid/cell
+#   In this case, the grid may subscribe to the table data structure, and cells may subscribe to particular data points
+#   This means image calibration, outlines, and even table scrolling would already be present, with some modification
+#   Notably, cells might not be square-shaped, and could even be different sizes from each other
+#   The images in these cells, when calibrated, might include labels with empty background and some text
+#       In this case, we might want the entire grid to have a background image, with each cell having text and a transparent background
+#   If this works well, we could possibly retroactively apply this to the inventory interface
+# Prevent minister retirement for the first several turns and gradually increase chance
+# Strengthen albedo effect - fully ice covered planet should have a notable albedo difference from normal
 # Add 5x5 building slot system
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Gradually incorporate event bus subscriptions rather than manual data binding for info displays, mob images

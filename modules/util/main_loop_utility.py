@@ -1,5 +1,6 @@
 # Contains functions used in the game's main loop and pygame input event management
 
+from __future__ import annotations
 import pygame
 import time
 from modules.util import (
@@ -504,7 +505,7 @@ def manage_tooltip_drawing(tooltip_drawer):
     Output:
         None
     """
-    font = constants.fonts["default"]
+    font = constants.fonts[constants.DEFAULT_FONT]
     y_displacement = scaling.scale_width(30)  # estimated mouse size
 
     mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -600,7 +601,8 @@ def draw_tooltip(tooltip, below_screen, beyond_screen, height, width, y_displace
             text_utility.text(text_line, constants.myfont),
             (
                 tooltip["box"].x + scaling.scale_width(10),
-                tooltip["box"].y + (text_line_index * constants.fonts["default"].size),
+                tooltip["box"].y
+                + (text_line_index * constants.fonts[constants.DEFAULT_FONT].size),
             ),
         )
 
@@ -623,7 +625,7 @@ def draw_text_box():
     else:
         constants.text_box_height = constants.default_text_box_height
 
-    font = constants.fonts["default"]
+    font = constants.fonts[constants.DEFAULT_FONT]
     max_screen_lines = (constants.default_display_height // font.size) - 1
     max_text_box_lines = (constants.text_box_height // font.size) - 1
     for text_index in range(len(status.text_list)):
@@ -715,12 +717,12 @@ def manage_rmb_down(clicked_button):
     """
     stopping = False
     if (not clicked_button) and action_possible():
-        for current_grid in status.grid_list:
+        for current_grid in status.location_grid_list:
             if current_grid.showing:
                 for current_cell in current_grid.get_flat_cell_list():
                     if current_cell.touching_mouse():
                         stopping = True  # if doesn't reach this point, do same as lmb
-                        current_location = current_cell.location
+                        current_location = current_cell.source
                         if len(current_location.subscribed_mobs) > 1:
                             moved_mob = current_location.subscribed_mobs[1]
                             while moved_mob != current_location.subscribed_mobs[0]:
@@ -802,17 +804,17 @@ def manage_lmb_down(clicked_button):
         elif (
             not clicked_button
         ) and flags.choosing_destination:  # if clicking to move somewhere
-            for current_grid in status.grid_list:  # destination_grids:
+            for current_grid in status.location_grid_list:
                 if current_grid.can_show():
                     for current_cell in current_grid.get_flat_cell_list():
                         if current_cell.touching_mouse():
                             click_move_minimap(select_unit=False)
                             target_location = None
-                            if current_cell.location.is_abstract_location:
-                                target_location = current_cell.location
+                            if current_cell.source.is_abstract_location:
+                                target_location = current_cell.source
                             else:
                                 target_location = (
-                                    current_cell.location.world_handler.find_location(
+                                    current_cell.source.world_handler.find_location(
                                         status.minimap_grid.center_x,
                                         status.minimap_grid.center_y,
                                     )
@@ -848,15 +850,15 @@ def manage_lmb_down(clicked_button):
             flags.choosing_advertised_item = False
 
         elif (not clicked_button) and flags.drawing_automatic_route:
-            for current_grid in status.grid_list:  # destination_grids:
+            for current_grid in status.location_grid_list:
                 for current_cell in current_grid.get_flat_cell_list():
                     if current_cell.touching_mouse():
-                        if current_cell.location.is_abstract_location:
+                        if current_cell.source.is_abstract_location:
                             text_utility.print_to_screen(
                                 "Only locations adjacent to the most recently chosen destination can be added to the movement route."
                             )
                         else:
-                            target_location = current_cell.location
+                            target_location = current_cell.source
                             previous_location = (
                                 status.displayed_mob.base_automatic_route[-1]
                             )
@@ -892,33 +894,10 @@ def manage_lmb_down(clicked_button):
                                         "Trains can only create movement routes along railroads."
                                     )
                                     return ()
-                                elif (
-                                    target_location.terrain == "water"
-                                    and not status.displayed_mob.get_permission(
-                                        constants.SWIM_PERMISSION
-                                    )
-                                ) and (
-                                    status.displayed_mob.get_permission(
-                                        constants.VEHICLE_PERMISSION
-                                    )
-                                    and destination_infrastructure == None
-                                ):
-                                    # Non-train units can still move slowly through water, even w/o canoes or a bridge
-                                    # Railroad bridge allows anything to move through
-                                    text_utility.print_to_screen(
-                                        "This unit cannot create movement routes through water."
-                                    )
-                                    return ()
-                                elif (
-                                    (not target_location.terrain == "water")
-                                    and (
-                                        not status.displayed_mob.get_permission(
-                                            constants.WALK_PERMISSION
-                                        )
-                                    )
-                                    and not target_location.has_intact_building(
-                                        constants.SPACEPORT
-                                    )
+                                elif not status.displayed_mob.get_permission(
+                                    constants.WALK_PERMISSION
+                                ) and not target_location.has_intact_building(
+                                    constants.SPACEPORT
                                 ):
                                     text_utility.print_to_screen(
                                         "This unit cannot create movement routes on land, except through ports."
@@ -960,11 +939,11 @@ def click_move_minimap(select_unit: bool = True):
         )
     for (
         current_grid
-    ) in status.grid_list:  # If grid clicked, move minimap to location clicked
+    ) in status.location_grid_list:  # If grid clicked, move minimap to location clicked
         if current_grid.showing:
             for current_cell in current_grid.get_flat_cell_list():
                 if current_cell.touching_mouse():
-                    current_location = current_cell.location
+                    current_location = current_cell.source
                     if select_unit and current_location.subscribed_mobs:
                         current_location.subscribed_mobs[0].select()
                         status.displayed_mob.selection_sound()

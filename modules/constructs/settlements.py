@@ -1,5 +1,6 @@
 # Contains functionality for settlements
 
+from __future__ import annotations
 from modules.util import actor_utility
 from modules.constants import constants, status, flags
 

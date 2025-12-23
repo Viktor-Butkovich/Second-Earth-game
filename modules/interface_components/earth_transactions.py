@@ -1,5 +1,6 @@
 # Contains functionality for buttons relating to the Earth headquarters screen
 
+from __future__ import annotations
 import random
 from typing import List
 from modules.interface_components.buttons import button

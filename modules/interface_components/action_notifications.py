@@ -1,5 +1,6 @@
 # Contains functionality for multi-step notifications
 
+from __future__ import annotations
 from typing import List
 from modules.interface_components.notifications import notification
 from modules.util import scaling, action_utility, actor_utility

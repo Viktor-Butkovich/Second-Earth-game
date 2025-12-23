@@ -72,6 +72,7 @@ class expedition(group):
             "left": "west",
         }
         promoted = self.get_permission(constants.VETERAN_PERMISSION)
+        return
         for current_direction in ["up", "down", "left", "right"]:
             target_location = self.location.adjacent_locations[current_direction]
             if target_location and not target_location.visible:

@@ -1,5 +1,6 @@
 # Contains utility functions for setting up reorganization interface with correct dummy units for merge/split procedures
 
+from __future__ import annotations
 from typing import List
 from copy import deepcopy
 from modules.util import actor_utility

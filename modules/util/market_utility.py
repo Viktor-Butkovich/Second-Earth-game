@@ -1,5 +1,6 @@
 # Contains functions that manage market prices and sale of items
 
+from __future__ import annotations
 import random
 from modules.constructs import item_types
 from modules.util import text_utility, utility

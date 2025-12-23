@@ -1,5 +1,6 @@
 # Contains functionality for building type templates
 
+from __future__ import annotations
 from typing import Dict, List, Tuple, Any
 from modules.constants import constants, status, flags
 

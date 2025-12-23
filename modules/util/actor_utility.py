@@ -1,12 +1,14 @@
 # Contains miscellaneous functions relating to actor functionality
 
-import random
+from __future__ import annotations
 import os
 import pygame
 import math
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Iterable, Any
 from modules.util import utility, text_utility
 from modules.constants import constants, status, flags
+from modules.constructs.actor_types import actors, locations, mobs
+from modules.interface_components import interface_elements
 
 
 def press_button(button_type: str) -> None:
@@ -24,14 +26,9 @@ def press_button(button_type: str) -> None:
             break
 
 
-def reset_action_prices():
+def reset_action_prices() -> None:
     """
-    Description:
-        Resets the costs of any actions that were increased during the previous turn
-    Input:
-        None
-    Output:
-        None
+    Resets the costs of any actions that were increased during the previous turn
     """
     for current_action_type in constants.action_types:
         constants.action_prices[current_action_type] = constants.base_action_prices[
@@ -39,7 +36,7 @@ def reset_action_prices():
         ]
 
 
-def double_action_price(action_type):
+def double_action_price(action_type: str):
     """
     Description:
         Doubles the price of a certain action type each time it is done, usually for ones that do not require workers
@@ -51,12 +48,12 @@ def double_action_price(action_type):
     constants.action_prices[action_type] *= 2
 
 
-def get_building_cost(builder, building_type, building_name="n/a"):
+def get_building_cost(builder: mobs.mob, building_type, building_name="n/a") -> int:
     """
     Description:
         Returns the cost of the inputted unit attempting to construct the inputted building
     Input:
-        pmob/string builder: Unit attempting to construct the building, or None if no location/unit type is needed
+        pmob/None builder: Unit attempting to construct the building, or None if no location/unit type is needed
         string building_type: Key of type of building to build, like 'infrastructure'
         string building_name = 'n/a': Name of building being built, used to differentiate roads from railroads
     Output:
@@ -65,7 +62,7 @@ def get_building_cost(builder, building_type, building_name="n/a"):
     if building_type == constants.INFRASTRUCTURE:
         building_type = building_name.replace(
             " ", "_"
-        )  # road, railroad, road_bridge, or railroad_bridge
+        )  # Road, railroad, road_bridge, or railroad_bridge
     if building_type == constants.WAREHOUSES:
         if builder:
             base_price = builder.location.get_warehouses_cost()
@@ -76,12 +73,10 @@ def get_building_cost(builder, building_type, building_name="n/a"):
 
     if building_type in [constants.TRAIN]:
         cost_multiplier = 1
-    elif (not builder) or builder.location.is_abstract_location:
-        cost_multiplier = 1  # Abstract world has no terrain for multiplier
-    else:
-        cost_multiplier = constants.terrain_build_cost_multiplier_dict.get(
-            builder.location.terrain, 1
-        )
+    elif builder and builder.location.terrain_type:
+        cost_multiplier = builder.location.terrain_type.build_cost_multiplier
+    else:  # Abstract world has no terrain for multiplier
+        cost_multiplier = 1
     return base_price * cost_multiplier
 
 
@@ -99,7 +94,11 @@ def update_roads():
             current_building.location.update_image_bundle()
 
 
-def calibrate_actor_info_display(info_display, new_actor, override_exempt=False):
+def calibrate_actor_info_display(
+    info_display: interface_elements.interface_element,
+    new_actor: actors.actor,
+    override_exempt=False,
+):
     """
     Description:
         Updates all relevant objects to display a certain mob or location
@@ -113,9 +112,11 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
     if flags.loading:
         return
     if info_display == status.location_info_display:
+        changed_displayed_location = new_actor != status.displayed_location
+        if changed_displayed_location:
+            calibrate_actor_info_display(status.location_inventory_info_display, None)
         for current_same_location_icon in status.same_location_icon_list:
             current_same_location_icon.reset()
-        calibrate_actor_info_display(status.location_inventory_info_display, None)
         status.displayed_location = new_actor
         if new_actor:
             new_actor.select()  # Plays correct music based on location selected - main menu/earth music
@@ -125,7 +126,7 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
         if changed_displayed_mob:
             if status.displayed_mob:
                 status.displayed_mob.stop_ambient_sound()
-        calibrate_actor_info_display(status.mob_inventory_info_display, None)
+            calibrate_actor_info_display(status.mob_inventory_info_display, None)
         status.displayed_mob = new_actor
         if changed_displayed_mob and new_actor:
             new_actor.start_ambient_sound()
@@ -147,7 +148,10 @@ def calibrate_actor_info_display(info_display, new_actor, override_exempt=False)
             )
 
 
-def select_default_tab(tabbed_collection, displayed_actor) -> None:
+def select_default_tab(
+    tabbed_collection: interface_elements.tabbed_collection,
+    displayed_actor: actors.actor,
+) -> None:
     """
     Description:
         Selects the default tab for the inputted tabbed collection based on the inputted displayed actor
@@ -216,7 +220,7 @@ def select_default_tab(tabbed_collection, displayed_actor) -> None:
         select_interface_tab(tabbed_collection, target_tab)
 
 
-def generate_resource_icon(location):
+def generate_resource_icon(location: locations.location):
     """
     Description:
         Generates and returns the correct string image file path based on the resource and buildings built in the inputted location
@@ -247,7 +251,7 @@ def generate_resource_icon(location):
     return image_id
 
 
-def get_image_variants(base_path, keyword="default"):
+def get_image_variants(base_path: str, keyword: str = "default") -> List[str]:
     """
     Description:
         Finds and returns a list of all images with the same name format in the same folder, like 'folder/default.png' and 'folder/default1.png'
@@ -289,8 +293,8 @@ def extract_folder_colors(folder_path: str) -> List[Tuple[int, int, int]]:
 
 
 def generate_unit_component_image_id(
-    base_image, component: str, to_front: bool = False
-):
+    base_image: str, component: str, to_front: bool = False
+) -> Dict[str, Any]:
     """
     Description:
         Generates and returns an image id dict for the inputted base_image moved to the inputted section of the frame, like 'group left' for a group's left worker
@@ -334,8 +338,8 @@ def generate_unit_component_image_id(
 
 
 def generate_unit_component_portrait(
-    base_image, component: str, to_front: bool = False
-):
+    base_image: List[Dict[str, Any]], component: str
+) -> List[Dict[str, Any]]:
     """
     Description:
         Generates and returns an image id dict for the inputted base_image moved to the inputted section of the frame, like 'center portrait' for a group's officer's portrait
@@ -343,7 +347,6 @@ def generate_unit_component_portrait(
     Input:
         image_id list base_image: Image id list of portrait to display
         string component: Section of the frame to display base image in, like 'group left'
-        boolean to_front=False: Whether image level/layer should be a positive or negative
     Output:
         list: Returns generated image id list
     """
@@ -401,7 +404,9 @@ def generate_unit_component_portrait(
     return return_list
 
 
-def generate_group_image_id_list(worker, officer):
+def generate_group_image_id_list(
+    worker: mobs.mob, officer: mobs.mob
+) -> List[Dict[str, Any]]:
     """
     Description:
         Generates and returns an image id list that a group formed from the inputted worker and officer would have
@@ -433,7 +438,9 @@ def generate_group_image_id_list(worker, officer):
     )
 
 
-def generate_group_name(worker, officer, add_veteran=False):
+def generate_group_name(
+    worker: mobs.mob, officer: mobs.mob, add_veteran: bool = False
+) -> str:
     """
     Description:
         Generates and returns the name that a group formed from the inputted worker and officer would have
@@ -443,7 +450,7 @@ def generate_group_name(worker, officer, add_veteran=False):
         boolean add_veteran=False: Whether veteran should be added to the start of the name if the officer is a veteran - while a mock group needs veteran to be added, a
             group actually being created will add veteran to its name automatically when it promotes
     Output:
-        list: Returns image id list of dictionaries for each part of the group image
+        str: Returns name of group formed from the inputted worker and officer
     """
     if not officer.get_permission(constants.MAJOR_PERMISSION):
         name = ""
@@ -459,7 +466,9 @@ def generate_group_name(worker, officer, add_veteran=False):
     return name
 
 
-def generate_group_movement_points(worker, officer, generate_max=False):
+def generate_group_movement_points(
+    worker: mobs.mob, officer: mobs.mob, generate_max: bool = False
+) -> int:
     """
     Description:
         Generates and returns either the current or maximum movement points that a group created from the inputted worker and officer would have
@@ -493,7 +502,10 @@ def generate_group_movement_points(worker, officer, generate_max=False):
             return math.floor(max_movement_points * worker_movement_ratio_remaining)
 
 
-def select_interface_tab(tabbed_collection, target_tab):
+def select_interface_tab(
+    tabbed_collection: interface_elements.tabbed_collection,
+    target_tab: interface_elements.interface_collection,
+) -> None:
     """
     Description:
         Selects the inputted interface tab from the inputted tabbed collection, such as selecting the inventory tab from the mob tabbed collection
@@ -503,6 +515,13 @@ def select_interface_tab(tabbed_collection, target_tab):
     Output:
         None
     """
+    if (
+        tabbed_collection == status.mob_tabbed_collection and not status.displayed_mob
+    ) or (
+        tabbed_collection == status.location_tabbed_collection
+        and not status.displayed_location
+    ):
+        return
     if (
         tabbed_collection
         in [status.location_inventory_collection, status.mob_inventory_collection]
@@ -517,7 +536,7 @@ def select_interface_tab(tabbed_collection, target_tab):
                 continue
 
 
-def generate_label_image_id(text: str, y_offset=0):
+def generate_label_image_id(text: str, y_offset: int = 0) -> List[Dict[str, Any]]:
     """
     Description:
         Generates and returns an image ID list for a label containing the inputted text at the inputted y offset
@@ -549,7 +568,7 @@ def generate_label_image_id(text: str, y_offset=0):
         },
         text_utility.prepare_render(
             text,
-            font=constants.fonts["max_detail_black"],
+            font=constants.fonts[constants.MAX_DETAIL_BLACK_FONT],
             override_input_dict={
                 "x_offset": x_offset,
                 "y_offset": y_offset,
@@ -564,7 +583,7 @@ def generate_label_image_id(text: str, y_offset=0):
     ]
 
 
-def callback(target, function, *args):
+def callback(target: str, function: str, *args: Any) -> None:
     """
     Description:
         Orders the inputted target to call the inputted function with the inputted arguments
@@ -577,7 +596,7 @@ def callback(target, function, *args):
 
 
 def generate_frame(
-    image_id: any,
+    image_id: List[Dict[str, Any]] | str,
     frame: str = "buttons/default_button_frame.png",
     background: str = None,
     size: float = 0.75,
@@ -665,7 +684,7 @@ def get_temperature_habitability(temperature: int) -> int:
         return constants.HABITABILITY_DEADLY
 
 
-def summarize_amount_dict(item_dict: Dict[str, float]):
+def summarize_amount_dict(item_dict: Dict[str, float]) -> str:
     """
     Description:
         Convert a dictionary of item keys and amounts to a string summary
@@ -693,7 +712,7 @@ def summarize_amount_dict(item_dict: Dict[str, float]):
     return text
 
 
-def line_item_amount_dict(item_dict: Dict[str, float]):
+def line_item_amount_dict(item_dict: Dict[str, float]) -> str:
     """
     Description:
         Convert a dictionary of item keys and amounts to a line item-formatted string summary
@@ -713,16 +732,16 @@ def line_item_amount_dict(item_dict: Dict[str, float]):
     return " /n".join(lines)
 
 
-def calibrate_minimap_grids(world_handler: any, x: int, y: int) -> None:
+def calibrate_minimap_grids(world_handler: Any, x: int, y: int) -> None:
     for current_grid in world_handler.subscribed_grids:
         current_grid.calibrate(x, y)
 
 
-def focus_minimap_grids(location: any) -> None:
+def focus_minimap_grids(location: locations.location) -> None:
     calibrate_minimap_grids(location.world_handler, location.x, location.y)
 
 
-def add_logistics_incident_to_report(subject, explanation: str) -> None:
+def add_logistics_incident_to_report(subject: str, explanation: str) -> None:
     if subject.actor_type == constants.LOCATION_ACTOR_TYPE:
         status.logistics_incident_list.append(
             {
@@ -739,3 +758,17 @@ def add_logistics_incident_to_report(subject, explanation: str) -> None:
                 "explanation": explanation,
             }
         )
+
+
+def all_locations() -> Iterable[locations.location]:
+    """
+    Description:
+        Yields a generator of all locations
+    Input:
+        None
+    Output:
+        Iterable[locations.location]: Yields each location in the world list
+    """
+    for current_world in status.world_list:
+        for current_location in current_world.get_flat_location_list():
+            yield current_location

@@ -1,5 +1,6 @@
 # Contains functionality for instructions pages
 
+from __future__ import annotations
 from typing import List
 from modules.interface_components.labels import label
 from modules.interface_components.buttons import button

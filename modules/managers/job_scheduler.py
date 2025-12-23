@@ -1,5 +1,6 @@
 # Contains timed callback job scheduling singleton
 
+from __future__ import annotations
 from typing import List
 from modules.constructs import scheduled_jobs
 from modules.constants import constants, status, flags

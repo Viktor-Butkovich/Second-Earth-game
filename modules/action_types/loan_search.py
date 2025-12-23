@@ -1,5 +1,6 @@
 # Contains all functionality for loan searches
 
+from __future__ import annotations
 import pygame
 from typing import List
 from modules.action_types import action
@@ -131,7 +132,7 @@ class loan_search(action.campaign):
                     "transfer_interface_elements": True,
                     "choices": [
                         {
-                            "on_click": (self.middle, []),
+                            "on_click": [(self.middle, [])],
                             "tooltip": [
                                 "Starts a search for a low-interest loan offer"
                             ],
@@ -209,7 +210,7 @@ class loan_search(action.campaign):
                 "message": self.generate_notification_text(result),
                 "choices": [
                     {
-                        "on_click": (self.accept_loan, []),
+                        "on_click": [(self.accept_loan, [])],
                         "tooltip": ["Accept"],
                         "message": "Accept",
                     },

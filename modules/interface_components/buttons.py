@@ -1,5 +1,6 @@
 # Contains functionality for buttons
 
+from __future__ import annotations
 import pygame
 from typing import List
 from modules.util import (
@@ -13,7 +14,8 @@ from modules.util import (
     game_transitions,
     minister_utility,
 )
-from modules.constructs import item_types, minister_types, equipment_types
+from modules.constructs import item_types, equipment_types
+from modules.constructs.actor_types import actors
 from modules.interface_components import interface_elements
 from modules.constants import constants, status, flags
 
@@ -76,7 +78,7 @@ class button(interface_elements.interface_element):
             False  # used to prioritize notification buttons in drawing and tooltips
         )
 
-    def calibrate(self, new_actor, override_exempt=False):
+    def calibrate(self, new_actor: actors.actor, override_exempt: bool = False) -> None:
         """
         Description:
             Attaches this button to the inputted actor and updates this button's image to that of the actor. May also display a shader over this button, if its particular
@@ -87,25 +89,10 @@ class button(interface_elements.interface_element):
         Output:
             None
         """
+        self.actor = new_actor
         super().calibrate(new_actor, override_exempt)
-        if self.enable_shader:
-            shader_image_id = "misc/shader.png"
-            if self.enable_shader_condition():
-                if type(self.image.image_id) == str:
-                    self.image.set_image([self.image.image_id, shader_image_id])
-                elif not shader_image_id in self.image.image_id:
-                    self.image.set_image(self.image.image_id + shader_image_id)
-            else:
-                if not type(self.image.image_id) == str:
-                    if shader_image_id in self.image.image_id:
-                        image_id = utility.remove_from_list(
-                            self.image.image_id, shader_image_id
-                        )
-                        if len(image_id) == 1:
-                            image_id = image_id[0]
-                        self.image.set_image(image_id)
 
-    def enable_shader_condition(self):
+    def enable_shader_condition(self) -> bool:
         """
         Description:
             Calculates and returns whether this button should display its shader, given that it has shader enabled - open to be redefined by subclasses w/ specific criteria
@@ -175,75 +162,58 @@ class button(interface_elements.interface_element):
                         constants.INFRASTRUCTURE
                     )
                 )
-                if True:  # adjacent_location.visible:
-                    tooltip_text.append(f"Press to move to the {direction}")
-                    adjacent_infrastructure = adjacent_location.get_intact_building(
-                        constants.INFRASTRUCTURE
-                    )
-                    connecting_roads = False
-                    if (
-                        status.displayed_mob.get_permission(
-                            constants.BATTALION_PERMISSION
-                        )
-                        and adjacent_location.get_best_combatant("npmob") != None
-                    ):
-                        tooltip_text += status.actions["combat"].tooltip_text
-                        # (
-                        #    tooltip_info_dict={
-                        #        "adjacent_infrastructure": adjacent_infrastructure,
-                        #        "local_infrastructure": local_infrastructure,
-                        #        "x_change": x_change,
-                        #        "y_change": y_change,
-                        #        "adjacent_location": adjacent_location,
-                        #    }
-                        # )
-                    else:
-                        message = ""
-                        if status.displayed_mob.all_permissions(
-                            constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
-                        ):
-                            if (
-                                adjacent_infrastructure
-                                and adjacent_infrastructure.is_railroad
-                                and local_infrastructure
-                                and local_infrastructure.is_railroad
-                            ):
-                                message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent location has connecting railroads"
-                            else:
-                                message = "Not possible because the adjacent location does not have connecting railroads"
-                            tooltip_text.append(message)
-                            tooltip_text.append("A train can only move along railroads")
-                        else:
-                            message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent location has {adjacent_location.terrain.replace('_', ' ')} terrain"
-                            if (
-                                local_infrastructure and adjacent_infrastructure
-                            ):  # if both have infrastructure
-                                connecting_roads = True
-                                message += " and connecting roads"
-                            elif (
-                                local_infrastructure == None and adjacent_infrastructure
-                            ):  # if local has no infrastructure but adjacent does
-                                message += " and no connecting roads"
-                            elif (
-                                local_infrastructure
-                            ):  # if local has infrastructure but not adjacent
-                                message += " and no connecting roads"  # + local_infrastructure.infrastructure_type
-                            else:
-                                message += " and no connecting roads"
-
-                            tooltip_text.append(message)
-                            tooltip_text.append(
-                                f"Moving into a {adjacent_location.terrain.replace('_', ' ')} location costs {constants.terrain_movement_cost_dict.get(adjacent_location.terrain, 1)} movement points"
-                            )
-                    if connecting_roads:
-                        tooltip_text.append(
-                            "Moving between 2 locations with roads or railroads costs half as many movement points."
-                        )
+                tooltip_text.append(f"Press to move to the {direction}")
+                adjacent_infrastructure = adjacent_location.get_intact_building(
+                    constants.INFRASTRUCTURE
+                )
+                connecting_roads = False
+                if (
+                    status.displayed_mob.get_permission(constants.BATTALION_PERMISSION)
+                    and adjacent_location.get_best_combatant("npmob") != None
+                ):
+                    tooltip_text += status.actions["combat"].tooltip_text
                 else:
-                    tooltip_text += status.actions["exploration"].tooltip_text
-                    # (
-                    #    tooltip_info_dict={"direction": direction}
-                    # )
+                    message = ""
+                    if status.displayed_mob.all_permissions(
+                        constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
+                    ):
+                        if (
+                            adjacent_infrastructure
+                            and adjacent_infrastructure.is_railroad
+                            and local_infrastructure
+                            and local_infrastructure.is_railroad
+                        ):
+                            message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent location has connecting railroads"
+                        else:
+                            message = "Not possible because the adjacent location does not have connecting railroads"
+                        tooltip_text.append(message)
+                        tooltip_text.append("A train can only move along railroads")
+                    else:
+                        message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent location has {adjacent_location.terrain_type.name} terrain"
+                        if (
+                            local_infrastructure and adjacent_infrastructure
+                        ):  # if both have infrastructure
+                            connecting_roads = True
+                            message += " and connecting roads"
+                        elif (
+                            local_infrastructure == None and adjacent_infrastructure
+                        ):  # if local has no infrastructure but adjacent does
+                            message += " and no connecting roads"
+                        elif (
+                            local_infrastructure
+                        ):  # if local has infrastructure but not adjacent
+                            message += " and no connecting roads"  # + local_infrastructure.infrastructure_type
+                        else:
+                            message += " and no connecting roads"
+
+                        tooltip_text.append(message)
+                        tooltip_text.append(
+                            f"Moving into a {adjacent_location.terrain_type.name} location costs {adjacent_location.terrain_type.movement_cost} movement points"
+                        )
+                if connecting_roads:
+                    tooltip_text.append(
+                        "Moving between 2 locations with roads or railroads costs half as many movement points."
+                    )
 
             return tooltip_text
 
@@ -260,18 +230,10 @@ class button(interface_elements.interface_element):
             ]
 
         elif self.button_type == constants.MERGE_PROCEDURE:
-            if status.displayed_mob and status.displayed_mob.all_permissions(
-                constants.OFFICER_PERMISSION, constants.EVANGELIST_PERMISSION
-            ):
-                return [
-                    "Merges this evangelist with church volunteers in the same location to form a group of missionaries",
-                    "Requires that an evangelist is selected in the same location as church volunteers",
-                ]
-            else:
-                return [
-                    "Merges this officer with a worker in the same location to form a group with a type based on that of the officer",
-                    "Requires that an officer is selected in the same location as a worker",
-                ]
+            return [
+                "Merges this officer with a worker in the same location to form a group with a type based on that of the officer",
+                "Requires that an officer is selected in the same location as a worker",
+            ]
 
         elif self.button_type == constants.SPLIT_PROCEDURE:
             return ["Splits a group into its worker and officer"]
@@ -323,18 +285,18 @@ class button(interface_elements.interface_element):
             if status.displayed_location:
                 if self.button_type == constants.SELL_ITEM_BUTTON:
                     return [
-                        f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell 1 unit of {self.attached_label.actor.current_item.name} for about {self.attached_label.actor.current_item.price} money at the end of the turn",
+                        f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell 1 unit of {self.actor.current_item.name} for about {self.actor.current_item.price} money at the end of the turn",
                         "The amount each item was sold for is reported at the beginning of your next turn",
-                        f"Each unit of {self.attached_label.actor.current_item.name} sold has a chance of reducing its sale price",
+                        f"Each unit of {self.actor.current_item.name} sold has a chance of reducing its sale price",
                     ]
                 elif self.button_type == constants.SELL_ALL_ITEM_BUTTON:
                     num_present = status.displayed_location.get_inventory(
-                        self.attached_label.actor.current_item
+                        self.actor.current_item
                     )
                     return [
-                        f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell your entire stockpile of {self.attached_label.actor.current_item.name} for about {self.attached_label.actor.current_item.price} money each at the end of the turn, for a total of about {self.attached_label.actor.current_item.price * num_present} money",
+                        f"Orders your {status.minister_types[constants.TERRAN_AFFAIRS_MINISTER].name} to sell your entire stockpile of {self.actor.current_item.name} for about {self.actor.current_item.price} money each at the end of the turn, for a total of about {self.actor.current_item.price * num_present} money",
                         "The amount each item was sold for is reported at the beginning of your next turn",
-                        f"Each unit of {self.attached_label.actor.current_item.name} sold has a chance of reducing its sale price",
+                        f"Each unit of {self.actor.current_item.name} sold has a chance of reducing its sale price",
                     ]
                 else:
                     return [
@@ -354,7 +316,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.USE_EQUIPMENT_BUTTON:
             if status.displayed_location:
                 return [
-                    f"Orders the selected unit to equip {self.attached_label.actor.current_item.name}"
+                    f"Orders the selected unit to equip {self.actor.current_item.name}"
                 ]
 
         elif self.button_type == constants.REMOVE_EQUIPMENT_BUTTON:
@@ -684,7 +646,7 @@ class button(interface_elements.interface_element):
         else:
             return False
 
-    def draw(self, allow_show_outline=True):
+    def draw(self, allow_show_outline: bool = True) -> None:
         """
         Draws this button with a description of its keybind if it has one, along with an outline if its keybind is being pressed
         """
@@ -961,7 +923,7 @@ class button(interface_elements.interface_element):
                 constants.SELL_ITEM_BUTTON,
                 constants.SELL_ALL_ITEM_BUTTON,
             ]:
-                sold_item_types = [self.attached_label.actor.current_item]
+                sold_item_types = [self.actor.current_item]
             if minister_utility.positions_filled():
                 for current_item_type in sold_item_types:
                     num_present: int = status.displayed_location.get_inventory(
@@ -1042,7 +1004,7 @@ class button(interface_elements.interface_element):
                 if status.displayed_mob and status.displayed_mob.get_permission(
                     constants.PMOB_PERMISSION
                 ):
-                    equipment = self.attached_label.actor.current_item
+                    equipment = self.actor.current_item
                     if equipment.check_requirement(status.displayed_mob):
                         if not status.displayed_mob.equipment.get(equipment.key, False):
                             radio_effect = status.displayed_mob.get_radio_effect()
@@ -1324,7 +1286,7 @@ class button(interface_elements.interface_element):
                 return (
                     status.displayed_location
                     and status.displayed_location.is_earth_location
-                    and self.attached_label.actor.current_item.can_sell
+                    and self.actor.current_item.can_sell
                 )
             elif self.button_type == constants.SELL_EACH_ITEM_BUTTON:
                 if (
@@ -1339,11 +1301,9 @@ class button(interface_elements.interface_element):
                 constants.PICK_UP_EACH_ITEM_BUTTON,
                 constants.DROP_EACH_ITEM_BUTTON,
             ]:
-                return self.attached_label.actor.get_inventory_used() > 0
+                return self.actor.get_inventory_used() > 0
             elif self.button_type == constants.USE_EQUIPMENT_BUTTON:
-                return (
-                    self.attached_label.actor.current_item.key in status.equipment_types
-                )
+                return self.actor.current_item.key in status.equipment_types
             elif self.button_type == constants.USE_EACH_EQUIPMENT_BUTTON:
                 if status.displayed_mob:
                     held_items = status.displayed_location.get_held_items()
@@ -1889,7 +1849,7 @@ class cycle_available_ministers_button(button):
         ):  # left index = 0, left index + 4 = 4 which is greater than the length of a 3-minister list, so can't move right farther
             if not constants.available_minister_left_index + 4 > len(
                 status.available_minister_list
-            ):
+            ) + (1 if status.current_just_appointed_minister else 0):
                 return super().can_show(skip_parent_collection=skip_parent_collection)
             else:
                 return False
@@ -1969,12 +1929,8 @@ class scroll_button(button):
         """
         Provides the tooltip for this object
         """
-        if self.increment > 0:
-            descriptor = "down"
-        elif self.increment < 0:
-            descriptor = "up"
         return [
-            f"Click to scroll {descriptor} {abs(self.increment)} {self.value_name.replace('_', ' ')}"
+            f"Click to navigate to the {"next" if self.increment > 0 else "previous"} page of the grid",
         ]
 
 
@@ -2158,13 +2114,10 @@ class tab_button(button):
                     status.displayed_location.inventory
                     or status.displayed_location.inventory_capacity > 0
                     or status.displayed_location.infinite_inventory_capacity
+                    or not status.displayed_location.supply_chain_plan.trivial
                 )
             else:
-                return status.displayed_mob.inventory_capacity > 0 or (
-                    flags.enable_equipment_panel
-                    and status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
-                    and status.displayed_mob.equipment
-                )
+                return status.displayed_mob.inventory_capacity > 0
         elif self.identifier == constants.REORGANIZATION_PANEL:
             return status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
         elif self.identifier == constants.LOCAL_CONDITIONS_PANEL:
@@ -2174,7 +2127,7 @@ class tab_button(button):
             constants.TEMPERATURE_BREAKDOWN_PANEL,
         ]:
             return status.displayed_location.is_abstract_location
-        return False
+        raise ValueError(f"Unknown tab identifier: {self.identifier}")
 
 
 class reorganize_unit_button(button):
@@ -2223,10 +2176,12 @@ class reorganize_unit_button(button):
             actor_utility.select_interface_tab(
                 status.mob_tabbed_collection, status.mob_reorganization_collection
             )
-            return True
+            procedure_actors = self.parent_collection.autofill_actors
+            attempted_procedure_type = procedure_actors[constants.AUTOFILL_PROCEDURE]
+            return attempted_procedure_type in self.allowed_procedures
         return False
 
-    def enable_shader_condition(self):
+    def enable_shader_condition(self) -> bool:
         """
         Description:
             Calculates and returns whether this button should display its shader, given that it has shader enabled - reorganize button displays shader when current
@@ -2639,7 +2594,8 @@ class anonymous_button(button):
                     based on which passenger label the button is attached to
                 'button_type': dictionary value - A button with a dictionary button_type value is created as an anonymous button, with basic functionality
                     entirely defined by the dictionary's contents:
-                        'on_click': tuple value - Tuple containing function object followed by the parameters to be passed to it when this button is clicked
+                        'on_click': tuple list value - List of callable/arg list tuples - on click, callable is called with the inputted arguments
+                        'can_show': tuple list value - List of callable/arg list tuples - button shows if all callables returns True when called with the inputted arguments
                         'tooltip': string list value - Tuple containing tooltip list to display for this button
                         'message': string value - Optional text to display over this button, intended for notification choice buttons
                 'notification': notification value - Notification the button is attached to, if applicable
@@ -2648,29 +2604,33 @@ class anonymous_button(button):
         """
         self.notification = input_dict.get("notification", None)
         button_info_dict = input_dict["button_type"]
-        self.on_click_info = button_info_dict.get("on_click", None)
-        if self.on_click_info and type(self.on_click_info[0]) != list:
-            self.on_click_info = ([self.on_click_info[0]], [self.on_click_info[1]])
+        self.on_click_info = button_info_dict.get("on_click", [])
+        self.can_show_info = button_info_dict.get("can_show", [])
         self.tooltip = button_info_dict["tooltip"]
         self.message = button_info_dict.get("message")
 
         super().__init__(input_dict)
-        self.font = constants.fonts["default_notification"]
+        self.font = constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
         if self.notification:
             self.in_notification = True
         else:
             self.in_notification = False
+
+    def can_show(self, skip_parent_collection=False):
+        """
+        Returns True if all callables in can_show_info return True with their respective arguments and the button can otherwise be shown
+        """
+        return all(
+            func(*args) for func, args in self.can_show_info
+        ) and super().can_show(skip_parent_collection=skip_parent_collection)
 
     def on_click(self):
         """
         Controls this button's behavior when clicked. Choice buttons remove their notifications when clicked, along with the normal behaviors associated with their button_type
         """
         super().on_click()
-        if self.on_click_info:
-            for index in range(len(self.on_click_info[0])):
-                self.on_click_info[0][index](
-                    *self.on_click_info[1][index]
-                )  # calls each item function with corresponding parameters
+        for func, args in self.on_click_info:
+            func(*args)
         if self.in_notification:
             self.notification.on_click(choice_button_override=True)
 

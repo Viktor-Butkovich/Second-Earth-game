@@ -1,5 +1,6 @@
 # Contains human character appearance/background/name generation utility singleton
 
+from __future__ import annotations
 import json
 import random
 import pygame

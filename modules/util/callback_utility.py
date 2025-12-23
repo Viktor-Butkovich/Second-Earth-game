@@ -1,5 +1,6 @@
 # Contains dedicated callback and utility functions
 
+from __future__ import annotations
 from typing import List, Any
 from modules.util import utility
 from modules.constants import constants, status, flags

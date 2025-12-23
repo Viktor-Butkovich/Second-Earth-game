@@ -1,5 +1,6 @@
 # Contains functionality for actors
 
+from __future__ import annotations
 import random
 import math
 from modules.util import (
@@ -9,7 +10,7 @@ from modules.util import (
 )
 from modules.constructs import item_types
 from modules.constants import constants, status, flags
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 
 class actor:
@@ -34,7 +35,9 @@ class actor:
         self.uuid: str = constants.UuidManager.assign_uuid()
         self.from_save = from_save
         self.inventory_capacity = 0
-        self.inventory: Dict[str, int] = input_dict.get("inventory", {})
+        self.inventory: Dict[str, float] = input_dict.get("inventory", {})
+        self.sorted_inventory: Dict[str, float] = {}
+        self.update_sorted_inventory()
         self.image_dict: Dict[str, List[str]] = {
             constants.IMAGE_ID_LIST_DEFAULT: input_dict.get(
                 constants.IMAGE_ID_LIST_DEFAULT, []
@@ -82,6 +85,21 @@ class actor:
             location: Returns the location this mob is currently in
         """
         return None  # Abstract method
+
+    def update_sorted_inventory(self) -> None:
+        """
+        Maintains a sorted inventory list into ascending order by amount held
+        """
+        self.sorted_inventory = dict(
+            sorted(
+                self.inventory.items(),
+                key=lambda x: (
+                    (x[1], list(self.sorted_inventory.keys()).index(x[0]))
+                    if x[0] in self.sorted_inventory
+                    else (x[1], float("inf"))
+                ),
+            )
+        )  # Sort by amount held, using previous unsorted order as a tiebreaker
 
     def to_save_dict(self):
         """
@@ -183,10 +201,10 @@ class actor:
             item_type: Returns the item type held at the inputted index of the inventory, or None if no inventory held at that index
         """
         current_index: int = 0
-        for item_type in self.get_held_items():
-            current_index += math.ceil(self.get_inventory(item_type))
+        for item_type, amount in self.sorted_inventory.items():
+            current_index += math.ceil(amount)
             if current_index > index:
-                return item_type
+                return status.item_types[item_type]
         return None
 
     def get_last_inventory_index(self, item: item_types.item_type) -> int:
@@ -198,10 +216,10 @@ class actor:
         Output:
             int: Last index of this actor's inventory that holds the inputted item type, or None if no such item type is held
         """
-        current_index = 0
-        for item_type in self.get_held_items():
-            current_index += math.ceil(self.get_inventory(item_type))
-            if item_type == item:
+        current_index: int = 0
+        for item_type, amount in self.sorted_inventory.items():
+            current_index += math.ceil(amount)
+            if item_type == item.key:
                 return current_index - 1
         return None
 
@@ -234,6 +252,8 @@ class actor:
             )  # If new value is an integer, set inventory to integer
         if round(new_value, 2) <= 0:
             del self.inventory[item.key]
+        self.update_sorted_inventory()
+        constants.EventBus.publish(constants.ACTOR_SET_INVENTORY_ROUTE)
         self.select_last_item_icon(item)
 
     def select_last_item_icon(self, item: item_types.item_type) -> None:

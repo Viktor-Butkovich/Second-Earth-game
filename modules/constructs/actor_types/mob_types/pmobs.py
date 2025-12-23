@@ -1,11 +1,10 @@
 # Contains functionality for player-controlled mobs
 
-import pygame
+from __future__ import annotations
 import random
 from typing import Dict, List
 from modules.constructs.actor_types.mobs import mob
 from modules.util import text_utility, utility, actor_utility, minister_utility
-from modules.constructs import item_types
 from modules.constants import constants, status, flags
 
 
@@ -176,16 +175,6 @@ class pmob(mob):
         Output:
             dictionary: Returns the item upkeep requirements for this unit type
         """
-        if not self.get_permission(
-            constants.SURVIVABLE_PERMISSION
-        ):  # Don't pay upkeep if in deadly conditions - unit dies before upkeep is paid
-            if not (
-                self.any_permissions(
-                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
-                )
-                and self.get_permission(constants.IN_GROUP_PERMISSION)
-            ):
-                return {}
         if earth_exemption and self.location.is_earth_location:
             return {}
         elif (
@@ -606,6 +595,8 @@ class pmob(mob):
             )
             self.change_inventory(items_present[0], amount_transferred)
             self.location.change_inventory(items_present[0], -amount_transferred)
+        self.update_sorted_inventory()
+        self.location.update_sorted_inventory()
 
     def clear_automatic_route(self):
         """
@@ -762,8 +753,10 @@ class pmob(mob):
         """
         for current_item_type in self.get_held_items():
             self.location.change_inventory(
-                current_item_type, self.get_inventory(current_item_type)
+                current_item_type,
+                self.get_inventory(current_item_type),
             )
+        self.update_sorted_inventory()
         self.remove_from_turn_queue()
         super().remove()
         status.pmob_list = utility.remove_from_list(status.pmob_list, self)
@@ -807,9 +800,13 @@ class pmob(mob):
             self.location.change_inventory(current_item, amount_dropped)
 
         self.inventory = {}
+        self.update_sorted_inventory()
+        vehicle.update_sorted_inventory()
+        self.location.update_sorted_inventory()
         self.location.unsubscribe_mob(self)
         self.remove_from_turn_queue()
         vehicle.subscribed_passengers.append(self)
+        constants.EventBus.publish(constants.VEHICLE_SUBMOB_ADDED_ROUTE)
         vehicle.move_to_front()
         self.set_permission(constants.IN_VEHICLE_PERMISSION, True)
         if (

@@ -1,5 +1,6 @@
 # Contains typed user input ingestion and routing singleton
 
+from __future__ import annotations
 from modules.util import text_utility
 from modules.constants import constants, status, flags
 

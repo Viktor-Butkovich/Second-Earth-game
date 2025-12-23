@@ -1,7 +1,7 @@
 # Contains functionality for ministers
 
+from __future__ import annotations
 import random
-import os
 from typing import List, Tuple, Dict
 from modules.util import utility, minister_utility, scaling
 from modules.constructs import minister_types
@@ -38,6 +38,7 @@ class minister:
             None
         """
         self.uuid: str = constants.UuidManager.assign_uuid()
+        self.current_position: minister_types.minister_type = None
         status.minister_list.append(self)
         if from_save:
             self.first_name: str = input_dict["first_name"]
@@ -46,9 +47,6 @@ class minister:
             self.ethnicity: str = input_dict["ethnicity"]
             self.masculine: bool = input_dict["masculine"]
             self.prefix: str = input_dict["prefix"]
-            self.current_position: minister_types.minister_type = (
-                status.minister_types.get(input_dict["current_position_key"], None)
-            )
             self.background: str = input_dict["background"]
             self.status_number: int = constants.CharacterManager.get_status_number(
                 self.background
@@ -80,8 +78,11 @@ class minister:
             self.corruption_evidence: int = input_dict["corruption_evidence"]
             self.fabricated_evidence: int = input_dict["fabricated_evidence"]
             self.just_removed: bool = input_dict["just_removed"]
-            if self.current_position:
-                self.appoint(self.current_position)
+            saved_position = status.minister_types.get(
+                input_dict["current_position_key"], None
+            )
+            if saved_position:
+                self.appoint(saved_position, from_save=True)
             else:
                 status.available_minister_list.append(self)
         else:
@@ -126,7 +127,6 @@ class minister:
             ) + random.randrange(
                 0, 6
             )  # 1-6 for lowborn, 5-10 for middle, 25-30 for high, 125-130 for very high
-            self.current_position: minister_types.minister_type = None
             self.skill_setup()
             self.interests_setup()
             self.corruption_setup()
@@ -209,27 +209,24 @@ class minister:
         if self.apparent_corruption_description != "unknown":
             tooltip_text.append(f"Loyalty: {self.apparent_corruption_description}")
 
+        skill_message = ""
         if self.current_position:
             displayed_skill = self.current_position.skill_type
         else:
             displayed_skill = self.get_max_apparent_skill()
 
-        if displayed_skill != "unknown":
-            if self.apparent_skill_descriptions[displayed_skill] != "unknown":
-                if self.current_position:
-                    message = f"{displayed_skill.capitalize()} ability: {self.apparent_skill_descriptions[displayed_skill]}"
-                else:
-                    message = f"Highest ability: {self.apparent_skill_descriptions[displayed_skill]} ({displayed_skill})"
-                tooltip_text.append(message)
+        if self.current_position:
+            skill_message += f"{displayed_skill.capitalize().replace('_', ' ')} ability: {self.apparent_skill_descriptions[displayed_skill]}"
+        elif displayed_skill != "unknown":
+            skill_message += f"Highest ability: {self.apparent_skill_descriptions[displayed_skill]} ({displayed_skill.replace('_',' ')})"
 
-        rank = 0
-        for skill_value in range(6, 0, -1):  # iterates backwards from 6 to 1
-            for skill_type in self.apparent_skills:
-                if self.apparent_skills[skill_type] == skill_value:
-                    rank += 1
-                    tooltip_text.append(
-                        f"    {rank}. {skill_type.capitalize()}: {self.apparent_skill_descriptions[skill_type]}"
-                    )
+        if skill_message:
+            tooltip_text.append(skill_message)
+
+        for rank, skill in enumerate(self.sorted_apparent_skills):
+            tooltip_text.append(
+                f"    {rank+1}. {skill.capitalize().replace('_', ' ')}: {self.apparent_skill_descriptions[skill]}"
+            )
 
         tooltip_text.append("Evidence: " + str(self.corruption_evidence))
         if self.just_removed and not self.current_position:
@@ -240,6 +237,26 @@ class minister:
                 "If not reappointed by the end of the turn, they will be permanently fired, incurring a large public opinion penalty."
             )
         return tooltip_text
+
+    @property
+    def sorted_apparent_skills(self) -> List[str]:
+        """
+        Provides a list of skill types sorted from highest to lowest apparent value
+        """
+        return [
+            skill
+            for skill, value in sorted(
+                self.apparent_skills.items(),
+                key=lambda item: (
+                    item[1],  # Primarily sort by skill value in descending order
+                    self.apparent_skill_descriptions[
+                        item[0]
+                    ],  # Secondarily sort by lexicographic order of description
+                ),
+                reverse=True,  # Sort by value in descending order
+            )
+            if self.apparent_skill_descriptions[skill] != "unknown"
+        ]
 
     def check_retirement(self) -> bool:
         """
@@ -673,13 +690,19 @@ class minister:
         self.stolen_already = False
         return stealing, results
 
-    def appoint(self, new_position, update_display=True):
+    def appoint(
+        self,
+        new_position: minister_types.minister_type,
+        update_display: bool = True,
+        from_save: bool = False,
+    ):
         """
         Description:
             Appoints this minister to a new office, putting it in control of relevant units. If the new position is None, removes the minister from their current office
         Input:
             string new_position: Office to appoint this minister to, like 'Minister of Trade'. If this equals None, fires this minister
             bool update_display: Whether to update the display of available ministers
+            bool from_save: Whether this appointment is occurring during game load
         Output:
             None
         """
@@ -697,21 +720,17 @@ class minister:
             status.available_minister_list = utility.remove_from_list(
                 status.available_minister_list, self
             )
-            if update_display:
-                if (
-                    constants.available_minister_left_index
-                    >= len(status.available_minister_list) - 3
-                ):
-                    constants.available_minister_left_index = (
-                        len(status.available_minister_list) - 3
-                    )  # Move available minister display up because available minister was removed
+            self.just_removed = False
         else:
+            status.current_just_appointed_minister = None
             status.available_minister_list.append(self)
             if update_display:
                 constants.available_minister_left_index = (
                     len(status.available_minister_list) - 3
                 )  # Move available minister display to newly fired minister
 
+        if new_position and not from_save:
+            status.current_just_appointed_minister = self
         if update_display:
             minister_utility.update_available_minister_display()
 

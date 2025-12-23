@@ -1,5 +1,6 @@
 # Contains functionality for mobs
 
+from __future__ import annotations
 import pygame, random
 from modules.constructs import images, unit_types, ministers, item_types
 from modules.constructs.actor_types import locations
@@ -12,7 +13,7 @@ from modules.util import (
 )
 from modules.constructs.actor_types.actors import actor
 from modules.constants import constants, status, flags
-from typing import List, Dict, Any
+from typing import List, Dict, Tuple, Any
 
 
 class mob(actor):
@@ -38,8 +39,8 @@ class mob(actor):
             None
         """
         super().__init__(from_save, input_dict, original_constructor=False)
-        self.default_permissions: Dict[str, Any] = {}
-        self.override_permissions: Dict[str, Any] = {}
+        self.default_permissions: Dict[str, bool] = {}
+        self.override_permissions: Dict[str, bool] = {}
         self.unit_type: unit_types.unit_type = input_dict.get(
             "unit_type", status.unit_types.get(input_dict.get("init_type"))
         )
@@ -49,8 +50,7 @@ class mob(actor):
         self.habitability = constants.HABITABILITY_PERFECT
         self.ambient_sound_channel: pygame.mixer.Channel = None
         self.locked_ambient_sound: bool = False
-        super().__init__(from_save, input_dict, original_constructor=False)
-        self.image_dict = {
+        self.image_dict: Dict[str, Any] = {
             **self.image_dict,
             constants.IMAGE_ID_LIST_DEFAULT: input_dict.get(
                 constants.IMAGE_ID_LIST_DEFAULT, [{"image_id": "misc/empty.png"}]
@@ -66,8 +66,8 @@ class mob(actor):
             ),
             constants.IMAGE_ID_LIST_FULL_MOB: [],  # Maintained by update_image_bundle
         }
-        self.end_turn_destination = None
-        self.loading_end_turn_destination = None
+        self.end_turn_destination: locations.location = None
+        self.loading_end_turn_destination: Dict[str, int | Tuple[int, int]] = None
         if from_save:
             if input_dict["end_turn_destination_coordinates"]:
                 self.loading_end_turn_destination = {
@@ -75,12 +75,11 @@ class mob(actor):
                     "coordinates": input_dict["end_turn_destination_coordinates"],
                 }
         self.image_variants_setup(from_save, input_dict)
-        self.status_icons = []
         status.mob_list.append(self)
         self.set_name(input_dict["name"])
-        self.max_movement_points = 1
-        self.movement_points = self.max_movement_points
-        self.movement_cost = 1
+        self.max_movement_points: int = 1
+        self.movement_points: int = self.max_movement_points
+        self.movement_cost: int = 1
         self.subscribed_location: locations.location = None
         if input_dict.get("location", None):
             input_dict["location"].subscribe_mob(self)
@@ -836,9 +835,7 @@ class mob(actor):
             adjacent_location = self.location.adjacent_locations[direction]
 
         if adjacent_location:
-            cost *= constants.terrain_movement_cost_dict.get(
-                adjacent_location.terrain, 1
-            )
+            cost = adjacent_location.terrain_type.movement_cost
             if self.get_permission(constants.PMOB_PERMISSION):
                 local_infrastructure = self.location.get_intact_building(
                     constants.INFRASTRUCTURE
@@ -855,25 +852,7 @@ class mob(actor):
                     and adjacent_infrastructure.infrastructure_type == constants.FERRY
                 ):
                     cost = 2
-                # if (not adjacent_location.visible) and self.get_permission(
-                #     constants.EXPEDITION_PERMISSION
-                # ):
-                #     cost = self.movement_cost
         return cost
-
-    def adjacent_to_water(self) -> bool:
-        """
-        Description:
-            Returns whether any of the locations directly adjacent to this mob's location has the water terrain. Otherwise, returns False
-        Input:
-            None
-        Output:
-            boolean: Returns True if any of the locations directly adjacent to this mob's location has the water terrain. Otherwise, returns False
-        """
-        for current_location in self.location.adjacent_list:
-            if current_location.terrain == "water" and current_location.visible:
-                return True
-        return False
 
     def change_movement_points(self, change) -> None:
         """
@@ -1107,26 +1086,6 @@ class mob(actor):
             if self.equipment:
                 tooltip_list.append(f"Equipment: {', '.join(self.equipment.keys())}")
 
-            item_upkeep = self.get_item_upkeep(recurse=True, earth_exemption=False)
-            show_air_exemption = False
-            top_message = "Item upkeep per turn:"
-            if not item_upkeep:
-                top_message += " None"
-            elif self.location.is_earth_location:
-                top_message += " (exempt while on Earth)"
-            elif self.location.get_unit_habitability() > constants.HABITABILITY_DEADLY:
-                show_air_exemption = True
-            tooltip_list.append(top_message)
-
-            for item_type_key, amount_required in item_upkeep.items():
-                if amount_required == 0:
-                    message = f"    Requires access to {status.item_types[item_type_key].name}"
-                else:
-                    message = f"    Requires {amount_required} {status.item_types[item_type_key].name}"
-                if show_air_exemption and item_type_key == constants.AIR_ITEM:
-                    message += f" (exempt while in non-deadly atmosphere)"
-                tooltip_list.append(message)
-
         if not self.get_permission(constants.SURVIVABLE_PERMISSION):
             tooltip_list.append(
                 "This unit is in deadly environmental conditions and will die if remaining there at the end of the turn"
@@ -1182,10 +1141,13 @@ class mob(actor):
             for current_equipment in self.equipment.copy():
                 if self.equipment[current_equipment]:
                     self.location.change_inventory(
-                        status.equipment_types[current_equipment], 1
+                        status.equipment_types[current_equipment],
+                        1,
                     )
                     status.equipment_types[current_equipment].unequip(self)
             self.equipment = {}
+        self.location.update_sorted_inventory()
+        self.update_sorted_inventory()
 
     def remove(self):
         """
@@ -1199,9 +1161,6 @@ class mob(actor):
             self.subscribed_location.unsubscribe_mob(self)
         super().remove()
         status.mob_list = utility.remove_from_list(status.mob_list, self)
-        for current_status_icon in self.status_icons:
-            current_status_icon.remove()
-        self.status_icons = []
         self.unit_type.on_remove()
 
     def die(self, death_type="violent"):
@@ -1376,24 +1335,7 @@ class mob(actor):
                     constants.SoundManager.play_sound("effects/ocean_splashing")
                     possible_sounds.append("effects/ship_propeller")
             else:
-                if self.location.terrain == "water":
-                    local_infrastructure = self.location.get_intact_building(
-                        constants.INFRASTRUCTURE
-                    )
-                    if (
-                        local_infrastructure
-                        and local_infrastructure.is_bridge
-                        and (
-                            local_infrastructure.is_road
-                            or local_infrastructure.is_railroad
-                        )
-                        and not self.get_permission(constants.SWIM_PERMISSION)
-                    ):  # If walking on bridge
-                        possible_sounds.append("effects/footsteps")
-                    else:
-                        possible_sounds.append("effects/river_splashing")
-                else:
-                    possible_sounds.append("effects/footsteps")
+                possible_sounds.append("effects/footsteps")
                 self.selection_sound()
         if possible_sounds:
             constants.SoundManager.play_sound(random.choice(possible_sounds))
@@ -1418,6 +1360,9 @@ class mob(actor):
         )
         new_location.subscribe_mob(self)
         actor_utility.focus_minimap_grids(new_location)
+        actor_utility.calibrate_actor_info_display(
+            status.location_info_display, new_location
+        )
         self.movement_sound()
         if self.get_permission(
             constants.PMOB_PERMISSION

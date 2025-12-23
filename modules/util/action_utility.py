@@ -1,5 +1,6 @@
 # Contains miscellaneous functions relating to action functionality
 
+from __future__ import annotations
 from modules.util import scaling
 from modules.constants import constants, status, flags
 

@@ -1,9 +1,18 @@
+from __future__ import annotations
 import random
 import math
 from typing import List, Dict, Any
 from modules.util import actor_utility, main_loop_utility, utility
 from modules.constructs.actor_types import actors
-from modules.constructs import world_handlers, item_types, settlements
+from modules.constructs import (
+    world_handlers,
+    item_types,
+    settlements,
+    plans,
+    hosted_icons,
+    terrain_types,
+)
+from modules.interface_components import cells
 from modules.constants import constants, status, flags
 
 
@@ -30,10 +39,13 @@ class location(actors.actor):
         self.parent_world_handler: world_handlers.world_handler = input_dict[
             "world_handler"
         ]
-        self.name_icon = None
-        self.hosted_icons = []
+        self.name_icon: hosted_icons.hosted_icon = None
+        self.hosted_icons: List[hosted_icons.hosted_icon] = []
         super().__init__(from_save, input_dict, original_constructor == False)
-        self.image_dict = {**self.image_dict, constants.IMAGE_ID_LIST_INCLUDE_MOB: []}
+        self.image_dict: Dict[str, Any] = {
+            **self.image_dict,
+            constants.IMAGE_ID_LIST_INCLUDE_MOB: [],
+        }
         self.x: int = input_dict["coordinates"][0]
         self.y: int = input_dict["coordinates"][1]
         self.adjacent_list: List[location] = []
@@ -50,11 +62,11 @@ class location(actors.actor):
                 constants.WATER: 0,
             },
         )
-        self.local_weather_offset = input_dict.get(
+        self.local_weather_offset: float = input_dict.get(
             "local_weather_offset", random.uniform(-0.2, 0.2)
         )
         self.terrain_variant: int = input_dict.get("terrain_variant", 0)
-        self.current_clouds: List[Dict[str, any]] = input_dict.get("current_clouds", [])
+        self.current_clouds: List[Dict[str, Any]] = input_dict.get("current_clouds", [])
         self.pole_distance_multiplier: float = input_dict.get(
             "pole_distance_multiplier", 1.0
         )  # 0.1 for polar cells, 1.0 for equatorial cells
@@ -62,20 +74,17 @@ class location(actors.actor):
             "north_pole_distance_multiplier", 1.0
         )
         self.inverse_pole_distance_multiplier: float = 1.0
-        self.minima = {constants.TEMPERATURE: -6}
-        self.maxima = {constants.TEMPERATURE: 11}
-        self.terrain: str = None
+        self.minima: Dict[str, int] = {constants.TEMPERATURE: -6}
+        self.maxima: Dict[str, int] = {constants.TEMPERATURE: 11}
+        self.terrain_type: terrain_types.terrain_type = None
         self.terrain_features: Dict[str, bool] = {}
         for terrain_feature in input_dict.get("terrain_features", {}).values():
             self.add_terrain_feature(terrain_feature)
-        self.set_terrain(
-            constants.TerrainManager.classify(self.terrain_parameters),
-            update_image_bundle=False,
-        )
+        self.set_terrain(constants.TerrainManager.classify(self.terrain_parameters))
         self.resource: item_types.item_type = status.item_types.get(
             input_dict.get("resource", None), None
         )
-        self.subscribed_cells: list = []
+        self.subscribed_cells: List[cells.cell] = []
         self.expected_temperature_offset: float = 0.0
         self.subscribed_mobs: List[actors.actor] = (
             []
@@ -107,6 +116,7 @@ class location(actors.actor):
                         "location": self,
                     },
                 )
+        self.supply_chain_plan: plans.supply_chain_plan = plans.supply_chain_plan(self)
         self.configure_event_subscriptions()
         self.update_image_bundle()
 
@@ -686,6 +696,7 @@ class location(actors.actor):
                 - uuid - any subscriptions that watch all changes to this location
                 - true_world_handler.uuid - any subscriptions that watch all changes to the world
                 - DISPLAYED_LOCATION_ENDPOINT - any subscriptions watching changes to the displayed location
+                - Null endpoint - any subscriptions watching changes to any location's parameters
             With the following topics:
                 - endpoints/LOCATION_SET_PARAMETER_ROUTE - any subscriptions watching changes to parameters of the above
                 - endpoints/LOCATION_SET_PARAMETER_ROUTE/TEMPERATURE - any subscriptions watching changes to the temperature parameter of the above
@@ -702,6 +713,7 @@ class location(actors.actor):
             endpoints.append(constants.DISPLAYED_LOCATION_ENDPOINT)
         for endpoint in endpoints:
             constants.EventBus.publish(endpoint, *routes)
+        constants.EventBus.publish(*routes)
 
     def set_parameter(
         self, parameter_name: str, new_value: int, update_display: bool = True
@@ -745,11 +757,11 @@ class location(actors.actor):
                 for i in range(water_displaced):
                     self.true_world_handler.place_water(update_display=update_display)
 
-        new_terrain = constants.TerrainManager.classify(self.terrain_parameters)
+        new_terrain_type = constants.TerrainManager.classify(self.terrain_parameters)
 
         if (
             constants.current_map_mode != "terrain"
-            or self.terrain != new_terrain
+            or self.terrain_type != new_terrain_type
             or overlay_images != self.get_overlay_images()
             or (
                 parameter_name == constants.ALTITUDE
@@ -757,7 +769,7 @@ class location(actors.actor):
             )
             or parameter_name == constants.KNOWLEDGE
         ):
-            self.set_terrain(new_terrain, update_image_bundle=update_display)
+            self.set_terrain(new_terrain_type)
             if update_display and not flags.loading:
                 status.current_world.update_globe_projection()
 
@@ -866,7 +878,6 @@ class location(actors.actor):
             "terrain_variant": self.terrain_variant,
             "terrain_features": self.terrain_features,
             "terrain_parameters": self.terrain_parameters,
-            "terrain": self.terrain,
             "resource": self.resource.key if self.resource else None,
             "north_pole_distance_multiplier": self.north_pole_distance_multiplier,
             "pole_distance_multiplier": self.pole_distance_multiplier,
@@ -894,38 +905,34 @@ class location(actors.actor):
         """
         return self.terrain_parameters[parameter_name]
 
-    def set_terrain(self, new_terrain: str, update_image_bundle: bool = True) -> None:
+    def set_terrain(self, new_terrain_type: terrain_types.terrain_type) -> None:
         """
         Description:
             Sets this location's terrain type, automatically generating a variant (not used for loading with pre-defined variant)
         Input:
-            string new_terrain: New terrain type for this location, like 'swamp'
+            terrain_type new_terrain_type: New terrain type for this location, like 'swamp'
         Output:
             None
         """
         try:
-            if hasattr(
-                self, "terrain_variant"
-            ) and constants.TerrainManager.terrain_variant_dict.get(
-                self.terrain, 1
-            ) == constants.TerrainManager.terrain_variant_dict.get(
-                new_terrain, 1
+            if (
+                hasattr(self, "terrain_variant")
+                and self.terrain_type
+                and self.terrain_type.num_variants == new_terrain_type.num_variants
             ):
                 pass  # Keep same terrain variant if number of variants is the same - keep same basic mountain layout, etc.
             else:
                 self.terrain_variant = random.randrange(
-                    0,
-                    constants.TerrainManager.terrain_variant_dict.get(new_terrain, 1),
+                    0, new_terrain_type.num_variants
                 )
         except:
-            print(f"Error loading {new_terrain} variant")
-            self.terrain_variant = random.randrange(
-                0, constants.TerrainManager.terrain_variant_dict.get(new_terrain, 1)
+            raise Exception(
+                f"Error loading {new_terrain_type.key} variant, using random variant {self.terrain_variant}"
             )
-        self.terrain = new_terrain
-
-        if new_terrain in constants.TerrainManager.terrain_list:
-            self.default_image_id = f"terrains/{new_terrain}_{self.terrain_variant}.png"
+        self.terrain_type = new_terrain_type
+        self.default_image_id = (
+            f"terrains/{new_terrain_type.key}_{self.terrain_variant}.png"
+        )
 
     def subscribe_cell(self, cell) -> None:
         """
@@ -936,10 +943,10 @@ class location(actors.actor):
         Output:
             None
         """
-        if cell.location:
-            cell.location.unsubscribe_cell(cell)
+        if cell.source:
+            cell.source.unsubscribe_cell(cell)
         self.subscribed_cells.append(cell)
-        cell.subscribed_location = self
+        cell.subscribed_source = self
         if cell.grid == status.minimap_grid:
             cell.set_image(
                 self.image_dict[constants.IMAGE_ID_LIST_INCLUDE_MINIMAP_OVERLAY]
@@ -969,12 +976,8 @@ class location(actors.actor):
         mob.publish_events(
             constants.LOCATION_SUBSCRIBE_MOB_ROUTE
         )  # Publish events of this mob subscribing a location
-        if mob == status.displayed_mob and self != status.displayed_location:
-            actor_utility.calibrate_actor_info_display(
-                status.location_info_display, self
-            )
 
-    def unsubscribe_cell(self, cell) -> None:
+    def unsubscribe_cell(self, cell: cells.cell) -> None:
         """
         Description:
             Unsubscribes the inputted cell from this location - precondition that cell is in this location
@@ -984,7 +987,7 @@ class location(actors.actor):
             None
         """
         self.subscribed_cells.remove(cell)
-        cell.subscribed_location = None
+        cell.subscribed_source = None
 
     def unsubscribe_mob(self, mob) -> None:
         """
@@ -1116,7 +1119,7 @@ class location(actors.actor):
         Output:
             dictionary: Smart green screen dictionary for this location, or None for default location appearance
         """
-        world_green_screen = self.world_handler.get_green_screen(self.terrain)
+        world_green_screen = self.world_handler.get_green_screen(self.terrain_type)
 
         # Make any per-location modifications
 
@@ -1611,7 +1614,7 @@ class location(actors.actor):
             )
 
             if self.knowledge_available(constants.TERRAIN_KNOWLEDGE):
-                tooltip_message.append(f"    Terrain: {self.terrain.replace('_', ' ')}")
+                tooltip_message.append(f"    Terrain: {self.terrain_type.name}")
                 if self.knowledge_available(constants.TERRAIN_PARAMETER_KNOWLEDGE):
                     for terrain_parameter in constants.terrain_parameters:
                         if terrain_parameter != constants.KNOWLEDGE:
@@ -1724,6 +1727,8 @@ class location(actors.actor):
                     consumption_remaining = round(consumption_remaining, 2)
             if consumption_remaining > 0:
                 missing_consumption[item_key] = consumption_remaining
+        for current_actor in [self] + self.subscribed_mobs:
+            current_actor.update_sorted_inventory()
         return missing_consumption
 
     def create_item_request(self, required_items: Dict[str, float]) -> Dict[str, float]:
@@ -1782,7 +1787,11 @@ class location(actors.actor):
         return utility.add_dicts(
             *[
                 mob.get_item_upkeep(
-                    recurse=False, earth_exemption=self.is_earth_location
+                    recurse=False,
+                    earth_exemption=self.is_earth_location
+                    and not constants.EffectManager.effect_active(
+                        "enable_earth_upkeep"
+                    ),
                 )
                 for mob in self.contained_mobs
             ]
@@ -1828,6 +1837,7 @@ class location(actors.actor):
                         lost_items.get(current_item_type.key, 0) + 1
                     )
                     self.change_inventory(current_item_type, -1)
+        self.update_sorted_inventory()
         if sum(lost_items.values()) > 0:
             if sum(lost_items.values()) == 1:
                 was_word = "was"

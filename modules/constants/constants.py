@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pygame
 from typing import Dict, List, Tuple, Any
 from modules.managers import (
@@ -16,7 +17,9 @@ from modules.managers import (
     help_manager,
     mouse_follower,
     event_bus,
+    content_provider,
     uuid_manager,
+    supply_chain_request_engine,
 )
 from modules.interface_components.labels import money_label
 from modules.constructs.fonts import font
@@ -199,6 +202,10 @@ AchievementManager: achievement_manager.achievement_manager = (
 JobScheduler: job_scheduler.job_scheduler = job_scheduler.job_scheduler()
 EventBus: event_bus.event_bus = event_bus.event_bus()
 UuidManager: uuid_manager.uuid_manager = uuid_manager.uuid_manager()
+ContentProvider: content_provider.content_provider = content_provider.content_provider()
+SupplyChainRequestEngine: supply_chain_request_engine.supply_chain_request_engine = (
+    None  # requires additional setup before initialization
+)
 NotificationManager: notification_manager.notification_manager = (
     None  # requires additional setup before initialization
 )
@@ -243,6 +250,15 @@ notification_font_size: float = None
 myfont: font = None
 fonts: Dict[str, font] = {}
 
+WHITE_FONT: str = "white_font"
+DEFAULT_FONT: str = "default_font"
+DEFAULT_NOTIFICATION_FONT: str = "default_notification_font"
+WHITE_NOTIFICATION_FONT: str = "white_notification_font"
+LARGE_NOTIFICATION_FONT: str = "large_notification_font"
+LARGE_WHITE_NOTIFICATION_FONT: str = "large_white_notification_font"
+MAX_DETAIL_WHITE_FONT: str = "max_detail_white_font"
+MAX_DETAIL_BLACK_FONT: str = "max_detail_black_font"
+
 default_music_volume: float = 0.3
 
 current_instructions_page_index: int = 0
@@ -250,7 +266,7 @@ current_instructions_page_text: str = ""
 message: str = ""
 
 actor_icon_dimensions: int = 130
-inventory_icon_dimensions: int = 100
+inventory_icon_dimensions: int = 70
 
 grids_collection_x: int = default_display_width - 740
 grids_collection_y: int = default_display_height - 325
@@ -387,25 +403,6 @@ green_screen_colors: List[tuple[int, int, int]] = [
     color_dict[COLOR_GREEN_SCREEN_2],
     color_dict[COLOR_GREEN_SCREEN_3],
 ]
-
-terrain_movement_cost_dict: Dict[str, int] = {
-    "savannah": 1,
-    "hills": 2,
-    "jungle": 3,
-    "water": 1,
-    "mountains": 3,
-    "swamp": 3,
-    "desert": 2,
-}
-terrain_build_cost_multiplier_dict: Dict[str, int] = {
-    "savannah": 1,
-    "hills": 2,
-    "jungle": 3,
-    "water": 1,
-    "mountains": 3,
-    "swamp": 3,
-    "desert": 2,
-}
 
 resource_building_dict: Dict[str, str] = {
     "coffee": "plantation",
@@ -590,6 +587,9 @@ else:
     TERRAIN_DETAIL_LEVEL: float = 0.5
     CLOUDS_DETAIL_LEVEL: float = 0.15
 
+DEFAULT_NOTIFICATION_PRIORITY: int = 0
+VICTORY_ACHIEVEMENT_NOTIFICATION_PRIORITY: int = -1
+
 TERRAIN_KNOWLEDGE: str = "terrain"
 TERRAIN_KNOWLEDGE_REQUIREMENT: int = 0
 TERRAIN_PARAMETER_KNOWLEDGE: str = "terrain_parameter"
@@ -626,7 +626,6 @@ SETTLEMENT_PANEL: str = "settlement_panel"
 LOCAL_CONDITIONS_PANEL: str = "local_conditions_panel"
 GLOBAL_CONDITIONS_PANEL: str = "global_conditions_panel"
 TEMPERATURE_BREAKDOWN_PANEL: str = "temperature_breakdown_panel"
-
 INVENTORY_PANEL: str = "inventory_panel"
 REORGANIZATION_PANEL: str = "reorganization_panel"
 
@@ -726,6 +725,7 @@ INTERFACE_ELEMENT: str = "interface_element"
 INTERFACE_COLLECTION: str = "interface_collection"
 AUTOFILL_COLLECTION: str = "autofill_collection"
 ORDERED_COLLECTION: str = "ordered_collection"
+CELL: str = "cell"
 INVENTORY_GRID: str = "inventory_grid"
 TABBED_COLLECTION: str = "tabbed_collection"
 END_TURN_BUTTON: str = "end_turn_button"
@@ -846,14 +846,7 @@ MINISTER_ETHNICITY_LABEL: str = "minister_ethnicity_label"
 MINISTER_INTERESTS_LABEL: str = "minister_interests_label"
 MINISTER_LOYALTY_LABEL: str = "minister_loyalty_label"
 MINISTER_ABILITY_LABEL: str = "minister_ability_label"
-SPACE_SKILL_LABEL: str = "space_skill_label"
-ECOLOGY_SKILL_LABEL: str = "ecology_skill_label"
-TERRAN_AFFAIRS_SKILL_LABEL: str = "terran_affairs_skill_label"
-SCIENCE_SKILL_LABEL: str = "science_skill_label"
-ENERGY_SKILL_LABEL: str = "energy_skill_label"
-INDUSTRY_SKILL_LABEL: str = "industry_skill_label"
-TRANSPORTATION_SKILL_LABEL: str = "transportation_skill_label"
-SECURITY_SKILL_LABEL: str = "security_skill_label"
+CURRENT_SKILL_LABEL: str = "current_skill_label"
 
 EVIDENCE_LABEL: str = "evidence_label"
 UNIT_TYPE_LABEL: str = "unit_type_label"
@@ -922,6 +915,7 @@ LOADING_IMAGE_TEMPLATE_IMAGE: str = "loading_image_template_image"
 MOUSE_FOLLOWER_IMAGE: str = "mouse_follower_image"
 DIRECTIONAL_INDICATOR_IMAGE: str = "directional_indicator_image"
 
+TABLE_GRID: str = "table_grid"
 MINI_GRID: str = "mini_grid"
 ABSTRACT_GRID: str = "abstract_grid"
 
@@ -1118,6 +1112,7 @@ LOCATION_REMOVE_BUILDING_ROUTE: str = "location_remove_building_route"
 LOCATION_SUBSCRIBE_MOB_ROUTE: str = "location_subscribe_mob_route"
 LOCATION_UNSUBSCRIBE_MOB_ROUTE: str = "location_unsubscribe_mob_route"
 LOCATION_SET_NAME_ROUTE: str = "location_set_name_route"
+ACTOR_SET_INVENTORY_ROUTE: str = "actor_set_inventory_route"
 BUILDING_SET_DAMAGED_ROUTE: str = "building_set_damaged_route"
 ABSTRACT_WORLD_UPDATE_IMAGE_ROUTE: str = "abstract_world_update_image_route"
 UPDATE_MAP_MODE_ROUTE: str = "update_map_mode_route"
@@ -1129,8 +1124,11 @@ WORLD_SET_PARAMETER_ROUTE: str = "world_set_parameter_route"
 WORLD_UPDATE_TARGET_AVERAGE_TEMPERATURE_ROUTE: str = (
     "world_update_target_average_temperature_route"
 )
+VEHICLE_SUBMOB_ADDED_ROUTE: str = "vehicle_submob_added_route"
 
 ABSOLUTE_ZERO_BANNER: str = "absolute_zero_banner"
 TERRAIN_DETAILS_BANNER: str = "terrain_details_banner"
 DEADLY_CONDITIONS_BANNER: str = "deadly_conditions_banner"
 TAB_NAME_BANNER: str = "tab_name_banner"
+
+SUPPLY_CHAIN_TABLE_SUBJECT: str = "supply_chain_table_subject"

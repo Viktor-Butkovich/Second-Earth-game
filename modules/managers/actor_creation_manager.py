@@ -1,5 +1,6 @@
 # Contains actor/interface element creation factory singleton
 
+from __future__ import annotations
 import random
 from modules.constructs.actor_types import locations, mobs
 from modules.constructs.actor_types.mob_types import (
@@ -27,6 +28,8 @@ from modules.interface_components import (
     earth_transactions,
     inventory_interface,
     grids,
+    tables,
+    cells,
 )
 from modules.interface_components.info_display_elements import (
     info_display_buttons,
@@ -187,14 +190,6 @@ class actor_creation_manager:
             constants.MINISTER_INTERESTS_LABEL: info_display_labels.actor_display_label,
             constants.MINISTER_LOYALTY_LABEL: info_display_labels.actor_display_label,
             constants.MINISTER_ABILITY_LABEL: info_display_labels.actor_display_label,
-            constants.SPACE_SKILL_LABEL: info_display_labels.actor_display_label,
-            constants.ECOLOGY_SKILL_LABEL: info_display_labels.actor_display_label,
-            constants.TERRAN_AFFAIRS_SKILL_LABEL: info_display_labels.actor_display_label,
-            constants.SCIENCE_SKILL_LABEL: info_display_labels.actor_display_label,
-            constants.ENERGY_SKILL_LABEL: info_display_labels.actor_display_label,
-            constants.INDUSTRY_SKILL_LABEL: info_display_labels.actor_display_label,
-            constants.TRANSPORTATION_SKILL_LABEL: info_display_labels.actor_display_label,
-            constants.SECURITY_SKILL_LABEL: info_display_labels.actor_display_label,
             constants.EVIDENCE_LABEL: info_display_labels.actor_display_label,
             constants.UNIT_TYPE_LABEL: info_display_labels.actor_display_label,
             constants.OFFICER_NAME_LABEL: info_display_labels.actor_display_label,
@@ -251,6 +246,7 @@ class actor_creation_manager:
             constants.WAREHOUSES: info_display_labels.actor_display_label,
             constants.TERRAIN_FEATURE_LABEL: info_display_labels.terrain_feature_label,
             constants.CURRENT_PASSENGER_LABEL: info_display_labels.list_item_label,
+            constants.CURRENT_SKILL_LABEL: info_display_labels.list_item_label,
             constants.LIST_ITEM_LABEL: info_display_labels.list_item_label,
             constants.BUILDING_WORK_CREWS_LABEL: info_display_labels.building_work_crews_label,
             constants.BUILDING_EFFICIENCY_LABEL: info_display_labels.building_efficiency_label,
@@ -272,6 +268,8 @@ class actor_creation_manager:
             constants.ACTION_NOTIFICATION: action_notifications.action_notification,
             constants.DICE_ROLLING_NOTIFICATION: action_notifications.dice_rolling_notification,
             constants.ADJACENT_LOCATION_EXPLORATION_NOTIFICATION: action_notifications.adjacent_location_exploration_notification,
+            constants.CELL: cells.cell,
+            constants.TABLE_GRID: tables.table_grid,
             constants.MINI_GRID: grids.mini_grid,
             constants.ABSTRACT_GRID: grids.abstract_grid,
             constants.HOSTED_ICON: hosted_icons.hosted_icon,

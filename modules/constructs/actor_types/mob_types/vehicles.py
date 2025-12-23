@@ -1,5 +1,6 @@
 # Contains functionality for vehicle units
 
+from __future__ import annotations
 from typing import List, Dict
 from modules.constructs.actor_types.mob_types.pmobs import pmob
 from modules.util import text_utility, utility
@@ -164,6 +165,7 @@ class vehicle(pmob):
             )
             self.set_inventory_capacity(0)
         self.set_permission(constants.SENTRY_MODE_PERMISSION, False)
+        constants.EventBus.publish(constants.VEHICLE_SUBMOB_ADDED_ROUTE)
 
     def get_sub_mobs(self) -> List[pmob]:
         """

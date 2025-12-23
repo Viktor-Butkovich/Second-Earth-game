@@ -1,5 +1,6 @@
 # Contains dynamic help message generation singleton
 
+from __future__ import annotations
 from typing import List, Dict, Any
 from modules.util import utility
 from modules.constructs import world_handlers

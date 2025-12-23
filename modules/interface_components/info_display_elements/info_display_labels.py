@@ -1,5 +1,6 @@
 # Contains functionality for actor display labels
 
+from __future__ import annotations
 import pygame
 from typing import List, Callable
 from modules.constructs.actor_types import actors
@@ -154,45 +155,18 @@ class actor_display_label(labels.label):
 
         elif self.actor_label_type == constants.EQUIPMENT_LABEL:
             self.message_start = "Equipment: "
-            if flags.enable_equipment_panel:
-                input_dict["init_type"] = constants.ANONYMOUS_BUTTON
+            input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
+            for equipment_key, equipment_type in status.equipment_types.items():
+                input_dict["equipment_type"] = equipment_type
                 input_dict["image_id"] = [
-                    "buttons/default_button_alt2.png",
+                    "buttons/default_button.png",
                     {
                         "image_id": "misc/circle.png",
-                        "green_screen": status.item_types[
-                            constants.CONSUMER_GOODS_ITEM
-                        ].background_color,
-                        "size": 0.75,
+                        "green_screen": equipment_type.background_color,
                     },
-                    {
-                        "image_id": status.item_types[
-                            constants.CONSUMER_GOODS_ITEM
-                        ].item_image,
-                        "size": 0.75,
-                    },
+                    equipment_type.item_image,
                 ]
-                input_dict["button_type"] = {
-                    "on_click": (
-                        status.mob_inventory_collection.tab_button.on_click,
-                        (),
-                    ),
-                    "tooltip": ["Displays the unit inventory panel"],
-                }
                 self.add_attached_button(input_dict)
-            else:
-                input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
-                for equipment_key, equipment_type in status.equipment_types.items():
-                    input_dict["equipment_type"] = equipment_type
-                    input_dict["image_id"] = [
-                        "buttons/default_button.png",
-                        {
-                            "image_id": "misc/circle.png",
-                            "green_screen": equipment_type.background_color,
-                        },
-                        equipment_type.item_image,
-                    ]
-                    self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.MOVEMENT_LABEL:
             self.message_start = "Movement points: "
@@ -296,43 +270,11 @@ class actor_display_label(labels.label):
             input_dict["image_id"] = "buttons/disembark_spaceship_button.png"
             self.add_attached_button(input_dict)
 
-        elif self.actor_label_type in [
-            constants.MOB_INVENTORY_CAPACITY_LABEL,
-            constants.LOCATION_INVENTORY_CAPACITY_LABEL,
-        ]:
+        elif self.actor_label_type == constants.MOB_INVENTORY_CAPACITY_LABEL:
             self.message_start = "Capacity: "
-            input_dict["width"], input_dict["height"] = (m_size, m_size)
-            if self.actor_label_type == constants.LOCATION_INVENTORY_CAPACITY_LABEL:
-                input_dict["init_type"] = constants.USE_EACH_EQUIPMENT_BUTTON
-                input_dict["image_id"] = "buttons/use_equipment_button.png"
-                self.add_attached_button(input_dict)
 
-                input_dict["init_type"] = constants.PICK_UP_EACH_ITEM_BUTTON
-                input_dict["image_id"] = "buttons/item_drop_each_button.png"
-                self.add_attached_button(input_dict)
-
-                input_dict["init_type"] = constants.SELL_EACH_ITEM_BUTTON
-                input_dict["image_id"] = "buttons/item_sell_each_button.png"
-                self.add_attached_button(input_dict)
-
-            elif self.actor_label_type == constants.MOB_INVENTORY_CAPACITY_LABEL:
-                input_dict["init_type"] = constants.DROP_EACH_ITEM_BUTTON
-                input_dict["image_id"] = "buttons/item_pick_up_each_button.png"
-                self.add_attached_button(input_dict)
-
-                if flags.enable_equipment_panel:
-                    input_dict["init_type"] = constants.REMOVE_EQUIPMENT_BUTTON
-                    for equipment_key, equipment_type in status.equipment_types.items():
-                        input_dict["equipment_type"] = equipment_type
-                        input_dict["image_id"] = [
-                            "buttons/default_button.png",
-                            {
-                                "image_id": "misc/circle.png",
-                                "green_screen": equipment_type.background_color,
-                            },
-                            equipment_type.item_image,
-                        ]
-                        self.add_attached_button(input_dict)
+        elif self.actor_label_type == constants.LOCATION_INVENTORY_CAPACITY_LABEL:
+            self.message_start = "Warehouses: "
 
         elif self.actor_label_type == constants.TERRAIN_LABEL:
             self.message_start = "Terrain: "
@@ -347,23 +289,25 @@ class actor_display_label(labels.label):
             self.message_start = "Minister: "
             input_dict["width"], input_dict["height"] = (m_size, m_size)
 
-            attached_minister_icon = constants.ActorCreationManager.create_interface_element(
-                {
-                    "coordinates": (0, 0),
-                    "actor_type": constants.MINISTER_ACTOR_TYPE,
-                    "width": scaling.scale_width(30) + m_increment,
-                    "height": scaling.scale_height(30) + m_increment,
-                    "modes": self.modes,
-                    "init_type": constants.ACTOR_ICON,
-                    "parent_collection": self.insert_collection_above(),
-                    "member_config": {
-                        "x_offset": -1
-                        * (
-                            scaling.scale_width(33) + m_increment
-                        ),  # -1.5 * (m_increment),
-                        "y_offset": -0.5 * m_increment,  # -0.5 * m_increment,
-                    },
-                }
+            attached_minister_icon = (
+                constants.ActorCreationManager.create_interface_element(
+                    {
+                        "coordinates": (0, 0),
+                        "actor_type": constants.MINISTER_ACTOR_TYPE,
+                        "width": scaling.scale_width(30) + m_increment,
+                        "height": scaling.scale_height(30) + m_increment,
+                        "modes": self.modes,
+                        "init_type": constants.ACTOR_ICON,
+                        "parent_collection": self.insert_collection_above(),
+                        "member_config": {
+                            "x_offset": -1
+                            * (
+                                scaling.scale_width(33) + m_increment
+                            ),  # -1.5 * (m_increment),
+                            "y_offset": -0.5 * m_increment,  # -0.5 * m_increment,
+                        },
+                    }
+                )
             )
             self.parent_collection.can_show_override = self  # parent collection is considered showing when this label can show, allowing ordered collection to work correctly
             self.image_y_displacement = 5
@@ -430,14 +374,16 @@ class actor_display_label(labels.label):
                 # constants.DROP_ITEM_BUTTON - helps to find anonymous button without constant type
                 input_dict["image_id"] = "buttons/item_pick_up_button.png"
                 input_dict["button_type"] = {
-                    "on_click": (
-                        actor_utility.callback,
-                        [
-                            "displayed_mob_inventory",
-                            "transfer",
-                            1,
-                        ],  # item_icon.transfer(
-                    ),
+                    "on_click": [
+                        (
+                            actor_utility.callback,
+                            [
+                                "displayed_mob_inventory",
+                                "transfer",
+                                1,
+                            ],  # item_icon.transfer(
+                        )
+                    ],
                     "tooltip": ["Orders the selected unit to drop this item"],
                 }
                 self.add_attached_button(input_dict)
@@ -445,64 +391,18 @@ class actor_display_label(labels.label):
                 # constants.DROP_ALL_ITEM_BUTTON
                 input_dict["image_id"] = "buttons/item_pick_up_all_button.png"
                 input_dict["button_type"] = {
-                    "on_click": (
-                        actor_utility.callback,
-                        [
-                            "displayed_mob_inventory",
-                            "transfer",
-                            None,
-                        ],  # item_icon.transfer(
-                    ),
+                    "on_click": [
+                        (
+                            actor_utility.callback,
+                            [
+                                "displayed_mob_inventory",
+                                "transfer",
+                                None,
+                            ],  # item_icon.transfer(
+                        )
+                    ],
                     "tooltip": ["Orders the selected unit to drop all of this item"],
                 }
-                self.add_attached_button(input_dict)
-
-            elif self.actor_type == constants.LOCATION_ACTOR_TYPE:
-                original_input_dict = input_dict.copy()
-                input_dict["init_type"] = constants.ANONYMOUS_BUTTON
-                # constants.PICK_UP_ITEM_BUTTON
-                input_dict["image_id"] = "buttons/item_drop_button.png"
-                input_dict["button_type"] = {
-                    "on_click": (
-                        actor_utility.callback,
-                        [
-                            "displayed_location_inventory",
-                            "transfer",
-                            1,
-                        ],  # item_icon.transfer(
-                    ),
-                    "tooltip": ["Orders the selected unit to pick up this item"],
-                }
-                self.add_attached_button(input_dict)
-
-                # constants.PICK_UP_ALL_ITEM_BUTTON
-                input_dict["image_id"] = "buttons/item_drop_all_button.png"
-                input_dict["button_type"] = {
-                    "on_click": (
-                        actor_utility.callback,
-                        [
-                            "displayed_location_inventory",
-                            "transfer",
-                            None,
-                        ],  # item_icon.transfer(
-                    ),
-                    "tooltip": ["Orders the selected unit to pick up all of this item"],
-                }
-                self.add_attached_button(input_dict)
-
-                # Add pick up each button to inventory capacity label - if has at least 1 inventory capacity, show button that drops/picks up each type of item at once
-
-                input_dict = original_input_dict
-                input_dict["init_type"] = constants.SELL_ITEM_BUTTON
-                input_dict["image_id"] = "buttons/item_sell_button.png"
-                self.add_attached_button(input_dict)
-
-                input_dict["init_type"] = constants.SELL_ALL_ITEM_BUTTON
-                input_dict["image_id"] = "buttons/item_sell_all_button.png"
-                self.add_attached_button(input_dict)
-
-                input_dict["init_type"] = constants.USE_EQUIPMENT_BUTTON
-                input_dict["image_id"] = "buttons/use_equipment_button.png"
                 self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.SETTLEMENT:
@@ -823,14 +723,14 @@ class actor_display_label(labels.label):
                 if self.actor:
                     if self.actor.infinite_inventory_capacity:
                         tooltip_text.append(
-                            "this location can hold an unlimited number of items"
+                            "This location can hold an unlimited number of items"
                         )
                     else:
                         tooltip_text.append(
-                            f"this location currently contains an inventory of {self.actor.get_inventory_used()} items"
+                            f"This location currently contains an inventory of {self.actor.get_inventory_used()} items"
                         )
                         tooltip_text.append(
-                            f"this location can retain a maximum inventory of {self.actor.inventory_capacity} items"
+                            f"This location can retain a maximum inventory of {self.actor.inventory_capacity} items"
                         )
                         tooltip_text.append(
                             "If this location's inventory exceeds its capacity before resource production at the end of the turn, extra items will be lost"
@@ -914,15 +814,11 @@ class actor_display_label(labels.label):
 
         elif self.actor_label_type == constants.MINISTER_ABILITY_LABEL:
             tooltip_text = [self.message]
-            rank = 0
-            if self.actor:
-                for skill_value in range(6, 0, -1):  # iterates backwards from 6 to 1
-                    for skill_type in self.actor.apparent_skills:
-                        if self.actor.apparent_skills[skill_type] == skill_value:
-                            rank += 1
-                            tooltip_text.append(
-                                f"    {rank}. {skill_type.capitalize()}: {self.actor.apparent_skill_descriptions[skill_type]}"
-                            )
+            if self.actor != "none":
+                for rank, skill in enumerate(self.actor.sorted_apparent_skills):
+                    tooltip_text.append(
+                        f"    {rank+1}. {skill.capitalize().replace('_', ' ')}: {self.actor.apparent_skill_descriptions[skill]}"
+                    )
             return tooltip_text
 
         elif self.actor_label_type == constants.MINISTER_LOYALTY_LABEL:
@@ -1211,10 +1107,10 @@ class actor_display_label(labels.label):
                 if not new_actor.is_abstract_location:
                     if self.actor.knowledge_available(constants.TERRAIN_KNOWLEDGE):
                         self.set_label(
-                            f"{self.message_start}{new_actor.terrain.replace('_', ' ')}"
+                            f"{self.message_start}{new_actor.terrain_type.name}"
                         )
                     else:
-                        self.set_label(self.message_start + "unknown")
+                        self.set_label(f"{self.message_start}unknown")
 
             elif self.actor_label_type == constants.PLANET_NAME_LABEL:
                 if new_actor.is_abstract_location:
@@ -1358,6 +1254,14 @@ class actor_display_label(labels.label):
                                 )
                             )
 
+            elif self.actor_label_type == constants.CURRENT_SKILL_LABEL:
+                self.attached_list = new_actor.sorted_apparent_skills
+                if len(self.attached_list) > self.list_index:
+                    skill = self.attached_list[self.list_index]
+                    self.set_label(
+                        f"{self.list_index + 1}. {skill.capitalize().replace('_', ' ')}: {self.actor.apparent_skill_descriptions[skill]}"
+                    )
+
             elif self.actor_label_type in [
                 constants.WORKERS_LABEL,
                 constants.OFFICER_LABEL,
@@ -1430,15 +1334,18 @@ class actor_display_label(labels.label):
             elif self.actor_label_type == constants.MINISTER_ABILITY_LABEL:
                 message = ""
                 if not new_actor.current_position:
-                    displayed_skill = new_actor.get_max_apparent_skill()
-                    message += "Highest ability: "
+                    skill = new_actor.get_max_apparent_skill()
                 else:
-                    displayed_skill = new_actor.current_position.skill_type
-                    message += "Current ability: "
-                if displayed_skill != "unknown":
-                    message += f"{new_actor.apparent_skill_descriptions[displayed_skill]} ({displayed_skill})"
+                    skill = new_actor.current_position.skill_type
+
+                if not new_actor.current_position:
+                    if skill != "unknown":
+                        message += f"Highest ability: {new_actor.apparent_skill_descriptions[skill]} ({skill.replace('_',' ')})"
+                        # e.g. Highest ability: Genius (industry) if still a candidate
+                    # No message needed for candidate with no known skills
                 else:
-                    message += displayed_skill
+                    message += f"{skill.capitalize().replace('_', ' ')} ability: {new_actor.apparent_skill_descriptions[skill]}"
+                    # e.g. Industry ability: Genius (industry) if industry minister
                 self.set_label(message)
 
             elif self.actor_label_type == constants.MINISTER_LOYALTY_LABEL:
@@ -1722,14 +1629,10 @@ class actor_display_label(labels.label):
         ):
             return False
         elif self.actor_label_type == constants.MINISTER_ABILITY_LABEL:
-            empty = True
-            for skill_type in self.actor.apparent_skills:
-                if self.actor.apparent_skill_descriptions[skill_type] != "unknown":
-                    empty = False
-            if empty:
-                return False
-            else:
-                return result
+            return result and (
+                self.actor.current_position
+                or self.actor.get_max_apparent_skill() != "unknown"
+            )
         elif (
             self.actor_label_type.removesuffix("_skill_label") in constants.skill_types
         ):
@@ -1813,7 +1716,7 @@ class banner(actor_display_label):
         else:
             return super().can_show(skip_parent_collection=skip_parent_collection)
 
-    def calibrate(self, new_actor):
+    def calibrate(self, new_actor: actors.actor) -> None:
         """
         Description:
             Attaches this label to the inputted actor and updates this label's information based on the inputted actor
@@ -1865,7 +1768,7 @@ class list_item_label(actor_display_label):
         self.attached_list = []
         super().__init__(input_dict)
 
-    def calibrate(self, new_actor):
+    def calibrate(self, new_actor: actors.actor) -> None:
         """
         Description:
             Attaches this label to the inputted actor and updates this label's information based on one of the inputted actor's lists
@@ -1921,7 +1824,7 @@ class building_work_crews_label(actor_display_label):
         super().__init__(input_dict)
         self.building_type = input_dict["building_type"]
 
-    def calibrate(self, new_actor):
+    def calibrate(self, new_actor: actors.actor) -> None:
         """
         Description:
             Attaches this label to the inputted actor and updates this label's information based on the inputted actor
@@ -1985,7 +1888,7 @@ class building_efficiency_label(actor_display_label):
         self.building_type = input_dict["building_type"]
         self.attached_building = None
 
-    def calibrate(self, new_actor):
+    def calibrate(self, new_actor: actors.actor) -> None:
         """
         Description:
             Attaches this label to the inputted actor and updates this label's information based on the inputted actor

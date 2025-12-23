@@ -1,5 +1,6 @@
 # Contains functionality for unit type templates, such as workers, engineers, spaceships, etc.
 
+from __future__ import annotations
 import random
 from typing import Dict, List
 from modules.util import market_utility, text_utility, utility, actor_utility
@@ -207,7 +208,9 @@ class unit_type:
         """
         Called when an instance of this unit is newly hired (not reconstructed from save)
         """
-        return
+        actor_utility.select_interface_tab(
+            status.location_tabbed_collection, status.location_inventory_collection
+        )
 
     def on_remove(self) -> None:
         """

@@ -1,17 +1,18 @@
 # Contains topic subscription/publication-based event bus management singleton
 
+from __future__ import annotations
 from typing import List, Dict, Callable
 from modules.constants import constants, status, flags
 
 
 class event_bus:
     """
-    Placeholder
+    Object that forwards events to subscribed callbacks based on topic subscriptions
     """
 
     def __init__(self):
         """
-        Placeholder
+        Initializes this object
         """
         self.subscriptions: Dict[str, List[Callable]] = {}
 
@@ -80,6 +81,11 @@ class event_bus:
         for topic in topics:
             for callback in self.subscriptions.get(topic, []):
                 callback()
+            if constants.EffectManager.effect_active("debug_event_bus"):
+                if self.subscriptions.get(topic, []):
+                    print(
+                        f"Invoked {len(self.subscriptions[topic])} subscribers for published topic: {topic}"
+                    )
 
     def clear_endpoint(self, endpoint: str) -> None:
         """

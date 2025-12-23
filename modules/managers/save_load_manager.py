@@ -1,5 +1,6 @@
 # Contains .pickle game state saving/loading management singleton
 
+from __future__ import annotations
 import random
 import pickle
 import pygame
@@ -116,7 +117,7 @@ class save_load_manager:
             status.initial_tutorial_completed = True
             for index, minister_type_tuple in enumerate(status.minister_types.items()):
                 key, minister_type = minister_type_tuple
-                status.minister_list[index].appoint(minister_type)
+                status.minister_list[index].appoint(minister_type, from_save=True)
             minister_utility.calibrate_minister_info_display(None)
             game_transitions.set_game_mode(constants.STRATEGIC_MODE)
         flags.creating_new_game = False

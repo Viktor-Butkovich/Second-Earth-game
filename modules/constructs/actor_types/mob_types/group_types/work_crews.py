@@ -104,3 +104,4 @@ class work_crew(group):
                 )  # Minister steals value of resources produced
                 if random.randrange(1, 7) <= 1:  # 1/6 chance
                     market_utility.change_price(current_building.resource_type, -1)
+        self.location.update_sorted_inventory()

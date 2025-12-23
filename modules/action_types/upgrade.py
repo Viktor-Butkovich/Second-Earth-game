@@ -1,5 +1,6 @@
 # Contains all functionality for building upgrades
 
+from __future__ import annotations
 from typing import List
 from modules.action_types import action
 from modules.util import actor_utility, action_utility
@@ -208,7 +209,7 @@ class upgrade(action.action):
                     + self.generate_notification_text("confirmation"),
                     "choices": [
                         {
-                            "on_click": (self.middle, []),
+                            "on_click": [(self.middle, [])],
                             "tooltip": [f"Start {self.name}"],
                             "message": f"Start {self.name}",
                         },

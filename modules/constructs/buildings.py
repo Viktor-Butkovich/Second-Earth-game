@@ -1,5 +1,6 @@
 # Contains functionality for buildings
 
+from __future__ import annotations
 from typing import Dict, List
 from modules.constructs.actor_types import locations
 from modules.util import utility, actor_utility, text_utility

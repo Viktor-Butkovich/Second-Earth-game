@@ -1,5 +1,6 @@
 # Contains functionality for timed function call events
 
+from __future__ import annotations
 from modules.util import utility
 from modules.constants import constants, status, flags
 

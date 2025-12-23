@@ -1,4 +1,6 @@
 # Contains miscellaneous functions, like removing an item from a list or finding the distance between 2 points
+
+from __future__ import annotations
 import random
 import os
 from typing import List, Tuple, Dict

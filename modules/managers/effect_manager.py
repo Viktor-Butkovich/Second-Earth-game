@@ -1,8 +1,9 @@
 # Contains configuration effect management singleton
 
+from __future__ import annotations
 import json
-from modules.constructs import effects
 import os
+from modules.constructs import effects
 
 
 class effect_manager:

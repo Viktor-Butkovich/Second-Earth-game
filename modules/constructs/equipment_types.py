@@ -1,5 +1,6 @@
 # Contains functionality for equipment type templates
 
+from __future__ import annotations
 import random
 from typing import Dict, List, Any
 from modules.constructs import item_types

@@ -1,5 +1,6 @@
 # Contains variable getter/setter/display management singletons
 
+from __future__ import annotations
 from modules.constants import constants, status, flags
 
 
