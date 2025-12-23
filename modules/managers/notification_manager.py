@@ -172,13 +172,11 @@ class notification_manager:
                 self.notification_queue.insert(
                     insert_index,
                     {
-                        {
-                            **input_dict,
-                            "notification_priority": input_dict.get(
-                                "notification_priority",
-                                constants.DEFAULT_NOTIFICATION_PRIORITY,
-                            ),
-                        },
+                        **input_dict,
+                        "notification_priority": input_dict.get(
+                            "notification_priority",
+                            constants.DEFAULT_NOTIFICATION_PRIORITY,
+                        ),
                     },
                 )
             else:

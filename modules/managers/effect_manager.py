@@ -18,23 +18,20 @@ class effect_manager:
         self.possible_effects = []
         self.active_effects = []
         if os.path.exists("configuration/dev_config.json"):
-            file = open("configuration/dev_config.json")
+            config_path = "configuration/dev_config.json"
         elif os.path.exists("configuration/release_config.json"):
-            file = open("configuration/release_config.json")
+            config_path = "configuration/release_config.json"
         else:
-            file = open("configuration/demo_config.json")
+            config_path = "configuration/demo_config.json"
 
-        active_effects_config = json.load(file)
-        file.close()
+        with open(config_path, "r") as file:
+            effects_config = json.load(file)
 
-        for current_effect in active_effects_config["effects"]:
-            self.create_effect(current_effect, current_effect)
-
-        for current_effect in active_effects_config["active_effects"]:
-            if self.effect_exists(current_effect):
-                self.set_effect(current_effect, True)
-            else:
-                print("Invalid effect: " + current_effect)
+        for effect_key, is_active in effects_config.items():
+            effect_obj = self.create_effect(effect_key, effect_key)
+            self.possible_effects.append(effect_obj)
+            if is_active:
+                effect_obj.apply()
 
     def create_effect(self, effect_id, effect_type) -> effects.effect:
         """

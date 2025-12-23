@@ -27,3 +27,4 @@ rm -force .gitattributes
 Remove-Item -Path notes\* -Exclude "Crash Log.txt"
 Get-ChildItem -Path "graphics" -Filter "*.xcf" -Recurse | Remove-Item -Force
 Get-ChildItem -Path "graphics" -Filter "*drawing*tools*" -Recurse | Remove-Item -Force -Recurse
+cd ..
