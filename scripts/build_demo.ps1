@@ -19,6 +19,7 @@ rm misc -force -Recurse
 rm experiments -force -Recurse
 rm artifacts -force -Recurse
 rm -force main.py
+rm -force simulation.py
 rm -force configuration/dev_config.json
 rm -force configuration/release_config.json
 rm -force configuration/demographic_util.py

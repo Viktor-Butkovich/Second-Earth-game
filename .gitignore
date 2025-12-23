@@ -9,3 +9,4 @@ misc/pip.txt
 artifacts/*
 .vscode/*
 venv/
+Outputs/
