@@ -1360,6 +1360,9 @@ class mob(actor):
         )
         new_location.subscribe_mob(self)
         actor_utility.focus_minimap_grids(new_location)
+        actor_utility.calibrate_actor_info_display(
+            status.location_info_display, new_location
+        )
         self.movement_sound()
         if self.get_permission(
             constants.PMOB_PERMISSION
