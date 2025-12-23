@@ -2127,8 +2127,6 @@ class tab_button(button):
             constants.TEMPERATURE_BREAKDOWN_PANEL,
         ]:
             return status.displayed_location.is_abstract_location
-        elif self.identifier == constants.SUPPLY_CHAIN_PANEL:
-            return True
         raise ValueError(f"Unknown tab identifier: {self.identifier}")
 
 

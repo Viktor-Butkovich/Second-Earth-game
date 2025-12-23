@@ -1121,8 +1121,8 @@ class directional_indicator_image(tooltip_free_image):
                 )
             )
             anchor_scrolling_coordinates = (
-                anchor_scrolling_cell.x,
-                anchor_scrolling_cell.y,
+                anchor_scrolling_cell.grid_x,
+                anchor_scrolling_cell.grid_y,
             )
             x_offset = (
                 status.scrolling_strategic_map_grid.coordinate_width // 2

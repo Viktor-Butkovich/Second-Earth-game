@@ -455,12 +455,12 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# When moving unit on the planet, the former tile incorrectly remains selected
+# Make a framework for ad-hoc simulations that isn't just one-off scripts - consistent location, access to constants namespace, accessible to other modules
 # Address keybind collision for astronauts reorganization - attempted "n" uncrew vehicle button blocks split group "n" button from being reached
 # Look into designing attrition/upkeep replacement/death like SFA runaway slaves
 #   Handling recursively from the worker level instead of iteratiely from the top level is much easier
-# End of turn crash sending colony ship back to Earth (end turn warning)
 # Don't switch between location supply chain and local conditions modes on movement (due to new tab activating)
-# Fix north/south pole indicators on the current save game - they always point up right no matter what
 # Add mob-specific supply chain table displaying its own upkeep only?
 #   Helps remove inter-dependence between location and mob inventory tabs
 #   If a colony ship is selected with extensive inventory, crew, passengers, etc., upkeep can be managed and viewed

@@ -745,8 +745,9 @@ def game_end_check():
                 "message": text,
                 "choices": [
                     constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON,
-                    constants.CHOIEC_QUIT_BUTTON,
+                    constants.CHOICE_QUIT_BUTTON,
                 ],
+                "notification_priority": constants.VICTORY_ACHIEVEMENT_NOTIFICATION_PRIORITY,
             }
         )
 
@@ -912,7 +913,10 @@ def end_turn_warnings():
             if (
                 item_request
             ):  # For each current_location that cannot meet its upkeep requirements, issue a warning
-                if current_world.is_abstract_world or current_location.name != None:
+                if (
+                    current_location.is_abstract_location
+                    or current_location.name != None
+                ):
                     name = current_location.name.capitalize()
                 else:
                     name = f"({current_location.x}, {current_location.y})"

@@ -87,6 +87,7 @@ class achievement_manager:
                                     "continue",
                                     constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON,
                                 ],
+                                "notification_priority": constants.VICTORY_ACHIEVEMENT_NOTIFICATION_PRIORITY,
                             }
                         )
                     else:
@@ -100,6 +101,7 @@ class achievement_manager:
                                     "continue",
                                     constants.CHOICE_CONFIRM_MAIN_MENU_BUTTON,
                                 ],
+                                "notification_priority": constants.VICTORY_ACHIEVEMENT_NOTIFICATION_PRIORITY,
                             }
                         )
                 else:

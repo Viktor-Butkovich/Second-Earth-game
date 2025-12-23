@@ -292,7 +292,19 @@ class item_icon(buttons.button):
         Provides the tooltip for this object
         """
         if self.current_item:
-            return [self.current_item.name.capitalize()] + self.current_item.description
+            display_index: int = self.parent_collection.get_display_order(
+                self.icon_index
+            )
+            stored_amount = self.actor.get_inventory(self.current_item)
+            icon_amount = 1
+            if round(stored_amount) != stored_amount:  # If decimal amount being held
+                if (
+                    self.actor.check_inventory(display_index + 1) != self.current_item
+                ):  # If next index is a different type, show decimal amount 0.x
+                    icon_amount = round(stored_amount - math.floor(stored_amount), 1)
+            return [
+                f"{icon_amount} {self.current_item.name}"
+            ] + self.current_item.description
         else:
             return ["Empty"]
 

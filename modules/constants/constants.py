@@ -587,6 +587,9 @@ else:
     TERRAIN_DETAIL_LEVEL: float = 0.5
     CLOUDS_DETAIL_LEVEL: float = 0.15
 
+DEFAULT_NOTIFICATION_PRIORITY: int = 0
+VICTORY_ACHIEVEMENT_NOTIFICATION_PRIORITY: int = -1
+
 TERRAIN_KNOWLEDGE: str = "terrain"
 TERRAIN_KNOWLEDGE_REQUIREMENT: int = 0
 TERRAIN_PARAMETER_KNOWLEDGE: str = "terrain_parameter"
@@ -625,7 +628,6 @@ GLOBAL_CONDITIONS_PANEL: str = "global_conditions_panel"
 TEMPERATURE_BREAKDOWN_PANEL: str = "temperature_breakdown_panel"
 INVENTORY_PANEL: str = "inventory_panel"
 REORGANIZATION_PANEL: str = "reorganization_panel"
-SUPPLY_CHAIN_PANEL: str = "supply_chain_panel"
 
 SPACE_MINISTER: str = "space"
 ECOLOGY_MINISTER: str = "ecology"

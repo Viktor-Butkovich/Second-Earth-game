@@ -976,10 +976,6 @@ class location(actors.actor):
         mob.publish_events(
             constants.LOCATION_SUBSCRIBE_MOB_ROUTE
         )  # Publish events of this mob subscribing a location
-        if mob == status.displayed_mob and self != status.displayed_location:
-            actor_utility.calibrate_actor_info_display(
-                status.location_info_display, self
-            )
 
     def unsubscribe_cell(self, cell: cells.cell) -> None:
         """
