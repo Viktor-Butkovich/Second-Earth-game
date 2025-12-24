@@ -36,25 +36,6 @@ class Investor:
         self.money: float = initial_money
         self.previous_money: float = initial_money
         self.active: bool = True
-
-        """
-        self.variance: float = np.exp(
-            self.margin - 1
-        )  # Variance increases rapidly with margin
-        # Quadratic scaling for standard deviation
-        k = 75.0  # You can tune this value
-        p = 2  # Quadratic
-        sigma = k * (self.margin - 1) ** p
-
-        # Truncated normal: mean=self.margin, std=sigma, bounded by 0.0 to inf
-        lower, upper = 0.0, np.inf
-        mu = self.margin
-        self.rv = truncnorm(
-            a=(lower - mu) / sigma, b=(upper - mu) / sigma, loc=mu, scale=sigma
-        )
-
-        self.variance = sigma**2
-        """
         # Lognormal parameters: mean and standard deviation of the underlying normal
         # Set sigma to control skewness; higher sigma = more right-skewed
         sigma = 0.01 + 10.0 * (self.margin - 1.01)
@@ -176,7 +157,7 @@ def monte_carlo_simulation(margins: List[float], runs: int = 1000) -> None:
         )
 
 
-def main():
+def main() -> None:
     if os.path.exists(OUTPUT_DIR):
         shutil.rmtree(OUTPUT_DIR)
     os.makedirs(OUTPUT_DIR)
