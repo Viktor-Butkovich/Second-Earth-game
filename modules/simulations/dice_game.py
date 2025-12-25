@@ -3,10 +3,59 @@ from gymnasium import spaces
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import VecNormalize
+from stable_baselines3.common.callbacks import BaseCallback
 from collections import Counter
 import itertools
 import numpy as np
 import multiprocessing
+import os
+import matplotlib.pyplot as plt
+
+OUTPUT_DIR = "outputs"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+
+class RewardTrackingCallback(BaseCallback):
+    def __init__(self, verbose=0):
+        super().__init__(verbose)
+        self.episode_rewards = []
+        self.episode_counts = []
+        self.current_rewards = 0
+        self.episode_num = 0
+
+    def _on_step(self) -> bool:
+        # Check if episode is done
+        dones = self.locals.get("dones")
+        rewards = self.locals.get("rewards")
+        if rewards is not None:
+            self.current_rewards += (
+                rewards[0] if isinstance(rewards, (list, np.ndarray)) else rewards
+            )
+        if dones is not None and dones[0]:
+            self.episode_rewards.append(self.current_rewards)
+            self.episode_counts.append(self.episode_num)
+            self.current_rewards = 0
+            self.episode_num += 1
+        return True
+
+
+def plot_rewards(rewards, filename):
+    plt.figure(figsize=(10, 5))
+    window = 50
+    if len(rewards) > window:
+        moving_avg = np.convolve(rewards, np.ones(window) / window, mode="valid")
+        plt.plot(
+            range(window - 1, len(rewards)),
+            moving_avg,
+            label=f"{window}-episode moving avg",
+        )
+    plt.xlabel("Episode")
+    plt.ylabel("Reward")
+    plt.title("Average Reward per Episode")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(filename)
+    plt.close()
 
 
 class DiceGameEnv(gym.Env):
@@ -113,8 +162,11 @@ class DiceGameEnv(gym.Env):
     def _get_action_mask(self):
         mask = np.zeros(7, dtype=np.int32)
         if self.phase == 0:
-            if self.possible_points > 0:
-                mask[0] = 1  # Cash in only allowed if points available
+            if self.possible_points > 0 and self.dice_remaining <= 5:
+                mask[0] = (
+                    1  # Cash in only allowed if points available and at least 1 die scored
+                )
+                #   Even though cashing in with 6 dice remaining is allowed, and very occasionally optimal if there are many possible points, it is a rare enough event to be worth deciding deterministically
             mask[1] = 1  # Roll
         else:
             dice = self.last_roll if self.last_roll is not None else []
@@ -260,11 +312,8 @@ def scoring_values_for_roll(dice):
 
 
 def train() -> None:
-    env = VecNormalize(
-        make_vec_env(lambda: DiceGameEnv(), n_envs=multiprocessing.cpu_count() - 1),
-        norm_obs=True,
-        norm_reward=True,
-        clip_obs=10.0,
+    env = make_vec_env(
+        lambda: MaskedEnv(DiceGameEnv()), n_envs=multiprocessing.cpu_count() - 1
     )
 
     # Define model
@@ -279,11 +328,16 @@ def train() -> None:
     )
 
     # Train
-    n = 500_000
-    model.learn(total_timesteps=n)
+    callback = RewardTrackingCallback()
+    n = 1_000_000
+    model.learn(total_timesteps=n, callback=callback)
 
     # Save
-    model.save("ppo_dicegame")
+    model.save(os.path.join(OUTPUT_DIR, "dice_game/ppo"))
+    plot_rewards(
+        callback.episode_rewards,
+        filename=os.path.join(OUTPUT_DIR, "dice_game/rewards.png"),
+    )
 
     # Evaluate
     obs = env.reset()
@@ -325,8 +379,8 @@ def rollout_game(agent, log=True) -> tuple[str, int, int]:
                 f"[Round {episode}] PPO agent scored {ep_reward}, total={score_agent}"
             )
         if score_agent >= target_points:
-            # if log:
-            print("PPO agent wins!")
+            if log:
+                print("PPO agent wins!")
             return "PPO", score_agent, score_random
 
         # --- Random agent plays one episode ---
@@ -350,8 +404,8 @@ def rollout_game(agent, log=True) -> tuple[str, int, int]:
                 f"[Round {episode}] Random agent scored {ep_reward}, total={score_random}"
             )
         if score_random >= target_points:
-            # if log:
-            print("Random agent wins!")
+            if log:
+                print("Random agent wins!")
             return "Random", score_agent, score_random
 
 
@@ -376,17 +430,23 @@ def main() -> None:
     print("Starting RL training...")
     if input("Re-train RL agent? (y/n): ").lower() == "y":
         train()
-    agent = PPO.load("ppo_dicegame")
-
-    ppo_wins = 0
+    agent = PPO.load(os.path.join(OUTPUT_DIR, "dice_game/ppo"))
+    if input("Single rollout game with logging? (y/n): ").lower() == "y":
+        rollout_game(agent, log=True)
     total_games = 1000
-    for i in range(total_games):
-        winner, _, _ = rollout_game(agent, log=False)
-        if winner == "PPO":
-            ppo_wins += 1
-    print(
-        f"PPO agent won {ppo_wins} out of {total_games} games ({ppo_wins/total_games:.2%})"
-    )
+    if input(f"Evaluate over {total_games} games? (y/n): ").lower() == "y":
+        ppo_wins = 0
+        for i in range(total_games):
+            winner, _, _ = rollout_game(agent, log=False)
+            if winner == "PPO":
+                ppo_wins += 1
+            if (i + 1) % 50 == 0:
+                print(
+                    f"PPO agent wins so far: {ppo_wins} out of {i + 1} games ({ppo_wins/(i+1):.2%})"
+                )
+        print(
+            f"PPO agent won {ppo_wins} out of {total_games} games ({ppo_wins/total_games:.2%})"
+        )
 
 
 """
