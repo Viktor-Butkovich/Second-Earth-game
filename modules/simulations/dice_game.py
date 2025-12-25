@@ -193,10 +193,6 @@ class DiceGameEnv(gym.Env):
             print(self.last_action_desc)
 
 
-import gymnasium as gym
-import numpy as np
-
-
 class MaskedEnv(gym.Wrapper):
     def __init__(self, env):
         super().__init__(env)
