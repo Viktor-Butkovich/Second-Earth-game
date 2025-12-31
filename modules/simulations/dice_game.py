@@ -374,10 +374,6 @@ def rollout_game(agent, log=True) -> tuple[str, int, int]:
             print(
                 f"[Round {episode}] PPO agent scored {ep_reward}, total={score_agent}"
             )
-        if score_agent >= target_points:
-            if log:
-                print("PPO agent wins!")
-            return "PPO", score_agent, score_random
 
         # --- Random agent plays one episode ---
         obs, info = env_random.reset()
@@ -399,10 +395,15 @@ def rollout_game(agent, log=True) -> tuple[str, int, int]:
             print(
                 f"[Round {episode}] Random agent scored {ep_reward}, total={score_random}"
             )
-        if score_random >= target_points:
-            if log:
-                print("Random agent wins!")
-            return "Random", score_agent, score_random
+        if max(score_agent, score_random) >= target_points:
+            if score_random >= target_points:
+                if log:
+                    print("Random agent wins!")
+                return "Random", score_agent, score_random
+            else:
+                if log:
+                    print("PPO agent wins!")
+                return "PPO", score_agent, score_random
 
 
 def main() -> None:
