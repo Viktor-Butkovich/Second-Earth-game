@@ -181,11 +181,10 @@ class pmob(mob):
             earth_exemption
             and self.location.get_unit_habitability() > constants.HABITABILITY_DEADLY
         ):
-            item_upkeep = self.unit_type.item_upkeep.copy()
-            item_upkeep.pop(
-                constants.AIR_ITEM, None
-            )  # Return a version without air requirements
-            return item_upkeep
+            return {
+                **self.unit_type.item_upkeep,
+                constants.AIR_ITEM: 0,
+            }  # Return a version without air requirements
         else:
             return self.unit_type.item_upkeep
 
@@ -215,27 +214,25 @@ class pmob(mob):
         if self.in_deadly_environment():
             return  # Don't consume upkeep when in instant death conditions
 
-        missing_upkeep = self.location.consume_items(
+        sufficient_upkeep = self.location.consume_items(
             self.get_item_upkeep(recurse=False), consuming_actor=self
         )
-        for (
-            item_key,
-            item_present,
-        ) in (
-            self.item_upkeep_present.items()
-        ):  # Register missing upkeep of 0 if none was present - allows officer attrition if no items present
-            if not item_present:
-                missing_upkeep[item_key] = missing_upkeep.get(item_key, 0)
+        for item_type, present in self.item_upkeep_present.items():
+            if not present:
+                sufficient_upkeep[item_type] = False
+            # If the unit requires the presence of an item that wasn't present, given the penalty even if the required consumption is 0
 
         possible_penalties = [constants.UPKEEP_MISSING_PENALTY_NONE] + [
             self.unit_type.missing_upkeep_penalties[item_key]
-            for item_key in missing_upkeep
+            for item_key in sufficient_upkeep
+            if not sufficient_upkeep[item_key]
         ]
         self.upkeep_missing_penalty, self.upkeep_missing_item_key = max(
             [(constants.UPKEEP_MISSING_PENALTY_NONE, None)]
             + [
                 (self.unit_type.missing_upkeep_penalties[item_key], item_key)
-                for item_key in missing_upkeep
+                for item_key in sufficient_upkeep
+                if not sufficient_upkeep[item_key]
             ],
             key=lambda x: x[0],
         )
@@ -270,12 +267,12 @@ class pmob(mob):
         # Get the most severe penalty of the resource types with any missed upkeep
 
         if constants.EffectManager.effect_active("debug_item_requests"):
-            if missing_upkeep:
+            if not all(sufficient_upkeep.values()):
                 print(
                     f"{self.name} attempted to consume {self.get_item_upkeep(recurse=False)}"
                 )
                 print(
-                    f"{self.name} missing {missing_upkeep}, invoking upkeep penalty {constants.UPKEEP_MISSING_PENALTY_CODES[self.upkeep_missing_penalty]}"
+                    f"{self.name} has sufficient {sufficient_upkeep}, invoking upkeep penalty {constants.UPKEEP_MISSING_PENALTY_CODES[self.upkeep_missing_penalty]}"
                 )
             else:
                 print(
@@ -287,10 +284,15 @@ class pmob(mob):
         Checks whether any of the items required for this unit's item upkeep are present (regardless of amount)
         """
         self.item_upkeep_present = {}
-        for item_key in self.get_item_upkeep():
-            self.item_upkeep_present[item_key] = self.item_present(
-                status.item_types[item_key]
-            )
+        for key, value in self.unit_type.required_item_upkeep.items():
+            if value == True:
+                if key == constants.ENERGY_ITEM:
+                    key = (
+                        constants.FUEL_ITEM
+                    )  # If checking if any energy is present, check fuel instead
+                self.item_upkeep_present[key] = self.item_present(
+                    status.item_types[key]
+                )
             # Note whether any of the item type was present - officers require the presence of items, but don't consume them
             # In the future, check if any of the item type is present in the local supply network
         for current_sub_mob in self.get_sub_mobs():

@@ -1711,9 +1711,9 @@ class location(actors.actor):
         Input:
             dictionary items: Dictionary of item type keys and quantities to consume
         Output:
-            dictionary: Returns a dictionary of item type keys and quantities that were not available to be consumed
+            dictionary: Returns a dictionary of item type keys and whether there were sufficient items to consume or not
         """
-        missing_consumption = {}
+        sufficient = {}
         for item_key, consumption_remaining in items.items():
             item_type = status.item_types[item_key]
             for current_actor in [consuming_actor, self] + self.subscribed_mobs:
@@ -1726,10 +1726,10 @@ class location(actors.actor):
                     consumption_remaining -= consumption
                     consumption_remaining = round(consumption_remaining, 2)
             if consumption_remaining > 0:
-                missing_consumption[item_key] = consumption_remaining
+                sufficient[item_key] = False
         for current_actor in [self] + self.subscribed_mobs:
             current_actor.update_sorted_inventory()
-        return missing_consumption
+        return sufficient
 
     def create_item_request(self, required_items: Dict[str, float]) -> Dict[str, float]:
         """
@@ -1760,13 +1760,16 @@ class location(actors.actor):
             Dict[str, float]: Dictionary of items with amounts that can not be provided
         """
         if constants.ENERGY_ITEM in requested_items:
-            missing_energy = self.consume_items(
+            possible_energy = self.get_inventory(status.item_types[constants.FUEL_ITEM])
+            created_energy = min(
+                possible_energy, requested_items[constants.ENERGY_ITEM]
+            )
+            sufficient_energy = self.consume_items(
                 {constants.FUEL_ITEM: requested_items[constants.ENERGY_ITEM]}
-            ).get(constants.FUEL_ITEM, 0)
-            # Attempt to consume fuel equal to energy request - returns amount of request that cannot be met
+            )
+            missing_energy = requested_items[constants.ENERGY_ITEM] - created_energy
             self.change_inventory(
-                status.item_types[constants.ENERGY_ITEM],
-                requested_items[constants.ENERGY_ITEM] - missing_energy,
+                status.item_types[constants.ENERGY_ITEM], created_energy
             )  # Turn fuel into required energy
             requested_items[constants.ENERGY_ITEM] = missing_energy
         requested_items = {
@@ -1775,10 +1778,10 @@ class location(actors.actor):
         return requested_items
 
     @property
-    def location_item_upkeep_demand(self) -> Dict[str, float]:
+    def location_item_upkeep_consumption(self) -> Dict[str, float]:
         """
         Description:
-            Returns the item upkeep requirements for all units in this location
+            Returns the per-turn item upkeep requirements for all units in this location. Only includes items that are actually consumed per turn
         Input:
             None
         Output:
@@ -1796,6 +1799,35 @@ class location(actors.actor):
                 for mob in self.contained_mobs
             ]
         )
+
+    @property
+    def location_item_upkeep_demand(self) -> Dict[str, float]:
+        """
+        Description:
+            Returns the item upkeep requirements for all units in this location. Also includes items that are required to be present but
+                not consumed per turn
+        Input:
+            None
+        Output:
+            dictionary: Returns the item upkeep requirements for all units in this location
+        """
+        item_demand = self.location_item_upkeep_consumption
+        for current_item in status.item_types.values():
+            if item_demand.get(current_item.key, 0.0) == 0.0 and not self.item_present(
+                current_item
+            ):
+                if any(
+                    [
+                        current_mob.unit_type.required_item_upkeep.get(
+                            current_item.key, False
+                        )
+                        for current_mob in self.contained_mobs
+                    ]
+                ):
+                    item_demand[current_item.key] = 0.1
+            # If any mob at the location requires the item to be present and it is not, request 0.1 from elsewhere
+            #   Required since some mobs require the presence of an item but not to consume it
+        return item_demand
 
     def remove_excess_inventory(self):
         """

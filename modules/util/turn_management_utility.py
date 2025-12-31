@@ -899,19 +899,13 @@ def end_turn_warnings():
     for current_location in actor_utility.all_locations():
         if current_location.subscribed_mobs:
             item_demand = current_location.location_item_upkeep_demand
-            item_request = current_location.create_item_request(
+            if constants.ENERGY_ITEM in item_demand:
+                del item_demand[constants.ENERGY_ITEM]
+            unfulfilled_item_demand = current_location.create_item_request(
                 item_demand
             )  # Request any items that aren't present
-            if constants.ENERGY_ITEM in item_request:
-                missing_fuel = current_location.create_item_request(
-                    {constants.FUEL_ITEM: item_request[constants.ENERGY_ITEM]}
-                ).get(constants.FUEL_ITEM, 0)
-                if missing_fuel == 0:
-                    del item_request[constants.ENERGY_ITEM]
-                else:
-                    item_request[constants.ENERGY_ITEM] = missing_fuel
             if (
-                item_request
+                unfulfilled_item_demand
             ):  # For each current_location that cannot meet its upkeep requirements, issue a warning
                 if (
                     current_location.is_abstract_location
@@ -922,7 +916,7 @@ def end_turn_warnings():
                     name = f"({current_location.x}, {current_location.y})"
                 text = f"WARNING: {name} has insufficient inventory to meet its upkeep demand. /n /n"
                 text += f"Demand: /n{actor_utility.line_item_amount_dict(item_demand)} /n /n"
-                text += f"Shortage: /n{actor_utility.line_item_amount_dict(item_request)} /n /n"
+                text += f"Shortage: /n{actor_utility.line_item_amount_dict(unfulfilled_item_demand)} /n /n"
                 text += f"Depending on item type, this shortage may result in unit death or morale penalties. /n /n"
                 constants.NotificationManager.display_notification(
                     {

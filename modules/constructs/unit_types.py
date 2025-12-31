@@ -32,7 +32,9 @@ class unit_type:
                 'name': string value - Default name of this unit type
                 'movement_points': int value - Maximum number of movement points this unit starts with, default of 4
                 'required_infrastructure': building_type value - Building type required for this unit to move (like railroad), default of None
-        Output:
+                'item_upkeep': float dictionary value - Dictionary of item type keys to float upkeep amounts for this unit type, default of {}
+                'required_item_upkeep': boolean dictionary value - Dictionary of item type keys to boolean values indicating whether this item type is required for this unit type, default of True for all non-zero upkeep items
+         Output:
             None
         """
         self.save_changes: bool = input_dict.get("save_changes", False)
@@ -73,6 +75,14 @@ class unit_type:
                 "required_infrastructure", None
             )
             self.item_upkeep: Dict[str, float] = input_dict.get("item_upkeep", {})
+            self.required_item_upkeep: Dict[str, bool] = input_dict.get(
+                "required_item_upkeep",
+                {
+                    item_type: True
+                    for item_type in self.item_upkeep.keys()
+                    if self.item_upkeep[item_type] > 0
+                },
+            )
             self.missing_upkeep_penalties: Dict[str, float] = input_dict.get(
                 "missing_upkeep_penalties", {}
             )

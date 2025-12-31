@@ -30,6 +30,7 @@ class supply_chain_subplan:
         self.parent_plan: supply_chain_plan = parent_plan
         self.location: locations.location = parent_plan.location
         self.demand: float = self.parent_plan.demand.get(item_type.key, 0.0)
+        self.consumption: float = self.parent_plan.consumption.get(item_type.key, 0.0)
         self.stored: float = float(self.parent_plan.stored.get(item_type.key, 0.0))
         self.local: float = float(self.parent_plan.local.get(item_type.key, 0.0))
         self.delta: float = self.parent_plan.delta.get(item_type.key, 0.0)
@@ -40,7 +41,7 @@ class supply_chain_subplan:
         Calculates and returns the amount of this item type after considering initial stored, demand, and request delta
             If possible, locations should create requests until all effective amounts are non-negative
         """
-        return round(self.local + self.delta - self.demand, 2)
+        return round(self.local + self.delta - self.consumption, 2)
 
 
 class supply_chain_plan:
@@ -64,6 +65,7 @@ class supply_chain_plan:
         """
         self.location: locations.location = location
         self.demand: Dict[str, float] = self.calculate_demand()
+        self.consumption: Dict[str, float] = location.location_item_upkeep_consumption
         self.stored: Dict[str, float] = location.inventory.copy()
         self.local: Dict[str, float] = utility.add_dicts(
             self.stored,
@@ -104,12 +106,12 @@ class supply_chain_plan:
             datatable.append(
                 {
                     "item_type": subplan.item_type.name.title(),
-                    "present": subplan.local if subplan.local != 0 else "",
+                    "present": subplan.local,
                     "delivering": subplan.delta if subplan.delta != 0 else "",
                     "consuming": (
-                        subplan.demand * -1 if subplan.demand != 0 else ""
+                        subplan.demand * -1 if subplan.consumption != 0 else ""
                     ),  # Display demand as negative due to expected decrease in amount, while still using positives for calculations
-                    "total": subplan.total if subplan.total != 0 else "",
+                    "total": subplan.total,
                 }
             )
         return datatable
@@ -143,6 +145,12 @@ class supply_chain_plan:
         """
         total_demand = self.location.location_item_upkeep_demand.copy()
         if constants.ENERGY_ITEM in total_demand:
-            del total_demand[constants.ENERGY_ITEM]
+            total_demand[constants.FUEL_ITEM] = (
+                total_demand.get(constants.FUEL_ITEM, 0.0)
+                + total_demand[constants.ENERGY_ITEM]
+            )
+            del total_demand[
+                constants.ENERGY_ITEM
+            ]  # Remap energy demand to fuel demand
         # Add logic to include requests from other locations
         return total_demand

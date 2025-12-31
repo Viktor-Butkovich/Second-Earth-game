@@ -127,7 +127,11 @@ class actor:
         Output:
             bool: Returns whether the inputted item type is present anywhere in this unit's location
         """
-        for current_actor in [self.location] + self.location.subscribed_mobs:
+        if self.actor_type == constants.LOCATION_ACTOR_TYPE:
+            location = self
+        else:
+            location = self.location
+        for current_actor in [location] + location.subscribed_mobs:
             if current_actor.get_inventory(item_type) > 0:
                 return True
         return False

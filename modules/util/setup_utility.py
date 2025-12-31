@@ -812,28 +812,27 @@ def unit_types_config() -> None:
     """
     Defines unit type templates
     """
-    standard_officer_upkeep = (
-        {  # 0 upkeep denotes requiring the presence of an item, without spending it
-            constants.AIR_ITEM: 0,
-            constants.WATER_ITEM: 0,
-            constants.FOOD_ITEM: 0,
-            constants.CONSUMER_GOODS_ITEM: 0,
-            constants.ENERGY_ITEM: 0,
-        }
-    )
+    standard_officer_upkeep = {}
+    standard_officer_required = {
+        constants.AIR_ITEM: True,
+        constants.WATER_ITEM: True,
+        constants.FOOD_ITEM: True,
+        constants.CONSUMER_GOODS_ITEM: True,
+        # constants.ENERGY_ITEM: True,
+    }
     standard_colonist_upkeep = {
         constants.AIR_ITEM: 0.1,
         constants.WATER_ITEM: 0.1,
         constants.FOOD_ITEM: 0.1,
         constants.CONSUMER_GOODS_ITEM: 0.1,
-        constants.ENERGY_ITEM: 0.1,
+        # constants.ENERGY_ITEM: 0.1,
     }
     standard_missing_upkeep_penalties = {
         constants.AIR_ITEM: constants.UPKEEP_MISSING_PENALTY_DEATH,
         constants.WATER_ITEM: constants.UPKEEP_MISSING_PENALTY_DEHYDRATION,
         constants.FOOD_ITEM: constants.UPKEEP_MISSING_PENALTY_STARVATION,
         constants.CONSUMER_GOODS_ITEM: constants.UPKEEP_MISSING_PENALTY_MORALE,
-        constants.ENERGY_ITEM: constants.UPKEEP_MISSING_PENALTY_MORALE,
+        # constants.ENERGY_ITEM: constants.UPKEEP_MISSING_PENALTY_MORALE,
     }
     if not constants.EffectManager.effect_active("hide_old_units"):
         unit_types.group_type(
@@ -866,6 +865,7 @@ def unit_types_config() -> None:
                     constants.EXPLORER_PERMISSION: True,
                 },
                 "item_upkeep": standard_officer_upkeep,
+                "required_item_upkeep": standard_officer_required,
                 "missing_upkeep_penalties": standard_missing_upkeep_penalties,
                 "can_recruit": True,
                 "recruitment_verb": "hire",
@@ -907,6 +907,7 @@ def unit_types_config() -> None:
                     constants.EVANGELIST_PERMISSION: True,
                 },
                 "item_upkeep": standard_officer_upkeep,
+                "required_item_upkeep": standard_officer_required,
                 "missing_upkeep_penalties": standard_missing_upkeep_penalties,
                 "can_recruit": True,
                 "recruitment_verb": "hire",
@@ -948,6 +949,7 @@ def unit_types_config() -> None:
                     constants.MAJOR_PERMISSION: True,
                 },
                 "item_upkeep": standard_officer_upkeep,
+                "required_item_upkeep": standard_officer_required,
                 "missing_upkeep_penalties": standard_missing_upkeep_penalties,
                 "can_recruit": True,
                 "recruitment_verb": "hire",
@@ -991,6 +993,7 @@ def unit_types_config() -> None:
                     constants.DRIVER_PERMISSION: True,
                 },
                 "item_upkeep": standard_officer_upkeep,
+                "required_item_upkeep": standard_officer_required,
                 "missing_upkeep_penalties": standard_missing_upkeep_penalties,
                 "can_recruit": True,
                 "recruitment_verb": "hire",
@@ -1032,6 +1035,7 @@ def unit_types_config() -> None:
                     constants.FOREMAN_PERMISSION: True,
                 },
                 "item_upkeep": standard_officer_upkeep,
+                "required_item_upkeep": standard_officer_required,
                 "missing_upkeep_penalties": standard_missing_upkeep_penalties,
                 "can_recruit": True,
                 "recruitment_verb": "hire",
@@ -1075,6 +1079,7 @@ def unit_types_config() -> None:
                 constants.ASTRONAUT_COMMANDER_PERMISSION: True,
             },
             "item_upkeep": standard_officer_upkeep,
+            "required_item_upkeep": standard_officer_required,
             "missing_upkeep_penalties": standard_missing_upkeep_penalties,
             "can_recruit": True,
             "recruitment_verb": "hire",
@@ -1116,6 +1121,7 @@ def unit_types_config() -> None:
                 constants.ENGINEER_PERMISSION: True,
             },
             "item_upkeep": standard_officer_upkeep,
+            "required_item_upkeep": standard_officer_required,
             "missing_upkeep_penalties": standard_missing_upkeep_penalties,
             "can_recruit": True,
             "recruitment_verb": "hire",
@@ -1159,6 +1165,7 @@ def unit_types_config() -> None:
             },
             "item_upkeep": standard_officer_upkeep,
             "missing_upkeep_penalties": standard_missing_upkeep_penalties,
+            "required_item_upkeep": standard_officer_required,
             "can_recruit": True,
             "recruitment_verb": "hire",
             "recruitment_cost": 5,
