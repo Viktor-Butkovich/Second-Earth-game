@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from typing import Dict, List, Tuple
-from modules.util import scaling
+from modules.util import scaling, text_utility
 from modules.interface_components import cells, grids, buttons
 from modules.constructs.actor_types import actors
 from modules.constants import constants, status, flags
@@ -197,7 +197,9 @@ class table_grid(grids.grid):
         for row in self.content:
             for col_index, cell_data in enumerate(row):
                 font = constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
-                text_width, text_height = font.pygame_font.size(cell_data)
+                text_width, text_height = font.pygame_font.size(
+                    cell_data[constants.TABLEDATA_TEXT_KEY]
+                )
                 self.column_widths[col_index] = max(
                     self.column_widths[col_index], text_width + (margin * 2)
                 )
@@ -299,7 +301,9 @@ class table_grid(grids.grid):
                 return
         if len(self.content) == 1:
             # If there's only a header row, add an N/A row
-            self.content.append(["N/A"] * self.coordinate_width)
+            self.content.append(
+                [{constants.TABLEDATA_TEXT_KEY: "N/A"}] * self.coordinate_width
+            )
 
         if self.pagination and self.content:
             self.unpaginated_content = self.content
@@ -323,7 +327,25 @@ class table_grid(grids.grid):
         # Populate the table cells with the content
         for row_index, row_data in enumerate(self.content[: self.coordinate_height]):
             for col_index, cell_data in enumerate(row_data[: self.coordinate_width]):
-                self.get_cell(row_index + 1, col_index + 1).set_text(cell_data)
+                text_image_id = text_utility.generate_table_text_image_id(
+                    cell_data[constants.TABLEDATA_TEXT_KEY],
+                    scale_width=True,
+                    width_bound=self.column_widths[col_index],
+                )
+                background_image_id = cell_data.get(
+                    constants.TABLEDATA_BACKGROUND_IMAGE_ID_KEY, []
+                )
+                self.get_cell(row_index + 1, col_index + 1).set_image(
+                    text_image_id + background_image_id
+                )
+                if cell_data.get(constants.TABLEDATA_BATCH_TOOLTIP_KEY, None):
+                    self.get_cell(row_index + 1, col_index + 1).subscribed_source = (
+                        dummy_tooltip_source(
+                            cell_data[constants.TABLEDATA_BATCH_TOOLTIP_KEY]
+                        )
+                    )
+                else:
+                    self.get_cell(row_index + 1, col_index + 1).subscribed_source = None
 
     def get_row(self, index: int) -> List[cells.cell]:
         """
@@ -359,3 +381,22 @@ class table_grid(grids.grid):
             cell: Returns this grid's cell that occupies the inputted row and column
         """
         return self.cell_list[column - 1][len(self.cell_list[0]) - row]
+
+
+class dummy_tooltip_source:
+    """
+    Object providing a fixed batch tooltip list for table cells
+        Alternative to an actual location/mob actor source
+    """
+
+    def __init__(self, tooltip: List[List[str]]) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            2D list tooltip: Statis batch tooltip to provide to calibrated cells
+        Output:
+            None
+        """
+        self.batch_tooltip_list = tooltip
+        self.actor_type = constants.DUMMY_TOOLTIP_ACTOR_TYPE

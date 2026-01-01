@@ -103,15 +103,54 @@ class supply_chain_plan:
         datatable = []
         # Sort item type subplans by amount present, in descending order
         for subplan in self.iterate_sorted_subplans():
+            item_type = {constants.TABLEDATA_TEXT_KEY: subplan.item_type.name.title()}
+            present = {constants.TABLEDATA_TEXT_KEY: str(subplan.local)}
+            delivering = {
+                constants.TABLEDATA_TEXT_KEY: (
+                    str(subplan.delta) if subplan.delta != 0 else ""
+                )
+            }
+            consuming = {
+                constants.TABLEDATA_TEXT_KEY: (
+                    str(subplan.demand * -1) if subplan.consumption != 0 else ""
+                )
+            }  # Display demand as negative due to expected decrease in amount, while still using positives
+            total = {constants.TABLEDATA_TEXT_KEY: str(subplan.total)}
+            if (
+                not self.location.is_earth_location
+            ) or constants.EffectManager.effect_active("enable_earth_upkeep"):
+                if subplan.total < 0:
+                    total[constants.TABLEDATA_BACKGROUND_IMAGE_ID_KEY] = [
+                        {
+                            "image_id": "colors/insufficient_upkeep_background.png",
+                            "level": constants.TABLE_BACKGROUND_IMAGE_LEVEL,
+                        }
+                    ]
+                    total[constants.TABLEDATA_BATCH_TOOLTIP_KEY] = [
+                        [
+                            f"Since {subplan.item_type.name} demand exceeds the available stockpile by {abs(subplan.total)}, this location will suffer penalties at the end of the turn.",
+                        ]
+                    ]
+                elif subplan.demand > subplan.local:
+                    total[constants.TABLEDATA_BACKGROUND_IMAGE_ID_KEY] = [
+                        {
+                            "image_id": "colors/insufficient_upkeep_background.png",
+                            "level": constants.TABLE_BACKGROUND_IMAGE_LEVEL,
+                        }
+                    ]
+                    total[constants.TABLEDATA_BATCH_TOOLTIP_KEY] = [
+                        [
+                            f"This location requires at least {subplan.demand} {subplan.item_type.name} stored to avoid penalties at the end of the turn.",
+                            f"Even units that only consume a negligible amount of {subplan.item_type.name} per turn require some amount to be present.",
+                        ]
+                    ]
             datatable.append(
                 {
-                    "item_type": subplan.item_type.name.title(),
-                    "present": subplan.local,
-                    "delivering": subplan.delta if subplan.delta != 0 else "",
-                    "consuming": (
-                        subplan.demand * -1 if subplan.consumption != 0 else ""
-                    ),  # Display demand as negative due to expected decrease in amount, while still using positives for calculations
-                    "total": subplan.total,
+                    constants.TABLECOL_ITEM_TYPE: item_type,
+                    constants.TABLECOL_PRESENT: present,
+                    constants.TABLECOL_DELIVERING: delivering,
+                    constants.TABLECOL_CONSUMING: consuming,
+                    constants.TABLECOL_TOTAL: total,
                 }
             )
         return datatable

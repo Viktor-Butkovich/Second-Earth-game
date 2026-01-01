@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 import pygame
+from modules.util import scaling
 from modules.constants import constants, status, flags
 
 
@@ -99,3 +100,31 @@ def prepare_render(message, font=None, override_input_dict=None):
         for value in override_input_dict:
             return_dict[value] = override_input_dict[value]
     return return_dict
+
+
+def generate_table_text_image_id(
+    input_text: str, scale_width: bool = False, width_bound: int = 0
+) -> None:
+    """
+    Description:
+        Sets this image to be a text image with the inputted text
+    Input:
+        str text: Text to display in this image
+    Output:
+        None
+    """
+    if not input_text:
+        return [{"image_id": "misc/empty.png"}]
+    font = constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
+    width, height = font.pygame_font.size(input_text)
+    if scale_width:
+        width = min(width, width_bound - scaling.scale_width(5))
+        # Forces smaller text to fit within cell's width - use for non-flex width cells
+    return [
+        {
+            "image_id": text(input_text, font),
+            "override_width": width,
+            "override_height": height,
+            "level": constants.TABLE_TEXT_LEVEL,
+        }
+    ]

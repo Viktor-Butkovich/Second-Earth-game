@@ -568,6 +568,8 @@ TERRAIN_BACKDROP_LEVEL: int = -9
 TERRAIN_OVERLAY_LEVEL: int = -8
 TERRAIN_CLOUDS_LEVEL: int = 21  # -7
 MAP_MODE_LEVEL: int = -1
+TABLE_TEXT_LEVEL: int = 1
+TABLE_BACKGROUND_IMAGE_LEVEL: int = 0
 
 ALTITUDE_BRIGHTNESS_MULTIPLIER: float = 0.5
 PIXELLATED_SIZE: int = 2
@@ -1031,6 +1033,7 @@ MOUTH_PORTRAIT_SECTION: str = "mouth"
 EYES_PORTRAITS_SECTION: str = "eyes"
 FRAME_PORTRAIT_SECTION: str = "frame"
 
+DUMMY_TOOLTIP_ACTOR_TYPE: str = "dummy_tooltip"
 MOB_ACTOR_TYPE: str = "mob"
 MOB_INVENTORY_ACTOR_TYPE: str = "mob_inventory"
 LOCATION_ACTOR_TYPE: str = "location"
@@ -1132,3 +1135,13 @@ DEADLY_CONDITIONS_BANNER: str = "deadly_conditions_banner"
 TAB_NAME_BANNER: str = "tab_name_banner"
 
 SUPPLY_CHAIN_TABLE_SUBJECT: str = "supply_chain_table_subject"
+
+TABLEDATA_TEXT_KEY: str = "tabledata_text_key"
+TABLEDATA_BACKGROUND_IMAGE_ID_KEY: str = "tabledata_background_image_id_key"
+TABLEDATA_BATCH_TOOLTIP_KEY: str = "tabledata_batch_tooltip_key"
+
+TABLECOL_ITEM_TYPE: str = "item_type"
+TABLECOL_PRESENT: str = "present"
+TABLECOL_DELIVERING: str = "delivering"
+TABLECOL_CONSUMING: str = "consuming"
+TABLECOL_TOTAL: str = "total"

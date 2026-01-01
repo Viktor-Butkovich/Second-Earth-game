@@ -20,7 +20,7 @@ class content_provider:
 
     def table_location_content(
         self, table: tables.table_grid, location: locations.location
-    ) -> List[List[str]]:
+    ) -> List[List[Dict[str, Any]]]:
         if location is None:
             return []
 
@@ -40,6 +40,21 @@ class content_provider:
             raise ValueError(f"Unexpected table grid subject: {table.subject}")
 
         # Provide first row as headers and subsequent rows as JSON body content
-        return [[col_name.replace("_", " ").title() for col_name in headers]] + [
-            [str(data[col_name]) for col_name in headers] for data in body
+        return [[self.provide_header_content(col_name) for col_name in headers]] + [
+            [self.provide_body_content(col_name, data) for col_name in headers]
+            for data in body
         ]
+
+    def provide_header_content(self, col_name: str) -> Dict[str, Any]:
+        """
+        Provides content for a table header cell based on the inputted column name
+        """
+        return {constants.TABLEDATA_TEXT_KEY: col_name.replace("_", " ").title()}
+
+    def provide_body_content(
+        self, col_name: str, data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Provides content for a table body cell based on the inputted column name and data row
+        """
+        return data[col_name]

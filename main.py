@@ -455,6 +455,8 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Add an extra image icon behind the currently selected row if an item icon is selected
+#   Also jump to the table page containing the item
 # Address keybind collision for astronauts reorganization - attempted "n" uncrew vehicle button blocks split group "n" button from being reached
 # Look into designing attrition/upkeep replacement/death like SFA runaway slaves
 #   Handling recursively from the worker level instead of iteratiely from the top level is much easier
@@ -464,11 +466,6 @@ except Exception:  # Displays error message and records error message in crash l
 #   If a colony ship is selected with extensive inventory, crew, passengers, etc., upkeep can be managed and viewed
 #       from its own inventory page, rather than that of the location
 #   Otherwise, a colony ship's supplies could only be tracked by looking at both inventory tabs
-# Handle item demand of officers (demand = 0 but not missing - requires at least some present)
-#   Demand tab should probably show as >0, with warnings if expected final is 0 and demand is >0
-# Add an extra image icon behind the currently selected row if an item icon is selected
-#   Also jump to the table page containing the item
-#   Would use the same system described below for non-string table cell content
 # Add item type icons to supply chain table
 #   Most scalable to add as new content field, where table content can have text, extra image ID's, and tooltip fields
 #       rather than just string text
@@ -492,12 +489,9 @@ except Exception:  # Displays error message and records error message in crash l
 # Implement supply chain plans using command pattern
 # Add logistics info display tab with item upkeep information
 #   Mob version with just that mob, and a location version with total location demands
-#   Continue working on supply chain dashboard, including revamped transportation minister icon
 # Supply chain dashboard features:
 #   Location:
-#       Insufficient location inventory indicator
 #       Inventory attrition risk indicator with justifications (not in settlement, not on road, crew experience, etc.)
-#       Total location item demand
 #       Planned item requests to other locations, including how many will be unfulfilled
 #           If any unfulfilled, briefly summarize the worst consequence, then tooltip lists all affected contained units
 #       Planned item deliveries to other locations
@@ -506,7 +500,6 @@ except Exception:  # Displays error message and records error message in crash l
 #       Inventory attrition risk indicator with justifications (not in settlement, not on road, crew experience, etc.)
 #       Mob item demand (including sub-mobs), including how many will be unfulfilled
 #           If any unfulfilled, briefly summarize the worst consequence, then tooltip lists all affected sub-units
-#   Since this might scale up to lots of different item types, basic scrolling should be implemented
 #   Ideally, the default case of the standard food/air/water/CG/fuel items can all be shown at once, since these occur frequently
 #   Item demand, planned items requested, projected unfulfilled item requests, and planned deliveries should all
 #       include totals as well as per-item line items
@@ -514,15 +507,6 @@ except Exception:  # Displays error message and records error message in crash l
 #       Have some standard, concise terminology for such locations - source/destination?
 #   This could be expanded in the future with filters, network visualization/highlighting, etc.
 #       Charts would likely go in a different tab - more general BI dashboard with different sub-tabs
-# This would be greate with a table layout - look at the screenshot image for reference
-#   The game is likely to encounter lots more tables over time
-#   In terms of interface, this could actually be well-suited to a variant of grid/cell
-#   In this case, the grid may subscribe to the table data structure, and cells may subscribe to particular data points
-#   This means image calibration, outlines, and even table scrolling would already be present, with some modification
-#   Notably, cells might not be square-shaped, and could even be different sizes from each other
-#   The images in these cells, when calibrated, might include labels with empty background and some text
-#       In this case, we might want the entire grid to have a background image, with each cell having text and a transparent background
-#   If this works well, we could possibly retroactively apply this to the inventory interface
 # Prevent minister retirement for the first several turns and gradually increase chance
 # Strengthen albedo effect - fully ice covered planet should have a notable albedo difference from normal
 # Add 5x5 building slot system
@@ -540,7 +524,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Expand permissions system to include temporary states, like sentry mode
 # Possibly add permissions for ministers, if relevant
 # Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
-# Add altitude effect to local pressure
+# Add altitude effect to local effective pressure
 # Include pressure in landing difficulty
 # Sort inventory display in ascending order, such that most abundant items are shown last and do not block other items
 # Show key/legend with keywords on parameter map modes
