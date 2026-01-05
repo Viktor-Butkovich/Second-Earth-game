@@ -39,6 +39,7 @@ from modules.interface_components.labels import (
     multi_line_label,
     label,
 )
+from modules.interface_components.tables import table_grid
 from modules.interface_components.info_display_elements.info_display_buttons import (
     actor_icon,
 )
@@ -55,6 +56,7 @@ scrolling_strategic_map_grid: mini_grid = None
 minimap_grid: mini_grid = None
 planet_view_mask: free_image = None
 current_just_appointed_minister: minister = None
+supply_chain_table: table_grid = None
 
 actions: Dict[str, action] = {}
 

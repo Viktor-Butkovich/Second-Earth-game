@@ -455,21 +455,9 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Add an extra image icon behind the currently selected row if an item icon is selected
-#   Also jump to the table page containing the item
 # Address keybind collision for astronauts reorganization - attempted "n" uncrew vehicle button blocks split group "n" button from being reached
 # Look into designing attrition/upkeep replacement/death like SFA runaway slaves
 #   Handling recursively from the worker level instead of iteratiely from the top level is much easier
-# Don't switch between location supply chain and local conditions modes on movement (due to new tab activating)
-# Add mob-specific supply chain table displaying its own upkeep only?
-#   Helps remove inter-dependence between location and mob inventory tabs
-#   If a colony ship is selected with extensive inventory, crew, passengers, etc., upkeep can be managed and viewed
-#       from its own inventory page, rather than that of the location
-#   Otherwise, a colony ship's supplies could only be tracked by looking at both inventory tabs
-# Add item type icons to supply chain table
-#   Most scalable to add as new content field, where table content can have text, extra image ID's, and tooltip fields
-#       rather than just string text
-# Consider how to handle upkeep for units in deadly conditions who will die before upkeep is logically consumed
 # Keep making supply chain plans
 #   Ideally a location maintains a supply chain plan, which can be planned out/executed/reversed/etc.
 #   Then, we have a source of truth that is easy to display in a datatable
@@ -487,8 +475,6 @@ except Exception:  # Displays error message and records error message in crash l
 # Modify tabs to only calibrate upon the tab being entered or when calibrating while tab is open
 #   Calibration should not occur for inactive tabs - hinders performance without benefit
 # Implement supply chain plans using command pattern
-# Add logistics info display tab with item upkeep information
-#   Mob version with just that mob, and a location version with total location demands
 # Supply chain dashboard features:
 #   Location:
 #       Inventory attrition risk indicator with justifications (not in settlement, not on road, crew experience, etc.)
@@ -526,9 +512,7 @@ except Exception:  # Displays error message and records error message in crash l
 # Investigate adding bolded, colored fonts in labels - similar to "/n" parsing
 # Add altitude effect to local effective pressure
 # Include pressure in landing difficulty
-# Sort inventory display in ascending order, such that most abundant items are shown last and do not block other items
 # Show key/legend with keywords on parameter map modes
-# Use keywords instead of numbers for all local parameters (local fahrenheit average range for temperature)
 # Include penalties on most rolls for wearing spacesuits
 # Fix unit/location outlines to blit in draw order, rather than appearing in front at all times (would fix occasional notification overlap)
 # Store local resolution (possibly as save game metadata) to better recreate resolution errors

@@ -2986,7 +2986,7 @@ def inventory_interface() -> None:
     inventory_info_display_interface()
 
     supply_chain_table_coordinate_height = 6
-    supply_chain_table = constants.ActorCreationManager.create_interface_element(
+    status.supply_chain_table = constants.ActorCreationManager.create_interface_element(
         input_dict={
             "init_type": constants.TABLE_GRID,
             "subject": constants.SUPPLY_CHAIN_TABLE_SUBJECT,
@@ -2998,7 +2998,7 @@ def inventory_interface() -> None:
             "internal_line_color": constants.COLOR_BLACK,
             "external_line_color": constants.COLOR_BLACK,
             "member_config": {
-                "order_x_offset": scaling.scale_width(-60),
+                "order_x_offset": scaling.scale_width(-90),
                 "order_y_offset": scaling.scale_height(-5),
             },
         }

@@ -139,13 +139,57 @@ def calibrate_actor_info_display(
         target = new_actor
     info_display.calibrate(target, override_exempt)
 
+    if info_display == status.mob_inventory_info_display and new_actor:
+        select_interface_tab(
+            status.location_tabbed_collection, status.location_inventory_collection
+        )
+        # If selecting mob cargo tab, switch location to supply chain tab
+
+    if (
+        info_display
+        in [status.location_inventory_info_display, status.mob_inventory_info_display]
+        and status.displayed_location
+    ):
+        focused_item = None
+        if new_actor:
+            focused_item = new_actor.current_item.key
+        if focused_item:
+            status.supply_chain_table.current_page = (
+                status.displayed_location.supply_chain_plan.get_sorted_subplan_index(
+                    focused_item
+                )
+                + 1
+            ) // status.supply_chain_table.rows_per_page
+        status.supply_chain_table.calibrate(status.supply_chain_table.actor)
+        # Update supply chain table with selected inventory item, highlighting and selecting the page of the item's row in
+        #   the supply chain table
+
+    if (
+        info_display == status.mob_inventory_info_display
+        and new_actor
+        and status.displayed_location_inventory
+        and new_actor.current_item != status.displayed_location_inventory.current_item
+    ):
+        calibrate_actor_info_display(status.location_inventory_info_display, None)
+    elif (
+        info_display == status.location_inventory_info_display
+        and new_actor
+        and status.displayed_mob_inventory
+        and new_actor.current_item != status.displayed_mob_inventory.current_item
+    ):
+        calibrate_actor_info_display(status.mob_inventory_info_display, None)
+    # Deselect other inventory if one inventory is being displayed
+
     if not flags.choosing_destination:  # Don't change tabs while choosing destination
         if info_display == status.mob_info_display:
             select_default_tab(status.mob_tabbed_collection, status.displayed_mob)
         elif info_display == status.location_info_display:
-            select_default_tab(
-                status.location_tabbed_collection, status.displayed_location
-            )
+            if (
+                not status.displayed_mob
+            ):  # Do not change location tab while moving a mob between locations
+                select_default_tab(
+                    status.location_tabbed_collection, status.displayed_location
+                )
 
 
 def select_default_tab(

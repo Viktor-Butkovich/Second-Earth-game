@@ -36,7 +36,7 @@ class supply_chain_subplan:
         self.delta: float = self.parent_plan.delta.get(item_type.key, 0.0)
 
     @property
-    def total(self) -> float:
+    def expected(self) -> float:
         """
         Calculates and returns the amount of this item type after considering initial stored, demand, and request delta
             If possible, locations should create requests until all effective amounts are non-negative
@@ -83,16 +83,19 @@ class supply_chain_plan:
     def trivial(self) -> bool:
         return not self.subplans
 
-    def iterate_sorted_subplans(self) -> Generator[supply_chain_subplan, None, None]:
+    def get_sorted_subplans(self) -> List[supply_chain_subplan]:
         """
-        Yields a generator of subplans sorted by amount of item already present, in descending order
+        Returns an iterator of subplans sorted by amount of item already present, in descending order
         """
-        sorted_subplans = [self.subplans[key] for key in self.location.sorted_inventory]
-        sorted_subplans += [
-            subplan for subplan in self.subplans.values() if subplan.stored == 0
-        ]
-        for subplan in reversed(sorted_subplans):
-            yield subplan
+        return sorted(
+            self.subplans.values(), key=lambda subplan: subplan.item_type.name.lower()
+        )
+
+    def get_sorted_subplan_index(self, item_key: str) -> int:
+        """
+        Returns the index of the inputted item key in the sorted subplan list
+        """
+        return list(self.get_sorted_subplans()).index(self.subplans[item_key])
 
     def generate_datatable(self) -> List[Dict[str, Any]]:
         """
@@ -102,43 +105,62 @@ class supply_chain_plan:
         """
         datatable = []
         # Sort item type subplans by amount present, in descending order
-        for subplan in self.iterate_sorted_subplans():
-            item_type = {constants.TABLEDATA_TEXT_KEY: subplan.item_type.name.title()}
-            present = {constants.TABLEDATA_TEXT_KEY: str(subplan.local)}
-            delivering = {
-                constants.TABLEDATA_TEXT_KEY: (
-                    str(subplan.delta) if subplan.delta != 0 else ""
-                )
-            }
-            consuming = {
-                constants.TABLEDATA_TEXT_KEY: (
-                    str(subplan.demand * -1) if subplan.consumption != 0 else ""
-                )
-            }  # Display demand as negative due to expected decrease in amount, while still using positives
-            total = {constants.TABLEDATA_TEXT_KEY: str(subplan.total)}
+        for subplan in self.get_sorted_subplans():
+            item_type, present, delivering, consuming, expected = {}, {}, {}, {}, {}
+            for cell in [
+                item_type,
+                present,
+            ]:
+                if (
+                    status.displayed_location_inventory
+                    and status.displayed_location_inventory.current_item
+                    == subplan.item_type
+                ) or (
+                    status.displayed_mob_inventory
+                    and status.displayed_mob_inventory.current_item == subplan.item_type
+                ):
+                    cell[constants.TABLEDATA_BACKGROUND_IMAGE_ID_KEY] = [
+                        {
+                            "image_id": "colors/selected_item_row_background.png",
+                            "level": constants.TABLE_BACKGROUND_IMAGE_LEVEL,
+                        }
+                    ]
+                # Highlight background of row if item type is currently selected
+            item_type[constants.TABLEDATA_TEXT_KEY] = subplan.item_type.name.title()
+            present[constants.TABLEDATA_TEXT_KEY] = str(subplan.local)
+            delivering[constants.TABLEDATA_TEXT_KEY] = (
+                str(subplan.delta) if subplan.delta != 0 else ""
+            )
+
+            consuming[constants.TABLEDATA_TEXT_KEY] = (
+                str(subplan.consumption * -1) if subplan.consumption != 0 else ""
+            )
+            # Display demand as negative due to expected decrease in amount, while still using positives
+
+            expected[constants.TABLEDATA_TEXT_KEY] = str(subplan.expected)
             if (
                 not self.location.is_earth_location
             ) or constants.EffectManager.effect_active("enable_earth_upkeep"):
-                if subplan.total < 0:
-                    total[constants.TABLEDATA_BACKGROUND_IMAGE_ID_KEY] = [
+                if subplan.expected < 0:
+                    expected[constants.TABLEDATA_BACKGROUND_IMAGE_ID_KEY] = [
                         {
                             "image_id": "colors/insufficient_upkeep_background.png",
                             "level": constants.TABLE_BACKGROUND_IMAGE_LEVEL,
                         }
                     ]
-                    total[constants.TABLEDATA_BATCH_TOOLTIP_KEY] = [
+                    expected[constants.TABLEDATA_BATCH_TOOLTIP_KEY] = [
                         [
-                            f"Since {subplan.item_type.name} demand exceeds the available stockpile by {abs(subplan.total)}, this location will suffer penalties at the end of the turn.",
+                            f"Since {subplan.item_type.name} demand exceeds the available stockpile by {abs(subplan.expected)}, this location will suffer penalties at the end of the turn.",
                         ]
                     ]
                 elif subplan.demand > subplan.local:
-                    total[constants.TABLEDATA_BACKGROUND_IMAGE_ID_KEY] = [
+                    expected[constants.TABLEDATA_BACKGROUND_IMAGE_ID_KEY] = [
                         {
                             "image_id": "colors/insufficient_upkeep_background.png",
                             "level": constants.TABLE_BACKGROUND_IMAGE_LEVEL,
                         }
                     ]
-                    total[constants.TABLEDATA_BATCH_TOOLTIP_KEY] = [
+                    expected[constants.TABLEDATA_BATCH_TOOLTIP_KEY] = [
                         [
                             f"This location requires at least {subplan.demand} {subplan.item_type.name} stored to avoid penalties at the end of the turn.",
                             f"Even units that only consume a negligible amount of {subplan.item_type.name} per turn require some amount to be present.",
@@ -150,7 +172,7 @@ class supply_chain_plan:
                     constants.TABLECOL_PRESENT: present,
                     constants.TABLECOL_DELIVERING: delivering,
                     constants.TABLECOL_CONSUMING: consuming,
-                    constants.TABLECOL_TOTAL: total,
+                    constants.TABLECOL_EXPECTED: expected,
                 }
             )
         return datatable

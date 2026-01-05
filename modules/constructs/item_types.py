@@ -178,8 +178,6 @@ def transfer(
                     # In some cases, a button to transfer x amount of an item may be clicked when less than x is available
                     destination.change_inventory(transferred_item, amount_transferred)
                     source.change_inventory(transferred_item, amount_transferred * -1)
-                source.update_sorted_inventory()
-                destination.update_sorted_inventory()
 
             elif source_type == "mob_inventory":
                 text_utility.print_to_screen(

@@ -173,6 +173,8 @@ class sound_manager:
         Output:
             None
         """
+        if not channel:
+            return
         try:
             current_sound = pygame.mixer.Sound(f"sounds/{file_name}.ogg")
         except:

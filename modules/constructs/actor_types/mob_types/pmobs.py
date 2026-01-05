@@ -177,14 +177,11 @@ class pmob(mob):
         """
         if earth_exemption and self.location.is_earth_location:
             return {}
-        elif (
-            earth_exemption
-            and self.location.get_unit_habitability() > constants.HABITABILITY_DEADLY
-        ):
+        elif self.location.get_unit_habitability() > constants.HABITABILITY_DEADLY:
             return {
                 **self.unit_type.item_upkeep,
                 constants.AIR_ITEM: 0,
-            }  # Return a version without air requirements
+            }  # Return a version without air requirements if in habitable environment
         else:
             return self.unit_type.item_upkeep
 
@@ -279,12 +276,25 @@ class pmob(mob):
                     f"{self.name} successfully consumed {self.get_item_upkeep(recurse=False)}"
                 )
 
+    @property
+    def required_item_upkeep(self) -> Dict[str, bool]:
+        """
+        Maintains the item types required for this unit's item upkeep, using standard unit type upkeep modified by local conditions
+        """
+        if self.location.get_unit_habitability() > constants.HABITABILITY_DEADLY:
+            return {
+                **self.unit_type.required_item_upkeep,
+                constants.AIR_ITEM: False,
+            }  # Return a version without air requirements
+        else:
+            return self.unit_type.required_item_upkeep
+
     def check_item_availability(self) -> None:
         """
         Checks whether any of the items required for this unit's item upkeep are present (regardless of amount)
         """
         self.item_upkeep_present = {}
-        for key, value in self.unit_type.required_item_upkeep.items():
+        for key, value in self.required_item_upkeep.items():
             if value == True:
                 if key == constants.ENERGY_ITEM:
                     key = (
@@ -597,8 +607,6 @@ class pmob(mob):
             )
             self.change_inventory(items_present[0], amount_transferred)
             self.location.change_inventory(items_present[0], -amount_transferred)
-        self.update_sorted_inventory()
-        self.location.update_sorted_inventory()
 
     def clear_automatic_route(self):
         """
@@ -758,7 +766,6 @@ class pmob(mob):
                 current_item_type,
                 self.get_inventory(current_item_type),
             )
-        self.update_sorted_inventory()
         self.remove_from_turn_queue()
         super().remove()
         status.pmob_list = utility.remove_from_list(status.pmob_list, self)
@@ -802,13 +809,9 @@ class pmob(mob):
             self.location.change_inventory(current_item, amount_dropped)
 
         self.inventory = {}
-        self.update_sorted_inventory()
-        vehicle.update_sorted_inventory()
-        self.location.update_sorted_inventory()
         self.location.unsubscribe_mob(self)
         self.remove_from_turn_queue()
         vehicle.subscribed_passengers.append(self)
-        constants.EventBus.publish(constants.VEHICLE_SUBMOB_ADDED_ROUTE)
         vehicle.move_to_front()
         self.set_permission(constants.IN_VEHICLE_PERMISSION, True)
         if (
@@ -820,6 +823,7 @@ class pmob(mob):
             vehicle.select()
             constants.SoundManager.play_sound("effects/metal_footsteps", volume=1.0)
         self.clear_automatic_route()
+        constants.EventBus.publish(constants.VEHICLE_SUBMOB_ADDED_ROUTE)
 
     def disembark_vehicle(self, vehicle, focus=True):
         """

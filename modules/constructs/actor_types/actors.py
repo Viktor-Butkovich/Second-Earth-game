@@ -36,8 +36,6 @@ class actor:
         self.from_save = from_save
         self.inventory_capacity = 0
         self.inventory: Dict[str, float] = input_dict.get("inventory", {})
-        self.sorted_inventory: Dict[str, float] = {}
-        self.update_sorted_inventory()
         self.image_dict: Dict[str, List[str]] = {
             constants.IMAGE_ID_LIST_DEFAULT: input_dict.get(
                 constants.IMAGE_ID_LIST_DEFAULT, []
@@ -57,6 +55,16 @@ class actor:
             Can use instead of manually finding all mobs somewhere, even ones that are not directly subscribed to the location
         """
         return []
+
+    @property
+    def sorted_inventory(self) -> None:
+        """
+        Maintains a sorted inventory in alphabetical order
+        """
+        keys = sorted(
+            self.get_held_items(), key=lambda item_type: item_type.name.lower()
+        )
+        return {item_type.key: self.inventory[item_type.key] for item_type in keys}
 
     def finish_init(
         self, original_constructor: bool, from_save: bool, input_dict: Dict[str, any]
@@ -85,21 +93,6 @@ class actor:
             location: Returns the location this mob is currently in
         """
         return None  # Abstract method
-
-    def update_sorted_inventory(self) -> None:
-        """
-        Maintains a sorted inventory list into ascending order by amount held
-        """
-        self.sorted_inventory = dict(
-            sorted(
-                self.inventory.items(),
-                key=lambda x: (
-                    (x[1], list(self.sorted_inventory.keys()).index(x[0]))
-                    if x[0] in self.sorted_inventory
-                    else (x[1], float("inf"))
-                ),
-            )
-        )  # Sort by amount held, using previous unsorted order as a tiebreaker
 
     def to_save_dict(self):
         """
@@ -256,7 +249,6 @@ class actor:
             )  # If new value is an integer, set inventory to integer
         if round(new_value, 2) <= 0:
             del self.inventory[item.key]
-        self.update_sorted_inventory()
         constants.EventBus.publish(constants.ACTOR_SET_INVENTORY_ROUTE)
         self.select_last_item_icon(item)
 

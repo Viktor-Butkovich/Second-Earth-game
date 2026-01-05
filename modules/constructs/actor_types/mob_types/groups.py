@@ -67,7 +67,6 @@ class group(pmob):
                     current_mob.get_inventory(current_item_type),
                 )
                 current_mob.set_inventory(current_item_type, 0)
-            current_mob.update_sorted_inventory()
         if not from_save:
             for equipment in set(self.worker.equipment.keys()).union(
                 self.officer.equipment.keys()
@@ -80,7 +79,6 @@ class group(pmob):
                     ):  # If both worker and officer had same equipment, drop extra
                         self.location.change_inventory(equipment, 1)
                     status.equipment_types[equipment].equip(self)
-            self.location.update_sorted_inventory()
         if not from_save:
             self.set_permission(
                 constants.DISORGANIZED_PERMISSION,

@@ -34,7 +34,7 @@ class content_provider:
                 "present",
                 "delivering",
                 "consuming",
-                "total",
+                "expected",
             ]
         else:
             raise ValueError(f"Unexpected table grid subject: {table.subject}")

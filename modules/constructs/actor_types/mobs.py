@@ -1146,8 +1146,6 @@ class mob(actor):
                     )
                     status.equipment_types[current_equipment].unequip(self)
             self.equipment = {}
-        self.location.update_sorted_inventory()
-        self.update_sorted_inventory()
 
     def remove(self):
         """

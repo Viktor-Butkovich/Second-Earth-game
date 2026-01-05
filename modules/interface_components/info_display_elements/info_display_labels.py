@@ -1182,6 +1182,8 @@ class actor_display_label(labels.label):
                                 )
                             ):
                                 self.set_label("No movement")
+                            elif new_actor.end_turn_destination:
+                                self.set_label(f"Traveling to {new_actor.end_turn_destination.name}")
                             else:
                                 self.set_label("Infinite movement")
                 else:

@@ -48,6 +48,8 @@ class location(actors.actor):
         }
         self.x: int = input_dict["coordinates"][0]
         self.y: int = input_dict["coordinates"][1]
+        if not self.world_handler.is_abstract_world:
+            self.name = f"({self.x}, {self.y})"
         self.adjacent_list: List[location] = []
         self.adjacent_locations: Dict[str, location] = {}
         self.terrain_parameters: Dict[str, int] = input_dict.get(
@@ -1727,8 +1729,6 @@ class location(actors.actor):
                     consumption_remaining = round(consumption_remaining, 2)
             if consumption_remaining > 0:
                 sufficient[item_key] = False
-        for current_actor in [self] + self.subscribed_mobs:
-            current_actor.update_sorted_inventory()
         return sufficient
 
     def create_item_request(self, required_items: Dict[str, float]) -> Dict[str, float]:
@@ -1818,9 +1818,7 @@ class location(actors.actor):
             ):
                 if any(
                     [
-                        current_mob.unit_type.required_item_upkeep.get(
-                            current_item.key, False
-                        )
+                        current_mob.required_item_upkeep.get(current_item.key, False)
                         for current_mob in self.contained_mobs
                     ]
                 ):
@@ -1869,7 +1867,6 @@ class location(actors.actor):
                         lost_items.get(current_item_type.key, 0) + 1
                     )
                     self.change_inventory(current_item_type, -1)
-        self.update_sorted_inventory()
         if sum(lost_items.values()) > 0:
             if sum(lost_items.values()) == 1:
                 was_word = "was"
