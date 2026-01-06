@@ -67,21 +67,18 @@ class safe_click_panel(panel):
     def can_show(self):
         """
         Description:
-            Returns whether this panel should be drawn - it is drawn when an actor/minister is selected
+            Returns whether this panel should be drawn - it is drawn when an actor is selected, or if on the location mode
         Input:
             None
         Output:
             boolean: Returns False if the selected vehicle has no crew, otherwise returns same as superclass
         """
-        if super().can_show():
-            for parameter in [
-                "displayed_mob",
-                "displayed_location",
-                "displayed_minister",
-            ]:
-                if getattr(status, parameter):
-                    return True
-        return False
+        return super().can_show() and (
+            status.displayed_mob
+            or status.displayed_location
+            or status.displayed_minister
+            or constants.current_game_mode == constants.LOCATION_MODE
+        )
 
     def on_click(self):
         actor_utility.calibrate_actor_info_display(

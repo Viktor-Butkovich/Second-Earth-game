@@ -549,6 +549,10 @@ class button(interface_elements.interface_element):
             return [
                 f"Changes this location's {self.attached_label.actor_label_type.removesuffix('_label').replace('_', ' ')} by {self.change}"
             ]
+        elif self.button_type == constants.FOCUS_LOCATION_BUTTON:
+            return [f"Enters a detailed interface to manage this location"]
+        elif self.button_type == constants.UNFOCUS_LOCATION_BUTTON:
+            return [f"Returns to the strategic map interface"]
         else:
             return ["placeholder"]
 
@@ -716,74 +720,62 @@ class button(interface_elements.interface_element):
                     if minister_utility.positions_filled():
                         current_mob = status.displayed_mob
                         if current_mob:
-                            if constants.current_game_mode == constants.STRATEGIC_MODE:
-                                if current_mob.can_move(
-                                    x_change, y_change, can_print=False
-                                ):
-                                    current_mob.move(x_change, y_change)
+                            if current_mob.can_move(
+                                x_change, y_change, can_print=False
+                            ):
+                                current_mob.move(x_change, y_change)
+                                flags.show_selection_outlines = True
+                                constants.last_selection_outline_switch = (
+                                    constants.current_time
+                                )
+                                current_mob.set_permission(
+                                    constants.SENTRY_MODE_PERMISSION, False
+                                )
+                                current_mob.clear_automatic_route()
+
+                            elif current_mob.get_permission(
+                                constants.VEHICLE_PERMISSION
+                            ):  # If moving into unreachable land, have each passenger attempt to move
+                                if current_mob.subscribed_passengers:
+                                    passengers = (
+                                        current_mob.subscribed_passengers.copy()
+                                    )
+                                    current_mob.eject_passengers()
+                                    last_moved = None
+                                    for current_passenger in passengers:
+                                        if (
+                                            not status.displayed_notification
+                                        ) and current_passenger.can_move(
+                                            x_change, y_change, can_print=True
+                                        ):
+                                            current_passenger.move(x_change, y_change)
+                                            last_moved = current_passenger
+                                    if (
+                                        not status.displayed_notification
+                                    ):  # If attacking, don't reembark
+                                        for current_passenger in passengers:
+                                            if (
+                                                current_passenger.location
+                                                == current_mob.location
+                                            ):
+                                                current_passenger.embark_vehicle(
+                                                    current_mob
+                                                )
+                                    if last_moved and not last_moved.get_permission(
+                                        constants.IN_VEHICLE_PERMISSION
+                                    ):
+                                        last_moved.select()
                                     flags.show_selection_outlines = True
                                     constants.last_selection_outline_switch = (
                                         constants.current_time
                                     )
-                                    current_mob.set_permission(
-                                        constants.SENTRY_MODE_PERMISSION, False
-                                    )
-                                    current_mob.clear_automatic_route()
-
-                                elif current_mob.get_permission(
-                                    constants.VEHICLE_PERMISSION
-                                ):  # If moving into unreachable land, have each passenger attempt to move
-                                    if current_mob.subscribed_passengers:
-                                        passengers = (
-                                            current_mob.subscribed_passengers.copy()
-                                        )
-                                        current_mob.eject_passengers()
-                                        last_moved = None
-                                        for current_passenger in passengers:
-                                            if (
-                                                not status.displayed_notification
-                                            ) and current_passenger.can_move(
-                                                x_change, y_change, can_print=True
-                                            ):
-                                                current_passenger.move(
-                                                    x_change, y_change
-                                                )
-                                                last_moved = current_passenger
-                                        if (
-                                            not status.displayed_notification
-                                        ):  # If attacking, don't reembark
-                                            for current_passenger in passengers:
-                                                if (
-                                                    current_passenger.location
-                                                    == current_mob.location
-                                                ):
-                                                    current_passenger.embark_vehicle(
-                                                        current_mob
-                                                    )
-                                        if (
-                                            last_moved
-                                            and not last_moved.get_permission(
-                                                constants.IN_VEHICLE_PERMISSION
-                                            )
-                                        ):
-                                            last_moved.select()
-                                        flags.show_selection_outlines = True
-                                        constants.last_selection_outline_switch = (
-                                            constants.current_time
-                                        )
-                                    else:
-                                        text_utility.print_to_screen(
-                                            "This vehicle has no passengers to send onto land"
-                                        )
-
                                 else:
-                                    current_mob.can_move(
-                                        x_change, y_change, can_print=True
+                                    text_utility.print_to_screen(
+                                        "This vehicle has no passengers to send onto land"
                                     )
+
                             else:
-                                text_utility.print_to_screen(
-                                    "You cannot move while in the Earth HQ screen."
-                                )
+                                current_mob.can_move(x_change, y_change, can_print=True)
                         else:
                             text_utility.print_to_screen(
                                 "There are no selected units to move."
@@ -876,7 +868,7 @@ class button(interface_elements.interface_element):
         elif self.button_type == constants.END_TURN_BUTTON:
             if main_loop_utility.action_possible():
                 if minister_utility.positions_filled():
-                    if not constants.current_game_mode == constants.STRATEGIC_MODE:
+                    if constants.current_game_mode != constants.STRATEGIC_MODE:
                         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
                     turn_management_utility.end_turn_warnings()
 
@@ -1219,6 +1211,13 @@ class button(interface_elements.interface_element):
                     "You are busy and cannot rename this planet."
                 )
 
+        elif self.button_type == constants.FOCUS_LOCATION_BUTTON:
+            game_transitions.set_game_mode(constants.LOCATION_MODE)
+            status.location_mode_focus = status.displayed_location
+
+        elif self.button_type == constants.UNFOCUS_LOCATION_BUTTON:
+            game_transitions.set_game_mode(constants.STRATEGIC_MODE)
+
     def on_rmb_release(self):
         """
         Controls what this button does when right clicked and released. By default, buttons will stop showing their outlines when released.
@@ -1323,6 +1322,15 @@ class button(interface_elements.interface_element):
                 ):
                     return True
                 return False
+            elif self.button_type == constants.FOCUS_LOCATION_BUTTON:
+                return not status.displayed_location.world_handler.is_abstract_world
+                # Only show if on the planetary surface
+            elif self.button_type == constants.UNFOCUS_LOCATION_BUTTON:
+                return (self.parent_collection == status.location_info_display) or (
+                    status.displayed_location is None and status.displayed_zone is None
+                )
+                # Return True if attached to the location info display
+                # If not attached to any info display, only show if no location or zone is selected
             return True
         return False
 

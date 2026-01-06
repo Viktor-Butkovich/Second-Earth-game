@@ -21,6 +21,7 @@ try:
         setup_utility.ministers_screen,
         setup_utility.trial_screen,
         setup_utility.location_interface,
+        setup_utility.zone_interface,
         setup_utility.mob_interface,
         setup_utility.organization_interface,
         setup_utility.vehicle_organization_interface,

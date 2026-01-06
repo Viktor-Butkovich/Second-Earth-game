@@ -38,6 +38,7 @@ class achievement_manager:
                 constants.TRIAL_MODE,
                 constants.MAIN_MENU_MODE,
                 constants.NEW_GAME_SETUP_MODE,
+                constants.LOCATION_MODE,
             ],
             "init_type": constants.ORDERED_COLLECTION,
             "direction": "vertical",

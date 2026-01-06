@@ -57,6 +57,7 @@ minimap_grid: mini_grid = None
 planet_view_mask: free_image = None
 current_just_appointed_minister: minister = None
 supply_chain_table: table_grid = None
+location_mode_focus: location = None
 
 actions: Dict[str, action] = {}
 
@@ -68,6 +69,7 @@ displayed_minister: minister = None
 displayed_defense: minister = None
 displayed_prosecution: minister = None
 displayed_notification: notification = None
+displayed_zone = None
 
 cached_images: Dict[str, pygame.Surface] = {}
 globe_projection_image: free_image = None
@@ -127,6 +129,7 @@ location_inventory_grid: inventory_grid = None
 minister_info_display: ordered_collection = None
 prosecution_info_display: ordered_collection = None
 defense_info_display: ordered_collection = None
+zone_info_display: ordered_collection = None
 mob_tabbed_collection: tabbed_collection = None
 location_tabbed_collection: tabbed_collection = None
 mob_inventory_collection: ordered_collection = None

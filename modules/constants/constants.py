@@ -489,6 +489,7 @@ MINISTERS_MODE: str = "ministers"
 TRIAL_MODE: str = "trial"
 MAIN_MENU_MODE: str = "main_menu"
 NEW_GAME_SETUP_MODE: str = "new_game_setup"
+LOCATION_MODE: str = "location"
 game_modes: List[str] = [
     STRATEGIC_MODE,
     EARTH_MODE,
@@ -496,6 +497,7 @@ game_modes: List[str] = [
     TRIAL_MODE,
     MAIN_MENU_MODE,
     NEW_GAME_SETUP_MODE,
+    LOCATION_MODE,
 ]
 
 KNOWLEDGE: str = "knowledge"
@@ -766,6 +768,8 @@ RENAME_PLANET_BUTTON: str = "rename_planet_button"
 MINIMIZE_INTERFACE_COLLECTION_BUTTON: str = "minimize_interface_collection_button"
 MOVE_INTERFACE_COLLECTION_BUTTON: str = "move_interface_collection_button"
 RESET_INTERFACE_COLLECTION_BUTTON: str = "reset_interface_collection_button"
+FOCUS_LOCATION_BUTTON: str = "focus_location_button"
+UNFOCUS_LOCATION_BUTTON: str = "unfocus_location_button"
 
 RECRUITMENT_CHOICE_BUTTON: str = "recruitment_choice_button"
 CHOICE_CONFIRM_MAIN_MENU_BUTTON: str = "choice_confirm_main_menu_button"
@@ -1041,6 +1045,7 @@ LOCATION_INVENTORY_ACTOR_TYPE: str = "location_inventory"
 MINISTER_ACTOR_TYPE: str = "minister"
 PROSECUTION_ACTOR_TYPE: str = "prosecution"
 DEFENSE_ACTOR_TYPE: str = "defense"
+ZONE_ACTOR_TYPE: str = "zone"
 
 MINIMAP_OVERLAY_TERRAIN_FEATURE: str = "minimap_overlay_terrain_feature"
 # Terrain feature that is only shown hovering over minimap locations, like a North Pole or Southern Tropic indicator

@@ -1069,7 +1069,7 @@ class switch_theatre_button(buttons.button):
             current_mob = status.displayed_mob
             if current_mob.movement_points >= 1:
                 current_mob.set_permission(constants.SENTRY_MODE_PERMISSION, False)
-                if not constants.current_game_mode == constants.STRATEGIC_MODE:
+                if constants.current_game_mode != constants.STRATEGIC_MODE:
                     game_transitions.set_game_mode(constants.STRATEGIC_MODE)
                 current_mob.clear_automatic_route()
                 current_mob.end_turn_destination = None

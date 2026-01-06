@@ -138,6 +138,8 @@ class actor_creation_manager:
             constants.ANONYMOUS_BUTTON: buttons.anonymous_button,
             constants.ACTION_BUTTON: buttons.action_button,
             constants.SCROLL_BUTTON: buttons.scroll_button,
+            constants.FOCUS_LOCATION_BUTTON: buttons.button,
+            constants.UNFOCUS_LOCATION_BUTTON: buttons.button,
             constants.REMOVE_EQUIPMENT_BUTTON: buttons.remove_equipment_button,
             constants.MAP_MODE_BUTTON: buttons.map_mode_button,
             constants.INSTRUCTIONS_BUTTON: instructions.instructions_button,

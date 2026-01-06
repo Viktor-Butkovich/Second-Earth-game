@@ -50,6 +50,11 @@ def cycle_player_turn(start_of_turn=False):
             set_game_mode(constants.STRATEGIC_MODE)
         elif constants.current_game_mode == constants.MINISTERS_MODE:
             set_game_mode(constants.STRATEGIC_MODE)
+        elif (
+            constants.current_game_mode == constants.LOCATION_MODE
+            and cycled_mob.location != status.location_mode_focus
+        ):
+            set_game_mode(constants.STRATEGIC_MODE)
         cycled_mob.cycle_select()
         if not start_of_turn:
             turn_queue.append(turn_queue.pop(0))
@@ -112,35 +117,53 @@ def set_game_mode(new_game_mode):
             constants.default_text_box_height = constants.font_size * 5.5
             constants.text_box_height = constants.default_text_box_height
 
-    if previous_game_mode in [
+    if (
+        previous_game_mode == constants.LOCATION_MODE
+        and new_game_mode == constants.STRATEGIC_MODE
+    ):
+        actor_utility.calibrate_actor_info_display(
+            status.location_info_display,
+            status.location_mode_focus,
+        )
+        # When transitioning from location mode to strategic mode, select the focused location and deselect any selected
+        #   sub-zones, while retaining all other selections
+    elif previous_game_mode in [
         constants.STRATEGIC_MODE,
         constants.NEW_GAME_SETUP_MODE,
         constants.EARTH_MODE,
         constants.MINISTERS_MODE,
+        constants.LOCATION_MODE,
     ]:
-        if new_game_mode == constants.MINISTERS_MODE or not (
-            status.displayed_location and status.displayed_location.is_earth_location
-        ):
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, None, override_exempt=True
-            )  # Deselect actors/ministers and remove any actor info from display when switching screens
-            actor_utility.calibrate_actor_info_display(
-                status.location_info_display, None, override_exempt=True
-            )
-            minister_utility.calibrate_minister_info_display(None)
-            if new_game_mode == constants.EARTH_MODE:
+        if not new_game_mode == constants.LOCATION_MODE:
+            # When transitioning to location mode, do not deselect any actors
+            if new_game_mode == constants.MINISTERS_MODE or not (
+                status.displayed_location
+                and status.displayed_location.is_earth_location
+            ):
                 actor_utility.calibrate_actor_info_display(
-                    status.location_info_display, status.earth_world.find_location(0, 0)
-                )  # Calibrate location info to Earth
-            elif new_game_mode == constants.STRATEGIC_MODE:
-                if status.current_world:
+                    status.mob_info_display, None, override_exempt=True
+                )  # Deselect actors/ministers and remove any actor info from display when switching screens
+                actor_utility.calibrate_actor_info_display(
+                    status.location_info_display, None, override_exempt=True
+                )
+                actor_utility.calibrate_actor_info_display(
+                    status.zone_info_display, None, override_exempt=True
+                )
+                minister_utility.calibrate_minister_info_display(None)
+                if new_game_mode == constants.EARTH_MODE:
                     actor_utility.calibrate_actor_info_display(
                         status.location_info_display,
-                        status.current_world.find_location(
-                            status.minimap_grid.center_x,
-                            status.minimap_grid.center_y,
-                        ),
-                    )  # Calibrate location info to minimap center
+                        status.earth_world.find_location(0, 0),
+                    )  # Calibrate location info to Earth
+                elif new_game_mode == constants.STRATEGIC_MODE:
+                    if status.current_world:
+                        actor_utility.calibrate_actor_info_display(
+                            status.location_info_display,
+                            status.current_world.find_location(
+                                status.minimap_grid.center_x,
+                                status.minimap_grid.center_y,
+                            ),
+                        )  # Calibrate location info to minimap center
     if new_game_mode == constants.MINISTERS_MODE:
         constants.available_minister_left_index = -2
         minister_utility.update_available_minister_display()
@@ -157,6 +180,9 @@ def set_game_mode(new_game_mode):
         constants.NEW_GAME_SETUP_MODE,
     ]:
         constants.NotificationManager.update_notification_layout()
+
+    if previous_game_mode == constants.LOCATION_MODE:
+        status.location_mode_focus = None
 
 
 def start_loading(previous_game_mode: str = None, new_game_mode: str = None):

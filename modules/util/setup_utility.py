@@ -78,6 +78,7 @@ def info_displays() -> None:
                     constants.EARTH_MODE,
                     constants.MINISTERS_MODE,
                     constants.NEW_GAME_SETUP_MODE,
+                    constants.LOCATION_MODE,
                 ],
                 "init_type": constants.ORDERED_COLLECTION,
                 "description": "general information panel",
@@ -230,6 +231,7 @@ def misc() -> None:
                     constants.EARTH_MODE,
                     constants.TRIAL_MODE,
                     constants.NEW_GAME_SETUP_MODE,
+                    constants.LOCATION_MODE,
                 ],
                 "init_type": constants.BACKGROUND_IMAGE,
             }
@@ -273,6 +275,7 @@ def misc() -> None:
                 constants.EARTH_MODE,
                 constants.MINISTERS_MODE,
                 constants.NEW_GAME_SETUP_MODE,
+                constants.LOCATION_MODE,
             ],
             "image_id": "misc/empty.png",  # make a good image for this
             "init_type": constants.SAFE_CLICK_PANEL_ELEMENT,
@@ -1292,6 +1295,7 @@ def value_trackers() -> None:
                     constants.TRIAL_MODE,
                     constants.MAIN_MENU_MODE,
                     constants.NEW_GAME_SETUP_MODE,
+                    constants.LOCATION_MODE,
                 ],
                 "init_type": constants.ORDERED_COLLECTION,
             }
@@ -1312,6 +1316,7 @@ def value_trackers() -> None:
                 constants.EARTH_MODE,
                 constants.MINISTERS_MODE,
                 constants.TRIAL_MODE,
+                constants.LOCATION_MODE,
             ],
             "image_id": "misc/default_label.png",
             "value_name": "turn",
@@ -1336,6 +1341,7 @@ def value_trackers() -> None:
                 constants.EARTH_MODE,
                 constants.MINISTERS_MODE,
                 constants.TRIAL_MODE,
+                constants.LOCATION_MODE,
             ],
             "image_id": "misc/default_label.png",
             "init_type": constants.MONEY_LABEL,
@@ -1360,6 +1366,7 @@ def value_trackers() -> None:
                 constants.EARTH_MODE,
                 constants.MINISTERS_MODE,
                 constants.TRIAL_MODE,
+                constants.LOCATION_MODE,
             ],
             "image_id": "misc/default_label.png",
             "value_name": "public_opinion",
@@ -1385,6 +1392,7 @@ def value_trackers() -> None:
                     constants.TRIAL_MODE,
                     constants.MAIN_MENU_MODE,
                     constants.NEW_GAME_SETUP_MODE,
+                    constants.LOCATION_MODE,
                 ],
                 "image_id": "misc/default_label.png",
                 "value_name": "fps",
@@ -1413,6 +1421,7 @@ def value_trackers() -> None:
                     constants.TRIAL_MODE,
                     constants.MAIN_MENU_MODE,
                     constants.NEW_GAME_SETUP_MODE,
+                    constants.LOCATION_MODE,
                 ],
                 "image_id": "misc/default_label.png",
                 "value_name": "mouse_position",
@@ -1433,6 +1442,7 @@ def value_trackers() -> None:
                 constants.EARTH_MODE,
                 constants.MINISTERS_MODE,
                 constants.TRIAL_MODE,
+                constants.LOCATION_MODE,
             ],
             "image_id": "buttons/instructions.png",
             "init_type": constants.SHOW_PREVIOUS_REPORTS_BUTTON,
@@ -1488,6 +1498,7 @@ def buttons() -> None:
         constants.strategic_map_x_offset += constants.strategic_map_pixel_width
         # globe_projection_x += constants.strategic_map_pixel_width
 
+    """
     input_dict = {
         "coordinates": scaling.scale_coordinates(0, 10),
         "width": scaling.scale_width(150),
@@ -1510,6 +1521,7 @@ def buttons() -> None:
     ministers_flag_icon = constants.ActorCreationManager.create_interface_element(
         input_dict
     )
+    """
     globe_projection_x = scaling.scale_width(
         constants.strategic_map_x_offset
         + constants.grids_collection_x
@@ -1604,6 +1616,7 @@ def buttons() -> None:
             constants.STRATEGIC_MODE,
             constants.EARTH_MODE,
             constants.TRIAL_MODE,
+            constants.LOCATION_MODE,
         ],
         "to_mode": constants.STRATEGIC_MODE,
         "init_type": constants.SWITCH_GAME_MODE_BUTTON,
@@ -1659,6 +1672,7 @@ def buttons() -> None:
                 constants.MINISTERS_MODE,
                 constants.TRIAL_MODE,
                 constants.NEW_GAME_SETUP_MODE,
+                constants.LOCATION_MODE,
             ],
             "init_type": constants.ORDERED_COLLECTION,
             "member_config": {"order_exempt": True},
@@ -1678,6 +1692,7 @@ def buttons() -> None:
                 constants.EARTH_MODE,
                 constants.MINISTERS_MODE,
                 constants.NEW_GAME_SETUP_MODE,
+                constants.LOCATION_MODE,
             ],
             "init_type": constants.ORDERED_COLLECTION,
             "member_config": {"order_exempt": True},
@@ -1698,6 +1713,7 @@ def buttons() -> None:
         constants.EARTH_MODE,
         constants.MINISTERS_MODE,
         constants.TRIAL_MODE,
+        constants.LOCATION_MODE,
     ]
     input_dict["keybind_id"] = pygame.K_ESCAPE
     input_dict["to_mode"] = constants.MAIN_MENU_MODE
@@ -1728,6 +1744,7 @@ def buttons() -> None:
             constants.EARTH_MODE,
             constants.MINISTERS_MODE,
             constants.TRIAL_MODE,
+            constants.LOCATION_MODE,
         ],
         "keybind_id": pygame.K_SPACE,
         "image_id": "buttons/end_turn_button.png",
@@ -1782,6 +1799,7 @@ def buttons() -> None:
             constants.EARTH_MODE,
             constants.MINISTERS_MODE,
             constants.TRIAL_MODE,
+            constants.LOCATION_MODE,
         ],
         "image_id": "buttons/save_game_button.png",
         "init_type": constants.SAVE_GAME_BUTTON,
@@ -1796,6 +1814,7 @@ def buttons() -> None:
         constants.EARTH_MODE,
         constants.MINISTERS_MODE,
         constants.TRIAL_MODE,
+        constants.LOCATION_MODE,
     ]
     input_dict["image_id"] = "buttons/text_box_size_button.png"
     input_dict["init_type"] = constants.TOGGLE_BUTTON
@@ -1869,6 +1888,7 @@ def buttons() -> None:
         constants.STRATEGIC_MODE,
         constants.EARTH_MODE,
         constants.MINISTERS_MODE,
+        constants.LOCATION_MODE,
     ]
     input_dict["keybind_id"] = pygame.K_TAB
     input_dict["image_id"] = "buttons/cycle_units_button.png"
@@ -1884,7 +1904,11 @@ def buttons() -> None:
             scaling.scale_width(165),
             input_dict["coordinates"][1],
         )
-        input_dict["modes"] = [constants.STRATEGIC_MODE, constants.EARTH_MODE]
+        input_dict["modes"] = [
+            constants.STRATEGIC_MODE,
+            constants.EARTH_MODE,
+            constants.LOCATION_MODE,
+        ]
         input_dict["image_id"] = "buttons/disable_sentry_mode_button.png"
         input_dict["init_type"] = constants.WAKE_UP_ALL_BUTTON
         wake_up_all_button = constants.ActorCreationManager.create_interface_element(
@@ -1916,7 +1940,11 @@ def buttons() -> None:
     if constants.EffectManager.effect_active("map_modes"):
         input_dict["init_type"] = constants.MAP_MODE_BUTTON
         input_dict["parent_collection"] = rhs_menu_collection
-        input_dict["modes"] = [constants.STRATEGIC_MODE, constants.EARTH_MODE]
+        input_dict["modes"] = [
+            constants.STRATEGIC_MODE,
+            constants.EARTH_MODE,
+            constants.LOCATION_MODE,
+        ]
         for map_mode in constants.map_modes:
             input_dict["map_mode"] = map_mode
             input_dict["image_id"] = actor_utility.generate_frame(
@@ -2397,7 +2425,11 @@ def mob_interface() -> None:
             "coordinates": scaling.scale_coordinates(0, -400),
             "width": scaling.scale_width(400),
             "height": scaling.scale_height(430),
-            "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+            "modes": [
+                constants.STRATEGIC_MODE,
+                constants.EARTH_MODE,
+                constants.LOCATION_MODE,
+            ],
             "init_type": constants.ORDERED_COLLECTION,
             "is_info_display": True,
             "actor_type": constants.MOB_ACTOR_TYPE,
@@ -2458,56 +2490,42 @@ def mob_sub_interface() -> None:
         }
     )
 
-    left_arrow_button = constants.ActorCreationManager.create_interface_element(
+    for parameters in [
         {
             "coordinates": scaling.scale_coordinates(200, -105),
-            "width": scaling.scale_width(40),
-            "height": scaling.scale_height(40),
             "keybind_id": pygame.K_a,
             "image_id": "buttons/left_button.png",
             "init_type": constants.MOVE_LEFT_BUTTON,
-            "parent_collection": status.mob_info_display,
-            "member_config": {"order_exempt": True},
-        }
-    )
-    down_arrow_button = constants.ActorCreationManager.create_interface_element(
+        },
         {
             "coordinates": scaling.scale_coordinates(245, -105),
-            "width": scaling.scale_width(40),
-            "height": scaling.scale_height(40),
             "keybind_id": pygame.K_s,
             "image_id": "buttons/down_button.png",
             "init_type": constants.MOVE_DOWN_BUTTON,
-            "parent_collection": status.mob_info_display,
-            "member_config": {"order_exempt": True},
-        }
-    )
-
-    up_arrow_button = constants.ActorCreationManager.create_interface_element(
+        },
         {
             "coordinates": scaling.scale_coordinates(245, -60),
-            "width": scaling.scale_width(40),
-            "height": scaling.scale_height(40),
             "keybind_id": pygame.K_w,
             "image_id": "buttons/up_button.png",
             "init_type": constants.MOVE_UP_BUTTON,
-            "parent_collection": status.mob_info_display,
-            "member_config": {"order_exempt": True},
-        }
-    )
-
-    right_arrow_button = constants.ActorCreationManager.create_interface_element(
+        },
         {
             "coordinates": scaling.scale_coordinates(290, -105),
-            "width": scaling.scale_width(40),
-            "height": scaling.scale_height(40),
             "keybind_id": pygame.K_d,
             "image_id": "buttons/right_button.png",
             "init_type": constants.MOVE_RIGHT_BUTTON,
-            "parent_collection": status.mob_info_display,
-            "member_config": {"order_exempt": True},
-        }
-    )
+        },
+    ]:
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "width": scaling.scale_width(40),
+                "height": scaling.scale_height(40),
+                "parent_collection": status.mob_info_display,
+                "modes": [constants.STRATEGIC_MODE],
+                "member_config": {"order_exempt": True},
+                **parameters,
+            }
+        )
 
     # mob info labels setup
     for current_actor_label_type in [
@@ -2572,7 +2590,11 @@ def location_interface() -> None:
                 "coordinates": scaling.scale_coordinates(0, 0),  # (0, -400),
                 "width": scaling.scale_width(775),
                 "height": scaling.scale_height(10),
-                "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+                "modes": [
+                    constants.STRATEGIC_MODE,
+                    constants.EARTH_MODE,
+                    constants.LOCATION_MODE,
+                ],
                 "init_type": constants.ORDERED_COLLECTION,
                 "is_info_display": True,
                 "actor_type": constants.LOCATION_ACTOR_TYPE,
@@ -2654,6 +2676,38 @@ def location_interface() -> None:
         }
     )
 
+    focus_location_button = constants.ActorCreationManager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(
+                constants.actor_icon_dimensions + 5,
+                -1 * constants.actor_icon_dimensions,
+            ),
+            "width": scaling.scale_width(35),
+            "height": scaling.scale_height(35),
+            "image_id": actor_utility.generate_frame("buttons/magnify_button.png"),
+            "init_type": constants.FOCUS_LOCATION_BUTTON,
+            "parent_collection": status.location_info_display,
+            "member_config": {"order_exempt": True},
+            "modes": [constants.STRATEGIC_MODE],
+        }
+    )
+
+    unfocus_location_button = constants.ActorCreationManager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(
+                constants.actor_icon_dimensions + 5,
+                -1 * constants.actor_icon_dimensions,
+            ),
+            "width": scaling.scale_width(35),
+            "height": scaling.scale_height(35),
+            "image_id": actor_utility.generate_frame("buttons/unmagnify_button.png"),
+            "init_type": constants.UNFOCUS_LOCATION_BUTTON,
+            "parent_collection": status.location_info_display,
+            "member_config": {"order_exempt": True},
+            "modes": [constants.LOCATION_MODE],
+        }
+    )
+
     # location info labels setup
     for current_actor_label_type in [
         constants.COORDINATES_LABEL,
@@ -2698,6 +2752,43 @@ def location_interface() -> None:
                 "parent_collection": status.location_info_display,
                 "member_config": {"order_exempt": True},
                 "description": "location information tabs",
+            }
+        )
+    )
+
+
+def zone_interface() -> None:
+    """
+    Initializes zone selection interface for zones within a location
+    """
+    status.zone_info_display = constants.ActorCreationManager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),  # (0, -400),
+            "width": scaling.scale_width(775),
+            "height": scaling.scale_height(10),
+            "modes": [
+                constants.LOCATION_MODE,
+            ],
+            "init_type": constants.ORDERED_COLLECTION,
+            "is_info_display": True,
+            "actor_type": constants.ZONE_ACTOR_TYPE,
+            "description": "zone information panel",
+            "parent_collection": status.info_displays_collection,
+        }
+    )
+    free_unfocus_location_button = (
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(200, -300),
+                "width": scaling.scale_width(200),
+                "height": scaling.scale_height(200),
+                "image_id": actor_utility.generate_frame(
+                    "buttons/unmagnify_button.png"
+                ),
+                "init_type": constants.UNFOCUS_LOCATION_BUTTON,
+                "modes": [constants.LOCATION_MODE],
+                "parent_collection": status.info_displays_collection,
+                "member_config": {"order_exempt": True},
             }
         )
     )

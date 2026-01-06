@@ -24,7 +24,7 @@ class mouse_follower(free_image):
         input_dict["coordinates"] = pygame.mouse.get_pos()
         input_dict["width"] = 50
         input_dict["height"] = 50
-        input_dict["modes"] = [constants.STRATEGIC_MODE, constants.EARTH_MODE]
+        input_dict["modes"] = [constants.STRATEGIC_MODE, constants.EARTH_MODE, constants.LOCATION_MODE]
         super().__init__(input_dict)
 
     def update(self):

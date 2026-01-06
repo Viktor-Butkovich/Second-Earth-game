@@ -308,6 +308,7 @@ class minister:
                 constants.MINISTERS_MODE,
                 constants.EARTH_MODE,
                 constants.TRIAL_MODE,
+                constants.LOCATION_MODE,
             ],
             "init_type": constants.ACTOR_ICON,
             "calibrate_to": self,

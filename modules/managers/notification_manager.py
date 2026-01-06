@@ -26,6 +26,7 @@ class notification_manager:
             constants.TRIAL_MODE,
             constants.MAIN_MENU_MODE,
             constants.NEW_GAME_SETUP_MODE,
+            constants.LOCATION_MODE,
         ]
         self.font = constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
 
