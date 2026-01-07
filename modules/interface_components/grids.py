@@ -85,17 +85,6 @@ class grid(interface_elements.interface_element):
                 *self.convert_coordinates((current_cell.grid_x, current_cell.grid_y))
             )
 
-    def get_tuning(self, tuning_type: str) -> any:
-        """
-        Description:
-            Returns the tuning value for the inputted tuning type
-        Input:
-            string tuning_type: Tuning type to return the value of
-        Output:
-            any: Returns the tuning value
-        """
-        return constants.TerrainManager.get_tuning(tuning_type)
-
     def draw(self):
         """
         Draws each cell of this grid

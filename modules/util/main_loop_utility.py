@@ -11,6 +11,7 @@ from modules.util import (
     minister_utility,
     turn_management_utility,
     world_utility,
+    drawing_utility,
 )
 from modules.constants import constants, status, flags
 
@@ -392,6 +393,17 @@ def update_display():
             constants.FpsTracker.set(constants.frames_this_second)
             constants.frames_this_second = 0
             constants.last_fps_update = current_time
+
+    if constants.EffectManager.effect_active("track_cached_image_memory"):
+        current_time = time.time()
+        if (
+            current_time > constants.last_image_cache_check + 1
+            and flags.startup_complete
+        ):
+            constants.ImageCacheTracker.set(
+                round(drawing_utility.cached_surfaces_memory(), 2)
+            )
+            constants.last_image_cache_check = current_time
 
     if (
         constants.EffectManager.effect_active("track_mouse_position")

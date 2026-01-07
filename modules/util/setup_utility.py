@@ -1401,6 +1401,33 @@ def value_trackers() -> None:
             }
         )
 
+    if constants.EffectManager.effect_active("track_cached_image_memory"):
+        constants.ImageCacheTracker = value_tracker.value_tracker(
+            value_key="image_cache", initial_value=0, min_value=0, max_value=None
+        )
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "minimum_width": scaling.scale_width(10),
+                "height": scaling.scale_height(
+                    constants.default_notification_font_size + 5
+                ),
+                "modes": [
+                    constants.STRATEGIC_MODE,
+                    constants.EARTH_MODE,
+                    constants.MINISTERS_MODE,
+                    constants.TRIAL_MODE,
+                    constants.MAIN_MENU_MODE,
+                    constants.NEW_GAME_SETUP_MODE,
+                    constants.LOCATION_MODE,
+                ],
+                "image_id": "misc/default_label.png",
+                "value_name": "image_cache",
+                "unit": "MB",
+                "init_type": constants.VALUE_LABEL,
+                "parent_collection": value_trackers_ordered_collection,
+            }
+        )
+
     if constants.EffectManager.effect_active("track_mouse_position"):
         constants.mouse_position_tracker = value_tracker.value_tracker(
             value_key="mouse_position",

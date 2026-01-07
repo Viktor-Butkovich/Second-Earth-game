@@ -41,6 +41,7 @@
    "promote_on_sentry": false,
    "debug_print": false,
    "track_fps": false,
+   "track_cached_image_memory": false,
    "track_mouse_position": false,
    "transparent_ministers": false,
    "reset_achievements": false,

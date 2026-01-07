@@ -116,6 +116,7 @@ class value_label(label):
         self.value_name = input_dict["value_name"]
         input_dict["message"] = "none"
         super().__init__(input_dict)
+        self.unit: str = input_dict.get("unit", None)
         self.display_name = text_utility.remove_underscores(
             self.value_name
         )  # public_opinion to public opinion
@@ -133,7 +134,10 @@ class value_label(label):
         Output:
             None
         """
-        self.set_label(utility.capitalize(self.display_name + ": " + str(new_value)))
+        label = self.display_name + ": " + str(new_value)
+        if self.unit != None:
+            label += f" {self.unit}"
+        self.set_label(utility.capitalize(label))
 
     @property
     def tooltip_text(self) -> List[List[str]]:

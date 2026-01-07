@@ -230,7 +230,11 @@ FpsTracker: value_tracker.value_tracker = None
 mouse_position: Tuple[int, int] = None
 MousePositionTracker: value_tracker.value_tracker = None
 frames_this_second: int = 0
+
 last_fps_update: float = 0.0
+last_image_cache_check: float = 0.0
+image_cache: float = 0.0
+ImageCacheTracker: value_tracker.value_tracker = None
 
 previous_turn_time: float = 0.0
 current_time: float = 0.0

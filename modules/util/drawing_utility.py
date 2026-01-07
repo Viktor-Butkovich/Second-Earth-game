@@ -49,3 +49,15 @@ def display_image_angle(image, x, y, angle):
     rotated_image = pygame.transform.rotate(image, angle)
     new_rect = rotated_image.get_rect(center=image.get_rect(topleft=topleft).center)
     constants.game_display.blit(rotated_image, new_rect.topleft)
+
+
+def cached_surfaces_memory() -> float:
+    """
+    Calculates and returns the total memory size of cached images in MB
+    """
+    total_bytes = 0
+    for surface in status.cached_images.values():
+        width, height = surface.get_size()
+        bytes_per_pixel = surface.get_bytesize()
+        total_bytes += width * height * bytes_per_pixel
+    return total_bytes / (1024 * 1024)

@@ -38,18 +38,6 @@ class cell(interface_elements.interface_element):
         self.set_image([{"image_id": "misc/empty.png"}])
         self.visible: bool = True
 
-    def set_visible(self, visible: bool) -> None:
-        """
-        Description:
-            Enables or disables this cell
-        Input:
-            boolean visible: Whether this cell should be visible
-        Output:
-            None
-        """
-        if visible != self.visible:
-            self.visible = visible
-
     def set_origin(self, new_x: int, new_y: int) -> None:
         """
         Description:

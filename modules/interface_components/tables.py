@@ -225,7 +225,7 @@ class table_grid(grids.grid):
 
         for row_index in range(1, self.coordinate_height + 1):
             for current_cell in self.get_row(row_index):
-                current_cell.set_visible(row_index <= self.current_num_rows)
+                current_cell.visible = row_index <= self.current_num_rows
 
     def convert_coordinates(
         self, coordinates: Tuple[int, int], reverse_y: bool = False
