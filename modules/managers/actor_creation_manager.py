@@ -239,6 +239,7 @@ class actor_creation_manager:
             constants.LOCATION_INVENTORY_CAPACITY_LABEL: info_display_labels.actor_display_label,
             constants.INVENTORY_NAME_LABEL: info_display_labels.actor_display_label,
             constants.INVENTORY_QUANTITY_LABEL: info_display_labels.actor_display_label,
+            constants.ZONE_COORDINATES_LABEL: info_display_labels.actor_display_label,
             constants.SETTLEMENT: info_display_labels.actor_display_label,
             constants.RESOURCE: info_display_labels.actor_display_label,
             constants.SPACEPORT: info_display_labels.actor_display_label,

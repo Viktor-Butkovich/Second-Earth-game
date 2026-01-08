@@ -105,8 +105,8 @@ class grid(interface_elements.interface_element):
         if self in status.zone_grid_list:
             self.external_line_color = self.default_external_line_color
             if status.displayed_zone:
-                self.cell_list[status.displayed_zone.coordinates[0]][
-                    status.displayed_zone.coordinates[1]
+                self.cell_list[status.displayed_zone.x][
+                    status.displayed_zone.y
                 ].draw_outline(constants.COLOR_WHITE)
             elif status.displayed_location:
                 self.external_line_color = constants.COLOR_WHITE

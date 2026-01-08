@@ -2779,6 +2779,13 @@ def location_interface() -> None:
         }
     )
 
+    location_actor_label_input_dict = {
+        "minimum_width": scaling.scale_width(10),
+        "height": scaling.scale_height(constants.default_notification_font_size + 5),
+        "image_id": "misc/default_label.png",
+        "actor_type": constants.LOCATION_ACTOR_TYPE,
+        "parent_collection": status.location_info_display,
+    }
     # location info labels setup
     for current_actor_label_type in [
         constants.COORDINATES_LABEL,
@@ -2789,24 +2796,26 @@ def location_interface() -> None:
         constants.HABITABILITY_LABEL,
     ]:
         x_displacement = 0
-        input_dict = {
-            "minimum_width": scaling.scale_width(10),
-            "height": scaling.scale_height(
-                constants.default_notification_font_size + 5
-            ),
-            "image_id": "misc/default_label.png",
-            "init_type": current_actor_label_type,
-            "actor_type": constants.LOCATION_ACTOR_TYPE,
-            "parent_collection": status.location_info_display,
-            "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
-        }
+
         if current_actor_label_type == constants.TERRAIN_FEATURE_LABEL:
             for key, terrain_feature_type in status.terrain_feature_types.items():
                 if terrain_feature_type.visible:
-                    input_dict["terrain_feature_type"] = key
-                    constants.ActorCreationManager.create_interface_element(input_dict)
+                    constants.ActorCreationManager.create_interface_element(
+                        {
+                            **location_actor_label_input_dict,
+                            "init_type": constants.TERRAIN_FEATURE_LABEL,
+                            "terrain_feature_type": key,
+                            "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
+                        }
+                    )
         else:
-            constants.ActorCreationManager.create_interface_element(input_dict)
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    **location_actor_label_input_dict,
+                    "init_type": current_actor_label_type,
+                    "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
+                }
+            )
 
     tab_collection_relative_coordinates = (420, -30)
 
@@ -2874,6 +2883,27 @@ def zone_interface() -> None:
             "parent_collection": status.zone_info_display,
         }
     )
+    zone_actor_label_input_dict = {
+        "minimum_width": scaling.scale_width(10),
+        "height": scaling.scale_height(constants.default_notification_font_size + 5),
+        "image_id": "misc/default_label.png",
+        "actor_type": constants.ZONE_ACTOR_TYPE,
+        "parent_collection": status.zone_info_display,
+    }
+    # location info labels setup
+    for current_actor_label_type in [
+        constants.ZONE_COORDINATES_LABEL,
+    ]:
+        x_displacement = 0
+        constants.ActorCreationManager.create_interface_element(
+            {
+                **zone_actor_label_input_dict,
+                "init_type": current_actor_label_type,
+                "member_config": {
+                    "order_x_offset": scaling.scale_width(x_displacement)
+                },
+            }
+        )
 
 
 def inventory_interface() -> None:

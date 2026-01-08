@@ -899,6 +899,7 @@ OXYGEN_LABEL: str = "oxygen_label"
 GHG_LABEL: str = "GHG_label"
 INERT_GASES_LABEL: str = "inert_gases_label"
 TOXIC_GASES_LABEL: str = "toxic_gases_label"
+ZONE_COORDINATES_LABEL: str = "zone_coordinates_label"
 ATMOSPHERE_COMPONENT_LABELS: str = [
     OXYGEN_LABEL,
     GHG_LABEL,

@@ -22,7 +22,8 @@ class zone:
         Output:
             None
         """
-        self.coordinates: Tuple[int, int] = coordinates
+        self.x: int = coordinates[0]
+        self.y: int = coordinates[1]
         self.parent_location: locations.location = parent_location
         self.actor_type: str = constants.ZONE_ACTOR_TYPE
 
@@ -42,7 +43,7 @@ class zone:
                     "image_id": drawing_utility.get_subsurface(
                         status.focused_location_surface,
                         constants.zone_grid_coordinate_size,
-                        self.coordinates,
+                        (self.x, self.y),
                     )
                 }
             ]
@@ -62,5 +63,5 @@ class zone:
         """
         Provides the tooltip for this object
         """
-        tooltip_message = [f"Placeholder Zone Tooltip ({(self.coordinates)})"]
+        tooltip_message = [f"Placeholder Zone Tooltip ({self.x}, {self.y})"]
         return tooltip_message

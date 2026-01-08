@@ -607,6 +607,8 @@ class actor_display_label(labels.label):
                 )
                 + ": "
             )
+        elif self.actor_label_type == constants.ZONE_COORDINATES_LABEL:
+            self.message_start = "Coordinates: "
         else:
             self.message_start = (
                 utility.capitalize(
@@ -1103,6 +1105,19 @@ class actor_display_label(labels.label):
             elif self.actor_label_type == constants.COORDINATES_LABEL:
                 self.set_label(f"{self.message_start}({new_actor.x}, {new_actor.y})")
 
+            elif self.actor_label_type == constants.ZONE_COORDINATES_LABEL:
+                relative_x = round(
+                    new_actor.parent_location.x
+                    + (new_actor.x / constants.zone_grid_coordinate_size),
+                    1,
+                )
+                relative_y = round(
+                    new_actor.parent_location.y
+                    + (new_actor.y / constants.zone_grid_coordinate_size),
+                    1,
+                )
+                self.set_label(f"{self.message_start}({relative_x}, {relative_y})")
+
             elif self.actor_label_type == constants.TERRAIN_LABEL:
                 if not new_actor.is_abstract_location:
                     if self.actor.knowledge_available(constants.TERRAIN_KNOWLEDGE):
@@ -1183,7 +1198,9 @@ class actor_display_label(labels.label):
                             ):
                                 self.set_label("No movement")
                             elif new_actor.end_turn_destination:
-                                self.set_label(f"Traveling to {new_actor.end_turn_destination.name}")
+                                self.set_label(
+                                    f"Traveling to {new_actor.end_turn_destination.name}"
+                                )
                             else:
                                 self.set_label("Infinite movement")
                 else:
