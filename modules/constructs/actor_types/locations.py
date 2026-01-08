@@ -194,7 +194,13 @@ class location(actors.actor):
         """
         status.location_mode_focus = self
         status.focused_location_surface = drawing_utility.image_id_to_surface(
-            self.get_image_id_list(terrain_only=True, allow_clouds=True)
+            self.get_image_id_list(
+                terrain_only=True,
+                allow_clouds=not self.knowledge_available(
+                    constants.TERRAIN_KNOWLEDGE
+                ),  # Only show clouds in orbital view for focused tile, regardless of global settings
+                allow_ground_overlays=True,
+            )
         )
         status.focused_location_zone_grid.calibrate(self)
         status.focused_location_grid.calibrate(self)
@@ -213,7 +219,12 @@ class location(actors.actor):
                 % self.world_handler.world_dimensions,
                 (self.y + relative_coordinates[1])
                 % self.world_handler.world_dimensions,
-            ).get_image_id_list(terrain_only=True, allow_clouds=True)
+            ).get_image_id_list(
+                terrain_only=True,
+                allow_clouds=True,
+                allow_ground_overlays=True,
+                force_clouds=True,
+            )  # Always show clouds for adjacent tiles, regardless of global settings
 
             status.focused_location_adjacent_images[relative_coordinates[0] + 1][
                 relative_coordinates[1] + 1
@@ -1284,6 +1295,7 @@ class location(actors.actor):
         force_clouds=False,
         force_pixellated=False,
         allow_mapmodes=True,
+        allow_ground_overlays=True,
         allow_clouds=True,
     ):
         """
@@ -1315,7 +1327,7 @@ class location(actors.actor):
                         "detail_level": constants.TERRAIN_DETAIL_LEVEL,
                     }
                 )
-                if allow_clouds:
+                if allow_ground_overlays:
                     for terrain_overlay_image in self.get_overlay_images():
                         if type(terrain_overlay_image) == str:
                             terrain_overlay_image = {
