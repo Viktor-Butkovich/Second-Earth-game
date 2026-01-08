@@ -3,10 +3,11 @@
 from __future__ import annotations
 import pygame
 import itertools
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
 from modules.interface_components import cells, interface_elements
 from modules.util import utility
-from modules.constructs import world_handlers
+from modules.constructs import world_handlers, zones
+from modules.constructs.actor_types import locations
 from modules.constants import constants, status, flags
 
 
@@ -15,7 +16,7 @@ class grid(interface_elements.interface_element):
     Grid of cells of the same size with different positions based on the grid's size and the number of cells. Each cell contains various actors, terrain, and resources
     """
 
-    def __init__(self, input_dict: Dict[str, any]) -> None:
+    def __init__(self, input_dict: Dict[str, Any]) -> None:
         """
         Description:
             Initializes this object
@@ -50,6 +51,7 @@ class grid(interface_elements.interface_element):
         self.external_line_color: str = input_dict.get(
             "external_line_color", constants.COLOR_DARK_GRAY
         )
+        self.default_external_line_color: str = self.external_line_color
         cell_width, cell_height = self.get_cell_width(), self.get_cell_height()
         self.cell_list: List[cells.cell] = [
             [
@@ -98,7 +100,16 @@ class grid(interface_elements.interface_element):
             and self in status.displayed_location.world_handler.subscribed_grids
         ):
             for cell in status.displayed_location.subscribed_cells:
-                cell.draw_outline(constants.COLOR_WHITE)
+                if cell.grid.showing:
+                    cell.draw_outline(constants.COLOR_WHITE)
+        if self in status.zone_grid_list:
+            self.external_line_color = self.default_external_line_color
+            if status.displayed_zone:
+                self.cell_list[status.displayed_zone.coordinates[0]][
+                    status.displayed_zone.coordinates[1]
+                ].draw_outline(constants.COLOR_WHITE)
+            elif status.displayed_location:
+                self.external_line_color = constants.COLOR_WHITE
         if status.displayed_mob and (
             self in status.displayed_mob.location.world_handler.subscribed_grids
             or (
@@ -109,26 +120,31 @@ class grid(interface_elements.interface_element):
         ):
             if flags.show_selection_outlines:
                 for cell in status.displayed_location.subscribed_cells:
-                    cell.draw_outline(constants.COLOR_BRIGHT_GREEN)
+                    if cell.grid.showing:
+                        cell.draw_outline(constants.COLOR_BRIGHT_GREEN)
 
-                    if len(status.displayed_mob.base_automatic_route) > 0:
-                        start_coordinates = status.displayed_mob.base_automatic_route[0]
-                        end_coordinates = status.displayed_mob.base_automatic_route[-1]
-                        for (
-                            current_coordinates
-                        ) in status.displayed_mob.base_automatic_route:
-                            if current_coordinates == start_coordinates:
-                                color = constants.COLOR_PURPLE
-                            elif current_coordinates == end_coordinates:
-                                color = constants.COLOR_YELLOW
-                            else:
-                                color = constants.COLOR_BRIGHT_BLUE
+                        if len(status.displayed_mob.base_automatic_route) > 0:
+                            start_coordinates = (
+                                status.displayed_mob.base_automatic_route[0]
+                            )
+                            end_coordinates = status.displayed_mob.base_automatic_route[
+                                -1
+                            ]
                             for (
-                                automatic_route_cell
-                            ) in status.displayed_location.world_handler.find_location(
-                                current_coordinates[0], current_coordinates[1]
-                            ).subscribed_cells:
-                                automatic_route_cell.draw_outline(color)
+                                current_coordinates
+                            ) in status.displayed_mob.base_automatic_route:
+                                if current_coordinates == start_coordinates:
+                                    color = constants.COLOR_PURPLE
+                                elif current_coordinates == end_coordinates:
+                                    color = constants.COLOR_YELLOW
+                                else:
+                                    color = constants.COLOR_BRIGHT_BLUE
+                                for (
+                                    automatic_route_cell
+                                ) in status.displayed_location.world_handler.find_location(
+                                    current_coordinates[0], current_coordinates[1]
+                                ).subscribed_cells:
+                                    automatic_route_cell.draw_outline(color)
                 if status.displayed_mob.end_turn_destination:
                     for (
                         destination_cell
@@ -209,6 +225,69 @@ class grid(interface_elements.interface_element):
                     self.convert_coordinates(destination, reverse_y=True),
                     self.grid_line_width + 1,
                 )
+
+    def draw_grid_lines_map(self):
+        """
+        Draws lines between grid cells and on the outside of the grid for non-scrolling grids
+        """
+        left_x, down_y = (0, 0)
+        right_x, up_y = (self.coordinate_width, self.coordinate_height)
+        if self.show_internal_grid_lines:
+            for x in range(0, self.coordinate_width + 1):
+                pygame.draw.line(
+                    constants.game_display,
+                    constants.color_dict[self.internal_line_color],
+                    self.convert_coordinates((x, 0), reverse_y=True),
+                    self.convert_coordinates(
+                        (x, self.coordinate_height), reverse_y=True
+                    ),
+                    self.grid_line_width,
+                )
+
+            for y in range(0, self.coordinate_height + 1):
+                pygame.draw.line(
+                    constants.game_display,
+                    constants.color_dict[self.internal_line_color],
+                    self.convert_coordinates((0, y), reverse_y=True),
+                    self.convert_coordinates(
+                        (self.coordinate_width, y), reverse_y=True
+                    ),
+                    self.grid_line_width,
+                )
+
+        for y in range(0, self.coordinate_height + 1):
+            pygame.draw.line(
+                constants.game_display,
+                constants.color_dict[self.external_line_color],
+                self.convert_coordinates((left_x, down_y), reverse_y=True),
+                self.convert_coordinates((left_x, up_y), reverse_y=True),
+                self.grid_line_width + 1,
+            )
+
+        if self.show_external_grid_lines:
+            pygame.draw.line(
+                constants.game_display,
+                constants.color_dict[self.external_line_color],
+                self.convert_coordinates((left_x, up_y), reverse_y=True),
+                self.convert_coordinates((right_x, up_y), reverse_y=True),
+                self.grid_line_width + 1,
+            )
+
+            pygame.draw.line(
+                constants.game_display,
+                constants.color_dict[self.external_line_color],
+                self.convert_coordinates((right_x, up_y), reverse_y=True),
+                self.convert_coordinates((right_x, down_y), reverse_y=True),
+                self.grid_line_width + 1,
+            )
+
+            pygame.draw.line(
+                constants.game_display,
+                constants.color_dict[self.external_line_color],
+                self.convert_coordinates((right_x, down_y), reverse_y=True),
+                self.convert_coordinates((left_x, down_y), reverse_y=True),
+                self.grid_line_width + 1,
+            )
 
     def convert_coordinates(
         self, coordinates: Tuple[int, int], reverse_y: bool = False
@@ -342,7 +421,7 @@ class location_grid(grid):
     Grid of cells that correspond to world locations, which can contain terrain, units, buildings, etc.
     """
 
-    def __init__(self, input_dict: Dict[str, any]) -> None:
+    def __init__(self, input_dict: Dict[str, Any]) -> None:
         """
         Description:
             Initializes this object
@@ -426,7 +505,7 @@ class mini_grid(location_grid):
     Grid that zooms in on a small area of a larger attached grid, centered on a certain cell of the attached grid. Which cell is being centered on can be changed
     """
 
-    def __init__(self, input_dict: Dict[str, any]) -> None:
+    def __init__(self, input_dict: Dict[str, Any]) -> None:
         """
         Description:
             Initializes this object
@@ -577,65 +656,7 @@ class mini_grid(location_grid):
             ):
                 status.planet_view_mask.draw()
             return
-
-        left_x, down_y = (0, 0)
-        right_x, up_y = (self.coordinate_width, self.coordinate_height)
-        if self.show_internal_grid_lines:
-            for x in range(0, self.coordinate_width + 1):
-                pygame.draw.line(
-                    constants.game_display,
-                    constants.color_dict[self.internal_line_color],
-                    self.convert_coordinates((x, 0), reverse_y=True),
-                    self.convert_coordinates(
-                        (x, self.coordinate_height), reverse_y=True
-                    ),
-                    self.grid_line_width,
-                )
-
-            for y in range(0, self.coordinate_height + 1):
-                pygame.draw.line(
-                    constants.game_display,
-                    constants.color_dict[self.internal_line_color],
-                    self.convert_coordinates((0, y), reverse_y=True),
-                    self.convert_coordinates(
-                        (self.coordinate_width, y), reverse_y=True
-                    ),
-                    self.grid_line_width,
-                )
-
-        for y in range(0, self.coordinate_height + 1):
-            pygame.draw.line(
-                constants.game_display,
-                constants.color_dict[self.external_line_color],
-                self.convert_coordinates((left_x, down_y), reverse_y=True),
-                self.convert_coordinates((left_x, up_y), reverse_y=True),
-                self.grid_line_width + 1,
-            )
-
-        if self.show_external_grid_lines:
-            pygame.draw.line(
-                constants.game_display,
-                constants.color_dict[self.external_line_color],
-                self.convert_coordinates((left_x, up_y), reverse_y=True),
-                self.convert_coordinates((right_x, up_y), reverse_y=True),
-                self.grid_line_width + 1,
-            )
-
-            pygame.draw.line(
-                constants.game_display,
-                constants.color_dict[self.external_line_color],
-                self.convert_coordinates((right_x, up_y), reverse_y=True),
-                self.convert_coordinates((right_x, down_y), reverse_y=True),
-                self.grid_line_width + 1,
-            )
-
-            pygame.draw.line(
-                constants.game_display,
-                constants.color_dict[self.external_line_color],
-                self.convert_coordinates((right_x, down_y), reverse_y=True),
-                self.convert_coordinates((left_x, down_y), reverse_y=True),
-                self.grid_line_width + 1,
-            )
+        self.draw_grid_lines_map()
 
 
 class abstract_grid(location_grid):
@@ -643,7 +664,7 @@ class abstract_grid(location_grid):
     1-cell grid that is not directly connected to the primary strategic grid but can be moved to by mobs from the strategic grid and vice versa
     """
 
-    def __init__(self, input_dict: Dict[str, any]) -> None:
+    def __init__(self, input_dict: Dict[str, Any]) -> None:
         """
         Description:
             Initializes this object
@@ -672,3 +693,73 @@ class abstract_grid(location_grid):
     @property
     def is_abstract_grid(self) -> bool:
         return True
+
+    def calibrate(self, new_actor: locations.location) -> None:
+        """
+        Description:
+            Calibrates this grid's cells to the zones of the inputted location
+        Input:
+            location new_actor: Location to which this grid will calibrate
+        Output:
+            None
+        """
+        super().calibrate(new_actor)
+        new_actor.subscribe_cell(self.cell_list[0][0])
+
+
+class zone_grid(grid):
+    """
+    Grid that calibrates to a single location and displays that location's zones
+    """
+
+    def __init__(self, input_dict: Dict[str, Any]) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            dictionary input_dict: Keys corresponding to the values needed to initialize this object
+                Same as superclass
+        Output:
+            None
+        """
+        status.zone_grid_list.append(self)
+        super().__init__(input_dict)
+
+    def remove(self):
+        """
+        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
+        """
+        super().remove()
+        status.zone_grid_list = utility.remove_from_list(status.zone_grid_list, self)
+
+    @property
+    def show_internal_grid_lines(self) -> bool:
+        return True
+
+    @property
+    def show_external_grid_lines(self) -> bool:
+        return True
+
+    def calibrate(self, new_actor: locations.location) -> None:
+        """
+        Description:
+            Calibrates this grid's cells to the zones of the inputted location
+        Input:
+            location new_actor: Location to which this grid will calibrate
+        Output:
+            None
+        """
+        super().calibrate(new_actor)
+        for current_cell in self.get_flat_cell_list():
+            subscribed_zone: zones.zone = new_actor.zone_list[current_cell.grid_x][
+                current_cell.grid_y
+            ]
+            current_cell.subscribed_source = subscribed_zone
+            current_cell.set_image(subscribed_zone.get_image_id_list())
+
+    def draw_grid_lines(self) -> None:
+        """
+        Draws lines between grid cells and on the outside of the grid
+        """
+        super().draw_grid_lines()
+        self.draw_grid_lines_map()

@@ -2,7 +2,13 @@ from __future__ import annotations
 import random
 import math
 from typing import List, Dict, Any
-from modules.util import actor_utility, main_loop_utility, utility
+from modules.util import (
+    actor_utility,
+    main_loop_utility,
+    utility,
+    game_transitions,
+    drawing_utility,
+)
 from modules.constructs.actor_types import actors
 from modules.constructs import (
     world_handlers,
@@ -11,6 +17,7 @@ from modules.constructs import (
     plans,
     hosted_icons,
     terrain_types,
+    zones,
 )
 from modules.interface_components import cells
 from modules.constants import constants, status, flags
@@ -48,8 +55,16 @@ class location(actors.actor):
         }
         self.x: int = input_dict["coordinates"][0]
         self.y: int = input_dict["coordinates"][1]
+        self.zone_list: List[List[zones.zone]] = None
         if not self.world_handler.is_abstract_world:
             self.name = f"({self.x}, {self.y})"
+            self.zone_list = [
+                [
+                    zones.zone((x, y), self)
+                    for y in range(constants.zone_grid_coordinate_size)
+                ]
+                for x in range(constants.zone_grid_coordinate_size)
+            ]
         self.adjacent_list: List[location] = []
         self.adjacent_locations: Dict[str, location] = {}
         self.terrain_parameters: Dict[str, int] = input_dict.get(
@@ -172,6 +187,18 @@ class location(actors.actor):
         return (
             not self.infinite_inventory_capacity
         ) and self.get_inventory_used() > self.inventory_capacity
+
+    def focus_location(self) -> None:
+        """
+        Calibrates the location game mode to this location
+        """
+        status.location_mode_focus = self
+        status.focused_location_surface = drawing_utility.image_id_to_surface(
+            self.get_image_id_list(terrain_only=True, allow_clouds=True)
+        )
+        status.focused_location_zone_grid.calibrate(self)
+        status.focused_location_grid.calibrate(self)
+        game_transitions.set_game_mode(constants.LOCATION_MODE)
 
     def configure_event_subscriptions(self) -> None:
         """
@@ -1239,7 +1266,7 @@ class location(actors.actor):
     ):
         """
         Description:
-            Generates and returns a list this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
+            Generates and returns a list of this actor's image file paths and dictionaries that can be passed to any image object to display those images together in a particular order and
                 orientation
         Input:
             boolean terrain_only = False: Whether to just show terrain or other contents as well
@@ -1578,7 +1605,7 @@ class location(actors.actor):
         ]
 
     @property
-    def batch_tooltip_list(self):
+    def batch_tooltip_list(self) -> List[List[str]]:
         """
         Gets a 2D list of strings to use as this object's tooltip
             Each string is displayed on a separate line, while each sublist is displayed in a separate box
@@ -1588,7 +1615,7 @@ class location(actors.actor):
         )
 
     @property
-    def batch_tooltip_list_omit_mobs(self):
+    def batch_tooltip_list_omit_mobs(self) -> List[List[str]]:
         """
         Gets a 2D list of strings to use as this object's tooltip, omitting mobs
             Each string is displayed on a separate line, while each sublist is displayed in a separate box
@@ -1596,7 +1623,7 @@ class location(actors.actor):
         return [self.tooltip_text]
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

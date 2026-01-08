@@ -298,6 +298,8 @@ minimap_grid_pixel_width: int = 750  # strategic_map_pixel_width * 2
 minimap_grid_pixel_height: int = 750  # strategic_map_pixel_height * 2
 minimap_grid_coordinate_size: int = 7
 
+zone_grid_coordinate_size: int = 5
+
 default_text_box_height: int = 0
 text_box_height: int = 0
 
@@ -928,6 +930,7 @@ DIRECTIONAL_INDICATOR_IMAGE: str = "directional_indicator_image"
 TABLE_GRID: str = "table_grid"
 MINI_GRID: str = "mini_grid"
 ABSTRACT_GRID: str = "abstract_grid"
+ZONE_GRID: str = "zone_grid"
 
 NOTIFICATION: str = "notification"
 CHOICE_NOTIFICATION: str = "choice_notification"

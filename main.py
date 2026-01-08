@@ -496,7 +496,6 @@ except Exception:  # Displays error message and records error message in crash l
 #       Charts would likely go in a different tab - more general BI dashboard with different sub-tabs
 # Prevent minister retirement for the first several turns and gradually increase chance
 # Strengthen albedo effect - fully ice covered planet should have a notable albedo difference from normal
-# Add 5x5 building slot system
 # Allow building basic buildings like mines, farms, etc. with work crew functionality
 # Gradually incorporate event bus subscriptions rather than manual data binding for info displays, mob images
 # Add a refresh_actor_info_display function that acts as a simplified calibrate_actor_info_display

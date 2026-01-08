@@ -11,6 +11,7 @@ from modules.constructs.minister_types import minister_type
 from modules.constructs.terrain_feature_types import terrain_feature_type
 from modules.constructs.images import image, free_image, directional_indicator_image
 from modules.constructs.actor_types.locations import location
+from modules.constructs.zones import zone
 from modules.constructs.world_handler_types import (
     abstract_world_handler,
     full_world_handler,
@@ -22,7 +23,13 @@ from modules.interface_components.interface_elements import (
     autofill_collection,
 )
 from modules.interface_components.inventory_interface import inventory_grid
-from modules.interface_components.grids import grid, location_grid, mini_grid
+from modules.interface_components.grids import (
+    grid,
+    location_grid,
+    mini_grid,
+    zone_grid,
+    abstract_grid,
+)
 from modules.interface_components.panels import safe_click_panel
 from modules.interface_components.notifications import notification
 from modules.interface_components.buttons import (
@@ -54,6 +61,8 @@ from modules.constructs.effects import effect
 
 scrolling_strategic_map_grid: mini_grid = None
 minimap_grid: mini_grid = None
+focused_location_zone_grid: grid = None
+focused_location_grid: abstract_grid = None
 planet_view_mask: free_image = None
 current_just_appointed_minister: minister = None
 supply_chain_table: table_grid = None
@@ -69,11 +78,12 @@ displayed_minister: minister = None
 displayed_defense: minister = None
 displayed_prosecution: minister = None
 displayed_notification: notification = None
-displayed_zone = None
+displayed_zone: zone = None
 
 cached_images: Dict[str, pygame.Surface] = {}
-globe_projection_image: free_image = None
+dummy_surface_image: free_image = None
 globe_projection_surface: pygame.Surface = None
+focused_location_surface: pygame.Surface = None
 to_strategic_button: switch_game_mode_button = None
 to_earth_button: switch_game_mode_button = None
 
@@ -92,6 +102,7 @@ terrain_feature_types: Dict[str, terrain_feature_type] = {}
 flag_icon_list: List[button] = []
 grid_list: List[grid] = []
 location_grid_list: List[location_grid] = []
+zone_grid_list: List[zone_grid] = []
 world_list: List[world_handler] = []
 text_list: List[str] = []
 free_image_list: List[free_image] = []

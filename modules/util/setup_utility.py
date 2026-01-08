@@ -1561,14 +1561,14 @@ def buttons() -> None:
         scaling.scale_height(constants.earth_grid_y_offset) + status.grids_collection.y
     )
     globe_projection_size = constants.earth_grid_width * 0.85
-    status.globe_projection_image = (
+    status.dummy_surface_image = (
         constants.ActorCreationManager.create_interface_element(
             {
                 "coordinates": (globe_projection_x, globe_projection_y),
                 "init_type": constants.FREE_IMAGE,
                 "modes": [],
-                "width": scaling.scale_width(globe_projection_size),
-                "height": scaling.scale_height(globe_projection_size),
+                "width": scaling.scale_width(1000),
+                "height": scaling.scale_height(1000), # Sufficient to retain surface detail - does not seem to have a performance impact
                 "image_id": "misc/empty.png",
                 "pixellate_image": True,
             }
@@ -2818,6 +2818,17 @@ def zone_interface() -> None:
                 "member_config": {"order_exempt": True},
             }
         )
+    )
+
+    zone_icon = constants.ActorCreationManager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(0, 0),
+            "actor_type": constants.ZONE_ACTOR_TYPE,
+            "width": scaling.scale_width(constants.actor_icon_dimensions),
+            "height": scaling.scale_height(constants.actor_icon_dimensions),
+            "init_type": constants.ACTOR_ICON,
+            "parent_collection": status.zone_info_display,
+        }
     )
 
 

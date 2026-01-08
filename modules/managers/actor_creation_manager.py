@@ -274,6 +274,7 @@ class actor_creation_manager:
             constants.TABLE_GRID: tables.table_grid,
             constants.MINI_GRID: grids.mini_grid,
             constants.ABSTRACT_GRID: grids.abstract_grid,
+            constants.ZONE_GRID: grids.zone_grid,
             constants.HOSTED_ICON: hosted_icons.hosted_icon,
         }
 

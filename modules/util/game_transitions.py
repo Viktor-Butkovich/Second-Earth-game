@@ -227,6 +227,7 @@ def to_main_menu(override=False):
     if constants.EffectManager.effect_active("debug_dangling_interface"):
         interface_to_remove = (
             status.location_grid_list
+            + status.zone_grid_list
             + status.world_list
             + status.minister_list
             + status.dice_list
@@ -319,24 +320,22 @@ def create_grids() -> None:
         )
     )
 
-    status.minimap_grid = constants.strategic_map_grid = (
-        constants.ActorCreationManager.create_interface_element(
-            input_dict={
-                "init_type": constants.MINI_GRID,
-                "world_handler": status.current_world,
-                "coordinates": scaling.scale_coordinates(
-                    constants.minimap_grid_x_offset,
-                    -1 * (constants.minimap_grid_pixel_height + 25)
-                    + constants.minimap_grid_y_offset,
-                ),
-                "width": scaling.scale_width(constants.minimap_grid_pixel_width),
-                "height": scaling.scale_height(constants.minimap_grid_pixel_height),
-                "modes": [constants.STRATEGIC_MODE],
-                "coordinate_size": constants.minimap_grid_coordinate_size,
-                "external_line_color": constants.COLOR_BRIGHT_RED,
-                "parent_collection": status.grids_collection,
-            }
-        )
+    status.minimap_grid = constants.ActorCreationManager.create_interface_element(
+        input_dict={
+            "init_type": constants.MINI_GRID,
+            "world_handler": status.current_world,
+            "coordinates": scaling.scale_coordinates(
+                constants.minimap_grid_x_offset,
+                -1 * (constants.minimap_grid_pixel_height + 25)
+                + constants.minimap_grid_y_offset,
+            ),
+            "width": scaling.scale_width(constants.minimap_grid_pixel_width),
+            "height": scaling.scale_height(constants.minimap_grid_pixel_height),
+            "modes": [constants.STRATEGIC_MODE],
+            "coordinate_size": constants.minimap_grid_coordinate_size,
+            "external_line_color": constants.COLOR_BRIGHT_RED,
+            "parent_collection": status.grids_collection,
+        }
     )
 
     globe_projection_grid = constants.ActorCreationManager.create_interface_element(
@@ -373,4 +372,33 @@ def create_grids() -> None:
         status.current_world,
         round(0.75 * status.current_world.world_dimensions),
         round(0.75 * status.current_world.world_dimensions),
+    )
+
+    status.focused_location_zone_grid = (
+        constants.ActorCreationManager.create_interface_element(
+            input_dict={
+                "init_type": constants.ZONE_GRID,
+                "coordinates": scaling.scale_coordinates(1000, 300),
+                "width": scaling.scale_width(500),
+                "height": scaling.scale_height(500),
+                "modes": [constants.LOCATION_MODE],
+                "coordinate_size": constants.zone_grid_coordinate_size,
+            }
+        )
+    )
+
+    status.focused_location_grid = (
+        constants.ActorCreationManager.create_interface_element(
+            input_dict={
+                "init_type": constants.ABSTRACT_GRID,
+                "world_handler": status.current_world,
+                "coordinates": scaling.scale_coordinates(
+                    850,
+                    300,
+                ),
+                "width": scaling.scale_width(constants.earth_grid_width),
+                "height": scaling.scale_height(constants.earth_grid_height),
+                "modes": [constants.LOCATION_MODE],
+            }
+        )
     )

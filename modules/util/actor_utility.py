@@ -111,6 +111,13 @@ def calibrate_actor_info_display(
     """
     if flags.loading:
         return
+
+    if info_display == status.location_info_display and status.displayed_zone:
+        calibrate_actor_info_display(status.zone_info_display, None)
+    elif info_display == status.zone_info_display and status.displayed_location:
+        calibrate_actor_info_display(status.location_info_display, None)
+    # Selecting location and zone are mutually exclusive
+
     if info_display == status.location_info_display:
         changed_displayed_location = new_actor != status.displayed_location
         if changed_displayed_location:
@@ -778,7 +785,8 @@ def line_item_amount_dict(item_dict: Dict[str, float]) -> str:
 
 def calibrate_minimap_grids(world_handler: Any, x: int, y: int) -> None:
     for current_grid in world_handler.subscribed_grids:
-        current_grid.calibrate(x, y)
+        if not current_grid.is_abstract_grid:
+            current_grid.calibrate(x, y)
 
 
 def focus_minimap_grids(location: locations.location) -> None:

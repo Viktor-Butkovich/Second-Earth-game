@@ -949,21 +949,26 @@ def click_move_minimap(select_unit: bool = True):
         actor_utility.calibrate_actor_info_display(
             status.mob_info_display, None, override_exempt=True
         )
-    for (
-        current_grid
-    ) in status.location_grid_list:  # If grid clicked, move minimap to location clicked
+    for current_grid in (
+        status.location_grid_list + status.zone_grid_list
+    ):  # If grid clicked, move minimap to location clicked
         if current_grid.showing:
             for current_cell in current_grid.get_flat_cell_list():
                 if current_cell.touching_mouse():
-                    current_location = current_cell.source
-                    if select_unit and current_location.subscribed_mobs:
-                        current_location.subscribed_mobs[0].select()
-                        status.displayed_mob.selection_sound()
-                    else:
+                    current_source = current_cell.source
+                    if current_source.actor_type == constants.ZONE_ACTOR_TYPE:
                         actor_utility.calibrate_actor_info_display(
-                            status.location_info_display, current_location
+                            status.zone_info_display, current_source
                         )
-                    actor_utility.focus_minimap_grids(current_location)
+                    else:
+                        if select_unit and current_source.subscribed_mobs:
+                            current_source.subscribed_mobs[0].select()
+                            status.displayed_mob.selection_sound()
+                        else:
+                            actor_utility.calibrate_actor_info_display(
+                                status.location_info_display, current_source
+                            )
+                        actor_utility.focus_minimap_grids(current_source)
                     return
 
 

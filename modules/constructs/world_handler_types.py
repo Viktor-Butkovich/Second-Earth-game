@@ -4,7 +4,7 @@ import math
 import random
 import time
 from typing import List, Dict, Tuple, Any
-from modules.util import actor_utility, world_utility, utility
+from modules.util import actor_utility, world_utility, utility, drawing_utility
 from modules.constructs import world_handlers
 from modules.constants import constants, status, flags
 
@@ -1410,8 +1410,12 @@ class full_world_handler(world_handlers.world_handler):
         Creates random cloud images for each location, with frequency depending on water vapor
             Purely cosmetic
         """
-        num_cloud_variants = constants.TerrainManager.terrain_type_dict["clouds_solid"].num_variants
-        num_solid_cloud_variants = constants.TerrainManager.terrain_type_dict["clouds_solid"].num_variants
+        num_cloud_variants = constants.TerrainManager.terrain_type_dict[
+            "clouds_solid"
+        ].num_variants
+        num_solid_cloud_variants = constants.TerrainManager.terrain_type_dict[
+            "clouds_solid"
+        ].num_variants
         for location in self.get_flat_location_list():
             location.update_clouds(num_cloud_variants, num_solid_cloud_variants)
 
@@ -1723,10 +1727,9 @@ class full_world_handler(world_handlers.world_handler):
         Output:
             None
         """
-        status.globe_projection_image.set_image(
+        status.globe_projection_surface = drawing_utility.image_id_to_surface(
             self.create_planet_image(center_coordinates)
         )
-        status.globe_projection_surface = status.globe_projection_image.image
         size = status.globe_projection_surface.get_size()
         status.globe_projection_surface = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
             status.globe_projection_surface,

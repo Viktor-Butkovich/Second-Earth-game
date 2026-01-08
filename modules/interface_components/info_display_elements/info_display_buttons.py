@@ -1871,6 +1871,7 @@ class actor_icon(buttons.button):
                 constants.MOB_ACTOR_TYPE: "unit",
                 constants.LOCATION_ACTOR_TYPE: "location",
                 constants.MINISTER_ACTOR_TYPE: "minister",
+                constants.ZONE_ACTOR_TYPE: "zone",
             }
             text_utility.print_to_screen(
                 f"You are busy and cannot select this {conversion[self.actor.actor_type]}."
@@ -1898,10 +1899,13 @@ class actor_icon(buttons.button):
                     self.actor.selection_sound()
             else:  # If already existing, simply select unit
                 self.actor.cycle_select()
-        elif self.actor.actor_type == constants.LOCATION_ACTOR_TYPE:
+        elif self.actor.actor_type in [
+            constants.LOCATION_ACTOR_TYPE,
+            constants.ZONE_ACTOR_TYPE,
+        ]:
             actor_utility.calibrate_actor_info_display(
                 status.mob_info_display, None
-            )  # Focus on location info display when clicked
+            )  # Focus solely on location/zone info display when clicked
         elif self.actor_type == constants.MINISTER_ACTOR_TYPE:
             if constants.current_game_mode != constants.TRIAL_MODE:
                 selected_minister = (
@@ -2013,6 +2017,15 @@ class actor_icon(buttons.button):
                 constants.LOCATION_INVENTORY_ACTOR_TYPE,
             ]:
                 image_id_list = self.actor.image.image_id
+            elif self.actor.actor_type == constants.ZONE_ACTOR_TYPE:
+                image_id_list += self.actor.get_image_id_list()
+                image_id_list.append(
+                    {
+                        "image_id": "misc/location_outline.png",
+                        "detail_level": 1.0,
+                        "level": constants.FRONT_LEVEL,
+                    }
+                )
             else:
                 raise ValueError(f"Unexpected actor type: {self.actor.actor_type}")
         if not image_id_list:

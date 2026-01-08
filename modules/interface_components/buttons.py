@@ -1212,8 +1212,7 @@ class button(interface_elements.interface_element):
                 )
 
         elif self.button_type == constants.FOCUS_LOCATION_BUTTON:
-            game_transitions.set_game_mode(constants.LOCATION_MODE)
-            status.location_mode_focus = status.displayed_location
+            status.displayed_location.focus_location()
 
         elif self.button_type == constants.UNFOCUS_LOCATION_BUTTON:
             game_transitions.set_game_mode(constants.STRATEGIC_MODE)
