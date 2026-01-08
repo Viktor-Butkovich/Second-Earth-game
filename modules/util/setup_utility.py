@@ -231,7 +231,6 @@ def misc() -> None:
                     constants.EARTH_MODE,
                     constants.TRIAL_MODE,
                     constants.NEW_GAME_SETUP_MODE,
-                    constants.LOCATION_MODE,
                 ],
                 "init_type": constants.BACKGROUND_IMAGE,
             }
@@ -275,11 +274,54 @@ def misc() -> None:
                 constants.EARTH_MODE,
                 constants.MINISTERS_MODE,
                 constants.NEW_GAME_SETUP_MODE,
-                constants.LOCATION_MODE,
+                # constants.LOCATION_MODE,
             ],
-            "image_id": "misc/empty.png",  # make a good image for this
+            "image_id": "misc/empty.png",
             "init_type": constants.SAFE_CLICK_PANEL_ELEMENT,
         }
+    )
+
+    for relative_coordinates in [
+        (-1, -1),
+        (0, -1),
+        (1, -1),
+        (-1, 0),
+        (1, 0),
+        (-1, 1),
+        (0, 1),
+        (1, 1),
+    ]:
+        status.focused_location_adjacent_images[relative_coordinates[0] + 1][
+            relative_coordinates[1] + 1
+        ] = constants.ActorCreationManager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(
+                    constants.zone_grid_x
+                    + ((constants.zone_grid_pixel_width - 1) * relative_coordinates[0]),
+                    constants.zone_grid_y
+                    + (
+                        (constants.zone_grid_pixel_height - 1) * relative_coordinates[1]
+                    ),
+                ),
+                "image_id": "misc/empty.png",
+                "modes": [constants.LOCATION_MODE],
+                "width": scaling.scale_width(constants.zone_grid_pixel_width),
+                "height": scaling.scale_height(constants.zone_grid_pixel_height),
+                "init_type": constants.FREE_IMAGE,
+            }
+        )
+    location_mode_safe_click_area = (
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "width": constants.display_width / 2 + 25,
+                "height": constants.display_height,
+                "modes": [
+                    constants.LOCATION_MODE,
+                ],
+                "image_id": "misc/safe_click_area.png",
+                "init_type": constants.SAFE_CLICK_PANEL_ELEMENT,
+            }
+        )
     )
     # safe click area has empty image but is managed with panel to create correct behavior - its intended image is in the background image's bundle to blit more efficiently
 
@@ -1561,18 +1603,18 @@ def buttons() -> None:
         scaling.scale_height(constants.earth_grid_y_offset) + status.grids_collection.y
     )
     globe_projection_size = constants.earth_grid_width * 0.85
-    status.dummy_surface_image = (
-        constants.ActorCreationManager.create_interface_element(
-            {
-                "coordinates": (globe_projection_x, globe_projection_y),
-                "init_type": constants.FREE_IMAGE,
-                "modes": [],
-                "width": scaling.scale_width(1000),
-                "height": scaling.scale_height(1000), # Sufficient to retain surface detail - does not seem to have a performance impact
-                "image_id": "misc/empty.png",
-                "pixellate_image": True,
-            }
-        )
+    status.dummy_surface_image = constants.ActorCreationManager.create_interface_element(
+        {
+            "coordinates": (globe_projection_x, globe_projection_y),
+            "init_type": constants.FREE_IMAGE,
+            "modes": [],
+            "width": scaling.scale_width(1000),
+            "height": scaling.scale_height(
+                1000
+            ),  # Sufficient to retain surface detail - does not seem to have a performance impact
+            "image_id": "misc/empty.png",
+            "pixellate_image": True,
+        }
     )
     compass_overlay_size = 15
     north_overlay = constants.ActorCreationManager.create_interface_element(
@@ -1707,25 +1749,27 @@ def buttons() -> None:
         }
     )
 
-    lhs_menu_collection = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(
-                5, constants.default_display_height - 55
-            ),
-            "width": 10,
-            "height": 10,
-            "modes": [
-                constants.STRATEGIC_MODE,
-                constants.EARTH_MODE,
-                constants.MINISTERS_MODE,
-                constants.NEW_GAME_SETUP_MODE,
-                constants.LOCATION_MODE,
-            ],
-            "init_type": constants.ORDERED_COLLECTION,
-            "member_config": {"order_exempt": True},
-            "separation": 5,
-            "direction": "horizontal",
-        }
+    status.lhs_menu_collection = (
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(
+                    5, constants.default_display_height - 55
+                ),
+                "width": 10,
+                "height": 10,
+                "modes": [
+                    constants.STRATEGIC_MODE,
+                    constants.EARTH_MODE,
+                    constants.MINISTERS_MODE,
+                    constants.NEW_GAME_SETUP_MODE,
+                    constants.LOCATION_MODE,
+                ],
+                "init_type": constants.ORDERED_COLLECTION,
+                "member_config": {"order_exempt": True},
+                "separation": 5,
+                "direction": "horizontal",
+            }
+        )
     )
 
     input_dict["coordinates"] = scaling.scale_coordinates(
@@ -1757,7 +1801,7 @@ def buttons() -> None:
     new_game_setup_to_main_menu_button = (
         constants.ActorCreationManager.create_interface_element(input_dict)
     )
-    lhs_menu_collection.add_member(new_game_setup_to_main_menu_button)
+    status.lhs_menu_collection.add_member(new_game_setup_to_main_menu_button)
 
     input_dict = {
         "coordinates": scaling.scale_coordinates(
@@ -1923,7 +1967,7 @@ def buttons() -> None:
     cycle_units_button = constants.ActorCreationManager.create_interface_element(
         input_dict
     )
-    lhs_menu_collection.add_member(cycle_units_button)
+    status.lhs_menu_collection.add_member(cycle_units_button)
     del input_dict["keybind_id"]
 
     if not constants.EffectManager.effect_active("hide_old_buttons"):
@@ -1941,7 +1985,7 @@ def buttons() -> None:
         wake_up_all_button = constants.ActorCreationManager.create_interface_element(
             input_dict
         )
-        lhs_menu_collection.add_member(wake_up_all_button)
+        status.lhs_menu_collection.add_member(wake_up_all_button)
 
         input_dict["coordinates"] = (
             scaling.scale_width(220),
@@ -1952,7 +1996,7 @@ def buttons() -> None:
         execute_movement_routes_button = (
             constants.ActorCreationManager.create_interface_element(input_dict)
         )
-        lhs_menu_collection.add_member(execute_movement_routes_button)
+        status.lhs_menu_collection.add_member(execute_movement_routes_button)
 
     input_dict["coordinates"] = scaling.scale_coordinates(
         constants.default_display_width - 55, constants.default_display_height - 55
@@ -2806,16 +2850,16 @@ def zone_interface() -> None:
     free_unfocus_location_button = (
         constants.ActorCreationManager.create_interface_element(
             {
-                "coordinates": scaling.scale_coordinates(200, -300),
-                "width": scaling.scale_width(200),
-                "height": scaling.scale_height(200),
+                "coordinates": scaling.scale_coordinates(
+                    750 - (5 + constants.earth_grid_width), 10
+                ),
+                "width": scaling.scale_width(constants.earth_grid_width),
+                "height": scaling.scale_height(constants.earth_grid_width),
                 "image_id": actor_utility.generate_frame(
                     "buttons/unmagnify_button.png"
                 ),
                 "init_type": constants.UNFOCUS_LOCATION_BUTTON,
                 "modes": [constants.LOCATION_MODE],
-                "parent_collection": status.info_displays_collection,
-                "member_config": {"order_exempt": True},
             }
         )
     )

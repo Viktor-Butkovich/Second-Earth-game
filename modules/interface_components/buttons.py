@@ -1324,12 +1324,6 @@ class button(interface_elements.interface_element):
             elif self.button_type == constants.FOCUS_LOCATION_BUTTON:
                 return not status.displayed_location.world_handler.is_abstract_world
                 # Only show if on the planetary surface
-            elif self.button_type == constants.UNFOCUS_LOCATION_BUTTON:
-                return (self.parent_collection == status.location_info_display) or (
-                    status.displayed_location is None and status.displayed_zone is None
-                )
-                # Return True if attached to the location info display
-                # If not attached to any info display, only show if no location or zone is selected
             return True
         return False
 

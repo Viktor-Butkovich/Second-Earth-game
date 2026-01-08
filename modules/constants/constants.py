@@ -299,6 +299,10 @@ minimap_grid_pixel_height: int = 750  # strategic_map_pixel_height * 2
 minimap_grid_coordinate_size: int = 7
 
 zone_grid_coordinate_size: int = 5
+zone_grid_x: int = 1100
+zone_grid_y: int = 300
+zone_grid_pixel_width: int = 400
+zone_grid_pixel_height: int = 400
 
 default_text_box_height: int = 0
 text_box_height: int = 0

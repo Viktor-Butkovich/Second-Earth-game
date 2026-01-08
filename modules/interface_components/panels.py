@@ -1,7 +1,7 @@
 # Contains functionality for panels
 
 from __future__ import annotations
-from modules.util import actor_utility
+from modules.util import actor_utility, main_loop_utility
 from modules.interface_components.buttons import button
 from modules.constants import constants, status, flags
 
@@ -80,10 +80,19 @@ class safe_click_panel(panel):
             or constants.current_game_mode == constants.LOCATION_MODE
         )
 
-    def on_click(self):
+    def on_click(self) -> None:
+        if status.focused_location_grid.cell_list[0][0].touching_mouse():
+            main_loop_utility.manage_lmb_down(clicked_button=False)
+            return
         actor_utility.calibrate_actor_info_display(
             status.mob_inventory_info_display, None
         )
         actor_utility.calibrate_actor_info_display(
             status.location_inventory_info_display, None
         )
+
+    def on_rmb_click(self) -> None:
+        if status.focused_location_grid.cell_list[0][0].touching_mouse():
+            main_loop_utility.manage_rmb_down(clicked_button=False)
+            return
+        super().on_rmb_click()

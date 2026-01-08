@@ -198,6 +198,28 @@ class location(actors.actor):
         )
         status.focused_location_zone_grid.calibrate(self)
         status.focused_location_grid.calibrate(self)
+        for relative_coordinates in [
+            (-1, -1),
+            (0, -1),
+            (1, -1),
+            (-1, 0),
+            (1, 0),
+            (-1, 1),
+            (0, 1),
+            (1, 1),
+        ]:
+            relative_image = self.world_handler.find_location(
+                (self.x + relative_coordinates[0])
+                % self.world_handler.world_dimensions,
+                (self.y + relative_coordinates[1])
+                % self.world_handler.world_dimensions,
+            ).get_image_id_list(terrain_only=True, allow_clouds=True)
+
+            status.focused_location_adjacent_images[relative_coordinates[0] + 1][
+                relative_coordinates[1] + 1
+            ].set_image(
+                [{"image_id": drawing_utility.image_id_to_surface(relative_image)}]
+            )
         game_transitions.set_game_mode(constants.LOCATION_MODE)
 
     def configure_event_subscriptions(self) -> None:

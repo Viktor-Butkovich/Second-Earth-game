@@ -238,6 +238,8 @@ def to_main_menu(override=False):
         )
     for current_grid in status.location_grid_list.copy():
         current_grid.remove()
+    for current_grid in status.zone_grid_list.copy():
+        current_grid.remove()
     for current_world in status.world_list.copy():
         current_world.remove()
     for current_minister in status.minister_list.copy():
@@ -378,11 +380,14 @@ def create_grids() -> None:
         constants.ActorCreationManager.create_interface_element(
             input_dict={
                 "init_type": constants.ZONE_GRID,
-                "coordinates": scaling.scale_coordinates(1000, 300),
-                "width": scaling.scale_width(500),
-                "height": scaling.scale_height(500),
+                "coordinates": scaling.scale_coordinates(
+                    constants.zone_grid_x, constants.zone_grid_y
+                ),
+                "width": scaling.scale_width(constants.zone_grid_pixel_width),
+                "height": scaling.scale_height(constants.zone_grid_pixel_height),
                 "modes": [constants.LOCATION_MODE],
                 "coordinate_size": constants.zone_grid_coordinate_size,
+                "external_line_color": constants.COLOR_BRIGHT_RED,
             }
         )
     )
@@ -393,12 +398,13 @@ def create_grids() -> None:
                 "init_type": constants.ABSTRACT_GRID,
                 "world_handler": status.current_world,
                 "coordinates": scaling.scale_coordinates(
-                    850,
-                    300,
+                    750,
+                    10,
                 ),
                 "width": scaling.scale_width(constants.earth_grid_width),
                 "height": scaling.scale_height(constants.earth_grid_height),
                 "modes": [constants.LOCATION_MODE],
+                "external_line_color": constants.COLOR_BRIGHT_RED,
             }
         )
     )

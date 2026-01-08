@@ -53,7 +53,7 @@ class grid(interface_elements.interface_element):
         )
         self.default_external_line_color: str = self.external_line_color
         cell_width, cell_height = self.get_cell_width(), self.get_cell_height()
-        self.cell_list: List[cells.cell] = [
+        self.cell_list: List[List[cells.cell]] = [
             [
                 constants.ActorCreationManager.create_interface_element(
                     {

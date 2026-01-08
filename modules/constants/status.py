@@ -124,6 +124,9 @@ draw_list: List[Any] = []
 same_location_icon_list: List[same_location_icon] = []
 directional_indicator_image_list: List[directional_indicator_image] = []
 logistics_incident_list: List[Dict[str, Any]] = []
+focused_location_adjacent_images: List[free_image] = [
+    [None for _ in range(3)] for _ in range(3)
+]
 
 loading_image: image = None
 loading_screen_quote_banner: multi_line_label = None
@@ -152,6 +155,7 @@ settlement_collection: ordered_collection = None
 local_conditions_collection: ordered_collection = None
 global_conditions_collection: ordered_collection = None
 temperature_breakdown_collection: ordered_collection = None
+lhs_menu_collection: ordered_collection = None
 supply_chain_collection: ordered_collection = None
 item_prices_label: item_prices_label_template = None
 reorganize_group_left_button: reorganize_unit_button = None
