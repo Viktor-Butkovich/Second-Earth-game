@@ -96,6 +96,13 @@ def main_loop():
                                 constants.message += constants.lowercase_key_values[
                                     constants.key_codes.index(event.key)
                                 ]
+                        if constants.fonts[constants.DEFAULT_FONT].calculate_size(
+                            f"Response: {constants.message}"
+                        ) > scaling.scale_width(constants.DEFAULT_TEXT_BOX_WIDTH):
+                            constants.message = constants.message[:-1]
+                            text_utility.print_to_screen(
+                                f"Maximum input length reached."
+                            )
                     locked = True
 
                 case pygame.KEYUP:
@@ -628,7 +635,6 @@ def draw_text_box():
     Output:
         None
     """
-    greatest_width = scaling.scale_width(300)
 
     if flags.expand_text_box:
         constants.text_box_height = scaling.scale_height(
@@ -640,20 +646,8 @@ def draw_text_box():
     font = constants.fonts[constants.DEFAULT_FONT]
     max_screen_lines = (constants.default_display_height // font.size) - 1
     max_text_box_lines = (constants.text_box_height // font.size) - 1
-    for text_index in range(len(status.text_list)):
-        if text_index < max_text_box_lines:
-            greatest_width = max(
-                greatest_width, font.calculate_size(status.text_list[-text_index - 1])
-            )
-    if constants.InputManager.taking_input:
-        greatest_width = max(
-            font.calculate_size("Response: " + constants.message), greatest_width
-        )  # manages width of user input
-    else:
-        greatest_width = max(
-            font.calculate_size(constants.message), greatest_width
-        )  # manages width of user input
-    text_box_width = greatest_width + scaling.scale_width(10)
+    max_text_width = scaling.scale_width(constants.DEFAULT_TEXT_BOX_WIDTH)
+    text_box_width = max_text_width + scaling.scale_width(10)
     x, y = (0, constants.display_height - constants.text_box_height)
     pygame.draw.rect(
         constants.game_display,

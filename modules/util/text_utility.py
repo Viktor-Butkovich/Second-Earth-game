@@ -41,7 +41,7 @@ def manage_text_list(text_list, max_length):
     return text_list
 
 
-def print_to_screen(input_message):
+def print_to_screen(input_message: str):
     """
     Description:
         Adds the inputted message to the bottom of the text box
@@ -50,7 +50,20 @@ def print_to_screen(input_message):
     Output:
         None
     """
-    status.text_list.append(input_message)
+    font = constants.fonts[constants.DEFAULT_FONT]
+    current_word = ""
+    current_line = ""
+    for index in range(len(input_message)):
+        current_word += input_message[index]
+        if input_message[index] == " " or index == len(input_message) - 1:
+            if font.calculate_size(current_line + current_word) > scaling.scale_width(
+                constants.DEFAULT_TEXT_BOX_WIDTH
+            ):
+                status.text_list.append(current_line)
+                current_line = f"    "
+            current_line += current_word
+            current_word = ""
+    status.text_list.append(current_line)
 
 
 def print_to_previous_message(message):

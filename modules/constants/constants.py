@@ -305,6 +305,7 @@ zone_grid_pixel_width: int = 400
 zone_grid_pixel_height: int = 400
 
 default_text_box_height: int = 0
+DEFAULT_TEXT_BOX_WIDTH: int = 500
 text_box_height: int = 0
 
 mob_ordered_list_start_y: int = 0
