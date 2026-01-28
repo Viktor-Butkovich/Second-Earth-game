@@ -936,13 +936,6 @@ def click_move_minimap(select_unit: bool = True):
     Output:
         None
     """
-    if select_unit:
-        actor_utility.calibrate_actor_info_display(
-            status.location_info_display, None, override_exempt=True
-        )
-        actor_utility.calibrate_actor_info_display(
-            status.mob_info_display, None, override_exempt=True
-        )
     for current_grid in (
         status.location_grid_list + status.zone_grid_list
     ):  # If grid clicked, move minimap to location clicked
@@ -950,12 +943,37 @@ def click_move_minimap(select_unit: bool = True):
             for current_cell in current_grid.get_flat_cell_list():
                 if current_cell.touching_mouse():
                     current_source = current_cell.source
+
                     if current_source.actor_type == constants.ZONE_ACTOR_TYPE:
                         actor_utility.calibrate_actor_info_display(
                             status.zone_info_display, current_source
                         )
-                    else:
+                    elif current_source.actor_type == constants.LOCATION_ACTOR_TYPE:
+                        if (
+                            status.displayed_mob
+                            and status.displayed_mob.location != current_source
+                        ):
+                            actor_utility.calibrate_actor_info_display(
+                                status.mob_info_display, None, override_exempt=True
+                            )
                         if select_unit and current_source.subscribed_mobs:
+                            if (
+                                status.displayed_zone
+                                and current_source.subscribed_mobs[0]
+                                == status.displayed_mob
+                            ):
+                                actor_utility.calibrate_actor_info_display(
+                                    status.location_info_display,
+                                    current_source,
+                                )
+                                """
+                                When on the zone game mode and clicking on the location cell:
+                                    If nothing is selected, select the mob and the location
+                                    If a zone is selected but a different mob/no mob is selected, select the mob
+                                    If a zone is selected and the same mob is selected, select the location instead
+                                        This has the effect that clicking on a zone then the mob selects both, but
+                                        double-clicking once the mob is already selected would select the location again
+                                """
                             current_source.subscribed_mobs[0].select()
                             status.displayed_mob.selection_sound()
                         else:
@@ -964,6 +982,16 @@ def click_move_minimap(select_unit: bool = True):
                             )
                         actor_utility.focus_minimap_grids(current_source)
                     return
+    actor_utility.calibrate_actor_info_display(
+        status.location_info_display, None, override_exempt=True
+    )
+    actor_utility.calibrate_actor_info_display(
+        status.mob_info_display, None, override_exempt=True
+    )
+    actor_utility.calibrate_actor_info_display(
+        status.zone_info_display, None, override_exempt=True
+    )
+    # If nothing was selected, deselect mob, location, and zone
 
 
 def debug_print():

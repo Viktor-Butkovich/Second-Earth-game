@@ -94,6 +94,43 @@ def update_roads():
             current_building.location.update_image_bundle()
 
 
+def skip_calibrate(
+    info_display: interface_elements.interface_element,
+    new_actor: actors.actor,
+) -> bool:
+    skip = False
+    if new_actor == None:
+        if (
+            info_display == status.location_info_display
+            and not status.displayed_location
+        ):
+            skip = True
+        elif info_display == status.mob_info_display and not status.displayed_mob:
+            skip = True
+        elif (
+            info_display == status.location_inventory_info_display
+            and not status.displayed_location_inventory
+        ):
+            skip = True
+        elif (
+            info_display == status.mob_inventory_info_display
+            and not status.displayed_mob_inventory
+        ):
+            skip = True
+        elif info_display == status.zone_info_display and not status.displayed_zone:
+            skip = True
+        elif (
+            info_display == status.prosecution_info_display
+            and not status.displayed_prosecution
+        ):
+            skip = True
+        elif (
+            info_display == status.defense_info_display and not status.displayed_defense
+        ):
+            skip = True
+    return skip
+
+
 def calibrate_actor_info_display(
     info_display: interface_elements.interface_element,
     new_actor: actors.actor,
@@ -110,6 +147,8 @@ def calibrate_actor_info_display(
         None
     """
     if flags.loading:
+        return
+    if skip_calibrate(info_display, new_actor): # Skip calibration if deselecting will not cause a change
         return
 
     if info_display == status.location_info_display and status.displayed_zone:

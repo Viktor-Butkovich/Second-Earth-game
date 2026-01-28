@@ -2692,36 +2692,21 @@ def location_interface() -> None:
         )
     )
 
-    input_dict = {
-        "coordinates": (0, 0),
-        "width": scaling.scale_width(25),
-        "height": scaling.scale_height(25),
-        "init_type": constants.SAME_LOCATION_ICON,
-        "image_id": "buttons/default_button.png",
-        "is_last": False,
-        "color": constants.COLOR_GRAY,
-        "parent_collection": same_location_ordered_collection,
-    }
-
-    for i in range(0, 3):  # add button to cycle through
-        input_dict["index"] = i
-        same_location_icon = constants.ActorCreationManager.create_interface_element(
-            input_dict
+    for i in range(0, 4):  # Add button to cycle through
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "coordinates": (0, 0),
+                "width": scaling.scale_width(25),
+                "height": scaling.scale_height(25),
+                "init_type": constants.SAME_LOCATION_ICON,
+                "image_id": "buttons/default_button.png",
+                "is_last": False,
+                "color": constants.COLOR_GRAY,
+                "parent_collection": same_location_ordered_collection,
+                "index": i,
+                "is_last": i == 3,
+            }
         )
-
-    same_location_icon = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": (0, 0),
-            "width": scaling.scale_width(25),
-            "height": scaling.scale_height(15),
-            "init_type": constants.SAME_LOCATION_ICON,
-            "image_id": "buttons/default_button.png",
-            "index": 3,
-            "is_last": True,
-            "color": constants.COLOR_GRAY,
-            "parent_collection": same_location_ordered_collection,
-        }
-    )
 
     cycle_same_location_button = (
         constants.ActorCreationManager.create_interface_element(
@@ -2805,7 +2790,9 @@ def location_interface() -> None:
                             **location_actor_label_input_dict,
                             "init_type": constants.TERRAIN_FEATURE_LABEL,
                             "terrain_feature_type": key,
-                            "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
+                            "member_config": {
+                                "order_x_offset": scaling.scale_width(x_displacement)
+                            },
                         }
                     )
         else:
@@ -2813,7 +2800,9 @@ def location_interface() -> None:
                 {
                     **location_actor_label_input_dict,
                     "init_type": current_actor_label_type,
-                    "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
+                    "member_config": {
+                        "order_x_offset": scaling.scale_width(x_displacement)
+                    },
                 }
             )
 

@@ -110,12 +110,16 @@ class grid(interface_elements.interface_element):
                 ].draw_outline(constants.COLOR_WHITE)
             elif status.displayed_location:
                 self.external_line_color = constants.COLOR_WHITE
-        if status.displayed_mob and (
-            self in status.displayed_mob.location.world_handler.subscribed_grids
-            or (
-                status.displayed_mob.end_turn_destination
-                and self
-                in status.displayed_mob.end_turn_destination.world_handler.subscribed_grids
+        if (
+            status.displayed_mob
+            and status.displayed_location
+            and (
+                self in status.displayed_mob.location.world_handler.subscribed_grids
+                or (
+                    status.displayed_mob.end_turn_destination
+                    and self
+                    in status.displayed_mob.end_turn_destination.world_handler.subscribed_grids
+                )
             )
         ):
             if flags.show_selection_outlines:
